@@ -1,0 +1,225 @@
+{
+  "info": {
+    "_postman_id": "4eff2be1-a742-4d38-92ca-d18e7f795c0c",
+    "name": "AutoTrader API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication Tests",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generate random values for user registration",
+                  "const randomUsername = 'user_' + Math.random().toString(36).substring(2, 10);",
+                  "const randomEmail = `${randomUsername}@example.com`;",
+                  "",
+                  "// Store values for use across requests",
+                  "pm.environment.set('test_username', randomUsername);",
+                  "pm.environment.set('test_email', randomEmail);",
+                  "pm.environment.set('test_password', 'password123');",
+                  "",
+                  "console.log(`Generated test user: ${randomUsername}, ${randomEmail}`);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Registration successful message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include(\"successfully\");",
+                  "});",
+                  "",
+                  "// Log the response for debugging",
+                  "console.log(\"Registration Response:\", pm.response.json());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"role\": [\"user\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Token is present\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token).to.not.be.undefined;",
+                  "    ",
+                  "    // Save token for later use",
+                  "    pm.environment.set(\"auth_token\", jsonData.token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"password\": \"{{test_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/signin",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "signin"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Car Listing Tests",
+      "item": [
+        {
+          "name": "Create Car Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing ID is returned\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.not.be.undefined;",
+                  "    ",
+                  "    // Save listing ID for later tests",
+                  "    pm.environment.set(\"listing_id\", jsonData.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"2023 Toyota Camry\",\n    \"brand\": \"Toyota\",\n    \"model\": \"Camry\",\n    \"year\": 2023,\n    \"mileage\": 5000,\n    \"price\": 28000,\n    \"location\": \"New York\",\n    \"description\": \"Like new condition\",\n    \"imageUrl\": \"https://example.com/camry.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/listings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "listings"]
+            }
+          }
+        },
+        {
+          "name": "Get My Listings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Listings are returned as array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(Array.isArray(jsonData)).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/listings/my-listings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "listings", "my-listings"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": ["console.log('Starting test suite execution');"]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": ["console.log('Test collection completed');"]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ]
+}
