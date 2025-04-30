@@ -8,7 +8,7 @@ This document outlines the development plan for the AutoTrader Marketplace backe
 - [x] **Implement Register API** (accepts user details and stores in DB)
 - [x] **Implement Login API** (returns JWT on successful login)
 - [x] **Role-based Access Control** (admin/user roles)
-- [ ] **Test Authentication APIs** with Postman or integration tests
+- [x] **Test Authentication APIs** with Postman or integration tests
 
 ## Phase 2: Car Listings
 
