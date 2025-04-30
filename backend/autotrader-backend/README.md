@@ -8,6 +8,14 @@ This is the backend service for the Autotrader Marketplace application, built wi
 - Gradle (or use the included Gradle wrapper)
 - PostgreSQL (for production, H2 is used for development)
 
+## Project Documentation
+
+For a complete overview of the project roadmap and architecture, refer to these project-level documents:
+
+- [Development Plan](/DEVELOPMENT_PLAN.md) - Complete roadmap for the project
+- [System Design](/docs/system_design.md) - Architecture and technology choices
+- [Testing Plan](/docs/testing_plan.md) - Testing strategy and approach
+
 ## Project Structure
 
 ```
