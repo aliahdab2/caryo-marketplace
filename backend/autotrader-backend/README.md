@@ -41,6 +41,8 @@ autotrader-backend/
 
 The application will start on port 8080 by default.
 
+> **Quick Start**: For a step-by-step guide on how to test the API endpoints and run the Postman tests, see the [Quick Start Guide](API_DOCUMENTATION.md#quick-start-guide) in the API documentation.
+
 ### Environment Configuration
 
 The application uses different configurations for development and production:
@@ -52,23 +54,32 @@ Configure the database connection in `application.properties` for production or 
 
 ## API Documentation
 
+The API endpoints are documented in detail in the [API_DOCUMENTATION.md](API_DOCUMENTATION.md) file, including:
+- Request/response formats
+- Authentication requirements
+- Example usage with cURL
+- Error handling
+
 ### Authentication Endpoints
 
-- `POST /api/auth/signup` - Register a new user
-- `POST /api/auth/signin` - Login and receive JWT token
+- `POST /auth/signup` - Register a new user
+- `POST /auth/signin` - Login and receive JWT token
 
 ### Status Endpoints
 
 - `GET /status` - Check if service is running
 - `GET /api/status` - Check if API is accessible
 
-### Car Listing Endpoints (Coming Soon)
+### Car Listing Endpoints
 
-- `GET /api/cars` - Get all car listings
-- `GET /api/cars/{id}` - Get car by ID
-- `POST /api/cars` - Create a new car listing
-- `PUT /api/cars/{id}` - Update car listing
-- `DELETE /api/cars/{id}` - Delete car listing
+- `POST /api/listings` - Create a new car listing
+- `GET /api/listings/my-listings` - Get all listings for the current user
+
+Additional endpoints coming soon:
+- `GET /api/listings` - Get all car listings
+- `GET /api/listings/{id}` - Get car by ID
+- `PUT /api/listings/{id}` - Update car listing
+- `DELETE /api/listings/{id}` - Delete car listing
 
 ## Testing
 
