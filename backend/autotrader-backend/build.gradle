@@ -37,4 +37,11 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	testLogging {
+		events "passed", "skipped", "failed"
+	}
+	scanForTestClasses = true
+	include '**/*Test.java'
+	include '**/*Tests.java'
+	include '**/*IntegrationTest.java'
 }
