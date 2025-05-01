@@ -132,22 +132,30 @@ Authorization: Bearer <your_jwt_token>
 - **Request Body**:
   ```json
   {
-    "title": "2019 Toyota Camry",
+    "title": "2023 Toyota Camry",
     "brand": "Toyota",
     "model": "Camry",
-    "modelYear": 2019,
-    "price": 18500,
-    "mileage": 35000,
+    "modelYear": 2023,
+    "price": 28500,
+    "mileage": 15000,
     "location": "New York, NY",
     "description": "Excellent condition, one owner, no accidents",
     "imageUrl": "https://example.com/camry.jpg"
   }
   ```
+- **Validation Rules**:
+  - `title`: Required
+  - `brand`: Required
+  - `model`: Required
+  - `modelYear`: Required, must be between 1920 and current year, must be a 4-digit number
+  - `price`: Required, must be positive
+  - `mileage`: Required, must be zero or positive
+  - `location`: Required
 - **Response (201 Created)**:
   ```json
   {
     "id": 1,
-    "title": "2019 Toyota Camry",
+    "title": "2023 Toyota Camry",
     "brand": "Toyota",
     "model": "Camry",
     "modelYear": 2019,
@@ -284,7 +292,7 @@ TOKEN=$(curl -s -X POST http://localhost:8080/auth/signin \
 curl -X POST http://localhost:8080/api/listings \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
-  -d '{"title":"2019 Toyota Camry","brand":"Toyota","model":"Camry","modelYear":2019,"price":18500,"mileage":35000,"location":"New York, NY","description":"Excellent condition, one owner, no accidents","imageUrl":"https://example.com/camry.jpg"}'
+  -d '{"title":"2023 Toyota Camry","brand":"Toyota","model":"Camry","modelYear":2023,"price":28500,"mileage":15000,"location":"New York, NY","description":"Excellent condition, one owner, no accidents","imageUrl":"https://example.com/camry.jpg"}'
 ```
 
 #### Get Your Listings

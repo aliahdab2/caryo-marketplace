@@ -1,6 +1,9 @@
 package com.autotrader.autotraderbackend.model;
 
+import com.autotrader.autotraderbackend.validation.CurrentYearOrEarlier;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 import java.math.BigDecimal;
@@ -26,6 +29,9 @@ public class CarListing {
     private String model;
     
     @Column(name = "model_year", nullable = false)
+    @Min(value = 1920, message = "Year must be 1920 or later")
+    @CurrentYearOrEarlier(message = "Year must not be later than the current year")
+    @Digits(integer = 4, fraction = 0, message = "Year must be a 4-digit number")
     private Integer modelYear;
     
     @Column(nullable = false)

@@ -152,7 +152,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"title\": \"2023 Toyota Camry\",\n    \"brand\": \"Toyota\",\n    \"model\": \"Camry\",\n    \"year\": 2023,\n    \"mileage\": 5000,\n    \"price\": 28000,\n    \"location\": \"New York\",\n    \"description\": \"Like new condition\",\n    \"imageUrl\": \"https://example.com/camry.jpg\"\n}"
+              "raw": "{\n    \"title\": \"2023 Toyota Camry\",\n    \"brand\": \"Toyota\",\n    \"model\": \"Camry\",\n    \"modelYear\": 2023,\n    \"mileage\": 5000,\n    \"price\": 28000,\n    \"location\": \"New York\",\n    \"description\": \"Like new condition\",\n    \"imageUrl\": \"https://example.com/camry.jpg\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/listings",

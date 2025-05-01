@@ -1,5 +1,8 @@
 package com.autotrader.autotraderbackend.payload.request;
 
+import com.autotrader.autotraderbackend.validation.CurrentYearOrEarlier;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -22,7 +25,9 @@ public class CreateListingRequest {
     private String model;
     
     @NotNull(message = "Year is required")
-    @Positive(message = "Year must be a positive number")
+    @Min(value = 1920, message = "Year must be 1920 or later")
+    @CurrentYearOrEarlier(message = "Year must not be later than the current year")
+    @Digits(integer = 4, fraction = 0, message = "Year must be a 4-digit number")
     private Integer modelYear;
     
     @NotNull(message = "Mileage is required")

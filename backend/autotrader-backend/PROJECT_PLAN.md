@@ -13,6 +13,7 @@ This document outlines the development plan for the AutoTrader Marketplace backe
 ## Phase 2: Car Listings
 
 - [ ] **Create Listing API** (upload car info + image)
+  - [x] Implement dynamic validation for car model year (1920 - current year)
 - [ ] **Get All Listings API** (return a paginated list)
 - [ ] **Filter Listings API** (by price, location, brand, etc.)
 - [ ] **Car Details API** (single listing view)

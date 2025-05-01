@@ -1,5 +1,7 @@
 package com.autotrader.autotraderbackend.payload.request;
 
+import com.autotrader.autotraderbackend.validation.CurrentYearOrEarlier;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
@@ -12,7 +14,12 @@ public class ListingFilterRequest {
     
     private String brand;
     private String model;
+    
+    @Min(value = 1920, message = "Year filter must be 1920 or later")
+    @CurrentYearOrEarlier(message = "Year filter must not be later than the current year")
+    @Digits(integer = 4, fraction = 0, message = "Year filter must be a 4-digit number")
     private Integer modelYear;
+    
     private String location;
     
     @PositiveOrZero(message = "Minimum price must be positive or zero")
