@@ -5,6 +5,9 @@ import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.CarListingService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -92,23 +96,19 @@ public class CarListingControllerTest {
         List<CarListingResponse> listings = new ArrayList<>();
         listings.add(carListingResponse);
         
-        PageResponse<CarListingResponse> pageResponse = new PageResponse<>();
-        pageResponse.setContent(listings);
-        pageResponse.setPage(0);
-        pageResponse.setSize(10);
-        pageResponse.setTotalElements(1);
-        pageResponse.setTotalPages(1);
-        pageResponse.setLast(true);
+        // Create Page of listings
+        Page<CarListingResponse> page = new PageImpl<>(listings);
         
-        when(carListingService.getAllApprovedListings(anyInt(), anyInt())).thenReturn(pageResponse);
+        when(carListingService.getAllApprovedListings(any(Pageable.class))).thenReturn(page);
 
         // Act
-        ResponseEntity<PageResponse<CarListingResponse>> response = carListingController.getAllListings(0, 10);
+        ResponseEntity<PageResponse<CarListingResponse>> response = carListingController.getAllListings(0, 10, new String[]{"createdAt,desc"});
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(pageResponse, response.getBody());
+        assertNotNull(response.getBody());
+        assertEquals(listings, response.getBody().getContent());
     }
 
     @Test
@@ -117,25 +117,23 @@ public class CarListingControllerTest {
         List<CarListingResponse> listings = new ArrayList<>();
         listings.add(carListingResponse);
         
-        PageResponse<CarListingResponse> pageResponse = new PageResponse<>();
-        pageResponse.setContent(listings);
-        pageResponse.setPage(0);
-        pageResponse.setSize(10);
-        pageResponse.setTotalElements(1);
-        pageResponse.setTotalPages(1);
-        pageResponse.setLast(true);
+        // Create Page of listings
+        Page<CarListingResponse> page = new PageImpl<>(listings);
         
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         filterRequest.setBrand("Toyota");
         
-        when(carListingService.getFilteredListings(any(ListingFilterRequest.class))).thenReturn(pageResponse);
+        when(carListingService.getFilteredListings(any(ListingFilterRequest.class), any(Pageable.class))).thenReturn(page);
 
         // Act
-        ResponseEntity<PageResponse<CarListingResponse>> response = carListingController.filterListings(filterRequest);
+        // Call the filter endpoint with filter request, page, size and sort
+        ResponseEntity<PageResponse<CarListingResponse>> response = carListingController.getFilteredListings(
+            filterRequest, 0, 10, new String[]{"createdAt,desc"});
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(pageResponse, response.getBody());
+        assertNotNull(response.getBody());
+        assertEquals(listings, response.getBody().getContent());
     }
 }

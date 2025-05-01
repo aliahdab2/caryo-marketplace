@@ -38,28 +38,28 @@ public class ListingFilterRequestTest {
     }
     
     @Test
-    void shouldValidateModelYearBetween1920AndCurrentYear() {
+    void shouldValidateYearBetween1920AndCurrentYear() {
         // Arrange
         ListingFilterRequest request = new ListingFilterRequest();
-        request.setModelYear(1920); // Min allowed value
+        request.setMinYear(1920); // Min allowed value
         
         // Act
         Set<ConstraintViolation<ListingFilterRequest>> violations = validator.validate(request);
         
         // Assert
-        assertTrue(violations.isEmpty(), "1920 should be a valid model year");
+        assertTrue(violations.isEmpty(), "1920 should be a valid minimum year");
         
         // Test current year (which should be valid)
-        request.setModelYear(Year.now().getValue());
+        request.setMaxYear(Year.now().getValue());
         violations = validator.validate(request);
-        assertTrue(violations.isEmpty(), "Current year should be a valid model year");
+        assertTrue(violations.isEmpty(), "Current year should be a valid maximum year");
     }
     
     @Test
-    void shouldRejectModelYearBelow1920() {
+    void shouldRejectMinYearBelow1920() {
         // Arrange
         ListingFilterRequest request = new ListingFilterRequest();
-        request.setModelYear(1919);
+        request.setMinYear(1919);
         
         // Act
         Set<ConstraintViolation<ListingFilterRequest>> violations = validator.validate(request);
@@ -67,14 +67,14 @@ public class ListingFilterRequestTest {
         // Assert
         assertEquals(1, violations.size());
         ConstraintViolation<ListingFilterRequest> violation = violations.iterator().next();
-        assertEquals("Year filter must be 1920 or later", violation.getMessage());
+        assertEquals("Minimum year filter must be 1920 or later", violation.getMessage());
     }
     
     @Test
-    void shouldRejectModelYearAboveCurrentYear() {
+    void shouldRejectMaxYearAboveCurrentYear() {
         // Arrange
         ListingFilterRequest request = new ListingFilterRequest();
-        request.setModelYear(Year.now().getValue() + 1); // Next year
+        request.setMaxYear(Year.now().getValue() + 1); // Next year
         
         // Act
         Set<ConstraintViolation<ListingFilterRequest>> violations = validator.validate(request);
@@ -82,14 +82,14 @@ public class ListingFilterRequestTest {
         // Assert
         assertEquals(1, violations.size());
         ConstraintViolation<ListingFilterRequest> violation = violations.iterator().next();
-        assertEquals("Year filter must not be later than the current year", violation.getMessage());
+        assertEquals("Maximum year filter must not be later than the current year", violation.getMessage());
     }
     
     @Test
-    void shouldRejectNon4DigitModelYear() {
+    void shouldRejectNon4DigitYear() {
         // Arrange
         ListingFilterRequest request = new ListingFilterRequest();
-        request.setModelYear(12345); // 5 digits
+        request.setMinYear(12345); // 5 digits
         
         // Act
         Set<ConstraintViolation<ListingFilterRequest>> violations = validator.validate(request);
@@ -97,6 +97,16 @@ public class ListingFilterRequestTest {
         // Assert
         assertEquals(1, violations.size());
         ConstraintViolation<ListingFilterRequest> violation = violations.iterator().next();
-        assertEquals("Year filter must be a 4-digit number", violation.getMessage());
+        assertEquals("Minimum year filter must be a 4-digit number", violation.getMessage());
+        
+        // Test max year too
+        request = new ListingFilterRequest();
+        request.setMaxYear(12345); // 5 digits
+        
+        violations = validator.validate(request);
+        
+        assertEquals(1, violations.size());
+        violation = violations.iterator().next();
+        assertEquals("Maximum year filter must be a 4-digit number", violation.getMessage());
     }
 }

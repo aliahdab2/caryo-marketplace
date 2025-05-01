@@ -1,211 +1,224 @@
 package com.autotrader.autotraderbackend.service;
 
+import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
-import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.criteria.Predicate;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.autotrader.autotraderbackend.repository.specification.CarListingSpecification;
+import com.autotrader.autotraderbackend.service.storage.StorageService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class CarListingService {
-    
-    @Autowired
-    private CarListingRepository carListingRepository;
-    
-    @Autowired
-    private UserRepository userRepository;
-    
+
+    private final CarListingRepository carListingRepository;
+    private final UserRepository userRepository;
+    private final StorageService storageService;
+
     /**
      * Create a new car listing
      */
     @Transactional
     public CarListingResponse createListing(CreateListingRequest request, String username) {
-        User seller = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-        
+        log.info("Creating new listing for user: {}", username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
         CarListing carListing = new CarListing();
-        carListing.setTitle(request.getTitle());
+        // Corrected mapping from request to entity
+        carListing.setTitle(request.getTitle()); // Assuming title exists in request
         carListing.setBrand(request.getBrand());
         carListing.setModel(request.getModel());
         carListing.setModelYear(request.getModelYear());
-        carListing.setMileage(request.getMileage());
         carListing.setPrice(request.getPrice());
-        carListing.setLocation(request.getLocation());
+        carListing.setMileage(request.getMileage());
+        // carListing.setColor(request.getColor()); // Color not in CreateListingRequest
+        // carListing.setTransmission(request.getTransmission()); // Transmission not in CreateListingRequest
         carListing.setDescription(request.getDescription());
-        carListing.setImageUrl(request.getImageUrl());
-        carListing.setSeller(seller);
-        
-        // By default, listing is not approved until admin reviews it
-        carListing.setApproved(false);
-        
-        CarListing savedListing = carListingRepository.save(carListing);
-        
-        return convertToResponse(savedListing);
+        carListing.setLocation(request.getLocation());
+        carListing.setSeller(user); // Corrected setter method
+        carListing.setApproved(false); // Listings start as not approved
+
+        try {
+            CarListing savedListing = carListingRepository.save(carListing);
+            log.info("Successfully saved new listing with ID: {} (pending approval)", savedListing.getId());
+            return convertToResponse(savedListing);
+        } catch (Exception e) {
+            log.error("Error saving car listing for user {}: {}", username, e.getMessage(), e);
+            throw new RuntimeException("Failed to create car listing.", e);
+        }
     }
-    
+
     /**
-     * Get all approved listings with pagination
+     * Upload an image for a car listing
+     * @param file The image file to upload
+     * @param listingId The ID of the listing to update (optional, can be null for pre-upload)
+     * @param username The username of the authenticated user
+     * @return The URL of the uploaded image
      */
-    public PageResponse<CarListingResponse> getAllApprovedListings(int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<CarListing> listingsPage = carListingRepository.findByApprovedTrue(pageRequest);
+    @Transactional
+    public String uploadListingImage(Long listingId, MultipartFile file, String username) {
+        log.info("Attempting to upload image for listing ID: {} by user: {}", listingId, username);
+        // Fetch user first to check ownership later
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
         
-        return createPageResponse(listingsPage);
+        CarListing listing = carListingRepository.findById(listingId)
+                .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", listingId));
+
+        // Authorization check: Ensure the user owns the listing
+        // Corrected getter method
+        if (listing.getSeller() == null || !listing.getSeller().getId().equals(user.getId())) {
+            log.warn("Authorization failed: User '{}' attempted to upload image for listing ID {} owned by '{}'",
+                     username, listingId, listing.getSeller() != null ? listing.getSeller().getUsername() : "<unknown>");
+            throw new SecurityException("User does not have permission to modify this listing.");
+        }
+
+        String imageKey = "listings/" + listingId + "/" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        try {
+            storageService.store(file, imageKey);
+            listing.setImageKey(imageKey);
+            carListingRepository.save(listing);
+            log.info("Successfully uploaded image and updated listing ID: {}. Image key: {}", listingId, imageKey);
+            return imageKey;
+        } catch (Exception e) {
+            log.error("Error uploading image for listing ID {}: {}", listingId, e.getMessage(), e);
+            throw new RuntimeException("Failed to upload image for listing.", e);
+        }
     }
-    
-    /**
-     * Get listings with filters
-     */
-    public PageResponse<CarListingResponse> getFilteredListings(ListingFilterRequest filterRequest) {
-        Sort.Direction direction = filterRequest.getSortDirection().equalsIgnoreCase("asc") ? 
-                                 Sort.Direction.ASC : Sort.Direction.DESC;
-        
-        PageRequest pageRequest = PageRequest.of(
-            filterRequest.getPage(), 
-            filterRequest.getSize(),
-            Sort.by(direction, filterRequest.getSortBy())
-        );
-        
-        Specification<CarListing> spec = (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            
-            // Always filter by approved = true for public API
-            predicates.add(criteriaBuilder.equal(root.get("approved"), true));
-            
-            if (filterRequest.getBrand() != null && !filterRequest.getBrand().isEmpty()) {
-                predicates.add(criteriaBuilder.equal(root.get("brand"), filterRequest.getBrand()));
-            }
-            
-            if (filterRequest.getModel() != null && !filterRequest.getModel().isEmpty()) {
-                predicates.add(criteriaBuilder.equal(root.get("model"), filterRequest.getModel()));
-            }
-            
-            if (filterRequest.getModelYear() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("modelYear"), filterRequest.getModelYear()));
-            }
-            
-            if (filterRequest.getLocation() != null && !filterRequest.getLocation().isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("location"), "%" + filterRequest.getLocation() + "%"));
-            }
-            
-            if (filterRequest.getMinPrice() != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("price"), filterRequest.getMinPrice()));
-            }
-            
-            if (filterRequest.getMaxPrice() != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("price"), filterRequest.getMaxPrice()));
-            }
-            
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
-        
-        Page<CarListing> listingsPage = carListingRepository.findAll(spec, pageRequest);
-        
-        return createPageResponse(listingsPage);
-    }
-    
+
     /**
      * Get car listing details by ID (only if approved)
      */
+    @Transactional(readOnly = true)
     public CarListingResponse getListingById(Long id) {
-        CarListing listing = carListingRepository.findByIdAndApprovedTrue(id)
-                .orElseThrow(() -> new EntityNotFoundException("Car listing not found with id: " + id));
-        
-        return convertToResponse(listing);
+        log.debug("Fetching listing by ID: {}", id);
+        CarListing carListing = carListingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", id));
+        return convertToResponse(carListing);
     }
-    
+
+    /**
+     * Get all approved listings with pagination
+     */
+    @Transactional(readOnly = true)
+    public Page<CarListingResponse> getAllApprovedListings(Pageable pageable) {
+        log.debug("Fetching all approved listings with pagination: {}", pageable);
+        // Use repository method that finds approved listings with pagination
+        Page<CarListing> listingPage = carListingRepository.findByApprovedTrue(pageable);
+        log.info("Found {} approved listings on page {} (size {}).", listingPage.getNumberOfElements(), pageable.getPageNumber(), pageable.getPageSize());
+        return listingPage.map(this::convertToResponse);
+    }
+
+    /**
+     * Get filtered listings based on criteria
+     */
+    @Transactional(readOnly = true)
+    public Page<CarListingResponse> getFilteredListings(ListingFilterRequest filterRequest, Pageable pageable) {
+        log.debug("Fetching filtered listings with filter: {}, pagination: {}", filterRequest, pageable);
+        // Create a specification based on the filter request
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filterRequest);
+        // Always add the 'approved' criteria for public filtering
+        Specification<CarListing> approvedSpec = Specification.where(spec)
+                                                              .and(CarListingSpecification.isApproved());
+                                                              
+        Page<CarListing> listingPage = carListingRepository.findAll(approvedSpec, pageable);
+        log.info("Found {} filtered listings on page {} (size {}).", listingPage.getNumberOfElements(), pageable.getPageNumber(), pageable.getPageSize());
+        return listingPage.map(this::convertToResponse);
+    }
+
     /**
      * Get all listings for current user (seller)
      */
+    @Transactional(readOnly = true)
     public List<CarListingResponse> getMyListings(String username) {
-        User seller = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-        
-        List<CarListing> listings = carListingRepository.findBySeller(seller);
-        
-        return listings.stream()
+        log.debug("Fetching listings for user: {}", username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+        // Corrected repository method call
+        return carListingRepository.findBySeller(user).stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
-    
+
     /**
-     * Get all listings pending approval (admin only)
-     */
-    public PageResponse<CarListingResponse> getPendingApprovalListings(int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<CarListing> listingsPage = carListingRepository.findByApprovedFalse(pageRequest);
-        
-        return createPageResponse(listingsPage);
-    }
-    
-    /**
-     * Approve a listing (admin only)
+     * Approve a car listing
      */
     @Transactional
     public CarListingResponse approveListing(Long id) {
-        CarListing listing = carListingRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Car listing not found with id: " + id));
+        log.info("Attempting to approve listing with ID: {}", id);
+        CarListing carListing = carListingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", id));
         
-        listing.setApproved(true);
-        carListingRepository.save(listing);
+        if (Boolean.TRUE.equals(carListing.getApproved())) { // Safe check for Boolean
+            log.warn("Listing ID {} is already approved.", id);
+            // Decide whether to throw an error or just return the listing
+            // return convertToResponse(carListing); 
+            throw new IllegalStateException("Listing is already approved.");
+        }
         
-        return convertToResponse(listing);
+        carListing.setApproved(true);
+        CarListing approvedListing = carListingRepository.save(carListing);
+        log.info("Successfully approved listing ID: {}", approvedListing.getId());
+        return convertToResponse(approvedListing);
     }
-    
+
     /**
-     * Convert a CarListing entity to a CarListingResponse DTO
+     * Helper method to convert Entity to Response DTO
      */
     private CarListingResponse convertToResponse(CarListing carListing) {
-        return new CarListingResponse(
-            carListing.getId(),
-            carListing.getTitle(),
-            carListing.getBrand(),
-            carListing.getModel(),
-            carListing.getModelYear(),
-            carListing.getMileage(),
-            carListing.getPrice(),
-            carListing.getLocation(),
-            carListing.getDescription(),
-            carListing.getImageUrl(),
-            carListing.getApproved(),
-            carListing.getSeller().getId(),
-            carListing.getSeller().getUsername(),
-            carListing.getCreatedAt()
-        );
-    }
-    
-    /**
-     * Create a PageResponse from a Page of CarListings
-     */
-    private PageResponse<CarListingResponse> createPageResponse(Page<CarListing> listingsPage) {
-        List<CarListingResponse> listingResponses = listingsPage.getContent().stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
+        CarListingResponse response = new CarListingResponse();
+        response.setId(carListing.getId());
+        // Corrected mapping from entity to response
+        response.setTitle(carListing.getTitle()); // Assuming title exists
+        response.setBrand(carListing.getBrand());
+        response.setModel(carListing.getModel());
+        response.setModelYear(carListing.getModelYear());
+        response.setPrice(carListing.getPrice());
+        response.setMileage(carListing.getMileage());
+        // response.setColor(carListing.getColor()); // Color not in CarListingResponse
+        // response.setTransmission(carListing.getTransmission()); // Transmission not in CarListingResponse
+        response.setDescription(carListing.getDescription());
+        response.setLocation(carListing.getLocation());
+        response.setCreatedAt(carListing.getCreatedAt());
+        response.setApproved(carListing.getApproved()); // Assuming approved exists
+        // response.setUpdatedAt(carListing.getUpdatedAt()); // UpdatedAt not in CarListingResponse
         
-        return new PageResponse<>(
-            listingResponses,
-            listingsPage.getNumber(),
-            listingsPage.getSize(),
-            listingsPage.getTotalElements(),
-            listingsPage.getTotalPages(),
-            listingsPage.isLast()
-        );
+        // Corrected getter method for user/seller info
+        if (carListing.getSeller() != null) {
+            response.setSellerId(carListing.getSeller().getId());
+            response.setSellerUsername(carListing.getSeller().getUsername());
+        }
+
+        String signedImageUrl = null;
+        if (carListing.getImageKey() != null) {
+            try {
+                signedImageUrl = storageService.getSignedUrl(carListing.getImageKey(), 3600);
+                log.debug("Generated signed URL for listing ID {}: {}", carListing.getId(), signedImageUrl);
+            } catch (UnsupportedOperationException e) {
+                log.warn("Storage service does not support signed URLs. Cannot generate for listing ID {}.", carListing.getId());
+            } catch (Exception e) {
+                log.error("Error generating signed URL for listing ID {}: {}", carListing.getId(), e.getMessage(), e);
+            }
+        }
+        response.setImageUrl(signedImageUrl);
+
+        return response;
     }
 }

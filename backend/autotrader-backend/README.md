@@ -150,25 +150,6 @@ You can also run the tests manually using Postman:
 
 3. Run the collection in Postman
 
-#### Using the Testing Scripts
-
-Two scripts are provided to quickly test specific functionality:
-
-1. `test_endpoints.sh` - Test basic HTTP endpoints
-2. `test_auth.sh` - Test authentication endpoints
-
-Make them executable before running:
-
-```bash
-chmod +x test_endpoints.sh test_auth.sh
-```
-
-Example authentication test:
-
-```bash
-./test_auth.sh
-```
-
 ### Why API Tests Are Not in CI/CD
 
 We've chosen not to include API tests in the CI/CD pipeline for the following reasons:

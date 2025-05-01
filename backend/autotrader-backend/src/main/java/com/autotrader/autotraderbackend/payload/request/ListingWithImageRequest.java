@@ -9,11 +9,12 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.math.BigDecimal;
 
 @Getter
 @Setter
-public class CreateListingRequest {
+public class ListingWithImageRequest {
     
     @NotBlank(message = "Title is required")
     private String title;
@@ -42,28 +43,4 @@ public class CreateListingRequest {
     private String location;
     
     private String description;
-    
-    private String imageUrl;
-
-    // Explicit Getters
-    public String getTitle() { return title; }
-    public String getBrand() { return brand; }
-    public String getModel() { return model; }
-    public Integer getModelYear() { return modelYear; }
-    public Integer getMileage() { return mileage; }
-    public BigDecimal getPrice() { return price; }
-    public String getLocation() { return location; }
-    public String getDescription() { return description; }
-    public String getImageUrl() { return imageUrl; }
-
-    // Explicit Setters
-    public void setTitle(String title) { this.title = title; }
-    public void setBrand(String brand) { this.brand = brand; }
-    public void setModel(String model) { this.model = model; }
-    public void setModelYear(Integer modelYear) { this.modelYear = modelYear; }
-    public void setMileage(Integer mileage) { this.mileage = mileage; }
-    public void setPrice(BigDecimal price) { this.price = price; }
-    public void setLocation(String location) { this.location = location; }
-    public void setDescription(String description) { this.description = description; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }
