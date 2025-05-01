@@ -70,11 +70,7 @@ replay_pid*
 
 # IDE files
 .idea/
-.vscode/
-*.iml
-*.iws
-*.ipr
-.project
-.classpath
 .settings/
->>>>>>> Stashed changes
+
+# Test files
+.test_listing_id
