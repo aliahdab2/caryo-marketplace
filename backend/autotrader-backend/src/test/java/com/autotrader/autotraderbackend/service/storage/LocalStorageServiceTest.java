@@ -16,14 +16,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class LocalStorageServiceTest {
 
     private LocalStorageService storageService;
-    private StorageProperties properties;
-    
+
     @TempDir
     Path tempDir;
     
     @BeforeEach
     void setUp() {
-        properties = new StorageProperties();
+        StorageProperties properties = new StorageProperties();
         properties.setLocation(tempDir.toString());
         properties.setBaseUrl("http://localhost:8080/api/files");
         
@@ -33,7 +32,6 @@ class LocalStorageServiceTest {
     
     @Test
     void testStoreAndLoadFile() throws IOException {
-        // Create test file
         MockMultipartFile file = new MockMultipartFile(
             "test-file",
             "test-file.txt",
@@ -44,14 +42,11 @@ class LocalStorageServiceTest {
         // Store file
         String url = storageService.store(file, "test-folder/test-file.txt");
         
-        // Check that URL is correct
         assertEquals("http://localhost:8080/api/files/test-folder/test-file.txt", url);
         
-        // Check that file exists on disk
         Path storedFile = tempDir.resolve("test-folder/test-file.txt");
         assertTrue(Files.exists(storedFile));
         
-        // Check content
         String content = new String(Files.readAllBytes(storedFile));
         assertEquals("Hello, World!", content);
         
@@ -61,8 +56,7 @@ class LocalStorageServiceTest {
     }
     
     @Test
-    void testDelete() throws IOException {
-        // Create test file
+    void testDelete() {
         MockMultipartFile file = new MockMultipartFile(
             "test-file",
             "test-file.txt",
@@ -73,17 +67,13 @@ class LocalStorageServiceTest {
         // Store file
         storageService.store(file, "test-file.txt");
         
-        // Check that file exists
         Path storedFile = tempDir.resolve("test-file.txt");
         assertTrue(Files.exists(storedFile));
         
-        // Delete file
         boolean deleted = storageService.delete("test-file.txt");
         
-        // Check that delete was successful
         assertTrue(deleted);
         
-        // Check that file no longer exists
         assertFalse(Files.exists(storedFile));
     }
     
