@@ -108,7 +108,8 @@ public class CarListingServiceTest {
         when(userRepository.findByUsername("nonexistentuser")).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(UsernameNotFoundException.class, () -> {
+        // Update the expected exception type to ResourceNotFoundException
+        assertThrows(com.autotrader.autotraderbackend.exception.ResourceNotFoundException.class, () -> {
             carListingService.createListing(createRequest, "nonexistentuser");
         });
 

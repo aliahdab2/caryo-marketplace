@@ -1,6 +1,5 @@
 package com.autotrader.autotraderbackend.security.jwt;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +14,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 public class JwtUtilsTest {
@@ -38,9 +37,8 @@ public class JwtUtilsTest {
                 .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
                 .build();
         
-        when(authentication.getPrincipal()).thenReturn(userDetails);
+        lenient().when(authentication.getPrincipal()).thenReturn(userDetails);
         
-        // Set values for the properties annotated with @Value
         ReflectionTestUtils.setField(jwtUtils, "jwtSecret", testSecret);
         ReflectionTestUtils.setField(jwtUtils, "jwtExpirationMs", 60000); // 1 minute
     }
@@ -52,7 +50,7 @@ public class JwtUtilsTest {
         
         // Assert
         assertNotNull(token);
-        assertTrue(token.length() > 0);
+        assertFalse(token.isEmpty());
     }
 
     @Test

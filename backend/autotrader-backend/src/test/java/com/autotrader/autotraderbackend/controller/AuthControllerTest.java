@@ -22,16 +22,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,7 +53,6 @@ public class AuthControllerTest {
 
     private LoginRequest loginRequest;
     private SignupRequest signupRequest;
-    private UserDetails userDetails;
     private Authentication authentication;
 
     @BeforeEach
@@ -76,14 +72,14 @@ public class AuthControllerTest {
         authentication = mock(Authentication.class);
         Collection<SimpleGrantedAuthority> authorities = Collections.singletonList(
                 new SimpleGrantedAuthority("ROLE_USER"));
-        
-        userDetails = org.springframework.security.core.userdetails.User.builder()
+
+        UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username("testuser")
                 .password("password")
                 .authorities(authorities)
                 .build();
                 
-        when(authentication.getPrincipal()).thenReturn(userDetails);
+        lenient().when(authentication.getPrincipal()).thenReturn(userDetails);
     }
 
     @Test
@@ -92,6 +88,13 @@ public class AuthControllerTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
         when(jwtUtils.generateJwtToken(authentication)).thenReturn("test-jwt-token");
+        
+        // Mock the user repository response
+        User mockUser = new User();
+        mockUser.setId(1L);
+        mockUser.setUsername("testuser");
+        mockUser.setEmail("test@example.com");
+        when(userRepository.findByUsername("testuser")).thenReturn(java.util.Optional.of(mockUser));
 
         // Act
         ResponseEntity<?> response = authController.authenticateUser(loginRequest);
@@ -99,11 +102,13 @@ public class AuthControllerTest {
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof JwtResponse);
+        assertInstanceOf(JwtResponse.class, response.getBody());
         
         JwtResponse jwtResponse = (JwtResponse) response.getBody();
+        assertNotNull(jwtResponse);
         assertEquals("test-jwt-token", jwtResponse.getToken());
         assertEquals("testuser", jwtResponse.getUsername());
+        assertEquals("test@example.com", jwtResponse.getEmail());
         
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(jwtUtils).generateJwtToken(authentication);
@@ -171,7 +176,7 @@ public class AuthControllerTest {
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody() instanceof MessageResponse);
+        assertInstanceOf(MessageResponse.class, response.getBody());
         
         MessageResponse messageResponse = (MessageResponse) response.getBody();
         assertEquals("Error: Email is already in use!", messageResponse.getMessage());

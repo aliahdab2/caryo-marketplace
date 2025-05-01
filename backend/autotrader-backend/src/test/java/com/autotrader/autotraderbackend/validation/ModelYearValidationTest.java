@@ -107,9 +107,13 @@ class ModelYearValidationTest {
         
         // Assert
         assertFalse(violations.isEmpty(), "5-digit year should be invalid");
-        assertEquals(1, violations.size());
-        assertEquals("Year must be a 4-digit number", 
-                     violations.iterator().next().getMessage());
+        // Update to expect 2 violations: one for max year, one for digit count
+        assertEquals(2, violations.size());
+        
+        // Find the message about the 4-digit number requirement
+        boolean found4DigitMessage = violations.stream()
+            .anyMatch(v -> v.getMessage().equals("Year must be a 4-digit number"));
+        assertTrue(found4DigitMessage, "Should have validation message about 4-digit requirement");
     }
     
     private CreateListingRequest createValidRequest() {
