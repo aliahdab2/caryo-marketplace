@@ -23,7 +23,7 @@ public class CreateListingRequest {
     
     @NotNull(message = "Year is required")
     @Positive(message = "Year must be a positive number")
-    private Integer year;
+    private Integer modelYear;
     
     @NotNull(message = "Mileage is required")
     @PositiveOrZero(message = "Mileage must be a positive number or zero")

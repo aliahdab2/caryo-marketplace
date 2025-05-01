@@ -47,7 +47,7 @@ public class CarListingControllerTest {
         createRequest.setTitle("Test Car");
         createRequest.setBrand("Toyota");
         createRequest.setModel("Camry");
-        createRequest.setYear(2022);
+        createRequest.setModelYear(2022);
         createRequest.setMileage(5000);
         createRequest.setPrice(new BigDecimal("25000.00"));
         createRequest.setLocation("Test Location");
@@ -58,7 +58,7 @@ public class CarListingControllerTest {
         carListingResponse.setTitle("Test Car");
         carListingResponse.setBrand("Toyota");
         carListingResponse.setModel("Camry");
-        carListingResponse.setYear(2022);
+        carListingResponse.setModelYear(2022);
         carListingResponse.setMileage(5000);
         carListingResponse.setPrice(new BigDecimal("25000.00"));
         carListingResponse.setLocation("Test Location");

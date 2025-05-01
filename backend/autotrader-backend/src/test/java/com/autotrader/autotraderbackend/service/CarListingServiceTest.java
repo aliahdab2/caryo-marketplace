@@ -49,7 +49,7 @@ public class CarListingServiceTest {
         createRequest.setTitle("Test Car");
         createRequest.setBrand("Toyota");
         createRequest.setModel("Camry");
-        createRequest.setYear(2022);
+        createRequest.setModelYear(2022);
         createRequest.setMileage(5000);
         createRequest.setPrice(new BigDecimal("25000.00"));
         createRequest.setLocation("Test Location");
@@ -66,7 +66,7 @@ public class CarListingServiceTest {
         savedCarListing.setTitle(createRequest.getTitle());
         savedCarListing.setBrand(createRequest.getBrand());
         savedCarListing.setModel(createRequest.getModel());
-        savedCarListing.setYear(createRequest.getYear());
+        savedCarListing.setModelYear(createRequest.getModelYear());
         savedCarListing.setMileage(createRequest.getMileage());
         savedCarListing.setPrice(createRequest.getPrice());
         savedCarListing.setLocation(createRequest.getLocation());
@@ -85,7 +85,7 @@ public class CarListingServiceTest {
         assertEquals(createRequest.getTitle(), response.getTitle());
         assertEquals(createRequest.getBrand(), response.getBrand());
         assertEquals(createRequest.getModel(), response.getModel());
-        assertEquals(createRequest.getYear(), response.getYear());
+        assertEquals(createRequest.getModelYear(), response.getModelYear());
         assertEquals(createRequest.getMileage(), response.getMileage());
         assertEquals(createRequest.getPrice(), response.getPrice());
         assertEquals(createRequest.getLocation(), response.getLocation());

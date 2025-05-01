@@ -44,7 +44,7 @@ public class CarListingService {
         carListing.setTitle(request.getTitle());
         carListing.setBrand(request.getBrand());
         carListing.setModel(request.getModel());
-        carListing.setYear(request.getYear());
+        carListing.setModelYear(request.getModelYear());
         carListing.setMileage(request.getMileage());
         carListing.setPrice(request.getPrice());
         carListing.setLocation(request.getLocation());
@@ -97,8 +97,8 @@ public class CarListingService {
                 predicates.add(criteriaBuilder.equal(root.get("model"), filterRequest.getModel()));
             }
             
-            if (filterRequest.getYear() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("year"), filterRequest.getYear()));
+            if (filterRequest.getModelYear() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("modelYear"), filterRequest.getModelYear()));
             }
             
             if (filterRequest.getLocation() != null && !filterRequest.getLocation().isEmpty()) {
@@ -178,7 +178,7 @@ public class CarListingService {
             carListing.getTitle(),
             carListing.getBrand(),
             carListing.getModel(),
-            carListing.getYear(),
+            carListing.getModelYear(),
             carListing.getMileage(),
             carListing.getPrice(),
             carListing.getLocation(),

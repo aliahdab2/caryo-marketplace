@@ -17,7 +17,7 @@ public class CarListingResponse {
     private String title;
     private String brand;
     private String model;
-    private Integer year;
+    private Integer modelYear;
     private Integer mileage;
     private BigDecimal price;
     private String location;

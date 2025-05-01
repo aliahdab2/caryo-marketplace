@@ -26,7 +26,7 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
     
     Page<CarListing> findByModelAndApprovedTrue(String model, Pageable pageable);
     
-    Page<CarListing> findByYearAndApprovedTrue(Integer year, Pageable pageable);
+    Page<CarListing> findByModelYearAndApprovedTrue(Integer modelYear, Pageable pageable);
     
     Page<CarListing> findByLocationAndApprovedTrue(String location, Pageable pageable);
     

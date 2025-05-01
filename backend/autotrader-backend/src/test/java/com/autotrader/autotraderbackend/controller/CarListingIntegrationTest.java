@@ -100,7 +100,7 @@ public class CarListingIntegrationTest {
         createRequest.setTitle("2022 Toyota Camry");
         createRequest.setBrand("Toyota");
         createRequest.setModel("Camry");
-        createRequest.setYear(2022);
+        createRequest.setModelYear(2022);
         createRequest.setMileage(15000);
         createRequest.setPrice(new BigDecimal("25000.00"));
         createRequest.setLocation("New York");

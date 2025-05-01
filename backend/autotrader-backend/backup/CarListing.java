@@ -22,7 +22,7 @@ public class CarListing {
     private String model;
     
     @Column(name = "model_year", nullable = false)
-    private Integer year;
+    private Integer modelYear;
     
     @Column(nullable = false)
     private Integer mileage;
@@ -65,12 +65,12 @@ public class CarListing {
     }
     
     // Constructor with fields
-    public CarListing(String title, String brand, String model, Integer year, Integer mileage, 
+    public CarListing(String title, String brand, String model, Integer modelYear, Integer mileage, 
                       BigDecimal price, String location, String description, User seller) {
         this.title = title;
         this.brand = brand;
         this.model = model;
-        this.year = year;
+        this.modelYear = modelYear;
         this.mileage = mileage;
         this.price = price;
         this.location = location;
@@ -111,12 +111,12 @@ public class CarListing {
         this.model = model;
     }
     
-    public Integer getYear() {
-        return year;
+    public Integer getModelYear() {
+        return modelYear;
     }
     
-    public void setYear(Integer year) {
-        this.year = year;
+    public void setModelYear(Integer modelYear) {
+        this.modelYear = modelYear;
     }
     
     public Integer getMileage() {

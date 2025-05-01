@@ -9,7 +9,7 @@ public class CarListingResponse {
     private String title;
     private String brand;
     private String model;
-    private Integer year;
+    private Integer modelYear;
     private Integer mileage;
     private BigDecimal price;
     private String location;
@@ -25,14 +25,14 @@ public class CarListingResponse {
     }
     
     // Constructor with fields
-    public CarListingResponse(Long id, String title, String brand, String model, Integer year, Integer mileage,
+    public CarListingResponse(Long id, String title, String brand, String model, Integer modelYear, Integer mileage,
                            BigDecimal price, String location, String description, String imageUrl,
                            Boolean approved, Long sellerId, String sellerUsername, LocalDateTime createdAt) {
         this.id = id;
         this.title = title;
         this.brand = brand;
         this.model = model;
-        this.year = year;
+        this.modelYear = modelYear;
         this.mileage = mileage;
         this.price = price;
         this.location = location;
@@ -77,12 +77,12 @@ public class CarListingResponse {
         this.model = model;
     }
     
-    public Integer getYear() {
-        return year;
+    public Integer getModelYear() {
+        return modelYear;
     }
     
-    public void setYear(Integer year) {
-        this.year = year;
+    public void setModelYear(Integer modelYear) {
+        this.modelYear = modelYear;
     }
     
     public Integer getMileage() {

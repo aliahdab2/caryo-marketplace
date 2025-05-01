@@ -12,7 +12,7 @@ public class ListingFilterRequest {
     
     private String brand;
     private String model;
-    private Integer year;
+    private Integer modelYear;
     private String location;
     
     @PositiveOrZero(message = "Minimum price must be positive or zero")
