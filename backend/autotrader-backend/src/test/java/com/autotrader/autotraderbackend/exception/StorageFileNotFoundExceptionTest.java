@@ -3,12 +3,12 @@ package com.autotrader.autotraderbackend.exception;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-class StorageExceptionTest {
+class StorageFileNotFoundExceptionTest {
 
     @Test
     void testConstructorWithMessage() {
-        String message = "Failed to store file.";
-        StorageException exception = new StorageException(message);
+        String message = "Could not find file.";
+        StorageFileNotFoundException exception = new StorageFileNotFoundException(message);
         
         assertEquals(message, exception.getMessage());
         assertNull(exception.getCause());
@@ -16,9 +16,9 @@ class StorageExceptionTest {
 
     @Test
     void testConstructorWithMessageAndCause() {
-        String message = "Failed to store file due to underlying issue.";
-        Throwable cause = new RuntimeException("Disk full");
-        StorageException exception = new StorageException(message, cause);
+        String message = "Could not find file due to underlying issue.";
+        Throwable cause = new RuntimeException("File system error");
+        StorageFileNotFoundException exception = new StorageFileNotFoundException(message, cause);
         
         assertEquals(message, exception.getMessage());
         assertEquals(cause, exception.getCause());
