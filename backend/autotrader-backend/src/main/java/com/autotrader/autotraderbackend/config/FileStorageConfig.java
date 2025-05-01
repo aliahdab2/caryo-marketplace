@@ -15,6 +15,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -47,10 +49,10 @@ public class FileStorageConfig {
      */
     @Bean
     @ConditionalOnProperty(name = "storage.type", havingValue = "s3")
-    public S3StorageService s3StorageService(StorageProperties properties) {
+    public S3StorageService s3StorageService(StorageProperties properties, S3Client s3Client, S3Presigner s3Presigner) {
         log.info("Creating S3StorageService bean. Bucket: {}, Region: {}", properties.getS3().getBucketName(), properties.getS3().getRegion());
-        this.s3StorageServiceInstance = new S3StorageService(properties);
-        this.s3StorageServiceInstance.init(); // Initialize the service
+        this.s3StorageServiceInstance = new S3StorageService(properties, s3Client, s3Presigner);
+        this.s3StorageServiceInstance.init();
         return this.s3StorageServiceInstance;
     }
 
@@ -71,17 +73,17 @@ public class FileStorageConfig {
         LocalStorageService localService = localStorageServiceProvider.getIfAvailable();
 
         if ("local".equalsIgnoreCase(storageType)) {
-            // --- LOCAL ONLY --- 
+            // --- LOCAL ONLY ---
             log.info("Configuration selected: Local storage only.");
             if (localService != null) {
                 log.info("Using Local storage as primary.");
                 return localService;
             } else {
-                 log.error("Local storage service (primary) could not be initialized.");
-                 return createDummyStorageService();
+                log.error("Local storage service (primary) could not be initialized.");
+                return createDummyStorageService();
             }
         } else if ("s3".equalsIgnoreCase(storageType)) {
-            // --- S3 ONLY --- 
+            // --- S3 ONLY ---
             log.info("Configuration selected: S3 storage only.");
             if (s3Service != null) {
                 log.info("Using S3 storage as primary.");
@@ -91,7 +93,7 @@ public class FileStorageConfig {
                 return createDummyStorageService();
             }
         } else if ("s3_with_local_fallback".equalsIgnoreCase(storageType)) {
-            // --- S3 PRIMARY WITH LOCAL FALLBACK --- 
+            // --- S3 PRIMARY WITH LOCAL FALLBACK ---
             log.info("Configuration selected: S3 primary with Local fallback.");
             if (s3Service != null && localService != null) {
                 log.info("Initializing DelegatingStorageService with S3 primary and Local fallback.");
@@ -107,17 +109,16 @@ public class FileStorageConfig {
                 return createDummyStorageService();
             }
         } else {
-            // --- INVALID OR DEFAULT (treat as local for safety) --- 
+            // --- INVALID OR DEFAULT (treat as local for safety) ---
             log.warn("Invalid or unspecified storage.type: '{}'. Defaulting to local storage.", storageType);
             if (localService != null) {
                 return localService;
             } else {
-                 log.error("Default local storage service could not be initialized.");
-                 return createDummyStorageService();
+                log.error("Default local storage service could not be initialized.");
+                return createDummyStorageService();
             }
         }
     }
-
 
     /**
      * Clean up resources when the application shuts down.
@@ -128,14 +129,13 @@ public class FileStorageConfig {
         if (this.s3StorageServiceInstance != null) {
             try {
                 log.info("Closing S3StorageService resources.");
-                this.s3StorageServiceInstance.close(); // Call the close method
             } catch (Exception e) {
                 log.error("Error closing S3StorageService: {}", e.getMessage(), e);
             }
         } else {
-             log.info("No S3StorageService instance to clean up.");
+            log.info("No S3StorageService instance to clean up.");
         }
-         log.info("Storage resource cleanup finished.");
+        log.info("Storage resource cleanup finished.");
     }
 
     /**
@@ -157,41 +157,38 @@ public class FileStorageConfig {
 
             @Override
             public Stream<Path> loadAll() { // Correct signature (no arguments)
-                 log.warn("DummyStorageService: loadAll called.");
-                 return Stream.empty();
+                log.warn("DummyStorageService: loadAll called.");
+                return Stream.empty();
             }
 
             @Override
             public Path load(String key) { // Updated parameter name for clarity
-                 log.warn("DummyStorageService: load called for key '{}'.", key);
-                 throw new StorageFileNotFoundException("Storage service not configured, file not found: " + key);
+                log.warn("DummyStorageService: load called for key '{}'.", key);
+                throw new StorageFileNotFoundException("Storage service not configured, file not found: " + key);
             }
 
             @Override
             public Resource loadAsResource(String key) { // Updated parameter name for clarity
-                 log.warn("DummyStorageService: loadAsResource called for key '{}'.", key);
-                 throw new StorageFileNotFoundException("Storage service not configured, file not found: " + key);
+                log.warn("DummyStorageService: loadAsResource called for key '{}'.", key);
+                throw new StorageFileNotFoundException("Storage service not configured, file not found: " + key);
             }
 
             @Override
             public boolean delete(String key) { // Correct return type and parameter name
-                 log.warn("DummyStorageService: delete called for key '{}'.", key);
-                 return false; // Indicate deletion failed or wasn't performed
+                log.warn("DummyStorageService: delete called for key '{}'.", key);
+                return false; // Indicate deletion failed or wasn't performed
             }
 
             @Override
             public void deleteAll() {
-                 log.warn("DummyStorageService: deleteAll called.");
+                log.warn("DummyStorageService: deleteAll called.");
             }
 
-             @Override
-             public String getSignedUrl(String key, long expirationSeconds) { // Correct signature
-                 log.warn("DummyStorageService: getSignedUrl called for key '{}'.", key);
-                 // Throwing exception as dummy service cannot generate URLs
-                 throw new UnsupportedOperationException("DummyStorageService does not support generating signed URLs.");
-             }
-
-             // Removed close() method as it's not part of the StorageService interface
+            @Override
+            public String getSignedUrl(String key, long expirationSeconds) { // Correct signature
+                log.warn("DummyStorageService: getSignedUrl called for key '{}'.", key);
+                throw new UnsupportedOperationException("DummyStorageService does not support generating signed URLs.");
+            }
         };
     }
 }
