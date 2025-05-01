@@ -41,11 +41,9 @@ tasks.named('test') {
 	useJUnitPlatform()
 	testLogging {
 		events "passed", "skipped", "failed"
+		exceptionFormat = 'full'
+		showStandardStreams = true
 	}
-	scanForTestClasses = true
-	include '**/*Test.java'
-	include '**/*Tests.java'
-	include '**/*IntegrationTest.java'
 }
 
 tasks.withType(JavaCompile).configureEach {
