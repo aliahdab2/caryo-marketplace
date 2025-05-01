@@ -42,7 +42,7 @@ class ImageControllerTest {
         
         // Assertions
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         
         Map<String, String> body = response.getBody();
         assertNotNull(body);

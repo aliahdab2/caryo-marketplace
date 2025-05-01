@@ -60,7 +60,7 @@ public class AuthControllerIntegrationTest {
                 Object.class
         );
 
-        assertEquals(200, registerResponse.getStatusCodeValue());
+        assertEquals(200, registerResponse.getStatusCode().value());
 
         // 2. Login with the registered user
         LoginRequest loginRequest = new LoginRequest();
@@ -73,12 +73,12 @@ public class AuthControllerIntegrationTest {
                 JwtResponse.class
         );
 
-        assertEquals(200, loginResponse.getStatusCodeValue());
+        assertEquals(200, loginResponse.getStatusCode().value());
         assertNotNull(loginResponse.getBody());
         assertNotNull(loginResponse.getBody().getToken());
         assertEquals("testuser", loginResponse.getBody().getUsername());
         
-        // 3. Test access to protected endpoint with JWT token
+        // 3. Test access to a protected endpoint with a JWT token
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + loginResponse.getBody().getToken());
         HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -90,14 +90,14 @@ public class AuthControllerIntegrationTest {
                 String.class
         );
         
-        assertEquals(200, protectedResponse.getStatusCodeValue());
+        assertEquals(200, protectedResponse.getStatusCode().value());
         
-        // 4. Test access to protected endpoint without JWT token (should fail)
+        // 4. Test access to a protected endpoint without a JWT token (should fail)
         ResponseEntity<String> unauthorizedResponse = restTemplate.getForEntity(
                 baseUrl + "/hello",
                 String.class
         );
         
-        assertEquals(403, unauthorizedResponse.getStatusCodeValue());
+        assertEquals(403, unauthorizedResponse.getStatusCode().value());
     }
 }
