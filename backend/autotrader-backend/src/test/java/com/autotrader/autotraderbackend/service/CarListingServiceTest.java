@@ -118,6 +118,7 @@ class CarListingServiceTest {
         // ImageUrl might be null or mocked depending on the test
     }
 
+    // --- Tests for createListing ---
     @Test
     void createListing_WithValidData_ShouldCreateAndReturnListing() {
         // Arrange
@@ -166,7 +167,39 @@ class CarListingServiceTest {
         verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
     }
 
+    @Test
+    void createListing_WhenRepositorySaveFails_ShouldThrowRuntimeException() {
+        // Arrange
+        CreateListingRequest request = new CreateListingRequest();
+        request.setTitle("Test Car");
+        request.setBrand("TestBrand");
+        request.setModel("TestModel");
+        request.setModelYear(2022);
+        request.setPrice(new BigDecimal("15000"));
+        request.setMileage(5000);
+        request.setLocation("TestLoc");
+        request.setDescription("TestDesc");
+        String username = "testuser";
+        RuntimeException dbException = new RuntimeException("Database connection failed");
 
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        // Mock repository save to throw an exception
+        when(carListingRepository.save(any(CarListing.class))).thenThrow(dbException);
+
+        // Act & Assert
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
+            carListingService.createListing(request, username);
+        });
+
+        assertEquals("Failed to create car listing due to a persistence error.", thrown.getMessage());
+        assertSame(dbException, thrown.getCause()); // Verify the original exception is wrapped
+
+        verify(userRepository).findByUsername(username);
+        verify(carListingRepository).save(any(CarListing.class));
+        verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
+    }
+
+    // --- Tests for getListingById ---
     @Test
     void getListingById_Success() {
         // Arrange
@@ -200,6 +233,7 @@ class CarListingServiceTest {
         verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
     }
 
+    // --- Tests for approveListing ---
     @Test
     void approveListing_Success() {
         // Arrange
@@ -290,6 +324,32 @@ class CarListingServiceTest {
         verify(carListingMapper, never()).toCarListingResponse(any());
     }
 
+    @Test
+    void approveListing_WhenRepositorySaveFails_ShouldThrowRuntimeException() {
+        // Arrange
+        Long listingId = 1L;
+        savedListing.setApproved(false); // Ensure it starts as not approved
+        RuntimeException dbException = new RuntimeException("DB save failed");
+
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
+        // Mock repository save to throw an exception
+        when(carListingRepository.save(any(CarListing.class))).thenThrow(dbException);
+
+        // Act & Assert
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
+            carListingService.approveListing(listingId);
+        });
+
+        assertEquals("Failed to update listing approval status.", thrown.getMessage());
+        assertSame(dbException, thrown.getCause());
+
+        verify(carListingRepository).findById(listingId);
+        // Verify save was attempted with the correct state
+        verify(carListingRepository).save(argThat(listing -> listing.getId().equals(listingId) && Boolean.TRUE.equals(listing.getApproved())));
+        verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
+    }
+
+    // --- Tests for getAllApprovedListings & getFilteredListings ---
     @Test
     void getAllApprovedListings_ShouldReturnPageOfApprovedListings() {
         // Arrange
@@ -407,9 +467,6 @@ class CarListingServiceTest {
     }
 
     // --- Tests for uploadListingImage ---
-    // These tests primarily interact with storageService and don't directly involve the mapper for their return value (String)
-    // So they might not need significant changes unless helper methods were altered.
-
     @Test
     void uploadListingImage_Success() throws IOException {
         // Arrange
@@ -559,6 +616,73 @@ class CarListingServiceTest {
         verify(carListingRepository, never()).save(any()); // Save should not happen if store fails
     }
 
+    @Test
+    void uploadListingImage_WhenRepositorySaveFailsAfterStore_ShouldThrowRuntimeException() throws IOException {
+        // Arrange
+        Long listingId = savedListing.getId();
+        String username = testUser.getUsername();
+        MockMultipartFile file = new MockMultipartFile("file", "hello.jpg", "image/jpeg", "content".getBytes());
+        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
+        RuntimeException dbException = new RuntimeException("DB save failed");
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
+        // Use thenAnswer to return the captured key, as it's dynamic
+        when(storageService.store(eq(file), keyCaptor.capture())).thenAnswer(inv -> keyCaptor.getValue());
+        // Mock repository save failure
+        when(carListingRepository.save(any(CarListing.class))).thenThrow(dbException);
+
+        // Act & Assert
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
+            carListingService.uploadListingImage(listingId, file, username);
+        });
+
+        assertEquals("Failed to update listing after image upload.", thrown.getMessage());
+        assertSame(dbException, thrown.getCause());
+
+        verify(userRepository).findByUsername(username);
+        verify(carListingRepository).findById(listingId);
+        // Verify store was called with the captured key
+        verify(storageService).store(eq(file), eq(keyCaptor.getValue()));
+        verify(carListingRepository).save(any(CarListing.class)); // Verify save was attempted
+    }
+
+    @Test
+    void uploadListingImage_WithNullOriginalFilename_ShouldGenerateSafeKey() throws IOException {
+        // Arrange
+        Long listingId = savedListing.getId();
+        String username = testUser.getUsername();
+        // File with null original filename
+        MockMultipartFile file = new MockMultipartFile("file", null, "image/png", "content".getBytes());
+        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
+        // FIX: Use when(...).thenAnswer(...) because store returns String, and we need the captured value
+        when(storageService.store(eq(file), keyCaptor.capture())).thenAnswer(inv -> keyCaptor.getValue());
+        when(carListingRepository.save(any(CarListing.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // Act
+        String returnedKey = carListingService.uploadListingImage(listingId, file, username);
+
+        // Assert
+        assertNotNull(returnedKey);
+
+        // Verify store was called and capture the key
+        verify(storageService).store(eq(file), keyCaptor.capture());
+        String capturedKey = keyCaptor.getValue();
+
+        // Assert that the returned key matches the captured key
+        assertEquals(returnedKey, capturedKey);
+
+        // Assert the format of the captured/returned key
+        assertTrue(capturedKey.startsWith("listings/" + listingId + "/"));
+        // Update regex to match the actual output pattern (ends with _)
+        assertTrue(capturedKey.matches("listings/" + listingId + "/\\d+_"),
+                   "Generated key '" + capturedKey + "' did not match expected pattern.");
+
+        // Verify save was called with the correct key
+        verify(carListingRepository).save(argThat(l -> capturedKey.equals(l.getImageKey())));
+    }
 
     // --- Test for getMyListings ---
     @Test
