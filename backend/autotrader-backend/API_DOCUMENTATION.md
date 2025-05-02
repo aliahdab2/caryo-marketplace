@@ -123,11 +123,12 @@ Authorization: Bearer <your_jwt_token>
 
 ### Car Listings
 
-#### Create Car Listing
+#### Create Car Listing (JSON only)
 
 - **Endpoint**: `POST /api/listings`
+- **Content-Type**: `application/json`
 - **Access**: Authenticated users
-- **Description**: Creates a new car listing
+- **Description**: Creates a new car listing without an image
 - **Authentication**: Required (JWT token)
 - **Request Body**:
   ```json
@@ -139,9 +140,27 @@ Authorization: Bearer <your_jwt_token>
     "price": 28500,
     "mileage": 15000,
     "location": "New York, NY",
-    "description": "Excellent condition, one owner, no accidents",
-    "imageUrl": "https://example.com/camry.jpg"
+    "description": "Excellent condition, one owner, no accidents"
   }
+  ```
+
+#### Create Car Listing with Image
+
+- **Endpoint**: `POST /api/listings/with-image`
+- **Content-Type**: `multipart/form-data`
+- **Access**: Authenticated users
+- **Description**: Creates a new car listing with an image attachment
+- **Authentication**: Required (JWT token)
+- **Request Parts**:
+  - `listing`: JSON object containing listing details (as shown in the JSON-only endpoint)
+  - `image`: File upload (JPEG, PNG, GIF, or WebP format, max size 5MB)
+  
+- **Example curl request**:
+  ```bash
+  curl -X POST http://localhost:8080/api/listings/with-image \
+    -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+    -F "listing={\"title\":\"2023 Toyota Camry\",\"brand\":\"Toyota\",\"model\":\"Camry\",\"modelYear\":2023,\"price\":28500,\"mileage\":15000,\"location\":\"New York, NY\",\"description\":\"Excellent condition\"}" \
+    -F "image=@/path/to/your/image.jpg"
   ```
 - **Validation Rules**:
   - `title`: Required
@@ -151,6 +170,10 @@ Authorization: Bearer <your_jwt_token>
   - `price`: Required, must be positive
   - `mileage`: Required, must be zero or positive
   - `location`: Required
+  - `image` (when using `/with-image` endpoint):
+     - File must not be empty
+     - File must be a valid image format (JPEG, PNG, GIF, or WebP)
+     - File size must not exceed 5MB (configurable)
 - **Response (201 Created)**:
   ```json
   {
@@ -288,11 +311,38 @@ TOKEN=$(curl -s -X POST http://localhost:8080/auth/signin \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser1","password":"password123"}' | grep -o '"accessToken":"[^"]*' | cut -d':' -f2 | tr -d '"')
 
-# Then create a listing
+# Then create a listing without image
 curl -X POST http://localhost:8080/api/listings \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
-  -d '{"title":"2023 Toyota Camry","brand":"Toyota","model":"Camry","modelYear":2023,"price":28500,"mileage":15000,"location":"New York, NY","description":"Excellent condition, one owner, no accidents","imageUrl":"https://example.com/camry.jpg"}'
+  -d '{"title":"2023 Toyota Camry","brand":"Toyota","model":"Camry","modelYear":2023,"price":28500,"mileage":15000,"location":"New York, NY","description":"Excellent condition, one owner, no accidents"}'
+```
+
+#### Create a Car Listing with Image (after login)
+```bash
+# Using the token from previous step
+# Create a temporary JSON file for the listing data
+cat > listing.json << EOF
+{
+  "title": "2023 Toyota Camry",
+  "brand": "Toyota",
+  "model": "Camry",
+  "modelYear": 2023,
+  "price": 28500,
+  "mileage": 15000,
+  "location": "New York, NY",
+  "description": "Excellent condition, one owner, no accidents"
+}
+EOF
+
+# Upload the listing with image
+curl -X POST http://localhost:8080/api/listings/with-image \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "listing=@listing.json;type=application/json" \
+  -F "image=@/path/to/your/image.jpg"
+
+# Clean up the temporary file
+rm listing.json
 ```
 
 #### Get Your Listings
@@ -300,6 +350,15 @@ curl -X POST http://localhost:8080/api/listings \
 # Using the token from previous step
 curl -X GET http://localhost:8080/api/listings/my-listings \
   -H "Authorization: Bearer $TOKEN"
+```
+
+#### Upload a File to Storage
+```bash
+# Using the token from previous step
+curl -X POST http://localhost:8080/api/files/upload \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@/path/to/your/document.pdf" \
+  -F "listingId=123"
 ```
 
 ### Using Postman
@@ -322,3 +381,138 @@ To run all API tests automatically:
 - `PUT /api/listings/{id}` - Update a listing (authenticated owner only)
 - `DELETE /api/listings/{id}` - Delete a listing (authenticated owner only)
 - `POST /api/admin/listings/{id}/approve` - Approve a listing (admin only)
+
+## File Management APIs
+
+### File Operations
+
+#### Upload File
+
+- **Endpoint**: `POST /api/files/upload`
+- **Content-Type**: `multipart/form-data`
+- **Access**: Authenticated users with USER role
+- **Description**: Uploads a file to the storage service (S3 or local storage)
+- **Authentication**: Required (JWT token)
+- **Request Parameters**:
+  - `file`: The file to upload (multipart/form-data)
+  - `listingId` (optional): The ID of the car listing associated with this file
+  
+- **Validation Rules**:
+  - File must not be empty
+  - File type must be allowed (image/jpeg, image/png, image/gif, image/webp, application/pdf, etc.)
+  - File size must not exceed the configured maximum limit
+  
+- **Example curl request**:
+  ```bash
+  curl -X POST http://localhost:8080/api/files/upload \
+    -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+    -F "file=@/path/to/your/image.jpg" \
+    -F "listingId=123"
+  ```
+  
+- **Response (200 OK)**:
+  ```json
+  {
+    "url": "https://your-s3-bucket.s3.amazonaws.com/listings/123/abc123.jpg",
+    "key": "listings/123/abc123.jpg"
+  }
+  ```
+  
+- **Response (400 Bad Request)** - Invalid file:
+  ```json
+  {
+    "message": "Failed to store empty file",
+    "status": "BAD_REQUEST"
+  }
+  ```
+  or
+  ```json
+  {
+    "message": "Unsupported file type: application/octet-stream",
+    "status": "BAD_REQUEST"
+  }
+  ```
+
+#### Download File
+
+- **Endpoint**: `GET /api/files/{key}`
+- **Access**: Public
+- **Description**: Downloads a file by its key
+- **Parameters**:
+  - `key`: The unique key of the file (path within storage)
+  
+- **Response**: The file content with appropriate Content-Type header
+
+#### Get Signed URL
+
+- **Endpoint**: `GET /api/files/signed`
+- **Access**: Authenticated users with USER role
+- **Description**: Generates a time-limited signed URL for a file (useful for private files)
+- **Authentication**: Required (JWT token)
+- **Request Parameters**:
+  - `key`: The unique key of the file
+  - `expiration` (optional): The expiration time in seconds (default: 3600)
+  
+- **Response (200 OK)**:
+  ```json
+  {
+    "url": "https://your-s3-bucket.s3.amazonaws.com/path/file.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=..."
+  }
+  ```
+
+#### Delete File
+
+- **Endpoint**: `DELETE /api/files/{key}`
+- **Access**: Authenticated users with ADMIN role
+- **Description**: Deletes a file from storage
+- **Authentication**: Required (JWT token)
+- **Parameters**:
+  - `key`: The unique key of the file
+  
+- **Response (200 OK)**:
+  ```json
+  {
+    "message": "File deleted successfully"
+  }
+  ```
+  or
+  ```json
+  {
+    "message": "File not found or could not be deleted"
+  }
+  ```
+
+### Direct Image Operations
+
+#### Upload Image (Simple)
+
+- **Endpoint**: `POST /api/images/upload`
+- **Content-Type**: `multipart/form-data`
+- **Access**: Public
+- **Description**: Uploads an image to the local file system (simpler than the S3 version)
+- **Request Parameters**:
+  - `file`: The image file to upload (multipart/form-data)
+  
+- **Example curl request**:
+  ```bash
+  curl -X POST http://localhost:8080/api/images/upload \
+    -F "file=@/path/to/your/image.jpg"
+  ```
+  
+- **Response (200 OK)**:
+  ```json
+  {
+    "fileName": "20250502123045-abc123-def456.jpg",
+    "fileDownloadUri": "http://localhost:8080/api/images/20250502123045-abc123-def456.jpg"
+  }
+  ```
+
+#### View Image
+
+- **Endpoint**: `GET /api/images/{fileName}`
+- **Access**: Public
+- **Description**: Retrieves an image by its file name
+- **Parameters**:
+  - `fileName`: The name of the image file
+  
+- **Response**: The image content with appropriate Content-Type header
