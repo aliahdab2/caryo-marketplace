@@ -38,7 +38,7 @@ public class CarListingService {
      * Create a new car listing.
      */
     @Transactional
-    public CarListingResponse createListing(CreateListingRequest request, String username) {
+    public CarListingResponse createListing(CreateListingRequest request, MultipartFile image, String username) {
         log.info("Attempting to create new listing for user: {}", username);
         User user = findUserByUsername(username);
 
@@ -46,6 +46,16 @@ public class CarListingService {
 
         try {
             CarListing savedListing = carListingRepository.save(carListing);
+            
+            // Handle image upload if provided
+            if (image != null && !image.isEmpty()) {
+                String imageKey = generateImageKey(savedListing.getId(), image.getOriginalFilename());
+                storageService.store(image, imageKey);
+                savedListing.setImageKey(imageKey);
+                savedListing = carListingRepository.save(savedListing);
+                log.info("Successfully uploaded image for new listing ID: {}", savedListing.getId());
+            }
+
             log.info("Successfully created new listing with ID: {} for user: {}", savedListing.getId(), username);
             // Use mapper
             return carListingMapper.toCarListingResponse(savedListing);

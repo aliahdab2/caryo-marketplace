@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.mock.web.MockMultipartFile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -24,8 +26,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -42,6 +43,7 @@ public class CarListingControllerTest {
     private CreateListingRequest createRequest;
     private CarListingResponse carListingResponse;
     private UserDetails userDetails;
+    private MockMultipartFile mockImage;
 
     @BeforeEach
     void setUp() {
@@ -70,6 +72,13 @@ public class CarListingControllerTest {
         carListingResponse.setSellerUsername("testuser");
         carListingResponse.setApproved(false);
 
+        mockImage = new MockMultipartFile(
+            "image",
+            "test.jpg",
+            "image/jpeg",
+            "test image content".getBytes()
+        );
+
         userDetails = mock(UserDetails.class);
         lenient().when(userDetails.getUsername()).thenReturn("testuser");
     }
@@ -77,11 +86,26 @@ public class CarListingControllerTest {
     @Test
     void createListing_ShouldReturnCreatedResponse() {
         // Arrange
-        when(carListingService.createListing(any(CreateListingRequest.class), anyString()))
+        when(carListingService.createListing(any(CreateListingRequest.class), isNull(), anyString()))
                 .thenReturn(carListingResponse);
 
         // Act
         ResponseEntity<CarListingResponse> response = carListingController.createListing(createRequest, userDetails);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(carListingResponse, response.getBody());
+    }
+
+    @Test
+    void createListingWithImage_ShouldReturnCreatedResponse() {
+        // Arrange
+        when(carListingService.createListing(any(CreateListingRequest.class), any(MultipartFile.class), anyString()))
+                .thenReturn(carListingResponse);
+
+        // Act
+        ResponseEntity<CarListingResponse> response = carListingController.createListingWithImage(createRequest, mockImage, userDetails);
 
         // Assert
         assertNotNull(response);

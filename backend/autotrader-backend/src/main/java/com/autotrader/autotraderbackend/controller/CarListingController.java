@@ -7,6 +7,12 @@ import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.CarListingService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,24 +37,75 @@ import java.util.Map;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Car Listings", description = "APIs for managing car listings")
 public class CarListingController {
 
     private final CarListingService carListingService;
 
-    @PostMapping
+    @PostMapping(consumes = "application/json")
     @PreAuthorize("isAuthenticated()")
+    @Operation(
+        summary = "Create a new car listing without image",
+        description = "Creates a new car listing with the provided details. Authentication required.",
+        responses = {
+            @ApiResponse(responseCode = "201", description = "Listing created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+        }
+    )
+    @Tag(name = "Car Listings")
     public ResponseEntity<CarListingResponse> createListing(
             @Valid @RequestBody CreateListingRequest createRequest,
             @AuthenticationPrincipal UserDetails userDetails) {
         
         log.info("Received request to create listing from user: {}", userDetails.getUsername());
-        CarListingResponse response = carListingService.createListing(createRequest, userDetails.getUsername());
+        CarListingResponse response = carListingService.createListing(createRequest, null, userDetails.getUsername());
         log.info("Successfully created listing with ID: {}", response.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PostMapping(value = "/with-image", consumes = "multipart/form-data")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        summary = "Create a new car listing with image",
+        description = "Creates a new car listing with the provided details and image. Authentication required.",
+        responses = {
+            @ApiResponse(responseCode = "201", description = "Listing created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input or image"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+        }
+    )
+    @Tag(name = "Car Listings")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+        content = @Content(mediaType = "multipart/form-data",
+            schema = @Schema(type = "object", requiredProperties = {"listing", "image"}),
+            encoding = @io.swagger.v3.oas.annotations.media.Encoding(
+                name = "listing",
+                contentType = "application/json"
+            )))
+    public ResponseEntity<CarListingResponse> createListingWithImage(
+            @Parameter(description = "Car listing details", required = true)
+            @Valid @RequestPart("listing") CreateListingRequest createRequest,
+            @Parameter(description = "Image file (JPEG, PNG, GIF, or WebP)", required = true)
+            @RequestPart("image") MultipartFile image,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        log.info("Received request to create listing with image from user: {}", userDetails.getUsername());
+
+        if (image == null || image.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        CarListingResponse response = carListingService.createListing(createRequest, image, userDetails.getUsername());
+        log.info("Successfully created listing with ID: {} and image", response.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @PostMapping(value = "/{listingId}/upload-image", consumes = {"multipart/form-data"})
-    @PreAuthorize("isAuthenticated()") // Ensure user is logged in
+    @PreAuthorize("isAuthenticated()") // Ensure a user is logged in
     public ResponseEntity<?> uploadListingImage(@PathVariable Long listingId,
                                                 @RequestParam("file") MultipartFile file,
                                                 @AuthenticationPrincipal UserDetails userDetails) {
@@ -90,7 +147,7 @@ public class CarListingController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String[] sort) {
         log.info("Received request to get all approved listings. Page: {}, Size: {}, Sort: {}", page, size, sort);
-        // Create Pageable object
+        // Create a Pageable object
         Pageable pageable = PageRequest.of(page, size, Sort.by(SortHelper.getSortOrders(sort)));
         // Call the service method which returns a Page
         Page<CarListingResponse> listingPage = carListingService.getAllApprovedListings(pageable);
@@ -114,7 +171,7 @@ public class CarListingController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String[] sort) {
         log.info("Received request to filter listings. Filter: {}, Page: {}, Size: {}, Sort: {}", filterRequest, page, size, sort);
-         // Create Pageable object
+         // Create a Pageable object
         Pageable pageable = PageRequest.of(page, size, Sort.by(SortHelper.getSortOrders(sort)));
         // Call the service method which returns a Page
         Page<CarListingResponse> listingPage = carListingService.getFilteredListings(filterRequest, pageable);

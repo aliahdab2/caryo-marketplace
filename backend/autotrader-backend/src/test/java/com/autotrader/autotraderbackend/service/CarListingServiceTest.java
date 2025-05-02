@@ -140,7 +140,7 @@ class CarListingServiceTest {
         when(carListingMapper.toCarListingResponse(savedListing)).thenReturn(expectedResponse);
 
         // Act
-        CarListingResponse response = carListingService.createListing(request, "testuser");
+        CarListingResponse response = carListingService.createListing(request, null, "testuser");
 
         // Assert
         assertNotNull(response);
@@ -160,7 +160,7 @@ class CarListingServiceTest {
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            carListingService.createListing(request, username);
+            carListingService.createListing(request, null, username);
         });
         assertEquals("User not found with username : 'nonexistentuser'", exception.getMessage());
         verify(carListingRepository, never()).save(any());
@@ -188,7 +188,7 @@ class CarListingServiceTest {
 
         // Act & Assert
         RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
-            carListingService.createListing(request, username);
+            carListingService.createListing(request, null, username);
         });
 
         assertEquals("Failed to create car listing due to a persistence error.", thrown.getMessage());
