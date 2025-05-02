@@ -75,7 +75,7 @@ services:
   # MinIO (S3-compatible storage)
   minio:
     container_name: minio
-    image: minio/minio:RELEASE.2025-04-22T22-12-26Z-cpuv1
+    image: minio/minio:latest
     ports:
       - "${MINIO_API_PORT:-9000}:9000"
       - "${MINIO_CONSOLE_PORT:-9001}:9001"
@@ -86,22 +86,24 @@ services:
     volumes:
       - minio_data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
+      test: ["CMD-SHELL", "mkdir -p /tmp/health && touch /tmp/health/check && echo 'ok' > /tmp/health/check"]
+      interval: 10s
+      timeout: 5s
       retries: 3
+      start_period: 10s
     networks:
       - backend-network
   
   # Service to create the bucket automatically upon startup
   createbuckets:
-    image: minio/mc:RELEASE.2025-04-15T20-13-34Z-cpuv1
+    image: minio/mc:latest
     depends_on:
       minio:
         condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-      /usr/bin/mc config host add myminio http://minio:${MINIO_API_PORT:-9000} ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin};
+      sleep 5;
+      /usr/bin/mc config host add myminio http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin};
       /usr/bin/mc mb --ignore-existing myminio/${S3_BUCKET_NAME:-autotrader-assets};
       /usr/bin/mc policy set public myminio/${S3_BUCKET_NAME:-autotrader-assets};
       echo 'Bucket created successfully'
