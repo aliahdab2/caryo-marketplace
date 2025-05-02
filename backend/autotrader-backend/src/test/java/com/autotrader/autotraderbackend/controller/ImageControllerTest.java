@@ -16,7 +16,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-// Remove @SpringBootTest annotation to make this a true unit test
 class ImageControllerTest {
     
     private ImageController imageController;
@@ -26,7 +25,7 @@ class ImageControllerTest {
     
     @BeforeEach
     void setUp() {
-        // Create the controller with temp directory
+        // Create the controller with a temp directory
         imageController = new ImageController(tempDir.toString());
         
         // Mock the HTTP request context needed by ServletUriComponentsBuilder
@@ -41,13 +40,11 @@ class ImageControllerTest {
     
     @AfterEach
     void tearDown() {
-        // Clear the request context after each test
         RequestContextHolder.resetRequestAttributes();
     }
     
     @Test
     void shouldUploadImage() {
-        // Create a mock file
         MockMultipartFile file = new MockMultipartFile(
             "file",
             "test-image.jpg",
@@ -65,10 +62,9 @@ class ImageControllerTest {
         Map<String, String> body = response.getBody();
         assertNotNull(body, "Response body should not be null");
 
-        // Print the actual contents of the response for debugging
         System.out.println("Response body contains: " + body);
 
-        // Check if fileName exists and has correct format
+        // Check if fileName exists and has a correct format
         assertNotNull(body.get("fileName"), "fileName should not be null");
         assertTrue(body.get("fileName").toLowerCase().endsWith(".jpg"), "fileName should end with .jpg");
 
