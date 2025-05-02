@@ -35,13 +35,45 @@ autotrader-backend/
 
 ## Getting Started
 
-### Building the Application
+### Development Environment
+
+The project includes a complete development environment with all necessary components:
+
+```bash
+# Start the development environment
+./dev-env.sh start
+
+# Check the status
+./dev-env.sh status
+
+# View the logs
+./dev-env.sh logs
+
+# Run tests
+./dev-env.sh test
+
+# Stop the development environment
+./dev-env.sh stop
+```
+
+The development environment includes:
+- Spring Boot application with hot reloading
+- PostgreSQL database
+- MinIO (S3-compatible storage)
+- Adminer (database management UI)
+- Redis (for caching)
+
+For more details, see the [development environment documentation](.devenv/README.md).
+
+### Building the Application Manually
+
+If you prefer not to use the development environment, you can build and run the application manually:
 
 ```bash
 ./gradlew clean build
 ```
 
-### Running the Application
+### Running the Application Manually
 
 ```bash
 ./gradlew bootRun

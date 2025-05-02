@@ -1,0 +1,5 @@
+# Local environment configuration overrides
+.env.local
+
+# Generated files
+*.log
