@@ -1,20 +1,22 @@
 package com.autotrader.autotraderbackend.controller;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.nio.file.Path;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+// Remove @SpringBootTest annotation to make this a true unit test
 class ImageControllerTest {
     
     private ImageController imageController;
@@ -24,7 +26,23 @@ class ImageControllerTest {
     
     @BeforeEach
     void setUp() {
+        // Create the controller with temp directory
         imageController = new ImageController(tempDir.toString());
+        
+        // Mock the HTTP request context needed by ServletUriComponentsBuilder
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setContextPath("");
+        request.setRequestURI("/api/images/upload");
+        request.setServerName("localhost");
+        request.setServerPort(8080);
+        request.setScheme("http");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+    }
+    
+    @AfterEach
+    void tearDown() {
+        // Clear the request context after each test
+        RequestContextHolder.resetRequestAttributes();
     }
     
     @Test
@@ -36,26 +54,26 @@ class ImageControllerTest {
             MediaType.IMAGE_JPEG_VALUE,
             "test image content".getBytes()
         );
-        
+
         // Upload the image
         ResponseEntity<Map<String, String>> response = imageController.uploadImage(file);
-        
+
         // Assertions
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCode().value());
-        
+        assertNotNull(response, "Response should not be null");
+        assertEquals(200, response.getStatusCode().value(), "Status code should be 200");
+
         Map<String, String> body = response.getBody();
-        assertNotNull(body);
-        
+        assertNotNull(body, "Response body should not be null");
+
         // Print the actual contents of the response for debugging
         System.out.println("Response body contains: " + body);
-        
+
         // Check if fileName exists and has correct format
-        assertNotNull(body.get("fileName"));
-        assertTrue(body.get("fileName").endsWith(".jpg"));
-        
+        assertNotNull(body.get("fileName"), "fileName should not be null");
+        assertTrue(body.get("fileName").toLowerCase().endsWith(".jpg"), "fileName should end with .jpg");
+
         // Check that fileDownloadUri exists (this was previously failing)
-        assertNotNull(body.get("fileDownloadUri"));
+        assertNotNull(body.get("fileDownloadUri"), "fileDownloadUri should not be null");
     }
     
     @Test
@@ -67,12 +85,15 @@ class ImageControllerTest {
             "text/plain",
             "test content".getBytes()
         );
-        
+
         // Should throw exception for path traversal attempt
         Exception exception = assertThrows(RuntimeException.class, () -> {
             imageController.uploadImage(file);
         });
-        
-        assertTrue(exception.getMessage().contains("invalid path sequence"));
+
+        // Print the actual message for debugging
+        System.out.println("Exception message: " + exception.getMessage());
+        assertTrue(exception.getMessage().toLowerCase().contains("invalid path sequence"),
+                "Exception message should mention invalid path sequence");
     }
 }

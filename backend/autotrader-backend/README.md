@@ -89,6 +89,54 @@ Additional endpoints coming soon:
 - `PUT /api/listings/{id}` - Update car listing
 - `DELETE /api/listings/{id}` - Delete car listing
 
+## Storage Configuration
+
+This application uses MinIO as its S3-compatible storage backend.
+
+### Setting up MinIO locally
+
+1. Start MinIO using Docker Compose:
+   ```bash
+   docker-compose up -d
+   ```
+
+2. Access the MinIO Console:
+   - URL: http://localhost:9001
+   - Username: minioadmin
+   - Password: minioadmin
+
+3. Create a bucket:
+   - Login to the MinIO Console
+   - Click "Create Bucket"
+   - Name it "autotrader-assets"
+   - Set access policy as needed
+
+### Storage Configuration Properties
+
+The following properties can be configured in `application.properties` or via environment variables:
+
+```properties
+storage.type=s3
+storage.s3.endpointUrl=http://localhost:9000
+storage.s3.accessKeyId=minioadmin
+storage.s3.secretAccessKey=minioadmin
+storage.s3.bucketName=autotrader-assets
+storage.s3.region=us-east-1
+storage.s3.pathStyleAccessEnabled=true
+storage.s3.signedUrlExpirationSeconds=3600
+```
+
+### Storage Service Usage
+
+The application uses a standardized S3-compatible interface for all storage operations. The `StorageService` interface provides the following operations:
+
+- `store(MultipartFile file, String key)`: Upload a file
+- `loadAsResource(String key)`: Download a file
+- `delete(String key)`: Delete a file
+- `getSignedUrl(String key, long expirationSeconds)`: Get a pre-signed URL for temporary access
+
+All operations use the S3 protocol and work with any S3-compatible storage service (MinIO, AWS S3, etc.).
+
 ## Testing
 
 ### Testing Approach

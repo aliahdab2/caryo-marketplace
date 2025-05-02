@@ -1,13 +1,12 @@
 package com.autotrader.autotraderbackend.controller;
 
-import com.autotrader.autotraderbackend.model.CarListing;
-import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +19,21 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus; // Add this import
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.MinIOContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +42,47 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
+@Testcontainers
 public class CarListingIntegrationTest {
+    @Container
+    public static MinIOContainer minioContainer = new MinIOContainer("minio/minio:RELEASE.2023-09-04T19-57-37Z")
+            .withExposedPorts(9000);
+    private static final String BUCKET_NAME = "autotrader-assets";
+    private static String s3Endpoint;
+
+    @DynamicPropertySource
+    static void minioProperties(DynamicPropertyRegistry registry) {
+        minioContainer.start();
+        s3Endpoint = String.format("http://%s:%d", minioContainer.getHost(), minioContainer.getMappedPort(9000));
+        registry.add("storage.s3.endpointUrl", () -> s3Endpoint);
+        registry.add("storage.s3.accessKeyId", minioContainer::getUserName);
+        registry.add("storage.s3.secretAccessKey", minioContainer::getPassword);
+        registry.add("storage.s3.bucketName", () -> BUCKET_NAME);
+        registry.add("storage.s3.region", () -> "us-east-1");
+        registry.add("storage.s3.pathStyleAccessEnabled", () -> "true");
+    }
+
+    @BeforeAll
+    static void ensureBucketExists() {
+        if (s3Endpoint == null) {
+            s3Endpoint = String.format("http://%s:%d", minioContainer.getHost(), minioContainer.getMappedPort(9000));
+        }
+        S3Client s3Client = S3Client.builder()
+                .endpointOverride(URI.create(s3Endpoint))
+                .credentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create(minioContainer.getUserName(), minioContainer.getPassword())
+                ))
+                .region(Region.US_EAST_1)
+                .forcePathStyle(true)
+                .build();
+        try {
+            s3Client.headBucket(HeadBucketRequest.builder().bucket(BUCKET_NAME).build());
+        } catch (NoSuchBucketException e) {
+            s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
+        } finally {
+            s3Client.close();
+        }
+    }
 
     @LocalServerPort
     private int port;
