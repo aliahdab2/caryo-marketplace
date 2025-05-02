@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.exception.StorageException;
+import com.autotrader.autotraderbackend.mapper.CarListingMapper;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers; // Import ArgumentMatchers
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -28,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -51,122 +54,138 @@ class CarListingServiceTest {
     @Mock
     private StorageService storageService;
 
-    @InjectMocks
+    @Mock // Add mock for the mapper
+    private CarListingMapper carListingMapper;
+
+    @InjectMocks // Ensure this injects all mocks into the service
     private CarListingService carListingService;
 
     private User testUser;
-    private CreateListingRequest createRequest;
     private CarListing savedListing;
+    private CarListing listingToSave;
+    private CarListingResponse expectedResponse; // Add expected response object
 
     @BeforeEach
     void setUp() {
-        // Setup test user
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("testuser");
-        testUser.setEmail("test@example.com");
 
-        // Setup creates listing request
-        createRequest = new CreateListingRequest();
-        createRequest.setTitle("Test Car");
-        createRequest.setBrand("Toyota");
-        createRequest.setModel("Camry");
-        createRequest.setModelYear(2022);
-        createRequest.setMileage(5000);
-        createRequest.setPrice(new BigDecimal("25000.00"));
-        createRequest.setLocation("Test Location");
-        createRequest.setDescription("Test Description");
+        listingToSave = new CarListing();
+        // ... set properties for listingToSave ...
+        listingToSave.setSeller(testUser);
+        listingToSave.setApproved(false);
+        listingToSave.setTitle("Honda Civic");
+        listingToSave.setBrand("Honda");
+        listingToSave.setModel("Civic");
+        listingToSave.setModelYear(2020);
+        listingToSave.setPrice(new BigDecimal("20000.00"));
+        listingToSave.setMileage(10000);
+        listingToSave.setLocation("Test Location");
+        listingToSave.setDescription("Test Description");
 
-        // Set up a saved listing
+
         savedListing = new CarListing();
+        // ... set properties for savedListing, including ID and CreatedAt ...
         savedListing.setId(1L);
-        savedListing.setTitle(createRequest.getTitle());
-        savedListing.setBrand(createRequest.getBrand());
-        savedListing.setModel(createRequest.getModel());
-        savedListing.setModelYear(createRequest.getModelYear());
-        savedListing.setMileage(createRequest.getMileage());
-        savedListing.setPrice(createRequest.getPrice());
-        savedListing.setLocation(createRequest.getLocation());
-        savedListing.setDescription(createRequest.getDescription());
         savedListing.setSeller(testUser);
-        savedListing.setApproved(false); // Ensure it starts unapproved
-        savedListing.setCreatedAt(LocalDateTime.now()); // Set created timestamp
+        savedListing.setApproved(false);
+        savedListing.setTitle("Honda Civic");
+        savedListing.setBrand("Honda");
+        savedListing.setModel("Civic");
+        savedListing.setModelYear(2020);
+        savedListing.setPrice(new BigDecimal("20000.00"));
+        savedListing.setMileage(10000);
+        savedListing.setLocation("Test Location");
+        savedListing.setDescription("Test Description");
+        savedListing.setCreatedAt(LocalDateTime.now());
+
+        // Setup expected response (can be simple or detailed)
+        expectedResponse = new CarListingResponse();
+        expectedResponse.setId(savedListing.getId());
+        expectedResponse.setTitle(savedListing.getTitle());
+        expectedResponse.setBrand(savedListing.getBrand());
+        expectedResponse.setModel(savedListing.getModel());
+        expectedResponse.setModelYear(savedListing.getModelYear());
+        expectedResponse.setPrice(savedListing.getPrice());
+        expectedResponse.setMileage(savedListing.getMileage());
+        expectedResponse.setLocation(savedListing.getLocation());
+        expectedResponse.setDescription(savedListing.getDescription());
+        expectedResponse.setCreatedAt(savedListing.getCreatedAt());
+        expectedResponse.setApproved(savedListing.getApproved());
+        expectedResponse.setSellerId(testUser.getId());
+        expectedResponse.setSellerUsername(testUser.getUsername());
+        // ImageUrl might be null or mocked depending on the test
     }
 
     @Test
     void createListing_WithValidData_ShouldCreateAndReturnListing() {
         // Arrange
+        CreateListingRequest request = new CreateListingRequest();
+        // ... populate request ...
+        request.setTitle("Honda Civic");
+        request.setBrand("Honda");
+        request.setModel("Civic");
+        request.setModelYear(2020);
+        request.setPrice(new BigDecimal("20000.00"));
+        request.setMileage(10000);
+        request.setLocation("Test Location");
+        request.setDescription("Test Description");
+
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
-        // Capture the argument passed to save to ensure fields are set correctly before saving
-        when(carListingRepository.save(any(CarListing.class))).thenAnswer(invocation -> {
-            CarListing listingToSave = invocation.getArgument(0);
-            // Simulate saving by assigning an ID and returning the object
-            listingToSave.setId(1L); // Use the ID from setUp
-            listingToSave.setCreatedAt(savedListing.getCreatedAt()); // Use timestamp from setUp
-            return listingToSave;
-        });
+        // Mock the save operation to return the listing with an ID
+        when(carListingRepository.save(any(CarListing.class))).thenReturn(savedListing);
+        // Mock the mapper call
+        when(carListingMapper.toCarListingResponse(savedListing)).thenReturn(expectedResponse);
 
         // Act
-        CarListingResponse response = carListingService.createListing(createRequest, "testuser");
+        CarListingResponse response = carListingService.createListing(request, "testuser");
 
         // Assert
         assertNotNull(response);
-        assertEquals(1L, response.getId());
-        assertEquals(createRequest.getTitle(), response.getTitle());
-        assertEquals(createRequest.getBrand(), response.getBrand());
-        assertEquals(createRequest.getModel(), response.getModel());
-        assertEquals(createRequest.getModelYear(), response.getModelYear());
-        assertEquals(createRequest.getMileage(), response.getMileage());
-        assertEquals(0, createRequest.getPrice().compareTo(response.getPrice())); // Use compareTo for BigDecimal
-        assertEquals(createRequest.getLocation(), response.getLocation());
-        assertEquals(createRequest.getDescription(), response.getDescription());
-        assertEquals(testUser.getId(), response.getSellerId());
-        assertEquals(testUser.getUsername(), response.getSellerUsername());
-        assertFalse(response.getApproved());
-        assertNotNull(response.getCreatedAt()); // Check timestamp
-
-        verify(userRepository).findByUsername("testuser");
+        assertEquals(expectedResponse, response); // Compare with the mocked response
+        // Verify repository save was called
         verify(carListingRepository).save(any(CarListing.class));
+        // Verify mapper was called
+        verify(carListingMapper).toCarListingResponse(savedListing);
     }
 
     @Test
     void createListing_WithNonExistentUser_ShouldThrowException() {
         // Arrange
-        when(userRepository.findByUsername("nonexistentuser")).thenReturn(Optional.empty());
+        CreateListingRequest request = new CreateListingRequest(); // Populate as needed
+        String username = "nonexistentuser";
+        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> {
-            carListingService.createListing(createRequest, "nonexistentuser");
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            carListingService.createListing(request, username);
         });
-
-        verify(userRepository).findByUsername("nonexistentuser");
-        verify(carListingRepository, never()).save(any(CarListing.class));
+        assertEquals("User not found with username : 'nonexistentuser'", exception.getMessage());
+        verify(carListingRepository, never()).save(any());
+        verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
     }
+
 
     @Test
     void getListingById_Success() {
         // Arrange
         Long listingId = 1L;
-        savedListing.setApproved(true); // Assume it's approved for retrieval
-        savedListing.setImageKey("test-image.jpg");
         when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
-        when(storageService.getSignedUrl(eq("test-image.jpg"), anyLong())).thenReturn("http://example.com/signed-url");
+        // Mock the mapper call
+        when(carListingMapper.toCarListingResponse(savedListing)).thenReturn(expectedResponse);
 
         // Act
         CarListingResponse response = carListingService.getListingById(listingId);
 
         // Assert
         assertNotNull(response);
-        assertEquals(listingId, response.getId());
-        assertEquals(savedListing.getTitle(), response.getTitle());
-        assertEquals("http://example.com/signed-url", response.getImageUrl());
-        assertTrue(response.getApproved());
-
+        assertEquals(expectedResponse, response);
         verify(carListingRepository).findById(listingId);
-        verify(storageService).getSignedUrl(eq("test-image.jpg"), anyLong());
+        verify(carListingMapper).toCarListingResponse(savedListing);
     }
 
-     @Test
+    @Test
     void getListingById_NotFound_ThrowsResourceNotFoundException() {
         // Arrange
         Long nonExistentId = 999L;
@@ -176,58 +195,66 @@ class CarListingServiceTest {
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             carListingService.getListingById(nonExistentId);
         });
-
-        assertEquals("CarListing not found with id : '" + nonExistentId + "'", exception.getMessage());
-
+        assertEquals("CarListing not found with id : '999'", exception.getMessage());
         verify(carListingRepository).findById(nonExistentId);
-        verify(storageService, never()).getSignedUrl(anyString(), anyLong());
+        verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
     }
 
     @Test
     void approveListing_Success() {
         // Arrange
-        Long listingId = savedListing.getId();
-        assertFalse(savedListing.getApproved()); // Pre-condition: not approved
+        Long listingId = 1L;
+        savedListing.setApproved(false); // Ensure it starts as not approved
+        CarListing approvedListing = new CarListing(); // Create a separate instance for the state after save
+        // Copy properties from savedListing
+        approvedListing.setId(savedListing.getId());
+        approvedListing.setTitle(savedListing.getTitle());
+        // ... copy other properties ...
+        approvedListing.setBrand(savedListing.getBrand());
+        approvedListing.setModel(savedListing.getModel());
+        approvedListing.setModelYear(savedListing.getModelYear());
+        approvedListing.setPrice(savedListing.getPrice());
+        approvedListing.setMileage(savedListing.getMileage());
+        approvedListing.setLocation(savedListing.getLocation());
+        approvedListing.setDescription(savedListing.getDescription());
+        approvedListing.setSeller(savedListing.getSeller());
+        approvedListing.setApproved(true); // Set approved to true
+        approvedListing.setCreatedAt(savedListing.getCreatedAt());
+
+        CarListingResponse approvedResponse = new CarListingResponse(); // Expected response after approval
+        // ... populate approvedResponse based on approvedListing ...
+        approvedResponse.setId(approvedListing.getId());
+        approvedResponse.setTitle(approvedListing.getTitle());
+        approvedResponse.setBrand(approvedListing.getBrand());
+        approvedResponse.setModel(approvedListing.getModel());
+        approvedResponse.setModelYear(approvedListing.getModelYear());
+        approvedResponse.setPrice(approvedListing.getPrice());
+        approvedResponse.setMileage(approvedListing.getMileage());
+        approvedResponse.setLocation(approvedListing.getLocation());
+        approvedResponse.setDescription(approvedListing.getDescription());
+        approvedResponse.setCreatedAt(approvedListing.getCreatedAt());
+        approvedResponse.setApproved(true);
+        if (approvedListing.getSeller() != null) {
+            approvedResponse.setSellerId(approvedListing.getSeller().getId());
+            approvedResponse.setSellerUsername(approvedListing.getSeller().getUsername());
+        }
+
+
         when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
-        // Mock the save operation to reflect the change
-        when(carListingRepository.save(any(CarListing.class))).thenAnswer(invocation -> {
-            CarListing listingToSave = invocation.getArgument(0);
-            assertTrue(listingToSave.getApproved()); // Check if approved is set to true before saving
-            return listingToSave; // Return the modified listing
-        });
+        when(carListingRepository.save(any(CarListing.class))).thenReturn(approvedListing); // Return the approved state
+        // Mock the mapper call for the approved state
+        when(carListingMapper.toCarListingResponse(approvedListing)).thenReturn(approvedResponse);
 
         // Act
         CarListingResponse response = carListingService.approveListing(listingId);
 
         // Assert
         assertNotNull(response);
-        assertTrue(response.getApproved()); // Check response DTO
-        assertEquals(listingId, response.getId());
-
-        // Verify interactions
+        assertTrue(response.getApproved());
+        assertEquals(approvedResponse, response);
         verify(carListingRepository).findById(listingId);
-        verify(carListingRepository).save(savedListing); // Verify save was called with the specific object
-        // Verify the state change was attempted on the object
-        assertTrue(savedListing.getApproved());
-    }
-
-    @Test
-    void approveListing_AlreadyApproved_ThrowsIllegalStateException() {
-        // Arrange
-        Long listingId = savedListing.getId();
-        savedListing.setApproved(true); // Set listing as already approved
-        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
-
-        // Act & Assert
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            carListingService.approveListing(listingId);
-        });
-
-        assertEquals("Listing is already approved.", exception.getMessage());
-
-        // Verify interactions
-        verify(carListingRepository).findById(listingId);
-        verify(carListingRepository, never()).save(any(CarListing.class)); // Save should not be called
+        verify(carListingRepository).save(argThat(listing -> listing.getId().equals(listingId) && Boolean.TRUE.equals(listing.getApproved())));
+        verify(carListingMapper).toCarListingResponse(approvedListing);
     }
 
     @Test
@@ -240,41 +267,53 @@ class CarListingServiceTest {
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             carListingService.approveListing(nonExistentId);
         });
-
-        assertEquals("CarListing not found with id : '" + nonExistentId + "'", exception.getMessage());
-
-        // Verify interactions
+        assertEquals("CarListing not found with id : '999'", exception.getMessage());
         verify(carListingRepository).findById(nonExistentId);
-        verify(carListingRepository, never()).save(any(CarListing.class)); // Save should not be called
+        verify(carListingRepository, never()).save(any());
+        verify(carListingMapper, never()).toCarListingResponse(any());
+    }
+
+    @Test
+    void approveListing_AlreadyApproved_ThrowsIllegalStateException() {
+        // Arrange
+        Long listingId = 1L;
+        savedListing.setApproved(true); // Start as already approved
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
+
+        // Act & Assert
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            carListingService.approveListing(listingId);
+        });
+        assertEquals("Listing with ID 1 is already approved.", exception.getMessage());
+        verify(carListingRepository).findById(listingId);
+        verify(carListingRepository, never()).save(any());
+        verify(carListingMapper, never()).toCarListingResponse(any());
     }
 
     @Test
     void getAllApprovedListings_ShouldReturnPageOfApprovedListings() {
         // Arrange
-        CarListing approvedListing1 = new CarListing();
-        approvedListing1.setId(2L);
-        approvedListing1.setTitle("Approved Car 1");
-        approvedListing1.setApproved(true);
-        approvedListing1.setPrice(BigDecimal.valueOf(20000));
-        approvedListing1.setSeller(testUser);
-        approvedListing1.setImageKey("image1.jpg");
-
-        CarListing approvedListing2 = new CarListing();
-        approvedListing2.setId(3L);
-        approvedListing2.setTitle("Approved Car 2");
-        approvedListing2.setApproved(true);
-        approvedListing2.setPrice(BigDecimal.valueOf(30000));
-        approvedListing2.setSeller(testUser);
-        approvedListing2.setImageKey("image2.jpg");
-
-        List<CarListing> approvedListings = List.of(approvedListing1, approvedListing2);
         Pageable pageable = PageRequest.of(0, 10);
-        Page<CarListing> listingPage = new PageImpl<>(approvedListings, pageable, approvedListings.size());
+        CarListing approvedListing1 = new CarListing(); // Setup listing 1
+        approvedListing1.setId(1L);
+        approvedListing1.setApproved(true);
+        CarListing approvedListing2 = new CarListing(); // Setup listing 2
+        approvedListing2.setId(2L);
+        approvedListing2.setApproved(true);
+        List<CarListing> listings = Arrays.asList(approvedListing1, approvedListing2);
+        Page<CarListing> listingPage = new PageImpl<>(listings, pageable, listings.size());
+
+        CarListingResponse response1 = new CarListingResponse(); // Setup response 1
+        response1.setId(1L);
+        response1.setApproved(true);
+        CarListingResponse response2 = new CarListingResponse(); // Setup response 2
+        response2.setId(2L);
+        response2.setApproved(true);
 
         when(carListingRepository.findByApprovedTrue(pageable)).thenReturn(listingPage);
-        // Corrected mock for getSignedUrl
-        when(storageService.getSignedUrl(eq("image1.jpg"), anyLong())).thenReturn("http://example.com/signed-url1");
-        when(storageService.getSignedUrl(eq("image2.jpg"), anyLong())).thenReturn("http://example.com/signed-url2");
+        // Mock mapper for each listing in the page
+        when(carListingMapper.toCarListingResponse(approvedListing1)).thenReturn(response1);
+        when(carListingMapper.toCarListingResponse(approvedListing2)).thenReturn(response2);
 
         // Act
         Page<CarListingResponse> responsePage = carListingService.getAllApprovedListings(pageable);
@@ -282,106 +321,94 @@ class CarListingServiceTest {
         // Assert
         assertNotNull(responsePage);
         assertEquals(2, responsePage.getTotalElements());
-        assertEquals(1, responsePage.getTotalPages());
         assertEquals(2, responsePage.getContent().size());
-        assertEquals("Approved Car 1", responsePage.getContent().get(0).getTitle());
-        assertTrue(responsePage.getContent().get(0).getApproved());
-        assertEquals("http://example.com/signed-url1", responsePage.getContent().get(0).getImageUrl());
-        assertEquals("Approved Car 2", responsePage.getContent().get(1).getTitle());
-        assertTrue(responsePage.getContent().get(1).getApproved());
-        assertEquals("http://example.com/signed-url2", responsePage.getContent().get(1).getImageUrl());
-
-        // Corrected verification for getSignedUrl
+        assertEquals(response1, responsePage.getContent().get(0));
+        assertEquals(response2, responsePage.getContent().get(1));
         verify(carListingRepository).findByApprovedTrue(pageable);
-        verify(storageService).getSignedUrl(eq("image1.jpg"), anyLong());
-        verify(storageService).getSignedUrl(eq("image2.jpg"), anyLong());
+        verify(carListingMapper, times(2)).toCarListingResponse(any(CarListing.class)); // Verify mapper called twice
     }
 
-    @Test
+     @Test
     void getAllApprovedListings_WhenNoneFound_ShouldReturnEmptyPage() {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
         Page<CarListing> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         when(carListingRepository.findByApprovedTrue(pageable)).thenReturn(emptyPage);
+        // No need to mock mapper as it won't be called for an empty page's map operation
 
         // Act
         Page<CarListingResponse> responsePage = carListingService.getAllApprovedListings(pageable);
 
         // Assert
         assertNotNull(responsePage);
+        assertTrue(responsePage.isEmpty());
         assertEquals(0, responsePage.getTotalElements());
-        assertTrue(responsePage.getContent().isEmpty());
-
-        // Corrected verification for getSignedUrl
         verify(carListingRepository).findByApprovedTrue(pageable);
-        verify(storageService, never()).getSignedUrl(anyString(), anyLong());
+        verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
     }
 
     @Test
     void getFilteredListings_ShouldReturnFilteredAndApprovedListings() {
         // Arrange
-        ListingFilterRequest filterRequest = new ListingFilterRequest();
-        filterRequest.setBrand("Toyota");
-
-        CarListing filteredListing = new CarListing();
-        filteredListing.setId(4L);
-        filteredListing.setTitle("Filtered Toyota");
-        filteredListing.setBrand("Toyota");
-        filteredListing.setApproved(true);
-        filteredListing.setPrice(BigDecimal.valueOf(22000));
-        filteredListing.setSeller(testUser);
-        filteredListing.setImageKey("image4.jpg");
-
-        List<CarListing> filteredListings = List.of(filteredListing);
         Pageable pageable = PageRequest.of(0, 10);
-        Page<CarListing> listingPage = new PageImpl<>(filteredListings, pageable, filteredListings.size());
+        ListingFilterRequest filter = new ListingFilterRequest(); // Populate filter
+        filter.setBrand("Honda");
 
-        // Use any(Specification.class) - warning is acceptable here
-        when(carListingRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(listingPage);
-        // Corrected mock for getSignedUrl
-        when(storageService.getSignedUrl(eq("image4.jpg"), anyLong())).thenReturn("http://example.com/signed-url4");
+        CarListing filteredListing = new CarListing(); // Setup listing
+        filteredListing.setId(1L);
+        filteredListing.setBrand("Honda");
+        filteredListing.setApproved(true);
+        List<CarListing> listings = Collections.singletonList(filteredListing);
+        Page<CarListing> listingPage = new PageImpl<>(listings, pageable, 1);
+
+        CarListingResponse filteredResponse = new CarListingResponse(); // Setup response
+        filteredResponse.setId(1L);
+        filteredResponse.setBrand("Honda");
+        filteredResponse.setApproved(true);
+
+        // FIX: Use ArgumentMatchers.<Specification<CarListing>>any() for type safety
+        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any(), eq(pageable))).thenReturn(listingPage);
+        when(carListingMapper.toCarListingResponse(filteredListing)).thenReturn(filteredResponse);
 
         // Act
-        Page<CarListingResponse> responsePage = carListingService.getFilteredListings(filterRequest, pageable);
+        Page<CarListingResponse> responsePage = carListingService.getFilteredListings(filter, pageable);
 
         // Assert
         assertNotNull(responsePage);
         assertEquals(1, responsePage.getTotalElements());
         assertEquals(1, responsePage.getContent().size());
-        assertEquals("Filtered Toyota", responsePage.getContent().get(0).getTitle());
-        assertTrue(responsePage.getContent().get(0).getApproved());
-        assertEquals("http://example.com/signed-url4", responsePage.getContent().get(0).getImageUrl());
-
-        // Corrected verification for getSignedUrl
-        verify(carListingRepository).findAll(any(Specification.class), eq(pageable));
-        verify(storageService).getSignedUrl(eq("image4.jpg"), anyLong());
+        assertEquals(filteredResponse, responsePage.getContent().get(0));
+        // FIX: Use ArgumentMatchers.<Specification<CarListing>>any() for type safety
+        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any(), eq(pageable));
+        verify(carListingMapper).toCarListingResponse(filteredListing);
     }
 
     @Test
     void getFilteredListings_WhenNoneMatch_ShouldReturnEmptyPage() {
         // Arrange
-        ListingFilterRequest filterRequest = new ListingFilterRequest();
-        filterRequest.setBrand("NonExistentBrand");
-
         Pageable pageable = PageRequest.of(0, 10);
+        ListingFilterRequest filter = new ListingFilterRequest(); // Populate filter
+        filter.setBrand("NonExistent");
         Page<CarListing> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        // Use any(Specification.class)
-        when(carListingRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(emptyPage);
+        // FIX: Use ArgumentMatchers.<Specification<CarListing>>any() for type safety
+        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any(), eq(pageable))).thenReturn(emptyPage);
 
         // Act
-        Page<CarListingResponse> responsePage = carListingService.getFilteredListings(filterRequest, pageable);
+        Page<CarListingResponse> responsePage = carListingService.getFilteredListings(filter, pageable);
 
         // Assert
         assertNotNull(responsePage);
-        assertEquals(0, responsePage.getTotalElements());
-        assertTrue(responsePage.getContent().isEmpty());
-
-        // Corrected verification for getSignedUrl
-        verify(carListingRepository).findAll(any(Specification.class), eq(pageable));
-        verify(storageService, never()).getSignedUrl(anyString(), anyLong());
+        assertTrue(responsePage.isEmpty());
+        // FIX: Use ArgumentMatchers.<Specification<CarListing>>any() for type safety
+        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any(), eq(pageable));
+        verify(carListingMapper, never()).toCarListingResponse(any());
     }
+
+    // --- Tests for uploadListingImage ---
+    // These tests primarily interact with storageService and don't directly involve the mapper for their return value (String)
+    // So they might not need significant changes unless helper methods were altered.
 
     @Test
     void uploadListingImage_Success() throws IOException {
@@ -395,10 +422,8 @@ class CarListingServiceTest {
 
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
         when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
-
-        // FIX: Use when(...).thenReturn(...) for the non-void store method
         when(storageService.store(eq(file), keyCaptor.capture())).thenAnswer(invocation -> keyCaptor.getValue());
-
+        // Mock save to capture the argument and verify the key was set
         when(carListingRepository.save(any(CarListing.class))).thenAnswer(invocation -> {
              CarListing listingToSave = invocation.getArgument(0);
              assertNotNull(listingToSave.getImageKey());
@@ -412,13 +437,16 @@ class CarListingServiceTest {
         // Assert
         assertNotNull(returnedKey);
         assertEquals(returnedKey, keyCaptor.getValue());
-        assertEquals(returnedKey, savedListing.getImageKey());
+        // Verify key is set on the entity object used in the test
+        // Note: savedListing is the object *before* the save call in the service method.
+        // The actual update happens on the instance fetched within the service method.
+        // We verify the save call captures the correct state.
 
         // Verify interactions
         verify(userRepository).findByUsername(username);
         verify(carListingRepository).findById(listingId);
         verify(storageService).store(eq(file), eq(returnedKey));
-        verify(carListingRepository).save(savedListing);
+        verify(carListingRepository).save(argThat(l -> l.getId().equals(listingId) && returnedKey.equals(l.getImageKey())));
     }
 
     @Test
@@ -434,7 +462,7 @@ class CarListingServiceTest {
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             carListingService.uploadListingImage(nonExistentId, file, username);
         });
-        assertEquals("CarListing not found with id : '" + nonExistentId + "'", exception.getMessage());
+        assertEquals("CarListing not found with id : '999'", exception.getMessage());
 
         // Verify interactions
         verify(userRepository).findByUsername(username);
@@ -478,18 +506,23 @@ class CarListingServiceTest {
         MockMultipartFile emptyFile = new MockMultipartFile("file", "", "image/jpeg", new byte[0]); // Empty file
 
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser)); // Mock user lookup
+        // No need to mock findById for this path, as it shouldn't be reached
 
         // Act & Assert
         StorageException exception = assertThrows(StorageException.class, () -> {
             carListingService.uploadListingImage(listingId, emptyFile, username);
         });
-        assertEquals("Failed to store empty file.", exception.getMessage());
+        // FIX: Match the updated exception message from the service's validateFile helper
+        assertEquals("File provided for upload is null or empty.", exception.getMessage());
 
         // Verify interactions
         verify(userRepository).findByUsername(username); // This is called before the check
+        // Verify findById is NOT called because the exception is thrown earlier
+        verify(carListingRepository, never()).findById(anyLong());
         verify(storageService, never()).store(any(MultipartFile.class), anyString());
         verify(carListingRepository, never()).save(any());
     }
+
 
     @Test
     void uploadListingImage_StorageFailure_ThrowsRuntimeException() throws IOException { // Renamed test slightly for clarity
@@ -502,18 +535,21 @@ class CarListingServiceTest {
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
         when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
         // Mock storage service to throw an exception when store is called
+        // Use the captor in the mock setup
+        // FIX: Use doThrow().when() for void methods or methods returning a value where you want to throw
         doThrow(new StorageException("Disk full")).when(storageService).store(eq(file), keyCaptor.capture());
 
         // Act & Assert
-        // FIX: Expect RuntimeException because the service wraps the StorageException
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        // FIX: Expect StorageException because the service now re-throws it specifically
+        StorageException exception = assertThrows(StorageException.class, () -> {
              carListingService.uploadListingImage(listingId, file, username);
         });
-        // Optionally check the message of the RuntimeException or its cause
-        assertEquals("Failed to upload image for listing.", exception.getMessage());
+        // Check the message and cause based on the refactored service logic
+        assertEquals("Failed to store image file.", exception.getMessage());
         assertNotNull(exception.getCause());
         assertTrue(exception.getCause() instanceof StorageException);
         assertEquals("Disk full", exception.getCause().getMessage());
+
 
         // Verify interactions
         verify(userRepository).findByUsername(username);
@@ -522,4 +558,77 @@ class CarListingServiceTest {
         verify(storageService).store(eq(file), keyCaptor.capture());
         verify(carListingRepository, never()).save(any()); // Save should not happen if store fails
     }
+
+
+    // --- Test for getMyListings ---
+    @Test
+    void getMyListings_ShouldReturnUserListings() {
+        // Arrange
+        String username = testUser.getUsername();
+        CarListing listing1 = new CarListing(); // Setup listing 1 for testUser
+        listing1.setId(1L);
+        listing1.setSeller(testUser);
+        CarListing listing2 = new CarListing(); // Setup listing 2 for testUser
+        listing2.setId(2L);
+        listing2.setSeller(testUser);
+        List<CarListing> userListings = Arrays.asList(listing1, listing2);
+
+        CarListingResponse response1 = new CarListingResponse(); // Setup response 1
+        response1.setId(1L);
+        CarListingResponse response2 = new CarListingResponse(); // Setup response 2
+        response2.setId(2L);
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findBySeller(testUser)).thenReturn(userListings);
+        // Mock mapper for each listing
+        when(carListingMapper.toCarListingResponse(listing1)).thenReturn(response1);
+        when(carListingMapper.toCarListingResponse(listing2)).thenReturn(response2);
+
+        // Act
+        List<CarListingResponse> responses = carListingService.getMyListings(username);
+
+        // Assert
+        assertNotNull(responses);
+        assertEquals(2, responses.size());
+        assertTrue(responses.contains(response1));
+        assertTrue(responses.contains(response2));
+        verify(userRepository).findByUsername(username);
+        verify(carListingRepository).findBySeller(testUser);
+        verify(carListingMapper, times(2)).toCarListingResponse(any(CarListing.class));
+    }
+
+     @Test
+    void getMyListings_WhenUserNotFound_ShouldThrowException() {
+        // Arrange
+        String username = "nonexistentuser";
+        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            carListingService.getMyListings(username);
+        });
+        assertEquals("User not found with username : 'nonexistentuser'", exception.getMessage());
+        verify(userRepository).findByUsername(username);
+        verify(carListingRepository, never()).findBySeller(any());
+        verify(carListingMapper, never()).toCarListingResponse(any());
+    }
+
+    @Test
+    void getMyListings_WhenUserHasNoListings_ShouldReturnEmptyList() {
+        // Arrange
+        String username = testUser.getUsername();
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findBySeller(testUser)).thenReturn(Collections.emptyList());
+
+        // Act
+        List<CarListingResponse> responses = carListingService.getMyListings(username);
+
+        // Assert
+        assertNotNull(responses);
+        assertTrue(responses.isEmpty());
+        verify(userRepository).findByUsername(username);
+        verify(carListingRepository).findBySeller(testUser);
+        verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper not called for empty list
+    }
+
 }
