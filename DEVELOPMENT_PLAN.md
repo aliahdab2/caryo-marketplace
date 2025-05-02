@@ -25,32 +25,36 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 
 ### Phase 2: Car Listings
 
-- [ ] **Create Listing API** (upload car info + image)
+- [x] **Create Listing API** (upload car info + image)
+- [x] **Get User's Listings API** (return listings for the authenticated user)
 - [ ] **Get All Listings API** (return a paginated list)
 - [ ] **Filter Listings API** (by price, location, brand, etc.)
 - [ ] **Car Details API** (single listing view)
 - [ ] **Admin Approval** (listings should require admin approval before being visible)
-- [ ] **Image Upload** (with S3 or local file storage)
-- [ ] **Test CRUD Operations** (for listings)
+- [x] **Image Upload** (with S3-compatible storage)
+- [x] **Test Basic Operations** (for listings)
+- [ ] **Test Remaining CRUD Operations** (update and delete)
 
 ### Phase 3: Infrastructure & Optimizations
 
 - [ ] **PostgreSQL Setup** (create DB schema for users, listings, etc.)
 - [ ] **Flyway for DB Migrations** (auto versioning of database schema)
 - [ ] **Set up Redis** (optional, for caching frequently accessed data like listings)
-- [ ] **Add basic logging** with Spring Boot's logging features (SLF4J, Logback)
-- [ ] **Configure application.properties** (database connections, security)
+- [x] **Add basic logging** with Spring Boot's logging features (SLF4J, Logback)
+- [x] **Configure application.properties** (database connections, security, file storage)
 
 ### Phase 4: APIs and Testing
 
-- [ ] **REST APIs for Car Listings** (DTOs, Validation, Error Handling)
-- [ ] **Unit tests** with JUnit (for controllers, services, and repositories)
-- [ ] **Integration tests** (testing the complete flow)
+- [x] **REST APIs for Car Listings** (DTOs, Validation, Error Handling)
+- [x] **Unit tests** with JUnit (for controllers, services, and repositories)
+- [x] **Integration tests** (testing the complete flow)
+- [x] **API Documentation** (markdown-based for all endpoints)
 - [ ] **Swagger/OpenAPI Documentation** (for all public APIs)
 - [ ] **API Rate Limiting/Throttling** (optional for security)
 
 ### Phase 5: Deployment
 
+- [x] **Dockerize Storage** (set up MinIO with Docker Compose)
 - [ ] **Dockerize Backend** (create a Docker image for deployment)
 - [ ] **Set up CI/CD pipeline** (with GitHub Actions or Jenkins)
 - [ ] **Deploy to a cloud platform** (AWS, DigitalOcean, etc.)
