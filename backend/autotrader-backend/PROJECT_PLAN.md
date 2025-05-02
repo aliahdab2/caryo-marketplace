@@ -12,33 +12,64 @@ This document outlines the development plan for the AutoTrader Marketplace backe
 
 ## Phase 2: Car Listings
 
-- [ ] **Create Listing API** (upload car info + image)
+- [x] **Create Listing API** (upload car info + image)
   - [x] Implement dynamic validation for car model year (1920 - current year)
+  - [x] Support both JSON-only and multipart/form-data with image upload
+  - [x] Implement robust file validation for uploaded images
+- [x] **Get User's Listings API** (return listings for the authenticated user)
 - [ ] **Get All Listings API** (return a paginated list)
 - [ ] **Filter Listings API** (by price, location, brand, etc.)
 - [ ] **Car Details API** (single listing view)
 - [ ] **Admin Approval** (listings should require admin approval before being visible)
-- [ ] **Image Upload** (with S3 or local file storage)
-- [ ] **Test CRUD Operations** (for listings)
+- [x] **Image Upload** (with S3 or local file storage)
+  - [x] Set up MinIO as S3-compatible storage 
+  - [x] Implement direct file upload endpoints
+  - [x] Support for signed URLs for temporary file access
+  - [x] Docker setup with automatic bucket creation
+- [x] **Test Basic Operations** (for listings)
+  - [x] Automated Postman tests for creating listings (with/without images)
+  - [x] Tests for retrieving user's listings
+- [ ] **Test Remaining CRUD Operations** (update and delete)
 
 ## Phase 3: Infrastructure & Optimizations
 
 - [ ] **PostgreSQL Setup** (create DB schema for users, listings, etc.)
 - [ ] **Flyway for DB Migrations** (auto versioning of database schema)
 - [ ] **Set up Redis** (optional, for caching frequently accessed data like listings)
-- [ ] **Add basic logging** with Spring Boot's logging features (SLF4J, Logback)
-- [ ] **Configure application.properties** (database connections, security)
+- [x] **Add basic logging** with Spring Boot's logging features (SLF4J, Logback)
+  - [x] Implement logging for controller methods
+  - [x] Log file upload operations and validation results
+- [x] **Configure application.properties** (database connections, security, file storage)
+  - [x] Configure S3 settings (endpoint URL, bucket name, credentials)
+  - [x] Set up file size limits and allowed types
 
 ## Phase 4: APIs and Testing
 
-- [ ] **REST APIs for Car Listings** (DTOs, Validation, Error Handling)
-- [ ] **Unit tests** with JUnit (for controllers, services, and repositories)
-- [ ] **Integration tests** (testing the complete flow)
+- [x] **REST APIs for Car Listings** (DTOs, Validation, Error Handling)
+  - [x] Create DTOs for request/response
+  - [x] Implement comprehensive field validations
+  - [x] Set up proper error handling for invalid data and files
+- [x] **Unit tests** with JUnit (for controllers, services, and repositories)
+  - [x] Test file validation with dedicated unit tests
+  - [x] Test controllers for authentication and car listings
+  - [x] Test services with mock repositories
+- [x] **Integration tests** (testing the complete flow)
+  - [x] Set up Postman collection for API testing
+  - [x] Create automated test scripts
+  - [x] Generate HTML test reports
+- [x] **API Documentation**
+  - [x] Comprehensive markdown documentation for all endpoints
+  - [x] Examples for all requests/responses
+  - [x] Curl samples for manual testing
 - [ ] **Swagger/OpenAPI Documentation** (for all public APIs)
 - [ ] **API Rate Limiting/Throttling** (optional for security)
 
 ## Phase 5: Deployment
 
+- [x] **Dockerize Storage** (set up MinIO with Docker Compose)
+  - [x] Configure containers with proper networking
+  - [x] Set up volume persistence
+  - [x] Add bucket auto-creation service for seamless setup
 - [ ] **Dockerize Backend** (create a Docker image for deployment)
 - [ ] **Set up CI/CD pipeline** (with GitHub Actions or Jenkins)
 - [ ] **Deploy to a cloud platform** (AWS, DigitalOcean, etc.)
