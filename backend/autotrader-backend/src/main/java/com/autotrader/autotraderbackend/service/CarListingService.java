@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
+import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
@@ -41,8 +42,7 @@ public class CarListingService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
 
         CarListing carListing = new CarListing();
-        // Corrected mapping from request to entity
-        carListing.setTitle(request.getTitle()); // Assuming title exists in request
+        carListing.setTitle(request.getTitle());
         carListing.setBrand(request.getBrand());
         carListing.setModel(request.getModel());
         carListing.setModelYear(request.getModelYear());
@@ -75,31 +75,37 @@ public class CarListingService {
     @Transactional
     public String uploadListingImage(Long listingId, MultipartFile file, String username) {
         log.info("Attempting to upload image for listing ID: {} by user: {}", listingId, username);
-        // Fetch user first to check ownership later
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
-        
+        if (file.isEmpty()) {
+            log.warn("Attempt to upload empty file for listing ID: {}", listingId);
+            throw new StorageException("Failed to store empty file.");
+        }
+
         CarListing listing = carListingRepository.findById(listingId)
                 .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", listingId));
 
-        // Authorization check: Ensure the user owns the listing
-        // Corrected getter method
         if (listing.getSeller() == null || !listing.getSeller().getId().equals(user.getId())) {
             log.warn("Authorization failed: User '{}' attempted to upload image for listing ID {} owned by '{}'",
-                     username, listingId, listing.getSeller() != null ? listing.getSeller().getUsername() : "<unknown>");
-            throw new SecurityException("User does not have permission to modify this listing.");
+                     username, listingId, listing.getSeller() != null ? listing.getSeller().getUsername() : "unknown");
+            throw new SecurityException("User does not have permission to modify this listing."); // Use SecurityException as observed in tests
         }
 
         String imageKey = "listings/" + listingId + "/" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
+
         try {
             storageService.store(file, imageKey);
             listing.setImageKey(imageKey);
             carListingRepository.save(listing);
+
             log.info("Successfully uploaded image and updated listing ID: {}. Image key: {}", listingId, imageKey);
             return imageKey;
-        } catch (Exception e) {
-            log.error("Error uploading image for listing ID {}: {}", listingId, e.getMessage(), e);
+        } catch (StorageException e) {
+            log.error("Error uploading image for listing ID {}: {}", listingId, e.getMessage());
             throw new RuntimeException("Failed to upload image for listing.", e);
+        } catch (Exception e) {
+            log.error("Unexpected error uploading image for listing ID {}: {}", listingId, e.getMessage(), e);
+            throw new RuntimeException("Unexpected error occurred during image upload.", e);
         }
     }
 
@@ -137,7 +143,7 @@ public class CarListingService {
         // Always add the 'approved' criteria for public filtering
         Specification<CarListing> approvedSpec = Specification.where(spec)
                                                               .and(CarListingSpecification.isApproved());
-                                                              
+
         Page<CarListing> listingPage = carListingRepository.findAll(approvedSpec, pageable);
         log.info("Found {} filtered listings on page {} (size {}).", listingPage.getNumberOfElements(), pageable.getPageNumber(), pageable.getPageSize());
         return listingPage.map(this::convertToResponse);
@@ -165,14 +171,14 @@ public class CarListingService {
         log.info("Attempting to approve listing with ID: {}", id);
         CarListing carListing = carListingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", id));
-        
+
         if (Boolean.TRUE.equals(carListing.getApproved())) { // Safe check for Boolean
             log.warn("Listing ID {} is already approved.", id);
             // Decide whether to throw an error or just return the listing
-            // return convertToResponse(carListing); 
+            // return convertToResponse(carListing);
             throw new IllegalStateException("Listing is already approved.");
         }
-        
+
         carListing.setApproved(true);
         CarListing approvedListing = carListingRepository.save(carListing);
         log.info("Successfully approved listing ID: {}", approvedListing.getId());
@@ -199,7 +205,7 @@ public class CarListingService {
         response.setCreatedAt(carListing.getCreatedAt());
         response.setApproved(carListing.getApproved()); // Assuming approved exists
         // response.setUpdatedAt(carListing.getUpdatedAt()); // UpdatedAt not in CarListingResponse
-        
+
         // Corrected getter method for user/seller info
         if (carListing.getSeller() != null) {
             response.setSellerId(carListing.getSeller().getId());
