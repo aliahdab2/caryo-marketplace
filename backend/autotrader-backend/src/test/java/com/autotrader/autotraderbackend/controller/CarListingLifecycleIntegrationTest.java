@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -23,13 +24,14 @@ import org.springframework.test.context.ActiveProfiles;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
+public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
 
     @LocalServerPort
     private int port;
@@ -53,7 +55,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         carListingRepository.deleteAll();
         userRepository.deleteAll();
         
-        // Register and login a user to get a JWT token
+        // Register and login a user to get JWT token
         registerAndLoginUser();
     }
     
@@ -84,8 +86,9 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
                 JwtResponse.class
         );
         
-        assertNotNull(loginResponse.getBody(), "Login response body should not be null");
-        jwtToken = loginResponse.getBody().getToken();
+        JwtResponse jwtResponseBody = Objects.requireNonNull(loginResponse.getBody(), "Login response body should not be null");
+        jwtToken = jwtResponseBody.getToken();
+        assertNotNull(jwtToken, "JWT token should not be null");
     }
 
     @Test
@@ -107,28 +110,29 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         
         HttpEntity<CreateListingRequest> createEntity = new HttpEntity<>(createRequest, headers);
         
-        ResponseEntity<Map> createResponse = restTemplate.exchange(
+        ResponseEntity<Map<String, Object>> createResponse = restTemplate.exchange(
                 baseUrl + "/api/listings",
                 HttpMethod.POST,
                 createEntity,
-                Map.class
+                new ParameterizedTypeReference<Map<String, Object>>() {}
         );
         
-        assertEquals(HttpStatus.CREATED.value(), createResponse.getStatusCode().value()); // Use HttpStatus
-        assertNotNull(createResponse.getBody());
-        assertNotNull(createResponse.getBody().get("id"));
+        assertEquals(HttpStatus.CREATED.value(), createResponse.getStatusCode().value());
+        Map<String, Object> createResponseBody = Objects.requireNonNull(createResponse.getBody(), "Create response body should not be null");
+        assertNotNull(createResponseBody.get("id"), "ID should be present in create response");
         
         // Get the ID of the created listing
-        Number listingId = (Number) createResponse.getBody().get("id");
+        Number listingId = (Number) createResponseBody.get("id");
+        assertNotNull(listingId, "Listing ID should not be null");
         
-        // 2. Retrieve the car listing (check actual behavior - this could be 200 or 404 depending on implementation)
+        // 2. Retrieve the car listing
         HttpEntity<String> getEntity = new HttpEntity<>(headers);
         
-        ResponseEntity<Map> getResponse = restTemplate.exchange(
-                baseUrl + "/api/listings/" + listingId,
+        ResponseEntity<Map<String, Object>> getResponse = restTemplate.exchange(
+                baseUrl + "/api/listings/" + listingId.longValue(), // Use longValue for path
                 HttpMethod.GET,
                 getEntity,
-                Map.class
+                new ParameterizedTypeReference<Map<String, Object>>() {}
         );
         
         // Accept either 200 or 404 based on actual implementation 
@@ -144,11 +148,13 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         assertTrue(carListingRepository.findById(listingId.longValue()).isPresent());
         
         // 4. Attempt to access without authentication (should fail - expect 403)
-        ResponseEntity<Map> unauthorizedResponse = restTemplate.getForEntity(
-                baseUrl + "/api/listings/" + listingId,
-                Map.class
+        ResponseEntity<Map<String, Object>> unauthorizedResponse = restTemplate.exchange(
+                baseUrl + "/api/listings/" + listingId.longValue(), // Use longValue for path
+                HttpMethod.GET,
+                null, // No body or headers needed for unauthorized GET
+                new ParameterizedTypeReference<Map<String, Object>>() {}
         );
         
-        assertEquals(HttpStatus.FORBIDDEN.value(), unauthorizedResponse.getStatusCode().value()); // Use HttpStatus
+        assertEquals(HttpStatus.FORBIDDEN.value(), unauthorizedResponse.getStatusCode().value());
     }
 }
