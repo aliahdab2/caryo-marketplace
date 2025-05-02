@@ -10,15 +10,25 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FileValidatorTest {
 
-    private FileValidator fileValidator;
+    private FileValidator standardValidator;
+    private FileValidator strictValidator;
 
     @BeforeEach
     void setUp() {
-        fileValidator = new FileValidator(
+        // Standard validator allows all image types up to 5MB
+        standardValidator = new FileValidator(
             "image/jpeg,image/png,image/gif,image/webp",
             5242880L // 5MB
         );
+
+        // Strict validator only allows JPEG and PNG up to 1MB
+        strictValidator = new FileValidator(
+            "image/jpeg,image/png",
+            1048576L // 1MB
+        );
     }
+
+    // --- Standard Validator Tests --- 
 
     @Test
     void validateImageFile_withValidJpeg_shouldPass() {
@@ -31,7 +41,7 @@ class FileValidatorTest {
             content
         );
 
-        assertDoesNotThrow(() -> fileValidator.validateImageFile(file));
+        assertDoesNotThrow(() -> standardValidator.validateImageFile(file));
     }
 
     @Test
@@ -45,7 +55,7 @@ class FileValidatorTest {
             content
         );
 
-        assertDoesNotThrow(() -> fileValidator.validateImageFile(file));
+        assertDoesNotThrow(() -> standardValidator.validateImageFile(file));
     }
 
     @Test
@@ -58,7 +68,7 @@ class FileValidatorTest {
             content
         );
 
-        assertDoesNotThrow(() -> fileValidator.validateImageFile(file));
+        assertDoesNotThrow(() -> standardValidator.validateImageFile(file));
     }
 
     @Test
@@ -71,7 +81,7 @@ class FileValidatorTest {
             content
         );
 
-        assertDoesNotThrow(() -> fileValidator.validateImageFile(file));
+        assertDoesNotThrow(() -> standardValidator.validateImageFile(file));
     }
 
     @Test
@@ -85,7 +95,7 @@ class FileValidatorTest {
 
         InvalidFileException exception = assertThrows(
             InvalidFileException.class,
-            () -> fileValidator.validateImageFile(file)
+            () -> standardValidator.validateImageFile(file)
         );
         assertEquals("File is empty", exception.getMessage());
     }
@@ -101,7 +111,7 @@ class FileValidatorTest {
 
         InvalidFileException exception = assertThrows(
             InvalidFileException.class,
-            () -> fileValidator.validateImageFile(file)
+            () -> standardValidator.validateImageFile(file)
         );
         assertTrue(exception.getMessage().contains("not allowed"));
     }
@@ -119,7 +129,7 @@ class FileValidatorTest {
 
         InvalidFileException exception = assertThrows(
             InvalidFileException.class,
-            () -> fileValidator.validateImageFile(file)
+            () -> standardValidator.validateImageFile(file)
         );
         assertTrue(exception.getMessage().contains("not allowed"));
     }
@@ -138,7 +148,7 @@ class FileValidatorTest {
             content
         );
 
-        assertDoesNotThrow(() -> fileValidator.validateImageFile(file));
+        assertDoesNotThrow(() -> standardValidator.validateImageFile(file));
     }
 
     @Test
@@ -158,30 +168,85 @@ class FileValidatorTest {
 
         InvalidFileException exception = assertThrows(
             InvalidFileException.class,
-            () -> fileValidator.validateImageFile(file)
+            () -> standardValidator.validateImageFile(file)
         );
         assertTrue(exception.getMessage().contains("exceeds maximum limit"));
     }
 
     @Test
     void getFileExtension_withValidMimeTypes_shouldReturnCorrectExtension() {
-        assertEquals(".jpg", fileValidator.getFileExtension("image/jpeg"));
-        assertEquals(".png", fileValidator.getFileExtension("image/png"));
-        assertEquals(".gif", fileValidator.getFileExtension("image/gif"));
-        assertEquals(".webp", fileValidator.getFileExtension("image/webp"));
+        assertEquals(".jpg", standardValidator.getFileExtension("image/jpeg"));
+        assertEquals(".png", standardValidator.getFileExtension("image/png"));
+        assertEquals(".gif", standardValidator.getFileExtension("image/gif"));
+        assertEquals(".webp", standardValidator.getFileExtension("image/webp"));
     }
 
     @Test
     void getFileExtension_withInvalidMimeType_shouldThrowException() {
         assertThrows(
             InvalidFileException.class,
-            () -> fileValidator.getFileExtension("application/pdf")
+            () -> standardValidator.getFileExtension("application/pdf")
         );
     }
 
+    // --- Strict Validator Tests --- 
+
+    @Test
+    void validateImageFile_withGifInStrictMode_shouldThrowException() {
+        byte[] content = new byte[]{'G', 'I', 'F', '8', '9', 'a'};
+        MultipartFile file = new MockMultipartFile(
+            "test.gif",
+            "test.gif",
+            "image/gif",
+            content
+        );
+
+        InvalidFileException exception = assertThrows(
+            InvalidFileException.class,
+            () -> strictValidator.validateImageFile(file)
+        );
+        assertTrue(exception.getMessage().contains("not allowed"));
+    }
+
+    @Test
+    void validateImageFile_withJpegInStrictMode_shouldPass() {
+        byte[] content = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF};
+        MultipartFile file = new MockMultipartFile(
+            "test.jpg",
+            "test.jpg",
+            "image/jpeg",
+            content
+        );
+
+        assertDoesNotThrow(() -> strictValidator.validateImageFile(file));
+    }
+
+    @Test
+    void validateImageFile_withLargeFileInStrictMode_shouldThrowException() {
+        byte[] content = new byte[1048577]; // Just over 1MB
+        content[0] = (byte) 0xFF;
+        content[1] = (byte) 0xD8;
+        content[2] = (byte) 0xFF;
+
+        MultipartFile file = new MockMultipartFile(
+            "test.jpg",
+            "test.jpg",
+            "image/jpeg",
+            content
+        );
+
+        InvalidFileException exception = assertThrows(
+            InvalidFileException.class,
+            () -> strictValidator.validateImageFile(file)
+        );
+        assertTrue(exception.getMessage().contains("exceeds maximum limit"));
+    }
+
+    // --- Default Configuration Test --- 
+
     @Test
     void validateImageFile_withDefaultConfiguration_shouldUseDefaults() {
-        // Create validator with null allowed types to test defaults
+        // Create validator with null allowed types to test defaults (uses 10MB default size)
         FileValidator defaultValidator = new FileValidator(null, 10485760L);
         
         byte[] content = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF}; // JPEG

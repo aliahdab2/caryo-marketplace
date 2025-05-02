@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor // Ensures final fields are injected via constructor
+@RequiredArgsConstructor
 @Slf4j
 public class CarListingService {
 
