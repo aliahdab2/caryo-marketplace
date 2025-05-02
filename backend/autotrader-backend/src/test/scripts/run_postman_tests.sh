@@ -8,6 +8,10 @@ cd "$PROJECT_ROOT"
 # Exit on error
 set -e
 
+# Prepare test assets (create test images, PDFs, etc.)
+echo "Preparing test assets for Postman tests..."
+"$SCRIPT_DIR/prepare_test_assets.sh"
+
 # Start the Spring Boot app in a background process
 echo "Starting Spring Boot application..."
 "$PROJECT_ROOT/gradlew" bootRun &

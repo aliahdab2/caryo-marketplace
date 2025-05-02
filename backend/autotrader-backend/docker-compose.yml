@@ -18,6 +18,20 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+  
+  # Service to create the bucket automatically upon startup
+  createbuckets:
+    image: minio/mc:RELEASE.2025-04-15T20-13-34Z-cpuv1
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb --ignore-existing myminio/autotrader-assets;
+      /usr/bin/mc policy set public myminio/autotrader-assets;
+      echo 'Bucket created successfully'
+      "
     logging:
       driver: "json-file"
       options:

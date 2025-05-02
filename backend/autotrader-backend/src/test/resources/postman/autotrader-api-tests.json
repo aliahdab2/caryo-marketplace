@@ -152,12 +152,67 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"title\": \"2023 Toyota Camry\",\n    \"brand\": \"Toyota\",\n    \"model\": \"Camry\",\n    \"modelYear\": 2023,\n    \"mileage\": 5000,\n    \"price\": 28000,\n    \"location\": \"New York\",\n    \"description\": \"Like new condition\",\n    \"imageUrl\": \"https://example.com/camry.jpg\"\n}"
+              "raw": "{\n    \"title\": \"2023 Toyota Camry\",\n    \"brand\": \"Toyota\",\n    \"model\": \"Camry\",\n    \"modelYear\": 2023,\n    \"mileage\": 5000,\n    \"price\": 28000,\n    \"location\": \"New York\",\n    \"description\": \"Like new condition\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/listings",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings"]
+            }
+          }
+        },
+        {
+          "name": "Create Car Listing with Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing with image created successfully\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.not.be.undefined;",
+                  "    pm.expect(jsonData.imageUrl).to.not.be.undefined;",
+                  "    ",
+                  "    // Save listing ID for later tests",
+                  "    pm.environment.set(\"listing_with_image_id\", jsonData.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "listing",
+                  "value": "{\n    \"title\": \"2023 Honda Accord\",\n    \"brand\": \"Honda\",\n    \"model\": \"Accord\",\n    \"modelYear\": 2023,\n    \"mileage\": 3000,\n    \"price\": 30000,\n    \"location\": \"Los Angeles\",\n    \"description\": \"Excellent condition\"\n}",
+                  "type": "text",
+                  "contentType": "application/json"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": "./src/test/resources/postman/assets/test-car.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/listings/with-image",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "listings", "with-image"]
             }
           }
         },
