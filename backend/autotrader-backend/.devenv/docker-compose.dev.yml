@@ -30,8 +30,11 @@ services:
       APP_UPLOAD_ALLOWED_TYPES: image/jpeg,image/png,image/gif,image/webp
       # Development settings
       SPRING_PROFILES_ACTIVE: dev
+      SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING: "true"
       SPRING_DEVTOOLS_RESTART_ENABLED: ${DEV_MODE:-true}
       SPRING_DEVTOOLS_LIVERELOAD_ENABLED: ${DEV_MODE:-true}
+      SPRINGDOC_SWAGGER_UI_CSRF_ENABLED: "false"
+      SPRINGDOC_API_DOCS_ENABLED: "true"
     depends_on:
       - postgres
       - minio
@@ -74,11 +77,11 @@ services:
 
   # MinIO (S3-compatible storage)
   minio:
-    container_name: minio
+    container_name: autotrader-minio
     image: minio/minio:latest
     ports:
-      - "${MINIO_API_PORT:-9000}:9000"
-      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+      - "${MINIO_API_PORT:-9000}:9000" # Reverted to default host port 9000
+      - "${MINIO_CONSOLE_PORT:-9091}:9001" # Reverted to default host port 9001
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}

@@ -10,6 +10,9 @@ NC='\033[0m' # No Color
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
+# Set the project name for Docker Compose
+export COMPOSE_PROJECT_NAME="autotrader_dev"
+
 # Function to handle errors
 error_exit() {
     echo -e "${RED}Error: $1${NC}" >&2
@@ -23,7 +26,7 @@ show_help() {
     echo "  start     - Start the development environment"
     echo "  stop      - Stop the development environment"
     echo "  restart   - Restart the development environment"
-    echo "  update    - Update/rebuild the Docker images"
+    echo "  rebuild   - Rebuild the environment (down, pull, build, up)"
     echo "  status    - Check the status of containers"
     echo "  logs      - Follow the logs from all containers"
     echo "  test      - Run tests in the development environment"
@@ -72,7 +75,7 @@ start_dev_env() {
     echo -e "${YELLOW}Services available at:${NC}"
     echo -e "- Spring Boot App:  ${GREEN}http://localhost:${SERVER_PORT:-8080}${NC}"
     echo -e "- API Documentation: ${GREEN}http://localhost:${SERVER_PORT:-8080}/swagger-ui/index.html${NC}"
-    echo -e "- MinIO Console:    ${GREEN}http://localhost:${MINIO_CONSOLE_PORT:-9001}${NC} (${MINIO_ROOT_USER:-minioadmin}/${MINIO_ROOT_PASSWORD:-minioadmin})"
+    echo -e "- MinIO Console:    ${GREEN}http://localhost:${MINIO_CONSOLE_PORT:-9001}${NC} (${MINIO_ROOT_USER:-minioadmin}/${MINIO_ROOT_PASSWORD:-minioadmin})" # Reverted port
     echo -e "- Adminer:          ${GREEN}http://localhost:8081${NC} (Server: postgres, User: ${DB_USER:-postgres}, Password: ${DB_PASSWORD:-postgres})"
     
     # Debugging info
@@ -93,6 +96,23 @@ stop_dev_env() {
     echo -e "${YELLOW}Stopping development environment...${NC}"
     docker-compose -f .devenv/docker-compose.dev.yml down || error_exit "Failed to stop services"
     echo -e "${GREEN}Development environment stopped${NC}"
+}
+
+# Rebuild the development environment (down, pull, build, up)
+rebuild_dev_env() {
+    echo -e "${YELLOW}Stopping and removing containers...${NC}"
+    docker-compose -f .devenv/docker-compose.dev.yml down -v || error_exit "Failed to stop services"
+    echo -e "${YELLOW}Pulling latest base images (including MinIO)...${NC}"
+    docker pull gradle:8.5-jdk21 || echo -e "${YELLOW}Warning: Failed to pull gradle image, using cache.${NC}"
+    docker pull postgres:15-alpine || echo -e "${YELLOW}Warning: Failed to pull postgres image, using cache.${NC}"
+    docker pull minio/minio:latest || error_exit "Failed to pull MinIO image"
+    docker pull minio/mc:latest || error_exit "Failed to pull MinIO client image"
+    docker pull adminer:latest || echo -e "${YELLOW}Warning: Failed to pull adminer image, using cache.${NC}"
+    echo -e "${YELLOW}Building application...${NC}"
+    ./gradlew clean build -x test || error_exit "Gradle build failed"
+    echo -e "${YELLOW}Building and starting Docker environment...${NC}"
+    docker-compose -f .devenv/docker-compose.dev.yml up --build -d || error_exit "Failed to build or start services"
+    start_dev_env # Reuse start logic for waiting and showing info
 }
 
 # Check status of containers
@@ -164,25 +184,6 @@ health_check() {
     fi
 }
 
-# Update/rebuild the Docker images
-update_images() {
-    echo -e "${YELLOW}Updating Docker images...${NC}"
-    
-    # Load environment variables
-    if [ -f .devenv/.env ]; then
-        source .devenv/.env
-    fi
-    if [ -f .devenv/.env.local ]; then
-        source .devenv/.env.local
-    fi
-    
-    docker-compose -f .devenv/docker-compose.dev.yml build --no-cache || error_exit "Failed to rebuild images"
-    
-    echo -e "${GREEN}Docker images updated successfully!${NC}"
-    echo -e "${YELLOW}You may need to restart the development environment:${NC}"
-    echo -e "  ./dev-env.sh restart"
-}
-
 # Main script
 check_docker
 
@@ -201,8 +202,8 @@ case "$1" in
         stop_dev_env
         start_dev_env
         ;;
-    update)
-        update_images
+    rebuild) # Changed from update to rebuild
+        rebuild_dev_env
         ;;
     status)
         check_status
