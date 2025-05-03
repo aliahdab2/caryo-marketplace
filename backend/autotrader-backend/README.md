@@ -51,8 +51,11 @@ The project includes a complete development environment managed by the `./dev-en
 # Restart the development environment (stop and then start)
 ./dev-env.sh restart
 
-# Rebuild the environment (stops, removes volumes, pulls images, builds app, starts)
+# Rebuild the environment (stops, removes volumes, pulls images, builds app including tests, starts)
 ./dev-env.sh rebuild
+
+# Rebuild the environment (stops, removes volumes, pulls images, builds app skipping tests, starts)
+./dev-env.sh rebuild-notest
 
 # Check the status of running containers
 ./dev-env.sh status

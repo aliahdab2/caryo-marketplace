@@ -23,16 +23,17 @@ error_exit() {
 show_help() {
     echo "Usage: ./dev-env.sh [COMMAND]"
     echo "Commands:"
-    echo "  start     - Start the development environment"
-    echo "  stop      - Stop the development environment"
-    echo "  restart   - Restart the development environment"
-    echo "  rebuild   - Rebuild the environment (down, pull, build, up)"
-    echo "  status    - Check the status of containers"
-    echo "  logs      - Follow the logs from all containers"
-    echo "  test      - Run tests in the development environment"
-    echo "  endpoints - Show all API endpoints"
-    echo "  health    - Run a quick health check of all services"
-    echo "  help      - Show this help message"
+    echo "  start           - Start the development environment"
+    echo "  stop            - Stop the development environment"
+    echo "  restart         - Restart the development environment"
+    echo "  rebuild         - Rebuild the environment (includes tests)"
+    echo "  rebuild-notest  - Rebuild the environment (skips tests)"
+    echo "  status          - Check the status of containers"
+    echo "  logs            - Follow the logs from all containers"
+    echo "  test            - Run tests in the development environment"
+    echo "  endpoints       - Show all API endpoints"
+    echo "  health          - Run a quick health check of all services"
+    echo "  help            - Show this help message"
     exit 0
 }
 
@@ -98,7 +99,7 @@ stop_dev_env() {
     echo -e "${GREEN}Development environment stopped${NC}"
 }
 
-# Rebuild the development environment (down, pull, build, up)
+# Rebuild the development environment (down, pull, build, up) - Includes Tests
 rebuild_dev_env() {
     echo -e "${YELLOW}Stopping and removing containers...${NC}"
     docker-compose -f .devenv/docker-compose.dev.yml down -v || error_exit "Failed to stop services"
@@ -108,7 +109,24 @@ rebuild_dev_env() {
     docker pull minio/minio:latest || error_exit "Failed to pull MinIO image"
     docker pull minio/mc:latest || error_exit "Failed to pull MinIO client image"
     docker pull adminer:latest || echo -e "${YELLOW}Warning: Failed to pull adminer image, using cache.${NC}"
-    echo -e "${YELLOW}Building application...${NC}"
+    echo -e "${YELLOW}Building application (including tests)...${NC}"
+    ./gradlew clean build || error_exit "Gradle build failed (check tests)"
+    echo -e "${YELLOW}Building and starting Docker environment...${NC}"
+    docker-compose -f .devenv/docker-compose.dev.yml up --build -d || error_exit "Failed to build or start services"
+    start_dev_env # Reuse start logic for waiting and showing info
+}
+
+# Rebuild the development environment (down, pull, build, up) - Skips Tests
+rebuild_dev_env_notest() {
+    echo -e "${YELLOW}Stopping and removing containers...${NC}"
+    docker-compose -f .devenv/docker-compose.dev.yml down -v || error_exit "Failed to stop services"
+    echo -e "${YELLOW}Pulling latest base images (including MinIO)...${NC}"
+    docker pull gradle:8.5-jdk21 || echo -e "${YELLOW}Warning: Failed to pull gradle image, using cache.${NC}"
+    docker pull postgres:15-alpine || echo -e "${YELLOW}Warning: Failed to pull postgres image, using cache.${NC}"
+    docker pull minio/minio:latest || error_exit "Failed to pull MinIO image"
+    docker pull minio/mc:latest || error_exit "Failed to pull MinIO client image"
+    docker pull adminer:latest || echo -e "${YELLOW}Warning: Failed to pull adminer image, using cache.${NC}"
+    echo -e "${YELLOW}Building application (skipping tests)...${NC}"
     ./gradlew clean build -x test || error_exit "Gradle build failed"
     echo -e "${YELLOW}Building and starting Docker environment...${NC}"
     docker-compose -f .devenv/docker-compose.dev.yml up --build -d || error_exit "Failed to build or start services"
@@ -202,8 +220,11 @@ case "$1" in
         stop_dev_env
         start_dev_env
         ;;
-    rebuild) # Changed from update to rebuild
+    rebuild)
         rebuild_dev_env
+        ;;
+    rebuild-notest) # Added new command
+        rebuild_dev_env_notest
         ;;
     status)
         check_status
