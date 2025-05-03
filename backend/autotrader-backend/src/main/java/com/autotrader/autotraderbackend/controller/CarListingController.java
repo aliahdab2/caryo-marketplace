@@ -37,7 +37,7 @@ import java.util.Map;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Car Listings", description = "APIs for managing car listings")
+@Tag(name = "Listings", description = "Manage car listings (create, view, filter, etc.)")
 public class CarListingController {
 
     private final CarListingService carListingService;
@@ -45,8 +45,9 @@ public class CarListingController {
     @PostMapping(consumes = "application/json")
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        summary = "Create a new car listing without image",
+        summary = "Create a new car listing (no image)",
         description = "Creates a new car listing with the provided details. Authentication required.",
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
         responses = {
             @ApiResponse(responseCode = "201", description = "Listing created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input"),
@@ -54,7 +55,6 @@ public class CarListingController {
             @ApiResponse(responseCode = "403", description = "Forbidden")
         }
     )
-    @Tag(name = "Car Listings")
     public ResponseEntity<CarListingResponse> createListing(
             @Valid @RequestBody CreateListingRequest createRequest,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -70,6 +70,7 @@ public class CarListingController {
     @Operation(
         summary = "Create a new car listing with image",
         description = "Creates a new car listing with the provided details and image. Authentication required.",
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
         responses = {
             @ApiResponse(responseCode = "201", description = "Listing created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input or image"),
@@ -77,7 +78,6 @@ public class CarListingController {
             @ApiResponse(responseCode = "403", description = "Forbidden")
         }
     )
-    @Tag(name = "Car Listings")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
         content = @Content(mediaType = "multipart/form-data",
             schema = @Schema(type = "object", requiredProperties = {"listing", "image"}),
@@ -105,7 +105,20 @@ public class CarListingController {
     }
 
     @PostMapping(value = "/{listingId}/upload-image", consumes = {"multipart/form-data"})
-    @PreAuthorize("isAuthenticated()") // Ensure a user is logged in
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        summary = "Upload an image for a car listing",
+        description = "Uploads an image file for the specified car listing. Authentication required.",
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "200", description = "File uploaded successfully"),
+            @ApiResponse(responseCode = "400", description = "File cannot be empty"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "Listing not found"),
+            @ApiResponse(responseCode = "500", description = "Failed to upload file")
+        }
+    )
     public ResponseEntity<?> uploadListingImage(@PathVariable Long listingId,
                                                 @RequestParam("file") MultipartFile file,
                                                 @AuthenticationPrincipal UserDetails userDetails) {
@@ -142,6 +155,13 @@ public class CarListingController {
 
     // Renamed back from /approved for clarity, filtering happens in service
     @GetMapping
+    @Operation(
+        summary = "Get all approved car listings",
+        description = "Returns a paginated list of all approved car listings.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "List of car listings")
+        }
+    )
     public ResponseEntity<PageResponse<CarListingResponse>> getAllListings(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -165,6 +185,13 @@ public class CarListingController {
     }
 
     @PostMapping("/filter")
+    @Operation(
+        summary = "Filter car listings",
+        description = "Returns a paginated list of car listings matching the provided filter criteria.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Filtered list of car listings")
+        }
+    )
     public ResponseEntity<PageResponse<CarListingResponse>> getFilteredListings(
             @Valid @RequestBody ListingFilterRequest filterRequest,
             @RequestParam(defaultValue = "0") int page,
@@ -189,6 +216,14 @@ public class CarListingController {
     }
 
     @GetMapping("/{id}")
+    @Operation(
+        summary = "Get car listing by ID",
+        description = "Returns the details of a car listing by its ID.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Car listing details"),
+            @ApiResponse(responseCode = "404", description = "Listing not found")
+        }
+    )
     public ResponseEntity<CarListingResponse> getListingById(@PathVariable Long id) {
         log.debug("Request received for listing ID: {}", id);
         // Service method handles not found exception
@@ -199,6 +234,15 @@ public class CarListingController {
 
     @GetMapping("/my-listings")
     @PreAuthorize("isAuthenticated()")
+    @Operation(
+        summary = "Get listings for the current user",
+        description = "Returns all car listings created by the currently authenticated user.",
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "200", description = "List of user's car listings"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+        }
+    )
     public ResponseEntity<List<CarListingResponse>> getMyListings(@AuthenticationPrincipal UserDetails userDetails) {
         log.debug("Request received for listings owned by user: {}", userDetails.getUsername());
         List<CarListingResponse> myListings = carListingService.getMyListings(userDetails.getUsername());
@@ -209,6 +253,17 @@ public class CarListingController {
     // Changed back to POST as it modifies state
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+        summary = "Approve a car listing",
+        description = "Approves a car listing. Only accessible by admins.",
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Listing approved successfully"),
+            @ApiResponse(responseCode = "404", description = "Listing not found"),
+            @ApiResponse(responseCode = "409", description = "Listing already approved"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+        }
+    )
     public ResponseEntity<?> approveListing(@PathVariable Long id) {
         log.info("Received request to approve listing ID: {}", id);
         try {

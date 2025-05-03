@@ -2,6 +2,10 @@ package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -23,6 +27,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/files")
+@Tag(name = "Files", description = "File upload and management")
 public class FileController {
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
 
@@ -42,6 +47,16 @@ public class FileController {
      */
     @PostMapping("/upload")
     @PreAuthorize("hasRole('USER')")
+    @Operation(
+        summary = "Upload a file for a car listing",
+        description = "Uploads a file for a car listing. Requires authentication.",
+        security = @SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "200", description = "File uploaded successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid file or unsupported type"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+        }
+    )
     public ResponseEntity<Map<String, String>> uploadFile(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "listingId", required = false) Long listingId) {
@@ -89,6 +104,14 @@ public class FileController {
      * @return The file as a resource
      */
     @GetMapping("/{key}")
+    @Operation(
+        summary = "Download a file by key",
+        description = "Downloads a file by its key.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "File downloaded successfully"),
+            @ApiResponse(responseCode = "404", description = "File not found")
+        }
+    )
     public ResponseEntity<Resource> getFile(@PathVariable String key) {
         logger.info("Received file download request for key: {}", key);
         Resource resource = storageService.loadAsResource(key);
@@ -123,6 +146,15 @@ public class FileController {
      */
     @GetMapping("/signed")
     @PreAuthorize("hasRole('USER')")
+    @Operation(
+        summary = "Get a signed URL for a file",
+        description = "Generates a signed URL for a file, allowing temporary access. Requires authentication.",
+        security = @SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Signed URL generated successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+        }
+    )
     public ResponseEntity<Map<String, String>> getSignedUrl(
             @RequestParam("key") String key,
             @RequestParam(value = "expiration", defaultValue = "3600") long expiration) {
@@ -145,6 +177,16 @@ public class FileController {
      */
     @DeleteMapping("/{key}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+        summary = "Delete a file",
+        description = "Deletes a file by its key. Requires admin role.",
+        security = @SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "200", description = "File deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "File not found"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+        }
+    )
     public ResponseEntity<Map<String, String>> deleteFile(@PathVariable String key) {
         logger.info("Received file deletion request for key: {}", key);
         boolean deleted = storageService.delete(key);
