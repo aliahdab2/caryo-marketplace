@@ -37,70 +37,68 @@ autotrader-backend/
 
 ### Development Environment
 
-The project includes a complete development environment managed by the `./dev-env.sh` script. This script uses Docker Compose to set up the Spring Boot application, PostgreSQL database, MinIO object storage, and Adminer database management tool.
-
-**Available Commands:**
+The project includes a complete development environment with all necessary components:
 
 ```bash
-# Start the development environment (creates containers if needed)
+# Start the development environment
 ./dev-env.sh start
+
+# Check the status
+./dev-env.sh status
+
+# View the logs
+./dev-env.sh logs
+
+# Run tests
+./dev-env.sh test
 
 # Stop the development environment
 ./dev-env.sh stop
-
-# Restart the development environment (stop and then start)
-./dev-env.sh restart
-
-# Rebuild the environment (stops, removes volumes, pulls images, builds app including tests, starts)
-./dev-env.sh rebuild
-
-# Rebuild the environment (stops, removes volumes, pulls images, builds app skipping tests, starts)
-./dev-env.sh rebuild-notest
-
-# Check the status of running containers
-./dev-env.sh status
-
-# View the logs from all containers (follow mode)
-./dev-env.sh logs
-
-# Run a quick health check of all services
-./dev-env.sh health
-
-# Run tests within the app container
-./dev-env.sh test
-
-# Show this help message
-./dev-env.sh help
 ```
 
-**Accessing Services:**
+The development environment includes:
+- Spring Boot application with hot reloading
+- PostgreSQL database
+- MinIO (S3-compatible storage)
+- Adminer (database management UI)
+- Redis (for caching)
 
-Once started, the services are available at:
+For more details, see the [development environment documentation](.devenv/README.md).
 
-- **Spring Boot App:** [http://localhost:8080](http://localhost:8080)
-- **API Documentation (Swagger UI):** [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
-- **MinIO Console:** [http://localhost:9001](http://localhost:9001) (Login: `minioadmin`/`minioadmin`)
-- **Adminer (PostgreSQL GUI):** [http://localhost:8081](http://localhost:8081) (Server: `postgres`, User: `postgres`, Password: `postgres`, DB: `autotrader`)
-- **Debug Port:** Attach your IDE debugger to port `5005`.
+### Building the Application Manually
 
-### Running Locally (Without Docker)
+If you prefer not to use the development environment, you can build and run the application manually:
 
-If you prefer to run the application directly on your host machine:
+```bash
+./gradlew clean build
+```
 
-1.  **Ensure PostgreSQL is running** and accessible.
-2.  **Configure `src/main/resources/application.properties`** with your local database credentials.
-3.  **Run the application:**
-    ```bash
-    ./gradlew bootRun
-    ```
+### Running the Application Manually
+
+```bash
+./gradlew bootRun
+```
+
+The application will start on port 8080 by default.
+
+> **Quick Start**: For a step-by-step guide on how to test the API endpoints and run the Postman tests, see the [Quick Start Guide](API_DOCUMENTATION.md#quick-start-guide) in the API documentation.
+
+### Environment Configuration
+
+The application uses different configurations for development and production:
+
+- **Development**: Uses H2 in-memory database by default
+- **Production**: Requires PostgreSQL database connection
+
+Configure the database connection in `application.properties` for production or use environment variables.
 
 ## API Documentation
 
-Detailed API documentation is available:
-
-- **Swagger UI:** Accessible at `/swagger-ui/index.html` when the application is running.
-- **OpenAPI Spec:** Available at `/v3/api-docs`.
-- **Static Documentation:** See [API_DOCUMENTATION.md](API_DOCUMENTATION.md).
+The API endpoints are documented in detail in the [API_DOCUMENTATION.md](API_DOCUMENTATION.md) file, including:
+- Request/response formats
+- Authentication requirements
+- Example usage with cURL
+- Error handling
 
 ### Authentication Endpoints
 
