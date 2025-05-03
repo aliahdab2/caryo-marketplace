@@ -1,5 +1,8 @@
 package com.autotrader.autotraderbackend.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -26,6 +29,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/images")
 @CrossOrigin(origins = "*", maxAge = 3600)
+@Tag(name = "Images", description = "Upload and retrieve images")
 public class ImageController {
 
     private final Path fileStorageLocation;
@@ -41,6 +45,14 @@ public class ImageController {
     }
 
     @PostMapping("/upload")
+    @Operation(
+        summary = "Upload an image",
+        description = "Uploads an image file and returns its download URI.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Image uploaded successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid file or unsupported type")
+        }
+    )
     public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
         String fileName = storeFile(file);
 
@@ -58,6 +70,14 @@ public class ImageController {
     }
 
     @GetMapping("/{fileName:.+}")
+    @Operation(
+        summary = "Get an image by filename",
+        description = "Downloads an image by its filename.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Image downloaded successfully"),
+            @ApiResponse(responseCode = "404", description = "Image not found")
+        }
+    )
     public ResponseEntity<Resource> getImage(@PathVariable String fileName) {
         try {
             Path filePath = this.fileStorageLocation.resolve(fileName).normalize();

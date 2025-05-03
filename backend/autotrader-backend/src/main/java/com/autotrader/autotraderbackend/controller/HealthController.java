@@ -1,3 +1,6 @@
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 package com.autotrader.autotraderbackend.controller;
 
 import org.springframework.http.ResponseEntity;
@@ -8,9 +11,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
+@Tag(name = "Health Check", description = "System health monitoring endpoints")
 public class HealthController {
 
     @GetMapping("/health")
+    @Operation(
+        summary = "Health check",
+        description = "Returns the health status of the API.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "API is healthy")
+        }
+    )
     public ResponseEntity<?> health() {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
