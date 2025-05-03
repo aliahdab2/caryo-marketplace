@@ -27,9 +27,18 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
             // Don't authenticate these specific requests
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/").permitAll()
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/health").permitAll()
+                .requestMatchers("/status").permitAll()
+                .requestMatchers("/api-docs").permitAll()
+                .requestMatchers("/v3/api-docs").permitAll()
+                .requestMatchers("/v3/api-docs/**").permitAll()
+                .requestMatchers("/swagger-ui.html").permitAll()
+                .requestMatchers("/swagger-ui/**").permitAll()
+                .requestMatchers("/swagger-resources/**").permitAll()
+                .requestMatchers("/webjars/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/files/**").permitAll() // Allow unauthenticated GET for file download only
                 .anyRequest().authenticated()
             )
