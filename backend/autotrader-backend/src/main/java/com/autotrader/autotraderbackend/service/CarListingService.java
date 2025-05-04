@@ -14,6 +14,7 @@ import com.autotrader.autotraderbackend.repository.specification.CarListingSpeci
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -44,26 +45,30 @@ public class CarListingService {
 
         CarListing carListing = buildCarListingFromRequest(request, user);
 
-        try {
-            CarListing savedListing = carListingRepository.save(carListing);
-            
-            // Handle image upload if provided
-            if (image != null && !image.isEmpty()) {
+        // Removed the broad try-catch block
+        CarListing savedListing = carListingRepository.save(carListing); // Let DataAccessException propagate
+
+        // Handle image upload if provided
+        if (image != null && !image.isEmpty()) {
+            try {
                 String imageKey = generateImageKey(savedListing.getId(), image.getOriginalFilename());
                 storageService.store(image, imageKey);
                 savedListing.setImageKey(imageKey);
-                savedListing = carListingRepository.save(savedListing);
+                savedListing = carListingRepository.save(savedListing); // Save again to update imageKey
                 log.info("Successfully uploaded image for new listing ID: {}", savedListing.getId());
+            } catch (StorageException e) {
+                // If image upload/update fails, log it but proceed with listing creation response
+                log.error("Failed to upload image or update listing with image key for listing ID {}: {}", savedListing.getId(), e.getMessage(), e);
+                // For now, we return the listing response even if image upload failed.
+            } catch (Exception e) {
+                // Catch unexpected errors during image handling
+                log.error("Unexpected error during image handling for listing ID {}: {}", savedListing.getId(), e.getMessage(), e);
             }
-
-            log.info("Successfully created new listing with ID: {} for user: {}", savedListing.getId(), username);
-            // Use mapper
-            return carListingMapper.toCarListingResponse(savedListing);
-        } catch (Exception e) {
-            log.error("Failed to save new car listing for user {}: {}", username, e.getMessage(), e);
-            // Consider a more specific custom exception if needed
-            throw new RuntimeException("Failed to create car listing due to a persistence error.", e);
         }
+
+        log.info("Successfully created new listing with ID: {} for user: {}", savedListing.getId(), username);
+        // Use mapper
+        return carListingMapper.toCarListingResponse(savedListing); // Let mapper errors propagate if necessary
     }
 
     /**
@@ -99,12 +104,19 @@ public class CarListingService {
     }
 
     /**
-     * Get car listing details by ID.
+     * Get car listing details by ID. Only returns approved listings.
      */
     @Transactional(readOnly = true)
     public CarListingResponse getListingById(Long id) {
-        log.debug("Fetching listing details for ID: {}", id);
-        CarListing carListing = findListingById(id);
+        log.debug("Fetching approved listing details for ID: {}", id);
+        // Use findByIdAndApprovedTrue to ensure only approved listings are returned publicly
+        CarListing carListing = carListingRepository.findByIdAndApprovedTrue(id)
+                .orElseThrow(() -> {
+                    log.warn("Approved CarListing lookup failed for ID: {}", id);
+                    // Throw ResourceNotFound even if it exists but isn't approved,
+                    // as it's not found from a public perspective.
+                    return new ResourceNotFoundException("CarListing", "id", id);
+                });
         // Use mapper
         return carListingMapper.toCarListingResponse(carListing);
     }
@@ -157,23 +169,21 @@ public class CarListingService {
     @Transactional
     public CarListingResponse approveListing(Long id) {
         log.info("Attempting to approve listing with ID: {}", id);
-        CarListing carListing = findListingById(id);
+        CarListing carListing = findListingById(id); // Throws ResourceNotFoundException if not found
 
         if (Boolean.TRUE.equals(carListing.getApproved())) {
             log.warn("Listing ID {} is already approved. No action taken.", id);
-            throw new IllegalStateException("Listing with ID " + id + " is already approved.");
+            throw new IllegalStateException("Listing with ID " + id + " is already approved."); // Caught by Controller -> 409 Conflict
         }
 
         carListing.setApproved(true);
-        try {
-            CarListing approvedListing = carListingRepository.save(carListing);
-            log.info("Successfully approved listing ID: {}", approvedListing.getId());
-            // Use mapper
-            return carListingMapper.toCarListingResponse(approvedListing);
-        } catch (Exception e) {
-            log.error("Failed to save approval status for listing ID {}: {}", id, e.getMessage(), e);
-            throw new RuntimeException("Failed to update listing approval status.", e);
-        }
+
+        // Removed the broad try-catch block to let specific exceptions propagate
+        CarListing approvedListing = carListingRepository.save(carListing); // Let DataAccessException propagate if it occurs
+        log.info("Successfully approved listing ID: {}", approvedListing.getId());
+
+        // Mapper handles its own potential errors (like URL generation) internally
+        return carListingMapper.toCarListingResponse(approvedListing);
     }
 
     // --- Helper Methods ---

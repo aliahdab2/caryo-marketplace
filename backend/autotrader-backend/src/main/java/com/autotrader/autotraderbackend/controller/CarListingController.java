@@ -32,6 +32,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Map;
 
+
+import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api/listings")
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -41,6 +45,8 @@ import java.util.Map;
 public class CarListingController {
 
     private final CarListingService carListingService;
+
+    // Endpoint for approving listings moved to end of class
 
     @PostMapping(consumes = "application/json")
     @PreAuthorize("isAuthenticated()")
@@ -58,7 +64,7 @@ public class CarListingController {
     public ResponseEntity<CarListingResponse> createListing(
             @Valid @RequestBody CreateListingRequest createRequest,
             @AuthenticationPrincipal UserDetails userDetails) {
-        
+
         log.info("Received request to create listing from user: {}", userDetails.getUsername());
         CarListingResponse response = carListingService.createListing(createRequest, null, userDetails.getUsername());
         log.info("Successfully created listing with ID: {}", response.getId());
@@ -251,7 +257,7 @@ public class CarListingController {
     }
 
     // Changed back to POST as it modifies state
-    @PostMapping("/{id}/approve")
+    @RequestMapping(value = "/{id}/approve", method = {RequestMethod.POST, RequestMethod.PUT})
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
         summary = "Approve a car listing",

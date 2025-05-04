@@ -147,7 +147,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         // 3. Verify the listing exists in the database (even if not approved)
         assertTrue(carListingRepository.findById(listingId.longValue()).isPresent());
         
-        // 4. Attempt to access without authentication (should fail - expect 403)
+        // 4. Attempt to access without authentication (should fail - expect 404 Not Found because it's unapproved)
         ResponseEntity<Map<String, Object>> unauthorizedResponse = restTemplate.exchange(
                 baseUrl + "/api/listings/" + listingId.longValue(), // Use longValue for path
                 HttpMethod.GET,
@@ -155,6 +155,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
                 new ParameterizedTypeReference<Map<String, Object>>() {}
         );
         
-        assertEquals(HttpStatus.FORBIDDEN.value(), unauthorizedResponse.getStatusCode().value());
+        // Assert that accessing an unapproved listing publicly results in 404 Not Found
+        assertEquals(HttpStatus.NOT_FOUND.value(), unauthorizedResponse.getStatusCode().value(), "Accessing unapproved listing publicly should return 404");
     }
 }

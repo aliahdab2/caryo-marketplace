@@ -191,8 +191,9 @@ class CarListingServiceTest {
             carListingService.createListing(request, null, username);
         });
 
-        assertEquals("Failed to create car listing due to a persistence error.", thrown.getMessage());
-        assertSame(dbException, thrown.getCause()); // Verify the original exception is wrapped
+        // Assert that the original exception message is thrown
+        assertEquals("Database connection failed", thrown.getMessage());
+        assertSame(dbException, thrown); // Verify it's the exact exception instance
 
         verify(userRepository).findByUsername(username);
         verify(carListingRepository).save(any(CarListing.class));
@@ -201,10 +202,15 @@ class CarListingServiceTest {
 
     // --- Tests for getListingById ---
     @Test
-    void getListingById_Success() {
+    void getListingById_Success_WhenApproved() { // Renamed for clarity
         // Arrange
         Long listingId = 1L;
-        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
+        // Ensure the mock listing is approved for this test if needed, or assume findByIdAndApprovedTrue handles it
+        savedListing.setApproved(true); // Explicitly set for clarity
+        expectedResponse.setApproved(true); // Match expected response
+
+        // Mock the repository call for an approved listing
+        when(carListingRepository.findByIdAndApprovedTrue(listingId)).thenReturn(Optional.of(savedListing));
         // Mock the mapper call
         when(carListingMapper.toCarListingResponse(savedListing)).thenReturn(expectedResponse);
 
@@ -214,7 +220,8 @@ class CarListingServiceTest {
         // Assert
         assertNotNull(response);
         assertEquals(expectedResponse, response);
-        verify(carListingRepository).findById(listingId);
+        // Verify the correct repository method was called
+        verify(carListingRepository).findByIdAndApprovedTrue(listingId);
         verify(carListingMapper).toCarListingResponse(savedListing);
     }
 
@@ -222,16 +229,42 @@ class CarListingServiceTest {
     void getListingById_NotFound_ThrowsResourceNotFoundException() {
         // Arrange
         Long nonExistentId = 999L;
-        when(carListingRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+        // Mock the repository call for an approved listing - returns empty
+        when(carListingRepository.findByIdAndApprovedTrue(nonExistentId)).thenReturn(Optional.empty());
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             carListingService.getListingById(nonExistentId);
         });
         assertEquals("CarListing not found with id : '999'", exception.getMessage());
-        verify(carListingRepository).findById(nonExistentId);
+        // Verify the correct repository method was called
+        verify(carListingRepository).findByIdAndApprovedTrue(nonExistentId);
         verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
     }
+
+    @Test
+    void getListingById_ExistsButNotApproved_ThrowsResourceNotFoundException() {
+        // Arrange
+        Long listingId = 1L;
+        savedListing.setApproved(false); // Ensure the listing exists but is not approved
+
+        // Mock findByIdAndApprovedTrue to return empty, simulating it wasn't found because it's not approved
+        when(carListingRepository.findByIdAndApprovedTrue(listingId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            carListingService.getListingById(listingId);
+        });
+
+        // Assert that the correct exception is thrown
+        assertEquals("CarListing not found with id : '1'", exception.getMessage());
+
+        // Verify the correct repository method was called
+        verify(carListingRepository).findByIdAndApprovedTrue(listingId);
+        // Ensure the mapper is never called
+        verify(carListingMapper, never()).toCarListingResponse(any());
+    }
+
 
     // --- Tests for approveListing ---
     @Test
@@ -340,8 +373,9 @@ class CarListingServiceTest {
             carListingService.approveListing(listingId);
         });
 
-        assertEquals("Failed to update listing approval status.", thrown.getMessage());
-        assertSame(dbException, thrown.getCause());
+        // Assert that the original exception message is thrown
+        assertEquals("DB save failed", thrown.getMessage()); // <-- Updated assertion
+        assertSame(dbException, thrown); // Verify it's the exact exception instance
 
         verify(carListingRepository).findById(listingId);
         // Verify save was attempted with the correct state

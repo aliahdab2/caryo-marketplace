@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-resources/**").permitAll()
                 .requestMatchers("/webjars/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/files/**").permitAll() // Allow unauthenticated GET for file download only
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings/**").permitAll() 
                 .anyRequest().authenticated()
             )
             // Use stateless session management

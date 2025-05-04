@@ -39,9 +39,15 @@ public class GlobalExceptionHandler {
         return buildResponse(ex.getMessage(), "Bad Request", HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
+    @ExceptionHandler(EntityNotFoundException.class) // Handles JPA's not found
     public ResponseEntity<Object> handleEntityNotFoundException(EntityNotFoundException ex) {
         log.warn("EntityNotFoundException: {}", ex.getMessage());
+        return buildResponse(ex.getMessage(), "Not Found", HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class) // Handles your custom not found
+    public ResponseEntity<Object> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        log.warn("ResourceNotFoundException: {}", ex.getMessage());
         return buildResponse(ex.getMessage(), "Not Found", HttpStatus.NOT_FOUND);
     }
 
