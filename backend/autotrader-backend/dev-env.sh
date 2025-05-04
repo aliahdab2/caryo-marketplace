@@ -48,14 +48,24 @@ start_dev_env() {
     
     # Wait for app to be healthy
     echo -e "${YELLOW}Waiting for services to be ready...${NC}"
-    for i in {1..30}; do
+    max_retries=30
+    retries=0
+    while [ $retries -lt $max_retries ]; do
         if curl -s http://localhost:${SERVER_PORT:-8080}/status > /dev/null; then
+            echo -e "\n${GREEN}✓ Backend service is healthy!${NC}"
             break
         fi
         echo -n "."
-        sleep 1
+        retries=$((retries+1))
+        sleep 2
+        if [ $retries -eq $max_retries ]; then
+            echo -e "\n${RED}✗ Backend service failed to start within the timeout period.${NC}"
+            echo -e "${YELLOW}Checking logs for errors...${NC}"
+            docker-compose -f docker-compose.dev.yml logs app --tail 50
+            echo -e "${RED}Startup failed. Please check the logs above for errors.${NC}"
+            exit 1
+        fi
     done
-    echo ""
     
     echo -e "${GREEN}Development environment started successfully!${NC}"
     echo -e "${YELLOW}Services available at:${NC}"
@@ -126,8 +136,20 @@ show_api_endpoints() {
 health_check() {
     echo -e "${YELLOW}Running health check...${NC}"
     
-    if curl -s http://localhost:${SERVER_PORT:-8080}/status > /dev/null; then
+    # Try multiple health endpoints
+    if curl -s http://localhost:${SERVER_PORT:-8080}/status > /dev/null || curl -s http://localhost:${SERVER_PORT:-8080}/service-status > /dev/null; then
         echo -e "${GREEN}✓ Spring Boot API is running${NC}"
+        
+        # Get detailed health from Actuator
+        health_response=$(curl -s http://localhost:${SERVER_PORT:-8080}/actuator/health)
+        overall_status=$(echo $health_response | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
+        
+        if [[ "$overall_status" == "UP" ]]; then
+            echo -e "${GREEN}✓ App health status: ${overall_status}${NC}"
+        else
+            echo -e "${RED}✗ App health status: ${overall_status}${NC}"
+            echo -e "${YELLOW}Health details: $(echo $health_response | tr -d '{}' | tr ',' '\n')${NC}"
+        fi
     else
         echo -e "${RED}✗ Spring Boot API is not available${NC}"
     fi

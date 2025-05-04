@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Status", description = "Endpoints for service and API status checks")
 public class StatusController {
     
-    @GetMapping("/status")
+    @GetMapping("/service-status")
     @Operation(
         summary = "Service status",
         description = "Returns a simple message indicating the service is up.",

@@ -31,4 +31,12 @@ class HealthControllerTest {
                 .andExpect(jsonPath("$.message", is("API is functioning properly")))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
+    
+    @Test
+    void status_returnsUpStatusAndServiceName() throws Exception {
+        mockMvc.perform(get("/status"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("UP")))
+                .andExpect(jsonPath("$.service", is("autotrader-backend")));
+    }
 }
