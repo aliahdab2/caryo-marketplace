@@ -27,9 +27,9 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 
 - [x] **Create Listing API** (upload car info + image)
 - [x] **Get User's Listings API** (return listings for the authenticated user)
-- [ ] **Get All Listings API** (return a paginated list)
+- [x] **Get All Listings API** (return a paginated list of approved listings)
 - [ ] **Filter Listings API** (by price, location, brand, etc. using JPA Specifications/Criteria API)
-- [ ] **Car Details API** (single listing view)
+- [x] **Car Details API** (single listing view for approved listings)
 - [ ] **Admin Approval** (listings should require admin approval before being visible)
 - [x] **Image Upload** (with S3-compatible storage)
 - [x] **Test Basic Operations** (for listings)
