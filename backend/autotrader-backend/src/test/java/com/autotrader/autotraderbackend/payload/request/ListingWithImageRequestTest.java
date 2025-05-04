@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.payload.request;
 
+import com.autotrader.autotraderbackend.validation.CurrentYearOrEarlier;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -18,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ListingWithImageRequestTest {
 
     private Validator validator;
+    private static final int CURRENT_YEAR = LocalDate.now().getYear();
     
     @BeforeEach
     void setUp() {
@@ -335,5 +337,123 @@ class ListingWithImageRequestTest {
         assertTrue(hasMileageViolation, "Missing mileage violation");
         assertTrue(hasPriceViolation, "Missing price violation");
         assertTrue(hasLocationViolation, "Missing location violation");
+    }
+    
+    @Test
+    void whenModelYearIsNull_thenViolationOccurs() {
+        // Arrange
+        ListingWithImageRequest request = createValidRequest();
+        request.setModelYear(null);
+        
+        // Act
+        Set<ConstraintViolation<ListingWithImageRequest>> violations = validator.validate(request);
+        
+        // Assert
+        assertViolation(violations, "modelYear", "Year is required");
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1919, 1800}) // Years before 1920
+    void whenModelYearIsTooOld_thenViolationOccurs(int year) {
+        // Arrange
+        ListingWithImageRequest request = createValidRequest();
+        request.setModelYear(year);
+        
+        // Act
+        Set<ConstraintViolation<ListingWithImageRequest>> violations = validator.validate(request);
+        
+        // Assert
+        assertViolation(violations, "modelYear", "Year must be 1920 or later");
+    }
+
+    @Test
+    void whenModelYearIsInFuture_thenViolationOccurs() {
+        // Arrange
+        ListingWithImageRequest request = createValidRequest();
+        request.setModelYear(CURRENT_YEAR + 1); // Next year
+        
+        // Act
+        Set<ConstraintViolation<ListingWithImageRequest>> violations = validator.validate(request);
+        
+        // Assert
+        // Check specifically for the CurrentYearOrEarlier constraint
+        assertTrue(violations.stream()
+                   .anyMatch(v -> v.getPropertyPath().toString().equals("modelYear") && 
+                                  v.getConstraintDescriptor().getAnnotation() instanceof CurrentYearOrEarlier),
+                   "Violation expected for future year");
+    }
+
+    @Test
+    void whenMileageIsNull_thenViolationOccurs() {
+        // Arrange
+        ListingWithImageRequest request = createValidRequest();
+        request.setMileage(null);
+        
+        // Act
+        Set<ConstraintViolation<ListingWithImageRequest>> violations = validator.validate(request);
+        
+        // Assert
+        assertViolation(violations, "mileage", "Mileage is required");
+    }
+
+    @Test
+    void whenPriceIsNull_thenViolationOccurs() {
+        // Arrange
+        ListingWithImageRequest request = createValidRequest();
+        request.setPrice(null);
+        
+        // Act
+        Set<ConstraintViolation<ListingWithImageRequest>> violations = validator.validate(request);
+        
+        // Assert
+        assertViolation(violations, "price", "Price is required");
+    }
+
+    @Test
+    void whenPriceIsZero_thenViolationOccurs() {
+        // Arrange
+        ListingWithImageRequest request = createValidRequest();
+        request.setPrice(BigDecimal.ZERO);
+        
+        // Act
+        Set<ConstraintViolation<ListingWithImageRequest>> violations = validator.validate(request);
+        
+        // Assert
+        assertViolation(violations, "price", "Price must be a positive number");
+    }
+
+    @Test
+    void whenPriceIsNegative_thenViolationOccurs() {
+        // Arrange
+        ListingWithImageRequest request = createValidRequest();
+        request.setPrice(new BigDecimal("-0.01"));
+        
+        // Act
+        Set<ConstraintViolation<ListingWithImageRequest>> violations = validator.validate(request);
+        
+        // Assert
+        assertViolation(violations, "price", "Price must be a positive number");
+    }
+    
+    // Helper method to create a valid request for testing invalid cases
+    private ListingWithImageRequest createValidRequest() {
+        ListingWithImageRequest request = new ListingWithImageRequest();
+        request.setTitle("Valid Test Car");
+        request.setBrand("ValidBrand");
+        request.setModel("ValidModel");
+        request.setModelYear(CURRENT_YEAR - 1); // Last year
+        request.setMileage(10000);
+        request.setPrice(new BigDecimal("20000.00"));
+        request.setLocation("Valid Location");
+        request.setDescription("Valid description.");
+        return request;
+    }
+
+    // Helper method for asserting violations
+    private void assertViolation(Set<ConstraintViolation<ListingWithImageRequest>> violations, String propertyPath, String expectedMessage) {
+        assertEquals(1, violations.size(), "Expected exactly one violation for " + propertyPath + ". Actual violations: " + violations);
+        ConstraintViolation<ListingWithImageRequest> violation = violations.iterator().next();
+        assertEquals(propertyPath, violation.getPropertyPath().toString());
+        assertEquals(expectedMessage, violation.getMessage());
     }
 }

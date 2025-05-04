@@ -1,9 +1,11 @@
 package com.autotrader.autotraderbackend.actuator;
 
+import com.autotrader.autotraderbackend.service.storage.S3StorageService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -13,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class ActuatorHealthIntegrationTest {
+public class ActuatorHealthIntegrationTest extends  IntegrationTestWithS3 {
 
     @Autowired
     private MockMvc mockMvc;
