@@ -58,8 +58,11 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 ### Phase 5: Deployment
 
 - [x] **Dockerize Storage** (set up MinIO with Docker Compose)
-- [ ] **Dockerize Backend** (create a Docker image for deployment)
-- [ ] **Set up CI/CD pipeline** (with GitHub Actions or Jenkins)
+- [ ] **Create production-grade Dockerfile for Backend**
+- [ ] **Enhance docker-compose.yml for local dev** (Backend, PostgreSQL)
+- [ ] **Set up CI/CD pipeline** (GitHub Actions: test, build, deploy)
+- [ ] **Implement Secrets Management** (env vars for local, GitHub Secrets/Vault for prod)
+- [ ] **Enable Monitoring & Health Checks** (Spring Boot Actuator)
 - [ ] **Deploy to a cloud platform** (AWS, DigitalOcean, etc.)
 
 ### Phase 6: Listing Lifecycle Management
