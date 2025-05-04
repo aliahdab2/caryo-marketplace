@@ -50,6 +50,43 @@ The HTML report will be available at `build/test-reports/postman/report.html`.
    - Environment: `src/test/resources/postman/environment.json`
 3. Run the collection in Postman
 
+## Development Users & Tokens
+
+For easier development and testing, the application automatically creates two users when it starts up in the `dev` profile:
+
+1.  **Regular User**
+    *   Username: `user`
+    *   Password: `Password123!`
+    *   Role: `ROLE_USER`
+
+2.  **Admin User**
+    *   Username: `admin`
+    *   Password: `Admin123!`
+    *   Roles: `ROLE_USER`, `ROLE_ADMIN`
+
+**JWT tokens** for both of these users are generated and printed directly to the application logs upon startup. You can find them by looking for the following output:
+
+```log
+====== DEVELOPMENT AUTHENTICATION TOKENS ======
+These tokens can be used for testing without login:
+
+REGULAR USER TOKEN (user)
+--------------------------------------------
+eyJhbGciOiJIUzI1NiJ9... (example token)
+
+ADMIN USER TOKEN (admin)
+--------------------------------------------
+eyJhbGciOiJIUzI1NiJ9... (example token)
+
+To use: Add the following header to your HTTP requests:
+Authorization: Bearer <token>
+==============================================
+```
+
+Copy the desired token string (starting with `eyJ...`) and use it in the `Authorization: Bearer <token>` header for your API requests.
+
+You can view the application logs using `./dev-env.sh logs` or by checking the `logs/application.log` file.
+
 ## Base URL
 
 For local development: `http://localhost:8080`
