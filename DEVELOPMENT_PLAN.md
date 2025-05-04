@@ -28,7 +28,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [x] **Create Listing API** (upload car info + image)
 - [x] **Get User's Listings API** (return listings for the authenticated user)
 - [ ] **Get All Listings API** (return a paginated list)
-- [ ] **Filter Listings API** (by price, location, brand, etc.)
+- [ ] **Filter Listings API** (by price, location, brand, etc. using JPA Specifications/Criteria API)
 - [ ] **Car Details API** (single listing view)
 - [ ] **Admin Approval** (listings should require admin approval before being visible)
 - [x] **Image Upload** (with S3-compatible storage)
@@ -42,12 +42,15 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [ ] **Set up Redis** (optional, for caching frequently accessed data like listings)
 - [x] **Add basic logging** with Spring Boot's logging features (SLF4J, Logback)
 - [x] **Configure application.properties** (database connections, security, file storage)
+- [x] **Validate file uploads** (size, format - jpeg, png, webp, etc.)
+- [ ] **Implement file cleanup** (mechanism to remove old/unreferenced files)
 
 ### Phase 4: APIs and Testing
 
 - [x] **REST APIs for Car Listings** (DTOs, Validation, Error Handling)
 - [x] **Unit tests** with JUnit (for controllers, services, and repositories)
-- [x] **Integration tests** (testing the complete flow)
+- [x] **Integration tests using Testcontainers** (PostgreSQL, S3/MinIO)
+- [x] **Ensure test coverage for key error scenarios** (auth failures, validation errors, upload limits, etc.)
 - [x] **API Documentation** (markdown-based for all endpoints)
 - [x] **Swagger/OpenAPI Documentation** (for all public APIs)
 - [ ] **API Rate Limiting/Throttling** (optional for security)
@@ -58,6 +61,54 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [ ] **Dockerize Backend** (create a Docker image for deployment)
 - [ ] **Set up CI/CD pipeline** (with GitHub Actions or Jenkins)
 - [ ] **Deploy to a cloud platform** (AWS, DigitalOcean, etc.)
+
+### Phase 6: Listing Lifecycle Management
+
+- [ ] **Add Listing Status Flags** (isApproved, isSold, isArchived)
+  - Track listing status through its lifecycle.
+  - Default states: `isApproved = false`, `isSold = false`, `isArchived = false`.
+
+- [ ] **Implement Auto-Expiration Logic** for listings older than 90 days
+  - Automatically archive listings older than a defined period.
+  - Send reminders or notifications to users about their expired listings.
+
+- [ ] **Admin Approval & Listing Workflow**
+  - Implement admin review for approving listings before they go live.
+  - Admins can mark listings as sold or archived.
+
+- [ ] **API Enhancements**
+  - Ensure APIs only return `isApproved = true` and `isSold = false` listings to the public.
+  - Add support for updating listing status via the API.
+
+- [ ] **Frontend Adjustments**
+  - User dashboard to manage and update listing status.
+  - Admin dashboard for reviewing, approving, and archiving listings.
+
+### Phase 7: Pricing & Ad Services
+
+- [ ] **Create Ad Package Management System** (Store, update, delete ad packages)
+  - Users can select ad packages based on price, number of photos, and duration.
+  - Add flexibility to adjust pricing and features easily through an admin interface.
+
+- [ ] **Ad Services** (Optional add-ons like "Highlight Ad", "Renew Listing", "Vehicle History Reports")
+  - Admins can adjust the prices for these services dynamically.
+
+- [ ] **Discount System for Repeat Listings**
+  - Allow discounts for merchants based on their advertising volume.
+
+- [ ] **Free Listing Options** (E.g., Free for first 3 car listings)
+  - Admin can set a free listing quota or adjust the pricing structure.
+
+### Phase 8: Security Enhancements
+
+- [ ] **Implement Refresh Token Flow** (HttpOnly cookies or secure endpoint)
+  - Allow short-lived access tokens, long-lived refresh tokens.
+
+- [ ] **Implement Audit Logging** (Log key actions like login, listing changes, admin actions)
+  - Use Spring AOP or interceptors for automated capture.
+
+- [ ] **Review & Verify Role-Based Controls**
+  - Ensure all relevant APIs are consistently protected by role (`@PreAuthorize`).
 
 ## Technical Stack
 
