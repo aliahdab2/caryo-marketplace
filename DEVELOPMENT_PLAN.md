@@ -49,7 +49,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [x] **Unit tests** with JUnit (for controllers, services, and repositories)
 - [x] **Integration tests** (testing the complete flow)
 - [x] **API Documentation** (markdown-based for all endpoints)
-- [ ] **Swagger/OpenAPI Documentation** (for all public APIs)
+- [x] **Swagger/OpenAPI Documentation** (for all public APIs)
 - [ ] **API Rate Limiting/Throttling** (optional for security)
 
 ### Phase 5: Deployment
