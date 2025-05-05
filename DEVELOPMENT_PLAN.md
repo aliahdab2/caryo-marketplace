@@ -28,12 +28,46 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [x] **Create Listing API** (upload car info + image)
 - [x] **Get User's Listings API** (return listings for the authenticated user)
 - [x] **Get All Listings API** (return a paginated list of approved listings)
-- [ ] **Filter Listings API** (by price, location, brand, etc. using JPA Specifications/Criteria API)
+- [x] **Filter Listings API** (by price, location, brand, etc. using JPA Specifications/Criteria API)
 - [x] **Car Details API** (single listing view for approved listings)
-- [ ] **Admin Approval** (listings should require admin approval before being visible)
+- [x] **Admin Approval** (listings require admin approval before being visible - implemented with `approved` flag)
 - [x] **Image Upload** (with S3-compatible storage)
 - [x] **Test Basic Operations** (for listings)
 - [ ] **Test Remaining CRUD Operations** (update and delete)
+
+### Phase 2.1: Simplified Location System (Inspired by Blocket)
+
+- [ ] **Location Data Model**
+  - Implement flat `locations` table (id, name, slug, country_code, latitude, longitude)
+  - Include `display_name_ar` and `display_name_en` directly in the model for easy rendering
+  - Support for URL-friendly slugs generated consistently via a `slugify()` utility
+  - Add `region` field for optional grouping (e.g., "Central Syria")
+  - Add `is_active` flag to enable/disable locations without deletion
+  - Create indexes on `slug` and `country_code` for faster queries
+
+- [ ] **Location Data Seeding**
+  - Seed major cities and regions in Syria using reliable datasets
+  - Include proper UTF-8 encoding for Arabic names
+  - Generate search-friendly slugs for all locations
+
+- [ ] **Location API Endpoints**
+  - Create endpoints to fetch locations by country (GET ?country=SY)
+  - Implement search functionality (GET /search?q=dam)
+  - Add caching for location data (Redis or in-memory)
+  - Expose endpoints for both Arabic and English location names
+  - Implement admin-only endpoints for managing locations
+
+- [ ] **Integration with Listings**
+  - Add location_id foreign key to CarListing entity
+  - Enhance filter API to support location-based searches via ?location=damascus
+  - Include location details in listing responses (both Arabic and English names)
+  - Update existing listings to use the new location system
+  - Add location filtering to existing search/filter APIs
+
+- [ ] **Location-based UI Components**
+  - Create dropdown/autocomplete city selector in listing form
+  - Add location filter to search/listings page
+  - Display location name prominently on listing cards and details
 
 ### Phase 3: Infrastructure & Optimizations
 
@@ -67,9 +101,11 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 
 ### Phase 6: Listing Lifecycle Management
 
-- [ ] **Add Listing Status Flags** (isApproved, isSold, isArchived)
+- [x] **Add Listing Status Flags** (isApproved)
   - Track listing status through its lifecycle.
-  - Default states: `isApproved = false`, `isSold = false`, `isArchived = false`.
+  - Default state: `approved = false` (already implemented in CarListing model).
+- [ ] **Add Additional Status Flags** (isSold, isArchived)
+  - Default states: `isSold = false`, `isArchived = false`.
 
 - [ ] **Implement Auto-Expiration Logic** for listings older than 90 days
   - Automatically archive listings older than a defined period.
