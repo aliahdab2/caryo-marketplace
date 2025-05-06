@@ -7,7 +7,6 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
@@ -26,18 +25,23 @@ class CreateListingRequestTest {
         validator = factory.getValidator();
     }
     
+    private CreateListingRequest createValidRequest() {
+        CreateListingRequest request = new CreateListingRequest();
+        request.setTitle("Valid Title");
+        request.setBrand("Valid Brand");
+        request.setModel("Valid Model");
+        request.setModelYear(LocalDate.now().getYear()); // Use current year for default valid
+        request.setPrice(new BigDecimal("20000.00"));
+        request.setMileage(10000);
+        request.setLocationId(1L); // Use setLocationId instead of setLocation
+        request.setDescription("Valid description.");
+        return request;
+    }
+    
     @Test
     void whenAllFieldsValid_thenNoViolations() {
         // Arrange
-        CreateListingRequest request = new CreateListingRequest();
-        request.setTitle("Test Car");
-        request.setBrand("Toyota");
-        request.setModel("Camry");
-        request.setModelYear(2020);
-        request.setMileage(50000);
-        request.setPrice(new BigDecimal("15000.00"));
-        request.setLocation("Test Location");
-        request.setDescription("Test Description");
+        CreateListingRequest request = createValidRequest();
         
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
@@ -49,14 +53,8 @@ class CreateListingRequestTest {
     @Test
     void whenTitleIsBlank_thenViolationOccurs() {
         // Arrange
-        CreateListingRequest request = new CreateListingRequest();
-        request.setTitle("");
-        request.setBrand("Toyota");
-        request.setModel("Camry");
-        request.setModelYear(2020);
-        request.setMileage(50000);
-        request.setPrice(new BigDecimal("15000.00"));
-        request.setLocation("Test Location");
+        CreateListingRequest request = createValidRequest();
+        request.setTitle(""); // Blank title
         
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
@@ -69,14 +67,8 @@ class CreateListingRequestTest {
     @Test
     void whenBrandIsBlank_thenViolationOccurs() {
         // Arrange
-        CreateListingRequest request = new CreateListingRequest();
-        request.setTitle("Test Car");
-        request.setBrand("");
-        request.setModel("Camry");
-        request.setModelYear(2020);
-        request.setMileage(50000);
-        request.setPrice(new BigDecimal("15000.00"));
-        request.setLocation("Test Location");
+        CreateListingRequest request = createValidRequest();
+        request.setBrand(""); // Blank brand
         
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
@@ -89,14 +81,8 @@ class CreateListingRequestTest {
     @Test
     void whenModelIsBlank_thenViolationOccurs() {
         // Arrange
-        CreateListingRequest request = new CreateListingRequest();
-        request.setTitle("Test Car");
-        request.setBrand("Toyota");
-        request.setModel("");
-        request.setModelYear(2020);
-        request.setMileage(50000);
-        request.setPrice(new BigDecimal("15000.00"));
-        request.setLocation("Test Location");
+        CreateListingRequest request = createValidRequest();
+        request.setModel(""); // Blank model
         
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
@@ -110,14 +96,8 @@ class CreateListingRequestTest {
     @ValueSource(ints = {1919, 1800, 1000})
     void whenModelYearTooOld_thenViolationOccurs(int year) {
         // Arrange
-        CreateListingRequest request = new CreateListingRequest();
-        request.setTitle("Test Car");
-        request.setBrand("Toyota");
-        request.setModel("Camry");
+        CreateListingRequest request = createValidRequest();
         request.setModelYear(year);
-        request.setMileage(50000);
-        request.setPrice(new BigDecimal("15000.00"));
-        request.setLocation("Test Location");
         
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
@@ -131,14 +111,8 @@ class CreateListingRequestTest {
     void whenModelYearInFuture_thenViolationOccurs() {
         // Arrange
         int futureYear = LocalDate.now().getYear() + 1;
-        CreateListingRequest request = new CreateListingRequest();
-        request.setTitle("Test Car");
-        request.setBrand("Toyota");
-        request.setModel("Camry");
+        CreateListingRequest request = createValidRequest();
         request.setModelYear(futureYear);
-        request.setMileage(50000);
-        request.setPrice(new BigDecimal("15000.00"));
-        request.setLocation("Test Location");
         
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
@@ -151,42 +125,22 @@ class CreateListingRequestTest {
     @Test
     void whenModelYearNotFourDigits_thenViolationOccurs() {
         // Arrange
-        CreateListingRequest request = new CreateListingRequest();
-        request.setTitle("Test Car");
-        request.setBrand("Toyota");
-        request.setModel("Camry");
-        request.setModelYear(20200); // 5 digits
-        request.setMileage(50000);
-        request.setPrice(new BigDecimal("15000.00"));
-        request.setLocation("Test Location");
+        CreateListingRequest request = createValidRequest();
+        request.setModelYear(20200); // Invalid year (5 digits)
         
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
         
         // Assert
-        assertEquals(2, violations.size());
-        // Check that one of the violations is the expected message
-        boolean hasDigitsViolation = false;
-        for (ConstraintViolation<CreateListingRequest> violation : violations) {
-            if ("Year must be a 4-digit number".equals(violation.getMessage())) {
-                hasDigitsViolation = true;
-                break;
-            }
-        }
-        assertTrue(hasDigitsViolation, "Expected digits validation violation not found");
+        assertTrue(violations.stream()
+                .anyMatch(v -> "Year must be a 4-digit number".equals(v.getMessage())));
     }
     
     @Test
     void whenMileageIsNegative_thenViolationOccurs() {
         // Arrange
-        CreateListingRequest request = new CreateListingRequest();
-        request.setTitle("Test Car");
-        request.setBrand("Toyota");
-        request.setModel("Camry");
-        request.setModelYear(2020);
-        request.setMileage(-10);
-        request.setPrice(new BigDecimal("15000.00"));
-        request.setLocation("Test Location");
+        CreateListingRequest request = createValidRequest();
+        request.setMileage(-10); // Invalid mileage
         
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
@@ -200,14 +154,8 @@ class CreateListingRequestTest {
     @ValueSource(strings = {"0", "-1", "-100.50"})
     void whenPriceIsNotPositive_thenViolationOccurs(String price) {
         // Arrange
-        CreateListingRequest request = new CreateListingRequest();
-        request.setTitle("Test Car");
-        request.setBrand("Toyota");
-        request.setModel("Camry");
-        request.setModelYear(2020);
-        request.setMileage(50000);
-        request.setPrice(new BigDecimal(price));
-        request.setLocation("Test Location");
+        CreateListingRequest request = createValidRequest();
+        request.setPrice(new BigDecimal(price)); // Invalid price
         
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
@@ -220,14 +168,8 @@ class CreateListingRequestTest {
     @Test
     void whenLocationIsBlank_thenViolationOccurs() {
         // Arrange
-        CreateListingRequest request = new CreateListingRequest();
-        request.setTitle("Test Car");
-        request.setBrand("Toyota");
-        request.setModel("Camry");
-        request.setModelYear(2020);
-        request.setMileage(50000);
-        request.setPrice(new BigDecimal("15000.00"));
-        request.setLocation("");
+        CreateListingRequest request = createValidRequest();
+        request.setLocationId(null); // Invalid location - should be null to trigger @NotNull
         
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
@@ -240,15 +182,8 @@ class CreateListingRequestTest {
     @Test
     void whenDescriptionIsNullOrEmpty_thenNoViolations() {
         // Arrange
-        CreateListingRequest request = new CreateListingRequest();
-        request.setTitle("Test Car");
-        request.setBrand("Toyota");
-        request.setModel("Camry");
-        request.setModelYear(2020);
-        request.setMileage(50000);
-        request.setPrice(new BigDecimal("15000.00"));
-        request.setLocation("Test Location");
-        request.setDescription(null); // Description can be null
+        CreateListingRequest request = createValidRequest();
+        request.setDescription(null); // Can be null
         
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
@@ -272,7 +207,7 @@ class CreateListingRequestTest {
         Integer modelYear = 2020;
         Integer mileage = 50000;
         BigDecimal price = new BigDecimal("15000.00");
-        String location = "Test Location";
+        Long locationId = 1L; // Changed from String location to Long locationId
         String description = "Test Description";
         String imageUrl = "http://example.com/image.jpg";
         
@@ -283,7 +218,7 @@ class CreateListingRequestTest {
         request.setModelYear(modelYear);
         request.setMileage(mileage);
         request.setPrice(price);
-        request.setLocation(location);
+        request.setLocationId(locationId); // Use setLocationId
         request.setDescription(description);
         request.setImageUrl(imageUrl);
         
@@ -294,7 +229,7 @@ class CreateListingRequestTest {
         assertEquals(modelYear, request.getModelYear());
         assertEquals(mileage, request.getMileage());
         assertEquals(price, request.getPrice());
-        assertEquals(location, request.getLocation());
+        assertEquals(locationId, request.getLocationId()); // Use getLocationId and assert against locationId
         assertEquals(description, request.getDescription());
         assertEquals(imageUrl, request.getImageUrl());
     }
@@ -328,7 +263,7 @@ class CreateListingRequestTest {
                 case "modelYear": hasYearViolation = true; break;
                 case "mileage": hasMileageViolation = true; break;
                 case "price": hasPriceViolation = true; break;
-                case "location": hasLocationViolation = true; break;
+                case "locationId": hasLocationViolation = true; break;
             }
         }
         

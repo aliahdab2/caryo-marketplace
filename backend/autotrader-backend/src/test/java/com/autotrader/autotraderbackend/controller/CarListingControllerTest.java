@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.controller;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
+import com.autotrader.autotraderbackend.payload.response.LocationResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.CarListingService;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -55,8 +57,14 @@ public class CarListingControllerTest {
         createRequest.setModelYear(2022);
         createRequest.setMileage(5000);
         createRequest.setPrice(new BigDecimal("25000.00"));
-        createRequest.setLocation("Test Location");
+        createRequest.setLocationId(1L);
         createRequest.setDescription("Test Description");
+
+        // Create a LocationResponse for the response object
+        LocationResponse locationResponse = new LocationResponse();
+        locationResponse.setId(1L);
+        locationResponse.setDisplayNameEn("Test Location");
+        // Set other necessary fields for LocationResponse if needed
 
         carListingResponse = new CarListingResponse();
         carListingResponse.setId(1L);
@@ -66,7 +74,7 @@ public class CarListingControllerTest {
         carListingResponse.setModelYear(2022);
         carListingResponse.setMileage(5000);
         carListingResponse.setPrice(new BigDecimal("25000.00"));
-        carListingResponse.setLocation("Test Location");
+        carListingResponse.setLocationDetails(locationResponse); // Use setLocationDetails instead of setLocation
         carListingResponse.setDescription("Test Description");
         carListingResponse.setSellerId(1L);
         carListingResponse.setSellerUsername("testuser");
@@ -131,7 +139,7 @@ public class CarListingControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(listings, response.getBody().getContent());
+        assertEquals(listings, Objects.requireNonNull(response.getBody()).getContent());
     }
 
     @Test
@@ -157,6 +165,6 @@ public class CarListingControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(listings, response.getBody().getContent());
+        assertEquals(listings, Objects.requireNonNull(response.getBody()).getContent());
     }
 }

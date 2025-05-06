@@ -3,7 +3,6 @@ package com.autotrader.autotraderbackend.payload.request;
 import com.autotrader.autotraderbackend.validation.CurrentYearOrEarlier;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
@@ -31,7 +30,16 @@ public class UpdateListingRequest {
     @Positive(message = "Price must be a positive number")
     private BigDecimal price;
     
+    /**
+     * @deprecated Use locationId instead
+     */
+    @Deprecated
     private String location;
+    
+    /**
+     * ID of the location entity
+     */
+    private Long locationId;
     
     private String description;
     
@@ -44,7 +52,15 @@ public class UpdateListingRequest {
     public Integer getModelYear() { return modelYear; }
     public Integer getMileage() { return mileage; }
     public BigDecimal getPrice() { return price; }
+    
+    /**
+     * @deprecated Use getLocationId() instead
+     */
+    @Deprecated
     public String getLocation() { return location; }
+    
+    public Long getLocationId() { return locationId; }
+    
     public String getDescription() { return description; }
     public String getTransmission() { return transmission; }
 
@@ -54,7 +70,15 @@ public class UpdateListingRequest {
     public void setModelYear(Integer modelYear) { this.modelYear = modelYear; }
     public void setMileage(Integer mileage) { this.mileage = mileage; }
     public void setPrice(BigDecimal price) { this.price = price; }
+    
+    /**
+     * @deprecated Use setLocationId(Long) instead
+     */
+    @Deprecated
     public void setLocation(String location) { this.location = location; }
+    
+    public void setLocationId(Long locationId) { this.locationId = locationId; }
+    
     public void setDescription(String description) { this.description = description; }
     public void setTransmission(String transmission) { this.transmission = transmission; }
 }

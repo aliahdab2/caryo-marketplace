@@ -4,10 +4,12 @@ import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.mapper.CarListingMapper;
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
+import com.autotrader.autotraderbackend.payload.response.LocationResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
@@ -54,6 +56,9 @@ class CarListingServiceTest {
     @Mock
     private StorageService storageService;
 
+    @Mock
+    private com.autotrader.autotraderbackend.repository.LocationRepository locationRepository;
+
     @Mock // Add mock for the mapper
     private CarListingMapper carListingMapper;
 
@@ -81,7 +86,14 @@ class CarListingServiceTest {
         listingToSave.setModelYear(2020);
         listingToSave.setPrice(new BigDecimal("20000.00"));
         listingToSave.setMileage(10000);
-        listingToSave.setLocation("Test Location");
+        // Use locationEntity instead of deprecated location string
+        Location testLocation = new Location();
+        testLocation.setId(1L);
+        testLocation.setDisplayNameEn("Test Location");
+        testLocation.setDisplayNameAr("موقع اختبار");
+        testLocation.setSlug("test-location");
+        testLocation.setCountryCode("SY"); // Set the required countryCode field
+        listingToSave.setLocationEntity(testLocation);
         listingToSave.setDescription("Test Description");
 
 
@@ -96,7 +108,14 @@ class CarListingServiceTest {
         savedListing.setModelYear(2020);
         savedListing.setPrice(new BigDecimal("20000.00"));
         savedListing.setMileage(10000);
-        savedListing.setLocation("Test Location");
+        // Use locationEntity instead of deprecated location string
+        Location testLocationSaved = new Location();
+        testLocationSaved.setId(1L);
+        testLocationSaved.setDisplayNameEn("Test Location");
+        testLocationSaved.setDisplayNameAr("موقع اختبار");
+        testLocationSaved.setSlug("test-location");
+        testLocationSaved.setCountryCode("SY"); // Set the required countryCode field
+        savedListing.setLocationEntity(testLocationSaved);
         savedListing.setDescription("Test Description");
         savedListing.setCreatedAt(LocalDateTime.now());
 
@@ -109,7 +128,11 @@ class CarListingServiceTest {
         expectedResponse.setModelYear(savedListing.getModelYear());
         expectedResponse.setPrice(savedListing.getPrice());
         expectedResponse.setMileage(savedListing.getMileage());
-        expectedResponse.setLocation(savedListing.getLocation());
+        // Use locationDetails instead of deprecated location string
+        LocationResponse locationResp = new LocationResponse();
+        locationResp.setId(1L);
+        locationResp.setDisplayNameEn("Test Location");
+        expectedResponse.setLocationDetails(locationResp);
         expectedResponse.setDescription(savedListing.getDescription());
         expectedResponse.setCreatedAt(savedListing.getCreatedAt());
         expectedResponse.setApproved(savedListing.getApproved());
@@ -130,8 +153,17 @@ class CarListingServiceTest {
         request.setModelYear(2020);
         request.setPrice(new BigDecimal("20000.00"));
         request.setMileage(10000);
-        request.setLocation("Test Location");
+        request.setLocationId(1L); // Use a valid mock location ID instead of deprecated location string
         request.setDescription("Test Description");
+
+        // Mock locationRepository to return a location when findById is called
+        Location testLocation = new Location();
+        testLocation.setId(1L);
+        testLocation.setDisplayNameEn("Test Location");
+        testLocation.setDisplayNameAr("موقع اختبار");
+        testLocation.setSlug("test-location");
+        testLocation.setCountryCode("SY"); // Set the required countryCode field
+        when(locationRepository.findById(1L)).thenReturn(Optional.of(testLocation));
 
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         // Mock the save operation to return the listing with an ID
@@ -177,10 +209,19 @@ class CarListingServiceTest {
         request.setModelYear(2022);
         request.setPrice(new BigDecimal("15000"));
         request.setMileage(5000);
-        request.setLocation("TestLoc");
+        request.setLocationId(1L); // Use a valid mock location ID instead of deprecated location string
         request.setDescription("TestDesc");
         String username = "testuser";
         RuntimeException dbException = new RuntimeException("Database connection failed");
+
+        // Mock locationRepository to return a location when findById is called
+        Location testLocation = new Location();
+        testLocation.setId(1L);
+        testLocation.setDisplayNameEn("Test Location");
+        testLocation.setDisplayNameAr("موقع اختبار");
+        testLocation.setSlug("test-location");
+        testLocation.setCountryCode("SY"); // Set the required countryCode field
+        when(locationRepository.findById(1L)).thenReturn(Optional.of(testLocation));
 
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
         // Mock repository save to throw an exception
@@ -282,7 +323,7 @@ class CarListingServiceTest {
         approvedListing.setModelYear(savedListing.getModelYear());
         approvedListing.setPrice(savedListing.getPrice());
         approvedListing.setMileage(savedListing.getMileage());
-        approvedListing.setLocation(savedListing.getLocation());
+        approvedListing.setLocationEntity(savedListing.getLocationEntity()); // Use LocationEntity
         approvedListing.setDescription(savedListing.getDescription());
         approvedListing.setSeller(savedListing.getSeller());
         approvedListing.setApproved(true); // Set approved to true
@@ -297,7 +338,14 @@ class CarListingServiceTest {
         approvedResponse.setModelYear(approvedListing.getModelYear());
         approvedResponse.setPrice(approvedListing.getPrice());
         approvedResponse.setMileage(approvedListing.getMileage());
-        approvedResponse.setLocation(approvedListing.getLocation());
+        // Create and set LocationResponse for LocationDetails
+        if (approvedListing.getLocationEntity() != null) {
+            LocationResponse locationResp = new LocationResponse();
+            locationResp.setId(approvedListing.getLocationEntity().getId());
+            locationResp.setDisplayNameEn(approvedListing.getLocationEntity().getDisplayNameEn());
+            // Set other fields of locationResp if necessary
+            approvedResponse.setLocationDetails(locationResp);
+        }
         approvedResponse.setDescription(approvedListing.getDescription());
         approvedResponse.setCreatedAt(approvedListing.getCreatedAt());
         approvedResponse.setApproved(true);

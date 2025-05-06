@@ -2,7 +2,9 @@ package com.autotrader.autotraderbackend.mapper;
 
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.model.Location; // Ensure this import is present
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
+// Ensure com.autotrader.autotraderbackend.payload.response.LocationResponse is NOT imported here
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +39,13 @@ class CarListingMapperTest {
         testSeller.setId(1L);
         testSeller.setUsername("testseller");
 
+        Location testLocation = new Location(); // Create Location object
+        testLocation.setId(1L);
+        testLocation.setDisplayNameEn("Test City");
+        testLocation.setDisplayNameAr("مدينة اختبار");
+        testLocation.setSlug("test-city");
+        testLocation.setCountryCode("SY"); // Set the required countryCode field
+
         testCarListing = new CarListing();
         testCarListing.setId(10L);
         testCarListing.setTitle("Test Toyota");
@@ -46,7 +55,7 @@ class CarListingMapperTest {
         testCarListing.setPrice(new BigDecimal("25000.00"));
         testCarListing.setMileage(15000);
         testCarListing.setDescription("A great test car");
-        testCarListing.setLocation("Test City");
+        testCarListing.setLocationEntity(testLocation); // Use setLocationEntity
         testCarListing.setCreatedAt(LocalDateTime.now().minusDays(1));
         testCarListing.setApproved(true);
         testCarListing.setSeller(testSeller);
@@ -72,7 +81,13 @@ class CarListingMapperTest {
         assertEquals(0, testCarListing.getPrice().compareTo(response.getPrice()));
         assertEquals(testCarListing.getMileage(), response.getMileage());
         assertEquals(testCarListing.getDescription(), response.getDescription());
-        assertEquals(testCarListing.getLocation(), response.getLocation());
+        
+        // Assert LocationDetails (new way)
+        assertNotNull(response.getLocationDetails());
+        assertEquals(testCarListing.getLocationEntity().getId(), response.getLocationDetails().getId());
+        assertEquals(testCarListing.getLocationEntity().getDisplayNameEn(), response.getLocationDetails().getDisplayNameEn());
+        // Assert other LocationDetails fields if necessary
+
         assertEquals(testCarListing.getCreatedAt(), response.getCreatedAt());
         assertEquals(testCarListing.getApproved(), response.getApproved());
         assertEquals(testSeller.getId(), response.getSellerId());

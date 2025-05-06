@@ -21,7 +21,18 @@ public class CarListingResponse {
     private Integer modelYear;
     private Integer mileage;
     private BigDecimal price;
+    
+    /**
+     * @deprecated Use locationDetails instead
+     */
+    @Deprecated
     private String location;
+    
+    /**
+     * Location details object
+     */
+    private LocationResponse locationDetails;
+    
     private String description;
     private String imageUrl;
     private Boolean approved;
@@ -37,7 +48,15 @@ public class CarListingResponse {
     public Integer getModelYear() { return modelYear; }
     public Integer getMileage() { return mileage; }
     public BigDecimal getPrice() { return price; }
+    
+    /**
+     * @deprecated Use getLocationDetails() instead
+     */
+    @Deprecated
     public String getLocation() { return location; }
+    
+    public LocationResponse getLocationDetails() { return locationDetails; }
+    
     public String getDescription() { return description; }
     public String getImageUrl() { return imageUrl; }
     public Boolean getApproved() { return approved; }
@@ -53,7 +72,15 @@ public class CarListingResponse {
     public void setModelYear(Integer modelYear) { this.modelYear = modelYear; }
     public void setMileage(Integer mileage) { this.mileage = mileage; }
     public void setPrice(BigDecimal price) { this.price = price; }
+    
+    /**
+     * @deprecated Use setLocationDetails(LocationResponse) instead
+     */
+    @Deprecated
     public void setLocation(String location) { this.location = location; }
+    
+    public void setLocationDetails(LocationResponse locationDetails) { this.locationDetails = locationDetails; }
+    
     public void setDescription(String description) { this.description = description; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public void setApproved(Boolean approved) { this.approved = approved; }

@@ -38,8 +38,17 @@ public class CreateListingRequest {
     @Positive(message = "Price must be a positive number")
     private BigDecimal price;
     
-    @NotBlank(message = "Location is required")
+    /**
+     * @deprecated Use locationId instead
+     */
+    @Deprecated
     private String location;
+    
+    /**
+     * ID of the location entity
+     */
+    @NotNull(message = "Location is required")
+    private Long locationId;
     
     private String description;
     
@@ -52,7 +61,13 @@ public class CreateListingRequest {
     public Integer getModelYear() { return modelYear; }
     public Integer getMileage() { return mileage; }
     public BigDecimal getPrice() { return price; }
+    /**
+     * @deprecated Use getLocationId() instead
+     */
+    @Deprecated
     public String getLocation() { return location; }
+    
+    public Long getLocationId() { return locationId; }
     public String getDescription() { return description; }
     public String getImageUrl() { return imageUrl; }
 
@@ -63,7 +78,14 @@ public class CreateListingRequest {
     public void setModelYear(Integer modelYear) { this.modelYear = modelYear; }
     public void setMileage(Integer mileage) { this.mileage = mileage; }
     public void setPrice(BigDecimal price) { this.price = price; }
+    
+    /**
+     * @deprecated Use setLocationId(Long) instead
+     */
+    @Deprecated
     public void setLocation(String location) { this.location = location; }
+    
+    public void setLocationId(Long locationId) { this.locationId = locationId; }
     public void setDescription(String description) { this.description = description; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

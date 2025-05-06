@@ -1,10 +1,12 @@
 package com.autotrader.autotraderbackend.controller;
 
+import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
+import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,8 +47,12 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
     @Autowired
     private CarListingRepository carListingRepository;
 
+    @Autowired
+    private LocationRepository locationRepository;
+
     private String baseUrl;
     private String jwtToken;
+    private Long testLocationId;
 
     @BeforeEach
     public void setUp() {
@@ -54,6 +60,16 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         // Clear data before each test
         carListingRepository.deleteAll();
         userRepository.deleteAll();
+        locationRepository.deleteAll();
+
+        // Create and save a test location
+        Location testLocation = new Location(); 
+        testLocation.setDisplayNameEn("Test City Lifecycle");
+        testLocation.setDisplayNameAr("مدينة اختبار دورة الحياة"); // Added: Set mandatory Arabic display name
+        testLocation.setCountryCode("TC"); 
+        testLocation.setSlug("test-city-lifecycle"); 
+        Location savedLocation = locationRepository.save(testLocation); 
+        testLocationId = savedLocation.getId(); 
         
         // Register and login a user to get JWT token
         registerAndLoginUser();
@@ -105,7 +121,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         createRequest.setModelYear(2022);
         createRequest.setMileage(15000);
         createRequest.setPrice(new BigDecimal("25000.00"));
-        createRequest.setLocation("New York");
+        createRequest.setLocationId(testLocationId); // Use dynamically created locationId
         createRequest.setDescription("Excellent condition, one owner");
         
         HttpEntity<CreateListingRequest> createEntity = new HttpEntity<>(createRequest, headers);

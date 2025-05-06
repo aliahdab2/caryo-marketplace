@@ -28,8 +28,6 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
     
     Page<CarListing> findByModelYearAndApprovedTrue(Integer modelYear, Pageable pageable);
     
-    Page<CarListing> findByLocationAndApprovedTrue(String location, Pageable pageable);
-    
     Page<CarListing> findByPriceBetweenAndApprovedTrue(BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable);
     
     // Find listings by seller

@@ -95,7 +95,7 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
         request.setModelYear(2020);
         request.setMileage(10000);
         request.setPrice(new BigDecimal("20000.00"));
-        request.setLocation("Valid Location");
+        request.setLocationId(1L); // Use setLocationId instead of setLocation
         request.setDescription("Valid description.");
         return request;
     }

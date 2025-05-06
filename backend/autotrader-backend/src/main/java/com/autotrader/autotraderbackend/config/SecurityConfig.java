@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpStatus;
 
 @Configuration
 @EnableWebSecurity
@@ -27,6 +28,14 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
             // Don't authenticate these specific requests
             .authorizeHttpRequests(auth -> auth
+                // Admin role enforcement should come before permitAll for overlapping patterns
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/locations").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/locations/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/locations/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/locations/**").hasRole("ADMIN")
+                // Publicly accessible GET requests
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/locations/**").permitAll()
+                // Other permitAll rules
                 .requestMatchers("/").permitAll()
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
@@ -41,8 +50,19 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-resources/**").permitAll()
                 .requestMatchers("/webjars/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/files/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings/**").permitAll() 
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings/**").permitAll()
                 .anyRequest().authenticated()
+            )
+            // Handle access denied exceptions properly
+            .exceptionHandling(exceptions -> exceptions
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(HttpStatus.FORBIDDEN.value());
+                    response.getWriter().write("Access Denied: " + accessDeniedException.getMessage());
+                })
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    response.getWriter().write("Unauthorized: " + authException.getMessage());
+                })
             )
             // Use stateless session management
             .sessionManagement(session -> session

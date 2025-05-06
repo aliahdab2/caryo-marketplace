@@ -1,10 +1,11 @@
 package com.autotrader.autotraderbackend.controller;
 
-import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
+import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
+import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -20,9 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.math.BigDecimal;
-import java.util.HashMap; // <-- Added import
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,18 +44,29 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
     @Autowired
     private CarListingRepository carListingRepository;
 
+    @Autowired
+    private LocationRepository locationRepository; 
+
     private String baseUrl;
+    private Long testLocationId;
 
     @BeforeEach
     public void setUp() {
         baseUrl = "http://localhost:" + port;
-        // Clear data before each test
         carListingRepository.deleteAll();
         userRepository.deleteAll();
+        locationRepository.deleteAll(); 
 
-        // Register users needed for tests
+        Location location = new Location();
+        location.setDisplayNameEn("Test City Location");
+        location.setDisplayNameAr("مدينة اختبار");
+        location.setSlug("test-city-location-s3-integration"); // Ensure unique slug
+        location.setCountryCode("XX");
+        Location savedLocation = locationRepository.save(location);
+        testLocationId = savedLocation.getId();
+
         registerUser("testuser", "password", Set.of("user"));
-        registerUser("adminuser", "password", Set.of("admin", "user")); // Register admin
+        registerUser("adminuser", "password", Set.of("admin", "user"));
     }
 
     private void registerUser(String username, String password, Set<String> roles) {
@@ -65,16 +76,13 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         signupRequest.setPassword(password);
         signupRequest.setRole(roles);
 
-        ResponseEntity<Object> response = restTemplate.postForEntity(
+        restTemplate.postForEntity(
                 baseUrl + "/auth/signup",
                 signupRequest,
                 Object.class
         );
-        // Optionally assert response status if needed
-        // assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
-    // Helper method to login and get auth headers
     private HttpHeaders getAuthHeaders(String username, String password) {
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername(username);
@@ -88,7 +96,9 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
 
         assertEquals(HttpStatus.OK, loginResponse.getStatusCode(), "Login failed for user: " + username);
         assertNotNull(loginResponse.getBody(), "Login response body should not be null for user: " + username);
-        String token = loginResponse.getBody().getToken();
+        JwtResponse jwtResponse = loginResponse.getBody();
+        assertNotNull(jwtResponse, "JWT Response object should not be null");
+        String token = jwtResponse.getToken();
         assertNotNull(token, "JWT token should not be null for user: " + username);
 
         HttpHeaders headers = new HttpHeaders();
@@ -97,80 +107,76 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
     }
 
     @Test
-    public void testCreateRetrieveApproveRetrieveCarListing() { // Renamed test
-        // --- 1. Create Listing (as regular user) ---
-        HttpHeaders userHeaders = getAuthHeaders("testuser", "password"); // Use the helper
+    public void testCreateRetrieveApproveRetrieveCarListing() { 
+        HttpHeaders userHeaders = getAuthHeaders("testuser", "password");
         Map<String, Object> createPayload = new HashMap<>();
         createPayload.put("title", "Test Car for Approval");
-        // ... add other required fields ...
         createPayload.put("brand", "TestBrand");
         createPayload.put("model", "TestModel");
         createPayload.put("modelYear", 2021);
         createPayload.put("price", 19999.99);
         createPayload.put("mileage", 15000);
-        createPayload.put("location", "Test City");
+        createPayload.put("locationId", testLocationId);
         createPayload.put("description", "A car to test approval");
 
         HttpEntity<Map<String, Object>> createEntity = new HttpEntity<>(createPayload, userHeaders);
 
-        ResponseEntity<Map> createResponse = restTemplate.exchange(
+        ResponseEntity<Map<String, Object>> createResponse = restTemplate.exchange(
                 baseUrl + "/api/listings",
                 HttpMethod.POST,
                 createEntity,
-                Map.class
+                new ParameterizedTypeReference<Map<String, Object>>() {}
         );
 
         assertEquals(HttpStatus.CREATED.value(), createResponse.getStatusCode().value());
-        assertNotNull(createResponse.getBody());
-        assertNotNull(createResponse.getBody().get("id"));
-        Number listingIdNumber = (Number) createResponse.getBody().get("id");
-        Long listingId = listingIdNumber.longValue(); // Get the ID as Long
+        assertNotNull(createResponse.getBody(), "Create response body should not be null");
+        Map<String, Object> createResponseBody = createResponse.getBody();
+        assertNotNull(createResponseBody, "Create response body map should not be null");
+        assertNotNull(createResponseBody.get("id"));
+        Number listingIdNumber = (Number) createResponseBody.get("id");
+        Long listingId = listingIdNumber.longValue();
 
-        // --- 2. Attempt to Retrieve Unapproved Listing (Publicly) ---
-        HttpEntity<String> getEntityPublic = new HttpEntity<>(new HttpHeaders()); // No auth needed for public GET
-        ResponseEntity<Map> getResponseUnapproved = restTemplate.exchange(
+        HttpEntity<String> getEntityPublic = new HttpEntity<>(new HttpHeaders());
+        ResponseEntity<Map<String, Object>> getResponseUnapproved = restTemplate.exchange(
                 baseUrl + "/api/listings/" + listingId,
                 HttpMethod.GET,
-                getEntityPublic, // Use public headers
-                Map.class
+                getEntityPublic,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
         );
 
         assertEquals(HttpStatus.NOT_FOUND.value(), getResponseUnapproved.getStatusCode().value(),
             "Retrieving a newly created (unapproved) listing publicly should return 404 Not Found");
 
-        // --- 3. Approve Listing (as admin) ---
-        HttpHeaders adminHeaders = getAuthHeaders("adminuser", "password"); // Use the helper
+        HttpHeaders adminHeaders = getAuthHeaders("adminuser", "password");
         HttpEntity<String> approveEntity = new HttpEntity<>(adminHeaders);
 
-        // Assuming PUT /api/listings/{id}/approve endpoint exists
-        ResponseEntity<Map> approveResponse = restTemplate.exchange(
+        ResponseEntity<Map<String, Object>> approveResponse = restTemplate.exchange(
                 baseUrl + "/api/listings/" + listingId + "/approve",
-                HttpMethod.PUT, // Or POST, depending on your API design
+                HttpMethod.PUT,
                 approveEntity,
-                Map.class
+                new ParameterizedTypeReference<Map<String, Object>>() {}
         );
 
         assertEquals(HttpStatus.OK.value(), approveResponse.getStatusCode().value(), "Approving the listing should return 200 OK");
-        assertNotNull(approveResponse.getBody());
-        assertEquals(Boolean.TRUE, approveResponse.getBody().get("approved"), "Response body should indicate approved: true");
+        assertNotNull(approveResponse.getBody(), "Approve response body should not be null");
+        Map<String, Object> approveResponseBody = approveResponse.getBody();
+        assertNotNull(approveResponseBody, "Approve response body map should not be null");
+        assertEquals(Boolean.TRUE, approveResponseBody.get("approved"), "Response body should indicate approved: true");
 
-        // --- 4. Retrieve Approved Listing (Publicly) ---
-        ResponseEntity<Map> getResponseApproved = restTemplate.exchange(
+        ResponseEntity<Map<String, Object>> getResponseApproved = restTemplate.exchange(
                 baseUrl + "/api/listings/" + listingId,
                 HttpMethod.GET,
-                getEntityPublic, // Use public headers again
-                Map.class
+                getEntityPublic,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
         );
 
         assertEquals(HttpStatus.OK.value(), getResponseApproved.getStatusCode().value(),
             "Retrieving an approved listing publicly should return 200 OK");
-        assertNotNull(getResponseApproved.getBody());
-        assertEquals(listingId, ((Number) getResponseApproved.getBody().get("id")).longValue());
-        assertEquals("Test Car for Approval", getResponseApproved.getBody().get("title"));
-        assertEquals(Boolean.TRUE, getResponseApproved.getBody().get("approved"), "Retrieved listing should be approved");
-
-        // Optional: Add more assertions about the retrieved listing details
+        assertNotNull(getResponseApproved.getBody(), "Get approved response body should not be null");
+        Map<String, Object> getApprovedResponseBody = getResponseApproved.getBody();
+        assertNotNull(getApprovedResponseBody, "Get approved response body map should not be null");
+        assertEquals(listingId, ((Number) getApprovedResponseBody.get("id")).longValue());
+        assertEquals("Test Car for Approval", getApprovedResponseBody.get("title"));
+        assertEquals(Boolean.TRUE, getApprovedResponseBody.get("approved"), "Retrieved listing should be approved");
     }
-
-    // ... other tests ...
 }

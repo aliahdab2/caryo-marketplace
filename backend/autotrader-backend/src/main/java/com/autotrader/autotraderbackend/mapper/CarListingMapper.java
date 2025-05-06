@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.mapper;
 
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
+import com.autotrader.autotraderbackend.payload.response.LocationResponse;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,14 @@ public class CarListingMapper {
         response.setPrice(carListing.getPrice());
         response.setMileage(carListing.getMileage());
         response.setDescription(carListing.getDescription());
-        response.setLocation(carListing.getLocation());
+        
+        // Use only locationEntity
+        if (carListing.getLocationEntity() != null) {
+            response.setLocationDetails(LocationResponse.fromEntity(carListing.getLocationEntity()));
+        }
+        // If locationEntity is null, locationDetails will be null (handled by fromEntity)
+        // and the legacy response.setLocation() is not set.
+        
         response.setCreatedAt(carListing.getCreatedAt());
         response.setApproved(carListing.getApproved());
 

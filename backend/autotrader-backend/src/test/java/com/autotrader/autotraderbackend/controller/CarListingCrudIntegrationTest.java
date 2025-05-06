@@ -1,9 +1,11 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
+import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,6 +51,9 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private LocationRepository locationRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -56,6 +61,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
     private CarListing testListing;
     private User testUser;
     private User adminUser;
+    private Location testLocation;
     private String userToken;
     private String adminToken;
     private Long listingId;
@@ -88,6 +94,14 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         adminUser.setRoles(new HashSet<>());
         adminUser.getRoles().add("ROLE_ADMIN");
         adminUser = userRepository.save(adminUser);
+        
+        // Create test location
+        testLocation = new Location();
+        testLocation.setDisplayNameEn("Test Location");
+        testLocation.setDisplayNameAr("موقع اختبار");
+        testLocation.setSlug("test-location");
+        testLocation.setCountryCode("SY");
+        testLocation = locationRepository.save(testLocation);
 
         // Create test listing
         testListing = new CarListing();
@@ -97,7 +111,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         testListing.setModelYear(2020);
         testListing.setMileage(10000);
         testListing.setPrice(new BigDecimal("15000.00"));
-        testListing.setLocation("Test Location");
+        testListing.setLocationEntity(testLocation);
         testListing.setDescription("Test Description");
         testListing.setTransmission("Manual");
         testListing.setApproved(true);
@@ -116,6 +130,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         // Clean up resources manually
         carListingRepository.deleteAll();
         userRepository.deleteAll();
+        locationRepository.deleteAll(); // Add this line
     }
     
     /**

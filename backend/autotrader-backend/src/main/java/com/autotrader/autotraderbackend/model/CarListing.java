@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "car_listings")
-// Keep Lombok annotations for potential future use/consistency, but add explicit methods
 @Getter
 @Setter
 public class CarListing {
@@ -41,8 +40,9 @@ public class CarListing {
     @Column(nullable = false)
     private BigDecimal price;
 
-    @Column(nullable = false)
-    private String location;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id")
+    private Location locationEntity;
 
     @Column(length = 2000)
     private String description;

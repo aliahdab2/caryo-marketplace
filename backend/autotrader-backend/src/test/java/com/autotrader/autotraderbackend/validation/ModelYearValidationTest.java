@@ -124,7 +124,7 @@ class ModelYearValidationTest {
         request.setModelYear(2023);
         request.setPrice(new BigDecimal("15000.00"));
         request.setMileage(5000);
-        request.setLocation("Test Location");
+        request.setLocationId(1L); // Use setLocationId instead of setLocation
         return request;
     }
 }

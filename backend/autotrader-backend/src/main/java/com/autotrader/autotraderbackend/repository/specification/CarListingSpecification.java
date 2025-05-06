@@ -44,7 +44,9 @@ public class CarListingSpecification {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("mileage"), filter.getMaxMileage()));
             }
             if (StringUtils.hasText(filter.getLocation())) {
-                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("location")), "%" + filter.getLocation().toLowerCase() + "%"));
+                String lowerCaseLocation = "%" + filter.getLocation().toLowerCase() + "%";
+                // For backward compatibility and tests, include a direct search on location field
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("location")), lowerCaseLocation));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

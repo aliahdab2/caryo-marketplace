@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.service;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.mapper.CarListingMapper;
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
@@ -64,7 +65,14 @@ public class CarListingCrudOperationsTest {
         testListing.setModelYear(2020);
         testListing.setMileage(10000);
         testListing.setPrice(new BigDecimal("15000.00"));
-        testListing.setLocation("Test Location");
+        // Using locationEntity instead of deprecated location string
+        Location testLocation = new Location();
+        testLocation.setId(1L);
+        testLocation.setDisplayNameEn("Test Location");
+        testLocation.setDisplayNameAr("موقع اختبار");
+        testLocation.setSlug("test-location");
+        testLocation.setCountryCode("SY"); // Set the required countryCode field
+        testListing.setLocationEntity(testLocation);
         testListing.setDescription("Test Description");
         testListing.setTransmission("Manual");
         testListing.setApproved(true);

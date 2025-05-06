@@ -2,20 +2,21 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.exception.StorageException;
-import com.autotrader.autotraderbackend.mapper.CarListingMapper; // Import the mapper
+import com.autotrader.autotraderbackend.mapper.CarListingMapper;
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
+import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.specification.CarListingSpecification;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -33,8 +34,9 @@ public class CarListingService {
 
     private final CarListingRepository carListingRepository;
     private final UserRepository userRepository;
+    private final LocationRepository locationRepository;
     private final StorageService storageService;
-    private final CarListingMapper carListingMapper; // Inject the mapper
+    private final CarListingMapper carListingMapper;
 
     /**
      * Create a new car listing.
@@ -46,8 +48,7 @@ public class CarListingService {
 
         CarListing carListing = buildCarListingFromRequest(request, user);
 
-        // Removed the broad try-catch block
-        CarListing savedListing = carListingRepository.save(carListing); // Let DataAccessException propagate
+        CarListing savedListing = carListingRepository.save(carListing);
 
         // Handle image upload if provided
         if (image != null && !image.isEmpty()) {
@@ -60,7 +61,6 @@ public class CarListingService {
             } catch (StorageException e) {
                 // If image upload/update fails, log it but proceed with listing creation response
                 log.error("Failed to upload image or update listing with image key for listing ID {}: {}", savedListing.getId(), e.getMessage(), e);
-                // For now, we return the listing response even if image upload failed.
             } catch (Exception e) {
                 // Catch unexpected errors during image handling
                 log.error("Unexpected error during image handling for listing ID {}: {}", savedListing.getId(), e.getMessage(), e);
@@ -68,8 +68,7 @@ public class CarListingService {
         }
 
         log.info("Successfully created new listing with ID: {} for user: {}", savedListing.getId(), username);
-        // Use mapper
-        return carListingMapper.toCarListingResponse(savedListing); // Let mapper errors propagate if necessary
+        return carListingMapper.toCarListingResponse(savedListing);
     }
 
     /**
@@ -96,7 +95,6 @@ public class CarListingService {
             return imageKey;
         } catch (StorageException e) {
             log.error("Storage service failed to store image for listing ID {}: {}", listingId, e.getMessage(), e);
-            // Re-throw specific StorageException or wrap if needed
             throw new StorageException("Failed to store image file.", e);
         } catch (Exception e) {
             log.error("Unexpected error saving listing {} after image upload: {}", listingId, e.getMessage(), e);
@@ -114,11 +112,8 @@ public class CarListingService {
         CarListing carListing = carListingRepository.findByIdAndApprovedTrue(id)
                 .orElseThrow(() -> {
                     log.warn("Approved CarListing lookup failed for ID: {}", id);
-                    // Throw ResourceNotFound even if it exists but isn't approved,
-                    // as it's not found from a public perspective.
                     return new ResourceNotFoundException("CarListing", "id", id);
                 });
-        // Use mapper
         return carListingMapper.toCarListingResponse(carListing);
     }
 
@@ -130,7 +125,6 @@ public class CarListingService {
         log.debug("Fetching approved listings page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
         Page<CarListing> listingPage = carListingRepository.findByApprovedTrue(pageable);
         log.info("Found {} approved listings on page {}", listingPage.getNumberOfElements(), pageable.getPageNumber());
-        // Use mapper
         return listingPage.map(carListingMapper::toCarListingResponse);
     }
 
@@ -145,7 +139,6 @@ public class CarListingService {
 
         Page<CarListing> listingPage = carListingRepository.findAll(spec, pageable);
         log.info("Found {} filtered listings matching criteria on page {}", listingPage.getNumberOfElements(), pageable.getPageNumber());
-        // Use mapper
         return listingPage.map(carListingMapper::toCarListingResponse);
     }
 
@@ -158,7 +151,6 @@ public class CarListingService {
         User user = findUserByUsername(username);
         List<CarListing> listings = carListingRepository.findBySeller(user);
         log.info("Found {} listings for user: {}", listings.size(), username);
-        // Use mapper
         return listings.stream()
                 .map(carListingMapper::toCarListingResponse)
                 .collect(Collectors.toList());
@@ -179,11 +171,9 @@ public class CarListingService {
 
         carListing.setApproved(true);
 
-        // Removed the broad try-catch block to let specific exceptions propagate
-        CarListing approvedListing = carListingRepository.save(carListing); // Let DataAccessException propagate if it occurs
+        CarListing approvedListing = carListingRepository.save(carListing);
         log.info("Successfully approved listing ID: {}", approvedListing.getId());
 
-        // Mapper handles its own potential errors (like URL generation) internally
         return carListingMapper.toCarListingResponse(approvedListing);
     }
 
@@ -230,9 +220,22 @@ public class CarListingService {
         if (request.getMileage() != null) {
             existingListing.setMileage(request.getMileage());
         }
-        if (request.getLocation() != null) {
-            existingListing.setLocation(request.getLocation());
+        
+        // Handle location updates - only use locationId
+        if (request.getLocationId() != null) {
+            Location location = locationRepository.findById(request.getLocationId())
+                .orElseThrow(() -> {
+                    log.warn("Location lookup failed for ID: {}", request.getLocationId());
+                    return new ResourceNotFoundException("Location", "id", request.getLocationId());
+                });
+            existingListing.setLocationEntity(location);
+        } else {
+            // If locationId is not provided in the request, it implies no change to the location.
+            // If the intention is to remove the location, the request should explicitly indicate this,
+            // for example, by sending a specific value like -1 or a dedicated flag.
+            // Based on current structure, not providing locationId means "keep current locationEntity".
         }
+        
         if (request.getDescription() != null) {
             existingListing.setDescription(request.getDescription());
         }
@@ -364,11 +367,20 @@ public class CarListingService {
         carListing.setPrice(request.getPrice());
         carListing.setMileage(request.getMileage());
         carListing.setDescription(request.getDescription());
-        carListing.setLocation(request.getLocation());
+        
+        // Handle location - only use locationId
+        if (request.getLocationId() != null) {
+            Location location = locationRepository.findById(request.getLocationId())
+                .orElseThrow(() -> {
+                    log.warn("Location lookup failed for ID: {}", request.getLocationId());
+                    return new ResourceNotFoundException("Location", "id", request.getLocationId());
+                });
+            carListing.setLocationEntity(location);
+        }
+        // If request.getLocationId() is null, carListing.locationEntity will remain null.
+        
         carListing.setSeller(user);
         carListing.setApproved(false); // Default to not approved
         return carListing;
     }
-
-    // Removed convertToResponse method as logic is now in CarListingMapper
 }
