@@ -17,10 +17,10 @@ This document outlines the development plan for the AutoTrader Marketplace backe
   - [x] Support both JSON-only and multipart/form-data with image upload
   - [x] Implement robust file validation for uploaded images
 - [x] **Get User's Listings API** (return listings for the authenticated user)
-- [ ] **Get All Listings API** (return a paginated list)
-- [ ] **Filter Listings API** (by price, location, brand, etc.)
-- [ ] **Car Details API** (single listing view)
-- [ ] **Admin Approval** (listings should require admin approval before being visible)
+- [x] **Get All Listings API** (return a paginated list)
+- [x] **Filter Listings API** (by price, location, brand, etc.)
+- [x] **Car Details API** (single listing view)
+- [x] **Admin Approval** (listings should require admin approval before being visible)
 - [x] **Image Upload** (with S3 or local file storage)
   - [x] Set up MinIO as S3-compatible storage 
   - [x] Implement direct file upload endpoints
@@ -29,14 +29,14 @@ This document outlines the development plan for the AutoTrader Marketplace backe
 - [x] **Test Basic Operations** (for listings)
   - [x] Automated Postman tests for creating listings (with/without images)
   - [x] Tests for retrieving user's listings
-- [ ] **Test Remaining CRUD Operations** (update and delete)
+- [x] **Test Remaining CRUD Operations** (update and delete)
 
 ## Phase 3: Infrastructure & Optimizations
 
 - [ ] **PostgreSQL Setup** (create DB schema for users, listings, etc.)
 - [ ] **Flyway for DB Migrations** (auto versioning of database schema)
 - [ ] **Set up Redis** (optional, for caching frequently accessed data like listings)
-- [x] **Add basic logging** with Spring Boot's logging features (SLF4J, Logback)
+- [x] **Add basic logging** with Lombok's @Slf4j annotation (leveraging Spring Boot's logging infrastructure)
   - [x] Implement logging for controller methods
   - [x] Log file upload operations and validation results
 - [x] **Configure application.properties** (database connections, security, file storage)

@@ -4,6 +4,7 @@ import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
+import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.CarListingService;
@@ -282,6 +283,111 @@ public class CarListingController {
         } catch (IllegalStateException e) { // Catch if already approved
             log.warn("Approval attempt failed for listing ID {}: {}", id, e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        summary = "Update an existing car listing",
+        description = "Updates a car listing with the provided details. Only the owner of the listing can update it.",
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Listing updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "Listing not found")
+        }
+    )
+    public ResponseEntity<CarListingResponse> updateListing(
+            @Parameter(description = "ID of the listing to update", required = true)
+            @PathVariable("id") Long id,
+            @Valid @RequestBody UpdateListingRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        try {
+            log.info("Received request to update listing with ID: {}", id);
+            CarListingResponse updatedListing = carListingService.updateListing(id, request, userDetails.getUsername());
+            log.info("Successfully updated listing with ID: {}", id);
+            return ResponseEntity.ok(updatedListing);
+        } catch (ResourceNotFoundException e) {
+            log.error("Listing not found with ID: {}", id, e);
+            throw e;
+        } catch (SecurityException e) {
+            log.error("User {} not authorized to update listing with ID: {}", userDetails.getUsername(), id, e);
+            throw new AccessDeniedException(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error updating listing with ID: {}", id, e);
+            throw e;
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(
+        summary = "Delete a car listing",
+        description = "Deletes a car listing. Only the owner of the listing can delete it.",
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "204", description = "Listing deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "Listing not found")
+        }
+    )
+    public ResponseEntity<Void> deleteListing(
+            @Parameter(description = "ID of the listing to delete", required = true)
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        try {
+            log.info("Received request to delete listing with ID: {}", id);
+            carListingService.deleteListing(id, userDetails.getUsername());
+            log.info("Successfully deleted listing with ID: {}", id);
+            return ResponseEntity.noContent().build();
+        } catch (ResourceNotFoundException e) {
+            log.error("Listing not found with ID: {}", id, e);
+            throw e;
+        } catch (SecurityException e) {
+            log.error("User {} not authorized to delete listing with ID: {}", userDetails.getUsername(), id, e);
+            throw new AccessDeniedException(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error deleting listing with ID: {}", id, e);
+            throw e;
+        }
+    }
+
+    @DeleteMapping("/admin/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(
+        summary = "Delete a car listing (Admin only)",
+        description = "Deletes any car listing. Admin access required.",
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "204", description = "Listing deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - Admin access required"),
+            @ApiResponse(responseCode = "404", description = "Listing not found")
+        }
+    )
+    public ResponseEntity<Void> deleteListingAsAdmin(
+            @Parameter(description = "ID of the listing to delete", required = true)
+            @PathVariable("id") Long id) {
+        
+        try {
+            log.info("Admin requested to delete listing with ID: {}", id);
+            carListingService.deleteListingAsAdmin(id);
+            log.info("Admin successfully deleted listing with ID: {}", id);
+            return ResponseEntity.noContent().build();
+        } catch (ResourceNotFoundException e) {
+            log.error("Listing not found with ID: {}", id, e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Error deleting listing with ID: {}", id, e);
+            throw e;
         }
     }
 }

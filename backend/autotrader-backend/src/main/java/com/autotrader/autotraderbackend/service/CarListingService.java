@@ -7,6 +7,7 @@ import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
+import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
@@ -186,6 +187,132 @@ public class CarListingService {
         return carListingMapper.toCarListingResponse(approvedListing);
     }
 
+    /**
+     * Update an existing car listing.
+     *
+     * @param id         The ID of the car listing to update
+     * @param request    Updated listing details
+     * @param username   The username of the user making the request
+     * @return The updated CarListingResponse
+     * @throws ResourceNotFoundException If the listing does not exist
+     * @throws SecurityException If the user does not own the listing
+     */
+    @Transactional
+    public CarListingResponse updateListing(Long id, UpdateListingRequest request, String username) {
+        log.info("Attempting to update listing with ID: {} by user: {}", id, username);
+        
+        CarListing existingListing = carListingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", id));
+        
+        // Check if the user owns this listing
+        if (!existingListing.getSeller().getUsername().equals(username)) {
+            log.warn("User {} attempted to update listing {} owned by {}", 
+                    username, id, existingListing.getSeller().getUsername());
+            throw new SecurityException("You are not authorized to update this listing");
+        }
+        
+        // Update only non-null fields
+        if (request.getTitle() != null) {
+            existingListing.setTitle(request.getTitle());
+        }
+        if (request.getBrand() != null) {
+            existingListing.setBrand(request.getBrand());
+        }
+        if (request.getModel() != null) {
+            existingListing.setModel(request.getModel());
+        }
+        if (request.getModelYear() != null) {
+            existingListing.setModelYear(request.getModelYear());
+        }
+        if (request.getPrice() != null) {
+            existingListing.setPrice(request.getPrice());
+        }
+        if (request.getMileage() != null) {
+            existingListing.setMileage(request.getMileage());
+        }
+        if (request.getLocation() != null) {
+            existingListing.setLocation(request.getLocation());
+        }
+        if (request.getDescription() != null) {
+            existingListing.setDescription(request.getDescription());
+        }
+        if (request.getTransmission() != null) {
+            existingListing.setTransmission(request.getTransmission());
+        }
+        
+        CarListing updatedListing = carListingRepository.save(existingListing);
+        log.info("Successfully updated listing ID: {} by user: {}", id, username);
+        
+        return carListingMapper.toCarListingResponse(updatedListing);
+    }
+
+    /**
+     * Delete a car listing.
+     *
+     * @param id         The ID of the car listing to delete
+     * @param username   The username of the user making the request
+     * @throws ResourceNotFoundException If the listing does not exist
+     * @throws SecurityException If the user does not own the listing
+     */
+    @Transactional
+    public void deleteListing(Long id, String username) {
+        log.info("Attempting to delete listing with ID: {} by user: {}", id, username);
+        
+        CarListing existingListing = carListingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", id));
+        
+        // Check if the user owns this listing
+        if (!existingListing.getSeller().getUsername().equals(username)) {
+            log.warn("User {} attempted to delete listing {} owned by {}", 
+                    username, id, existingListing.getSeller().getUsername());
+            throw new SecurityException("You are not authorized to delete this listing");
+        }
+        
+        // If listing has an image, delete it from storage
+        if (existingListing.getImageKey() != null) {
+            try {
+                storageService.delete(existingListing.getImageKey());
+                log.info("Deleted image with key: {} for listing ID: {}", existingListing.getImageKey(), id);
+            } catch (StorageException e) {
+                // Log but continue with listing deletion
+                log.error("Failed to delete image with key: {} for listing ID: {}", existingListing.getImageKey(), id, e);
+            }
+        }
+        
+        // Delete the listing
+        carListingRepository.delete(existingListing);
+        log.info("Successfully deleted listing with ID: {}", id);
+    }
+    
+    /**
+     * Admin-only method to delete any car listing.
+     *
+     * @param id The ID of the car listing to delete
+     * @throws ResourceNotFoundException If the listing does not exist
+     */
+    @Transactional
+    public void deleteListingAsAdmin(Long id) {
+        log.info("Admin attempting to delete listing with ID: {}", id);
+        
+        CarListing existingListing = carListingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", id));
+        
+        // If listing has an image, delete it from storage
+        if (existingListing.getImageKey() != null) {
+            try {
+                storageService.delete(existingListing.getImageKey());
+                log.info("Admin deleted image with key: {} for listing ID: {}", existingListing.getImageKey(), id);
+            } catch (StorageException e) {
+                // Log but continue with listing deletion
+                log.error("Admin failed to delete image with key: {} for listing ID: {}", existingListing.getImageKey(), id, e);
+            }
+        }
+        
+        // Delete the listing
+        carListingRepository.delete(existingListing);
+        log.info("Admin successfully deleted listing with ID: {}", id);
+    }
+    
     // --- Helper Methods ---
 
     private User findUserByUsername(String username) {

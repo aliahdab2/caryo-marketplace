@@ -33,7 +33,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [x] **Admin Approval** (listings require admin approval before being visible - implemented with `approved` flag)
 - [x] **Image Upload** (with S3-compatible storage)
 - [x] **Test Basic Operations** (for listings)
-- [ ] **Test Remaining CRUD Operations** (update and delete)
+- [x] **Test Remaining CRUD Operations** (update and delete)
 
 ### Phase 2.1: Simplified Location System (Inspired by Blocket)
 
@@ -74,7 +74,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [ ] **PostgreSQL Setup** (create DB schema for users, listings, etc.)
 - [ ] **Flyway for DB Migrations** (auto versioning of database schema)
 - [ ] **Set up Redis** (optional, for caching frequently accessed data like listings)
-- [x] **Add basic logging** with Spring Boot's logging features (SLF4J, Logback)
+- [x] **Add basic logging** with Lombok's @Slf4j annotation (leveraging Spring Boot's logging infrastructure)
 - [x] **Configure application.properties** (database connections, security, file storage)
 - [x] **Validate file uploads** (size, format - jpeg, png, webp, etc.)
 - [ ] **Implement file cleanup** (mechanism to remove old/unreferenced files)
