@@ -33,10 +33,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Map;
 
-
-import lombok.extern.slf4j.Slf4j;
-import lombok.RequiredArgsConstructor;
-
 @RestController
 @RequestMapping("/api/listings")
 @CrossOrigin(origins = "*", maxAge = 3600)
