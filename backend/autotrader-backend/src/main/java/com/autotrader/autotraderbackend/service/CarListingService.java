@@ -1,3 +1,4 @@
+// SortableCarListingField enum moved to its own file (SortableCarListingField.java)
 package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
@@ -14,6 +15,7 @@ import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.specification.CarListingSpecification;
+import com.autotrader.autotraderbackend.service.SortableCarListingField;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -140,6 +142,20 @@ public class CarListingService {
     public Page<CarListingResponse> getFilteredListings(ListingFilterRequest filterRequest, Pageable pageable) {
         log.debug("Fetching filtered listings with filter: {}, page: {}, size: {}",
                   filterRequest, pageable.getPageNumber(), pageable.getPageSize());
+
+        // --- SORT FIELD VALIDATION ---
+        if (pageable.getSort() != null && pageable.getSort().isSorted()) {
+            pageable.getSort().forEach(order -> {
+                String property = order.getProperty();
+                // If the property is a compound (e.g. "price,desc"), split and take the field
+                String[] sortParts = property.split(",");
+                String requestedField = sortParts[0];
+                if (!SortableCarListingField.isAllowed(requestedField)) {
+                    log.warn("Attempt to sort by non-whitelisted field: '{}'. Ignoring sort for this field.", requestedField);
+                    throw new IllegalArgumentException("Sorting by field '" + requestedField + "' is not allowed.");
+                }
+            });
+        }
 
         Specification<CarListing> spec;
         Location locationToFilterBy = null;
