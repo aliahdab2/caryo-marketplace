@@ -1,6 +1,8 @@
 package com.autotrader.autotraderbackend.controller;
 
+import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.Location;
+import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
@@ -25,6 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -53,12 +56,13 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
     private String baseUrl;
     private String jwtToken;
     private Long testLocationId;
+    private User testUser; // Added to store the test user
 
     @BeforeEach
     public void setUp() {
         baseUrl = "http://localhost:" + port;
         // Clear data before each test
-        carListingRepository.deleteAll();
+        carListingRepository.deleteAll(); // Order matters: delete listings before locations/users due to FKs
         userRepository.deleteAll();
         locationRepository.deleteAll();
 
@@ -73,6 +77,10 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         
         // Register and login a user to get JWT token
         registerAndLoginUser();
+
+        // Fetch the created user for associating with listings
+        testUser = userRepository.findByUsername("carowner")
+                .orElseThrow(() -> new IllegalStateException("Test user 'carowner' not found after registration"));
     }
     
     private void registerAndLoginUser() {
@@ -105,6 +113,22 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         JwtResponse jwtResponseBody = Objects.requireNonNull(loginResponse.getBody(), "Login response body should not be null");
         jwtToken = jwtResponseBody.getToken();
         assertNotNull(jwtToken, "JWT token should not be null");
+    }
+
+    private CarListing createAndSaveApprovedListing(String title, String brand, String model, int year, BigDecimal price, Location location) {
+        CarListing listing = new CarListing();
+        listing.setTitle(title);
+        listing.setBrand(brand);
+        listing.setModel(model);
+        listing.setModelYear(year);
+        listing.setPrice(price);
+        listing.setSeller(testUser);
+        listing.setLocationEntity(location);
+        listing.setApproved(true); // Ensure listing is approved
+        listing.setDescription("Test description for " + title);
+        listing.setMileage(10000); // Default mileage
+        // Add other mandatory fields if any
+        return carListingRepository.save(listing);
     }
 
     @Test
@@ -173,5 +197,215 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         
         // Assert that accessing an unapproved listing publicly results in 404 Not Found
         assertEquals(HttpStatus.NOT_FOUND.value(), unauthorizedResponse.getStatusCode().value(), "Accessing unapproved listing publicly should return 404");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked") // Suppress warning for casting from Object
+    public void testFilterByValidLocationSlug() {
+        Location mainTestLocation = locationRepository.findById(testLocationId).orElseThrow();
+        createAndSaveApprovedListing("Camry in Test City", "Toyota", "Camry", 2021, new BigDecimal("22000"), mainTestLocation);
+
+        Location anotherLocation = new Location();
+        anotherLocation.setDisplayNameEn("Another Test City");
+        anotherLocation.setDisplayNameAr("مدينة اختبار أخرى");
+        anotherLocation.setCountryCode("AC");
+        anotherLocation.setSlug("another-city-slug");
+        locationRepository.save(anotherLocation);
+        createAndSaveApprovedListing("Accord in Another City", "Honda", "Accord", 2022, new BigDecimal("25000"), anotherLocation);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + jwtToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                baseUrl + "/api/listings/filter?location=test-city-lifecycle",
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+        );
+
+        assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
+        Map<String, Object> responseBody = response.getBody();
+        assertNotNull(responseBody);
+        assertEquals(1, ((Number) responseBody.get("totalElements")).intValue());
+        List<Map<String, Object>> content = (List<Map<String, Object>>) responseBody.get("content");
+        assertNotNull(content);
+        assertEquals(1, content.size());
+        Map<String, Object> listingResponse = content.get(0);
+        Map<String, Object> locationDetails = (Map<String, Object>) listingResponse.get("locationDetails");
+        assertNotNull(locationDetails);
+        assertEquals("test-city-lifecycle", locationDetails.get("slug"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked") // Suppress warning for casting from Object
+    public void testFilterByInvalidLocationSlug() {
+        Location mainTestLocation = locationRepository.findById(testLocationId).orElseThrow();
+        createAndSaveApprovedListing("Civic in Test City", "Honda", "Civic", 2020, new BigDecimal("18000"), mainTestLocation);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + jwtToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                baseUrl + "/api/listings/filter?location=invalid-nonexistent-slug",
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+        );
+
+        assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
+        Map<String, Object> responseBody = response.getBody();
+        assertNotNull(responseBody);
+        assertEquals(0, ((Number) responseBody.get("totalElements")).intValue());
+        List<Map<String, Object>> content = (List<Map<String, Object>>) responseBody.get("content");
+        assertNotNull(content);
+        assertTrue(content.isEmpty());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked") // Suppress warning for casting from Object
+    public void testFilterWithNoLocationSlug() {
+        Location mainTestLocation = locationRepository.findById(testLocationId).orElseThrow();
+        createAndSaveApprovedListing("Corolla in Test City", "Toyota", "Corolla", 2019, new BigDecimal("16000"), mainTestLocation);
+
+        Location anotherLocation = new Location();
+        anotherLocation.setDisplayNameEn("Second Test City");
+        anotherLocation.setDisplayNameAr("مدينة اختبار ثانية");
+        anotherLocation.setCountryCode("SC");
+        anotherLocation.setSlug("second-city-slug");
+        locationRepository.save(anotherLocation);
+        createAndSaveApprovedListing("Elantra in Second City", "Hyundai", "Elantra", 2021, new BigDecimal("20000"), anotherLocation);
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + jwtToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                baseUrl + "/api/listings/filter", // No location query param
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+        );
+
+        assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
+        Map<String, Object> responseBody = response.getBody();
+        assertNotNull(responseBody);
+        assertEquals(2, ((Number) responseBody.get("totalElements")).intValue());
+        List<Map<String, Object>> content = (List<Map<String, Object>>) responseBody.get("content");
+        assertNotNull(content);
+        assertEquals(2, content.size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testFilterByValidLocationId() {
+        Location mainTestLocation = locationRepository.findById(testLocationId).orElseThrow();
+        createAndSaveApprovedListing("Fusion in Test City", "Ford", "Fusion", 2020, new BigDecimal("21000"), mainTestLocation);
+
+        Location anotherLocation = new Location();
+        anotherLocation.setDisplayNameEn("Location For ID Test");
+        anotherLocation.setDisplayNameAr("موقع لاختبار المعرف");
+        anotherLocation.setCountryCode("LI");
+        anotherLocation.setSlug("location-for-id-test");
+        Location savedAnotherLocation = locationRepository.save(anotherLocation);
+        createAndSaveApprovedListing("Malibu in Another City", "Chevrolet", "Malibu", 2022, new BigDecimal("24000"), savedAnotherLocation);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + jwtToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                baseUrl + "/api/listings/filter?locationId=" + testLocationId, // Filter by the ID of mainTestLocation
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+        );
+
+        assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
+        Map<String, Object> responseBody = response.getBody();
+        assertNotNull(responseBody);
+        assertEquals(1, ((Number) responseBody.get("totalElements")).intValue());
+        List<Map<String, Object>> content = (List<Map<String, Object>>) responseBody.get("content");
+        assertNotNull(content);
+        assertEquals(1, content.size());
+        Map<String, Object> listingResponse = content.get(0);
+        Map<String, Object> locationDetails = (Map<String, Object>) listingResponse.get("locationDetails");
+        assertNotNull(locationDetails);
+        assertEquals(testLocationId.intValue(), ((Number) locationDetails.get("id")).intValue());
+        assertEquals(mainTestLocation.getSlug(), locationDetails.get("slug"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testFilterByInvalidLocationId() {
+        Location mainTestLocation = locationRepository.findById(testLocationId).orElseThrow();
+        createAndSaveApprovedListing("Optima in Test City", "Kia", "Optima", 2019, new BigDecimal("19000"), mainTestLocation);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + jwtToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        long nonExistentLocationId = 99999L; // An ID that is unlikely to exist
+
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                baseUrl + "/api/listings/filter?locationId=" + nonExistentLocationId,
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+        );
+
+        assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
+        Map<String, Object> responseBody = response.getBody();
+        assertNotNull(responseBody);
+        assertEquals(0, ((Number) responseBody.get("totalElements")).intValue());
+        List<Map<String, Object>> content = (List<Map<String, Object>>) responseBody.get("content");
+        assertNotNull(content);
+        assertTrue(content.isEmpty());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testFilterByLocationIdTakesPrecedenceOverSlug() {
+        Location mainTestLocation = locationRepository.findById(testLocationId).orElseThrow(); // Slug: "test-city-lifecycle"
+        createAndSaveApprovedListing("Altima in Main Test City", "Nissan", "Altima", 2021, new BigDecimal("23000"), mainTestLocation);
+
+        Location anotherLocation = new Location();
+        anotherLocation.setDisplayNameEn("Another Location For Precedence Test");
+        anotherLocation.setDisplayNameAr("موقع آخر لاختبار الأسبقية");
+        anotherLocation.setCountryCode("AL");
+        anotherLocation.setSlug("another-location-slug-precedence"); // Different slug
+        Location savedAnotherLocation = locationRepository.save(anotherLocation);
+        // Listing in 'anotherLocation'
+        createAndSaveApprovedListing("Sentra in Another Location", "Nissan", "Sentra", 2022, new BigDecimal("22000"), savedAnotherLocation);
+
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + jwtToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        // Provide both locationId (for mainTestLocation) and location slug (for savedAnotherLocation)
+        // Expecting locationId to take precedence
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                baseUrl + "/api/listings/filter?locationId=" + testLocationId + "&location=" + savedAnotherLocation.getSlug(),
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+        );
+
+        assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
+        Map<String, Object> responseBody = response.getBody();
+        assertNotNull(responseBody);
+        assertEquals(1, ((Number) responseBody.get("totalElements")).intValue(), 
+            "Should find 1 listing based on locationId, ignoring slug");
+        List<Map<String, Object>> content = (List<Map<String, Object>>) responseBody.get("content");
+        assertNotNull(content);
+        assertEquals(1, content.size());
+        Map<String, Object> listingResponse = content.get(0);
+        assertEquals("Altima in Main Test City", listingResponse.get("title"));
+        Map<String, Object> locationDetails = (Map<String, Object>) listingResponse.get("locationDetails");
+        assertNotNull(locationDetails);
+        assertEquals(testLocationId.intValue(), ((Number) locationDetails.get("id")).intValue());
+        assertEquals(mainTestLocation.getSlug(), locationDetails.get("slug"));
     }
 }

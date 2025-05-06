@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.repository.specification;
 
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
@@ -11,7 +12,7 @@ import java.util.List;
 
 public class CarListingSpecification {
 
-    public static Specification<CarListing> fromFilter(ListingFilterRequest filter) {
+    public static Specification<CarListing> fromFilter(ListingFilterRequest filter, Location locationEntity) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -43,10 +44,10 @@ public class CarListingSpecification {
             if (filter.getMaxMileage() != null) {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("mileage"), filter.getMaxMileage()));
             }
-            if (StringUtils.hasText(filter.getLocation())) {
-                String lowerCaseLocation = "%" + filter.getLocation().toLowerCase() + "%";
-                // For backward compatibility and tests, include a direct search on location field
-                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("location")), lowerCaseLocation));
+
+            // Add filter for Location entity if provided
+            if (locationEntity != null) {
+                predicates.add(criteriaBuilder.equal(root.get("locationEntity"), locationEntity));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

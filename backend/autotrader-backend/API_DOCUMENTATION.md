@@ -165,7 +165,7 @@ Authorization: Bearer <your_jwt_token>
 - **Endpoint**: `POST /api/listings`
 - **Content-Type**: `application/json`
 - **Access**: Authenticated users
-- **Description**: Creates a new car listing without an image
+- **Description**: Creates a new car listing without an image. The `locationId` must correspond to an existing `Location` entity.
 - **Authentication**: Required (JWT token)
 - **Request Body**:
   ```json
@@ -176,8 +176,9 @@ Authorization: Bearer <your_jwt_token>
     "modelYear": 2023,
     "price": 28500,
     "mileage": 15000,
-    "location": "New York, NY",
-    "description": "Excellent condition, one owner, no accidents"
+    "locationId": 123, // ID of an existing Location entity
+    "description": "Excellent condition, one owner, no accidents",
+    "transmission": "AUTOMATIC" // Example: include other relevant fields
   }
   ```
 
@@ -186,17 +187,17 @@ Authorization: Bearer <your_jwt_token>
 - **Endpoint**: `POST /api/listings/with-image`
 - **Content-Type**: `multipart/form-data`
 - **Access**: Authenticated users
-- **Description**: Creates a new car listing with an image attachment
+- **Description**: Creates a new car listing with an image attachment. The `locationId` in the `listing` JSON part must correspond to an existing `Location` entity.
 - **Authentication**: Required (JWT token)
 - **Request Parts**:
-  - `listing`: JSON object containing listing details (as shown in the JSON-only endpoint)
-  - `image`: File upload (JPEG, PNG, GIF, or WebP format, max size 5MB)
+  - `listing`: JSON object containing listing details (similar to the JSON-only endpoint, including `locationId`).
+  - `image`: File upload (JPEG, PNG, GIF, or WebP format, max size 5MB).
   
 - **Example curl request**:
   ```bash
   curl -X POST http://localhost:8080/api/listings/with-image \
     -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-    -F "listing={\"title\":\"2023 Toyota Camry\",\"brand\":\"Toyota\",\"model\":\"Camry\",\"modelYear\":2023,\"price\":28500,\"mileage\":15000,\"location\":\"New York, NY\",\"description\":\"Excellent condition\"}" \
+    -F "listing={\"title\":\"2023 Toyota Camry\",\"brand\":\"Toyota\",\"model\":\"Camry\",\"modelYear\":2023,\"price\":28500,\"mileage\":15000,\"locationId\":123,\"description\":\"Excellent condition\", \"transmission\":\"AUTOMATIC\"}" \
     -F "image=@/path/to/your/image.jpg"
   ```
 - **Validation Rules**:
@@ -206,28 +207,38 @@ Authorization: Bearer <your_jwt_token>
   - `modelYear`: Required, must be between 1920 and current year, must be a 4-digit number
   - `price`: Required, must be positive
   - `mileage`: Required, must be zero or positive
-  - `location`: Required
+  - `locationId`: Required, must be a valid ID of an existing `Location`.
   - `image` (when using `/with-image` endpoint):
      - File must not be empty
      - File must be a valid image format (JPEG, PNG, GIF, or WebP)
      - File size must not exceed 5MB (configurable)
-- **Response (201 Created)**:
+- **Response (201 Created)** (Example, `locationDetails` will be populated based on `locationId`):
   ```json
   {
     "id": 1,
     "title": "2023 Toyota Camry",
     "brand": "Toyota",
     "model": "Camry",
-    "modelYear": 2019,
-    "price": 18500,
-    "mileage": 35000,
-    "location": "New York, NY",
+    "modelYear": 2023,
+    "price": 28500,
+    "mileage": 15000,
     "description": "Excellent condition, one owner, no accidents",
-    "imageUrl": "https://example.com/camry.jpg",
+    "imageUrl": "https://example.com/camry.jpg", // if image was uploaded
     "approved": false,
-    "userId": 1,
-    "createdAt": "2025-04-30T10:15:30Z",
-    "updatedAt": null
+    "sellerUsername": "yourUsername",
+    "locationDetails": {
+        "id": 123,
+        "displayNameEn": "Example City",
+        "displayNameAr": "مدينة مثال",
+        "slug": "example-city",
+        "countryCode": "EC",
+        "region": "Example Region",
+        "latitude": 34.0522,
+        "longitude": -118.2437
+    },
+    "transmission": "AUTOMATIC",
+    "createdAt": "2025-05-06T10:15:30Z",
+    "updatedAt": "2025-05-06T10:15:30Z"
   }
   ```
 - **Response (400 Bad Request)** - Invalid data:
@@ -240,6 +251,137 @@ Authorization: Bearer <your_jwt_token>
     }
   }
   ```
+
+#### Get All Approved Listings
+
+- **Endpoint**: `GET /api/listings`
+- **Access**: Public
+- **Description**: Retrieves a paginated list of all *approved* car listings.
+- **Authentication**: None required.
+- **Query Parameters**:
+  - `page` (Integer, optional, default: 0): Page number for pagination.
+  - `size` (Integer, optional, default: 20): Number of items per page.
+  - `sort` (String, optional, e.g., `price,asc` or `createdAt,desc`): Sorting criteria.
+- **Response (200 OK)**: Paginated list of `CarListingResponse` objects. Example structure:
+  ```json
+  {
+    "content": [
+      {
+        "id": 1,
+        "title": "2021 Toyota Camry",
+        // ... other fields as in CarListingResponse ...
+        "locationDetails": {
+          "id": 123,
+          "displayNameEn": "Test City Lifecycle",
+          "displayNameAr": "مدينة اختبار دورة الحياة",
+          "slug": "test-city-lifecycle",
+          // ... other location fields ...
+        }
+      }
+    ],
+    "pageable": { /* ... pagination details ... */ },
+    "totalPages": 1,
+    "totalElements": 1,
+    // ... other pagination fields ...
+  }
+  ```
+
+#### Filter Car Listings
+
+- **Endpoint**: `GET /api/listings/filter`
+- **Access**: Public
+- **Description**: Retrieves a paginated list of approved car listings based on specified filter criteria.
+- **Authentication**: None required.
+- **Query Parameters**:
+  - `brand` (String, optional): Filter by car brand (case-insensitive, partial match).
+  - `model` (String, optional): Filter by car model (case-insensitive, partial match).
+  - `minYear` (Integer, optional): Minimum manufacturing year (e.g., 2015).
+  - `maxYear` (Integer, optional): Maximum manufacturing year (e.g., 2023).
+  - `minPrice` (BigDecimal, optional): Minimum price (e.g., 10000.00).
+  - `maxPrice` (BigDecimal, optional): Maximum price (e.g., 50000.00).
+  - `minMileage` (Integer, optional): Minimum mileage (e.g., 10000).
+  - `maxMileage` (Integer, optional): Maximum mileage (e.g., 150000).
+  - `locationId` (Long, optional): **Location ID**. Filters listings by an exact match to a `Location` entity's ID (e.g., `1`, `123`).
+  - `location` (String, optional): **Location Slug**. Filters listings by an exact match to a `Location` entity's slug (e.g., `damascus`, `new-york-city`, `test-city-lifecycle`).
+  - `page` (Integer, optional, default: 0): Page number for pagination.
+  - `size` (Integer, optional, default: 20): Number of items per page.
+  - `sort` (String, optional, e.g., `price,asc` or `createdAt,desc`): Sorting criteria.
+- **Response (200 OK)**: Paginated list of `CarListingResponse` objects (same structure as `GET /api/listings`).
+- **Important Note on Location Filtering**:
+    - You can filter by EITHER `locationId` (the ID of a `Location` entity) OR `location` (the slug of a `Location` entity).
+    - If both `locationId` and `location` (slug) are provided in the same request, `locationId` will take precedence, and the `location` (slug) parameter will be ignored.
+    - If a `locationId` or `location` slug is provided and it does not match any existing `Location` entity, the filter will result in an empty list for that specific criteria (other filters might still apply if combined, but no listings will match the non-existent location).
+    - The previous behavior where `location` might have been a general text search against location names has been **removed**.
+    - For creating or updating listings, continue to use `locationId` in the request body, referring to the ID of a `Location` entity.
+
+#### Get Car Listing by ID
+
+- **Endpoint**: `GET /api/listings/{id}`
+- **Access**: Public (for approved listings)
+- **Description**: Retrieves details of a specific car listing. Only approved listings are publicly accessible. If the listing is not approved, it will return 404 unless the requester is the owner or an admin (future enhancement - currently returns 404 for unapproved regardless of user).
+- **Authentication**: None required for approved listings.
+- **Path Parameters**:
+  - `id` (Long): The ID of the car listing.
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "title": "2023 Toyota Camry",
+    // ... all fields from CarListingResponse, including locationDetails
+  }
+  ```
+- **Response (404 Not Found)**: If the listing does not exist or is not approved.
+
+#### Update Car Listing
+
+- **Endpoint**: `PUT /api/listings/{id}`
+- **Access**: Authenticated owner of the listing.
+- **Description**: Updates an existing car listing. Only the owner can update their listing. Fields not provided in the request body will retain their current values. To remove/clear a location, `locationId` should be explicitly handled (e.g., by sending `null` if supported, or a specific endpoint/flag - current behavior is it keeps existing if `locationId` is not sent).
+- **Authentication**: Required (JWT token).
+- **Path Parameters**:
+  - `id` (Long): The ID of the car listing to update.
+- **Request Body** (Fields are optional; only provided fields will be updated):
+  ```json
+  {
+    "title": "Updated 2023 Toyota Camry SE",
+    "brand": "Toyota", // Cannot change brand typically, depends on business rules
+    "model": "Camry SE", // Cannot change model typically
+    "modelYear": 2023,
+    "price": 28000,
+    "mileage": 16500,
+    "locationId": 124, // ID of a new or existing Location entity
+    "description": "Updated description: Excellent condition, one owner, no accidents, SE trim.",
+    "transmission": "AUTOMATIC"
+  }
+  ```
+- **Response (200 OK)**: The updated `CarListingResponse`.
+- **Response (403 Forbidden)**: If the authenticated user is not the owner.
+- **Response (404 Not Found)**: If the listing does not exist.
+
+#### Delete Car Listing
+
+- **Endpoint**: `DELETE /api/listings/{id}`
+- **Access**: Authenticated owner of the listing or Admin.
+- **Description**: Deletes a car listing. Only the owner or an admin can delete a listing.
+- **Authentication**: Required (JWT token).
+- **Path Parameters**:
+  - `id` (Long): The ID of the car listing to delete.
+- **Response (204 No Content)**: Successfully deleted.
+- **Response (403 Forbidden)**: If the authenticated user is not the owner (and not an admin).
+- **Response (404 Not Found)**: If the listing does not exist.
+
+#### Approve Car Listing (Admin)
+
+- **Endpoint**: `POST /api/admin/listings/{id}/approve`
+- **Access**: Authenticated Admin users.
+- **Description**: Approves a pending car listing, making it publicly visible.
+- **Authentication**: Required (JWT token with Admin role).
+- **Path Parameters**:
+  - `id` (Long): The ID of the car listing to approve.
+- **Response (200 OK)**: The approved `CarListingResponse`.
+- **Response (403 Forbidden)**: If the authenticated user is not an admin.
+- **Response (404 Not Found)**: If the listing does not exist.
+- **Response (409 Conflict)**: If the listing is already approved.
 
 #### Get User's Listings
 
@@ -352,7 +494,7 @@ TOKEN=$(curl -s -X POST http://localhost:8080/auth/signin \
 curl -X POST http://localhost:8080/api/listings \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
-  -d '{"title":"2023 Toyota Camry","brand":"Toyota","model":"Camry","modelYear":2023,"price":28500,"mileage":15000,"location":"New York, NY","description":"Excellent condition, one owner, no accidents"}'
+  -d '{"title":"2023 Toyota Camry","brand":"Toyota","model":"Camry","modelYear":2023,"price":28500,"mileage":15000,"locationId":1,"description":"Excellent condition, one owner, no accidents","transmission":"AUTOMATIC"}' # Replaced location with locationId
 ```
 
 #### Create a Car Listing with Image (after login)
@@ -367,8 +509,9 @@ cat > listing.json << EOF
   "modelYear": 2023,
   "price": 28500,
   "mileage": 15000,
-  "location": "New York, NY",
-  "description": "Excellent condition, one owner, no accidents"
+  "locationId": 1, 
+  "description": "Excellent condition, one owner, no accidents",
+  "transmission": "AUTOMATIC"
 }
 EOF
 
@@ -413,11 +556,10 @@ To run all API tests automatically:
 
 ## Future Endpoints (Coming Soon)
 
-- `GET /api/listings` - Get all approved car listings (public)
-- `GET /api/listings/{id}` - Get details of a specific car listing (public)
-- `PUT /api/listings/{id}` - Update a listing (authenticated owner only)
-- `DELETE /api/listings/{id}` - Delete a listing (authenticated owner only)
-- `POST /api/admin/listings/{id}/approve` - Approve a listing (admin only)
+- `GET /api/users/me/profile` - Get current user's profile
+- `PUT /api/users/me/profile` - Update current user's profile
+- `GET /api/locations` - Get all available locations (with filtering/search for UI dropdowns)
+- `GET /api/locations/{idOrSlug}` - Get details for a specific location.
 
 ## File Management APIs
 

@@ -24,7 +24,8 @@ public class ListingFilterRequest {
     @Digits(integer = 4, fraction = 0, message = "Maximum year filter must be a 4-digit number")
     private Integer maxYear;
 
-    private String location;
+    private String location; // This will be used for the slug
+    private Long locationId; // New field for filtering by location ID
 
     @PositiveOrZero(message = "Minimum price must be positive or zero")
     private BigDecimal minPrice;

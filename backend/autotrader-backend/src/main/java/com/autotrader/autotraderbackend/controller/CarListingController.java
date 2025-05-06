@@ -30,6 +30,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -168,10 +169,18 @@ public class CarListingController {
     public ResponseEntity<PageResponse<CarListingResponse>> getAllListings(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt,desc") String[] sort) {
-        log.info("Received request to get all approved listings. Page: {}, Size: {}, Sort: {}", page, size, sort);
+            @RequestParam(required = false) String[] sort) { // MODIFIED
+        log.info("Received request to get all approved listings. Page: {}, Size: {}, Sort: {}", page, size, (Object)sort); // MODIFIED for logging
+
+        String[] effectiveSort = sort;
+        if (sort == null || sort.length == 0 || (sort.length == 1 && (sort[0] == null || sort[0].trim().isEmpty()))) {
+            log.debug("Sort parameter is null or empty for getAllListings, defaulting to 'createdAt,desc'");
+            effectiveSort = new String[]{"createdAt,desc"};
+        } else {
+            log.debug("Using provided sort parameter for getAllListings: {}", (Object)effectiveSort);
+        }
         // Create a Pageable object
-        Pageable pageable = PageRequest.of(page, size, Sort.by(SortHelper.getSortOrders(sort)));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(SortHelper.getSortOrders(effectiveSort))); // MODIFIED (removed // REVERTED)
         // Call the service method which returns a Page
         Page<CarListingResponse> listingPage = carListingService.getAllApprovedListings(pageable);
         // Construct PageResponse from the Page
@@ -199,10 +208,18 @@ public class CarListingController {
             @Valid @RequestBody ListingFilterRequest filterRequest,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt,desc") String[] sort) {
-        log.info("Received request to filter listings. Filter: {}, Page: {}, Size: {}, Sort: {}", filterRequest, page, size, sort);
+            @RequestParam(required = false) String[] sort) { // MODIFIED
+        log.info("Received request to filter listings. Filter: {}, Page: {}, Size: {}, Sort: {}", filterRequest, page, size, (Object)sort); // MODIFIED for logging
+
+        String[] effectiveSort = sort;
+        if (sort == null || sort.length == 0 || (sort.length == 1 && (sort[0] == null || sort[0].trim().isEmpty()))) {
+            log.debug("Sort parameter is null or empty for getFilteredListings (POST), defaulting to 'createdAt,desc'");
+            effectiveSort = new String[]{"createdAt,desc"};
+        } else {
+            log.debug("Using provided sort parameter for getFilteredListings (POST): {}", (Object)effectiveSort);
+        }
          // Create a Pageable object
-        Pageable pageable = PageRequest.of(page, size, Sort.by(SortHelper.getSortOrders(sort)));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(SortHelper.getSortOrders(effectiveSort))); // MODIFIED (removed // REVERTED)
         // Call the service method which returns a Page
         Page<CarListingResponse> listingPage = carListingService.getFilteredListings(filterRequest, pageable);
         // Construct PageResponse from the Page
@@ -214,6 +231,79 @@ public class CarListingController {
             listingPage.getTotalPages(),
             listingPage.isLast()
         );
+        log.info("Returning {} filtered listings", response.getContent().size());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/filter")
+    @Operation(
+        summary = "Filter car listings by query parameters",
+        description = "Returns a paginated list of car listings matching the provided filter criteria as query parameters.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Filtered list of car listings")
+        }
+    )
+    public ResponseEntity<PageResponse<CarListingResponse>> getFilteredListingsByParams(
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String model,
+            @RequestParam(required = false) Integer minYear,
+            @RequestParam(required = false) Integer maxYear,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) Long locationId,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) Integer minMileage,
+            @RequestParam(required = false) Integer maxMileage,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String[] sort) { // MODIFIED
+        
+        log.info("Received GET request to filter listings. Page: {}, Size: {}, Sort: {}", page, size, (Object)sort); // MODIFIED for logging
+        
+        // Create filter request from query parameters
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setBrand(brand);
+        filterRequest.setModel(model);
+        filterRequest.setMinYear(minYear);
+        filterRequest.setMaxYear(maxYear);
+        filterRequest.setLocation(location);
+        filterRequest.setLocationId(locationId);
+        filterRequest.setMinPrice(minPrice);
+        filterRequest.setMaxPrice(maxPrice);
+        filterRequest.setMinMileage(minMileage);
+        filterRequest.setMaxMileage(maxMileage);
+        
+        // Add additional logging for location filter for debugging
+        if (locationId != null) {
+            log.debug("Filtering by location ID: {}", locationId);
+        }
+        if (location != null) {
+            log.debug("Filtering by location slug: {}", location);
+        }
+        
+        String[] effectiveSort = sort;
+        if (sort == null || sort.length == 0 || (sort.length == 1 && (sort[0] == null || sort[0].trim().isEmpty()))) {
+            log.debug("Sort parameter is null or empty for getFilteredListingsByParams (GET), defaulting to 'createdAt,desc'");
+            effectiveSort = new String[]{"createdAt,desc"};
+        } else {
+            log.debug("Using provided sort parameter for getFilteredListingsByParams (GET): {}", (Object)effectiveSort);
+        }
+        // Create a Pageable object
+        Pageable pageable = PageRequest.of(page, size, Sort.by(SortHelper.getSortOrders(effectiveSort))); // MODIFIED (removed // REVERTED)
+        
+        // Call the service method which returns a Page
+        Page<CarListingResponse> listingPage = carListingService.getFilteredListings(filterRequest, pageable);
+        
+        // Construct PageResponse from the Page
+        PageResponse<CarListingResponse> response = new PageResponse<>(
+            listingPage.getContent(),
+            listingPage.getNumber(),
+            listingPage.getSize(),
+            listingPage.getTotalElements(),
+            listingPage.getTotalPages(),
+            listingPage.isLast()
+        );
+        
         log.info("Returning {} filtered listings", response.getContent().size());
         return ResponseEntity.ok(response);
     }
@@ -386,6 +476,8 @@ public class CarListingController {
             throw e;
         }
     }
+    
+    // Empty comment to preserve code structure - duplicate endpoint removed
 }
 
 // Helper class for sorting (can be moved to a separate utility class)

@@ -69,21 +69,20 @@ class CarListingSpecificationTest {
     @Test
     void fromFilter_withEmptyFilter_shouldReturnNoPredicates() {
         ListingFilterRequest filter = new ListingFilterRequest();
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter);
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
 
-        Predicate resultPredicate = spec.toPredicate(root, query, criteriaBuilder);
+        spec.toPredicate(root, query, criteriaBuilder);
 
         // Verify that 'and' is called with an empty array (or null predicate if empty)
         verify(criteriaBuilder).and(eq(new Predicate[0]));
         verifyNoMoreInteractions(criteriaBuilder); // Ensure no other criteria methods were called
-        // Assert.assertNull(resultPredicate); // Or check if it's a non-restrictive predicate if builder returns one for empty 'and'
     }
 
     @Test
     void fromFilter_withBrand_shouldAddBrandPredicate() {
         ListingFilterRequest filter = new ListingFilterRequest();
         filter.setBrand("Toyota");
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter);
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
 
         spec.toPredicate(root, query, criteriaBuilder);
 
@@ -100,7 +99,7 @@ class CarListingSpecificationTest {
     void fromFilter_withModel_shouldAddModelPredicate() {
         ListingFilterRequest filter = new ListingFilterRequest();
         filter.setModel("Camry");
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter);
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
 
         spec.toPredicate(root, query, criteriaBuilder);
 
@@ -118,7 +117,7 @@ class CarListingSpecificationTest {
         ListingFilterRequest filter = new ListingFilterRequest();
         filter.setMinYear(2015);
         filter.setMaxYear(2020);
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter);
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
 
         spec.toPredicate(root, query, criteriaBuilder);
 
@@ -139,7 +138,7 @@ class CarListingSpecificationTest {
         BigDecimal maxPrice = BigDecimal.valueOf(20000.0);
         filter.setMinPrice(minPrice);
         filter.setMaxPrice(maxPrice);
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter);
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
 
         spec.toPredicate(root, query, criteriaBuilder);
 
@@ -158,7 +157,7 @@ class CarListingSpecificationTest {
         ListingFilterRequest filter = new ListingFilterRequest();
         filter.setMinMileage(50000);
         filter.setMaxMileage(100000);
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter);
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
 
         spec.toPredicate(root, query, criteriaBuilder);
 
@@ -176,17 +175,18 @@ class CarListingSpecificationTest {
     void fromFilter_withLocation_shouldAddLocationPredicate() {
         ListingFilterRequest filter = new ListingFilterRequest();
         filter.setLocation("London");
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter);
+        // We're passing null for the locationEntity - the location field in filter should be ignored
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
 
         spec.toPredicate(root, query, criteriaBuilder);
 
-        verify(criteriaBuilder).lower(eq(root.get("location"))); // Use eq() for Path
-        verify(criteriaBuilder).like(any(), eq("%london%"));
+        // Verify location filter has been removed in favor of locationEntity in the main specification
+        // This test now verifies that no location-related filters are applied without a Location entity
 
         // Use ArgumentCaptor for 'and'
         ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
         verify(criteriaBuilder).and(predicateCaptor.capture());
-        assertEquals(1, predicateCaptor.getValue().length, "Should combine exactly 1 predicate");
+        assertEquals(0, predicateCaptor.getValue().length, "Should combine 0 predicates since location string is now ignored");
     }
 
     @Test
@@ -204,7 +204,7 @@ class CarListingSpecificationTest {
         filter.setMaxMileage(60000);
         filter.setLocation("Manchester");
 
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter);
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
         spec.toPredicate(root, query, criteriaBuilder);
 
         // Verify individual predicates using eq() for Path arguments where applicable
@@ -216,12 +216,14 @@ class CarListingSpecificationTest {
         verify(criteriaBuilder).lessThanOrEqualTo(eq(root.get("price")), eq(maxPrice));
         verify(criteriaBuilder).greaterThanOrEqualTo(eq(root.get("mileage")), eq(30000));
         verify(criteriaBuilder).lessThanOrEqualTo(eq(root.get("mileage")), eq(60000));
-        verify(criteriaBuilder).like(any(), eq("%manchester%"));
+        
+        // No longer verify location String predicate since we use locationEntity now
+        // verify(criteriaBuilder).like(any(), eq("%manchester%"));
 
-        // Verify the final 'and' combines all 9 predicates using ArgumentCaptor
+        // Verify the final 'and' combines all 8 predicates using ArgumentCaptor (was 9, now 8 without location)
         ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
         verify(criteriaBuilder).and(predicateCaptor.capture());
-        assertEquals(9, predicateCaptor.getValue().length, "Should combine exactly 9 predicates");
+        assertEquals(8, predicateCaptor.getValue().length, "Should combine exactly 8 predicates");
     }
 
     @Test

@@ -18,13 +18,18 @@ import com.autotrader.autotraderbackend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+
+import java.util.Collections;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -133,12 +138,66 @@ public class CarListingService {
      */
     @Transactional(readOnly = true)
     public Page<CarListingResponse> getFilteredListings(ListingFilterRequest filterRequest, Pageable pageable) {
-        log.debug("Fetching filtered listings with filter: {}, page: {}, size: {}", filterRequest, pageable.getPageNumber(), pageable.getPageSize());
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filterRequest)
-                                                              .and(CarListingSpecification.isApproved());
+        log.debug("Fetching filtered listings with filter: {}, page: {}, size: {}",
+                  filterRequest, pageable.getPageNumber(), pageable.getPageSize());
+
+        Specification<CarListing> spec;
+        Location locationToFilterBy = null;
+        boolean locationFilterAttempted = false;
+        String locationFilterType = "none"; // For logging
+
+        if (filterRequest.getLocationId() != null) {
+            locationFilterAttempted = true;
+            locationFilterType = "ID: " + filterRequest.getLocationId();
+            Optional<Location> locationOpt = locationRepository.findById(filterRequest.getLocationId());
+            if (locationOpt.isPresent()) {
+                locationToFilterBy = locationOpt.get();
+                log.info("Location found by ID: {}. Applying filter.", filterRequest.getLocationId());
+            } else {
+                log.warn("Location ID {} provided in filter but not found. No listings will match this location criterion.", filterRequest.getLocationId());
+                // locationToFilterBy remains null, spec will be set to disjunction
+            }
+        } else if (StringUtils.hasText(filterRequest.getLocation())) {
+            locationFilterAttempted = true;
+            locationFilterType = "slug: '" + filterRequest.getLocation() + "'";
+            Optional<Location> locationOpt = locationRepository.findBySlug(filterRequest.getLocation());
+            if (locationOpt.isPresent()) {
+                locationToFilterBy = locationOpt.get();
+                log.info("Location found by slug: '{}'. Applying filter.", filterRequest.getLocation());
+            } else {
+                log.warn("Location slug '{}' provided in filter but not found. No listings will match this location criterion.", filterRequest.getLocation());
+                // locationToFilterBy remains null, spec will be set to disjunction
+            }
+        }
+
+        if (locationFilterAttempted && locationToFilterBy == null) {
+            // A location filter was specified (ID or slug) but the location was not found.
+            // We should return an empty page result directly rather than using JPA filtering
+            log.info("Location filter ({}) resulted in no valid location. Returning empty page result.", locationFilterType);
+            
+            // Return empty page immediately
+            Page<CarListing> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+            log.info("Empty page returned for invalid location filter");
+            return emptyPage.map(carListingMapper::toCarListingResponse);
+        } else {
+            // Either no location filter was specified, or a valid location was found.
+            // Pass locationToFilterBy (which is null if no filter applied, or a valid Location object if found)
+            // CarListingSpecification.fromFilter handles a null locationToFilterBy gracefully (no location predicate added).
+            spec = CarListingSpecification.fromFilter(filterRequest, locationToFilterBy);
+            if (locationToFilterBy != null) {
+                log.info("Applying location filter for {}.", locationFilterType);
+            } else if (!locationFilterAttempted) {
+                log.info("No location ID or slug provided in filter. Proceeding without specific location entity filter.");
+            }
+        }
+
+        // Always combine with the 'approved' status filter
+        // If spec is already criteriaBuilder.disjunction(), 'and(isApproved())' will still result in no matches.
+        spec = spec.and(CarListingSpecification.isApproved());
 
         Page<CarListing> listingPage = carListingRepository.findAll(spec, pageable);
-        log.info("Found {} filtered listings matching criteria on page {}", listingPage.getNumberOfElements(), pageable.getPageNumber());
+        log.info("Found {} filtered listings matching criteria on page {} (Location filter used: {})",
+                 listingPage.getNumberOfElements(), pageable.getPageNumber(), locationFilterType);
         return listingPage.map(carListingMapper::toCarListingResponse);
     }
 
