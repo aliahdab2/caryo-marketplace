@@ -18,9 +18,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -167,23 +166,9 @@ public class CarListingController {
         }
     )
     public ResponseEntity<PageResponse<CarListingResponse>> getAllListings(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String[] sort) { // MODIFIED
-        log.info("Received request to get all approved listings. Page: {}, Size: {}, Sort: {}", page, size, (Object)sort); // MODIFIED for logging
-
-        String[] effectiveSort = sort;
-        if (sort == null || sort.length == 0 || (sort.length == 1 && (sort[0] == null || sort[0].trim().isEmpty()))) {
-            log.debug("Sort parameter is null or empty for getAllListings, defaulting to 'createdAt,desc'");
-            effectiveSort = new String[]{"createdAt,desc"};
-        } else {
-            log.debug("Using provided sort parameter for getAllListings: {}", (Object)effectiveSort);
-        }
-        // Create a Pageable object
-        Pageable pageable = PageRequest.of(page, size, Sort.by(SortHelper.getSortOrders(effectiveSort))); // MODIFIED (removed // REVERTED)
-        // Call the service method which returns a Page
+            @PageableDefault(size = 10, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
+        log.info("Received request to get all approved listings. Pageable: {}", pageable);
         Page<CarListingResponse> listingPage = carListingService.getAllApprovedListings(pageable);
-        // Construct PageResponse from the Page
         PageResponse<CarListingResponse> response = new PageResponse<>(
             listingPage.getContent(),
             listingPage.getNumber(),
@@ -206,23 +191,9 @@ public class CarListingController {
     )
     public ResponseEntity<PageResponse<CarListingResponse>> getFilteredListings(
             @Valid @RequestBody ListingFilterRequest filterRequest,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String[] sort) { // MODIFIED
-        log.info("Received request to filter listings. Filter: {}, Page: {}, Size: {}, Sort: {}", filterRequest, page, size, (Object)sort); // MODIFIED for logging
-
-        String[] effectiveSort = sort;
-        if (sort == null || sort.length == 0 || (sort.length == 1 && (sort[0] == null || sort[0].trim().isEmpty()))) {
-            log.debug("Sort parameter is null or empty for getFilteredListings (POST), defaulting to 'createdAt,desc'");
-            effectiveSort = new String[]{"createdAt,desc"};
-        } else {
-            log.debug("Using provided sort parameter for getFilteredListings (POST): {}", (Object)effectiveSort);
-        }
-         // Create a Pageable object
-        Pageable pageable = PageRequest.of(page, size, Sort.by(SortHelper.getSortOrders(effectiveSort))); // MODIFIED (removed // REVERTED)
-        // Call the service method which returns a Page
+            @PageableDefault(size = 10, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
+        log.info("Received request to filter listings. Filter: {}, Pageable: {}", filterRequest, pageable);
         Page<CarListingResponse> listingPage = carListingService.getFilteredListings(filterRequest, pageable);
-        // Construct PageResponse from the Page
         PageResponse<CarListingResponse> response = new PageResponse<>(
             listingPage.getContent(),
             listingPage.getNumber(),
@@ -254,12 +225,8 @@ public class CarListingController {
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) Integer minMileage,
             @RequestParam(required = false) Integer maxMileage,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String[] sort) { // MODIFIED
-        
-        log.info("Received GET request to filter listings. Page: {}, Size: {}, Sort: {}", page, size, (Object)sort); // MODIFIED for logging
-        
+            @PageableDefault(size = 10, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
+        log.info("Received GET request to filter listings. Pageable: {}", pageable);
         // Create filter request from query parameters
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         filterRequest.setBrand(brand);
@@ -272,29 +239,7 @@ public class CarListingController {
         filterRequest.setMaxPrice(maxPrice);
         filterRequest.setMinMileage(minMileage);
         filterRequest.setMaxMileage(maxMileage);
-        
-        // Add additional logging for location filter for debugging
-        if (locationId != null) {
-            log.debug("Filtering by location ID: {}", locationId);
-        }
-        if (location != null) {
-            log.debug("Filtering by location slug: {}", location);
-        }
-        
-        String[] effectiveSort = sort;
-        if (sort == null || sort.length == 0 || (sort.length == 1 && (sort[0] == null || sort[0].trim().isEmpty()))) {
-            log.debug("Sort parameter is null or empty for getFilteredListingsByParams (GET), defaulting to 'createdAt,desc'");
-            effectiveSort = new String[]{"createdAt,desc"};
-        } else {
-            log.debug("Using provided sort parameter for getFilteredListingsByParams (GET): {}", (Object)effectiveSort);
-        }
-        // Create a Pageable object
-        Pageable pageable = PageRequest.of(page, size, Sort.by(SortHelper.getSortOrders(effectiveSort))); // MODIFIED (removed // REVERTED)
-        
-        // Call the service method which returns a Page
         Page<CarListingResponse> listingPage = carListingService.getFilteredListings(filterRequest, pageable);
-        
-        // Construct PageResponse from the Page
         PageResponse<CarListingResponse> response = new PageResponse<>(
             listingPage.getContent(),
             listingPage.getNumber(),
@@ -303,7 +248,6 @@ public class CarListingController {
             listingPage.getTotalPages(),
             listingPage.isLast()
         );
-        
         log.info("Returning {} filtered listings", response.getContent().size());
         return ResponseEntity.ok(response);
     }
@@ -480,28 +424,4 @@ public class CarListingController {
     // Empty comment to preserve code structure - duplicate endpoint removed
 }
 
-// Helper class for sorting (can be moved to a separate utility class)
-class SortHelper {
-    public static Sort.Order[] getSortOrders(String[] sort) {
-        if (sort == null || sort.length == 0) {
-            return new Sort.Order[0]; // Return empty array if no sort params
-        }
-        return java.util.Arrays.stream(sort)
-                .filter(s -> s != null && !s.trim().isEmpty()) // Filter out empty/null strings
-                .map(s -> {
-                    String[] parts = s.split(",");
-                    Sort.Direction direction = parts.length > 1 && parts[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-                    // Use first part as property, handle potential empty string after split
-                    String property = parts[0].trim(); 
-                    if (property.isEmpty()) {
-                        // Default or throw error if property is empty
-                        // For now, let's default to a common field like 'id' or 'createdAt'
-                        // Or better, return null/skip this order if invalid
-                        return null; // Skip invalid sort parameter
-                    }
-                    return new Sort.Order(direction, property);
-                })
-                .filter(java.util.Objects::nonNull) // Remove nulls resulting from invalid params
-                .toArray(Sort.Order[]::new);
-    }
-}
+

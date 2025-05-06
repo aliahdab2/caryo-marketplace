@@ -1,5 +1,6 @@
-package com.autotrader.autotraderbackend.controller;
+// (Removed invalid top-level test methods)
 
+import com.autotrader.autotraderbackend.controller.CarListingController;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
@@ -126,15 +127,11 @@ public class CarListingControllerTest {
         // Arrange
         List<CarListingResponse> listings = new ArrayList<>();
         listings.add(carListingResponse);
-        
-        // Create Page of listings
         Page<CarListingResponse> page = new PageImpl<>(listings);
-        
         when(carListingService.getAllApprovedListings(any(Pageable.class))).thenReturn(page);
-
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("createdAt").descending());
         // Act
-        ResponseEntity<PageResponse<CarListingResponse>> response = carListingController.getAllListings(0, 10, new String[]{"createdAt,desc"});
-
+        ResponseEntity<PageResponse<CarListingResponse>> response = carListingController.getAllListings(pageable);
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -147,24 +144,104 @@ public class CarListingControllerTest {
         // Arrange
         List<CarListingResponse> listings = new ArrayList<>();
         listings.add(carListingResponse);
-        
-        // Create Page of listings
         Page<CarListingResponse> page = new PageImpl<>(listings);
-        
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         filterRequest.setBrand("Toyota");
-        
         when(carListingService.getFilteredListings(any(ListingFilterRequest.class), any(Pageable.class))).thenReturn(page);
-
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("createdAt").descending());
         // Act
-        // Call the filter endpoint with filter request, page, size and sort
-        ResponseEntity<PageResponse<CarListingResponse>> response = carListingController.getFilteredListings(
-            filterRequest, 0, 10, new String[]{"createdAt,desc"});
-
+        ResponseEntity<PageResponse<CarListingResponse>> response = carListingController.getFilteredListings(filterRequest, pageable);
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(listings, Objects.requireNonNull(response.getBody()).getContent());
+    }
+    @Test
+    void getAllListings_ShouldReturnListingsSortedByPriceAscAndDesc() {
+        // Arrange: create listings with different prices
+        CarListingResponse listing1 = new CarListingResponse();
+        listing1.setId(1L);
+        listing1.setPrice(new BigDecimal("10000.00"));
+        CarListingResponse listing2 = new CarListingResponse();
+        listing2.setId(2L);
+        listing2.setPrice(new BigDecimal("20000.00"));
+        CarListingResponse listing3 = new CarListingResponse();
+        listing3.setId(3L);
+        listing3.setPrice(new BigDecimal("15000.00"));
+
+        // Ascending order
+        List<CarListingResponse> ascList = List.of(listing1, listing3, listing2);
+        Page<CarListingResponse> ascPage = new PageImpl<>(ascList);
+        Pageable ascPageable = org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("price").ascending());
+        when(carListingService.getAllApprovedListings(ascPageable)).thenReturn(ascPage);
+        // Act
+        ResponseEntity<PageResponse<CarListingResponse>> ascResponse = carListingController.getAllListings(ascPageable);
+        // Assert
+        assertNotNull(ascResponse.getBody());
+        List<CarListingResponse> ascResult = ascResponse.getBody().getContent();
+        assertEquals(3, ascResult.size());
+        assertEquals(new BigDecimal("10000.00"), ascResult.get(0).getPrice());
+        assertEquals(new BigDecimal("15000.00"), ascResult.get(1).getPrice());
+        assertEquals(new BigDecimal("20000.00"), ascResult.get(2).getPrice());
+
+        // Descending order
+        List<CarListingResponse> descList = List.of(listing2, listing3, listing1);
+        Page<CarListingResponse> descPage = new PageImpl<>(descList);
+        Pageable descPageable = org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("price").descending());
+        when(carListingService.getAllApprovedListings(descPageable)).thenReturn(descPage);
+        // Act
+        ResponseEntity<PageResponse<CarListingResponse>> descResponse = carListingController.getAllListings(descPageable);
+        // Assert
+        assertNotNull(descResponse.getBody());
+        List<CarListingResponse> descResult = descResponse.getBody().getContent();
+        assertEquals(3, descResult.size());
+        assertEquals(new BigDecimal("20000.00"), descResult.get(0).getPrice());
+        assertEquals(new BigDecimal("15000.00"), descResult.get(1).getPrice());
+        assertEquals(new BigDecimal("10000.00"), descResult.get(2).getPrice());
+    }
+
+    @Test
+    void getAllListings_ShouldReturnListingsSortedByCreatedAtAscAndDesc() {
+        // Arrange: create listings with different createdAt timestamps
+        CarListingResponse listing1 = new CarListingResponse();
+        listing1.setId(1L);
+        listing1.setCreatedAt(java.time.LocalDateTime.of(2023, 1, 1, 10, 0));
+        CarListingResponse listing2 = new CarListingResponse();
+        listing2.setId(2L);
+        listing2.setCreatedAt(java.time.LocalDateTime.of(2023, 1, 2, 10, 0));
+        CarListingResponse listing3 = new CarListingResponse();
+        listing3.setId(3L);
+        listing3.setCreatedAt(java.time.LocalDateTime.of(2023, 1, 3, 10, 0));
+
+        // Ascending order
+        List<CarListingResponse> ascList = List.of(listing1, listing2, listing3);
+        Page<CarListingResponse> ascPage = new PageImpl<>(ascList);
+        Pageable ascPageable = org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("createdAt").ascending());
+        when(carListingService.getAllApprovedListings(ascPageable)).thenReturn(ascPage);
+        // Act
+        ResponseEntity<PageResponse<CarListingResponse>> ascResponse = carListingController.getAllListings(ascPageable);
+        // Assert
+        assertNotNull(ascResponse.getBody());
+        List<CarListingResponse> ascResult = ascResponse.getBody().getContent();
+        assertEquals(3, ascResult.size());
+        assertEquals(listing1.getCreatedAt(), ascResult.get(0).getCreatedAt());
+        assertEquals(listing2.getCreatedAt(), ascResult.get(1).getCreatedAt());
+        assertEquals(listing3.getCreatedAt(), ascResult.get(2).getCreatedAt());
+
+        // Descending order
+        List<CarListingResponse> descList = List.of(listing3, listing2, listing1);
+        Page<CarListingResponse> descPage = new PageImpl<>(descList);
+        Pageable descPageable = org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("createdAt").descending());
+        when(carListingService.getAllApprovedListings(descPageable)).thenReturn(descPage);
+        // Act
+        ResponseEntity<PageResponse<CarListingResponse>> descResponse = carListingController.getAllListings(descPageable);
+        // Assert
+        assertNotNull(descResponse.getBody());
+        List<CarListingResponse> descResult = descResponse.getBody().getContent();
+        assertEquals(3, descResult.size());
+        assertEquals(listing3.getCreatedAt(), descResult.get(0).getCreatedAt());
+        assertEquals(listing2.getCreatedAt(), descResult.get(1).getCreatedAt());
+        assertEquals(listing1.getCreatedAt(), descResult.get(2).getCreatedAt());
     }
 }
