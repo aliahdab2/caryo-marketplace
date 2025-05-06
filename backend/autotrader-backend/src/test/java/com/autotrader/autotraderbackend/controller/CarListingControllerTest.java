@@ -244,4 +244,21 @@ public class CarListingControllerTest {
         assertEquals(listing2.getCreatedAt(), descResult.get(1).getCreatedAt());
         assertEquals(listing1.getCreatedAt(), descResult.get(2).getCreatedAt());
     }
+
+    @Test
+    void getFilteredListingsByParams_ShouldThrowIllegalArgumentExceptionForNonWhitelistedSortField() {
+        // Arrange
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("nonExistentField"));
+        when(carListingService.getFilteredListings(any(ListingFilterRequest.class), eq(pageable)))
+            .thenThrow(new IllegalArgumentException("Sorting by field 'nonExistentField' is not allowed."));
+
+        // Act & Assert
+        IllegalArgumentException ex = org.junit.jupiter.api.Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> carListingController.getFilteredListingsByParams(
+                null, null, null, null, null, null, null, null, null, null, pageable
+            )
+        );
+        assertEquals("Sorting by field 'nonExistentField' is not allowed.", ex.getMessage());
+    }
 }

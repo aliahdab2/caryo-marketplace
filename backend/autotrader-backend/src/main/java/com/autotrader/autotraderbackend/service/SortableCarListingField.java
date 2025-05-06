@@ -4,7 +4,9 @@ package com.autotrader.autotraderbackend.service;
  * Enum representing the allowed sortable fields for CarListing.
  */
 public enum SortableCarListingField {
-    LOCATION_ID("locationId");
+    LOCATION_ID("locationId"), // Reverted from "locationEntity.id"
+    PRICE("price"),
+    CREATED_AT("createdAt");
 
     private final String fieldName;
 
