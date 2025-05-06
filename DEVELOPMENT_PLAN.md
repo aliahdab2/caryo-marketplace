@@ -35,9 +35,9 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [x] **Test Basic Operations** (for listings)
 - [x] **Test Remaining CRUD Operations** (update and delete)
 
-### Phase 2.1: Simplified Location System (Inspired by Blocket)
+### Phase 2.1: Simplified Location System (Inspired by Blocket) ✅
 
-- [ ] **Location Data Model**
+- [x] **Location Data Model** ✅
   - Implement flat `locations` table (id, name, slug, country_code, latitude, longitude)
   - Include `display_name_ar` and `display_name_en` directly in the model for easy rendering
   - Support for URL-friendly slugs generated consistently via a `slugify()` utility
@@ -45,19 +45,19 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - Add `is_active` flag to enable/disable locations without deletion
   - Create indexes on `slug` and `country_code` for faster queries
 
-- [ ] **Location Data Seeding**
+- [x] **Location Data Seeding** ✅
   - Seed major cities and regions in Syria using reliable datasets
   - Include proper UTF-8 encoding for Arabic names
   - Generate search-friendly slugs for all locations
 
-- [ ] **Location API Endpoints**
+- [x] **Location API Endpoints** ✅
   - Create endpoints to fetch locations by country (GET ?country=SY)
   - Implement search functionality (GET /search?q=dam)
   - Add caching for location data (Redis or in-memory)
   - Expose endpoints for both Arabic and English location names
   - Implement admin-only endpoints for managing locations
 
-- [ ] **Integration with Listings**
+- [x] **Integration with Listings** ✅
   - Add location_id foreign key to CarListing entity
   - Enhance filter API to support location-based searches via ?location=damascus
   - Include location details in listing responses (both Arabic and English names)
@@ -69,17 +69,17 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - Add location filter to search/listings page
   - Display location name prominently on listing cards and details
 
-### Phase 3: Infrastructure & Optimizations
+### Phase 3: Infrastructure & Optimizations (Partially Complete)
 
 - [ ] **PostgreSQL Setup** (create DB schema for users, listings, etc.)
 - [ ] **Flyway for DB Migrations** (auto versioning of database schema)
-- [ ] **Set up Redis** (optional, for caching frequently accessed data like listings)
+- [x] **Set up Redis** (implemented caching annotations for location data)
 - [x] **Add basic logging** with Lombok's @Slf4j annotation (leveraging Spring Boot's logging infrastructure)
 - [x] **Configure application.properties** (database connections, security, file storage)
 - [x] **Validate file uploads** (size, format - jpeg, png, webp, etc.)
 - [ ] **Implement file cleanup** (mechanism to remove old/unreferenced files)
 
-### Phase 4: APIs and Testing
+### Phase 4: APIs and Testing ✅
 
 - [x] **REST APIs for Car Listings** (DTOs, Validation, Error Handling)
 - [x] **Unit tests** with JUnit (for controllers, services, and repositories)
@@ -87,16 +87,17 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [x] **Ensure test coverage for key error scenarios** (auth failures, validation errors, upload limits, etc.)
 - [x] **API Documentation** (markdown-based for all endpoints)
 - [x] **Swagger/OpenAPI Documentation** (for all public APIs)
+- [x] **Exception handling** (implemented GlobalExceptionHandler with appropriate status codes and messages)
 - [ ] **API Rate Limiting/Throttling** (optional for security)
 
-### Phase 5: Deployment
+### Phase 5: Deployment (In Progress)
 
 - [x] **Dockerize Storage** (set up MinIO with Docker Compose)
 - [ ] **Create production-grade Dockerfile for Backend**
 - [ ] **Enhance docker-compose.yml for local dev** (Backend, PostgreSQL)
 - [ ] **Set up CI/CD pipeline** (GitHub Actions: test, build, deploy)
 - [ ] **Implement Secrets Management** (env vars for local, GitHub Secrets/Vault for prod)
-- [ ] **Enable Monitoring & Health Checks** (Spring Boot Actuator)
+- [x] **Enable Monitoring & Health Checks** (Spring Boot Actuator)
 - [ ] **Deploy to a cloud platform** (AWS, DigitalOcean, etc.)
 
 ### Phase 6: Listing Lifecycle Management
