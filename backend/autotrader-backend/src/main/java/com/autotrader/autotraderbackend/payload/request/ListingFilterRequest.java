@@ -38,15 +38,18 @@ public class ListingFilterRequest {
     @Digits(integer = 4, fraction = 0, message = "Maximum year filter must be a 4-digit number")
     private Integer maxYear;
 
+
     /**
      * Filter by location slug (string). Optional.
+     * This is typically a human-readable identifier for the location (e.g., "new-york-ny").
      */
-    private String location; // This will be used for the slug
+    private String location;
 
     /**
      * Filter by location ID. Optional.
+     * Use this for precise filtering by a unique location identifier.
      */
-    private Long locationId; // New field for filtering by location ID
+    private Long locationId;
 
     /**
      * Minimum price for filtering. Optional. Must be positive or zero.
