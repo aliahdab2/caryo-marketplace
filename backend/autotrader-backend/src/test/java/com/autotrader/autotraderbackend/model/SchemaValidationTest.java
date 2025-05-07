@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.model;
 
+import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,9 @@ public class SchemaValidationTest {
     
     @Autowired
     private RoleRepository roleRepository;
+    
+    @Autowired
+    private LocationRepository locationRepository;
 
     @Test
     public void testUserEntityMapping() {
@@ -141,6 +145,59 @@ public class SchemaValidationTest {
         
         assertTrue(roleNames.contains("ROLE_USER"));
         assertTrue(roleNames.contains("ROLE_MODERATOR"));
+    }
+    
+    @Test
+    public void testLocationEntityMapping() {
+        EntityManager entityManager = testEntityManager.getEntityManager();
+        EntityType<Location> locationEntity = entityManager.getMetamodel().entity(Location.class);
+        
+        // Get the actual table name from Hibernate metadata
+        String actualTableName = locationEntity.getJavaType().getAnnotation(jakarta.persistence.Table.class).name();
+        assertEquals("locations", actualTableName);
+        
+        // Verify key attributes based on the database schema
+        assertTrue(hasAttribute(locationEntity, "id"));
+        assertTrue(hasAttribute(locationEntity, "displayNameEn"));
+        assertTrue(hasAttribute(locationEntity, "displayNameAr"));
+        assertTrue(hasAttribute(locationEntity, "slug"));
+        assertTrue(hasAttribute(locationEntity, "countryCode"));
+        assertTrue(hasAttribute(locationEntity, "region"));
+        assertTrue(hasAttribute(locationEntity, "latitude"));
+        assertTrue(hasAttribute(locationEntity, "longitude"));
+        assertTrue(hasAttribute(locationEntity, "isActive"));
+        
+        // Verify Location record creation and retrieval
+        Location location = new Location();
+        location.setDisplayNameEn("Damascus");
+        location.setDisplayNameAr("دمشق");
+        location.setSlug("damascus");
+        location.setCountryCode("SY");
+        location.setRegion("Central Syria");
+        location.setLatitude(33.5138);
+        location.setLongitude(36.2765);
+        location.setIsActive(true);
+        
+        Location savedLocation = locationRepository.save(location);
+        
+        testEntityManager.flush();
+        testEntityManager.clear();
+        
+        // Retrieve the location and verify its properties
+        Location retrievedLocation = locationRepository.findById(savedLocation.getId()).orElse(null);
+        assertNotNull(retrievedLocation);
+        assertEquals("Damascus", retrievedLocation.getDisplayNameEn());
+        assertEquals("دمشق", retrievedLocation.getDisplayNameAr());
+        assertEquals("damascus", retrievedLocation.getSlug());
+        assertEquals("SY", retrievedLocation.getCountryCode());
+        assertEquals("Central Syria", retrievedLocation.getRegion());
+        assertEquals(33.5138, retrievedLocation.getLatitude());
+        assertEquals(36.2765, retrievedLocation.getLongitude());
+        assertTrue(retrievedLocation.getIsActive());
+        
+        // Test the getLocalizedName method
+        assertEquals("Damascus", retrievedLocation.getLocalizedName(false)); // English
+        assertEquals("دمشق", retrievedLocation.getLocalizedName(true));     // Arabic
     }
     
     /**

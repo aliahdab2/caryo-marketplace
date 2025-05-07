@@ -62,7 +62,7 @@ This document outlines the database schema for the AutoTrader Marketplace backen
 - **created_at**: TIMESTAMP NOT NULL
 - **updated_at**: TIMESTAMP NOT NULL
 
-### Table: listing_images
+### Table: listing_media
 - **id**: BIGINT PRIMARY KEY
 - **listing_id**: BIGINT NOT NULL (Foreign Key to car_listings.id)
 - **file_key**: VARCHAR(255) NOT NULL
@@ -71,11 +71,12 @@ This document outlines the database schema for the AutoTrader Marketplace backen
 - **size**: BIGINT NOT NULL
 - **sort_order**: INTEGER DEFAULT 0
 - **is_primary**: BOOLEAN DEFAULT FALSE
+- **media_type**: VARCHAR(20) NOT NULL CHECK (media_type IN ('image', 'video'))
 - **created_at**: TIMESTAMP NOT NULL
 
 ## Car Attributes Reference Tables
 
-### Table: car_makes
+### Table: car_brands
 - **id**: BIGINT PRIMARY KEY
 - **name**: VARCHAR(50) NOT NULL
 - **slug**: VARCHAR(100) UNIQUE NOT NULL
@@ -85,7 +86,7 @@ This document outlines the database schema for the AutoTrader Marketplace backen
 
 ### Table: car_models
 - **id**: BIGINT PRIMARY KEY
-- **make_id**: BIGINT NOT NULL (Foreign Key to car_makes.id)
+- **brand_id**: BIGINT NOT NULL (Foreign Key to car_brands.id)
 - **name**: VARCHAR(50) NOT NULL
 - **slug**: VARCHAR(100) UNIQUE NOT NULL
 - **display_name_en**: VARCHAR(100) NOT NULL
@@ -196,12 +197,12 @@ This document outlines the database schema for the AutoTrader Marketplace backen
 - **users** has many **roles** through **user_roles**
 - **car_listings** belongs to **users** (seller)
 - **car_listings** belongs to **locations**
-- **car_listings** has many **listing_images**
+- **car_listings** has many **listing_media**
 - **car_listings** has many **ad_packages** through **listing_packages**
 - **car_listings** has many **ad_services** through **listing_services**
-- **car_makes** has many **car_models**
+- **car_brands** has many **car_models**
 - **car_models** has many **car_trims**
-- **car_models** belongs to **car_makes**
+- **car_models** belongs to **car_brands**
 - **car_trims** belongs to **car_models**
 
 ## Entity Relationship Diagram (ERD)
@@ -211,7 +212,7 @@ This document outlines the database schema for the AutoTrader Marketplace backen
    |                |
    |                |
    |                *
-   |         [listing_images]
+   |         [listing_media]
    |                |
    |                |
 [user_roles]        |
@@ -222,7 +223,7 @@ This document outlines the database schema for the AutoTrader Marketplace backen
                     |
               [ad_packages]
                     
-[car_makes] 1——* [car_models] 1——* [car_trims]
+[car_brands] 1——* [car_models] 1——* [car_trims]
 ```
 
 ## Notes
