@@ -9,6 +9,11 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
+/**
+ * Request object for filtering car listings.
+ * All fields are optional; only provided fields will be used as filters.
+ * Pagination and sorting are handled separately via @RequestParam in the controller.
+ */
 @Getter
 @Setter
 public class ListingFilterRequest {
@@ -77,13 +82,13 @@ public class ListingFilterRequest {
 
     /**
      * Filter by sold status. Optional.
+     * If true, only sold listings are returned; if false, only unsold listings.
      */
     private Boolean isSold;
 
     /**
      * Filter by archived status. Optional.
+     * If true, only archived listings are returned; if false, only active listings.
      */
     private Boolean isArchived;
-
-    // Pagination and sorting are handled separately via @RequestParam in the controller
 }
