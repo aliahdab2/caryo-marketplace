@@ -152,6 +152,7 @@ run_collection "body-styles-tests" "Body Styles"
 run_collection "fuel-types-tests" "Fuel Types"
 run_collection "transmissions-tests" "Transmissions"
 run_collection "seller-types-tests" "Seller Types"
+run_collection "listings-media-tests" "Listings and Media"
 
 # Output test login credentials for reference
 echo -e "\n${GREEN}========================================${NC}"
@@ -188,6 +189,7 @@ cat > "$REPORT_DIR/index.html" << EOL
     <div class="collection"><a href="collections/fuel-types-tests-report.html">Fuel Types Tests</a></div>
     <div class="collection"><a href="collections/transmissions-tests-report.html">Transmissions Tests</a></div>
     <div class="collection"><a href="collections/seller-types-tests-report.html">Seller Types Tests</a></div>
+    <div class="collection"><a href="collections/listings-media-tests-report.html">Listings and Media Tests</a></div>
 </body>
 </html>
 EOL
