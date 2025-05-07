@@ -72,30 +72,30 @@ When adding new API tests:
 
 ## Authentication
 
-Some endpoints require authentication:
-- Regular user operations: Use the "Login User" request to obtain a user token
-- Admin operations (create, update, delete): Use the "Login Admin" request to obtain an admin token
+All API requests that require authentication now automatically handle admin login using collection-level prerequest scripts. These scripts use the admin credentials defined in the `environment.json` file to obtain an `admin_auth_token`, which is then used for bearer authentication in each request.
+
+- Regular user operations: Can still use the "Login User" request in the `auth-tests.json` collection to obtain a user token if needed for specific tests.
+- Admin operations (create, update, delete): Automatically use the `admin_auth_token` set by the prerequest script.
 
 ### Admin User Setup
 
-The recommended test script `run_postman_tests_with_devenv.sh` automatically creates an admin user for testing:
+The admin user is automatically created when the Spring Boot application starts, handled by the `DataInitializer.java` class. The credentials are:
 - Username: `admin`
-- Email: `admin@example.com`
-- Password: `admin123`
+- Email: `admin@autotrader.com`
+- Password: `Admin123!`
 
-You can also manually create an admin user with:
-```bash
-./src/test/scripts/create_admin_user.sh
-```
+These credentials are also configured in the `environment.json` file for the prerequest scripts. There is no longer a need for a separate script to create or recreate the admin user.
 
-**Note**: For admin user creation to work correctly, the JSON payload must use the property `"role": ["admin"]` (singular "role", not "roles").
+**Note**: If you were to manually create an admin user via the API (e.g., for other environments or testing scenarios outside of this project's default setup), the JSON payload for user creation should use the property `\"role\": [\"admin\"]` (singular \"role\", not \"roles\").
 
 ## Environment Variables
 
-Make sure the following environment variables are set in your environment:
+Make sure the following environment variables are set in your `environment.json` file:
 - `baseUrl`: Base URL of the AutoTrader API (e.g., http://localhost:8080)
-- `auth_token`: Authentication token for regular user operations (automatically set after login)
-- `admin_auth_token`: Authentication token for admin operations (automatically set after admin login)
+- `auth_token`: Authentication token for regular user operations (can be automatically set after login using requests in `auth-tests.json`).
+- `admin_auth_token`: Authentication token for admin operations (this is automatically set by the collection-level prerequest scripts).
+- `admin_username`: Should be set to `admin`.
+- `admin_password`: Should be set to `Admin123!`.
 
 ## Auto-Generated Documentation
 
