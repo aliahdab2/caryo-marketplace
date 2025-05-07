@@ -16,6 +16,8 @@ import java.util.Optional;
  */
 @Repository
 public interface LocationRepository extends JpaRepository<Location, Long> {
+    // Find active locations by country code (using isActive field)
+    List<Location> findByCountryCodeAndIsActiveTrueOrIsActiveIsNull(String countryCode);
 
     /**
      * Find a location by its slug
@@ -24,12 +26,6 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
      */
     Optional<Location> findBySlug(String slug);
     
-    /**
-     * Find active locations by country code
-     * @param countryCode The ISO country code
-     * @return List of active locations for the specified country
-     */
-    List<Location> findByCountryCodeAndActiveTrue(String countryCode);
     
     /**
      * Find locations by country code and region
@@ -37,7 +33,7 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
      * @param region The region name
      * @return List of locations for the specified country and region
      */
-    List<Location> findByCountryCodeAndRegionAndActiveTrue(String countryCode, String region);
+    List<Location> findByCountryCodeAndRegionAndIsActiveTrueOrIsActiveIsNull(String countryCode, String region);
     
     /**
      * Search for locations by name in English or Arabic
@@ -48,7 +44,7 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
     @Query("SELECT l FROM Location l WHERE " +
            "(LOWER(l.displayNameEn) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(l.displayNameAr) LIKE LOWER(CONCAT('%', :query, '%'))) " +
-           "AND l.active = true")
+           "AND (l.isActive = true OR l.isActive IS NULL)")
     Page<Location> searchByName(@Param("query") String query, Pageable pageable);
     
     /**

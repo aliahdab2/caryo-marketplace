@@ -66,7 +66,8 @@ public class Location {
      * Flag indicating whether the location is active in the system
      */
     @Column(name = "is_active", nullable = false)
-    private boolean active = true;
+    private Boolean isActive = true;
+
 
     /**
      * Returns the display name based on the locale

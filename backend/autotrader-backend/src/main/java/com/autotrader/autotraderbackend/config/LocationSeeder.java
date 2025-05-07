@@ -100,7 +100,7 @@ public class LocationSeeder implements ApplicationRunner {
                 location.setRegion(data.region);
                 location.setLatitude(data.latitude);
                 location.setLongitude(data.longitude);
-                location.setActive(true);
+                location.setIsActive(true);
                 return location;
             })
             .collect(Collectors.toList());

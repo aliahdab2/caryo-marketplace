@@ -41,7 +41,7 @@ public class LocationResponse {
                 location.getRegion(),
                 location.getLatitude(),
                 location.getLongitude(),
-                location.isActive() // Added active field
+                location.getIsActive() != null ? location.getIsActive() : true // Using getIsActive() with null check
         );
     }
 }

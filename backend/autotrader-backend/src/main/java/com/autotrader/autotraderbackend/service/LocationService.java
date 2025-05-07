@@ -36,7 +36,7 @@ public class LocationService {
     public List<LocationResponse> getAllActiveLocations() {
         log.debug("Fetching all active locations");
         return locationRepository.findAll().stream()
-                .filter(Location::isActive)
+                .filter(loc -> loc.getIsActive() != null && loc.getIsActive())
                 .map(LocationResponse::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -49,7 +49,7 @@ public class LocationService {
     @Cacheable(value = "locationsByCountry", key = "#countryCode")
     public List<LocationResponse> getLocationsByCountry(String countryCode) {
         log.debug("Fetching locations for country: {}", countryCode);
-        return locationRepository.findByCountryCodeAndActiveTrue(countryCode).stream()
+        return locationRepository.findByCountryCodeAndIsActiveTrueOrIsActiveIsNull(countryCode).stream()
                 .map(LocationResponse::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -183,7 +183,7 @@ public class LocationService {
         Location location = locationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Location", "id", id));
         
-        location.setActive(active);
+        location.setIsActive(active);
         location = locationRepository.save(location);
         
         log.info("Updated location {} active status to: {}", id, active);
@@ -202,7 +202,7 @@ public class LocationService {
         location.setRegion(request.getRegion());
         location.setLatitude(request.getLatitude());
         location.setLongitude(request.getLongitude());
-        location.setActive(request.getActive() != null ? request.getActive() : true);
+        location.setIsActive(request.getActive() != null ? request.getActive() : true);
     }
     
     /**

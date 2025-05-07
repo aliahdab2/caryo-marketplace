@@ -19,13 +19,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,7 +47,7 @@ class LocationServiceTests {
         location1.setDisplayNameAr("المدينة أ");
         location1.setSlug("city-a");
         location1.setCountryCode("SY");
-        location1.setActive(true);
+        location1.setIsActive(true);
 
         location2 = new Location();
         location2.setId(2L);
@@ -57,7 +55,7 @@ class LocationServiceTests {
         location2.setDisplayNameAr("المدينة ب");
         location2.setSlug("city-b");
         location2.setCountryCode("SY");
-        location2.setActive(false);
+        location2.setIsActive(false);
 
         locationRequest = new LocationRequest();
         locationRequest.setNameEn("New City");
@@ -82,13 +80,13 @@ class LocationServiceTests {
 
     @Test
     void getLocationsByCountry_shouldReturnActiveLocationsForCountry() {
-        when(locationRepository.findByCountryCodeAndActiveTrue("SY")).thenReturn(List.of(location1));
+        when(locationRepository.findByCountryCodeAndIsActiveTrueOrIsActiveIsNull("SY")).thenReturn(List.of(location1));
 
         List<LocationResponse> responses = locationService.getLocationsByCountry("SY");
 
         assertEquals(1, responses.size());
         assertEquals("City A", responses.get(0).getDisplayNameEn());
-        verify(locationRepository).findByCountryCodeAndActiveTrue("SY");
+        verify(locationRepository).findByCountryCodeAndIsActiveTrueOrIsActiveIsNull("SY");
     }
 
     @Test
