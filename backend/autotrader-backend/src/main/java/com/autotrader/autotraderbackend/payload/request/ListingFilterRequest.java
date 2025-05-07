@@ -39,5 +39,9 @@ public class ListingFilterRequest {
     @PositiveOrZero(message = "Maximum mileage must be positive or zero")
     private Integer maxMileage;
 
+    // New fields for filtering by sold and archived status
+    private Boolean isSold;
+    private Boolean isArchived;
+
     // Pagination and sorting are handled separately via @RequestParam in the controller
 }

@@ -56,6 +56,7 @@ public class CarListingService {
         User user = findUserByUsername(username);
 
         CarListing carListing = buildCarListingFromRequest(request, user);
+        // isSold and isArchived are set within buildCarListingFromRequest
 
         CarListing savedListing = carListingRepository.save(carListing);
 
@@ -154,17 +155,25 @@ public class CarListingService {
 
     /**
      * Get all approved listings with pagination.
+     * By default, this excludes listings that are sold or archived.
      */
     @Transactional(readOnly = true)
     public Page<CarListingResponse> getAllApprovedListings(Pageable pageable) {
-        log.debug("Fetching approved listings page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
-        Page<CarListing> listingPage = carListingRepository.findByApprovedTrue(pageable);
-        log.info("Found {} approved listings on page {}", listingPage.getNumberOfElements(), pageable.getPageNumber());
+        log.debug("Fetching approved, not sold, and not archived listings page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
+        
+        Specification<CarListing> spec = Specification.where(CarListingSpecification.isApproved())
+                                                     .and(CarListingSpecification.isNotSold())
+                                                     .and(CarListingSpecification.isNotArchived());
+                                                     
+        Page<CarListing> listingPage = carListingRepository.findAll(spec, pageable);
+        log.info("Found {} approved, not sold, not archived listings on page {}", listingPage.getNumberOfElements(), pageable.getPageNumber());
         return listingPage.map(carListingMapper::toCarListingResponse);
     }
 
     /**
      * Get filtered and approved listings based on criteria.
+     * If isSold is not specified in filterRequest, defaults to false (not sold).
+     * If isArchived is not specified in filterRequest, defaults to false (not archived).
      */
     @Transactional(readOnly = true)
     public Page<CarListingResponse> getFilteredListings(ListingFilterRequest filterRequest, Pageable pageable) {
@@ -236,8 +245,22 @@ public class CarListingService {
         }
 
         // Always combine with the 'approved' status filter
-        // If spec is already criteriaBuilder.disjunction(), 'and(isApproved())' will still result in no matches.
         spec = spec.and(CarListingSpecification.isApproved());
+
+        // Apply isSold and isArchived filters
+        // If not specified in the request, default to showing NOT sold and NOT archived listings.
+        if (filterRequest.getIsSold() == null) {
+            spec = spec.and(CarListingSpecification.isNotSold());
+            log.debug("Defaulting filter to isSold=false as it was not specified.");
+        }
+        // If isSold IS specified, the CarListingSpecification.fromFilter will have already added it.
+
+        if (filterRequest.getIsArchived() == null) {
+            spec = spec.and(CarListingSpecification.isNotArchived());
+            log.debug("Defaulting filter to isArchived=false as it was not specified.");
+        }
+        // If isArchived IS specified, the CarListingSpecification.fromFilter will have already added it.
+
 
         Page<CarListing> listingPage = carListingRepository.findAll(spec, pageable);
         log.info("Found {} filtered listings matching criteria on page {} (Location filter used: {})",
@@ -247,6 +270,8 @@ public class CarListingService {
 
     /**
      * Get all listings (approved or not) for the specified user.
+     * This method does NOT automatically filter by isSold or isArchived,
+     * allowing users to see all their listings regardless of state.
      */
     @Transactional(readOnly = true)
     public List<CarListingResponse> getMyListings(String username) {
@@ -345,6 +370,14 @@ public class CarListingService {
         if (request.getTransmission() != null) {
             existingListing.setTransmission(request.getTransmission());
         }
+
+        // Update isSold and isArchived if provided in the request
+        if (request.getIsSold() != null) {
+            existingListing.setSold(request.getIsSold());
+        }
+        if (request.getIsArchived() != null) {
+            existingListing.setArchived(request.getIsArchived());
+        }
         
         CarListing updatedListing = carListingRepository.save(existingListing);
         log.info("Successfully updated listing ID: {} by user: {}", id, username);
@@ -422,6 +455,92 @@ public class CarListingService {
         carListingRepository.delete(existingListing);
         log.info("Admin successfully deleted listing with ID: {}", id);
     }
+
+    /**
+     * Marks a car listing as sold.
+     *
+     * @param listingId The ID of the car listing to mark as sold.
+     * @param username  The username of the user making the request.
+     * @return The updated CarListingResponse.
+     * @throws ResourceNotFoundException If the listing does not exist.
+     * @throws SecurityException         If the user does not own the listing.
+     * @throws IllegalStateException     If the listing is already sold or archived.
+     */
+    @Transactional
+    public CarListingResponse markListingAsSold(Long listingId, String username) {
+        log.info("User {} attempting to mark listing ID {} as sold", username, listingId);
+        CarListing listing = findListingByIdAndAuthorize(listingId, username, "mark as sold");
+
+        if (Boolean.TRUE.equals(listing.getArchived())) {
+            log.warn("Attempt to mark archived listing ID {} as sold by user {}", listingId, username);
+            throw new IllegalStateException("Cannot mark an archived listing as sold. Please unarchive first.");
+        }
+        if (Boolean.TRUE.equals(listing.getSold())) {
+            log.warn("Listing ID {} is already marked as sold. No action taken by user {}.", listingId, username);
+            // Optionally, could return current state or throw specific exception
+            // For now, let's treat it as a successful no-op if already sold and not archived.
+            return carListingMapper.toCarListingResponse(listing);
+        }
+
+        listing.setSold(true);
+        CarListing updatedListing = carListingRepository.save(listing);
+        log.info("Successfully marked listing ID {} as sold by user {}", listingId, username);
+        return carListingMapper.toCarListingResponse(updatedListing);
+    }
+
+    /**
+     * Archives a car listing.
+     *
+     * @param listingId The ID of the car listing to archive.
+     * @param username  The username of the user making the request.
+     * @return The updated CarListingResponse.
+     * @throws ResourceNotFoundException If the listing does not exist.
+     * @throws SecurityException         If the user does not own the listing.
+     * @throws IllegalStateException     If the listing is already archived.
+     */
+    @Transactional
+    public CarListingResponse archiveListing(Long listingId, String username) {
+        log.info("User {} attempting to archive listing ID {}", username, listingId);
+        CarListing listing = findListingByIdAndAuthorize(listingId, username, "archive");
+
+        if (Boolean.TRUE.equals(listing.getArchived())) {
+            log.warn("Listing ID {} is already archived. No action taken by user {}.", listingId, username);
+            return carListingMapper.toCarListingResponse(listing); // Idempotent
+        }
+
+        listing.setArchived(true);
+        // Optionally, consider if archiving should also mark it as "not sold" if it was sold.
+        // For now, archiving is independent of the sold status.
+        CarListing updatedListing = carListingRepository.save(listing);
+        log.info("Successfully archived listing ID {} by user {}", listingId, username);
+        return carListingMapper.toCarListingResponse(updatedListing);
+    }
+
+    /**
+     * Unarchives a car listing.
+     *
+     * @param listingId The ID of the car listing to unarchive.
+     * @param username  The username of the user making the request.
+     * @return The updated CarListingResponse.
+     * @throws ResourceNotFoundException If the listing does not exist.
+     * @throws SecurityException         If the user does not own the listing.
+     * @throws IllegalStateException     If the listing is not currently archived.
+     */
+    @Transactional
+    public CarListingResponse unarchiveListing(Long listingId, String username) {
+        log.info("User {} attempting to unarchive listing ID {}", username, listingId);
+        CarListing listing = findListingByIdAndAuthorize(listingId, username, "unarchive");
+
+        if (!Boolean.TRUE.equals(listing.getArchived())) {
+            log.warn("Listing ID {} is not archived. No action taken for unarchive by user {}.", listingId, username);
+            throw new IllegalStateException("Listing with ID " + listingId + " is not currently archived.");
+        }
+
+        listing.setArchived(false);
+        CarListing updatedListing = carListingRepository.save(listing);
+        log.info("Successfully unarchived listing ID {} by user {}", listingId, username);
+        return carListingMapper.toCarListingResponse(updatedListing);
+    }
     
     // --- Helper Methods ---
 
@@ -459,6 +578,13 @@ public class CarListingService {
         }
     }
 
+    private CarListing findListingByIdAndAuthorize(Long listingId, String username, String action) {
+        User user = findUserByUsername(username);
+        CarListing listing = findListingById(listingId);
+        authorizeListingModification(listing, user, action);
+        return listing;
+    }
+
     private String generateImageKey(Long listingId, String originalFilename) {
         // Clean the original filename to prevent path traversal or invalid characters
         String safeFilename = originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "image";
@@ -488,6 +614,9 @@ public class CarListingService {
         
         carListing.setSeller(user);
         carListing.setApproved(false); // Default to not approved
+        // Set isSold and isArchived from request, defaulting to false if null
+        carListing.setSold(request.getIsSold() != null ? request.getIsSold() : false);
+        carListing.setArchived(request.getIsArchived() != null ? request.getIsArchived() : false);
         return carListing;
     }
 }

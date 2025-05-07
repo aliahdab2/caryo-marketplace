@@ -237,6 +237,8 @@ Authorization: Bearer <your_jwt_token>
       }
     ],
     "approved": false,
+    "isSold": false,
+    "isArchived": false,
     "sellerUsername": "yourUsername",
     "locationDetails": {
         "id": 123,
@@ -268,7 +270,7 @@ Authorization: Bearer <your_jwt_token>
 
 - **Endpoint**: `GET /api/listings`
 - **Access**: Public
-- **Description**: Retrieves a paginated list of all *approved* car listings.
+- **Description**: Retrieves a paginated list of all *approved*, *not sold*, and *not archived* car listings.
 - **Authentication**: None required.
 - **Query Parameters**:
   - `page` (Integer, optional, default: 0): Page number for pagination.
@@ -312,6 +314,8 @@ Authorization: Bearer <your_jwt_token>
           }
         ],
         "approved": true,
+        "isSold": false,
+        "isArchived": false,
         "sellerUsername": "testuser",
         "locationDetails": {
           "id": 123,
@@ -344,29 +348,91 @@ Authorization: Bearer <your_jwt_token>
 
 - **Endpoint**: `GET /api/listings/filter`
 - **Access**: Public
-- **Description**: Retrieves a paginated list of approved car listings based on specified filter criteria.
+- **Description**: Retrieves a paginated list of car listings based on various filter criteria.
 - **Authentication**: None required.
-- **Query Parameters**:
-  - `brand` (String, optional): Filter by car brand (case-insensitive, partial match).
-  - `model` (String, optional): Filter by car model (case-insensitive, partial match).
-  - `minYear` (Integer, optional): Minimum manufacturing year (e.g., 2015).
-  - `maxYear` (Integer, optional): Maximum manufacturing year (e.g., 2023).
-  - `minPrice` (BigDecimal, optional): Minimum price (e.g., 10000.00).
-  - `maxPrice` (BigDecimal, optional): Maximum price (e.g., 50000.00).
-  - `minMileage` (Integer, optional): Minimum mileage (e.g., 10000).
-  - `maxMileage` (Integer, optional): Maximum mileage (e.g., 150000).
-  - `locationId` (Long, optional): **Location ID**. Filters listings by an exact match to a `Location` entity's ID (e.g., `1`, `123`).
-  - `location` (String, optional): **Location Slug**. Filters listings by an exact match to a `Location` entity's slug (e.g., `damascus`, `new-york-city`, `test-city-lifecycle`).
-  - `page` (Integer, optional, default: 0): Page number for pagination.
-  - `size` (Integer, optional, default: 20): Number of items per page.
-  - `sort` (String, optional, e.g., `price,asc` or `createdAt,desc`): Sorting criteria.
-- **Response (200 OK)**: Paginated list of `CarListingResponse` objects (same structure as `GET /api/listings`).
-- **Important Note on Location Filtering**:
-    - You can filter by EITHER `locationId` (the ID of a `Location` entity) OR `location` (the slug of a `Location` entity).
-    - If both `locationId` and `location` (slug) are provided in the same request, `locationId` will take precedence, and the `location` (slug) parameter will be ignored.
-    - If a `locationId` or `location` slug is provided and it does not match any existing `Location` entity, the filter will result in an empty list for that specific criteria (other filters might still apply if combined, but no listings will match the non-existent location).
-    - The previous behavior where `location` might have been a general text search against location names has been **removed**.
-    - For creating or updating listings, continue to use `locationId` in the request body, referring to the ID of a `Location` entity.
+- **Query Parameters** (all optional):
+  - `brand` (String)
+  - `model` (String)
+  - `minModelYear` (Integer)
+  - `maxModelYear` (Integer)
+  - `minPrice` (Double)
+  - `maxPrice` (Double)
+  - `minMileage` (Integer)
+  - `maxMileage` (Integer)
+  - `transmission` (String, e.g., `AUTOMATIC`, `MANUAL`)
+  - `locationId` (Long)
+  - `isSold` (Boolean, default: `false` if not provided, meaning only not-sold listings are returned unless `true` is specified)
+  - `isArchived` (Boolean, default: `false` if not provided, meaning only not-archived listings are returned unless `true` is specified)
+  - `page` (Integer, default: 0)
+  - `size` (Integer, default: 20)
+  - `sort` (String, e.g., `price,asc` or `createdAt,desc`)
+- **Response (200 OK)**: Paginated list of `CarListingResponse` objects matching the filter criteria.
+  ```json
+  {
+    "content": [
+      {
+        "id": 1,
+        "title": "2021 Toyota Camry",
+        "brand": "Toyota",
+        "model": "Camry",
+        "modelYear": 2021,
+        "price": 22000,
+        "mileage": 40000,
+        "description": "Well-maintained sedan.",
+        "media": [
+          {
+            "id": 101,
+            "url": "https://your-s3-bucket.s3.amazonaws.com/listings/1/main.jpg",
+            "fileKey": "listings/1/main.jpg",
+            "fileName": "main.jpg",
+            "contentType": "image/jpeg",
+            "size": 450000,
+            "sortOrder": 0,
+            "isPrimary": true,
+            "mediaType": "image"
+          },
+          {
+            "id": 102,
+            "url": "https://your-s3-bucket.s3.amazonaws.com/listings/1/interior.jpg",
+            "fileKey": "listings/1/interior.jpg",
+            "fileName": "interior.jpg",
+            "contentType": "image/jpeg",
+            "size": 300000,
+            "sortOrder": 1,
+            "isPrimary": false,
+            "mediaType": "image"
+          }
+        ],
+        "approved": true,
+        "isSold": false,
+        "isArchived": false,
+        "sellerUsername": "testuser",
+        "locationDetails": {
+          "id": 123,
+          "displayNameEn": "Test City Lifecycle",
+          "displayNameAr": "مدينة اختبار دورة الحياة",
+          "slug": "test-city-lifecycle",
+          "countryCode": "TC",
+          "region": "Test Region",
+          "latitude": 12.3456,
+          "longitude": -78.9101
+        },
+        "transmission": "AUTOMATIC",
+        "createdAt": "2025-05-01T10:00:00Z",
+        "updatedAt": "2025-05-01T10:00:00Z"
+      }
+    ],
+    "pageable": { "pageNumber": 0, "pageSize": 20, /* ... */ },
+    "totalPages": 1,
+    "totalElements": 1,
+    "last": true,
+    "first": true,
+    "numberOfElements": 1,
+    "size": 20,
+    "number": 0,
+    "empty": false
+  }
+  ```
 
 #### Get Car Listing by ID
 
@@ -402,6 +468,8 @@ Authorization: Bearer <your_jwt_token>
       // ... other media items if present ...
     ],
     "approved": true,
+    "isSold": false,
+    "isArchived": false,
     "sellerUsername": "yourUsername",
     "locationDetails": {
         "id": 123,
@@ -439,13 +507,86 @@ Authorization: Bearer <your_jwt_token>
     "mileage": 16500,
     "locationId": 124, // ID of a new or existing Location entity
     "description": "Updated description: Excellent condition, one owner, no accidents, SE trim.",
-    "transmission": "AUTOMATIC"
+    "transmission": "AUTOMATIC",
+    "isSold": false,
+    "isArchived": false
   }
   ```
 - **Response (200 OK)**: The updated `CarListingResponse`.
 - **Response (200 OK)**: The updated `CarListingResponse`, including any changes to the `media` array. For managing media items themselves (adding, removing, reordering, setting primary), see the "File Management APIs" and the "Managing Listing Media (Suggested)" sections.
 - **Response (403 Forbidden)**: If the authenticated user is not the owner.
 - **Response (404 Not Found)**: If the listing does not exist.
+
+#### Mark Listing as Sold
+
+- **Endpoint**: `POST /api/listings/{id}/mark-sold`
+- **Access**: Authenticated owner of the listing.
+- **Description**: Marks the specified car listing as sold. Cannot be performed on an archived listing. This action is idempotent if the listing is already sold (and not archived).
+- **Authentication**: Required (JWT token).
+- **Path Parameters**:
+  - `id` (Long): The ID of the car listing.
+- **Response (200 OK)**: The updated `CarListingResponse` with `isSold: true`.
+  ```json
+  {
+    "id": 1,
+    "title": "2023 Toyota Camry",
+    // ... other fields ...
+    "isSold": true,
+    "isArchived": false,
+    "sellerUsername": "yourUsername",
+    // ...
+  }
+  ```
+- **Response (403 Forbidden)**: If the authenticated user is not the owner.
+- **Response (404 Not Found)**: If the listing does not exist.
+- **Response (409 Conflict)**: If the listing is archived.
+
+#### Archive Listing
+
+- **Endpoint**: `POST /api/listings/{id}/archive`
+- **Access**: Authenticated owner of the listing.
+- **Description**: Archives the specified car listing. This action is idempotent if the listing is already archived.
+- **Authentication**: Required (JWT token).
+- **Path Parameters**:
+  - `id` (Long): The ID of the car listing.
+- **Response (200 OK)**: The updated `CarListingResponse` with `isArchived: true`.
+  ```json
+  {
+    "id": 1,
+    "title": "2023 Toyota Camry",
+    // ... other fields ...
+    "isSold": false, // Or true, depending on its state before archiving
+    "isArchived": true,
+    "sellerUsername": "yourUsername",
+    // ...
+  }
+  ```
+- **Response (403 Forbidden)**: If the authenticated user is not the owner.
+- **Response (404 Not Found)**: If the listing does not exist.
+
+#### Unarchive Listing
+
+- **Endpoint**: `POST /api/listings/{id}/unarchive`
+- **Access**: Authenticated owner of the listing.
+- **Description**: Unarchives the specified car listing.
+- **Authentication**: Required (JWT token).
+- **Path Parameters**:
+  - `id` (Long): The ID of the car listing.
+- **Response (200 OK)**: The updated `CarListingResponse` with `isArchived: false`.
+  ```json
+  {
+    "id": 1,
+    "title": "2023 Toyota Camry",
+    // ... other fields ...
+    "isSold": false, // Or true, depending on its state before unarchiving
+    "isArchived": false,
+    "sellerUsername": "yourUsername",
+    // ...
+  }
+  ```
+- **Response (403 Forbidden)**: If the authenticated user is not the owner.
+- **Response (404 Not Found)**: If the listing does not exist.
+- **Response (409 Conflict)**: If the listing is not currently archived.
 
 #### Delete Car Listing
 

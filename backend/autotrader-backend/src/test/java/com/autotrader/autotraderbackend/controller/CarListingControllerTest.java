@@ -114,7 +114,7 @@ public class CarListingControllerTest {
                 .thenReturn(carListingResponse);
 
         // Act
-        ResponseEntity<CarListingResponse> response = carListingController.createListingWithImage(createRequest, mockImage, userDetails);
+        ResponseEntity<?> response = carListingController.createListingWithImage(createRequest, mockImage, userDetails);
 
         // Assert
         assertNotNull(response);
@@ -256,7 +256,19 @@ public class CarListingControllerTest {
         IllegalArgumentException ex = org.junit.jupiter.api.Assertions.assertThrows(
             IllegalArgumentException.class,
             () -> carListingController.getFilteredListingsByParams(
-                null, null, null, null, null, null, null, null, null, null, pageable
+                null, // brand
+                null, // model
+                null, // minYear
+                null, // maxYear
+                null, // location
+                null, // locationId
+                null, // minPrice
+                null, // maxPrice
+                null, // minMileage
+                null, // maxMileage
+                null, // isSold
+                null, // isArchived
+                pageable
             )
         );
         assertEquals("Sorting by field 'nonExistentField' is not allowed.", ex.getMessage());

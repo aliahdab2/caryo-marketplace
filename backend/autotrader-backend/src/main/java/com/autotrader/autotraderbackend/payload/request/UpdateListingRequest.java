@@ -39,6 +39,9 @@ public class UpdateListingRequest {
     
     private String transmission;
 
+    private Boolean isSold;
+    private Boolean isArchived;
+
     // Explicit getters and setters
     public String getTitle() { return title; }
     public String getBrand() { return brand; }
@@ -51,6 +54,8 @@ public class UpdateListingRequest {
     
     public String getDescription() { return description; }
     public String getTransmission() { return transmission; }
+    public Boolean getIsSold() { return isSold; }
+    public Boolean getIsArchived() { return isArchived; }
 
     public void setTitle(String title) { this.title = title; }
     public void setBrand(String brand) { this.brand = brand; }
@@ -63,4 +68,6 @@ public class UpdateListingRequest {
     
     public void setDescription(String description) { this.description = description; }
     public void setTransmission(String transmission) { this.transmission = transmission; }
+    public void setIsSold(Boolean isSold) { this.isSold = isSold; }
+    public void setIsArchived(Boolean isArchived) { this.isArchived = isArchived; }
 }

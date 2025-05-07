@@ -56,6 +56,10 @@ public class CarListingMapper {
         response.setCreatedAt(carListing.getCreatedAt());
         response.setApproved(carListing.getApproved());
 
+        // Map isSold and isArchived fields
+        response.setIsSold(carListing.getSold());
+        response.setIsArchived(carListing.getArchived());
+
         if (carListing.getSeller() != null) {
             response.setSellerId(carListing.getSeller().getId());
             response.setSellerUsername(carListing.getSeller().getUsername());

@@ -440,9 +440,13 @@ class CarListingServiceTest {
         CarListing approvedListing1 = new CarListing(); // Setup listing 1
         approvedListing1.setId(1L);
         approvedListing1.setApproved(true);
+        approvedListing1.setSold(false);
+        approvedListing1.setArchived(false);
         CarListing approvedListing2 = new CarListing(); // Setup listing 2
         approvedListing2.setId(2L);
         approvedListing2.setApproved(true);
+        approvedListing2.setSold(false);
+        approvedListing2.setArchived(false);
         List<CarListing> listings = Arrays.asList(approvedListing1, approvedListing2);
         Page<CarListing> listingPage = new PageImpl<>(listings, pageable, listings.size());
 
@@ -453,7 +457,8 @@ class CarListingServiceTest {
         response2.setId(2L);
         response2.setApproved(true);
 
-        when(carListingRepository.findByApprovedTrue(pageable)).thenReturn(listingPage);
+        // Old: when(carListingRepository.findByApprovedTrue(pageable)).thenReturn(listingPage);
+        when(carListingRepository.findAll(ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<CarListing>>any(), eq(pageable))).thenReturn(listingPage);
         // Mock mapper for each listing in the page
         when(carListingMapper.toCarListingResponse(approvedListing1)).thenReturn(response1);
         when(carListingMapper.toCarListingResponse(approvedListing2)).thenReturn(response2);
@@ -467,7 +472,8 @@ class CarListingServiceTest {
         assertEquals(2, responsePage.getContent().size());
         assertEquals(response1, responsePage.getContent().get(0));
         assertEquals(response2, responsePage.getContent().get(1));
-        verify(carListingRepository).findByApprovedTrue(pageable);
+        // verify(carListingRepository).findByApprovedTrue(pageable);
+        verify(carListingRepository).findAll(ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<CarListing>>any(), eq(pageable));
         verify(carListingMapper, times(2)).toCarListingResponse(any(CarListing.class)); // Verify mapper called twice
     }
 
@@ -477,7 +483,8 @@ class CarListingServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<CarListing> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        when(carListingRepository.findByApprovedTrue(pageable)).thenReturn(emptyPage);
+        // Old: when(carListingRepository.findByApprovedTrue(pageable)).thenReturn(emptyPage);
+        when(carListingRepository.findAll(ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<CarListing>>any(), eq(pageable))).thenReturn(emptyPage);
         // No need to mock mapper as it won't be called for an empty page's map operation
 
         // Act
@@ -487,7 +494,8 @@ class CarListingServiceTest {
         assertNotNull(responsePage);
         assertTrue(responsePage.isEmpty());
         assertEquals(0, responsePage.getTotalElements());
-        verify(carListingRepository).findByApprovedTrue(pageable);
+        // verify(carListingRepository).findByApprovedTrue(pageable);
+        verify(carListingRepository).findAll(ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<CarListing>>any(), eq(pageable));
         verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
     }
 

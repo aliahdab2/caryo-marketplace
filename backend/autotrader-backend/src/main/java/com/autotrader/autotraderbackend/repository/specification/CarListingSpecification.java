@@ -50,11 +50,29 @@ public class CarListingSpecification {
                 predicates.add(criteriaBuilder.equal(root.get("location"), locationEntity));
             }
 
+            // Add filter for isSold status if provided
+            if (filter.getIsSold() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("sold"), filter.getIsSold()));
+            }
+
+            // Add filter for isArchived status if provided
+            if (filter.getIsArchived() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("archived"), filter.getIsArchived()));
+            }
+
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
 
     public static Specification<CarListing> isApproved() {
         return (root, query, criteriaBuilder) -> criteriaBuilder.isTrue(root.get("approved"));
+    }
+
+    public static Specification<CarListing> isNotSold() {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.isFalse(root.get("sold"));
+    }
+
+    public static Specification<CarListing> isNotArchived() {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.isFalse(root.get("archived"));
     }
 }

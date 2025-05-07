@@ -81,27 +81,22 @@ public class CarListingController {
             @ApiResponse(responseCode = "403", description = "Forbidden")
         }
     )
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(
-        content = @Content(mediaType = "multipart/form-data",
-            schema = @Schema(type = "object", requiredProperties = {"listing", "image"}),
-            encoding = @io.swagger.v3.oas.annotations.media.Encoding(
-                name = "listing",
-                contentType = "application/json"
-            )))
-    public ResponseEntity<CarListingResponse> createListingWithImage(
+    public ResponseEntity<?> createListingWithImage(
             @Parameter(description = "Car listing details", required = true)
             @Valid @RequestPart("listing") CreateListingRequest createRequest,
-            @Parameter(description = "Image file (JPEG, PNG, GIF, or WebP)", required = true)
+            @Parameter(description = "Image file (JPEG, PNG, GIF, or WebP)", required = true, schema = @Schema(type = "string", format = "binary"))
             @RequestPart("image") MultipartFile image,
             @Parameter(hidden = true)
             @AuthenticationPrincipal UserDetails userDetails) {
-        
-        log.info("Received request to create listing with image from user: {}", userDetails.getUsername());
-
-        if (image == null || image.isEmpty()) {
-            return ResponseEntity.badRequest().build();
+        if (userDetails == null) {
+            log.warn("Unauthorized attempt to create listing with image (UserDetails is null)");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "User must be logged in to create listings."));
         }
-
+        log.debug("Received request to create listing with image from user: {}", userDetails.getUsername());
+        if (image == null || image.isEmpty()) {
+            log.warn("Create listing with image request received empty file.");
+            return ResponseEntity.badRequest().body(Map.of("message", "Image file is required and cannot be empty."));
+        }
         CarListingResponse response = carListingService.createListing(createRequest, image, userDetails.getUsername());
         log.info("Successfully created listing with ID: {} and image", response.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -124,15 +119,17 @@ public class CarListingController {
             @ApiResponse(responseCode = "500", description = "Failed to upload file")
         }
     )
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(
-        content = @Content(mediaType = "multipart/form-data",
-            schema = @Schema(type = "object", properties = {
-                @Schema(name = "file", type = "string", format = "binary")
-            }))
-    )
-    public ResponseEntity<?> uploadListingImage(@PathVariable Long listingId,
-                                                @RequestParam("file") MultipartFile file,
-                                                @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> uploadListingImage(
+            @Parameter(description = "ID of the listing to upload image for", required = true)
+            @PathVariable Long listingId,
+            @Parameter(
+                name = "file",
+                description = "The image file to upload (e.g., JPEG, PNG).",
+                required = true,
+                schema = @Schema(type = "string", format = "binary")
+            )
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal UserDetails userDetails) {
         log.info("Received request to upload image for listing ID: {}", listingId);
         // UserDetails null check might be redundant due to @PreAuthorize, but good practice
         if (userDetails == null) {
@@ -223,19 +220,20 @@ public class CarListingController {
         }
     )
     public ResponseEntity<PageResponse<CarListingResponse>> getFilteredListingsByParams(
-            @RequestParam(required = false) String brand,
-            @RequestParam(required = false) String model,
-            @RequestParam(required = false) Integer minYear,
-            @RequestParam(required = false) Integer maxYear,
-            @RequestParam(required = false) String location,
-            @RequestParam(required = false) Long locationId,
-            @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice,
-            @RequestParam(required = false) Integer minMileage,
-            @RequestParam(required = false) Integer maxMileage,
+            @Parameter(description = "Brand filter") @RequestParam(required = false) String brand,
+            @Parameter(description = "Model filter") @RequestParam(required = false) String model,
+            @Parameter(description = "Minimum year") @RequestParam(required = false) Integer minYear,
+            @Parameter(description = "Maximum year") @RequestParam(required = false) Integer maxYear,
+            @Parameter(description = "Location (slug or name)") @RequestParam(required = false) String location,
+            @Parameter(description = "Location ID") @RequestParam(required = false) Long locationId,
+            @Parameter(description = "Minimum price") @RequestParam(required = false) BigDecimal minPrice,
+            @Parameter(description = "Maximum price") @RequestParam(required = false) BigDecimal maxPrice,
+            @Parameter(description = "Minimum mileage") @RequestParam(required = false) Integer minMileage,
+            @Parameter(description = "Maximum mileage") @RequestParam(required = false) Integer maxMileage,
+            @Parameter(description = "Show sold listings") @RequestParam(required = false) Boolean isSold,
+            @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
             @PageableDefault(size = 10, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
-        log.info("Received GET request to filter listings. Pageable: {}", pageable);
-        // Create filter request from query parameters
+        log.debug("Received GET request to filter listings. Pageable: {}", pageable);
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         filterRequest.setBrand(brand);
         filterRequest.setModel(model);
@@ -247,6 +245,8 @@ public class CarListingController {
         filterRequest.setMaxPrice(maxPrice);
         filterRequest.setMinMileage(minMileage);
         filterRequest.setMaxMileage(maxMileage);
+        filterRequest.setIsSold(isSold);
+        filterRequest.setIsArchived(isArchived);
         Page<CarListingResponse> listingPage = carListingService.getFilteredListings(filterRequest, pageable);
         PageResponse<CarListingResponse> response = new PageResponse<>(
             listingPage.getContent(),
@@ -256,7 +256,7 @@ public class CarListingController {
             listingPage.getTotalPages(),
             listingPage.isLast()
         );
-        log.info("Returning {} filtered listings", response.getContent().size());
+        log.debug("Returning {} filtered listings", response.getContent().size());
         return ResponseEntity.ok(response);
     }
 
@@ -426,6 +426,110 @@ public class CarListingController {
         } catch (Exception e) {
             log.error("Error deleting listing with ID: {}", id, e);
             throw e;
+        }
+    }
+
+    @PostMapping("/{id}/mark-sold")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        summary = "Mark a car listing as sold",
+        description = "Marks the specified car listing as sold. Only the owner of the listing can perform this action. Cannot be performed on an archived listing.",
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Listing marked as sold successfully", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden (not owner)"),
+            @ApiResponse(responseCode = "404", description = "Listing not found"),
+            @ApiResponse(responseCode = "409", description = "Conflict (e.g., listing is archived or already sold)")
+        }
+    )
+    public ResponseEntity<?> markListingAsSold(
+            @Parameter(description = "ID of the listing to mark as sold", required = true) @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            log.info("User {} attempting to mark listing ID {} as sold", userDetails.getUsername(), id);
+            CarListingResponse response = carListingService.markListingAsSold(id, userDetails.getUsername());
+            log.info("Successfully marked listing ID {} as sold by user {}", id, userDetails.getUsername());
+            return ResponseEntity.ok(response);
+        } catch (ResourceNotFoundException e) {
+            log.warn("Mark as sold failed for listing ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        } catch (SecurityException e) {
+            log.warn("User {} not authorized to mark listing ID {} as sold: {}", userDetails.getUsername(), id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
+        } catch (IllegalStateException e) {
+            log.warn("Mark as sold failed for listing ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/archive")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        summary = "Archive a car listing",
+        description = "Archives the specified car listing. Only the owner of the listing can perform this action.",
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Listing archived successfully", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden (not owner)"),
+            @ApiResponse(responseCode = "404", description = "Listing not found"),
+            @ApiResponse(responseCode = "409", description = "Conflict (e.g., listing already archived)")
+        }
+    )
+    public ResponseEntity<?> archiveListing(
+            @Parameter(description = "ID of the listing to archive", required = true) @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            log.info("User {} attempting to archive listing ID {}", userDetails.getUsername(), id);
+            CarListingResponse response = carListingService.archiveListing(id, userDetails.getUsername());
+            log.info("Successfully archived listing ID {} by user {}", id, userDetails.getUsername());
+            return ResponseEntity.ok(response);
+        } catch (ResourceNotFoundException e) {
+            log.warn("Archive failed for listing ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        } catch (SecurityException e) {
+            log.warn("User {} not authorized to archive listing ID {}: {}", userDetails.getUsername(), id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
+        } catch (IllegalStateException e) { // Catches if already archived, service handles this as idempotent or error
+            log.warn("Archive failed for listing ID {}: {}", id, e.getMessage());
+            // Depending on service implementation, this might be a success (200) or conflict (409)
+            // Assuming service throws IllegalStateException if it's an issue.
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/unarchive")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        summary = "Unarchive a car listing",
+        description = "Unarchives the specified car listing. Only the owner of the listing can perform this action.",
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Listing unarchived successfully", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden (not owner)"),
+            @ApiResponse(responseCode = "404", description = "Listing not found"),
+            @ApiResponse(responseCode = "409", description = "Conflict (e.g., listing not archived)")
+        }
+    )
+    public ResponseEntity<?> unarchiveListing(
+            @Parameter(description = "ID of the listing to unarchive", required = true) @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            log.info("User {} attempting to unarchive listing ID {}", userDetails.getUsername(), id);
+            CarListingResponse response = carListingService.unarchiveListing(id, userDetails.getUsername());
+            log.info("Successfully unarchived listing ID {} by user {}", id, userDetails.getUsername());
+            return ResponseEntity.ok(response);
+        } catch (ResourceNotFoundException e) {
+            log.warn("Unarchive failed for listing ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        } catch (SecurityException e) {
+            log.warn("User {} not authorized to unarchive listing ID {}: {}", userDetails.getUsername(), id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
+        } catch (IllegalStateException e) {
+            log.warn("Unarchive failed for listing ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
         }
     }
     

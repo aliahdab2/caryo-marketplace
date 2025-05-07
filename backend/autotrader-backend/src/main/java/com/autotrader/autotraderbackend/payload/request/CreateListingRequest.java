@@ -46,6 +46,9 @@ public class CreateListingRequest {
     
     private String description;
 
+    private Boolean isSold;
+    private Boolean isArchived;
+
     // Explicit Getters
     public String getTitle() { return title; }
     public String getBrand() { return brand; }
@@ -55,6 +58,8 @@ public class CreateListingRequest {
     public BigDecimal getPrice() { return price; }
     public Long getLocationId() { return locationId; }
     public String getDescription() { return description; }
+    public Boolean getIsSold() { return isSold; }
+    public Boolean getIsArchived() { return isArchived; }
 
     // Explicit Setters
     public void setTitle(String title) { this.title = title; }
@@ -65,4 +70,6 @@ public class CreateListingRequest {
     public void setPrice(BigDecimal price) { this.price = price; }
     public void setLocationId(Long locationId) { this.locationId = locationId; }
     public void setDescription(String description) { this.description = description; }
+    public void setIsSold(Boolean isSold) { this.isSold = isSold; }
+    public void setIsArchived(Boolean isArchived) { this.isArchived = isArchived; }
 }

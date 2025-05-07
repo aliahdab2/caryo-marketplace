@@ -38,6 +38,8 @@ public class CarListingResponse {
     private Long sellerId;
     private String sellerUsername;
     private LocalDateTime createdAt;
+    private Boolean isSold;
+    private Boolean isArchived;
 
     // Explicit Getters
     public Long getId() { return id; }
@@ -56,6 +58,8 @@ public class CarListingResponse {
     public Long getSellerId() { return sellerId; }
     public String getSellerUsername() { return sellerUsername; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public Boolean getIsSold() { return isSold; }
+    public Boolean getIsArchived() { return isArchived; }
 
     // Explicit Setters (Add if needed, currently only getters seem required by errors)
     public void setId(Long id) { this.id = id; }
@@ -74,4 +78,6 @@ public class CarListingResponse {
     public void setSellerId(Long sellerId) { this.sellerId = sellerId; }
     public void setSellerUsername(String sellerUsername) { this.sellerUsername = sellerUsername; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setIsSold(Boolean isSold) { this.isSold = isSold; }
+    public void setIsArchived(Boolean isArchived) { this.isArchived = isArchived; }
 }
