@@ -49,10 +49,10 @@ public class CarListingController {
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Create a new car listing (no image)",
-        description = "Creates a new car listing with the provided details. Authentication required.",
+        description = "Creates a new car listing with the provided details. Authentication required. The response will include an empty 'media' array initially.",
         security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
         responses = {
-            @ApiResponse(responseCode = "201", description = "Listing created successfully"),
+            @ApiResponse(responseCode = "201", description = "Listing created successfully, includes empty media array", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Forbidden")
@@ -72,10 +72,10 @@ public class CarListingController {
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Create a new car listing with image",
-        description = "Creates a new car listing with the provided details and image. Authentication required.",
+        description = "Creates a new car listing with the provided details and an initial image. Authentication required. The response includes the uploaded image in the 'media' array.",
         security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
         responses = {
-            @ApiResponse(responseCode = "201", description = "Listing created successfully"),
+            @ApiResponse(responseCode = "201", description = "Listing created successfully, includes initial media item", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input or image"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Forbidden")
@@ -111,16 +111,24 @@ public class CarListingController {
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Upload an image for a car listing",
-        description = "Uploads an image file for the specified car listing. Authentication required.",
+        description = "Uploads an image file for the specified car listing and associates it. Authentication required. The new media item will be added to the listing's media array.",
         security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
         responses = {
-            @ApiResponse(responseCode = "200", description = "File uploaded successfully"),
-            @ApiResponse(responseCode = "400", description = "File cannot be empty"),
+            @ApiResponse(responseCode = "200", description = "File uploaded successfully and associated with the listing.",
+                         content = @Content(mediaType = "application/json",
+                                            schema = @Schema(type = "object", example = "{\\\"message\\\": \\\"File uploaded successfully\\\", \\\"imageKey\\\": \\\"listings/123/your-image.jpg\\\"}"))),
+            @ApiResponse(responseCode = "400", description = "File cannot be empty or invalid input"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "403", description = "Forbidden (e.g., not owner of the listing)"),
             @ApiResponse(responseCode = "404", description = "Listing not found"),
             @ApiResponse(responseCode = "500", description = "Failed to upload file")
         }
+    )
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+        content = @Content(mediaType = "multipart/form-data",
+            schema = @Schema(type = "object", properties = {
+                @Schema(name = "file", type = "string", format = "binary")
+            }))
     )
     public ResponseEntity<?> uploadListingImage(@PathVariable Long listingId,
                                                 @RequestParam("file") MultipartFile file,
@@ -160,9 +168,9 @@ public class CarListingController {
     @GetMapping
     @Operation(
         summary = "Get all approved car listings",
-        description = "Returns a paginated list of all approved car listings.",
+        description = "Returns a paginated list of all approved car listings. Each listing includes an array of its associated media items (images/videos).",
         responses = {
-            @ApiResponse(responseCode = "200", description = "List of car listings")
+            @ApiResponse(responseCode = "200", description = "List of car listings, including media details", content = @Content(schema = @Schema(implementation = PageResponse.class)))
         }
     )
     public ResponseEntity<PageResponse<CarListingResponse>> getAllListings(
@@ -183,10 +191,10 @@ public class CarListingController {
 
     @PostMapping("/filter")
     @Operation(
-        summary = "Filter car listings",
-        description = "Returns a paginated list of car listings matching the provided filter criteria.",
+        summary = "Filter car listings (POST)",
+        description = "Returns a paginated list of car listings matching the provided filter criteria in the request body. Each listing includes an array of its associated media items.",
         responses = {
-            @ApiResponse(responseCode = "200", description = "Filtered list of car listings")
+            @ApiResponse(responseCode = "200", description = "Filtered list of car listings, including media details", content = @Content(schema = @Schema(implementation = PageResponse.class)))
         }
     )
     public ResponseEntity<PageResponse<CarListingResponse>> getFilteredListings(
@@ -208,10 +216,10 @@ public class CarListingController {
 
     @GetMapping("/filter")
     @Operation(
-        summary = "Filter car listings by query parameters",
-        description = "Returns a paginated list of car listings matching the provided filter criteria as query parameters.",
+        summary = "Filter car listings by query parameters (GET)",
+        description = "Returns a paginated list of car listings matching the provided filter criteria as query parameters. Each listing includes an array of its associated media items.",
         responses = {
-            @ApiResponse(responseCode = "200", description = "Filtered list of car listings")
+            @ApiResponse(responseCode = "200", description = "Filtered list of car listings, including media details", content = @Content(schema = @Schema(implementation = PageResponse.class)))
         }
     )
     public ResponseEntity<PageResponse<CarListingResponse>> getFilteredListingsByParams(
@@ -255,9 +263,9 @@ public class CarListingController {
     @GetMapping("/{id}")
     @Operation(
         summary = "Get car listing by ID",
-        description = "Returns the details of a car listing by its ID.",
+        description = "Returns the details of a car listing by its ID, including an array of its associated media items.",
         responses = {
-            @ApiResponse(responseCode = "200", description = "Car listing details"),
+            @ApiResponse(responseCode = "200", description = "Car listing details, including media", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
             @ApiResponse(responseCode = "404", description = "Listing not found")
         }
     )
@@ -273,10 +281,10 @@ public class CarListingController {
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Get listings for the current user",
-        description = "Returns all car listings created by the currently authenticated user.",
+        description = "Returns all car listings created by the currently authenticated user. Each listing includes an array of its associated media items.",
         security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
         responses = {
-            @ApiResponse(responseCode = "200", description = "List of user's car listings"),
+            @ApiResponse(responseCode = "200", description = "List of user's car listings, including media details", content = @Content(array = @io.swagger.v3.oas.annotations.media.ArraySchema(schema = @Schema(implementation = CarListingResponse.class)))),
             @ApiResponse(responseCode = "401", description = "Unauthorized")
         }
     )
@@ -292,10 +300,10 @@ public class CarListingController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
         summary = "Approve a car listing",
-        description = "Approves a car listing. Only accessible by admins.",
+        description = "Approves a car listing. Only accessible by admins. The response includes the full listing details with its media.",
         security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
         responses = {
-            @ApiResponse(responseCode = "200", description = "Listing approved successfully"),
+            @ApiResponse(responseCode = "200", description = "Listing approved successfully, includes media details", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
             @ApiResponse(responseCode = "404", description = "Listing not found"),
             @ApiResponse(responseCode = "409", description = "Listing already approved"),
             @ApiResponse(responseCode = "403", description = "Forbidden")
@@ -320,10 +328,10 @@ public class CarListingController {
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Update an existing car listing",
-        description = "Updates a car listing with the provided details. Only the owner of the listing can update it.",
+        description = "Updates a car listing with the provided details. Only the owner of the listing can update it. The response includes the updated listing details with its media.",
         security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
         responses = {
-            @ApiResponse(responseCode = "200", description = "Listing updated successfully"),
+            @ApiResponse(responseCode = "200", description = "Listing updated successfully, includes media details", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Forbidden"),
