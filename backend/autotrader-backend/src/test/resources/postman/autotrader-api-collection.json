@@ -1,0 +1,86 @@
+{
+  "info": {
+    "_postman_id": "autotrader-api-main-collection",
+    "name": "AutoTrader API Tests",
+    "description": "AutoTrader Marketplace API Tests - Organized into multiple collections for better manageability.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Authentication Tests",
+          "type": "file",
+          "description": "Tests for user registration, login, and authentication",
+          "file": {
+            "src": "collections/auth-tests.json"
+          }
+        }
+      ],
+      "description": "All authentication-related API tests"
+    },
+    {
+      "name": "Reference Data",
+      "item": [
+        {
+          "name": "Reference Data Overview Tests",
+          "type": "file",
+          "description": "Tests for consolidated reference data endpoints",
+          "file": {
+            "src": "collections/reference-data-tests.json"
+          }
+        },
+        {
+          "name": "Car Conditions Tests",
+          "type": "file",
+          "description": "Tests for car condition endpoints",
+          "file": {
+            "src": "collections/car-conditions-tests.json"
+          }
+        },
+        {
+          "name": "Drive Types Tests",
+          "type": "file",
+          "description": "Tests for drive type endpoints",
+          "file": {
+            "src": "collections/drive-types-tests.json"
+          }
+        },
+        {
+          "name": "Body Styles Tests",
+          "type": "file",
+          "description": "Tests for body style endpoints",
+          "file": {
+            "src": "collections/body-styles-tests.json"
+          }
+        },
+        {
+          "name": "Fuel Types Tests",
+          "type": "file",
+          "description": "Tests for fuel type endpoints",
+          "file": {
+            "src": "collections/fuel-types-tests.json"
+          }
+        },
+        {
+          "name": "Transmissions Tests",
+          "type": "file",
+          "description": "Tests for transmission endpoints",
+          "file": {
+            "src": "collections/transmissions-tests.json"
+          }
+        },
+        {
+          "name": "Seller Types Tests",
+          "type": "file",
+          "description": "Tests for seller type endpoints",
+          "file": {
+            "src": "collections/seller-types-tests.json"
+          }
+        }
+      ],
+      "description": "All reference data API tests including car conditions, drive types, body styles, fuel types, etc."
+    }
+  ]
+}

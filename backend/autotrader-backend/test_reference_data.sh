@@ -5,11 +5,33 @@
 
 # Default to localhost if no base URL provided
 BASE_URL=${1:-"http://localhost:8080"}
-ADMIN_TOKEN=""
+ADMIN_TOKEN="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc0NjYxNjk5NSwiZXhwIjoxNzQ2NzAzMzk1fQ.hYf5Vgn7FbwmimcR07pi_-19GsvTo2bS3eOUK1zy-5M"
+POSTMAN_DIR="src/test/resources/postman"
 
 echo "===== AutoTrader Marketplace Reference Data API Test Script ====="
 echo "Base URL: $BASE_URL"
 echo ""
+
+# Check if Newman is installed
+if ! command -v newman &> /dev/null; then
+    echo "Newman is not installed. Please install it using: npm install -g newman"
+    echo "Falling back to curl tests..."
+else
+    echo "Running Postman collections for reference data entities..."
+    echo ""
+    
+    # Update the environment file with the base URL
+    jq ".values += [{\"key\": \"baseUrl\", \"value\": \"$BASE_URL\", \"enabled\": true}]" $POSTMAN_DIR/environment.json > $POSTMAN_DIR/env-temp.json
+    mv $POSTMAN_DIR/env-temp.json $POSTMAN_DIR/environment.json
+    
+    # Run the reference data collections
+    bash $POSTMAN_DIR/run-collections.sh
+    
+    echo ""
+    echo "Postman tests completed."
+    echo ""
+    echo "For manual testing, you can use the following curl commands:"
+    echo ""
 
 # Function to perform a GET request and display the result
 function test_get() {
@@ -18,7 +40,7 @@ function test_get() {
     
     echo "Testing $description..."
     echo "GET $BASE_URL$endpoint"
-    curl -s -X GET "$BASE_URL$endpoint" | jq '.' || echo "Failed to parse JSON response"
+    curl -s -X GET -H "Authorization: Bearer $ADMIN_TOKEN" "$BASE_URL$endpoint" | jq '.' || echo "Failed to parse JSON response"
     echo ""
 }
 

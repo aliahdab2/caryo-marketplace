@@ -1,0 +1,161 @@
+{
+  "info": {
+    "_postman_id": "auth-tests-collection",
+    "name": "AutoTrader Authentication Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register User",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Generate random values for user registration",
+              "const randomUsername = 'user_' + Math.random().toString(36).substring(2, 10);",
+              "const randomEmail = `${randomUsername}@example.com`;",
+              "",
+              "// Store values for use across requests",
+              "pm.environment.set('test_username', randomUsername);",
+              "pm.environment.set('test_email', randomEmail);",
+              "pm.environment.set('test_password', 'password123');",
+              "",
+              "console.log(`Generated test user: ${randomUsername}, ${randomEmail}`);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Registration successful message\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include(\"successfully\");",
+              "});",
+              "",
+              "// Log the response for debugging",
+              "console.log(\"Registration Response:\", pm.response.json());"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"role\": [\"user\"]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/signup",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "signup"]
+        }
+      }
+    },
+    {
+      "name": "Login User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response has access token\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.token).to.exist;",
+              "    pm.expect(jsonData.type).to.equal(\"Bearer\");",
+              "    ",
+              "    // Store token for later use",
+              "    pm.environment.set(\"auth_token\", jsonData.token);",
+              "});",
+              "",
+              "console.log(\"Login Response:\", pm.response.json());",
+              "console.log(\"Auth Token:\", pm.environment.get(\"auth_token\") ? (pm.environment.get(\"auth_token\").substring(0, 15) + \"...\") : \"none\");"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"password\": \"{{test_password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/signin",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "signin"]
+        }
+      }
+    },
+    {
+      "name": "Login Admin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response has access token for admin\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.token).to.exist;",
+              "    pm.expect(jsonData.type).to.equal(\"Bearer\");",
+              "    ",
+              "    // Store admin token for later use",
+              "    pm.environment.set(\"admin_auth_token\", jsonData.token);",
+              "});",
+              "",
+              "console.log(\"Admin Login Response:\", pm.response.json());",
+              "console.log(\"Admin Auth Token:\", pm.environment.get(\"admin_auth_token\") ? (pm.environment.get(\"admin_auth_token\").substring(0, 15) + \"...\") : \"none\");"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"{{admin_username}}\",\n    \"password\": \"{{admin_password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/signin",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "signin"]
+        }
+      }
+    }
+  ]
+}

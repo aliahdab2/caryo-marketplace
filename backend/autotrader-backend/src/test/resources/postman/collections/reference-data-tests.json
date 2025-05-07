@@ -1,0 +1,106 @@
+{
+  "info": {
+    "_postman_id": "reference-data-tests-collection",
+    "name": "AutoTrader Reference Data Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get All Reference Data",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Check if admin token exists, if not login as admin",
+              "if (!pm.environment.get('admin_auth_token')) {",
+              "    console.log('No admin token found, logging in as admin first');",
+              "    ",
+              "    const adminLoginRequest = {",
+              "        url: pm.environment.get('baseUrl') + '/auth/signin',",
+              "        method: 'POST',",
+              "        header: 'Content-Type:application/json',",
+              "        body: {",
+              "            mode: 'raw',",
+              "            raw: JSON.stringify({",
+              "                username: pm.environment.get('admin_username'),",
+              "                password: pm.environment.get('admin_password')",
+              "            })",
+              "        }",
+              "    };",
+              "    ",
+              "    pm.sendRequest(adminLoginRequest, function (err, res) {",
+              "        if (err) {",
+              "            console.error('Error logging in as admin:', err);",
+              "        } else {",
+              "            if (res.code === 200 && res.json().token) {",
+              "                const token = res.json().token;",
+              "                pm.environment.set('admin_auth_token', token);",
+              "                console.log('Admin token retrieved and set successfully');",
+              "            } else {",
+              "                console.error('Failed to retrieve admin token:', res.text());",
+              "            }",
+              "        }",
+              "    });",
+              "}",
+              "",
+              "console.log('Using admin token:', pm.environment.get('admin_auth_token') ? ",
+              "    (pm.environment.get('admin_auth_token').substring(0,10) + '...') : 'none');"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response contains all reference data categories\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('carConditions');",
+              "    pm.expect(jsonData).to.have.property('driveTypes');",
+              "    pm.expect(jsonData).to.have.property('bodyStyles');",
+              "    pm.expect(jsonData).to.have.property('fuelTypes');",
+              "    pm.expect(jsonData).to.have.property('transmissions');",
+              "    pm.expect(jsonData).to.have.property('sellerTypes');",
+              "});",
+              "",
+              "pm.test(\"Each category contains data\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.carConditions).to.be.an('array').and.not.to.be.empty;",
+              "    pm.expect(jsonData.driveTypes).to.be.an('array').and.not.to.be.empty;",
+              "    pm.expect(jsonData.bodyStyles).to.be.an('array').and.not.to.be.empty;",
+              "    pm.expect(jsonData.fuelTypes).to.be.an('array').and.not.to.be.empty;",
+              "    pm.expect(jsonData.transmissions).to.be.an('array').and.not.to.be.empty;",
+              "    pm.expect(jsonData.sellerTypes).to.be.an('array').and.not.to.be.empty;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/reference-data",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "reference-data"]
+        }
+      }
+    }
+  ]
+}
