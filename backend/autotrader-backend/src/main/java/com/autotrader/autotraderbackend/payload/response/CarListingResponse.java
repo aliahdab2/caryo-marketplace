@@ -25,12 +25,6 @@ public class CarListingResponse {
     private BigDecimal price;
     
     /**
-     * @deprecated Use locationDetails instead
-     */
-    @Deprecated
-    private String location;
-    
-    /**
      * Location details object
      */
     private LocationResponse locationDetails;
@@ -54,12 +48,6 @@ public class CarListingResponse {
     public Integer getMileage() { return mileage; }
     public BigDecimal getPrice() { return price; }
     
-    /**
-     * @deprecated Use getLocationDetails() instead
-     */
-    @Deprecated
-    public String getLocation() { return location; }
-    
     public LocationResponse getLocationDetails() { return locationDetails; }
     
     public String getDescription() { return description; }
@@ -77,12 +65,6 @@ public class CarListingResponse {
     public void setModelYear(Integer modelYear) { this.modelYear = modelYear; }
     public void setMileage(Integer mileage) { this.mileage = mileage; }
     public void setPrice(BigDecimal price) { this.price = price; }
-    
-    /**
-     * @deprecated Use setLocationDetails(LocationResponse) instead
-     */
-    @Deprecated
-    public void setLocation(String location) { this.location = location; }
     
     public void setLocationDetails(LocationResponse locationDetails) { this.locationDetails = locationDetails; }
     
