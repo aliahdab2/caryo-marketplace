@@ -124,25 +124,23 @@ public class CarListing {
         updatedAt = LocalDateTime.now();
     }
     
+
+    
     /**
-     * This is a transient method that returns the URL for the primary image
-     * by finding the primary media in the listing's media collection
+     * Helper method to get the primary media item for this listing
+     * @return The primary media item, or the first media item if no primary is set, or null if no media exists
      */
-    @Transient
-    public String getPrimaryImageUrl() {
+    public ListingMedia getPrimaryMedia() {
         if (media == null || media.isEmpty()) {
             return null;
         }
         
-        // Find primary image
         return media.stream()
             .filter(m -> m.getIsPrimary() && "image".equals(m.getMediaType()))
             .findFirst()
-            .map(ListingMedia::getFileKey)
             .orElseGet(() -> media.stream()
                 .filter(m -> "image".equals(m.getMediaType()))
                 .findFirst()
-                .map(ListingMedia::getFileKey)
                 .orElse(null));
     }
     

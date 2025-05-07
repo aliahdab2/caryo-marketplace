@@ -2,6 +2,8 @@ package com.autotrader.autotraderbackend.payload.response;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -34,7 +36,10 @@ public class CarListingResponse {
     private LocationResponse locationDetails;
     
     private String description;
-    private String imageUrl;
+    /**
+     * Collection of media items (images/videos) associated with this car listing
+     */
+    private List<ListingMediaResponse> media = new ArrayList<>();
     private Boolean approved;
     private Long sellerId;
     private String sellerUsername;
@@ -58,7 +63,7 @@ public class CarListingResponse {
     public LocationResponse getLocationDetails() { return locationDetails; }
     
     public String getDescription() { return description; }
-    public String getImageUrl() { return imageUrl; }
+    public List<ListingMediaResponse> getMedia() { return media; }
     public Boolean getApproved() { return approved; }
     public Long getSellerId() { return sellerId; }
     public String getSellerUsername() { return sellerUsername; }
@@ -82,7 +87,7 @@ public class CarListingResponse {
     public void setLocationDetails(LocationResponse locationDetails) { this.locationDetails = locationDetails; }
     
     public void setDescription(String description) { this.description = description; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public void setMedia(List<ListingMediaResponse> media) { this.media = media != null ? media : new ArrayList<>(); }
     public void setApproved(Boolean approved) { this.approved = approved; }
     public void setSellerId(Long sellerId) { this.sellerId = sellerId; }
     public void setSellerUsername(String sellerUsername) { this.sellerUsername = sellerUsername; }

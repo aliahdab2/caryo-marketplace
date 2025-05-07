@@ -209,7 +209,6 @@ class CreateListingRequestTest {
         BigDecimal price = new BigDecimal("15000.00");
         Long locationId = 1L; // Changed from String location to Long locationId
         String description = "Test Description";
-        String imageUrl = "http://example.com/image.jpg";
         
         // Act - Set values
         request.setTitle(title);
@@ -220,7 +219,6 @@ class CreateListingRequestTest {
         request.setPrice(price);
         request.setLocationId(locationId); // Use setLocationId
         request.setDescription(description);
-        request.setImageUrl(imageUrl);
         
         // Assert - Get values
         assertEquals(title, request.getTitle());
@@ -231,7 +229,6 @@ class CreateListingRequestTest {
         assertEquals(price, request.getPrice());
         assertEquals(locationId, request.getLocationId()); // Use getLocationId and assert against locationId
         assertEquals(description, request.getDescription());
-        assertEquals(imageUrl, request.getImageUrl());
     }
     
     @Test

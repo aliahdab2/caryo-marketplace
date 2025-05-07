@@ -53,12 +53,6 @@ public class UpdateListingRequest {
     public Integer getMileage() { return mileage; }
     public BigDecimal getPrice() { return price; }
     
-    /**
-     * @deprecated Use getLocationId() instead
-     */
-    @Deprecated
-    public String getLocation() { return location; }
-    
     public Long getLocationId() { return locationId; }
     
     public String getDescription() { return description; }

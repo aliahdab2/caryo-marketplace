@@ -187,7 +187,7 @@ Authorization: Bearer <your_jwt_token>
 - **Endpoint**: `POST /api/listings/with-image`
 - **Content-Type**: `multipart/form-data`
 - **Access**: Authenticated users
-- **Description**: Creates a new car listing with an image attachment. The `locationId` in the `listing` JSON part must correspond to an existing `Location` entity.
+- **Description**: Creates a new car listing with an initial image attachment. This image will be added to the `listing_media` table and typically set as the primary image. Additional images/videos can be uploaded via the `/api/files/upload` endpoint after the listing is created. The `locationId` in the `listing` JSON part must correspond to an existing `Location` entity.
 - **Authentication**: Required (JWT token)
 - **Request Parts**:
   - `listing`: JSON object containing listing details (similar to the JSON-only endpoint, including `locationId`).
@@ -223,7 +223,19 @@ Authorization: Bearer <your_jwt_token>
     "price": 28500,
     "mileage": 15000,
     "description": "Excellent condition, one owner, no accidents",
-    "imageUrl": "https://example.com/camry.jpg", // if image was uploaded
+    "media": [
+      {
+        "id": 101, // listing_media.id
+        "url": "https://your-s3-bucket.s3.amazonaws.com/listings/1/image.jpg",
+        "fileKey": "listings/1/image.jpg",
+        "fileName": "image.jpg",
+        "contentType": "image/jpeg",
+        "size": 512000,
+        "sortOrder": 0,
+        "isPrimary": true,
+        "mediaType": "image"
+      }
+    ],
     "approved": false,
     "sellerUsername": "yourUsername",
     "locationDetails": {
@@ -262,27 +274,69 @@ Authorization: Bearer <your_jwt_token>
   - `page` (Integer, optional, default: 0): Page number for pagination.
   - `size` (Integer, optional, default: 20): Number of items per page.
   - `sort` (String, optional, e.g., `price,asc` or `createdAt,desc`): Sorting criteria.
-- **Response (200 OK)**: Paginated list of `CarListingResponse` objects. Example structure:
+- **Response (200 OK)**: Paginated list of `CarListingResponse` objects. The `media` array will contain all associated media items for each listing. Example structure:
   ```json
   {
     "content": [
       {
         "id": 1,
         "title": "2021 Toyota Camry",
-        // ... other fields as in CarListingResponse ...
+        "brand": "Toyota",
+        "model": "Camry",
+        "modelYear": 2021,
+        "price": 22000,
+        "mileage": 40000,
+        "description": "Well-maintained sedan.",
+        "media": [
+          {
+            "id": 101,
+            "url": "https://your-s3-bucket.s3.amazonaws.com/listings/1/main.jpg",
+            "fileKey": "listings/1/main.jpg",
+            "fileName": "main.jpg",
+            "contentType": "image/jpeg",
+            "size": 450000,
+            "sortOrder": 0,
+            "isPrimary": true,
+            "mediaType": "image"
+          },
+          {
+            "id": 102,
+            "url": "https://your-s3-bucket.s3.amazonaws.com/listings/1/interior.jpg",
+            "fileKey": "listings/1/interior.jpg",
+            "fileName": "interior.jpg",
+            "contentType": "image/jpeg",
+            "size": 300000,
+            "sortOrder": 1,
+            "isPrimary": false,
+            "mediaType": "image"
+          }
+        ],
+        "approved": true,
+        "sellerUsername": "testuser",
         "locationDetails": {
           "id": 123,
           "displayNameEn": "Test City Lifecycle",
           "displayNameAr": "مدينة اختبار دورة الحياة",
           "slug": "test-city-lifecycle",
-          // ... other location fields ...
-        }
+          "countryCode": "TC",
+          "region": "Test Region",
+          "latitude": 12.3456,
+          "longitude": -78.9101
+        },
+        "transmission": "AUTOMATIC",
+        "createdAt": "2025-05-01T10:00:00Z",
+        "updatedAt": "2025-05-01T10:00:00Z"
       }
     ],
-    "pageable": { /* ... pagination details ... */ },
+    "pageable": { "pageNumber": 0, "pageSize": 20, /* ... */ },
     "totalPages": 1,
     "totalElements": 1,
-    // ... other pagination fields ...
+    "last": true,
+    "first": true,
+    "numberOfElements": 1,
+    "size": 20,
+    "number": 0,
+    "empty": false
   }
   ```
 
@@ -327,7 +381,41 @@ Authorization: Bearer <your_jwt_token>
   {
     "id": 1,
     "title": "2023 Toyota Camry",
-    // ... all fields from CarListingResponse, including locationDetails
+    "brand": "Toyota",
+    "model": "Camry",
+    "modelYear": 2023,
+    "price": 28500,
+    "mileage": 15000,
+    "description": "Excellent condition, one owner, no accidents",
+    "media": [
+      {
+        "id": 101,
+        "url": "https://your-s3-bucket.s3.amazonaws.com/listings/1/main_camry.jpg",
+        "fileKey": "listings/1/main_camry.jpg",
+        "fileName": "main_camry.jpg",
+        "contentType": "image/jpeg",
+        "size": 550000,
+        "sortOrder": 0,
+        "isPrimary": true,
+        "mediaType": "image"
+      }
+      // ... other media items if present ...
+    ],
+    "approved": true,
+    "sellerUsername": "yourUsername",
+    "locationDetails": {
+        "id": 123,
+        "displayNameEn": "Example City",
+        "displayNameAr": "مدينة مثال",
+        "slug": "example-city",
+        "countryCode": "EC",
+        "region": "Example Region",
+        "latitude": 34.0522,
+        "longitude": -118.2437
+    },
+    "transmission": "AUTOMATIC",
+    "createdAt": "2025-05-06T10:15:30Z",
+    "updatedAt": "2025-05-06T10:15:30Z"
   }
   ```
 - **Response (404 Not Found)**: If the listing does not exist or is not approved.
@@ -355,6 +443,7 @@ Authorization: Bearer <your_jwt_token>
   }
   ```
 - **Response (200 OK)**: The updated `CarListingResponse`.
+- **Response (200 OK)**: The updated `CarListingResponse`, including any changes to the `media` array. For managing media items themselves (adding, removing, reordering, setting primary), see the "File Management APIs" and the "Managing Listing Media (Suggested)" sections.
 - **Response (403 Forbidden)**: If the authenticated user is not the owner.
 - **Response (404 Not Found)**: If the listing does not exist.
 
@@ -402,12 +491,46 @@ Authorization: Bearer <your_jwt_token>
       "mileage": 35000,
       "location": "New York, NY",
       "description": "Excellent condition, one owner, no accidents",
-      "imageUrl": "https://example.com/camry.jpg",
       "approved": false,
       "userId": 1,
       "createdAt": "2025-04-30T10:15:30Z",
       "updatedAt": null
     }
+  ]
+  ```
+- **Response (200 OK)**: A list of `CarListingResponse` objects, each including a `media` array.
+  ```json
+  [
+    {
+      "id": 1,
+      "title": "2019 Toyota Camry",
+      "brand": "Toyota",
+      "model": "Camry",
+      "modelYear": 2019,
+      "price": 18500,
+      "mileage": 35000,
+      "description": "Excellent condition, one owner, no accidents",
+      "media": [
+        {
+          "id": 201,
+          "url": "https://your-s3-bucket.s3.amazonaws.com/listings/1/my_camry.jpg",
+          "fileKey": "listings/1/my_camry.jpg",
+          "fileName": "my_camry.jpg",
+          "contentType": "image/jpeg",
+          "size": 600000,
+          "sortOrder": 0,
+          "isPrimary": true,
+          "mediaType": "image"
+        }
+      ],
+      "approved": false,
+      "sellerUsername": "currentUser", // Assuming this field is available
+      "locationDetails": { /* ... location details ... */ },
+      "transmission": "AUTOMATIC",
+      "createdAt": "2025-04-30T10:15:30Z",
+      "updatedAt": null
+    }
+    // ... other listings by the user ...
   ]
   ```
 
@@ -570,18 +693,18 @@ To run all API tests automatically:
 - **Endpoint**: `POST /api/files/upload`
 - **Content-Type**: `multipart/form-data`
 - **Access**: Authenticated users with USER role
-- **Description**: Uploads a file to the storage service (S3 or local storage)
+- **Description**: Uploads a file to the storage service (e.g., S3). If `listingId` is provided, this endpoint will also create a corresponding entry in the `listing_media` table, associating the uploaded file with the specified car listing. The `key` returned in the response is the `file_key` that will be stored in `listing_media`.
 - **Authentication**: Required (JWT token)
 - **Request Parameters**:
   - `file`: The file to upload (multipart/form-data)
-  - `listingId` (optional): The ID of the car listing associated with this file
+  - `listingId` (Long, optional): The ID of the car listing to associate this file with. If provided, a `listing_media` record will be created.
   
 - **Validation Rules**:
   - File must not be empty
-  - File type must be allowed (image/jpeg, image/png, image/gif, image/webp, application/pdf, etc.)
+  - File type must be allowed (e.g., image/jpeg, image/png, image/gif, image/webp, video/mp4, etc. - consult `media_type` in `listing_media` and application config for supported types)
   - File size must not exceed the configured maximum limit
   
-- **Example curl request**:
+- **Example curl request** (associating with a listing):
   ```bash
   curl -X POST http://localhost:8080/api/files/upload \
     -H "Authorization: Bearer YOUR_JWT_TOKEN" \
@@ -592,23 +715,13 @@ To run all API tests automatically:
 - **Response (200 OK)**:
   ```json
   {
-    "url": "https://your-s3-bucket.s3.amazonaws.com/listings/123/abc123.jpg",
-    "key": "listings/123/abc123.jpg"
-  }
-  ```
-  
-- **Response (400 Bad Request)** - Invalid file:
-  ```json
-  {
-    "message": "Failed to store empty file",
-    "status": "BAD_REQUEST"
-  }
-  ```
-  or
-  ```json
-  {
-    "message": "Unsupported file type: application/octet-stream",
-    "status": "BAD_REQUEST"
+    "url": "https://your-s3-bucket.s3.amazonaws.com/listings/123/generated-file-key.jpg",
+    "key": "listings/123/generated-file-key.jpg", // This key is used in listing_media.file_key
+    "fileName": "image.jpg", // Original file name
+    "contentType": "image/jpeg",
+    "size": 512000
+    // Optionally, if listingId was provided, the created listing_media record ID could be returned:
+    // "listingMediaId": 456 
   }
   ```
 
@@ -642,56 +755,8 @@ To run all API tests automatically:
 #### Delete File
 
 - **Endpoint**: `DELETE /api/files/{key}`
-- **Access**: Authenticated users with ADMIN role
-- **Description**: Deletes a file from storage
+- **Access**: Authenticated users (Permissions might depend on whether the file is associated with a listing and who owns the listing, or if it requires ADMIN role).
+- **Description**: Deletes a file from storage using its `key`. If this `key` corresponds to a `file_key` in a `listing_media` record, the associated `listing_media` record should also be deleted to maintain data integrity.
 - **Authentication**: Required (JWT token)
-- **Parameters**:
-  - `key`: The unique key of the file
-  
-- **Response (200 OK)**:
-  ```json
-  {
-    "message": "File deleted successfully"
-  }
-  ```
-  or
-  ```json
-  {
-    "message": "File not found or could not be deleted"
-  }
-  ```
-
-### Direct Image Operations
-
-#### Upload Image (Simple)
-
-- **Endpoint**: `POST /api/images/upload`
-- **Content-Type**: `multipart/form-data`
-- **Access**: Public
-- **Description**: Uploads an image to the local file system (simpler than the S3 version)
-- **Request Parameters**:
-  - `file`: The image file to upload (multipart/form-data)
-  
-- **Example curl request**:
-  ```bash
-  curl -X POST http://localhost:8080/api/images/upload \
-    -F "file=@/path/to/your/image.jpg"
-  ```
-  
-- **Response (200 OK)**:
-  ```json
-  {
-    "fileName": "20250502123045-abc123-def456.jpg",
-    "fileDownloadUri": "http://localhost:8080/api/images/20250502123045-abc123-def456.jpg"
-  }
-  ```
-
-#### View Image
-
-- **Endpoint**: `GET /api/images/{fileName}`
-- **Access**: Public
-- **Description**: Retrieves an image by its file name
-- **Parameters**:
-  - `fileName`: The name of the image file
-  
-- **Response**: The image content with appropriate Content-Type header
+- **Path Parameters**:
+  - `key`: The unique key of the file (e.g., `listings/123/generated-file-key.jpg`). Note: URL encoding for the key might be necessary if it contains special characters like '/'.\n  \n- **Response (200 OK or 204 No Content)**:\n  ```json\n  {\n    \"message\": \"File and associated listing media record deleted successfully\"\n  }\n  ```\n  or (if file not found or deletion failed)\n  ```json\n  {\n    \"message\": \"File not found or could not be deleted\"\n  }\n  ```\n\n### Managing Listing Media (Suggested)\n\nWith the introduction of the `listing_media` table to support multiple images and videos per listing, specific operations for managing these media items are crucial. While uploading (`POST /api/files/upload` with `listingId`) and deleting (`DELETE /api/files/{key}`) cover basic lifecycle, more granular control might be needed:\n\n- **List Media for a Listing**:\n  - This is implicitly covered by the updated `CarListingResponse` which now includes a `media` array.\n  - An explicit endpoint like `GET /api/listings/{listingId}/media` could also be provided if needed for focused media management UIs.\n\n- **Set Primary Media Item**:\n  - **Endpoint (Suggested)**: `PUT /api/listings/{listingId}/media/set-primary`\n  - **Access**: Authenticated owner of the listing or Admin.\n  - **Description**: Sets a specific media item (identified by its `listing_media.id` or `file_key`) as the primary one for the listing (i.e., sets `is_primary = true` for this item and `false` for others).\n  - **Request Body**:\n    ```json\n    {\n      \"mediaFileKey\": \"listings/123/new-primary-image.jpg\" // or \"listingMediaId\": 457\n    }\n    ```\n  - **Response (200 OK)**: The updated `CarListingResponse` or a success message.\n\n- **Reorder Media Items**:\n  - **Endpoint (Suggested)**: `PUT /api/listings/{listingId}/media/order`\n  - **Access**: Authenticated owner of the listing or Admin.\n  - **Description**: Updates the `sort_order` for multiple media items of a listing.\n  - **Request Body**: An array of objects, each specifying a media item and its new sort order.\n    ```json\n    [\n      { \"mediaFileKey\": \"listings/123/image1.jpg\", \"sortOrder\": 0 }, // or \"listingMediaId\": 457\n      { \"mediaFileKey\": \"listings/123/video1.mp4\", \"sortOrder\": 1 }, // or \"listingMediaId\": 458\n      { \"mediaFileKey\": \"listings/123/image2.jpg\", \"sortOrder\": 2 }  // or \"listingMediaId\": 459\n    ]\n    ```\n  - **Response (200 OK)**: The updated `CarListingResponse` or a success message.\n\nThese suggested endpoints would provide comprehensive management of listing media. If they or similar functionalities already exist, they should be documented here.\n\n### Direct Image Operations\n\n**Note**: This section describes a simpler, local file system-based image upload. For managing images and videos associated with car listings (which are likely stored in a cloud service like S3 and tracked via the `listing_media` table), please refer to the "File Management APIs" and "Managing Listing Media (Suggested)" sections above. The endpoints below might be for other purposes (e.g., temporary uploads, user profile pictures not on S3) or could be deprecated for listing media.\n

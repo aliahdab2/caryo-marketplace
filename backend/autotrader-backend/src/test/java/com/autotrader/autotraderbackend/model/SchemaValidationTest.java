@@ -347,10 +347,10 @@ public class SchemaValidationTest {
         assertNotNull(retrievedListing.getMedia());
         assertEquals(2, retrievedListing.getMedia().size());
         
-        // Verify the primary image helper method works
-        String primaryImageUrl = retrievedListing.getPrimaryImageUrl();
-        assertNotNull(primaryImageUrl);
-        assertEquals("primary-image-key", primaryImageUrl);
+        // Ensure getPrimaryMedia is used correctly
+        ListingMedia primaryMedia = retrievedListing.getPrimaryMedia();
+        assertNotNull(primaryMedia);
+        assertEquals("primary-image-key", primaryMedia.getFileKey());
         
         // Verify we can retrieve media via the repository as well
         java.util.List<ListingMedia> mediaList = listingMediaRepository.findByListingIdOrderBySortOrderAsc(retrievedListing.getId());

@@ -2,11 +2,17 @@ package com.autotrader.autotraderbackend.mapper;
 
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
+import com.autotrader.autotraderbackend.payload.response.ListingMediaResponse;
 import com.autotrader.autotraderbackend.payload.response.LocationResponse;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -18,7 +24,8 @@ public class CarListingMapper {
 
     /**
      * Converts a CarListing entity to a CarListingResponse DTO.
-     * Handles fetching the signed URL for the image if an image key exists.
+     * Maps all media items from the listing to the response and handles fetching
+     * signed URLs for each media item.
      *
      * @param carListing The CarListing entity.
      * @return The corresponding CarListingResponse DTO.
@@ -53,15 +60,57 @@ public class CarListingMapper {
             response.setSellerId(carListing.getSeller().getId());
             response.setSellerUsername(carListing.getSeller().getUsername());
         } else {
-             log.warn("CarListing with ID {} has a null seller.", carListing.getId());
+            log.warn("CarListing with ID {} has a null seller.", carListing.getId());
         }
 
-        // Generate signed URL for primary image if it exists
-        String primaryImageKey = carListing.getPrimaryImageUrl(); // This method now returns fileKey for primary image
-        String signedImageUrl = primaryImageKey != null ? generateSignedUrl(carListing.getId(), primaryImageKey) : null;
-        response.setImageUrl(signedImageUrl);
+        // Map all media items
+        List<ListingMediaResponse> mediaResponses = mapListingMedia(carListing);
+        response.setMedia(mediaResponses);
 
         return response;
+    }
+    
+    /**
+     * Maps all media items from a car listing to ListingMediaResponse DTOs.
+     * Handles generating signed URLs for each media item.
+     *
+     * @param carListing The car listing containing media items.
+     * @return List of ListingMediaResponse DTOs, sorted by sortOrder.
+     */
+    private List<ListingMediaResponse> mapListingMedia(CarListing carListing) {
+        if (carListing == null || carListing.getMedia() == null || carListing.getMedia().isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        return carListing.getMedia().stream()
+            .map(media -> mapSingleMedia(carListing.getId(), media))
+            .sorted(Comparator.comparing(ListingMediaResponse::getSortOrder))
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * Maps a single media item to a ListingMediaResponse DTO.
+     *
+     * @param listingId The ID of the associated car listing.
+     * @param media The media entity to map.
+     * @return The corresponding ListingMediaResponse DTO.
+     */
+    private ListingMediaResponse mapSingleMedia(Long listingId, com.autotrader.autotraderbackend.model.ListingMedia media) {
+        ListingMediaResponse mediaResponse = new ListingMediaResponse();
+        mediaResponse.setId(media.getId());
+        mediaResponse.setFileKey(media.getFileKey());
+        mediaResponse.setFileName(media.getFileName());
+        mediaResponse.setContentType(media.getContentType());
+        mediaResponse.setSize(media.getSize());
+        mediaResponse.setSortOrder(media.getSortOrder());
+        mediaResponse.setIsPrimary(media.getIsPrimary());
+        mediaResponse.setMediaType(media.getMediaType());
+        
+        // Generate signed URL for this media item
+        String signedUrl = generateSignedUrl(listingId, media.getFileKey());
+        mediaResponse.setUrl(signedUrl);
+        
+        return mediaResponse;
     }
 
     /**

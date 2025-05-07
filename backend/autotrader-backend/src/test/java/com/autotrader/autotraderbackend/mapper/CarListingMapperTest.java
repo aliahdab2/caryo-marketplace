@@ -5,6 +5,7 @@ import com.autotrader.autotraderbackend.model.ListingMedia;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.model.Location; // Ensure this import is present
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
+import com.autotrader.autotraderbackend.payload.response.ListingMediaResponse;
 // Ensure com.autotrader.autotraderbackend.payload.response.LocationResponse is NOT imported here
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+
 class CarListingMapperTest {
 
     @Mock
@@ -104,13 +106,26 @@ class CarListingMapperTest {
         assertEquals(testCarListing.getApproved(), response.getApproved());
         assertEquals(testSeller.getId(), response.getSellerId());
         assertEquals(testSeller.getUsername(), response.getSellerUsername());
-        assertEquals(expectedSignedUrl, response.getImageUrl());
+        
+        // Assert media collection
+        assertNotNull(response.getMedia());
+        assertEquals(1, response.getMedia().size());
+        ListingMediaResponse mediaResponse = response.getMedia().get(0);
+        assertNotNull(mediaResponse);
+        assertEquals("listings/10/image.jpg", mediaResponse.getFileKey());
+        assertEquals("image.jpg", mediaResponse.getFileName());
+        assertEquals("image/jpeg", mediaResponse.getContentType());
+        assertEquals(1024L, mediaResponse.getSize());
+        assertEquals(0, mediaResponse.getSortOrder());
+        assertTrue(mediaResponse.getIsPrimary());
+        assertEquals("image", mediaResponse.getMediaType());
+        assertEquals(expectedSignedUrl, mediaResponse.getUrl());
 
         verify(storageService).getSignedUrl(eq("listings/10/image.jpg"), anyLong());
     }
 
     @Test
-    void toCarListingResponse_WithNullImageKey_ShouldHaveNullImageUrl() {
+    void toCarListingResponse_WithNoMedia_ShouldHaveEmptyMediaList() {
         // Arrange - clear all media
         testCarListing.getMedia().clear();
 
@@ -119,12 +134,12 @@ class CarListingMapperTest {
 
         // Assert
         assertNotNull(response);
-        assertNull(response.getImageUrl());
+        assertTrue(response.getMedia().isEmpty());
         verify(storageService, never()).getSignedUrl(anyString(), anyLong());
     }
 
     @Test
-    void toCarListingResponse_WithBlankImageKey_ShouldHaveNullImageUrl() {
+    void toCarListingResponse_WithBlankImageKey_ShouldHaveNullMediaUrl() {
         // Arrange - set blank file key
         testCarListing.getMedia().clear();
         ListingMedia blankKeyMedia = new ListingMedia();
@@ -143,7 +158,8 @@ class CarListingMapperTest {
 
         // Assert
         assertNotNull(response);
-        assertNull(response.getImageUrl());
+        assertEquals(1, response.getMedia().size());
+        assertNull(response.getMedia().get(0).getUrl());
         verify(storageService, never()).getSignedUrl(anyString(), anyLong());
     }
 
@@ -172,7 +188,7 @@ class CarListingMapperTest {
     }
 
     @Test
-    void toCarListingResponse_WhenGetSignedUrlThrowsUnsupportedOperation_ShouldHaveNullImageUrl() {
+    void toCarListingResponse_WhenGetSignedUrlThrowsUnsupportedOperation_ShouldHaveNullMediaUrl() {
         // Arrange - using primary image file key for test
         when(storageService.getSignedUrl(eq("listings/10/image.jpg"), anyLong()))
                 .thenThrow(new UnsupportedOperationException("Not supported"));
@@ -182,12 +198,13 @@ class CarListingMapperTest {
 
         // Assert
         assertNotNull(response);
-        assertNull(response.getImageUrl());
+        assertEquals(1, response.getMedia().size());
+        assertNull(response.getMedia().get(0).getUrl());
         verify(storageService).getSignedUrl(eq("listings/10/image.jpg"), anyLong());
     }
 
     @Test
-    void toCarListingResponse_WhenGetSignedUrlThrowsGenericException_ShouldHaveNullImageUrl() {
+    void toCarListingResponse_WhenGetSignedUrlThrowsGenericException_ShouldHaveNullMediaUrl() {
         // Arrange - using primary image file key for test
         when(storageService.getSignedUrl(eq("listings/10/image.jpg"), anyLong()))
                 .thenThrow(new RuntimeException("Something went wrong"));
@@ -197,7 +214,83 @@ class CarListingMapperTest {
 
         // Assert
         assertNotNull(response);
-        assertNull(response.getImageUrl());
+        assertEquals(1, response.getMedia().size());
+        assertNull(response.getMedia().get(0).getUrl());
         verify(storageService).getSignedUrl(eq("listings/10/image.jpg"), anyLong());
+    }
+    
+    @Test
+    void toCarListingResponse_WithMultipleMedia_ShouldMapAllMedia() {
+        // Arrange - add a second media item
+        String expectedSignedUrl1 = "http://example.com/signed/image1.jpg";
+        String expectedSignedUrl2 = "http://example.com/signed/image2.jpg";
+        
+        // Clear existing media and add two new items
+        testCarListing.getMedia().clear();
+        
+        ListingMedia primaryImage = new ListingMedia();
+        primaryImage.setId(101L);
+        primaryImage.setCarListing(testCarListing);
+        primaryImage.setFileKey("listings/10/image1.jpg");
+        primaryImage.setFileName("image1.jpg");
+        primaryImage.setContentType("image/jpeg");
+        primaryImage.setSize(1024L);
+        primaryImage.setSortOrder(0);
+        primaryImage.setIsPrimary(true);
+        primaryImage.setMediaType("image");
+        testCarListing.addMedia(primaryImage);
+        
+        ListingMedia secondaryImage = new ListingMedia();
+        secondaryImage.setId(102L);
+        secondaryImage.setCarListing(testCarListing);
+        secondaryImage.setFileKey("listings/10/image2.jpg");
+        secondaryImage.setFileName("image2.jpg");
+        secondaryImage.setContentType("image/jpeg");
+        secondaryImage.setSize(2048L);
+        secondaryImage.setSortOrder(1);
+        secondaryImage.setIsPrimary(false);
+        secondaryImage.setMediaType("image");
+        testCarListing.addMedia(secondaryImage);
+        
+        when(storageService.getSignedUrl(eq("listings/10/image1.jpg"), anyLong())).thenReturn(expectedSignedUrl1);
+        when(storageService.getSignedUrl(eq("listings/10/image2.jpg"), anyLong())).thenReturn(expectedSignedUrl2);
+        
+        // Act
+        CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
+        
+        // Assert
+        assertNotNull(response);
+        
+        // Check media collection
+        assertNotNull(response.getMedia());
+        assertEquals(2, response.getMedia().size());
+        
+        // Check first media item (should be primary)
+        ListingMediaResponse media1 = response.getMedia().get(0);
+        assertEquals(101L, media1.getId());
+        assertEquals("listings/10/image1.jpg", media1.getFileKey());
+        assertEquals("image1.jpg", media1.getFileName());
+        assertEquals("image/jpeg", media1.getContentType());
+        assertEquals(1024L, media1.getSize());
+        assertEquals(0, media1.getSortOrder());
+        assertTrue(media1.getIsPrimary());
+        assertEquals("image", media1.getMediaType());
+        assertEquals(expectedSignedUrl1, media1.getUrl());
+        
+        // Check second media item
+        ListingMediaResponse media2 = response.getMedia().get(1);
+        assertEquals(102L, media2.getId());
+        assertEquals("listings/10/image2.jpg", media2.getFileKey());
+        assertEquals("image2.jpg", media2.getFileName());
+        assertEquals("image/jpeg", media2.getContentType());
+        assertEquals(2048L, media2.getSize());
+        assertEquals(1, media2.getSortOrder());
+        assertFalse(media2.getIsPrimary());
+        assertEquals("image", media2.getMediaType());
+        assertEquals(expectedSignedUrl2, media2.getUrl());
+        
+        // Verify that signed URLs were generated for both images
+        verify(storageService).getSignedUrl(eq("listings/10/image1.jpg"), anyLong());
+        verify(storageService).getSignedUrl(eq("listings/10/image2.jpg"), anyLong());
     }
 }
