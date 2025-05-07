@@ -47,7 +47,7 @@ public class CarListingSpecification {
 
             // Add filter for Location entity if provided
             if (locationEntity != null) {
-                predicates.add(criteriaBuilder.equal(root.get("locationEntity"), locationEntity));
+                predicates.add(criteriaBuilder.equal(root.get("location"), locationEntity));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

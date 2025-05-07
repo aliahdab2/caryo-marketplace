@@ -39,11 +39,11 @@ public class CarListingMapper {
         response.setMileage(carListing.getMileage());
         response.setDescription(carListing.getDescription());
         
-        // Use only locationEntity
-        if (carListing.getLocationEntity() != null) {
-            response.setLocationDetails(LocationResponse.fromEntity(carListing.getLocationEntity()));
+        // Use location
+        if (carListing.getLocation() != null) {
+            response.setLocationDetails(LocationResponse.fromEntity(carListing.getLocation()));
         }
-        // If locationEntity is null, locationDetails will be null (handled by fromEntity)
+        // If location is null, locationDetails will be null (handled by fromEntity)
         // and the legacy response.setLocation() is not set.
         
         response.setCreatedAt(carListing.getCreatedAt());
@@ -56,8 +56,9 @@ public class CarListingMapper {
              log.warn("CarListing with ID {} has a null seller.", carListing.getId());
         }
 
-        // Generate signed URL if image key exists
-        String signedImageUrl = generateSignedUrl(carListing.getId(), carListing.getImageKey());
+        // Generate signed URL for primary image if it exists
+        String primaryImageKey = carListing.getPrimaryImageUrl(); // This method now returns fileKey for primary image
+        String signedImageUrl = primaryImageKey != null ? generateSignedUrl(carListing.getId(), primaryImageKey) : null;
         response.setImageUrl(signedImageUrl);
 
         return response;

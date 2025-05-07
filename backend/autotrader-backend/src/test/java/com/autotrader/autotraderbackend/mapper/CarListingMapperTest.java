@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.mapper;
 
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.ListingMedia;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.model.Location; // Ensure this import is present
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
@@ -55,11 +56,22 @@ class CarListingMapperTest {
         testCarListing.setPrice(new BigDecimal("25000.00"));
         testCarListing.setMileage(15000);
         testCarListing.setDescription("A great test car");
-        testCarListing.setLocationEntity(testLocation); // Use setLocationEntity
+        testCarListing.setLocation(testLocation); // Use setLocation instead of setLocationEntity
         testCarListing.setCreatedAt(LocalDateTime.now().minusDays(1));
         testCarListing.setApproved(true);
         testCarListing.setSeller(testSeller);
-        testCarListing.setImageKey("listings/10/image.jpg");
+        
+        // Add media instead of imageKey
+        ListingMedia primaryImage = new ListingMedia();
+        primaryImage.setCarListing(testCarListing);
+        primaryImage.setFileKey("listings/10/image.jpg");
+        primaryImage.setFileName("image.jpg");
+        primaryImage.setContentType("image/jpeg");
+        primaryImage.setSize(1024L);
+        primaryImage.setSortOrder(0);
+        primaryImage.setIsPrimary(true);
+        primaryImage.setMediaType("image");
+        testCarListing.addMedia(primaryImage);
     }
 
     @Test
@@ -84,8 +96,8 @@ class CarListingMapperTest {
         
         // Assert LocationDetails (new way)
         assertNotNull(response.getLocationDetails());
-        assertEquals(testCarListing.getLocationEntity().getId(), response.getLocationDetails().getId());
-        assertEquals(testCarListing.getLocationEntity().getDisplayNameEn(), response.getLocationDetails().getDisplayNameEn());
+        assertEquals(testCarListing.getLocation().getId(), response.getLocationDetails().getId());
+        assertEquals(testCarListing.getLocation().getDisplayNameEn(), response.getLocationDetails().getDisplayNameEn());
         // Assert other LocationDetails fields if necessary
 
         assertEquals(testCarListing.getCreatedAt(), response.getCreatedAt());
@@ -99,8 +111,8 @@ class CarListingMapperTest {
 
     @Test
     void toCarListingResponse_WithNullImageKey_ShouldHaveNullImageUrl() {
-        // Arrange
-        testCarListing.setImageKey(null);
+        // Arrange - clear all media
+        testCarListing.getMedia().clear();
 
         // Act
         CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
@@ -113,8 +125,18 @@ class CarListingMapperTest {
 
     @Test
     void toCarListingResponse_WithBlankImageKey_ShouldHaveNullImageUrl() {
-        // Arrange
-        testCarListing.setImageKey("   ");
+        // Arrange - set blank file key
+        testCarListing.getMedia().clear();
+        ListingMedia blankKeyMedia = new ListingMedia();
+        blankKeyMedia.setCarListing(testCarListing);
+        blankKeyMedia.setFileKey("   ");
+        blankKeyMedia.setFileName("image.jpg");
+        blankKeyMedia.setContentType("image/jpeg");
+        blankKeyMedia.setSize(1024L);
+        blankKeyMedia.setSortOrder(0);
+        blankKeyMedia.setIsPrimary(true);
+        blankKeyMedia.setMediaType("image");
+        testCarListing.addMedia(blankKeyMedia);
 
         // Act
         CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
@@ -151,7 +173,7 @@ class CarListingMapperTest {
 
     @Test
     void toCarListingResponse_WhenGetSignedUrlThrowsUnsupportedOperation_ShouldHaveNullImageUrl() {
-        // Arrange
+        // Arrange - using primary image file key for test
         when(storageService.getSignedUrl(eq("listings/10/image.jpg"), anyLong()))
                 .thenThrow(new UnsupportedOperationException("Not supported"));
 
@@ -166,7 +188,7 @@ class CarListingMapperTest {
 
     @Test
     void toCarListingResponse_WhenGetSignedUrlThrowsGenericException_ShouldHaveNullImageUrl() {
-        // Arrange
+        // Arrange - using primary image file key for test
         when(storageService.getSignedUrl(eq("listings/10/image.jpg"), anyLong()))
                 .thenThrow(new RuntimeException("Something went wrong"));
 

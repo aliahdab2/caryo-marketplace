@@ -123,7 +123,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         listing.setModelYear(year);
         listing.setPrice(price);
         listing.setSeller(testUser);
-        listing.setLocationEntity(location);
+        listing.setLocation(location);
         listing.setApproved(true); // Ensure listing is approved
         listing.setDescription("Test description for " + title);
         listing.setMileage(10000); // Default mileage

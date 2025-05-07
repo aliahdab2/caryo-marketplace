@@ -5,6 +5,7 @@ import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.mapper.CarListingMapper;
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.ListingMedia;
 import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
@@ -12,10 +13,10 @@ import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
+import com.autotrader.autotraderbackend.repository.ListingMediaRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.specification.CarListingSpecification;
-import com.autotrader.autotraderbackend.service.SortableCarListingField;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ public class CarListingService {
     private final CarListingRepository carListingRepository;
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
+    private final ListingMediaRepository listingMediaRepository;
     private final StorageService storageService;
     private final CarListingMapper carListingMapper;
 
@@ -62,8 +64,20 @@ public class CarListingService {
             try {
                 String imageKey = generateImageKey(savedListing.getId(), image.getOriginalFilename());
                 storageService.store(image, imageKey);
-                savedListing.setImageKey(imageKey);
-                savedListing = carListingRepository.save(savedListing); // Save again to update imageKey
+                
+                // Create and add ListingMedia for this image
+                ListingMedia media = new ListingMedia();
+                media.setCarListing(savedListing);
+                media.setFileKey(imageKey);
+                media.setFileName(image.getOriginalFilename());
+                media.setContentType(image.getContentType());
+                media.setSize(image.getSize());
+                media.setSortOrder(0);
+                media.setIsPrimary(true);
+                media.setMediaType("image");
+                savedListing.addMedia(media);
+                
+                savedListing = carListingRepository.save(savedListing); // Save again to update with media
                 log.info("Successfully uploaded image for new listing ID: {}", savedListing.getId());
             } catch (StorageException e) {
                 // If image upload/update fails, log it but proceed with listing creation response
@@ -96,7 +110,21 @@ public class CarListingService {
 
         try {
             storageService.store(file, imageKey);
-            listing.setImageKey(imageKey);
+            
+            // Create a new ListingMedia entity and link it to the car listing
+            ListingMedia media = new ListingMedia();
+            media.setCarListing(listing);
+            media.setFileKey(imageKey);
+            media.setFileName(file.getOriginalFilename());
+            media.setContentType(file.getContentType());
+            media.setSize(file.getSize());
+            media.setSortOrder(0);
+            media.setIsPrimary(true);
+            media.setMediaType("image");
+            
+            // Add the media to the listing using helper method
+            listing.addMedia(media);
+            
             carListingRepository.save(listing); // Save the updated listing
             log.info("Successfully uploaded image with key '{}' and updated listing ID: {}", imageKey, listingId);
             return imageKey;
@@ -303,12 +331,12 @@ public class CarListingService {
                     log.warn("Location lookup failed for ID: {}", request.getLocationId());
                     return new ResourceNotFoundException("Location", "id", request.getLocationId());
                 });
-            existingListing.setLocationEntity(location);
+            existingListing.setLocation(location);
         } else {
             // If locationId is not provided in the request, it implies no change to the location.
             // If the intention is to remove the location, the request should explicitly indicate this,
             // for example, by sending a specific value like -1 or a dedicated flag.
-            // Based on current structure, not providing locationId means "keep current locationEntity".
+            // Based on current structure, not providing locationId means "keep current location".
         }
         
         if (request.getDescription() != null) {
@@ -346,14 +374,16 @@ public class CarListingService {
             throw new SecurityException("You are not authorized to delete this listing");
         }
         
-        // If listing has an image, delete it from storage
-        if (existingListing.getImageKey() != null) {
-            try {
-                storageService.delete(existingListing.getImageKey());
-                log.info("Deleted image with key: {} for listing ID: {}", existingListing.getImageKey(), id);
-            } catch (StorageException e) {
-                // Log but continue with listing deletion
-                log.error("Failed to delete image with key: {} for listing ID: {}", existingListing.getImageKey(), id, e);
+        // If listing has media, delete all media files from storage
+        if (existingListing.getMedia() != null && !existingListing.getMedia().isEmpty()) {
+            for (ListingMedia media : existingListing.getMedia()) {
+                try {
+                    storageService.delete(media.getFileKey());
+                    log.info("Deleted media with key: {} for listing ID: {}", media.getFileKey(), id);
+                } catch (StorageException e) {
+                    // Log but continue with listing deletion
+                    log.error("Failed to delete media with key: {} for listing ID: {}", media.getFileKey(), id, e);
+                }
             }
         }
         
@@ -375,14 +405,16 @@ public class CarListingService {
         CarListing existingListing = carListingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", id));
         
-        // If listing has an image, delete it from storage
-        if (existingListing.getImageKey() != null) {
-            try {
-                storageService.delete(existingListing.getImageKey());
-                log.info("Admin deleted image with key: {} for listing ID: {}", existingListing.getImageKey(), id);
-            } catch (StorageException e) {
-                // Log but continue with listing deletion
-                log.error("Admin failed to delete image with key: {} for listing ID: {}", existingListing.getImageKey(), id, e);
+        // If listing has media, delete all media files from storage
+        if (existingListing.getMedia() != null && !existingListing.getMedia().isEmpty()) {
+            for (ListingMedia media : existingListing.getMedia()) {
+                try {
+                    storageService.delete(media.getFileKey());
+                    log.info("Admin deleted media with key: {} for listing ID: {}", media.getFileKey(), id);
+                } catch (StorageException e) {
+                    // Log but continue with listing deletion
+                    log.error("Admin failed to delete media with key: {} for listing ID: {}", media.getFileKey(), id, e);
+                }
             }
         }
         
@@ -450,9 +482,9 @@ public class CarListingService {
                     log.warn("Location lookup failed for ID: {}", request.getLocationId());
                     return new ResourceNotFoundException("Location", "id", request.getLocationId());
                 });
-            carListing.setLocationEntity(location);
+            carListing.setLocation(location);
         }
-        // If request.getLocationId() is null, carListing.locationEntity will remain null.
+        // If request.getLocationId() is null, carListing.location will remain null.
         
         carListing.setSeller(user);
         carListing.setApproved(false); // Default to not approved

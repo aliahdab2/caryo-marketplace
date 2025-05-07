@@ -4,6 +4,7 @@ import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.mapper.CarListingMapper;
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.ListingMedia;
 import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
@@ -93,7 +94,7 @@ class CarListingServiceTest {
         testLocation.setDisplayNameAr("موقع اختبار");
         testLocation.setSlug("test-location");
         testLocation.setCountryCode("SY"); // Set the required countryCode field
-        listingToSave.setLocationEntity(testLocation);
+        listingToSave.setLocation(testLocation);
         listingToSave.setDescription("Test Description");
 
 
@@ -115,7 +116,7 @@ class CarListingServiceTest {
         testLocationSaved.setDisplayNameAr("موقع اختبار");
         testLocationSaved.setSlug("test-location");
         testLocationSaved.setCountryCode("SY"); // Set the required countryCode field
-        savedListing.setLocationEntity(testLocationSaved);
+        savedListing.setLocation(testLocationSaved);
         savedListing.setDescription("Test Description");
         savedListing.setCreatedAt(LocalDateTime.now());
 
@@ -323,7 +324,7 @@ class CarListingServiceTest {
         approvedListing.setModelYear(savedListing.getModelYear());
         approvedListing.setPrice(savedListing.getPrice());
         approvedListing.setMileage(savedListing.getMileage());
-        approvedListing.setLocationEntity(savedListing.getLocationEntity()); // Use LocationEntity
+        approvedListing.setLocation(savedListing.getLocation()); // Use location
         approvedListing.setDescription(savedListing.getDescription());
         approvedListing.setSeller(savedListing.getSeller());
         approvedListing.setApproved(true); // Set approved to true
@@ -339,10 +340,10 @@ class CarListingServiceTest {
         approvedResponse.setPrice(approvedListing.getPrice());
         approvedResponse.setMileage(approvedListing.getMileage());
         // Create and set LocationResponse for LocationDetails
-        if (approvedListing.getLocationEntity() != null) {
+        if (approvedListing.getLocation() != null) {
             LocationResponse locationResp = new LocationResponse();
-            locationResp.setId(approvedListing.getLocationEntity().getId());
-            locationResp.setDisplayNameEn(approvedListing.getLocationEntity().getDisplayNameEn());
+            locationResp.setId(approvedListing.getLocation().getId());
+            locationResp.setDisplayNameEn(approvedListing.getLocation().getDisplayNameEn());
             // Set other fields of locationResp if necessary
             approvedResponse.setLocationDetails(locationResp);
         }
@@ -565,8 +566,9 @@ class CarListingServiceTest {
         // Mock save to capture the argument and verify the key was set
         when(carListingRepository.save(any(CarListing.class))).thenAnswer(invocation -> {
              CarListing listingToSave = invocation.getArgument(0);
-             assertNotNull(listingToSave.getImageKey());
-             assertEquals(keyCaptor.getValue(), listingToSave.getImageKey());
+             assertNotNull(listingToSave.getMedia());
+             assertFalse(listingToSave.getMedia().isEmpty());
+             assertEquals(keyCaptor.getValue(), listingToSave.getMedia().get(0).getFileKey());
              return listingToSave;
         });
 
@@ -585,7 +587,13 @@ class CarListingServiceTest {
         verify(userRepository).findByUsername(username);
         verify(carListingRepository).findById(listingId);
         verify(storageService).store(eq(file), eq(returnedKey));
-        verify(carListingRepository).save(argThat(l -> l.getId().equals(listingId) && returnedKey.equals(l.getImageKey())));
+        verify(carListingRepository).save(argThat(l -> {
+            if (l.getId().equals(listingId) && !l.getMedia().isEmpty()) {
+                ListingMedia media = l.getMedia().get(0);
+                return returnedKey.equals(media.getFileKey());
+            }
+            return false;
+        }));
     }
 
     @Test
@@ -763,7 +771,13 @@ class CarListingServiceTest {
                    "Generated key '" + capturedKey + "' did not match expected pattern.");
 
         // Verify save was called with the correct key
-        verify(carListingRepository).save(argThat(l -> capturedKey.equals(l.getImageKey())));
+        verify(carListingRepository).save(argThat(l -> {
+            if (!l.getMedia().isEmpty()) {
+                ListingMedia media = l.getMedia().get(0);
+                return capturedKey.equals(media.getFileKey());
+            }
+            return false;
+        }));
     }
 
     // --- Test for getMyListings ---

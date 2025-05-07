@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.service;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.mapper.CarListingMapper;
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.ListingMedia;
 import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
@@ -72,13 +73,24 @@ public class CarListingCrudOperationsTest {
         testLocation.setDisplayNameAr("موقع اختبار");
         testLocation.setSlug("test-location");
         testLocation.setCountryCode("SY"); // Set the required countryCode field
-        testListing.setLocationEntity(testLocation);
+        testListing.setLocation(testLocation);
         testListing.setDescription("Test Description");
         testListing.setTransmission("Manual");
         testListing.setApproved(true);
         testListing.setSeller(testUser);
         testListing.setCreatedAt(LocalDateTime.now());
-        testListing.setImageKey("test-image-key");
+        
+        // Add ListingMedia instead of imageKey
+        ListingMedia testMedia = new ListingMedia();
+        testMedia.setCarListing(testListing);
+        testMedia.setFileKey("test-image-key");
+        testMedia.setFileName("test-image.jpg");
+        testMedia.setContentType("image/jpeg");
+        testMedia.setSize(1024L);
+        testMedia.setSortOrder(0);
+        testMedia.setIsPrimary(true);
+        testMedia.setMediaType("image");
+        testListing.addMedia(testMedia);
 
         // Set up test listing response
         testListingResponse = new CarListingResponse();

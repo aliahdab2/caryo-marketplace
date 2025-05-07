@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -72,11 +74,11 @@ public class CarListing {
 
     @Column(name = "cylinders")
     private Integer cylinders;
-
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
-    private Location locationEntity;
-
+    private Location location;
+    
     @NotBlank
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)
     private String description;
@@ -107,12 +109,9 @@ public class CarListing {
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP")
     private LocalDateTime updatedAt;
 
-    @Column(name = "image_url")
-    private String imageUrl; // URL or identifier returned by storage service
-
-    @Column(name = "image_key")
-    private String imageKey; // Key used to store the image in the storage service
-
+    @OneToMany(mappedBy = "carListing", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ListingMedia> media = new ArrayList<>();
+    
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
@@ -123,5 +122,43 @@ public class CarListing {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+    
+    /**
+     * This is a transient method that returns the URL for the primary image
+     * by finding the primary media in the listing's media collection
+     */
+    @Transient
+    public String getPrimaryImageUrl() {
+        if (media == null || media.isEmpty()) {
+            return null;
+        }
+        
+        // Find primary image
+        return media.stream()
+            .filter(m -> m.getIsPrimary() && "image".equals(m.getMediaType()))
+            .findFirst()
+            .map(ListingMedia::getFileKey)
+            .orElseGet(() -> media.stream()
+                .filter(m -> "image".equals(m.getMediaType()))
+                .findFirst()
+                .map(ListingMedia::getFileKey)
+                .orElse(null));
+    }
+    
+    /**
+     * Helper method to add a media item to this listing
+     * @param media The media item to add
+     */
+    public void addMedia(ListingMedia media) {
+        this.media.add(media);
+    }
+    
+    /**
+     * Helper method to remove a media item from this listing
+     * @param media The media item to remove
+     */
+    public void removeMedia(ListingMedia media) {
+        this.media.remove(media);
     }
 }

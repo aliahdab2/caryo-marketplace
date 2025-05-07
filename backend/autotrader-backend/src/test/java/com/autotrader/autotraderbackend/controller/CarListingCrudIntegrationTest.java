@@ -138,7 +138,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         testListing.setModelYear(2020);
         testListing.setMileage(10000);
         testListing.setPrice(new BigDecimal("15000.00"));
-        testListing.setLocationEntity(testLocation);
+        testListing.setLocation(testLocation);
         testListing.setDescription("Test Description");
         testListing.setTransmission("Manual");
         testListing.setApproved(true);
