@@ -2,10 +2,12 @@ package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.Location;
+import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
+import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,6 +32,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -54,6 +57,9 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
     
     @Autowired
     private LocationRepository locationRepository;
+    
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -83,7 +89,17 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         testUser.setUsername("testuser");
         testUser.setEmail("test@example.com");
         testUser.setPassword(passwordEncoder.encode("password"));
-        testUser.setRoles(new HashSet<>());
+        
+        // Create and set user role
+        Role userRole = roleRepository.findByName("ROLE_USER")
+            .orElseGet(() -> {
+                Role newRole = new Role("ROLE_USER");
+                return roleRepository.save(newRole);
+            });
+            
+        Set<Role> userRoles = new HashSet<>();
+        userRoles.add(userRole);
+        testUser.setRoles(userRoles);
         testUser = userRepository.save(testUser);
         
         // Create admin user
@@ -91,8 +107,19 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         adminUser.setUsername("admin");
         adminUser.setEmail("admin@example.com");
         adminUser.setPassword(passwordEncoder.encode("password"));
-        adminUser.setRoles(new HashSet<>());
-        adminUser.getRoles().add("ROLE_ADMIN");
+        
+        // Create and set admin role
+        Role adminRole = roleRepository.findByName("ROLE_ADMIN")
+            .orElseGet(() -> {
+                Role newRole = new Role("ROLE_ADMIN");
+                return roleRepository.save(newRole);
+            });
+            
+        Set<Role> adminRoles = new HashSet<>();
+        adminRoles.add(adminRole);
+        // Also add user role to admin
+        adminRoles.add(userRole);
+        adminUser.setRoles(adminRoles);
         adminUser = userRepository.save(adminUser);
         
         // Create test location

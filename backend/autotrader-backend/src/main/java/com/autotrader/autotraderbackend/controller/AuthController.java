@@ -1,10 +1,12 @@
 package com.autotrader.autotraderbackend.controller;
 
+import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.payload.response.MessageResponse;
+import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
 
@@ -36,6 +38,9 @@ public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Autowired
     private PasswordEncoder encoder;
@@ -93,18 +98,36 @@ public class AuthController {
                              encoder.encode(signUpRequest.getPassword()));
 
         Set<String> strRoles = signUpRequest.getRole();
-        Set<String> roles = new HashSet<>();
+        Set<Role> roles = new HashSet<>();
 
         if (strRoles == null) {
-            roles.add("ROLE_USER");
+            // Get or create ROLE_USER
+            Role userRole = roleRepository.findByName("ROLE_USER")
+                .orElseGet(() -> {
+                    Role newRole = new Role("ROLE_USER");
+                    return roleRepository.save(newRole);
+                });
+            roles.add(userRole);
         } else {
             strRoles.forEach(role -> {
                 switch (role) {
                 case "admin":
-                    roles.add("ROLE_ADMIN");
+                    // Get or create ROLE_ADMIN
+                    Role adminRole = roleRepository.findByName("ROLE_ADMIN")
+                        .orElseGet(() -> {
+                            Role newRole = new Role("ROLE_ADMIN");
+                            return roleRepository.save(newRole);
+                        });
+                    roles.add(adminRole);
                     break;
                 default:
-                    roles.add("ROLE_USER");
+                    // Get or create ROLE_USER
+                    Role userRole = roleRepository.findByName("ROLE_USER")
+                        .orElseGet(() -> {
+                            Role newRole = new Role("ROLE_USER");
+                            return roleRepository.save(newRole);
+                        });
+                    roles.add(userRole);
                 }
             });
         }

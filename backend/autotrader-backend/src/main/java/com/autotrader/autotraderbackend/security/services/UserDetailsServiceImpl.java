@@ -33,7 +33,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 });
 
         List<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(SimpleGrantedAuthority::new)
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toList());
 
         log.info("User found: {} with roles: {}", username, authorities);

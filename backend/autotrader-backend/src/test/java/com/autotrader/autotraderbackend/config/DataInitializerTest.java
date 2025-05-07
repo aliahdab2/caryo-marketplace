@@ -1,6 +1,8 @@
 package com.autotrader.autotraderbackend.config;
 
+import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +38,9 @@ class DataInitializerTest {
     
     @Mock
     private JwtUtils jwtUtils;
+    
+    @Mock
+    private RoleRepository roleRepository;
 
     @InjectMocks
     private DataInitializer dataInitializer;
@@ -46,16 +51,22 @@ class DataInitializerTest {
         when(passwordEncoder.encode(anyString())).thenReturn("encoded_password");
         when(jwtUtils.generateJwtToken(any(Authentication.class))).thenReturn("test.jwt.token");
         
+        // Mock roles
+        Role userRole = new Role("ROLE_USER");
+        Role adminRole = new Role("ROLE_ADMIN");
+        when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+        when(roleRepository.findByName("ROLE_ADMIN")).thenReturn(Optional.of(adminRole));
+        
         // Setup findByUsername mock for all usernames
         User mockUser = new User("user", "user@autotrader.com", "encoded_password");
-        Set<String> userRoles = new HashSet<>();
-        userRoles.add("ROLE_USER");
+        Set<Role> userRoles = new HashSet<>();
+        userRoles.add(userRole);
         mockUser.setRoles(userRoles);
         
         User mockAdmin = new User("admin", "admin@autotrader.com", "encoded_password");
-        Set<String> adminRoles = new HashSet<>();
-        adminRoles.add("ROLE_USER");
-        adminRoles.add("ROLE_ADMIN");
+        Set<Role> adminRoles = new HashSet<>();
+        adminRoles.add(userRole);
+        adminRoles.add(adminRole);
         mockAdmin.setRoles(adminRoles);
         
         when(userRepository.findByUsername("user")).thenReturn(Optional.of(mockUser));
@@ -108,7 +119,11 @@ class DataInitializerTest {
         
         User savedUser = userCaptor.getValue();
         assertEquals("user", savedUser.getUsername());
-        assertTrue(savedUser.getRoles().contains("ROLE_USER"));
+        
+        // Check for ROLE_USER
+        boolean hasUserRole = savedUser.getRoles().stream()
+            .anyMatch(role -> role.getName().equals("ROLE_USER"));
+        assertTrue(hasUserRole);
         assertEquals(1, savedUser.getRoles().size());
     }
     
@@ -128,8 +143,15 @@ class DataInitializerTest {
         
         User savedUser = userCaptor.getValue();
         assertEquals("admin", savedUser.getUsername());
-        assertTrue(savedUser.getRoles().contains("ROLE_USER"));
-        assertTrue(savedUser.getRoles().contains("ROLE_ADMIN"));
+        
+        // Check for both roles
+        boolean hasUserRole = savedUser.getRoles().stream()
+            .anyMatch(role -> role.getName().equals("ROLE_USER"));
+        boolean hasAdminRole = savedUser.getRoles().stream()
+            .anyMatch(role -> role.getName().equals("ROLE_ADMIN"));
+            
+        assertTrue(hasUserRole);
+        assertTrue(hasAdminRole);
         assertEquals(2, savedUser.getRoles().size());
     }
     

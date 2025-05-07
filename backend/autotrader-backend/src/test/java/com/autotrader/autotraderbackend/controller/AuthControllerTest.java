@@ -1,10 +1,12 @@
 package com.autotrader.autotraderbackend.controller;
 
+import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.payload.response.MessageResponse;
+import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,6 +44,9 @@ public class AuthControllerTest {
 
     @Mock
     private UserRepository userRepository;
+    
+    @Mock
+    private RoleRepository roleRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -121,6 +127,10 @@ public class AuthControllerTest {
         when(userRepository.existsByEmail("newuser@example.com")).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
         
+        // Setup role repository mock
+        Role userRole = new Role("ROLE_USER");
+        when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+        
         User savedUser = new User();
         savedUser.setUsername("newuser");
         savedUser.setEmail("newuser@example.com");
@@ -142,6 +152,7 @@ public class AuthControllerTest {
         verify(userRepository).existsByUsername("newuser");
         verify(userRepository).existsByEmail("newuser@example.com");
         verify(passwordEncoder).encode("password");
+        verify(roleRepository).findByName("ROLE_USER");
         verify(userRepository).save(any(User.class));
     }
 

@@ -1,6 +1,8 @@
 package com.autotrader.autotraderbackend.config;
 
+import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
 public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     
@@ -60,8 +63,14 @@ public class DataInitializer implements CommandLineRunner {
             user = new User(USER_USERNAME, USER_EMAIL, passwordEncoder.encode(USER_PASSWORD));
             
             // Set role (only USER role)
-            Set<String> roles = new HashSet<>();
-            roles.add("ROLE_USER");
+            Set<Role> roles = new HashSet<>();
+            roleRepository.findByName("ROLE_USER").ifPresent(roles::add);
+            // If role doesn't exist, create it
+            if (roles.isEmpty()) {
+                Role userRole = new Role("ROLE_USER");
+                roleRepository.save(userRole);
+                roles.add(userRole);
+            }
             user.setRoles(roles);
             
             // Save the user
@@ -88,9 +97,24 @@ public class DataInitializer implements CommandLineRunner {
             admin = new User(ADMIN_USERNAME, ADMIN_EMAIL, passwordEncoder.encode(ADMIN_PASSWORD));
             
             // Set roles (ADMIN and USER roles)
-            Set<String> roles = new HashSet<>();
-            roles.add("ROLE_USER");
-            roles.add("ROLE_ADMIN");
+            Set<Role> roles = new HashSet<>();
+            
+            // Find or create USER role
+            Role userRole = roleRepository.findByName("ROLE_USER")
+                .orElseGet(() -> {
+                    Role newRole = new Role("ROLE_USER");
+                    return roleRepository.save(newRole);
+                });
+            roles.add(userRole);
+            
+            // Find or create ADMIN role
+            Role adminRole = roleRepository.findByName("ROLE_ADMIN")
+                .orElseGet(() -> {
+                    Role newRole = new Role("ROLE_ADMIN");
+                    return roleRepository.save(newRole);
+                });
+            roles.add(adminRole);
+            
             admin.setRoles(roles);
             
             // Save the user
@@ -137,7 +161,7 @@ public class DataInitializer implements CommandLineRunner {
     private String generateTokenForUser(User user) {
         // Create authorities from roles
         List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
-                .map(SimpleGrantedAuthority::new)
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toList());
         
         // Create a UserDetails object

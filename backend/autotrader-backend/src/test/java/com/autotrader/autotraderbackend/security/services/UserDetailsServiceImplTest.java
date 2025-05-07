@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.security.services;
 
+import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -34,8 +35,9 @@ public class UserDetailsServiceImplTest {
         user.setUsername("testuser");
         user.setPassword("password");
         
-        Set<String> roles = new HashSet<>();
-        roles.add("ROLE_USER");
+        Set<Role> roles = new HashSet<>();
+        Role userRole = new Role("ROLE_USER");
+        roles.add(userRole);
         user.setRoles(roles);
         
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
