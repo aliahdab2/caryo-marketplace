@@ -26,7 +26,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -73,6 +75,7 @@ public class AuthControllerTest {
         signupRequest.setUsername("newuser");
         signupRequest.setEmail("newuser@example.com");
         signupRequest.setPassword("password");
+        // Note: The role is intentionally left null here to test the default role assignment
 
         // Setup mocked authentication
         authentication = mock(Authentication.class);
@@ -147,6 +150,7 @@ public class AuthControllerTest {
         assertTrue(response.getBody() instanceof MessageResponse);
         
         MessageResponse messageResponse = (MessageResponse) response.getBody();
+        assertNotNull(messageResponse);
         assertEquals("User registered successfully!", messageResponse.getMessage());
         
         verify(userRepository).existsByUsername("newuser");
@@ -170,6 +174,7 @@ public class AuthControllerTest {
         assertTrue(response.getBody() instanceof MessageResponse);
         
         MessageResponse messageResponse = (MessageResponse) response.getBody();
+        assertNotNull(messageResponse);
         assertEquals("Error: Username is already taken!", messageResponse.getMessage());
         
         verify(userRepository).existsByUsername("newuser");
@@ -190,9 +195,59 @@ public class AuthControllerTest {
         assertInstanceOf(MessageResponse.class, response.getBody());
         
         MessageResponse messageResponse = (MessageResponse) response.getBody();
+        assertNotNull(messageResponse);
         assertEquals("Error: Email is already in use!", messageResponse.getMessage());
         
         verify(userRepository).existsByUsername("newuser");
         verify(userRepository).existsByEmail("newuser@example.com");
+    }
+
+    @Test
+    void registerUser_WithAdminRole_ShouldRegisterSuccessfully() {
+        // Arrange
+        when(userRepository.existsByUsername("newadmin")).thenReturn(false);
+        when(userRepository.existsByEmail("newadmin@example.com")).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
+        
+        // Setup role repository mocks
+        Role userRole = new Role("ROLE_USER");
+        Role adminRole = new Role("ROLE_ADMIN");
+        // Use lenient() for the USER role as it might not be used in this test
+        lenient().when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+        when(roleRepository.findByName("ROLE_ADMIN")).thenReturn(Optional.of(adminRole));
+        
+        User savedUser = new User();
+        savedUser.setUsername("newadmin");
+        savedUser.setEmail("newadmin@example.com");
+        savedUser.setPassword("encoded-password");
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        
+        // Create signup request with admin role
+        SignupRequest adminSignupRequest = new SignupRequest();
+        adminSignupRequest.setUsername("newadmin");
+        adminSignupRequest.setEmail("newadmin@example.com");
+        adminSignupRequest.setPassword("password");
+        Set<String> roles = new HashSet<>();
+        roles.add("admin");
+        adminSignupRequest.setRole(roles);
+
+        // Act
+        ResponseEntity<?> response = authController.registerUser(adminSignupRequest);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() instanceof MessageResponse);
+        
+        MessageResponse messageResponse = (MessageResponse) response.getBody();
+        assertNotNull(messageResponse);
+        assertEquals("User registered successfully!", messageResponse.getMessage());
+        
+        verify(userRepository).existsByUsername("newadmin");
+        verify(userRepository).existsByEmail("newadmin@example.com");
+        verify(passwordEncoder).encode("password");
+        verify(roleRepository).findByName("ROLE_ADMIN");
+        verify(userRepository).save(any(User.class));
     }
 }
