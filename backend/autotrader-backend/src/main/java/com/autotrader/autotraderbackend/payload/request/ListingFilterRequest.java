@@ -14,6 +14,12 @@ import java.math.BigDecimal;
  * All fields are optional; only provided fields will be used as filters.
  * Pagination and sorting are handled separately via @RequestParam in the controller.
  */
+
+/**
+ * Request object for filtering car listings.
+ * All fields are optional; only provided fields will be used as filters.
+ * Pagination and sorting are handled separately via @RequestParam in the controller.
+ */
 @Getter
 @Setter
 public class ListingFilterRequest {
