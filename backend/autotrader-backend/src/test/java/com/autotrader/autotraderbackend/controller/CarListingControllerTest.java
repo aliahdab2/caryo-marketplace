@@ -1,8 +1,9 @@
-// (Removed invalid top-level test methods)
+package com.autotrader.autotraderbackend.controller;
 
-import com.autotrader.autotraderbackend.controller.CarListingController;
+import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
+import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.LocationResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
@@ -29,10 +30,13 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 public class CarListingControllerTest {
@@ -272,5 +276,89 @@ public class CarListingControllerTest {
             )
         );
         assertEquals("Sorting by field 'nonExistentField' is not allowed.", ex.getMessage());
+    }
+    
+    @Test
+    void getListingById_ShouldReturnListing() {
+        // Arrange
+        when(carListingService.getListingById(1L)).thenReturn(carListingResponse);
+
+        // Act
+        ResponseEntity<?> response = carListingController.getListingById(1L);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(carListingResponse, response.getBody());
+    }
+    
+    @Test
+    void getListingById_WithInvalidId_ShouldThrowException() {
+        // Arrange
+        when(carListingService.getListingById(999L))
+            .thenThrow(new ResourceNotFoundException("Listing", "id", 999L));
+
+        // Act & Assert
+        org.junit.jupiter.api.Assertions.assertThrows(
+            ResourceNotFoundException.class,
+            () -> carListingController.getListingById(999L)
+        );
+    }
+
+    @Test
+    void updateListing_ShouldReturnUpdatedListing() {
+        // Arrange
+        UpdateListingRequest updateRequest = new UpdateListingRequest();
+        updateRequest.setTitle("Updated Car");
+        updateRequest.setDescription("Updated Description");
+        
+        carListingResponse.setTitle("Updated Car");
+        carListingResponse.setDescription("Updated Description");
+        
+        when(carListingService.updateListing(eq(1L), any(UpdateListingRequest.class), anyString()))
+            .thenReturn(carListingResponse);
+
+        // Act
+        ResponseEntity<?> response = carListingController.updateListing(1L, updateRequest, userDetails);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(carListingResponse, response.getBody());
+    }
+    
+    @Test
+    void deleteListing_ShouldReturnNoContent() {
+        // Act
+        ResponseEntity<?> response = carListingController.deleteListing(1L, userDetails);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        
+        // Verify the service method was called with correct parameters
+        verify(carListingService, times(1)).deleteListing(eq(1L), anyString());
+    }
+
+    @Test
+    void approveListing_ShouldReturnApprovedListing() {
+        // Arrange
+        carListingResponse.setApproved(true);
+        when(carListingService.approveListing(1L)).thenReturn(carListingResponse);
+
+        // Act
+        ResponseEntity<?> response = carListingController.approveListing(1L);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        
+        // Check the response body is not null before accessing it
+        assertNotNull(response.getBody());
+        assertEquals(carListingResponse, response.getBody());
+        
+        // Get the response body and cast it
+        CarListingResponse bodyResponse = (CarListingResponse) response.getBody();
+        assertTrue(bodyResponse.getApproved());
     }
 }
