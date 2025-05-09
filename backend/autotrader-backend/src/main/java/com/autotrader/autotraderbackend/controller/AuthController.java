@@ -9,6 +9,7 @@ import com.autotrader.autotraderbackend.payload.response.MessageResponse;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
+import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,7 +19,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,18 +60,40 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
         
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();        
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
-                .collect(Collectors.toList());
-
-        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-
-        return ResponseEntity.ok(new JwtResponse(jwt, 
-                                                 user.getId(), 
-                                                 user.getUsername(), 
-                                                 user.getEmail(), 
-                                                 roles));
+        // Handle both standard UserDetails and our custom UserDetailsImpl
+        Object principal = authentication.getPrincipal();
+        
+        if (principal instanceof UserDetailsImpl) {
+            UserDetailsImpl userDetails = (UserDetailsImpl) principal;        
+            List<String> roles = userDetails.getAuthorities().stream()
+                    .map(item -> item.getAuthority())
+                    .collect(Collectors.toList());
+                    
+            return ResponseEntity.ok(new JwtResponse(jwt, 
+                                                    userDetails.getId(), 
+                                                    userDetails.getUsername(), 
+                                                    userDetails.getEmail(), 
+                                                    roles));
+        } else if (principal instanceof org.springframework.security.core.userdetails.User) {
+            org.springframework.security.core.userdetails.User springUser = 
+                    (org.springframework.security.core.userdetails.User) principal;
+            
+            // For tests where we use the standard User, fetch our User entity to get ID and email
+            User user = userRepository.findByUsername(springUser.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found in repository"));
+                    
+            List<String> roles = springUser.getAuthorities().stream()
+                    .map(item -> item.getAuthority())
+                    .collect(Collectors.toList());
+                    
+            return ResponseEntity.ok(new JwtResponse(jwt, 
+                                                    user.getId(),
+                                                    user.getUsername(), 
+                                                    user.getEmail(), 
+                                                    roles));
+        } else {
+            throw new RuntimeException("Unknown principal type: " + principal.getClass());
+        }
     }
 
     @Operation(
@@ -89,7 +111,7 @@ public class AuthController {
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Error: Email is already in use!"));
+                    .body(new MessageResponse("Error: Email is already in use!")); // Added "Error: " prefix
         }
 
         // Create new user's account
