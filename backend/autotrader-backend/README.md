@@ -20,6 +20,13 @@ For a complete overview of the project roadmap and architecture, refer to these 
 
 ```
 autotrader-backend/
+├── scripts/                                 # Centralized script directory
+│   ├── README.md                            # Documentation for all scripts
+│   ├── scripts.sh                           # Master script for accessing all scripts
+│   ├── dev/                                 # Development environment scripts
+│   ├── test/                                # Testing scripts
+│   ├── postman/                             # Postman-related scripts
+│   └── utils/                               # Utility scripts and templates
 ├── src/main/java/com/autotrader/autotraderbackend/
 │   ├── AutotraderBackendApplication.java    # Main application class
 │   ├── config/                              # Configuration classes
@@ -322,3 +329,68 @@ logging.level.org.springframework.security=DEBUG
 1. Follow the standard Git flow (feature branches, pull requests)
 2. Write tests for new features
 3. Update documentation as needed
+
+## Using Scripts
+
+We've centralized and simplified the script interface for the project:
+
+### Simplified CLI Interface
+
+We provide a streamlined command-line interface through the `autotrader.sh` script:
+
+```bash
+# Make it executable first
+chmod +x autotrader.sh
+
+# Get help
+./autotrader.sh help
+```
+
+### Available Commands
+
+The CLI has a simple, intuitive structure:
+
+```bash
+# Development environment commands
+./autotrader.sh dev start     # Start the development environment
+./autotrader.sh dev stop      # Stop the development environment
+./autotrader.sh dev status    # Check environment status
+./autotrader.sh dev logs      # View environment logs
+
+# API server commands
+./autotrader.sh api start     # Start the API server
+
+# Test commands
+./autotrader.sh test all      # Run all tests
+./autotrader.sh test auth     # Test authentication endpoints
+./autotrader.sh test endpoints # Test API endpoints
+./autotrader.sh test reference-data # Test reference data
+
+# Documentation commands  
+./autotrader.sh docs generate # Generate API documentation
+```
+
+### Script Features
+
+All scripts include:
+
+- **Environment Checks**: Scripts verify if required services are running
+- **Comprehensive Documentation**: Each script has a --help option
+- **Consistent Output**: Color-coded and well-formatted output
+- **Error Handling**: Proper error detection and reporting
+- **Flexible Options**: Command-line options for different behaviors
+
+### Advanced Usage
+
+For more advanced use cases, individual scripts are available in the `scripts/` directory:
+
+```
+scripts/
+├── README.md                 # Documentation for all scripts
+├── dev/                      # Development environment scripts
+├── test/                     # Testing scripts
+├── postman/                  # Postman-related scripts
+└── utils/                    # Utility scripts and templates
+```
+
+See the [scripts README](scripts/README.md) for complete documentation of all available scripts.

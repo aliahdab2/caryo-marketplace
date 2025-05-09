@@ -7,7 +7,7 @@ This directory contains Postman collections for testing the AutoTrader Marketpla
 The collections have been organized into smaller, more manageable files to improve performance and readability:
 
 ### Main Collection File
-- `autotrader-api-collection.json`: The main collection file that imports all sub-collections
+- `autotrader-api-collection.json`: The main collection file with all test requests embedded directly
 
 ### Sub-Collections
 Located in the `collections/` directory:
@@ -20,88 +20,74 @@ Located in the `collections/` directory:
 - `fuel-types-tests.json`: Tests for Fuel Type endpoints
 - `transmissions-tests.json`: Tests for Transmission endpoints
 - `seller-types-tests.json`: Tests for Seller Type endpoints
+- `listings-media-tests.json`: Tests for Listings and Media endpoints
 
-### Environment File
-- `environment.json`: Contains environment variables required for running the tests
+## Running the Tests
 
-## How to Run the Tests
+### Prerequisites
 
-### Option 1: Using the Project's Dev Environment Script (Recommended)
+- Newman (Postman CLI) must be installed: `npm install -g newman`
+- A running instance of the AutoTrader backend application (by default at http://localhost:8080)
+
+### Running All Tests
+
+To run all tests as a single collection:
+
 ```bash
-cd /Users/aliahdab/Documents/autotrader-marketplace/backend/autotrader-backend
-./src/test/scripts/run_postman_tests_with_devenv.sh
-```
-This script:
-- Sets up the complete development environment including S3 container
-- Prepares test assets
-- Runs all the tests with Newman
-- Generates HTML reports in `build/test-reports/postman/`
-- Shuts down the environment when done
-
-### Option 2: Using Standard Test Script 
-```bash
-cd /Users/aliahdab/Documents/autotrader-marketplace/backend/autotrader-backend
-./src/test/scripts/run_postman_tests.sh
-```
-This script:
-- Prepares test assets
-- Starts the Spring Boot application automatically (without S3)
-- Runs all the tests with Newman
-- Generates HTML reports in `build/test-reports/postman/`
-- Shuts down the application when done
-
-### Option 3: Using Postman Desktop App
-1. Import the main collection file `autotrader-api-collection.json` into Postman
-2. Import the environment file `environment.json`
-3. Select the imported environment
-4. Run the collections using Postman's Collection Runner
-
-### Option 4: Using Newman Directly
-If you have Newman installed (npm install -g newman), you can run:
-```bash
-newman run src/test/resources/postman/autotrader-api-collection.json -e src/test/resources/postman/environment.json
+./run-collections.sh --all
 ```
 
-## Adding New Tests
+### Running Individual Test Collections
 
-When adding new API tests:
-1. Identify the appropriate sub-collection based on the entity type
-2. Add your new test to that sub-collection
-3. If creating tests for a new entity type, create a new sub-collection file in the `collections/` directory
-4. Update the main collection file to include your new sub-collection
+To run each collection separately:
 
-## Authentication
+```bash
+./run-collections.sh
+```
 
-All API requests that require authentication now automatically handle admin login using collection-level prerequest scripts. These scripts use the admin credentials defined in the `environment.json` file to obtain an `admin_auth_token`, which is then used for bearer authentication in each request.
+## When the Backend Environment is Down
 
-- Regular user operations: Can still use the "Login User" request in the `auth-tests.json` collection to obtain a user token if needed for specific tests.
-- Admin operations (create, update, delete): Automatically use the `admin_auth_token` set by the prerequest script.
+The run-collections.sh script requires a running backend instance to succeed. If the backend environment is down or not accessible:
 
-### Admin User Setup
+1. **Environment Verification**
 
-The admin user is automatically created when the Spring Boot application starts, handled by the `DataInitializer.java` class. The credentials are:
-- Username: `admin`
-- Email: `admin@autotrader.com`
-- Password: `Admin123!`
+   Before running tests, you can verify if the backend is up by:
 
-These credentials are also configured in the `environment.json` file for the prerequest scripts. There is no longer a need for a separate script to create or recreate the admin user.
+   ```bash
+   curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/test/public
+   ```
+   
+   If this returns 200, the backend is running.
 
-**Note**: If you were to manually create an admin user via the API (e.g., for other environments or testing scenarios outside of this project's default setup), the JSON payload for user creation should use the property `\"role\": [\"admin\"]` (singular \"role\", not \"roles\").
+2. **Starting the Backend**
+
+   If the backend is not running, you should start it before running tests:
+
+   ```bash
+   # From the project root
+   cd ../../../..
+   ./start-dev.sh
+   ```
+   
+   Wait for the backend to fully initialize before running the tests.
+
+3. **Using a Different Environment**
+
+   If you need to test against a different environment:
+   
+   1. Modify the `environment.json` file and update the `baseUrl` value
+   2. Run the tests as usual
+
+4. **Mock Mode (For Development)**
+
+   For development purposes when the backend is unavailable, you might consider using Postman's mock server functionality to simulate responses. This requires setting up mocks in Postman desktop application.
 
 ## Environment Variables
 
-Make sure the following environment variables are set in your `environment.json` file:
-- `baseUrl`: Base URL of the AutoTrader API (e.g., http://localhost:8080)
-- `auth_token`: Authentication token for regular user operations (can be automatically set after login using requests in `auth-tests.json`).
-- `admin_auth_token`: Authentication token for admin operations (this is automatically set by the collection-level prerequest scripts).
-- `admin_username`: Should be set to `admin`.
-- `admin_password`: Should be set to `Admin123!`.
+The tests use environment variables defined in `environment.json`:
 
-## Auto-Generated Documentation
-
-To generate API documentation from the Postman collections, run:
-```bash
-cd /Users/aliahdab/Documents/autotrader-marketplace/backend/autotrader-backend
-./src/test/resources/postman/generate-docs.sh
-```
-This will create documentation in the `docs/` directory.
+- `baseUrl`: Base URL of the AutoTrader API (default: http://localhost:8080)
+- `auth_token`: Authentication token (generated during test execution)
+- `admin_auth_token`: Admin authentication token (generated during test execution)
+- `test_username`, `test_email`, `test_password`: Credentials for test user
+- `admin_username`, `admin_password`: Credentials for admin user

@@ -156,6 +156,189 @@
           "path": ["auth", "signin"]
         }
       }
+    },
+    {
+      "name": "Access Protected User Endpoint (Successful)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Optionally, check for specific content in the response",
+              "// pm.test(\"Response contains expected user data\", function () {",
+              "//     var jsonData = pm.response.json();",
+              "//     pm.expect(jsonData.message).to.include(\"User endpoint is working!\");",
+              "// });",
+              "console.log(\"Protected User Endpoint Response (Success):\", pm.response.json());"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/test/user",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "test", "user"]
+        }
+      }
+    },
+    {
+      "name": "Access Protected User Endpoint with NO Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "// Optionally, check response body for unauthorized message",
+              "// pm.test(\"Response indicates unauthorized\", function () {",
+              "//     var jsonData = pm.response.json();",
+              "//     pm.expect(jsonData.error).to.equal(\"Unauthorized\");",
+              "// });",
+              "console.log(\"Protected User Endpoint Response (No Token):\", pm.response.text());"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/test/user",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "test", "user"]
+        }
+      }
+    },
+    {
+      "name": "Access Protected User Endpoint with MALFORMED Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "// Optionally, check response body for unauthorized message or specific error for malformed token",
+              "// pm.test(\"Response indicates malformed token\", function () {",
+              "//     var jsonData = pm.response.json();",
+              "//     // Depending on your API's error response for malformed tokens",
+              "//     pm.expect(jsonData.error).to.equal(\"Unauthorized\"); ",
+              "//     pm.expect(jsonData.message).to.include(\"Malformed JWT token\");",
+              "// });",
+              "console.log(\"Protected User Endpoint Response (Malformed Token):\", pm.response.text());"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer MALFORMEDTOKEN12345"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/test/user",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "test", "user"]
+        }
+      }
+    },
+    {
+      "name": "Access Protected Admin Endpoint with User Token (Expect 403)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 403\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});",
+              "",
+              "// Optionally, check response body for forbidden message",
+              "// pm.test(\"Response indicates forbidden access\", function () {",
+              "//     var jsonData = pm.response.json();",
+              "//     pm.expect(jsonData.error).to.equal(\"Forbidden\");",
+              "//     pm.expect(jsonData.message).to.include(\"Access Denied\");",
+              "// });",
+              "console.log(\"Protected Admin Endpoint Response (User Token - Expect 403):\", pm.response.text());"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/test/admin",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "test", "admin"]
+        }
+      }
+    },
+    {
+      "name": "Access Protected Admin Endpoint with Admin Token (Successful)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Optionally, check for specific content in the response",
+              "// pm.test(\"Response contains expected admin data\", function () {",
+              "//     var jsonData = pm.response.json();",
+              "//     pm.expect(jsonData.message).to.include(\"Admin endpoint is working!\");",
+              "// });",
+              "console.log(\"Protected Admin Endpoint Response (Admin Token - Success):\", pm.response.json());"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/test/admin",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "test", "admin"]
+        }
+      }
     }
   ]
 }
