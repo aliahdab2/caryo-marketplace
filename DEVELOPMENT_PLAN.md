@@ -23,7 +23,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [x] **Role-based Access Control** (admin/user roles)
 - [x] **Test Authentication APIs** with Postman or integration tests
 
-### Phase 2: Car Listings
+### Phase 2: Car Listings ✅
 
 - [x] **Create Listing API** (upload car info + image)
 - [x] **Get User's Listings API** (return listings for the authenticated user)
