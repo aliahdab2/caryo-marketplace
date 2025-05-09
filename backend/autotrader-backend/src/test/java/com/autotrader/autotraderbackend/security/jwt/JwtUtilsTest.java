@@ -1,5 +1,7 @@
 package com.autotrader.autotraderbackend.security.jwt;
 
+import com.autotrader.autotraderbackend.exception.jwt.ExpiredJwtTokenException;
+import com.autotrader.autotraderbackend.exception.jwt.MalformedJwtTokenException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,27 +72,23 @@ public class JwtUtilsTest {
         // Arrange
         String token = jwtUtils.generateJwtToken(authentication);
         
-        // Act
-        boolean isValid = jwtUtils.validateJwtToken(token);
-        
-        // Assert
-        assertTrue(isValid);
+        // Act & Assert
+        assertDoesNotThrow(() -> jwtUtils.validateJwtToken(token));
     }
 
     @Test
-    void validateJwtToken_WithInvalidToken_ShouldReturnFalse() {
+    void validateJwtToken_WithInvalidToken_ShouldThrowMalformedJwtTokenException() {
         // Arrange
         String invalidToken = "invalid.token.here";
         
-        // Act
-        boolean isValid = jwtUtils.validateJwtToken(invalidToken);
-        
-        // Assert
-        assertFalse(isValid);
+        // Act & Assert
+        assertThrows(MalformedJwtTokenException.class, () -> {
+            jwtUtils.validateJwtToken(invalidToken);
+        });
     }
 
     @Test
-    void validateJwtToken_WithExpiredToken_ShouldReturnFalse() throws Exception {
+    void validateJwtToken_WithExpiredToken_ShouldThrowExpiredJwtTokenException() throws Exception {
         // Arrange
         // Set a very short expiration time for the test
         ReflectionTestUtils.setField(jwtUtils, "jwtExpirationMs", 1); // 1 millisecond
@@ -98,12 +96,11 @@ public class JwtUtilsTest {
         String token = jwtUtils.generateJwtToken(authentication);
         
         // Wait for the token to expire
-        Thread.sleep(10);
+        Thread.sleep(100); // Increased sleep time to ensure expiration
         
-        // Act
-        boolean isValid = jwtUtils.validateJwtToken(token);
-        
-        // Assert
-        assertFalse(isValid);
+        // Act & Assert
+        assertThrows(ExpiredJwtTokenException.class, () -> {
+            jwtUtils.validateJwtToken(token);
+        });
     }
 }

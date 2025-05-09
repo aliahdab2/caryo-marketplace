@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.security.jwt;
 
+import com.autotrader.autotraderbackend.exception.jwt.CustomJwtException;
 import com.autotrader.autotraderbackend.security.services.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -7,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -36,18 +38,21 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request, 
+                                    @NonNull HttpServletResponse response, 
+                                    @NonNull FilterChain filterChain)
             throws ServletException, IOException {
         try {
             String jwt = parseJwt(request);
-            // Only proceed with validation if we have a valid JWT token
             if (jwt != null) {
-                // Validate the token first
-                if (jwtUtils.validateJwtToken(jwt)) {
+                try {
+                    // jwtUtils.validateJwtToken now throws CustomJwtException or its subclasses on failure
+                    jwtUtils.validateJwtToken(jwt); 
+                    
+                    // If validateJwtToken does not throw, the token is valid. Proceed to authenticate.
                     String username = jwtUtils.getUserNameFromJwtToken(jwt);
                     
                     try {
-                        // Load user details - might throw if user not found
                         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(
@@ -58,12 +63,24 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                     } catch (Exception userException) {
-                        log.error("Cannot set user authentication: User not found");
+                        // Log errors related to user loading or setting authentication context
+                        log.error("AuthTokenFilter: Error loading user details or setting authentication for username '{}': {}", username, userException.getMessage());
+                        // Authentication not set, AuthEntryPointJwt will handle it
                     }
+                } catch (CustomJwtException e) {
+                    // Log specific JWT validation errors
+                    String tokenPrefix = jwt.length() > 10 ? jwt.substring(0, 10) + "..." : jwt;
+                    log.error("AuthTokenFilter: JWT validation failed for token starting with '{}': {}. Type: {}", 
+                              tokenPrefix,
+                              e.getMessage(), 
+                              e.getClass().getSimpleName());
+                    // Authentication not set, AuthEntryPointJwt will handle it
                 }
             }
         } catch (Exception e) {
-            log.error("Cannot set user authentication: JWT validation error");
+            // This catch block is for unexpected errors during JWT parsing or filter processing itself,
+            // not for JWT validation failures (handled by CustomJwtException) or user loading issues.
+            log.error("AuthTokenFilter: Unexpected error processing JWT or filter chain: {}", e.getMessage(), e);
         }
 
         filterChain.doFilter(request, response);

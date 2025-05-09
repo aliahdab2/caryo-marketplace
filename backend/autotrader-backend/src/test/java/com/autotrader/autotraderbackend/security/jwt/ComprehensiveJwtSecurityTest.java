@@ -17,7 +17,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.util.ReflectionTestUtils;
-import io.jsonwebtoken.*;
+import com.autotrader.autotraderbackend.exception.jwt.MalformedJwtTokenException;
+import com.autotrader.autotraderbackend.exception.jwt.ExpiredJwtTokenException;
+import com.autotrader.autotraderbackend.exception.jwt.InvalidJwtSignatureException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -90,8 +92,8 @@ public class ComprehensiveJwtSecurityTest {
         String username = jwtUtils.getUserNameFromJwtToken(token);
         assertEquals("testuser", username);
         
-        // Verify token is valid
-        assertTrue(jwtUtils.validateJwtToken(token));
+        // Verify token is valid by ensuring no exception is thrown
+        assertDoesNotThrow(() -> jwtUtils.validateJwtToken(token));
     }
 
     @Test
@@ -99,8 +101,10 @@ public class ComprehensiveJwtSecurityTest {
         // Test with malformed token
         String malformedToken = "eyJhbGciOiJIUzI1NiIsIn.malformed.token";
         
-        // Validation should fail
-        assertFalse(jwtUtils.validateJwtToken(malformedToken));
+        // Validation should throw MalformedJwtTokenException
+        assertThrows(MalformedJwtTokenException.class, () -> {
+            jwtUtils.validateJwtToken(malformedToken);
+        });
         
         // Verify error logging (would need to use a logging test framework for better testing)
     }
@@ -120,13 +124,15 @@ public class ComprehensiveJwtSecurityTest {
         
         // Wait for token to expire
         try {
-            Thread.sleep(10);
+            Thread.sleep(100); // Increased sleep time to ensure expiration
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
         
-        // Validation should fail for expired token
-        assertFalse(jwtUtils.validateJwtToken(token));
+        // Validation should throw ExpiredJwtTokenException
+        assertThrows(ExpiredJwtTokenException.class, () -> {
+            jwtUtils.validateJwtToken(token);
+        });
         
         // Reset expiration
         ReflectionTestUtils.setField(jwtUtils, "jwtExpirationMs", jwtExpirationMs);
@@ -143,8 +149,10 @@ public class ComprehensiveJwtSecurityTest {
         // Change the secret to simulate invalid signature
         ReflectionTestUtils.setField(jwtUtils, "jwtSecret", "DifferentSecretKeyForTestingInvalidSignatureDifferentSecretKeyForTestingInvalidSignature==");
         
-        // Validation should fail
-        assertFalse(jwtUtils.validateJwtToken(token));
+        // Validation should throw InvalidJwtSignatureException
+        assertThrows(InvalidJwtSignatureException.class, () -> {
+            jwtUtils.validateJwtToken(token);
+        });
         
         // Reset secret
         ReflectionTestUtils.setField(jwtUtils, "jwtSecret", testSecret);
@@ -227,6 +235,10 @@ public class ComprehensiveJwtSecurityTest {
         // Verify filterChain was still called
         verify(filterChain).doFilter(request, response);
         verify(userDetailsService, never()).loadUserByUsername(anyString());
+        // We expect JwtUtils.validateJwtToken to be called and throw an exception,
+        // which is caught and logged by AuthTokenFilter.
+        // To verify this properly, we might need to spy on JwtUtils or check logs.
+        // For now, we ensure no authentication is set.
     }
     
     @Test
@@ -288,12 +300,24 @@ public class ComprehensiveJwtSecurityTest {
     @Test
     public void validateToken_WithEmptyOrNull() {
         // Test with null token
-        assertFalse(jwtUtils.validateJwtToken(null));
+        Exception exceptionNull = assertThrows(MalformedJwtTokenException.class, () -> {
+            jwtUtils.validateJwtToken(null);
+        });
+        assertEquals("JWT token is null or empty", exceptionNull.getMessage());
         
         // Test with empty token
-        assertFalse(jwtUtils.validateJwtToken(""));
+        Exception exceptionEmpty = assertThrows(MalformedJwtTokenException.class, () -> {
+            jwtUtils.validateJwtToken("");
+        });
+        assertEquals("JWT token is null or empty", exceptionEmpty.getMessage());
         
         // Test with whitespace token
-        assertFalse(jwtUtils.validateJwtToken("   "));
+        Exception exceptionWhitespace = assertThrows(MalformedJwtTokenException.class, () -> {
+            jwtUtils.validateJwtToken("   ");
+        });
+        // The message for whitespace might be different if it passes the initial null/empty check
+        // and fails later in the parsing. Let's check the behavior of JwtUtils.
+        // Based on current JwtUtils, it should also be "JWT token is null or empty" due to StringUtils.hasText check.
+        assertEquals("JWT token is null or empty", exceptionWhitespace.getMessage());
     }
 }
