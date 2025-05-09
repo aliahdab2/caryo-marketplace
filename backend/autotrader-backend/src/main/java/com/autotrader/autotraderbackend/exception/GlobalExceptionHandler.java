@@ -1,14 +1,18 @@
 package com.autotrader.autotraderbackend.exception;
 
+import com.autotrader.autotraderbackend.payload.response.MessageResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -84,6 +88,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleAllExceptions(Exception ex) {
         log.error("Unexpected exception", ex);
         return buildResponse("An unexpected error occurred", ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Handle Spring Security authentication exceptions
+     * This needs to be here to catch exceptions from Spring Security before they hit the generic handler
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<MessageResponse> handleSpringSecurityAuthenticationException(
+            AuthenticationException ex, WebRequest request) {
+        log.error("Spring Security authentication error: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new MessageResponse("Authentication failed: " + ex.getMessage()));
     }
 
     private ResponseEntity<Object> buildResponse(String message, String error, HttpStatus status) {

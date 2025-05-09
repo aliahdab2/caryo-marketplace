@@ -24,6 +24,11 @@ public class TestSecurityConfig {
         // Configure security similar to the main app but for test environment
         http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/api/auth/**").permitAll() // Ensure this covers /api/auth/signup and /api/auth/signin
+                .requestMatchers("/api/test/public").permitAll()
+                .requestMatchers("/api/test/user").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/api/test/admin").hasRole("ADMIN")
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/locations").hasRole("ADMIN")
                 .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/locations/**").hasRole("ADMIN")
                 .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/locations/**").hasRole("ADMIN")

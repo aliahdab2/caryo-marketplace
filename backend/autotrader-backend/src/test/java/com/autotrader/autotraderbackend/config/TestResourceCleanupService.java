@@ -8,13 +8,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Service to cleanup resources after tests
+ * Test service to cleanup resources after tests
  * Implements AutoCloseable to support try-with-resources pattern
  */
 @Service
-public class ResourceCleanupService implements AutoCloseable {
+public class TestResourceCleanupService implements AutoCloseable {
     
-    private static final Logger logger = LoggerFactory.getLogger(ResourceCleanupService.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestResourceCleanupService.class);
     
     @Autowired
     private CarListingRepository carListingRepository;

@@ -195,7 +195,24 @@ cd backend/autotrader-backend
 
 These tests do not require a running application and should complete quickly.
 
-#### API Tests with Postman/Newman
+#### Enhanced Authentication Tests
+
+We've significantly improved authentication test coverage with comprehensive test suites:
+
+```bash
+# Run enhanced authentication Postman tests
+./src/test/scripts/run_enhanced_auth_tests.sh
+
+# Run authentication error case integration tests
+./gradlew test --tests "com.autotrader.autotraderbackend.controller.AuthControllerErrorCasesIntegrationTest"
+
+# Run comprehensive JWT security tests
+./gradlew test --tests "com.autotrader.autotraderbackend.security.jwt.ComprehensiveJwtSecurityTest"
+```
+
+See our [enhanced authentication testing documentation](docs/enhanced_auth_testing.md) for details.
+
+#### Running API Tests with Postman/Newman
 
 API tests validate the entire application from a client perspective and require a running instance of the application:
 
