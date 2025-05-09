@@ -50,7 +50,7 @@ fi
 
 # Settings
 BASE_URL="http://localhost:8080"
-ADMIN_TOKEN="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc0NjYxNjk5NSwiZXhwIjoxNzQ2NzAzMzk1fQ.hYf5Vgn7FbwmimcR07pi_-19GsvTo2bS3eOUK1zy-5M"
+ADMIN_TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJfaWQiOjEsInJvbGVzIjoiQURNSU4iLCJleHAiOjE3Nzc1MjUxMjN9.WEY-JpgMpisLbmmQYoJiS87qBIC9UY1qr2l2DL83T5A"
 POSTMAN_DIR="$PROJECT_ROOT/src/test/resources/postman"
 USE_POSTMAN=false
 
@@ -85,6 +85,9 @@ test_reference_endpoint() {
   
   print_info "Testing $entity_name endpoint: $endpoint"
   
+  # Debug the curl command
+  print_info "Executing: curl -v -H \"Authorization: Bearer $ADMIN_TOKEN\" \"$BASE_URL$endpoint\""
+  
   # Try to call the endpoint
   local response=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "$BASE_URL$endpoint")
   
@@ -115,12 +118,12 @@ run_curl_tests() {
   local failures=0
   
   # Test various reference data endpoints
-  test_reference_endpoint "/api/reference/makes" "car makes" || ((failures++))
-  test_reference_endpoint "/api/reference/models" "car models" || ((failures++))
-  test_reference_endpoint "/api/reference/colors" "car colors" || ((failures++))
-  test_reference_endpoint "/api/reference/body-types" "body types" || ((failures++))
-  test_reference_endpoint "/api/reference/fuel-types" "fuel types" || ((failures++))
-  test_reference_endpoint "/api/reference/transmission-types" "transmission types" || ((failures++))
+  test_reference_endpoint "/api/reference-data/makes" "car makes" || ((failures++))
+  test_reference_endpoint "/api/reference-data/models" "car models" || ((failures++))
+  test_reference_endpoint "/api/reference-data/colors" "car colors" || ((failures++))
+  test_reference_endpoint "/api/reference-data/body-types" "body types" || ((failures++))
+  test_reference_endpoint "/api/reference-data/fuel-types" "fuel types" || ((failures++))
+  test_reference_endpoint "/api/reference-data/transmission-types" "transmission types" || ((failures++))
   
   # Summary
   if [[ $failures -eq 0 ]]; then

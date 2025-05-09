@@ -50,6 +50,47 @@ The project includes a complete development environment with all necessary compo
 # Start the development environment
 ./dev-env.sh start
 
+# Or use the unified CLI
+./autotrader.sh dev start
+```
+
+### Improved Script Infrastructure
+
+The script infrastructure has been improved to provide a more organized and user-friendly experience:
+
+#### 1. Unified CLI Interface
+
+The `autotrader.sh` script provides a comprehensive command-line interface:
+
+```bash
+# Development environment management
+./autotrader.sh dev start            # Start the development environment
+./autotrader.sh dev start --rebuild  # Rebuild and start the environment
+./autotrader.sh dev stop             # Stop the environment
+
+# Testing
+./autotrader.sh test all             # Run all tests
+./autotrader.sh test auth            # Run only authentication tests
+./autotrader.sh test reference-data  # Run reference data tests
+./autotrader.sh test unit            # Run unit tests
+./autotrader.sh test postman         # Run all Postman tests
+```
+
+#### 2. Centralized Testing
+
+The testing infrastructure has been unified with:
+
+```bash
+# Run tests directly
+./run-tests.sh all                   # Run all tests
+./run-tests.sh postman auth          # Run specific Postman collection
+./run-tests.sh unit                  # Run unit tests
+```
+
+#### 3. Fixed Postman Tests
+
+The Postman tests have been improved with consistent API paths, better authentication handling, and improved token management.
+
 # Check the status
 ./dev-env.sh status
 
@@ -109,8 +150,8 @@ The API endpoints are documented in detail in the [API_DOCUMENTATION.md](API_DOC
 
 ### Authentication Endpoints
 
-- `POST /auth/signup` - Register a new user
-- `POST /auth/signin` - Login and receive JWT token
+- `POST /api/auth/signup` - Register a new user
+- `POST /api/auth/signin` - Login and receive JWT token
 
 ### Status Endpoints
 

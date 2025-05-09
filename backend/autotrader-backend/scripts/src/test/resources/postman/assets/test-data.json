@@ -1,0 +1,9 @@
+{
+  "car": {
+    "make": "Test Make",
+    "model": "Test Model",
+    "year": 2023,
+    "price": 25000,
+    "description": "This is a test car listing"
+  }
+}

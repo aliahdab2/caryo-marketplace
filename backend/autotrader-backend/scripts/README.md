@@ -1,52 +1,63 @@
 # AutoTrader Backend Scripts
 
-This directory contains all utility scripts for the AutoTrader Backend project. Scripts are organized into subdirectories based on their purpose.
+This directory contains all utility scripts for the AutoTrader Backend project. Scripts have been reorganized and improved for better usability and maintenance.
 
 ## Directory Structure
+
+- **run-tests.sh** - Unified test runner for all types of tests
 
 - **dev/** - Development environment scripts
   - `dev-env.sh` - Start, stop, and manage the development environment
   - `start-dev.sh` - Start the development server
 
-- **test/** - Testing scripts
-  - `test-auth.sh` - Test authentication endpoints
-  - `test-endpoints.sh` - Test general API endpoints
-  - `test-reference-data.sh` - Test reference data endpoints
-  - `prepare-test-assets.sh` - Generate test assets for Postman tests
+- **test/** - Testing scripts and documentation
+  - `README.md` - Comprehensive testing documentation
+  - Tests are now centralized through the main run-tests.sh script
 
 - **postman/** - Postman-related scripts
-  - `run-collections.sh` - Run Postman collections with Newman
-  - `run-postman-tests.sh` - Run Postman tests without dev environment
-  - `run-postman-tests-with-devenv.sh` - Run Postman tests with dev environment
   - `generate-docs.sh` - Generate API documentation from Postman collections
 
 - **utils/** - Utility scripts
-  - Any other utility scripts that don't fit into the above categories
+  - `template.sh` - Common utilities and functions for bash scripts
 
 ## Usage Guidelines
 
-### Environment Safety
+### Unified Script Organization
 
-All scripts include environment checks to ensure they can run safely:
-- Scripts verify if required services are running
-- Scripts handle cases when the environment is not active
-- Scripts provide clear error messages when prerequisites aren't met
+The script infrastructure has been improved for better organization:
 
-### Naming Convention
+1. **Centralized Testing**: The `run-tests.sh` script provides a unified interface for all tests
+2. **Consistent API Paths**: Fixed inconsistencies between `/auth/*` and `/api/auth/*`
+3. **Better Authentication**: Improved token management in Postman tests
+4. **Removed Redundancy**: Eliminated duplicate scripts doing similar functions
+5. **Clear Documentation**: Added comprehensive documentation for all scripts
 
-Scripts follow a consistent naming convention:
-- Use hyphenated lowercase names (e.g., `run-collections.sh`)
-- Names should clearly indicate the script's purpose
-- Test scripts are prefixed with `test-`
-- Postman scripts are prefixed with `run-` when they execute tests
+### Key Improvements
+
+1. **Test Runner**: The new test runner supports:
+   - Running specific Postman collections
+   - Unit and integration tests
+   - Environment management
+   - Health checks
+   - HTML report generation
+
+2. **Fixed Postman Scripts**: 
+   - Consistent API paths across collections
+   - Pre-request scripts for automatic authentication
+   - Better error handling and reporting
+
+3. **Environment Management**:
+   - Automatic environment startup when needed
+   - Cleanup after test completion
+   - Status checking and validation
 
 ### Documentation
 
-Each script includes:
-- A header comment explaining its purpose
-- Usage information
-- Required dependencies
-- Example commands
+Each script now includes:
+- Detailed header comments explaining purpose and usage
+- Comprehensive help text with examples
+- Improved error messages and status updates
+- Color-coded output for better readability
 
 ## Dependencies
 

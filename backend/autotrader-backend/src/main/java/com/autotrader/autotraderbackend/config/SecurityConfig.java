@@ -44,9 +44,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/test/public").permitAll()
                 // Publicly accessible GET requests
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/locations/**").permitAll()
-                // Other permitAll rules
+                // Allow authentication endpoints without authentication
                 .requestMatchers("/").permitAll()
-                .requestMatchers("/auth/**").permitAll()
+                // Legacy /auth endpoints removed; only /api/auth/* is supported
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/auth/login").permitAll() // Retained for now, but likely unused
+                .requestMatchers("/api/auth/register").permitAll() // Retained for now, but likely unused
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/service-status").permitAll()
                 .requestMatchers("/actuator/health/**").permitAll()

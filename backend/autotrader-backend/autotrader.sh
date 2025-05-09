@@ -38,13 +38,17 @@ print_help() {
   echo -e "  ${GREEN}help${NC}     - Show this help message"
   echo
   echo -e "${CYAN}Examples:${NC}"
-  echo -e "  ${GREEN}./autotrader.sh dev start${NC}      - Start dev environment"
-  echo -e "  ${GREEN}./autotrader.sh dev stop${NC}       - Stop dev environment"
-  echo -e "  ${GREEN}./autotrader.sh api start${NC}      - Start API server"
-  echo -e "  ${GREEN}./autotrader.sh test all${NC}       - Run all tests"
-  echo -e "  ${GREEN}./autotrader.sh test auth${NC}      - Run auth tests"
-  echo -e "  ${GREEN}./autotrader.sh test endpoints${NC} - Test API endpoints"
-  echo -e "  ${GREEN}./autotrader.sh docs generate${NC}  - Generate API docs"
+  echo -e "  ${GREEN}./autotrader.sh dev start${NC}                      - Start dev environment"
+  echo -e "  ${GREEN}./autotrader.sh dev start --rebuild${NC}            - Rebuild and start dev environment" 
+  echo -e "  ${GREEN}./autotrader.sh dev start --rebuild --skip-tests${NC} - Rebuild without tests and start dev environment"
+  echo -e "  ${GREEN}./autotrader.sh dev rebuild${NC}                    - Rebuild dev environment (existing command)"
+  echo -e "  ${GREEN}./autotrader.sh dev rebuild-notest${NC}             - Rebuild dev environment without tests"
+  echo -e "  ${GREEN}./autotrader.sh dev stop${NC}                       - Stop dev environment"
+  echo -e "  ${GREEN}./autotrader.sh api start${NC}                      - Start API server"
+  echo -e "  ${GREEN}./autotrader.sh test all${NC}                       - Run all tests"
+  echo -e "  ${GREEN}./autotrader.sh test auth${NC}             - Run auth tests"
+  echo -e "  ${GREEN}./autotrader.sh test endpoints${NC}        - Test API endpoints"
+  echo -e "  ${GREEN}./autotrader.sh docs generate${NC}         - Generate API docs"
   echo
 }
 
@@ -57,30 +61,85 @@ ensure_executable() {
 
 # Development environment command
 handle_dev_command() {
-  case "$1" in
+  # Process special flags for start command
+  local rebuild=false
+  local skipTests=false
+  local command=""
+  local args=()
+  
+  # Parse all arguments
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      start|stop|restart|status|logs|rebuild|rebuild-notest)
+        command="$1"
+        shift
+        ;;
+      --rebuild)
+        rebuild=true
+        shift
+        ;;
+      --skip-tests)
+        skipTests=true
+        shift
+        ;;
+      *)
+        # Pass other arguments through
+        args+=("$1")
+        shift
+        ;;
+    esac
+  done
+  
+  # Run the appropriate command
+  case "$command" in
+    # Special handling for start with rebuild flag
     start)
-      ensure_executable "$PROJECT_ROOT/scripts/dev/dev-env.sh"
-      "$PROJECT_ROOT/scripts/dev/dev-env.sh" start
+      if [[ "$rebuild" == true ]]; then
+        if [[ "$skipTests" == true ]]; then
+          print_header "Rebuilding (Skipping Tests) and Starting Development Environment"
+          ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
+          "$PROJECT_ROOT/.devenv/dev-env.sh" rebuild-notest
+        else
+          print_header "Rebuilding and Starting Development Environment"
+          ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
+          "$PROJECT_ROOT/.devenv/dev-env.sh" rebuild
+        fi
+      else
+        ensure_executable "$PROJECT_ROOT/scripts/dev/dev-env.sh"
+        "$PROJECT_ROOT/scripts/dev/dev-env.sh" start "${args[@]}"
+      fi
+      ;;
+    # Direct mapping to existing commands
+    rebuild)
+      print_header "Rebuilding Development Environment"
+      ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
+      "$PROJECT_ROOT/.devenv/dev-env.sh" rebuild "${args[@]}"
+      ;;
+    rebuild-notest)
+      print_header "Rebuilding Development Environment (Skipping Tests)"
+      ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
+      "$PROJECT_ROOT/.devenv/dev-env.sh" rebuild-notest "${args[@]}"
       ;;
     stop)
       ensure_executable "$PROJECT_ROOT/scripts/dev/dev-env.sh"
-      "$PROJECT_ROOT/scripts/dev/dev-env.sh" stop
+      "$PROJECT_ROOT/scripts/dev/dev-env.sh" stop "${args[@]}"
       ;;
     restart)
       ensure_executable "$PROJECT_ROOT/scripts/dev/dev-env.sh"
-      "$PROJECT_ROOT/scripts/dev/dev-env.sh" restart
+      "$PROJECT_ROOT/scripts/dev/dev-env.sh" restart "${args[@]}"
       ;;
     status)
       ensure_executable "$PROJECT_ROOT/scripts/dev/dev-env.sh"
-      "$PROJECT_ROOT/scripts/dev/dev-env.sh" status
+      "$PROJECT_ROOT/scripts/dev/dev-env.sh" status "${args[@]}"
       ;;
     logs)
       ensure_executable "$PROJECT_ROOT/scripts/dev/dev-env.sh"
-      "$PROJECT_ROOT/scripts/dev/dev-env.sh" logs
+      "$PROJECT_ROOT/scripts/dev/dev-env.sh" logs "${args[@]}"
       ;;
     *)
-      echo -e "${RED}Unknown dev command: $1${NC}"
-      echo -e "Available dev commands: start, stop, restart, status, logs"
+      echo -e "${RED}Unknown dev command: $command${NC}"
+      echo -e "Available dev commands: start, stop, restart, status, logs, rebuild, rebuild-notest"
+      echo -e "Available flags for 'start': --rebuild (performs clean build before starting), --skip-tests (skip tests when rebuilding)"
       exit 1
       ;;
   esac
@@ -88,50 +147,88 @@ handle_dev_command() {
 
 # API server command
 handle_api_command() {
-  case "$1" in
-    start)
-      ensure_executable "$PROJECT_ROOT/scripts/dev/start-dev.sh"
-      "$PROJECT_ROOT/scripts/dev/start-dev.sh" "$@"
-      ;;
-    *)
-      echo -e "${RED}Unknown api command: $1${NC}"
-      echo -e "Available api commands: start"
-      exit 1
-      ;;
-  esac
+  # Process special flags first
+  local rebuild=false
+  local args=()
+  
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      start)
+        args+=("start")
+        shift
+        ;;
+      --rebuild)
+        rebuild=true
+        shift
+        ;;
+      *)
+        # Pass other arguments through
+        args+=("$1")
+        shift
+        ;;
+    esac
+  done
+  
+  # Handle commands
+  if [[ "${#args[@]}" -eq 0 || "${args[0]}" == "start" ]]; then
+    ensure_executable "$PROJECT_ROOT/scripts/dev/start-dev.sh"
+    
+    if [[ "$rebuild" == true ]]; then
+      print_header "Rebuilding and Starting API"
+      echo -e "${CYAN}Performing full rebuild before starting...${NC}"
+      cd "$PROJECT_ROOT" && ./gradlew clean build && "$PROJECT_ROOT/scripts/dev/start-dev.sh" "${args[@]}"
+    else
+      cd "$PROJECT_ROOT" && "$PROJECT_ROOT/scripts/dev/start-dev.sh" "${args[@]}"
+    fi
+  else
+    echo -e "${RED}Unknown api command: ${args[0]}${NC}"
+    echo -e "Available api commands: start"
+    echo -e "Available flags: --rebuild (performs clean build before starting)"
+    exit 1
+  fi
 }
 
 # Test command
 handle_test_command() {
+  # Ensure our main test runner script is executable
+  ensure_executable "$PROJECT_ROOT/scripts/run-tests.sh"
+  
   case "$1" in
     all)
-      # Prepare test assets first
-      ensure_executable "$PROJECT_ROOT/scripts/test/prepare-test-assets.sh"
-      "$PROJECT_ROOT/scripts/test/prepare-test-assets.sh"
-      
-      # Run Postman tests with development environment
-      ensure_executable "$PROJECT_ROOT/scripts/postman/run-postman-tests-with-devenv.sh"
-      "$PROJECT_ROOT/scripts/postman/run-postman-tests-with-devenv.sh"
+      # Run all tests with automatic environment management
+      "$PROJECT_ROOT/scripts/run-tests.sh" all --start-env
       ;;
     auth)
-      ensure_executable "$PROJECT_ROOT/scripts/test/test-auth.sh"
-      "$PROJECT_ROOT/scripts/test/test-auth.sh" --start-env
+      # Run only authentication tests
+      "$PROJECT_ROOT/scripts/run-tests.sh" postman auth --start-env
       ;;
     endpoints)
-      ensure_executable "$PROJECT_ROOT/scripts/test/test-endpoints.sh"
-      "$PROJECT_ROOT/scripts/test/test-endpoints.sh" --start-env
+      # Run API endpoints tests
+      "$PROJECT_ROOT/scripts/run-tests.sh" postman endpoints --start-env
       ;;
     reference-data|refdata)
-      ensure_executable "$PROJECT_ROOT/scripts/test/test-reference-data.sh"
-      "$PROJECT_ROOT/scripts/test/test-reference-data.sh" --start-env
+      # Run reference data tests
+      "$PROJECT_ROOT/scripts/run-tests.sh" postman reference-data --start-env
       ;;
     postman)
-      ensure_executable "$PROJECT_ROOT/scripts/postman/run-collections.sh"
-      "$PROJECT_ROOT/scripts/postman/run-collections.sh" --all
+      # Run all Postman collections
+      "$PROJECT_ROOT/scripts/run-tests.sh" postman --start-env
+      ;;
+    unit)
+      # Run unit tests
+      "$PROJECT_ROOT/scripts/run-tests.sh" unit
+      ;;
+    integration)
+      # Run integration tests
+      "$PROJECT_ROOT/scripts/run-tests.sh" integration
+      ;;
+    health)
+      # Run health check
+      "$PROJECT_ROOT/scripts/run-tests.sh" health
       ;;
     *)
       echo -e "${RED}Unknown test command: $1${NC}"
-      echo -e "Available test commands: all, auth, endpoints, reference-data, postman"
+      echo -e "Available test commands: all, auth, endpoints, reference-data, postman, unit, integration, health"
       exit 1
       ;;
   esac

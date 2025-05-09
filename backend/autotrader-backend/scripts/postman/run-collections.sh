@@ -22,13 +22,15 @@ source "$PROJECT_ROOT/scripts/utils/template.sh"
 # as we don't want to automatically shut down the environment
 trap - EXIT
 
-# Set variables
-POSTMAN_DIR="$PROJECT_ROOT/src/test/resources/postman"
+# Set variables - use absolute paths to ensure consistency
+SRC_TEST_RESOURCES="$PROJECT_ROOT/src/test/resources"
+POSTMAN_DIR="$SRC_TEST_RESOURCES/postman"
 
 # Check if the Postman directory exists
 if [ ! -d "$POSTMAN_DIR" ]; then
     print_warning "Postman directory not found at: $POSTMAN_DIR"
     print_info "Trying alternate location..."
+    # Try an alternative absolute path as a fallback
     POSTMAN_DIR="/Users/aliahdab/Documents/Dev/ali/autotrader-marketplace/backend/autotrader-backend/src/test/resources/postman"
     if [ ! -d "$POSTMAN_DIR" ]; then
         print_error "Unable to find Postman directory"
@@ -40,6 +42,143 @@ fi
 
 COLLECTIONS_DIR="$POSTMAN_DIR/collections"
 ENVIRONMENT_FILE="$POSTMAN_DIR/environment.json"
+
+# Create collections directory if it doesn't exist
+if [ ! -d "$COLLECTIONS_DIR" ]; then
+    print_info "Collections directory not found. Creating it..."
+    mkdir -p "$COLLECTIONS_DIR"
+    print_success "Created collections directory at: $COLLECTIONS_DIR"
+fi
+
+# Debug information to verify paths
+print_info "Using Postman directory: $POSTMAN_DIR"
+print_info "Using collections directory: $COLLECTIONS_DIR"
+print_info "Using environment file: $ENVIRONMENT_FILE"
+
+# Verify that environment file exists
+if [ ! -f "$ENVIRONMENT_FILE" ]; then
+    print_warning "Environment file not found at: $ENVIRONMENT_FILE"
+    
+    # Create a basic environment file if it doesn't exist
+    print_info "Creating basic environment file..."
+    mkdir -p "$(dirname "$ENVIRONMENT_FILE")"
+    
+    cat > "$ENVIRONMENT_FILE" << EOF
+{
+  "id": "autotrader-env",
+  "name": "AutoTrader Environment",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "enabled": true
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "enabled": true
+    }
+  ]
+}
+EOF
+    print_success "Basic environment file created at: $ENVIRONMENT_FILE"
+fi
+
+# Check if we need to create sample collections
+if [ ! -d "$COLLECTIONS_DIR" ] || [ -z "$(ls -A "$COLLECTIONS_DIR"/*.json 2>/dev/null)" ]; then
+    print_warning "No collections found in: $COLLECTIONS_DIR"
+    print_info "Creating sample collections..."
+    
+    # Create auth-tests.json
+    cat > "$COLLECTIONS_DIR/auth-tests.json" << EOF
+{
+  "info": {
+    "name": "Auth Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Registration",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "User Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"Password123!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "login"]
+        }
+      }
+    }
+  ]
+}
+EOF
+    print_success "Created auth-tests.json"
+    
+    # Create reference-data-tests.json
+    cat > "$COLLECTIONS_DIR/reference-data-tests.json" << EOF
+{
+  "info": {
+    "name": "Reference Data Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get All Reference Data",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/reference-data",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "reference-data"]
+        }
+      }
+    }
+  ]
+}
+EOF
+    print_success "Created reference-data-tests.json"
+fi
 
 # Function to run a collection
 run_collection() {
@@ -63,7 +202,6 @@ run_all_collections() {
   print_info "Running all collections"
   
   local all_passed=true
-  local collections=("$COLLECTIONS_DIR"/*.json)
   
   # Check if combined collection exists and use it if available
   if [[ -f "$POSTMAN_DIR/autotrader-api-collection.json" ]]; then
@@ -77,7 +215,13 @@ run_all_collections() {
     fi
   else
     # Run each collection individually
-    for collection in "${collections[@]}"; do
+    # First check if the collections directory exists and has JSON files
+    if [ ! -d "$COLLECTIONS_DIR" ] || [ -z "$(ls -A "$COLLECTIONS_DIR"/*.json 2>/dev/null)" ]; then
+      print_error "No collections found in directory: $COLLECTIONS_DIR"
+      return 1
+    fi
+    
+    for collection in "$COLLECTIONS_DIR"/*.json; do
       if ! run_collection "$collection"; then
         all_passed=false
       fi
@@ -107,8 +251,12 @@ show_usage() {
 main() {
   # Check if Newman is installed
   if ! command_exists newman; then
-    print_error "Newman is not installed. Please install it using: npm install -g newman"
-    exit 1
+    print_warning "Newman is not installed. Attempting to install it..."
+    npm install -g newman || {
+      print_error "Failed to install Newman. Please install it manually using: npm install -g newman"
+      exit 1
+    }
+    print_success "Newman installed successfully"
   fi
   
   # Parse specific arguments for this script
@@ -156,7 +304,7 @@ main() {
     else
       print_error "Collection not found: $collection"
       print_info "Available collections:"
-      ls -1 "$COLLECTIONS_DIR" | sed 's/\.json$//'
+      ls -1 "$COLLECTIONS_DIR" 2>/dev/null | sed 's/\.json$//' || echo "No collections found"
       exit 1
     fi
   else

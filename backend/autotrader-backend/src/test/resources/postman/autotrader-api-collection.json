@@ -63,7 +63,7 @@
               "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"role\": [\"user\"]\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/auth/signup",
+              "raw": "{{baseUrl}}/api/auth/signup",
               "host": ["{{baseUrl}}"],
               "path": ["auth", "signup"]
             }
@@ -109,7 +109,7 @@
               "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"password\": \"{{test_password}}\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/auth/signin",
+              "raw": "{{baseUrl}}/api/auth/signin",
               "host": ["{{baseUrl}}"],
               "path": ["auth", "signin"]
             }

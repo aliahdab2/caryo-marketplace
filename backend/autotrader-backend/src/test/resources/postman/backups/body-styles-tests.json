@@ -1,0 +1,376 @@
+{
+  "info": {
+    "_postman_id": "body-styles-tests-collection",
+    "name": "AutoTrader Body Styles Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "// Check if admin token exists, if not login as admin",
+          "if (!pm.environment.get('admin_auth_token')) {",
+          "    console.log('No admin token found, logging in as admin first');",
+          "    ",
+          "    const adminLoginRequest = {",
+          "        url: pm.environment.get('baseUrl') + '/auth/signin',",
+          "        method: 'POST',",
+          "        header: 'Content-Type:application/json',",
+          "        body: {",
+          "            mode: 'raw',",
+          "            raw: JSON.stringify({",
+          "                username: pm.environment.get('admin_username'),",
+          "                password: pm.environment.get('admin_password')",
+          "            })",
+          "        }",
+          "    };",
+          "    ",
+          "    pm.sendRequest(adminLoginRequest, function (err, res) {",
+          "        if (err) {",
+          "            console.error('Error logging in as admin:', err);",
+          "        } else {",
+          "            if (res.code === 200 && res.json().token) {",
+          "                const token = res.json().token;",
+          "                pm.environment.set('admin_auth_token', token);",
+          "                console.log('Admin token retrieved and set successfully');",
+          "            } else {",
+          "                console.error('Failed to retrieve admin token:', res.text());",
+          "            }",
+          "        }",
+          "    });",
+          "}",
+          "",
+          "console.log('Using admin token:', pm.environment.get('admin_auth_token') ? ",
+          "    (pm.environment.get('admin_auth_token').substring(0,10) + '...') : 'none');"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Get All Body Styles",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response is an array of body styles\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "    if (jsonData.length > 0) {",
+              "        pm.expect(jsonData[0]).to.have.property('id');",
+              "        pm.expect(jsonData[0]).to.have.property('name');",
+              "        pm.expect(jsonData[0]).to.have.property('displayNameEn');",
+              "        pm.expect(jsonData[0]).to.have.property('displayNameAr');",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/body-styles",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "body-styles"]
+        }
+      }
+    },
+    {
+      "name": "Get Body Style by ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response contains body style details\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData).to.have.property('name');",
+              "    pm.expect(jsonData).to.have.property('displayNameEn');",
+              "    pm.expect(jsonData).to.have.property('displayNameAr');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/body-styles/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "body-styles", "1"]
+        }
+      }
+    },
+    {
+      "name": "Get Body Style by Name",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response contains body style details\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData).to.have.property('name');",
+              "    pm.expect(jsonData).to.have.property('displayNameEn');",
+              "    pm.expect(jsonData).to.have.property('displayNameAr');",
+              "    pm.expect(jsonData.name).to.equal('sedan');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/body-styles/name/sedan",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "body-styles", "name", "sedan"]
+        }
+      }
+    },
+    {
+      "name": "Search Body Styles",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Search results are valid\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "    if (jsonData.length > 0) {",
+              "        pm.expect(jsonData[0]).to.have.property('id');",
+              "        pm.expect(jsonData[0]).to.have.property('name');",
+              "        pm.expect(jsonData[0]).to.have.property('displayNameEn');",
+              "        pm.expect(jsonData[0]).to.have.property('displayNameAr');",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/body-styles/search?q=sedan",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "body-styles", "search"],
+          "query": [
+            {
+              "key": "q",
+              "value": "sedan"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create Body Style (Admin)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Response contains created body style\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData).to.have.property('name');",
+              "    pm.expect(jsonData.name).to.equal('test-body-style');",
+              "    pm.environment.set('body_style_id', jsonData.id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"test-body-style\",\n    \"displayNameEn\": \"Test Body Style\",\n    \"displayNameAr\": \"اختبار نوع الهيكل\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/body-styles",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "body-styles"]
+        }
+      }
+    },
+    {
+      "name": "Update Body Style (Admin)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response contains updated body style\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData).to.have.property('name');",
+              "    pm.expect(jsonData.displayNameEn).to.equal('Updated Body Style');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"test-body-style\",\n    \"displayNameEn\": \"Updated Body Style\",\n    \"displayNameAr\": \"اختبار نوع الهيكل محدث\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/body-styles/{{body_style_id}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "body-styles", "{{body_style_id}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Body Style (Admin)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 204\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/body-styles/{{body_style_id}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "body-styles", "{{body_style_id}}"]
+        }
+      }
+    }
+  ]
+}

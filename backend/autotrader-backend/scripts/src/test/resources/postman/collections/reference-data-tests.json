@@ -1,0 +1,117 @@
+{
+  "info": {
+    "name": "Reference Data Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get All Reference Data",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Check if we have a valid auth token",
+              "const authToken = pm.environment.get('auth_token');",
+              "",
+              "if (!authToken) {",
+              "    console.log('No auth token found in environment variables!');",
+              "    console.log('Running auth login request to get a token...');",
+              "    ",
+              "    // Use the known-working credentials for direct login",
+              "    // Set up login request",
+              "    const loginRequest = {",
+              "        url: pm.environment.get('baseUrl') + '/api/auth/signin',",
+              "        method: 'POST',",
+              "        header: {",
+              "            'Content-Type': 'application/json'",
+              "        },",
+              "        body: {",
+              "            mode: 'raw',",
+              "            raw: JSON.stringify({",
+              "                username: 'user',",
+              "                password: 'Password123!'",
+              "            })",
+              "        }",
+              "    };",
+              "    ",
+              "    pm.sendRequest(loginRequest, function (err, res) {",
+              "        if (err) {",
+              "            console.log('Error during login:', err);",
+              "        } else if (res.code === 200) {",
+              "            const jsonData = res.json();",
+              "            if (jsonData && jsonData.token) {",
+              "                console.log('Successfully retrieved auth token');",
+              "                // Store token both in the environment and as a collection variable",
+              "                // Collection variables are more reliable within the same request",
+              "                pm.environment.set('auth_token', jsonData.token);",
+              "                pm.collectionVariables.set('auth_token', jsonData.token);",
+              "                pm.variables.set('auth_token', jsonData.token);",
+              "                ",
+              "                // Directly set the Authorization header for the current request",
+              "                pm.request.headers.upsert({",
+              "                    key: 'Authorization',",
+              "                    value: 'Bearer ' + jsonData.token",
+              "                });",
+              "                ",
+              "                console.log('Auth token set to: ' + jsonData.token.substring(0, 20) + '...');",
+              "            } else {",
+              "                console.log('Login successful but no token found in response');",
+              "            }",
+              "        } else {",
+              "            console.log('Login failed with status:', res.code);",
+              "            console.log('Response:', res.json());",
+              "        }",
+              "    });",
+              "} else {",
+              "    console.log('Using existing auth token:', authToken.substring(0, 20) + '...');",
+              "    // Ensure the token is properly set in the current request header",
+              "    pm.request.headers.upsert({",
+              "        key: 'Authorization',",
+              "        value: 'Bearer ' + authToken",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response contains reference data\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('object');",
+              "    pm.expect(jsonData).to.have.property('carConditions');",
+              "    pm.expect(jsonData).to.have.property('driveTypes');",
+              "    pm.expect(jsonData).to.have.property('bodyStyles');",
+              "    pm.expect(jsonData).to.have.property('fuelTypes');",
+              "    pm.expect(jsonData).to.have.property('transmissions');",
+              "    pm.expect(jsonData).to.have.property('sellerTypes');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/reference-data",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "reference-data"]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "info": {
+    "name": "Auth Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Registration",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+              "exec": [
+                "// Generate a username that is always between 3 and 20 characters",
+                "const timestamp = new Date().getTime().toString().slice(-8); // 8 digits",
+                "const randomUsername = 'u' + timestamp; // e.g., 'u12345678' (9 chars)",
+                "const randomEmail = `${randomUsername}@example.com`;",
+                "",
+                "// Store values in environment variables for use across requests",
+                "pm.environment.set('test_username', randomUsername);",
+                "pm.environment.set('test_email', randomEmail);",
+                "pm.environment.set('test_password', 'Password123!');",
+                "",
+                "console.log(`Using generated credentials: ${randomUsername}, ${randomEmail}`);",
+                ""
+              ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Registration status check\", function() {",
+              "    if (pm.response.code === 200) {",
+              "        pm.test(\"User registration successful\", function() {",
+              "            var jsonData = pm.response.json();",
+              "            pm.expect(jsonData.message).to.include(\"successfully\");",
+              "            console.log('User registered successfully:', pm.environment.get('test_username'));",
+              "        });",
+              "    } else if (pm.response.code === 400) {",
+              "        // Handle case where user might already exist",
+              "        console.log('Registration failed with 400 - Bad Request');",
+              "        console.log('Response:', pm.response.json());",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{test_username}}\",\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signup",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "signup"]
+        }
+      }
+    },
+    {
+      "name": "User Login",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Use the username and password from the registration step if available",
+              "// Or fall back to default test user if those aren't set",
+              "const username = pm.environment.get('test_username') || 'user';",
+              "const password = pm.environment.get('test_password') || 'Password123!';",
+              "",
+              "console.log(`Attempting login with username: ${username}`);",
+              "",
+              "// Update the request body with these credentials",
+              "pm.variables.set('login_username', username);",
+              "pm.variables.set('login_password', password);",
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Login response status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Login response has token\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.token).to.exist;",
+              "",
+              "    // If token exists, save it to the environment variable",
+              "    if (jsonData.token) {",
+              "        pm.environment.set('auth_token', jsonData.token);",
+              "        console.log('Auth token saved successfully: ' + jsonData.token.substring(0, 20) + '...');",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{login_username}}\",\n  \"password\": \"{{login_password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signin",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "signin"]
+        }
+      }
+    }
+  ]
+}

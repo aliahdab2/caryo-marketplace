@@ -205,22 +205,12 @@ for arg in "$@"; do
       exit 0
       ;;
     *)
-      # Unknown option
+      # Unknown option, handled by individual scripts
       ;;
   esac
 done
 
-# Environment checks with optional auto-start
-if ! check_env_running && [ "$START_ENV" = true ]; then
-  start_dev_env
-elif ! check_env_running && [ "$FORCE" = false ]; then
-  print_error "Environment is not running and --start-env was not specified"
-  print_info "You can:"
-  print_info "  1. Start the environment manually with ./dev-env.sh start"
-  print_info "  2. Run this script with --start-env to start it automatically"
-  print_info "  3. Run with --force to skip environment checks"
-  exit 1
+# Only run main if the script is executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
 fi
-
-# Execute main function
-main "$@"

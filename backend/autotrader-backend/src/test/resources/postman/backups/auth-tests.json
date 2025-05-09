@@ -11,19 +11,18 @@
         {
           "listen": "prerequest",
           "script": {
-              "exec": [
-                "// Generate a username that is always between 3 and 20 characters",
-                "const timestamp = new Date().getTime().toString().slice(-8); // 8 digits",
-                "const randomUsername = 'u' + timestamp; // e.g., 'u12345678' (9 chars)",
-                "const randomEmail = `${randomUsername}@example.com`;",
-                "",
-                "// Store values in environment variables",
-                "pm.environment.set('test_username', randomUsername);",
-                "pm.environment.set('test_email', randomEmail);",
-                "pm.environment.set('test_password', 'Password123!');",
-                "",
-                "console.log(`Generated test user: ${randomUsername}, ${randomEmail}`);"
-              ],
+            "exec": [
+              "// Generate random values for user registration",
+              "const randomUsername = 'user_' + Math.random().toString(36).substring(2, 10);",
+              "const randomEmail = `${randomUsername}@example.com`;",
+              "",
+              "// Store values for use across requests",
+              "pm.environment.set('test_username', randomUsername);",
+              "pm.environment.set('test_email', randomEmail);",
+              "pm.environment.set('test_password', 'password123');",
+              "",
+              "console.log(`Generated test user: ${randomUsername}, ${randomEmail}`);"
+            ],
             "type": "text/javascript"
           }
         },
@@ -31,22 +30,22 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Status code is 200\", function () {",
+              "pm.test(\\\"Status code is 200\\\", function () {",
               "    pm.response.to.have.status(200);",
               "});",
               "",
               "// Only run further tests and log JSON if status is 200",
               "if (pm.response.code === 200) {",
-              "    pm.test(\"Registration successful message\", function () {",
+              "    pm.test(\\\"Registration successful message\\\", function () {",
               "        var jsonData = pm.response.json();",
-              "        pm.expect(jsonData.message).to.include(\"successfully\");",
+              "        pm.expect(jsonData.message).to.include(\\\"successfully\\\");",
               "    });",
-              "    console.log(\"Registration Response (Success):\", pm.response.json());",
+              "    console.log(\\\"Registration Response (Success):\\\", pm.response.json());",
               "} else {",
-              "    console.error(\"Registration Request Failed! Details below:\");",
-              "    console.error(\"Status Code:\", pm.response.code);",
-              "    console.error(\"Response Headers:\", JSON.stringify(pm.response.headers.all(), null, 2));",
-              "    console.error(\"Response Body:\", pm.response.text());",
+              "    console.error(\\\"Registration Request Failed! Details below:\\\");",
+              "    console.error(\\\"Status Code:\\\", pm.response.code);",
+              "    console.error(\\\"Response Headers:\\\\\", JSON.stringify(pm.response.headers.all(), null, 2));",
+              "    console.error(\\\"Response Body:\\\\\", pm.response.text());",
               "}"
             ],
             "type": "text/javascript"
@@ -66,9 +65,9 @@
           "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"role\": [\"user\"]\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/auth/signup",
+          "raw": "{{baseUrl}}/auth/signup",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "auth", "signup"]
+          "path": ["auth", "signup"]
         }
       }
     },
@@ -112,9 +111,9 @@
           "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"password\": \"{{test_password}}\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/auth/signin",
+          "raw": "{{baseUrl}}/auth/signin",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "auth", "signin"]
+          "path": ["auth", "signin"]
         }
       }
     },
@@ -158,9 +157,9 @@
           "raw": "{\n    \"username\": \"{{admin_username}}\",\n    \"password\": \"{{admin_password}}\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/auth/signin",
+          "raw": "{{baseUrl}}/auth/signin",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "auth", "signin"]
+          "path": ["auth", "signin"]
         }
       }
     },

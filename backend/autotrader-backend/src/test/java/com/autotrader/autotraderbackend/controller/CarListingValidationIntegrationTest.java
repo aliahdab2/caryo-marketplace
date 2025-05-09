@@ -66,7 +66,7 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
         signupRequest.setRole(roles);
 
         restTemplate.postForEntity(
-                baseUrl + "/auth/signup",
+                baseUrl + "/api/auth/signup",
                 signupRequest,
                 Object.class
         );
@@ -77,7 +77,7 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
         loginRequest.setPassword("password123");
 
         ResponseEntity<JwtResponse> loginResponse = restTemplate.postForEntity(
-                baseUrl + "/auth/signin",
+                baseUrl + "/api/auth/signin",
                 loginRequest,
                 JwtResponse.class
         );

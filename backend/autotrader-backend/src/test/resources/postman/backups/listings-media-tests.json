@@ -1,0 +1,523 @@
+{
+	"info": {
+		"_postman_id": "a8d8f9c1-4f7f-4c9e-8c8f-0c9c9c9c9c9c",
+		"name": "Listings and Media Tests",
+		"description": "Tests for creating listings, uploading media, and retrieving them.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. Login as Admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Response contains token\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.token).to.not.be.empty;",
+							"    pm.environment.set('admin_token', jsonData.token);",
+							"    console.log('Admin token set: ' + jsonData.token.substring(0, 20) + '...');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"Admin123!\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/signin",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"signin"
+					]
+				},
+				"description": "Authenticate as admin to get a token for subsequent requests."
+			},
+			"response": []
+		},
+		{
+			"name": "1. Create Simple Listing (No Initial Media)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201 - Created\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"pm.test(\"Response contains listing ID\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.id).to.not.be.null;",
+							"    pm.environment.set('listing_id_1', jsonData.id);",
+							"    console.log('Created listing_id_1: ' + jsonData.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"Test Listing - No Media\",\n    \"description\": \"A test listing created without any initial media files.\",\n    \"price\": 25000,\n    \"mileage\": 50000,\n    \"modelYear\": 2020,\n    \"vin\": \"VINNOLIST001\",\n    \"brand\": \"TestMake\",\n    \"model\": \"TestModel\",\n    \"locationId\": 1\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/listings",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"listings"
+					]
+				},
+				"description": "Creates a new car listing without any media files initially. Uses admin token for auth."
+			},
+			"response": []
+		},
+		{
+			"name": "1.1. Approve Listing 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 - OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Listing is approved\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.approved).to.be.true;",
+							"    console.log('Approved listing_id_1: ' + pm.environment.get('listing_id_1') + ', approved status: ' + jsonData.approved);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/listings/{{listing_id_1}}/approve",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"listings",
+						"{{listing_id_1}}",
+						"approve"
+					]
+				},
+				"description": "Approves listing_id_1 to make it publicly visible."
+			},
+			"response": []
+		},
+		{
+			"name": "2. Upload Image to Existing Listing",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 - OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Response contains message and imageKey\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message).to.not.be.empty;",
+							"    pm.expect(jsonData.imageKey).to.not.be.empty;",
+							"    console.log('Upload response message: ' + jsonData.message);",
+							"    console.log('Uploaded image key: ' + jsonData.imageKey);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "src/test/resources/postman/assets/test-car.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/listings/{{listing_id_1}}/upload-image",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"listings",
+						"{{listing_id_1}}",
+						"upload-image"
+					]
+				},
+				"description": "Uploads an image to the previously created listing (listing_id_1). Uses admin token."
+			},
+			"response": []
+		},
+		{
+			"name": "3. Get Listing by ID (with Media)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 - OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Listing has at least one media item\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.media).to.be.an('array').with.lengthOf.at.least(1);",
+							"    pm.expect(jsonData.media[0].url).to.not.be.empty;",
+							"    console.log('Retrieved listing with media: ' + jsonData.media[0].url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/listings/{{listing_id_1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"listings",
+						"{{listing_id_1}}"
+					]
+				},
+				"description": "Retrieves the listing created in step 1, which should now include the uploaded media."
+			},
+			"response": []
+		},
+		{
+			"name": "4. Create Listing with Initial Image",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201 - Created\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"pm.test(\"Response contains listing ID and media URL\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.id).to.not.be.null;",
+							"    pm.expect(jsonData.media).to.be.an('array').with.lengthOf.at.least(1);",
+							"    pm.expect(jsonData.media[0].url).to.not.be.empty;",
+							"    pm.environment.set('listing_id_2', jsonData.id);",
+							"    console.log('Created listing_id_2: ' + jsonData.id + ' with media: ' + jsonData.media[0].url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "listing",
+							"value": "{\n    \"title\": \"Test Listing - With Initial Media\",\n    \"description\": \"A test listing created with an initial image.\",\n    \"price\": 35000,\n    \"mileage\": 20000,\n    \"modelYear\": 2022,\n    \"vin\": \"VINWITHIMG001\",\n    \"brand\": \"TestMakeAdv\",\n    \"model\": \"TestModelAdv\",\n    \"locationId\": 1\n}",
+							"contentType": "application/json",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"type": "file",
+							"src": "src/test/resources/postman/assets/test-car.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/listings/with-image",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"listings",
+						"with-image"
+					]
+				},
+				"description": "Creates a new car listing along with an initial image in a single multipart/form-data request. Uses admin token."
+			},
+			"response": []
+		},
+		{
+			"name": "4.1. Approve Listing 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 - OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Listing is approved\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.approved).to.be.true;",
+							"    console.log('Approved listing_id_2: ' + pm.environment.get('listing_id_2') + ', approved status: ' + jsonData.approved);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/listings/{{listing_id_2}}/approve",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"listings",
+						"{{listing_id_2}}",
+						"approve"
+					]
+				},
+				"description": "Approves listing_id_2 to make it publicly visible."
+			},
+			"response": []
+		},
+		{
+			"name": "5. Get All Listings (Verify Both Created)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 - OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Response is an array and contains at least two listings\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.content).to.be.an('array');",
+							"    pm.expect(jsonData.content.length).to.be.at.least(2);",
+							"    console.log('Retrieved ' + jsonData.content.length + ' listings.');",
+							"});",
+							"pm.test(\"Verify listing_id_1 and listing_id_2 are present\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    var listing1Found = jsonData.content.some(function(listing) { return String(listing.id) === String(pm.environment.get('listing_id_1')); });",
+							"    var listing2Found = jsonData.content.some(function(listing) { return String(listing.id) === String(pm.environment.get('listing_id_2')); });",
+							"    pm.expect(listing1Found, 'listing_id_1 should be present').to.be.true;",
+							"    pm.expect(listing2Found, 'listing_id_2 should be present').to.be.true;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/listings",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"listings"
+					]
+				},
+				"description": "Retrieves all listings to verify that both previously created listings are present."
+			},
+			"response": []
+		},
+		{
+			"name": "6. Delete Listing 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204 - No Content\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"console.log('Deleted listing_id_1: ' + pm.environment.get('listing_id_1'));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/listings/{{listing_id_1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"listings",
+						"{{listing_id_1}}"
+					]
+				},
+				"description": "Deletes the first listing created (listing_id_1)."
+			},
+			"response": []
+		},
+		{
+			"name": "7. Delete Listing 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204 - No Content\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"console.log('Deleted listing_id_2: ' + pm.environment.get('listing_id_2'));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/listings/{{listing_id_2}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"listings",
+						"{{listing_id_2}}"
+					]
+				},
+				"description": "Deletes the second listing created (listing_id_2)."
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{admin_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": []
+}

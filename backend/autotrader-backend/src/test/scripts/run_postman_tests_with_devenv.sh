@@ -78,7 +78,7 @@ ADMIN_PASSWORD="Admin123!"
 
 # Try to login as admin to verify credentials
 echo -e "${YELLOW}Testing admin login...${NC}"
-LOGIN_RESPONSE=$(curl -s -X POST http://localhost:8080/auth/signin \
+LOGIN_RESPONSE=$(curl -s -X POST http://localhost:8080/api/auth/signin \
   -H "Content-Type: application/json" \
   -d "{
     \"username\": \"$ADMIN_USERNAME\",

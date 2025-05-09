@@ -13,12 +13,13 @@
 #
 
 # Set up script environment
+# SCRIPT_DIR is defined here for clarity, but PROJECT_ROOT will be defined after sourcing template.sh
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-UTILS_DIR="$PROJECT_ROOT/scripts/utils"
+# UTILS_DIR will be defined after PROJECT_ROOT
 
 # Fallback utility functions in case template.sh can't be loaded
-if [ ! -f "$UTILS_DIR/template.sh" ]; then
+# This path needs to be relative for the fallback to work before UTILS_DIR is defined
+if [ ! -f "$SCRIPT_DIR/../utils/template.sh" ]; then
     # Colors for output
     GREEN='\033[0;32m'
     RED='\033[0;31m'
@@ -44,10 +45,13 @@ if [ ! -f "$UTILS_DIR/template.sh" ]; then
     FORCE_CONTINUE=false
 fi
 
-# Source common utilities if available
-if [ -f "$UTILS_DIR/template.sh" ]; then
-    source "$UTILS_DIR/template.sh"
-fi
+# Source common utilities if available. template.sh will define its own PROJECT_ROOT.
+# We will override it.
+source "$SCRIPT_DIR/../utils/template.sh"
+
+# Define PROJECT_ROOT correctly now, relative to this script's location
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+UTILS_DIR="$PROJECT_ROOT/scripts/utils" # Define UTILS_DIR based on the correct PROJECT_ROOT
 
 # Variables
 KEEP_ENV=false

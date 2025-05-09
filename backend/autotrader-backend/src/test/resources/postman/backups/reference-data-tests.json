@@ -12,12 +12,12 @@
           "listen": "prerequest",
           "script": {
             "exec": [
-              "// Check if auth token exists, if not login first",
-              "if (!pm.environment.get('auth_token')) {",
-              "    console.log('No auth token found, logging in first');",
+              "// Check if admin token exists, if not login as admin",
+              "if (!pm.environment.get('admin_auth_token')) {",
+              "    console.log('No admin token found, logging in as admin first');",
               "    ",
-              "    const loginRequest = {",
-              "        url: pm.environment.get('baseUrl') + '/api/auth/signin',",
+              "    const adminLoginRequest = {",
+              "        url: pm.environment.get('baseUrl') + '/auth/signin',",
               "        method: 'POST',",
               "        header: 'Content-Type:application/json',",
               "        body: {",
@@ -29,23 +29,23 @@
               "        }",
               "    };",
               "    ",
-              "    pm.sendRequest(loginRequest, function (err, res) {",
+              "    pm.sendRequest(adminLoginRequest, function (err, res) {",
               "        if (err) {",
-              "            console.error('Error logging in:', err);",
+              "            console.error('Error logging in as admin:', err);",
               "        } else {",
               "            if (res.code === 200 && res.json().token) {",
               "                const token = res.json().token;",
-              "                pm.environment.set('auth_token', token);",
-              "                console.log('Auth token retrieved and set successfully');",
+              "                pm.environment.set('admin_auth_token', token);",
+              "                console.log('Admin token retrieved and set successfully');",
               "            } else {",
-              "                console.error('Failed to retrieve auth token:', res.text());",
+              "                console.error('Failed to retrieve admin token:', res.text());",
               "            }",
               "        }",
               "    });",
               "}",
               "",
-              "console.log('Using auth token:', pm.environment.get('auth_token') ? ",
-              "    (pm.environment.get('auth_token').substring(0,10) + '...') : 'none');"
+              "console.log('Using admin token:', pm.environment.get('admin_auth_token') ? ",
+              "    (pm.environment.get('admin_auth_token').substring(0,10) + '...') : 'none');"
             ],
             "type": "text/javascript"
           }
@@ -83,18 +83,22 @@
         }
       ],
       "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
         "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{auth_token}}",
-            "type": "text"
-          }
-        ],
+        "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/reference-data",
+          "raw": "{{baseUrl}}/reference-data",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "reference-data"]
+          "path": ["reference-data"]
         }
       }
     }

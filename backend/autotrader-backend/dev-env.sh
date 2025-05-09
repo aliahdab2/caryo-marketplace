@@ -1,10 +1,45 @@
-#!/bin/zsh
+#!/bin/bash
+#
+# Unified Development Environment Script for AutoTrader Backend
+#
+# This script provides a centralized interface for managing the development environment.
+# It combines functionality from various scripts to provide a consistent interface.
+#
 
-# This is a wrapper script that calls the actual dev-env.sh in the .devenv directory
-# This allows users to continue using ./dev-env.sh from the project root
+# Colors for better output
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
 
+# Determine script directory and project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+PROJECT_ROOT="$SCRIPT_DIR"
+
+# Print function helpers
+print_header() {
+  echo -e "\n${BLUE}======================="
+  echo -e "$1"
+  echo -e "=======================${NC}\n"
+}
+
+print_success() { echo -e "${GREEN}✓ $1${NC}"; }
+print_error() { echo -e "${RED}✗ $1${NC}"; }
+print_warning() { echo -e "${YELLOW}! $1${NC}"; }
+print_info() { echo -e "${CYAN}ℹ $1${NC}"; }
+
+# For compatibility, delegate to the .devenv implementation
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]:-$0}" )" && pwd )"
-exec $DIR/.devenv/dev-env.sh "$@"
+if [ -f "$DIR/.devenv/dev-env.sh" ]; then
+  # Make sure it's executable
+  [ ! -x "$DIR/.devenv/dev-env.sh" ] && chmod +x "$DIR/.devenv/dev-env.sh"
+  exec "$DIR/.devenv/dev-env.sh" "$@"
+else
+  print_error "Development environment script not found at: $DIR/.devenv/dev-env.sh"
+  exit 1
+fi
 
 # Function to handle errors
 error_exit() {
