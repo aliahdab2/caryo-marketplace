@@ -78,6 +78,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [x] **Configure application.properties** (database connections, security, file storage)
 - [x] **Validate file uploads** (size, format - jpeg, png, webp, etc.)
 - [ ] **Implement file cleanup** (mechanism to remove old/unreferenced files)
+      _See [docs/file_cleanup_strategies.md](docs/file_cleanup_strategies.md) for design options and recommendations._
 
 ### Phase 4: APIs and Testing ✅
 
