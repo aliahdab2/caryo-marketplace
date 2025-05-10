@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.controller;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
+import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -34,6 +36,9 @@ public class AuthControllerIntegrationTestWithS3 extends IntegrationTestWithS3 {
     private TestRestTemplate restTemplate;
 
     @Autowired
+    private CarListingRepository carListingRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
     private String baseUrl;
@@ -41,6 +46,7 @@ public class AuthControllerIntegrationTestWithS3 extends IntegrationTestWithS3 {
     @BeforeEach
     public void setUp() {
         baseUrl = "http://localhost:" + port;
+        carListingRepository.deleteAll();
         userRepository.deleteAll();
     }
 
@@ -75,7 +81,7 @@ public class AuthControllerIntegrationTestWithS3 extends IntegrationTestWithS3 {
         assertEquals(200, loginResponse.getStatusCode().value());
 
         JwtResponse jwtResponse = loginResponse.getBody();
-        assertThat(jwtResponse).isNotNull();
+        assertNotNull(jwtResponse);
         assertThat(jwtResponse.getToken()).isNotNull().isNotEmpty();
         assertThat(jwtResponse.getUsername()).isEqualTo("testuser");
 

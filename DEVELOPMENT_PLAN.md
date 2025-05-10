@@ -112,9 +112,9 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - Automatically archive listings older than a defined period.
   - Send reminders or notifications to users about their expired listings.
 
-- [ ] **Admin Approval & Listing Workflow**
-  - Implement admin review for approving listings before they go live.
-  - Admins can mark listings as sold or archived.
+- [x] **Admin Approval & Listing Workflow**
+  - ✅ Implement admin review for approving listings before they go live. (Already implemented with `/{id}/approve` endpoint)
+  - ✅ Admins can mark listings as sold or archived. (Implemented through dedicated admin endpoints)
 
 - [x] **API Enhancements**
   - Ensure APIs only return `isApproved = true` and `isSold = false` listings to the public.

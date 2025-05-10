@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.service.storage;
 import com.autotrader.autotraderbackend.config.StorageProperties;
 import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.exception.StorageFileNotFoundException;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -44,6 +45,7 @@ public class S3StorageService implements StorageService {
     }
 
     @Override
+    @PostConstruct
     public void init() {
         try {
             // Verifying if the S3 bucket exists and is accessible

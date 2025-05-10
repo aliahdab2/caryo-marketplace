@@ -1,7 +1,6 @@
 package com.autotrader.autotraderbackend.config;
 
 import com.autotrader.autotraderbackend.service.storage.S3StorageService;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -22,8 +21,6 @@ import java.net.URI;
 @Slf4j
 public class FileStorageConfig {
 
-    private S3StorageService s3StorageServiceInstance; // Keep track for cleanup
-
     /**
      * Create an S3 storage service. This is the primary StorageService bean.
      */
@@ -32,9 +29,8 @@ public class FileStorageConfig {
     @ConditionalOnProperty(name = "storage.s3.enabled", havingValue = "true", matchIfMissing = false)
     public S3StorageService s3StorageService(StorageProperties properties, S3Client s3Client, S3Presigner s3Presigner) {
         log.info("Creating S3StorageService bean. Bucket: {}, Region: {}", properties.getS3().getBucketName(), properties.getS3().getRegion());
-        this.s3StorageServiceInstance = new S3StorageService(properties, s3Client, s3Presigner);
-        this.s3StorageServiceInstance.init();
-        return this.s3StorageServiceInstance;
+        // The init() method will be called by @PostConstruct in S3StorageService
+        return new S3StorageService(properties, s3Client, s3Presigner);
     }
 
     /**
@@ -77,23 +73,5 @@ public class FileStorageConfig {
                 ))
                 .region(Region.of(s3Props.getRegion()))
                 .build();
-    }
-
-    /**
-     * Clean up resources when the application shuts down.
-     */
-    @PreDestroy
-    public void onDestroy() {
-        log.info("Cleaning up storage resources...");
-        if (this.s3StorageServiceInstance != null) {
-            try {
-                log.info("Closing S3StorageService resources.");
-            } catch (Exception e) {
-                log.error("Error closing S3StorageService: {}", e.getMessage(), e);
-            }
-        } else {
-            log.info("No S3StorageService instance to clean up.");
-        }
-        log.info("Storage resource cleanup finished.");
     }
 }
