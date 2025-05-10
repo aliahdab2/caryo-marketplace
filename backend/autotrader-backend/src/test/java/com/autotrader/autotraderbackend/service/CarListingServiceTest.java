@@ -859,4 +859,281 @@ class CarListingServiceTest {
         verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper not called for empty list
     }
 
+    // --- Tests for markListingAsSold ---
+    @Test
+    void markListingAsSold_Success() {
+        // Arrange
+        Long listingId = 1L;
+        String username = testUser.getUsername();
+        
+        CarListing listing = new CarListing();
+        listing.setId(listingId);
+        listing.setSeller(testUser);
+        listing.setSold(false);
+        listing.setArchived(false);
+        
+        CarListing updatedListing = new CarListing();
+        updatedListing.setId(listingId);
+        updatedListing.setSeller(testUser);
+        updatedListing.setSold(true);  // Now marked as sold
+        updatedListing.setArchived(false);
+        
+        CarListingResponse expectedResponse = new CarListingResponse();
+        expectedResponse.setId(listingId);
+        expectedResponse.setIsSold(true);
+        expectedResponse.setIsArchived(false);
+        
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        when(carListingRepository.save(any(CarListing.class))).thenReturn(updatedListing);
+        when(carListingMapper.toCarListingResponse(updatedListing)).thenReturn(expectedResponse);
+        
+        // Act
+        CarListingResponse response = carListingService.markListingAsSold(listingId, username);
+        
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getIsSold());
+        assertFalse(response.getIsArchived());
+        
+        verify(userRepository).findByUsername(username);
+        verify(carListingRepository).findById(listingId);
+        verify(carListingRepository).save(argThat(l -> Boolean.TRUE.equals(l.getSold())));
+        verify(carListingMapper).toCarListingResponse(updatedListing);
+    }
+    
+    @Test
+    void markListingAsSold_ListingNotFound_ThrowsResourceNotFoundException() {
+        // Arrange
+        Long nonExistentId = 999L;
+        String username = testUser.getUsername();
+        
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+        
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            carListingService.markListingAsSold(nonExistentId, username);
+        });
+        
+        assertEquals("CarListing not found with id : '999'", exception.getMessage());
+        verify(carListingRepository, never()).save(any());
+    }
+    
+    @Test
+    void markListingAsSold_NotOwner_ThrowsSecurityException() {
+        // Arrange
+        Long listingId = 1L;
+        String unauthorizedUsername = "unauthorized";
+        User unauthorizedUser = new User();
+        unauthorizedUser.setId(2L);
+        unauthorizedUser.setUsername(unauthorizedUsername);
+        
+        CarListing listing = new CarListing();
+        listing.setId(listingId);
+        listing.setSeller(testUser);  // Owned by testUser, not unauthorizedUser
+        
+        when(userRepository.findByUsername(unauthorizedUsername)).thenReturn(Optional.of(unauthorizedUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        
+        // Act & Assert
+        SecurityException exception = assertThrows(SecurityException.class, () -> {
+            carListingService.markListingAsSold(listingId, unauthorizedUsername);
+        });
+        
+        assertEquals("User does not have permission to modify this listing.", exception.getMessage());
+        verify(carListingRepository, never()).save(any());
+    }
+    
+    @Test
+    void markListingAsSold_AlreadySold_ReturnsCurrentState() {
+        // Arrange
+        Long listingId = 1L;
+        String username = testUser.getUsername();
+        
+        CarListing listing = new CarListing();
+        listing.setId(listingId);
+        listing.setSeller(testUser);
+        listing.setSold(true);  // Already sold
+        listing.setArchived(false);
+        
+        CarListingResponse expectedResponse = new CarListingResponse();
+        expectedResponse.setId(listingId);
+        expectedResponse.setIsSold(true);
+        expectedResponse.setIsArchived(false);
+        
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        when(carListingMapper.toCarListingResponse(listing)).thenReturn(expectedResponse);
+        
+        // Act
+        CarListingResponse response = carListingService.markListingAsSold(listingId, username);
+        
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getIsSold());
+        verify(carListingRepository, never()).save(any());  // No save should happen
+    }
+    
+    @Test
+    void markListingAsSold_Archived_ThrowsIllegalStateException() {
+        // Arrange
+        Long listingId = 1L;
+        String username = testUser.getUsername();
+        
+        CarListing listing = new CarListing();
+        listing.setId(listingId);
+        listing.setSeller(testUser);
+        listing.setSold(false);
+        listing.setArchived(true);  // Archived
+        
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        
+        // Act & Assert
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            carListingService.markListingAsSold(listingId, username);
+        });
+        
+        assertEquals("Cannot mark an archived listing as sold. Please unarchive first.", exception.getMessage());
+        verify(carListingRepository, never()).save(any());
+    }
+    
+    // --- Tests for archiveListing ---
+    @Test
+    void archiveListing_Success() {
+        // Arrange
+        Long listingId = 1L;
+        String username = testUser.getUsername();
+        
+        CarListing listing = new CarListing();
+        listing.setId(listingId);
+        listing.setSeller(testUser);
+        listing.setSold(false);
+        listing.setArchived(false);
+        
+        CarListing updatedListing = new CarListing();
+        updatedListing.setId(listingId);
+        updatedListing.setSeller(testUser);
+        updatedListing.setSold(false);
+        updatedListing.setArchived(true);  // Now archived
+        
+        CarListingResponse expectedResponse = new CarListingResponse();
+        expectedResponse.setId(listingId);
+        expectedResponse.setIsSold(false);
+        expectedResponse.setIsArchived(true);
+        
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        when(carListingRepository.save(any(CarListing.class))).thenReturn(updatedListing);
+        when(carListingMapper.toCarListingResponse(updatedListing)).thenReturn(expectedResponse);
+        
+        // Act
+        CarListingResponse response = carListingService.archiveListing(listingId, username);
+        
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getIsArchived());
+        
+        verify(userRepository).findByUsername(username);
+        verify(carListingRepository).findById(listingId);
+        verify(carListingRepository).save(argThat(l -> Boolean.TRUE.equals(l.getArchived())));
+        verify(carListingMapper).toCarListingResponse(updatedListing);
+    }
+    
+    @Test
+    void archiveListing_AlreadyArchived_ReturnsCurrentState() {
+        // Arrange
+        Long listingId = 1L;
+        String username = testUser.getUsername();
+        
+        CarListing listing = new CarListing();
+        listing.setId(listingId);
+        listing.setSeller(testUser);
+        listing.setSold(false);
+        listing.setArchived(true);  // Already archived
+        
+        CarListingResponse expectedResponse = new CarListingResponse();
+        expectedResponse.setId(listingId);
+        expectedResponse.setIsSold(false);
+        expectedResponse.setIsArchived(true);
+        
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        when(carListingMapper.toCarListingResponse(listing)).thenReturn(expectedResponse);
+        
+        // Act
+        CarListingResponse response = carListingService.archiveListing(listingId, username);
+        
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getIsArchived());
+        verify(carListingRepository, never()).save(any());  // No save should happen
+    }
+    
+    // --- Tests for unarchiveListing ---
+    @Test
+    void unarchiveListing_Success() {
+        // Arrange
+        Long listingId = 1L;
+        String username = testUser.getUsername();
+        
+        CarListing listing = new CarListing();
+        listing.setId(listingId);
+        listing.setSeller(testUser);
+        listing.setSold(false);
+        listing.setArchived(true);  // Currently archived
+        
+        CarListing updatedListing = new CarListing();
+        updatedListing.setId(listingId);
+        updatedListing.setSeller(testUser);
+        updatedListing.setSold(false);
+        updatedListing.setArchived(false);  // Now unarchived
+        
+        CarListingResponse expectedResponse = new CarListingResponse();
+        expectedResponse.setId(listingId);
+        expectedResponse.setIsSold(false);
+        expectedResponse.setIsArchived(false);
+        
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        when(carListingRepository.save(any(CarListing.class))).thenReturn(updatedListing);
+        when(carListingMapper.toCarListingResponse(updatedListing)).thenReturn(expectedResponse);
+        
+        // Act
+        CarListingResponse response = carListingService.unarchiveListing(listingId, username);
+        
+        // Assert
+        assertNotNull(response);
+        assertFalse(response.getIsArchived());
+        
+        verify(userRepository).findByUsername(username);
+        verify(carListingRepository).findById(listingId);
+        verify(carListingRepository).save(argThat(l -> Boolean.FALSE.equals(l.getArchived())));
+        verify(carListingMapper).toCarListingResponse(updatedListing);
+    }
+    
+    @Test
+    void unarchiveListing_NotArchived_ThrowsIllegalStateException() {
+        // Arrange
+        Long listingId = 1L;
+        String username = testUser.getUsername();
+        
+        CarListing listing = new CarListing();
+        listing.setId(listingId);
+        listing.setSeller(testUser);
+        listing.setSold(false);
+        listing.setArchived(false);  // Not archived
+        
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        
+        // Act & Assert
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            carListingService.unarchiveListing(listingId, username);
+        });
+        
+        assertEquals("Listing with ID " + listingId + " is not currently archived.", exception.getMessage());
+        verify(carListingRepository, never()).save(any());
+    }
 }

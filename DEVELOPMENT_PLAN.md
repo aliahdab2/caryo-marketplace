@@ -105,7 +105,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [x] **Add Listing Status Flags** (isApproved)
   - Track listing status through its lifecycle.
   - Default state: `approved = false` (already implemented in CarListing model).
-- [ ] **Add Additional Status Flags** (isSold, isArchived)
+- [x] **Add Additional Status Flags** (isSold, isArchived)
   - Default states: `isSold = false`, `isArchived = false`.
 
 - [ ] **Implement Auto-Expiration Logic** for listings older than 90 days

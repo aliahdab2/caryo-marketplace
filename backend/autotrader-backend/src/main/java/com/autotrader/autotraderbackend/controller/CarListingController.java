@@ -532,8 +532,6 @@ public class CarListingController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
         }
     }
-    
-    // Empty comment to preserve code structure - duplicate endpoint removed
 }
 
 
