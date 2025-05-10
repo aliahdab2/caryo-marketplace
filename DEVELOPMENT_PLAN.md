@@ -116,7 +116,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - Implement admin review for approving listings before they go live.
   - Admins can mark listings as sold or archived.
 
-- [ ] **API Enhancements**
+- [x] **API Enhancements**
   - Ensure APIs only return `isApproved = true` and `isSold = false` listings to the public.
   - Add support for updating listing status via the API.
 

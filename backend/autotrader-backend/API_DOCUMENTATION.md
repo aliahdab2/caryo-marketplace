@@ -270,7 +270,7 @@ Authorization: Bearer <your_jwt_token>
 
 - **Endpoint**: `GET /api/listings`
 - **Access**: Public
-- **Description**: Retrieves a paginated list of all *approved*, *not sold*, and *not archived* car listings.
+- **Description**: Retrieves a paginated list of all *approved*, *not sold*, and *not archived* car listings. By default, this endpoint only returns listings that meet all three criteria: `approved = true`, `sold = false`, and `archived = false`.
 - **Authentication**: None required.
 - **Query Parameters**:
   - `page` (Integer, optional, default: 0): Page number for pagination.
@@ -348,7 +348,7 @@ Authorization: Bearer <your_jwt_token>
 
 - **Endpoint**: `GET /api/listings/filter`
 - **Access**: Public
-- **Description**: Retrieves a paginated list of car listings based on various filter criteria.
+- **Description**: Retrieves a paginated list of car listings based on various filter criteria. By default, only listings with `approved = true`, `sold = false`, and `archived = false` are returned unless these filters are explicitly overridden in the request.
 - **Authentication**: None required.
 - **Query Parameters** (all optional):
   - `brand` (String)
@@ -437,8 +437,8 @@ Authorization: Bearer <your_jwt_token>
 #### Get Car Listing by ID
 
 - **Endpoint**: `GET /api/listings/{id}`
-- **Access**: Public (for approved listings)
-- **Description**: Retrieves details of a specific car listing. Only approved listings are publicly accessible. If the listing is not approved, it will return 404 unless the requester is the owner or an admin (future enhancement - currently returns 404 for unapproved regardless of user).
+- **Access**: Public (for approved listings only)
+- **Description**: Retrieves details of a specific car listing. Only approved listings are publicly accessible through this endpoint (uses `findByIdAndApprovedTrue()` repository method). If the listing is not approved, it will return 404 unless the requester is the owner or an admin (future enhancement - currently returns 404 for unapproved regardless of user).
 - **Authentication**: None required for approved listings.
 - **Path Parameters**:
   - `id` (Long): The ID of the car listing.

@@ -164,8 +164,8 @@ public class CarListingController {
     // Renamed back from /approved for clarity, filtering happens in service
     @GetMapping
     @Operation(
-        summary = "Get all approved car listings",
-        description = "Returns a paginated list of all approved car listings. Each listing includes an array of its associated media items (images/videos).",
+        summary = "Get all approved, unsold, and unarchived car listings",
+        description = "Returns a paginated list of all approved, unsold, and unarchived car listings (approved=true, sold=false, archived=false). Each listing includes an array of its associated media items (images/videos).",
         responses = {
             @ApiResponse(responseCode = "200", description = "List of car listings, including media details", content = @Content(schema = @Schema(implementation = PageResponse.class)))
         }
@@ -189,7 +189,7 @@ public class CarListingController {
     @PostMapping("/filter")
     @Operation(
         summary = "Filter car listings (POST)",
-        description = "Returns a paginated list of car listings matching the provided filter criteria in the request body. Each listing includes an array of its associated media items.",
+        description = "Returns a paginated list of car listings matching the provided filter criteria in the request body. By default, only listings with approved=true, sold=false, and archived=false are returned unless explicitly overridden in the request. Each listing includes an array of its associated media items.",
         responses = {
             @ApiResponse(responseCode = "200", description = "Filtered list of car listings, including media details", content = @Content(schema = @Schema(implementation = PageResponse.class)))
         }
@@ -214,7 +214,7 @@ public class CarListingController {
     @GetMapping("/filter")
     @Operation(
         summary = "Filter car listings by query parameters (GET)",
-        description = "Returns a paginated list of car listings matching the provided filter criteria as query parameters. Each listing includes an array of its associated media items.",
+        description = "Returns a paginated list of car listings matching the provided filter criteria as query parameters. By default, only listings with approved=true, sold=false, and archived=false are returned unless explicitly overridden in the request. Each listing includes an array of its associated media items.",
         responses = {
             @ApiResponse(responseCode = "200", description = "Filtered list of car listings, including media details", content = @Content(schema = @Schema(implementation = PageResponse.class)))
         }
@@ -263,7 +263,7 @@ public class CarListingController {
     @GetMapping("/{id}")
     @Operation(
         summary = "Get car listing by ID",
-        description = "Returns the details of a car listing by its ID, including an array of its associated media items.",
+        description = "Returns the details of a car listing by its ID, including an array of its associated media items. Only approved listings (approved=true) can be accessed through this endpoint.",
         responses = {
             @ApiResponse(responseCode = "200", description = "Car listing details, including media", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
             @ApiResponse(responseCode = "404", description = "Listing not found")
