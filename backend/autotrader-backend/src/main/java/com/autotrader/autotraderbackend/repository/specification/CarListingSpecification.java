@@ -75,4 +75,8 @@ public class CarListingSpecification {
     public static Specification<CarListing> isNotArchived() {
         return (root, query, criteriaBuilder) -> criteriaBuilder.isFalse(root.get("archived"));
     }
+
+    public static Specification<CarListing> isUserActive() {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.isTrue(root.get("isUserActive"));
+    }
 }

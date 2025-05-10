@@ -70,12 +70,17 @@ class CarListingServiceTest {
     private CarListing savedListing;
     private CarListing listingToSave;
     private CarListingResponse expectedResponse; // Add expected response object
+    private User otherUser; // Added for pause/resume tests
 
     @BeforeEach
     void setUp() {
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("testuser");
+
+        otherUser = new User(); // Initialize otherUser
+        otherUser.setId(2L);
+        otherUser.setUsername("otheruser");
 
         listingToSave = new CarListing();
         // ... set properties for listingToSave ...
@@ -888,8 +893,7 @@ class CarListingServiceTest {
         // Assert
         assertNotNull(response);
         assertTrue(response.getIsSold());
-        assertFalse(response.getIsArchived());
-
+        assertEquals(expectedResponse, response);
         verify(userRepository).findByUsername(username);
         verify(carListingRepository).findById(listingId);
         verify(carListingRepository).save(argThat(l -> Boolean.TRUE.equals(l.getSold())));
@@ -1208,5 +1212,272 @@ class CarListingServiceTest {
         assertEquals("Listing with ID " + savedListing.getId() + " is not currently archived.", exception.getMessage());
         verify(carListingRepository).findById(savedListing.getId());
         verify(carListingRepository, never()).save(any(CarListing.class));
+    }
+
+    // --- Tests for pauseListing ---
+
+    @Test
+    void pauseListing_Success_ByOwner() {
+        // Arrange
+        Long listingId = 1L;
+        String username = "testuser";
+        savedListing.setSeller(testUser);
+        savedListing.setApproved(true);
+        savedListing.setSold(false);
+        savedListing.setArchived(false);
+        savedListing.setIsUserActive(true);
+
+        CarListing pausedListing = new CarListing();
+        pausedListing.setId(listingId);
+        pausedListing.setSeller(testUser);
+        pausedListing.setApproved(true);
+        pausedListing.setSold(false);
+        pausedListing.setArchived(false);
+        pausedListing.setIsUserActive(false); // Paused
+
+        CarListingResponse pausedResponse = new CarListingResponse();
+        pausedResponse.setId(listingId);
+        pausedResponse.setIsUserActive(false);
+
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
+        when(carListingRepository.save(any(CarListing.class))).thenReturn(pausedListing);
+        when(carListingMapper.toCarListingResponse(pausedListing)).thenReturn(pausedResponse);
+
+        // Act
+        CarListingResponse response = carListingService.pauseListing(listingId, username);
+
+        // Assert
+        assertNotNull(response);
+        assertFalse(response.getIsUserActive());
+        verify(carListingRepository).save(argThat(listing -> !listing.getIsUserActive()));
+        verify(carListingMapper).toCarListingResponse(pausedListing);
+    }
+
+    @Test
+    void pauseListing_ThrowsSecurityException_IfNotOwner() {
+        // Arrange
+        Long listingId = 1L;
+        String username = "otheruser"; // Not the owner
+        savedListing.setSeller(testUser); // Owner is testUser
+        savedListing.setApproved(true);
+        savedListing.setSold(false);
+        savedListing.setArchived(false);
+        savedListing.setIsUserActive(true);
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(otherUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
+
+        // Act & Assert
+        SecurityException exception = assertThrows(SecurityException.class, () -> {
+            carListingService.pauseListing(listingId, username);
+        });
+        assertEquals("User does not have permission to modify this listing.", exception.getMessage());
+        verify(carListingRepository, never()).save(any());
+    }
+
+    @Test
+    void pauseListing_ThrowsIllegalStateException_IfAlreadyPaused() {
+        // Arrange
+        Long listingId = 1L;
+        String username = testUser.getUsername();
+        savedListing.setApproved(true);
+        savedListing.setSold(false);
+        savedListing.setArchived(false);
+        savedListing.setIsUserActive(false); // Already paused
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
+        // No need to mock carListingMapper or carListingRepository.save as an exception is expected
+
+        // Act & Assert
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            carListingService.pauseListing(listingId, username);
+        });
+        assertEquals("Listing with ID " + listingId + " is already paused.", exception.getMessage());
+
+        verify(userRepository).findByUsername(username);
+        verify(carListingRepository).findById(listingId);
+        verify(carListingRepository, never()).save(any(CarListing.class));
+        verify(carListingMapper, never()).toCarListingResponse(any(CarListing.class));
+    }
+
+    @Test
+    void pauseListing_ThrowsIllegalStateException_IfArchived() {
+        // Arrange
+        Long listingId = 1L;
+        String username = testUser.getUsername();
+        savedListing.setApproved(true);
+        savedListing.setSold(false);
+        savedListing.setArchived(true); // Archived
+        savedListing.setIsUserActive(true);
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
+
+        // Act & Assert
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            carListingService.pauseListing(listingId, username);
+        });
+        assertEquals("Cannot pause a listing that has been archived.", exception.getMessage()); // Adjusted to match service
+
+        verify(userRepository).findByUsername(username);
+        verify(carListingRepository).findById(listingId);
+        verify(carListingRepository, never()).save(any(CarListing.class));
+        verify(carListingMapper, never()).toCarListingResponse(any(CarListing.class));
+    }
+
+    @Test
+    void pauseListing_ThrowsIllegalStateException_IfNotApproved() {
+        // Arrange
+        Long listingId = 1L;
+        String username = testUser.getUsername();
+        savedListing.setApproved(false); // Not approved
+        savedListing.setSold(false);
+        savedListing.setArchived(false);
+        savedListing.setIsUserActive(true);
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
+
+        // Act & Assert
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            carListingService.pauseListing(listingId, username);
+        });
+        assertEquals("Cannot pause a listing that is not yet approved.", exception.getMessage()); // Adjusted to match service
+
+        verify(userRepository).findByUsername(username);
+        verify(carListingRepository).findById(listingId);
+        verify(carListingRepository, never()).save(any(CarListing.class));
+        verify(carListingMapper, never()).toCarListingResponse(any(CarListing.class));
+    }
+
+    @Test
+    void pauseListing_ThrowsIllegalStateException_IfSold() {
+        // Arrange
+        Long listingId = 1L;
+        String username = testUser.getUsername();
+        savedListing.setApproved(true);
+        savedListing.setSold(true); // Sold
+        savedListing.setArchived(false);
+        savedListing.setIsUserActive(true);
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
+
+        // Act & Assert
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            carListingService.pauseListing(listingId, username);
+        });
+        assertEquals("Cannot pause a listing that has been marked as sold.", exception.getMessage()); // Adjusted to match service
+
+        verify(userRepository).findByUsername(username);
+        verify(carListingRepository).findById(listingId);
+        verify(carListingRepository, never()).save(any(CarListing.class));
+        verify(carListingMapper, never()).toCarListingResponse(any(CarListing.class));
+    }
+
+    // --- Tests for resumeListing ---
+
+    @Test
+    void resumeListing_Success_ByOwner() {
+        // Arrange
+        Long listingId = 1L;
+        String username = "testuser";
+        savedListing.setSeller(testUser);
+        savedListing.setApproved(true);
+        savedListing.setSold(false);
+        savedListing.setArchived(false);
+        savedListing.setIsUserActive(false); // Paused
+
+        CarListing resumedListing = new CarListing();
+        resumedListing.setId(listingId);
+        resumedListing.setSeller(testUser);
+        resumedListing.setApproved(true);
+        resumedListing.setSold(false);
+        resumedListing.setArchived(false);
+        resumedListing.setIsUserActive(true); // Resumed
+
+        CarListingResponse resumedResponse = new CarListingResponse();
+        resumedResponse.setId(listingId);
+        resumedResponse.setIsUserActive(true);
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
+        when(carListingRepository.save(any(CarListing.class))).thenReturn(resumedListing);
+        when(carListingMapper.toCarListingResponse(resumedListing)).thenReturn(resumedResponse);
+
+        // Act
+        CarListingResponse response = carListingService.resumeListing(listingId, username);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getIsUserActive());
+        verify(carListingRepository).save(argThat(listing -> listing.getIsUserActive()));
+        verify(carListingMapper).toCarListingResponse(resumedListing);
+    }
+
+    @Test
+    void resumeListing_ThrowsSecurityException_IfNotOwner() {
+        // Arrange
+        Long listingId = 1L;
+        String username = "otheruser"; // Not the owner
+        savedListing.setSeller(testUser); // Owner is testUser
+        savedListing.setApproved(true);
+        savedListing.setIsUserActive(false); // Paused
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(otherUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
+
+        // Act & Assert
+        SecurityException exception = assertThrows(SecurityException.class, () -> {
+            carListingService.resumeListing(listingId, username);
+        });
+        assertEquals("User does not have permission to modify this listing.", exception.getMessage());
+        verify(carListingRepository, never()).save(any());
+    }
+
+    @Test
+    void resumeListing_ThrowsIllegalStateException_IfAlreadyActive() {
+        // Arrange
+        Long listingId = 1L;
+        String username = testUser.getUsername();
+        savedListing.setApproved(true);
+        savedListing.setSold(false);
+        savedListing.setArchived(false);
+        savedListing.setIsUserActive(true); // Already active
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
+        // No need to mock carListingMapper or carListingRepository.save as an exception is expected
+
+        // Act & Assert
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            carListingService.resumeListing(listingId, username);
+        });
+        assertEquals("Listing with ID " + listingId + " is already active.", exception.getMessage());
+
+        verify(userRepository).findByUsername(username);
+        verify(carListingRepository).findById(listingId);
+        verify(carListingRepository, never()).save(any(CarListing.class));
+        verify(carListingMapper, never()).toCarListingResponse(any(CarListing.class));
+    }
+
+    @Test
+    void resumeListing_ThrowsResourceNotFoundException_IfListingNotFound() {
+        // Arrange
+        Long listingId = 999L; // Non-existent
+        String username = "testuser";
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        when(carListingRepository.findById(listingId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            carListingService.resumeListing(listingId, username);
+        });
+        assertEquals("CarListing not found with id : '999'", exception.getMessage());
+        verify(carListingRepository, never()).save(any());
     }
 }

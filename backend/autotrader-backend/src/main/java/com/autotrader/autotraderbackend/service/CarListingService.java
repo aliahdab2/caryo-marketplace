@@ -48,6 +48,79 @@ public class CarListingService {
     private final CarListingMapper carListingMapper;
 
     /**
+     * Pauses a car listing (sets isUserActive to false).
+     *
+     * @param listingId The ID of the car listing to pause.
+     * @param username  The username of the user making the request.
+     * @return The updated CarListingResponse.
+     */
+    @Transactional
+    public CarListingResponse pauseListing(Long listingId, String username) {
+        log.info("User {} attempting to pause listing ID {}", username, listingId);
+        CarListing listing = findListingByIdAndAuthorize(listingId, username, "pause");
+
+        if (!listing.getApproved()) {
+            log.warn("User {} attempted to pause unapproved listing ID {}", username, listingId);
+            throw new IllegalStateException("Cannot pause a listing that is not yet approved.");
+        }
+        if (listing.getSold()) {
+            log.warn("User {} attempted to pause sold listing ID {}", username, listingId);
+            throw new IllegalStateException("Cannot pause a listing that has been marked as sold.");
+        }
+        if (listing.getArchived()) {
+            log.warn("User {} attempted to pause archived listing ID {}", username, listingId);
+            throw new IllegalStateException("Cannot pause a listing that has been archived.");
+        }
+        if (!listing.getIsUserActive()) {
+            log.warn("Listing ID {} is already paused by user {}. Throwing IllegalStateException.", listingId, username);
+            // throw new IllegalStateException("Listing with ID " + listingId + " is already paused."); // Old behavior was to return
+            throw new IllegalStateException("Listing with ID " + listingId + " is already paused.");
+        }
+
+        listing.setIsUserActive(false);
+        CarListing updatedListing = carListingRepository.save(listing);
+        log.info("Successfully paused listing ID {} by user {}", listingId, username);
+        return carListingMapper.toCarListingResponse(updatedListing);
+    }
+
+    /**
+     * Resumes a car listing (sets isUserActive to true).
+     *
+     * @param listingId The ID of the car listing to resume.
+     * @param username  The username of the user making the request.
+     * @return The updated CarListingResponse.
+     */
+    @Transactional
+    public CarListingResponse resumeListing(Long listingId, String username) {
+        log.info("User {} attempting to resume listing ID {}", username, listingId);
+        CarListing listing = findListingByIdAndAuthorize(listingId, username, "resume");
+
+        // Add similar checks as in pauseListing if needed, e.g., cannot resume if sold/archived by admin
+        // For now, we assume if a user can access it to resume, and it\'s theirs, it\'s permissible unless other flags prevent it.
+        if (listing.getSold()) {
+            log.warn("User {} attempted to resume sold listing ID {}", username, listingId);
+            throw new IllegalStateException("Cannot resume a listing that has been marked as sold.");
+        }
+        if (listing.getArchived()) {
+            // This check might be more nuanced. If a listing auto-expired and was archived,
+            // resuming might mean it needs to go through a renewal process.
+            // For now, a simple block if archived.
+            log.warn("User {} attempted to resume archived listing ID {}", username, listingId);
+            throw new IllegalStateException("Cannot resume a listing that has been archived. Please contact support or renew if applicable.");
+        }
+        if (listing.getIsUserActive()) {
+            log.warn("Listing ID {} is already active for user {}. Throwing IllegalStateException.", listingId, username);
+            // throw new IllegalStateException("Listing with ID " + listingId + " is already active."); // Old behavior was to return
+            throw new IllegalStateException("Listing with ID " + listingId + " is already active.");
+        }
+
+        listing.setIsUserActive(true);
+        CarListing updatedListing = carListingRepository.save(listing);
+        log.info("Successfully resumed listing ID {} by user {}", listingId, username);
+        return carListingMapper.toCarListingResponse(updatedListing);
+    }
+
+    /**
      * Create a new car listing.
      */
     @Transactional
@@ -163,7 +236,8 @@ public class CarListingService {
         
         Specification<CarListing> spec = Specification.where(CarListingSpecification.isApproved())
                                                      .and(CarListingSpecification.isNotSold())
-                                                     .and(CarListingSpecification.isNotArchived());
+                                                     .and(CarListingSpecification.isNotArchived())
+                                                     .and(CarListingSpecification.isUserActive()); // Added isUserActive
                                                      
         Page<CarListing> listingPage = carListingRepository.findAll(spec, pageable);
         log.info("Found {} approved, not sold, not archived listings on page {}", listingPage.getNumberOfElements(), pageable.getPageNumber());
@@ -246,6 +320,8 @@ public class CarListingService {
 
         // Always combine with the 'approved' status filter
         spec = spec.and(CarListingSpecification.isApproved());
+        // Also filter by user active status
+        spec = spec.and(CarListingSpecification.isUserActive());
 
         // Apply isSold and isArchived filters
         // If not specified in the request, default to showing NOT sold and NOT archived listings.

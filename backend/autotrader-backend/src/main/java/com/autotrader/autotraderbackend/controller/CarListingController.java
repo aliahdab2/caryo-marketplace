@@ -43,6 +43,74 @@ public class CarListingController {
 
     private final CarListingService carListingService;
 
+    @PutMapping("/{id}/pause")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        summary = "Pause a car listing",
+        description = "Allows the owner of a listing to temporarily pause (hide) it. The listing must be approved, not sold, and not archived.",
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Listing paused successfully", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden (not owner or listing not in correct state)"),
+            @ApiResponse(responseCode = "404", description = "Listing not found"),
+            @ApiResponse(responseCode = "409", description = "Conflict (e.g., listing already paused or in a state that cannot be paused)")
+        }
+    )
+    public ResponseEntity<?> pauseListing(
+            @Parameter(description = "ID of the listing to pause", required = true) @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            log.info("User {} attempting to pause listing ID {}", userDetails.getUsername(), id);
+            CarListingResponse response = carListingService.pauseListing(id, userDetails.getUsername());
+            log.info("Successfully paused listing ID {} by user {}", id, userDetails.getUsername());
+            return ResponseEntity.ok(response);
+        } catch (ResourceNotFoundException e) {
+            log.warn("Pause listing failed for listing ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        } catch (SecurityException | AccessDeniedException e) {
+            log.warn("User {} not authorized to pause listing ID {}: {}", userDetails.getUsername(), id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
+        } catch (IllegalStateException e) {
+            log.warn("Pause listing failed for listing ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/resume")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        summary = "Resume a car listing",
+        description = "Allows the owner of a paused listing to resume (unhide) it. The listing must not be sold or archived.",
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Listing resumed successfully", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden (not owner or listing not in correct state)"),
+            @ApiResponse(responseCode = "404", description = "Listing not found"),
+            @ApiResponse(responseCode = "409", description = "Conflict (e.g., listing already active or in a state that cannot be resumed)")
+        }
+    )
+    public ResponseEntity<?> resumeListing(
+            @Parameter(description = "ID of the listing to resume", required = true) @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            log.info("User {} attempting to resume listing ID {}", userDetails.getUsername(), id);
+            CarListingResponse response = carListingService.resumeListing(id, userDetails.getUsername());
+            log.info("Successfully resumed listing ID {} by user {}", id, userDetails.getUsername());
+            return ResponseEntity.ok(response);
+        } catch (ResourceNotFoundException e) {
+            log.warn("Resume listing failed for listing ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        } catch (SecurityException | AccessDeniedException e) {
+            log.warn("User {} not authorized to resume listing ID {}: {}", userDetails.getUsername(), id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
+        } catch (IllegalStateException e) {
+            log.warn("Resume listing failed for listing ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+        }
+    }
+
     // Endpoint for approving listings moved to end of class
 
     @PostMapping(consumes = "application/json")

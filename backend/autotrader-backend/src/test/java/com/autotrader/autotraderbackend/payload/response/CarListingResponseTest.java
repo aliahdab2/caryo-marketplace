@@ -32,6 +32,7 @@ class CarListingResponseTest {
         assertNull(response.getCreatedAt());
         assertNull(response.getIsSold());
         assertNull(response.getIsArchived());
+        assertNull(response.getIsUserActive()); // Added assertion
     }
 
     @Test
@@ -53,12 +54,13 @@ class CarListingResponseTest {
         LocalDateTime createdAt = LocalDateTime.now();
         Boolean isSold = false;
         Boolean isArchived = false;
+        Boolean isUserActive = true; // Added field
 
         // Create response with all args constructor
         CarListingResponse response = new CarListingResponse(
                 id, title, brand, model, modelYear, mileage, price,
                 locationDetails, description, media, approved, sellerId,
-                sellerUsername, createdAt, isSold, isArchived
+                sellerUsername, createdAt, isSold, isArchived, isUserActive // Added argument
         );
 
         // Verify all fields
@@ -78,6 +80,7 @@ class CarListingResponseTest {
         assertEquals(createdAt, response.getCreatedAt());
         assertEquals(isSold, response.getIsSold());
         assertEquals(isArchived, response.getIsArchived());
+        assertEquals(isUserActive, response.getIsUserActive()); // Added assertion
     }
 
     @Test
@@ -117,6 +120,7 @@ class CarListingResponseTest {
         
         response.setIsSold(false);
         response.setIsArchived(false);
+        response.setIsUserActive(true); // Added setter call
         
         // Verify properties
         assertEquals(1L, response.getId());
@@ -137,5 +141,6 @@ class CarListingResponseTest {
         assertEquals(now, response.getCreatedAt());
         assertFalse(response.getIsSold());
         assertFalse(response.getIsArchived());
+        assertTrue(response.getIsUserActive()); // Added assertion
     }
 }
