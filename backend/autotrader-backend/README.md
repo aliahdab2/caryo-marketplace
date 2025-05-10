@@ -196,7 +196,6 @@ This application uses MinIO as its S3-compatible storage backend.
 The following properties can be configured in `application.properties` or via environment variables:
 
 ```properties
-storage.type=s3
 storage.s3.endpointUrl=http://localhost:9000
 storage.s3.accessKeyId=minioadmin
 storage.s3.secretAccessKey=minioadmin

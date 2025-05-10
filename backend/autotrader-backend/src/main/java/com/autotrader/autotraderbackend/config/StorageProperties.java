@@ -7,21 +7,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class StorageProperties {
 
     /**
-     * Storage type (s3 or local)
-     */
-    private String type = "local";
-
-    /**
-     * Base location for local file storage
-     */
-    private String location = "upload-dir";
-
-    /**
-     * Base URL for accessing stored files
-     */
-    private String baseUrl = "http://localhost:8080/api/files";
-
-    /**
      * S3 specific properties
      */
     private S3 s3 = new S3();
@@ -30,6 +15,7 @@ public class StorageProperties {
      * S3 configuration properties
      */
     public static class S3 {
+        private boolean enabled = true; // Added enabled field with default true
         private String bucketName;
         private String region;
         private String accessKeyId;
@@ -37,6 +23,15 @@ public class StorageProperties {
         private String endpointUrl; // Optional: for S3 compatible storage
         private boolean pathStyleAccessEnabled = false; // Optional: for S3 compatible storage
         private long signedUrlExpirationSeconds = 3600; // Default to 1 hour
+
+        // Getter and Setter for enabled
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
 
         // Explicit Getters
         public String getBucketName() {
@@ -97,30 +92,7 @@ public class StorageProperties {
         }
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
+    // Getter and Setter for s3
     public S3 getS3() {
         return s3;
     }

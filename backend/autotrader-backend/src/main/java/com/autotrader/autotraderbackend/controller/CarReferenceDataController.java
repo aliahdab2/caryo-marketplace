@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.model.*;
+import com.autotrader.autotraderbackend.payload.response.CarReferenceDataResponse; // Added import
 import com.autotrader.autotraderbackend.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -13,9 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.List; // Removed java.util.Map and java.util.HashMap imports as they are no longer needed.
 
 @RestController
 @RequestMapping("/api/reference-data")
@@ -40,10 +39,8 @@ public class CarReferenceDataController {
             @ApiResponse(responseCode = "200", description = "Reference data retrieved successfully")
         }
     )
-    public ResponseEntity<Map<String, Object>> getAllReferenceData() {
+    public ResponseEntity<CarReferenceDataResponse> getAllReferenceData() { // Changed return type
         log.debug("Request received to get all car reference data");
-        
-        Map<String, Object> referenceData = new HashMap<>();
         
         List<CarCondition> carConditions = carConditionService.getAllConditions();
         List<DriveType> driveTypes = driveTypeService.getAllDriveTypes();
@@ -52,12 +49,14 @@ public class CarReferenceDataController {
         List<Transmission> transmissions = transmissionService.getAllTransmissions();
         List<SellerType> sellerTypes = sellerTypeService.getAllSellerTypes();
         
-        referenceData.put("carConditions", carConditions);
-        referenceData.put("driveTypes", driveTypes);
-        referenceData.put("bodyStyles", bodyStyles);
-        referenceData.put("fuelTypes", fuelTypes);
-        referenceData.put("transmissions", transmissions);
-        referenceData.put("sellerTypes", sellerTypes);
+        CarReferenceDataResponse referenceData = new CarReferenceDataResponse(
+            carConditions,
+            driveTypes,
+            bodyStyles,
+            fuelTypes,
+            transmissions,
+            sellerTypes
+        );
         
         log.debug("Returning all car reference data");
         return ResponseEntity.ok(referenceData);

@@ -22,6 +22,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -66,12 +67,9 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     public void setUp() throws Exception {
         // Clear repositories
         carListingRepository.deleteAll();
-        userRepository.deleteAllById(
-            userRepository.findAll().stream()
-                .filter(user -> user.getUsername().equals(ADMIN_USERNAME) || user.getUsername().equals(USER_USERNAME))
-                .map(User::getId)
-                .toList()
-        );
+        // Use specific deleteByUsername for cleaner test setup
+        userRepository.deleteByUsername(ADMIN_USERNAME);
+        userRepository.deleteByUsername(USER_USERNAME);
 
         // Fetch persisted roles
         var adminRole = roleRepository.findByName("ROLE_ADMIN").orElseThrow(() -> new RuntimeException("ROLE_ADMIN not found"));
@@ -124,6 +122,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     }
     
     @Test
+    @Transactional
     public void adminCanMarkListingAsSold() throws Exception {
         // Verify listing is not sold initially
         Optional<CarListing> initialListing = carListingRepository.findById(listingId);
@@ -145,6 +144,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     }
     
     @Test
+    @Transactional
     public void regularUserCannotAccessAdminMarkAsSold() throws Exception {
         mockMvc.perform(post("/api/listings/admin/{id}/mark-sold", listingId)
                 .header("Authorization", "Bearer " + userToken)
@@ -179,6 +179,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     }
     
     @Test
+    @Transactional
     public void adminCanUnarchiveListing() throws Exception {
         // First archive the listing
         CarListing listing = carListingRepository.findById(listingId).orElseThrow();
@@ -201,6 +202,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     
     @Test
     @WithMockUser(username = ADMIN_USERNAME, roles = {"ADMIN"})
+    @Transactional
     public void tryMarkArchivedListingAsSold_ReturnConflict() throws Exception {
         // First archive the listing
         CarListing listing = carListingRepository.findById(listingId).orElseThrow();
@@ -217,6 +219,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     
     @Test
     @WithMockUser(username = ADMIN_USERNAME, roles = {"ADMIN"})
+    @Transactional
     public void tryUnarchiveNonArchivedListing_ReturnConflict() throws Exception {
         // Ensure listing is not archived
         CarListing listing = carListingRepository.findById(listingId).orElseThrow();
