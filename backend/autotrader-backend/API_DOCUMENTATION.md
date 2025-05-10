@@ -613,6 +613,93 @@ Authorization: Bearer <your_jwt_token>
 - **Response (404 Not Found)**: If the listing does not exist.
 - **Response (409 Conflict)**: If the listing is already approved.
 
+### Admin Listing Status Management
+
+#### Mark Listing as Sold (Admin)
+
+- **Endpoint**: `POST /api/listings/admin/{id}/mark-sold`
+- **Access**: Admin only.
+- **Description**: Admin-only endpoint to mark a specified car listing as sold, bypassing owner checks. Cannot be performed on an archived listing. This action is idempotent if the listing is already sold (and not archived).
+- **Authentication**: Required (JWT token with ADMIN role).
+- **Path Parameters**:
+  - `id` (Long): The ID of the car listing.
+- **Response (200 OK)**: The updated `CarListingResponse` with `isSold: true`.
+  ```json
+  {
+    "id": 1,
+    "title": "2023 Toyota Camry",
+    // ... other fields ...
+    "isSold": true,
+    "isArchived": false,
+    "sellerUsername": "originalOwnerUsername",
+    // ...
+  }
+  ```
+- **Response (403 Forbidden)**: If the authenticated user does not have ADMIN role.
+- **Response (404 Not Found)**: If the listing does not exist.
+- **Response (409 Conflict)**: If the listing is archived.
+
+#### Archive Listing (Admin)
+
+- **Endpoint**: `POST /api/listings/admin/{id}/archive`
+- **Access**: Admin only.
+- **Description**: Admin-only endpoint to archive the specified car listing, bypassing owner checks. This action is idempotent if the listing is already archived.
+- **Authentication**: Required (JWT token with ADMIN role).
+- **Path Parameters**:
+  - `id` (Long): The ID of the car listing.
+- **Response (200 OK)**: The updated `CarListingResponse` with `isArchived: true`.
+  ```json
+  {
+    "id": 1,
+    "title": "2023 Toyota Camry",
+    // ... other fields ...
+    "isSold": false, // Or true, depending on its state before archiving
+    "isArchived": true,
+    "sellerUsername": "originalOwnerUsername",
+    // ...
+  }
+  ```
+- **Response (403 Forbidden)**: If the authenticated user does not have ADMIN role.
+- **Response (404 Not Found)**: If the listing does not exist.
+
+#### Unarchive Listing (Admin)
+
+- **Endpoint**: `POST /api/listings/admin/{id}/unarchive`
+- **Access**: Admin only.
+- **Description**: Admin-only endpoint to unarchive the specified car listing, bypassing owner checks. The listing must be currently archived.
+- **Authentication**: Required (JWT token with ADMIN role).
+- **Path Parameters**:
+  - `id` (Long): The ID of the car listing.
+- **Response (200 OK)**: The updated `CarListingResponse` with `isArchived: false`.
+  ```json
+  {
+    "id": 1,
+    "title": "2023 Toyota Camry",
+    // ... other fields ...
+    "isSold": false,
+    "isArchived": false,
+    "sellerUsername": "originalOwnerUsername",
+    // ...
+  }
+  ```
+- **Response (403 Forbidden)**: If the authenticated user does not have ADMIN role.
+- **Response (404 Not Found)**: If the listing does not exist.
+- **Response (409 Conflict)**: If the listing is not currently archived.
+
+#### Delete Car Listing
+
+- **Endpoint**: `DELETE /api/listings/{id}`
+- **Access**: Authenticated owner of the listing or Admin.
+- **Description**: Deletes a car listing. Only the owner or an admin can delete a listing.
+- **Authentication**: Required (JWT token).
+- **Path Parameters**:
+  - `id` (Long): The ID of the car listing to delete.
+- **Response (204 No Content)**: Successfully deleted.
+- **Response (403 Forbidden)**: If the authenticated user is not the owner (and not an admin).
+- **Response (404 Not Found)**: If the listing does not exist.
+
+### User Management (Admin)
+
 #### Get User's Listings
 
 - **Endpoint**: `GET /api/listings/my-listings`

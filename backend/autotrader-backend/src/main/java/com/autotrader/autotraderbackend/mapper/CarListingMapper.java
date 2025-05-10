@@ -36,42 +36,176 @@ public class CarListingMapper {
             return null;
         }
 
-        CarListingResponse response = new CarListingResponse();
-        response.setId(carListing.getId());
-        response.setTitle(carListing.getTitle());
-        response.setBrand(carListing.getBrand());
-        response.setModel(carListing.getModel());
-        response.setModelYear(carListing.getModelYear());
-        response.setPrice(carListing.getPrice());
-        response.setMileage(carListing.getMileage());
-        response.setDescription(carListing.getDescription());
-        
-        // Use location
-        if (carListing.getLocation() != null) {
-            response.setLocationDetails(LocationResponse.fromEntity(carListing.getLocation()));
+        try {
+            CarListingResponse response = new CarListingResponse();
+            response.setId(carListing.getId());
+            response.setTitle(carListing.getTitle());
+            response.setBrand(carListing.getBrand());
+            response.setModel(carListing.getModel());
+            response.setModelYear(carListing.getModelYear());
+            response.setPrice(carListing.getPrice());
+            response.setMileage(carListing.getMileage());
+            response.setDescription(carListing.getDescription());
+            
+            // Use location
+            if (carListing.getLocation() != null) {
+                response.setLocationDetails(LocationResponse.fromEntity(carListing.getLocation()));
+            }
+            // If location is null, locationDetails will be null (handled by fromEntity)
+            // and the legacy response.setLocation() is not set.
+            
+            response.setCreatedAt(carListing.getCreatedAt());
+            response.setApproved(carListing.getApproved());
+
+            // Map isSold and isArchived fields
+            response.setIsSold(carListing.getSold());
+            response.setIsArchived(carListing.getArchived());
+
+            if (carListing.getSeller() != null) {
+                response.setSellerId(carListing.getSeller().getId());
+                response.setSellerUsername(carListing.getSeller().getUsername());
+            } else {
+                log.warn("CarListing with ID {} has a null seller.", carListing.getId());
+            }
+
+            // Map all media items with error handling
+            try {
+                List<ListingMediaResponse> mediaResponses = mapListingMedia(carListing);
+                response.setMedia(mediaResponses);
+            } catch (Exception e) {
+                log.error("Error mapping media for listing ID {}: {}", carListing.getId(), e.getMessage(), e);
+                response.setMedia(new ArrayList<>()); // Set empty list on error
+            }
+
+            return response;
+        } catch (Exception e) {
+            log.error("Error mapping CarListing with ID {}: {}", carListing.getId(), e.getMessage(), e);
+            // Create minimal response with essential fields to avoid complete failure
+            CarListingResponse fallbackResponse = new CarListingResponse();
+            fallbackResponse.setId(carListing.getId());
+            fallbackResponse.setIsSold(carListing.getSold());
+            fallbackResponse.setIsArchived(carListing.getArchived());
+            fallbackResponse.setMedia(new ArrayList<>());
+            return fallbackResponse;
         }
-        // If location is null, locationDetails will be null (handled by fromEntity)
-        // and the legacy response.setLocation() is not set.
-        
-        response.setCreatedAt(carListing.getCreatedAt());
-        response.setApproved(carListing.getApproved());
-
-        // Map isSold and isArchived fields
-        response.setIsSold(carListing.getSold());
-        response.setIsArchived(carListing.getArchived());
-
-        if (carListing.getSeller() != null) {
-            response.setSellerId(carListing.getSeller().getId());
-            response.setSellerUsername(carListing.getSeller().getUsername());
-        } else {
-            log.warn("CarListing with ID {} has a null seller.", carListing.getId());
+    }
+    
+    /**
+     * Converts a CarListing entity to a CarListingResponse DTO specifically for admin operations.
+     * This method is more defensive and will never throw exceptions to ensure admin operations
+     * don't fail even if there are issues with media or other related entities.
+     *
+     * @param carListing The CarListing entity.
+     * @return The corresponding CarListingResponse DTO.
+     */
+    public CarListingResponse toCarListingResponseForAdmin(CarListing carListing) {
+        if (carListing == null) {
+            log.warn("Attempted to map a null CarListing entity for admin operation.");
+            return null;
         }
 
-        // Map all media items
-        List<ListingMediaResponse> mediaResponses = mapListingMedia(carListing);
-        response.setMedia(mediaResponses);
+        try {
+            CarListingResponse response = new CarListingResponse();
+            response.setId(carListing.getId());
+            
+            // Set basic fields with null checks
+            try { response.setTitle(carListing.getTitle()); } 
+            catch (Exception e) { log.warn("Error setting title for listing ID {}", carListing.getId()); }
+            
+            try { response.setBrand(carListing.getBrand()); } 
+            catch (Exception e) { log.warn("Error setting brand for listing ID {}", carListing.getId()); }
+            
+            try { response.setModel(carListing.getModel()); } 
+            catch (Exception e) { log.warn("Error setting model for listing ID {}", carListing.getId()); }
+            
+            try { response.setModelYear(carListing.getModelYear()); } 
+            catch (Exception e) { log.warn("Error setting modelYear for listing ID {}", carListing.getId()); }
+            
+            try { response.setPrice(carListing.getPrice()); } 
+            catch (Exception e) { log.warn("Error setting price for listing ID {}", carListing.getId()); }
+            
+            try { response.setMileage(carListing.getMileage()); } 
+            catch (Exception e) { log.warn("Error setting mileage for listing ID {}", carListing.getId()); }
+            
+            try { response.setDescription(carListing.getDescription()); } 
+            catch (Exception e) { log.warn("Error setting description for listing ID {}", carListing.getId()); }
+            
+            // Set location safely
+            try {
+                if (carListing.getLocation() != null) {
+                    response.setLocationDetails(LocationResponse.fromEntity(carListing.getLocation()));
+                }
+            } catch (Exception e) {
+                log.warn("Error setting location for listing ID {}", carListing.getId());
+            }
+            
+            try { response.setCreatedAt(carListing.getCreatedAt()); } 
+            catch (Exception e) { log.warn("Error setting createdAt for listing ID {}", carListing.getId()); }
+            
+            try { response.setApproved(carListing.getApproved()); } 
+            catch (Exception e) { log.warn("Error setting approved for listing ID {}", carListing.getId()); }
 
-        return response;
+            // Important status fields - with default values if exceptions occur
+            try { 
+                response.setIsSold(carListing.getSold()); 
+            } catch (Exception e) { 
+                log.warn("Error setting isSold for listing ID {}, defaulting to false", carListing.getId());
+                response.setIsSold(false);
+            }
+            
+            try { 
+                response.setIsArchived(carListing.getArchived()); 
+            } catch (Exception e) { 
+                log.warn("Error setting isArchived for listing ID {}, defaulting to false", carListing.getId());
+                response.setIsArchived(false);
+            }
+
+            // Set seller info safely
+            try {
+                if (carListing.getSeller() != null) {
+                    response.setSellerId(carListing.getSeller().getId());
+                    response.setSellerUsername(carListing.getSeller().getUsername());
+                }
+            } catch (Exception e) {
+                log.warn("Error setting seller info for listing ID {}", carListing.getId());
+            }
+
+            // Set media with empty list on error
+            try {
+                if (carListing.getMedia() != null && !carListing.getMedia().isEmpty()) {
+                    response.setMedia(mapListingMediaSafely(carListing));
+                } else {
+                    response.setMedia(new ArrayList<>());
+                }
+            } catch (Exception e) {
+                log.warn("Error mapping media for listing ID {}, using empty list", carListing.getId());
+                response.setMedia(new ArrayList<>());
+            }
+
+            return response;
+        } catch (Exception e) {
+            log.error("Error creating response for listing ID {}: {}", 
+                    carListing.getId(), e.getMessage(), e);
+            
+            // Return minimal response with just ID and status fields to avoid complete failure
+            CarListingResponse fallback = new CarListingResponse();
+            fallback.setId(carListing.getId());
+            
+            try {
+                fallback.setIsSold(carListing.getSold());
+            } catch (Exception ex) {
+                fallback.setIsSold(false);
+            }
+            
+            try {
+                fallback.setIsArchived(carListing.getArchived());
+            } catch (Exception ex) {
+                fallback.setIsArchived(false);
+            }
+            
+            fallback.setMedia(new ArrayList<>());
+            return fallback;
+        }
     }
     
     /**
@@ -141,6 +275,27 @@ public class CarListingMapper {
         } catch (Exception e) {
             log.error("Error generating signed URL for listing ID {} with key '{}': {}", listingId, imageKey, e.getMessage(), e);
             return null; // Return null on other errors
+        }
+    }
+    
+    /**
+     * Safely maps a list of media items, ensuring no exceptions are thrown that could disrupt
+     * the admin endpoints. If any errors occur during mapping, they are logged but will not
+     * cause the entire mapping operation to fail.
+     *
+     * @param carListing The car listing containing media items.
+     * @return List of ListingMediaResponse DTOs, or empty list if mapping fails.
+     */
+    private List<ListingMediaResponse> mapListingMediaSafely(CarListing carListing) {
+        if (carListing == null || carListing.getMedia() == null) {
+            return new ArrayList<>();
+        }
+        
+        try {
+            return mapListingMedia(carListing);
+        } catch (Exception e) {
+            log.error("Error mapping media for listing ID {}: {}", carListing.getId(), e.getMessage(), e);
+            return new ArrayList<>(); // Return empty list on error
         }
     }
 }

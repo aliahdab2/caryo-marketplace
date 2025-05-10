@@ -57,6 +57,7 @@ public abstract class IntegrationTestWithS3 {
         }
         String endpoint = String.format("http://%s:%d", minioContainer.getHost(), minioContainer.getMappedPort(9000));
         System.out.println("Setting MinIO endpoint for Spring: " + endpoint);
+        registry.add("storage.s3.enabled", () -> "true"); // Added this line
         registry.add("storage.s3.endpointUrl", () -> endpoint);
         registry.add("storage.s3.accessKeyId", minioContainer::getUserName);
         registry.add("storage.s3.secretAccessKey", minioContainer::getPassword);

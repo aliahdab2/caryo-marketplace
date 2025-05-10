@@ -489,6 +489,50 @@ public class CarListingService {
     }
 
     /**
+     * Marks a car listing as sold (admin-only).
+     *
+     * @param listingId The ID of the car listing to mark as sold.
+     * @return The updated CarListingResponse.
+     * @throws ResourceNotFoundException If the listing does not exist.
+     * @throws IllegalStateException     If the listing is archived (can't mark archived listings as sold).
+     */
+    @Transactional
+    public CarListingResponse markListingAsSoldByAdmin(Long listingId) {
+        log.info("Admin attempting to mark listing ID {} as sold", listingId);
+        CarListing listing = carListingRepository.findById(listingId)
+                .orElseThrow(() -> {
+                    log.warn("Admin mark as sold failed: Listing not found with ID: {}", listingId);
+                    return new ResourceNotFoundException("Car Listing", "id", listingId.toString());
+                });
+
+        if (Boolean.TRUE.equals(listing.getArchived())) {
+            log.warn("Admin attempt to mark archived listing ID {} as sold", listingId);
+            throw new IllegalStateException("Cannot mark an archived listing as sold. Please unarchive first.");
+        }
+
+        CarListingResponse response;
+        if (Boolean.TRUE.equals(listing.getSold())) {
+            log.warn("Listing ID {} is already marked as sold. No action taken by admin.", listingId);
+            // Return current state as successful no-op
+            response = carListingMapper.toCarListingResponseForAdmin(listing);
+        } else {
+            listing.setSold(true);
+            CarListing updatedListing = carListingRepository.save(listing);
+            log.info("Admin successfully marked listing ID {} as sold", listingId);
+            response = carListingMapper.toCarListingResponseForAdmin(updatedListing);
+        }
+        // Defensive: never return null
+        if (response == null) {
+            log.error("carListingMapper.toCarListingResponseForAdmin returned null for listing ID {}. Returning minimal response.", listingId);
+            response = new CarListingResponse();
+            response.setId(listing.getId());
+            response.setIsSold(listing.getSold());
+            response.setIsArchived(listing.getArchived());
+        }
+        return response;
+    }
+
+    /**
      * Archives a car listing.
      *
      * @param listingId The ID of the car listing to archive.
@@ -517,6 +561,34 @@ public class CarListingService {
     }
 
     /**
+     * Archives a car listing (admin-only).
+     *
+     * @param listingId The ID of the car listing to archive.
+     * @return The updated CarListingResponse.
+     * @throws ResourceNotFoundException If the listing does not exist.
+     * @throws IllegalStateException     If the listing is already archived.
+     */
+    @Transactional
+    public CarListingResponse archiveListingByAdmin(Long listingId) {
+        log.info("Admin attempting to archive listing ID {}", listingId);
+        CarListing listing = carListingRepository.findById(listingId)
+                .orElseThrow(() -> {
+                    log.warn("Admin archive failed: Listing not found with ID: {}", listingId);
+                    return new ResourceNotFoundException("Car Listing", "id", listingId.toString());
+                });
+
+        if (Boolean.TRUE.equals(listing.getArchived())) {
+            log.warn("Listing ID {} is already archived. No action taken by admin.", listingId);
+            return carListingMapper.toCarListingResponse(listing); // Idempotent
+        }
+
+        listing.setArchived(true);
+        CarListing updatedListing = carListingRepository.save(listing);
+        log.info("Admin successfully archived listing ID {}", listingId);
+        return carListingMapper.toCarListingResponse(updatedListing);
+    }
+
+    /**
      * Unarchives a car listing.
      *
      * @param listingId The ID of the car listing to unarchive.
@@ -539,6 +611,34 @@ public class CarListingService {
         listing.setArchived(false);
         CarListing updatedListing = carListingRepository.save(listing);
         log.info("Successfully unarchived listing ID {} by user {}", listingId, username);
+        return carListingMapper.toCarListingResponse(updatedListing);
+    }
+
+    /**
+     * Unarchives a car listing (admin-only).
+     *
+     * @param listingId The ID of the car listing to unarchive.
+     * @return The updated CarListingResponse.
+     * @throws ResourceNotFoundException If the listing does not exist.
+     * @throws IllegalStateException     If the listing is not currently archived.
+     */
+    @Transactional
+    public CarListingResponse unarchiveListingByAdmin(Long listingId) {
+        log.info("Admin attempting to unarchive listing ID {}", listingId);
+        CarListing listing = carListingRepository.findById(listingId)
+                .orElseThrow(() -> {
+                    log.warn("Admin unarchive failed: Listing not found with ID: {}", listingId);
+                    return new ResourceNotFoundException("Car Listing", "id", listingId.toString());
+                });
+
+        if (!Boolean.TRUE.equals(listing.getArchived())) {
+            log.warn("Listing ID {} is not archived. No action taken for unarchive by admin.", listingId);
+            throw new IllegalStateException("Listing with ID " + listingId + " is not currently archived.");
+        }
+
+        listing.setArchived(false);
+        CarListing updatedListing = carListingRepository.save(listing);
+        log.info("Admin successfully unarchived listing ID {}", listingId);
         return carListingMapper.toCarListingResponse(updatedListing);
     }
     

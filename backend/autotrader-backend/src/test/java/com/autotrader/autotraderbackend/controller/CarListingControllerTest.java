@@ -25,10 +25,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
@@ -566,5 +570,167 @@ public class CarListingControllerTest {
         java.util.Map<String, String> errorBody = (java.util.Map<String, String>) response.getBody();
         assertTrue(errorBody.containsKey("message"));
         assertEquals(errorMessage, errorBody.get("message"));
+    }
+    
+    // --- Tests for admin mark as sold ---
+    
+    @Test
+    void markListingAsSoldAdmin_Success() {
+        // Setup
+        CarListingResponse mockResponse = new CarListingResponse();
+        mockResponse.setId(1L);
+        mockResponse.setIsSold(true);
+        
+        when(carListingService.markListingAsSoldByAdmin(1L)).thenReturn(mockResponse);
+        
+        // Execute
+        ResponseEntity<?> response = carListingController.markListingAsSoldAdmin(1L);
+        
+        // Verify
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertSame(mockResponse, response.getBody());
+        verify(carListingService).markListingAsSoldByAdmin(1L);
+    }
+    
+    @Test
+    void markListingAsSoldAdmin_NotFound() {
+        // Setup
+        when(carListingService.markListingAsSoldByAdmin(1L))
+            .thenThrow(new ResourceNotFoundException("Car Listing", "id", "1"));
+        
+        // Execute
+        ResponseEntity<?> response = carListingController.markListingAsSoldAdmin(1L);
+        
+        // Verify
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody() instanceof Map);
+        @SuppressWarnings("unchecked")
+        Map<String, String> body = (Map<String, String>) response.getBody();
+        assertTrue(body.containsKey("message"));
+        verify(carListingService).markListingAsSoldByAdmin(1L);
+    }
+    
+    @Test
+    void markListingAsSoldAdmin_Conflict() {
+        // Setup
+        when(carListingService.markListingAsSoldByAdmin(1L))
+            .thenThrow(new IllegalStateException("Cannot mark an archived listing as sold"));
+        
+        // Execute
+        ResponseEntity<?> response = carListingController.markListingAsSoldAdmin(1L);
+        
+        // Verify
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody() instanceof Map);
+        @SuppressWarnings("unchecked")
+        Map<String, String> body = (Map<String, String>) response.getBody();
+        assertTrue(body.containsKey("message"));
+        verify(carListingService).markListingAsSoldByAdmin(1L);
+    }
+    
+    // --- Tests for admin archive ---
+    
+    @Test
+    void archiveListingAdmin_Success() {
+        // Setup
+        CarListingResponse mockResponse = new CarListingResponse();
+        mockResponse.setId(1L);
+        mockResponse.setIsArchived(true);
+        
+        when(carListingService.archiveListingByAdmin(1L)).thenReturn(mockResponse);
+        
+        // Execute
+        ResponseEntity<?> response = carListingController.archiveListingAdmin(1L);
+        
+        // Verify
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertSame(mockResponse, response.getBody());
+        verify(carListingService).archiveListingByAdmin(1L);
+    }
+    
+    @Test
+    void archiveListingAdmin_NotFound() {
+        // Setup
+        when(carListingService.archiveListingByAdmin(1L))
+            .thenThrow(new ResourceNotFoundException("Car Listing", "id", "1"));
+        
+        // Execute
+        ResponseEntity<?> response = carListingController.archiveListingAdmin(1L);
+        
+        // Verify
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody() instanceof Map);
+        verify(carListingService).archiveListingByAdmin(1L);
+    }
+    
+    @Test
+    void archiveListingAdmin_Conflict() {
+        // Setup
+        when(carListingService.archiveListingByAdmin(1L))
+            .thenThrow(new IllegalStateException("Listing is already archived"));
+        
+        // Execute
+        ResponseEntity<?> response = carListingController.archiveListingAdmin(1L);
+        
+        // Verify
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody() instanceof Map);
+        verify(carListingService).archiveListingByAdmin(1L);
+    }
+    
+    // --- Tests for admin unarchive ---
+    
+    @Test
+    void unarchiveListingAdmin_Success() {
+        // Setup
+        CarListingResponse mockResponse = new CarListingResponse();
+        mockResponse.setId(1L);
+        mockResponse.setIsArchived(false);
+        
+        when(carListingService.unarchiveListingByAdmin(1L)).thenReturn(mockResponse);
+        
+        // Execute
+        ResponseEntity<?> response = carListingController.unarchiveListingAdmin(1L);
+        
+        // Verify
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertSame(mockResponse, response.getBody());
+        verify(carListingService).unarchiveListingByAdmin(1L);
+    }
+    
+    @Test
+    void unarchiveListingAdmin_NotFound() {
+        // Setup
+        when(carListingService.unarchiveListingByAdmin(1L))
+            .thenThrow(new ResourceNotFoundException("Car Listing", "id", "1"));
+        
+        // Execute
+        ResponseEntity<?> response = carListingController.unarchiveListingAdmin(1L);
+        
+        // Verify
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody() instanceof Map);
+        verify(carListingService).unarchiveListingByAdmin(1L);
+    }
+    
+    @Test
+    void unarchiveListingAdmin_Conflict() {
+        // Setup
+        when(carListingService.unarchiveListingByAdmin(1L))
+            .thenThrow(new IllegalStateException("Listing is not archived"));
+        
+        // Execute
+        ResponseEntity<?> response = carListingController.unarchiveListingAdmin(1L);
+        
+        // Verify
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody() instanceof Map);
+        verify(carListingService).unarchiveListingByAdmin(1L);
     }
 }
