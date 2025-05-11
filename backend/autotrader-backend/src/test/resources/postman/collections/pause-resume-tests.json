@@ -1,0 +1,939 @@
+{
+  "info": {
+    "_postman_id": "pause-resume-tests-collection",
+    "name": "Pause and Resume Car Listing Tests",
+    "description": "Tests for pausing and resuming car listings in the AutoTrader API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "A0. Login as User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Response contains token\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.token).to.not.be.empty;",
+              "    pm.environment.set('user_token', jsonData.token);",
+              "    console.log('User token set: ' + jsonData.token.substring(0, 20) + '...');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"password\": \"{{test_password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signin",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "signin"]
+        },
+        "description": "Login to get a JWT token for a regular user"
+      }
+    },
+    {
+      "name": "A1. Create Test Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function() {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Response contains listing ID\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.id).to.not.be.null;",
+              "    pm.environment.set('test_listing_id', jsonData.id);",
+              "    console.log('Test listing ID set: ' + jsonData.id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"title\": \"Test Pause Resume Listing\",\n    \"brand\": \"Toyota\",\n    \"model\": \"Camry\",\n    \"modelYear\": 2023,\n    \"price\": 28500,\n    \"mileage\": 15000,\n    \"locationId\": 1,\n    \"description\": \"Test listing for pause/resume functionality\",\n    \"transmission\": \"AUTOMATIC\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/listings",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings"]
+        },
+        "description": "Create a new car listing for testing pause/resume functionality"
+      }
+    },
+    {
+      "name": "A2. Login as Admin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Response contains token\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.token).to.not.be.empty;",
+              "    pm.environment.set('admin_token', jsonData.token);",
+              "    console.log('Admin token set: ' + jsonData.token.substring(0, 20) + '...');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"Admin123!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signin",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "signin"]
+        },
+        "description": "Login to get a JWT token for an admin user"
+      }
+    },
+    {
+      "name": "A3. Approve Test Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Listing is approved\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.approved).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "console.log('A3 Pre-request: admin_token value is: ' + pm.environment.get('admin_token'));",
+              "console.log('A3 Pre-request: test_listing_id value is: ' + pm.environment.get('test_listing_id'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/listings/{{test_listing_id}}/approve",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "admin", "listings", "{{test_listing_id}}", "approve"]
+        },
+        "description": "Approve the test listing as an admin"
+      }
+    },
+    {
+      "name": "B1. Pause Listing - Success",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Listing is paused\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.isUserActive).to.be.false;",
+              "    console.log('Listing is now paused (isUserActive: ' + jsonData.isUserActive + ')');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/pause",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "pause"]
+        },
+        "description": "Pause the listing as the owner"
+      }
+    },
+    {
+      "name": "B2. Pause Listing - Already Paused",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function() {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "",
+              "pm.test(\"Error message indicates already paused\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('already paused');",
+              "    console.log('Error message: ' + jsonData.message);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/pause",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "pause"]
+        },
+        "description": "Try to pause the listing when it's already paused"
+      }
+    },
+    {
+      "name": "C1. Resume Listing - Success",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Listing is resumed\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.isUserActive).to.be.true;",
+              "    console.log('Listing is now resumed (isUserActive: ' + jsonData.isUserActive + ')');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/resume",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "resume"]
+        },
+        "description": "Resume the listing as the owner"
+      }
+    },
+    {
+      "name": "C2. Resume Listing - Already Active",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function() {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "",
+              "pm.test(\"Error message indicates already active\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('already active');",
+              "    console.log('Error message: ' + jsonData.message);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/resume",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "resume"]
+        },
+        "description": "Try to resume the listing when it's already active"
+      }
+    },
+    {
+      "name": "D1. Unauthorized Access - Pause",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401\", function() {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/pause",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "pause"]
+        },
+        "description": "Try to pause the listing without authentication"
+      }
+    },
+    {
+      "name": "D2. Unauthorized Access - Resume",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401\", function() {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/resume",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "resume"]
+        },
+        "description": "Try to resume the listing without authentication"
+      }
+    },
+    {
+      "name": "E1. Mark Listing as Sold",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Listing is marked as sold\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.isSold).to.be.true;",
+              "    console.log('Listing is now sold: ' + jsonData.isSold);",
+              "    pm.environment.set('sold_listing_id', jsonData.id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/mark-sold",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "mark-sold"]
+        },
+        "description": "Mark the listing as sold to test pause/resume when sold"
+      }
+    },
+    {
+      "name": "E2. Try to Pause Sold Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function() {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "",
+              "pm.test(\"Error message indicates listing is sold\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('sold');",
+              "    console.log('Error message: ' + jsonData.message);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/pause",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "pause"]
+        },
+        "description": "Try to pause a listing that is already sold"
+      }
+    },
+    {
+      "name": "E3. Try to Resume Sold Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function() {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "",
+              "pm.test(\"Error message indicates listing is sold\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('sold');",
+              "    console.log('Error message: ' + jsonData.message);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/resume",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "resume"]
+        },
+        "description": "Try to resume a listing that is already sold"
+      }
+    },
+    {
+      "name": "F1. Create Another Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function() {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Response contains listing ID\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.id).to.not.be.null;",
+              "    pm.environment.set('archive_listing_id', jsonData.id);",
+              "    console.log('Archive test listing ID set: ' + jsonData.id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"title\": \"Test Archive Listing\",\n    \"brand\": \"Honda\",\n    \"model\": \"Accord\",\n    \"modelYear\": 2023,\n    \"price\": 29800,\n    \"mileage\": 12000,\n    \"locationId\": 1,\n    \"description\": \"Test listing for archive functionality\",\n    \"transmission\": \"AUTOMATIC\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/listings",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings"]
+        },
+        "description": "Create a new car listing for testing archive functionality"
+      }
+    },
+    {
+      "name": "F2. Approve Archive Test Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Listing is approved\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.approved).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/listings/{{archive_listing_id}}/approve",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "admin", "listings", "{{archive_listing_id}}", "approve"]
+        },
+        "description": "Approve the test listing as an admin"
+      }
+    },
+    {
+      "name": "F3. Archive Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Listing is archived\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.isArchived).to.be.true;",
+              "    console.log('Listing is now archived: ' + jsonData.isArchived);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{archive_listing_id}}/archive",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{archive_listing_id}}", "archive"]
+        },
+        "description": "Archive the listing to test pause/resume when archived"
+      }
+    },
+    {
+      "name": "F4. Try to Pause Archived Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function() {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "",
+              "pm.test(\"Error message indicates listing is archived\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('archived');",
+              "    console.log('Error message: ' + jsonData.message);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{archive_listing_id}}/pause",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{archive_listing_id}}", "pause"]
+        },
+        "description": "Try to pause a listing that is archived"
+      }
+    },
+    {
+      "name": "F5. Try to Resume Archived Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function() {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "",
+              "pm.test(\"Error message indicates listing is archived\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('archived');",
+              "    console.log('Error message: ' + jsonData.message);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{archive_listing_id}}/resume",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{archive_listing_id}}", "resume"]
+        },
+        "description": "Try to resume a listing that is archived"
+      }
+    },
+    {
+      "name": "G1. Create Unapproved Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function() {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Response contains listing ID\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.id).to.not.be.null;",
+              "    pm.environment.set('unapproved_listing_id', jsonData.id);",
+              "    console.log('Unapproved listing ID set: ' + jsonData.id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"title\": \"Test Unapproved Listing\",\n    \"brand\": \"Ford\",\n    \"model\": \"Explorer\",\n    \"modelYear\": 2023,\n    \"price\": 35500,\n    \"mileage\": 8000,\n    \"locationId\": 1,\n    \"description\": \"Test unapproved listing for pause functionality\",\n    \"transmission\": \"AUTOMATIC\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/listings",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings"]
+        },
+        "description": "Create a new car listing that will remain unapproved"
+      }
+    },
+    {
+      "name": "G2. Try to Pause Unapproved Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 409 Conflict\", function() {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "",
+              "pm.test(\"Error message indicates listing is not approved\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('not yet approved');",
+              "    console.log('Error message: ' + jsonData.message);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{unapproved_listing_id}}/pause",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{unapproved_listing_id}}", "pause"]
+        },
+        "description": "Try to pause a listing that is not approved yet"
+      }
+    },
+    {
+      "name": "H1. Invalid Listing ID - Pause",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function() {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test(\"Error message indicates listing not found\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('not found');",
+              "    console.log('Error message: ' + jsonData.message);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/99999/pause",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "99999", "pause"]
+        },
+        "description": "Try to pause a listing that doesn't exist"
+      }
+    },
+    {
+      "name": "H2. Invalid Listing ID - Resume",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404 Not Found\", function() {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test(\"Error message indicates listing not found\", function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('not found');",
+              "    console.log('Error message: ' + jsonData.message);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/99999/resume",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "99999", "resume"]
+        },
+        "description": "Try to resume a listing that doesn't exist"
+      }
+    },
+    {
+      "name": "Z1. Cleanup - Delete Test Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 204 No Content\", function() {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{test_listing_id}}"]
+        },
+        "description": "Delete the first test listing"
+      }
+    },
+    {
+      "name": "Z2. Cleanup - Delete Archive Test Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 204 No Content\", function() {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{archive_listing_id}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{archive_listing_id}}"]
+        },
+        "description": "Delete the archive test listing"
+      }
+    },
+    {
+      "name": "Z3. Cleanup - Delete Unapproved Test Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 204 No Content\", function() {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/{{unapproved_listing_id}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "{{unapproved_listing_id}}"]
+        },
+        "description": "Delete the unapproved test listing"
+      }
+    }
+  ]
+}

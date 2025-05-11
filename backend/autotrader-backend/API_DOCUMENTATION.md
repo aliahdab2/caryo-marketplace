@@ -561,6 +561,56 @@ Authorization: Bearer <your_jwt_token>
     // ...
   }
   ```
+
+#### Pause Listing
+
+- **Endpoint**: `PUT /api/listings/{id}/pause`
+- **Access**: Authenticated owner of the listing.
+- **Description**: Temporarily pauses (hides) the specified car listing. The listing must be approved, not sold, and not archived. This changes the listing's `isUserActive` flag to `false`.
+- **Authentication**: Required (JWT token).
+- **Path Parameters**:
+  - `id` (Long): The ID of the car listing to pause.
+- **Response (200 OK)**: The updated `CarListingResponse` with `isUserActive: false`.
+  ```json
+  {
+    "id": 1,
+    "title": "2023 Toyota Camry",
+    // ... other fields ...
+    "isSold": false,
+    "isArchived": false,
+    "isUserActive": false,
+    "sellerUsername": "yourUsername",
+    // ...
+  }
+  ```
+- **Response (403 Forbidden)**: If the authenticated user is not the owner.
+- **Response (404 Not Found)**: If the listing does not exist.
+- **Response (409 Conflict)**: If the listing is not in a state that can be paused (e.g., not approved, already sold, archived, or already paused).
+
+#### Resume Listing
+
+- **Endpoint**: `PUT /api/listings/{id}/resume`
+- **Access**: Authenticated owner of the listing.
+- **Description**: Resumes (unhides) a previously paused car listing. The listing must not be sold or archived. This changes the listing's `isUserActive` flag to `true`.
+- **Authentication**: Required (JWT token).
+- **Path Parameters**:
+  - `id` (Long): The ID of the car listing to resume.
+- **Response (200 OK)**: The updated `CarListingResponse` with `isUserActive: true`.
+  ```json
+  {
+    "id": 1,
+    "title": "2023 Toyota Camry",
+    // ... other fields ...
+    "isSold": false,
+    "isArchived": false,
+    "isUserActive": true,
+    "sellerUsername": "yourUsername",
+    // ...
+  }
+  ```
+- **Response (403 Forbidden)**: If the authenticated user is not the owner.
+- **Response (404 Not Found)**: If the listing does not exist.
+- **Response (409 Conflict)**: If the listing is not in a state that can be resumed (e.g., sold, archived, or already active).
 - **Response (403 Forbidden)**: If the authenticated user is not the owner.
 - **Response (404 Not Found)**: If the listing does not exist.
 

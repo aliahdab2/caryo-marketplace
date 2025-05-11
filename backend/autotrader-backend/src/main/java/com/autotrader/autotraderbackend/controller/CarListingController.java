@@ -363,34 +363,7 @@ public class CarListingController {
         return ResponseEntity.ok(myListings);
     }
 
-    // Changed back to POST as it modifies state
-    @RequestMapping(value = "/{id}/approve", method = {RequestMethod.POST, RequestMethod.PUT})
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(
-        summary = "Approve a car listing",
-        description = "Approves a car listing. Only accessible by admins. The response includes the full listing details with its media.",
-        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
-        responses = {
-            @ApiResponse(responseCode = "200", description = "Listing approved successfully, includes media details", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Listing not found"),
-            @ApiResponse(responseCode = "409", description = "Listing already approved"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
-        }
-    )
-    public ResponseEntity<?> approveListing(@PathVariable Long id) {
-        log.info("Received request to approve listing ID: {}", id);
-        try {
-            CarListingResponse approvedListing = carListingService.approveListing(id);
-            log.info("Successfully approved listing ID: {}", id);
-            return ResponseEntity.ok(approvedListing);
-        } catch (ResourceNotFoundException e) {
-            log.warn("Resource not found during approval attempt for listing ID: {}", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
-        } catch (IllegalStateException e) { // Catch if already approved
-            log.warn("Approval attempt failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
-        }
-    }
+
 
     @PutMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
@@ -531,35 +504,7 @@ public class CarListingController {
         }
     }
 
-    @PostMapping("/admin/{id}/mark-sold")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Operation(
-        summary = "Mark a car listing as sold (Admin only)",
-        description = "Marks the specified car listing as sold. Admin access required. Bypasses owner check.",
-        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
-        responses = {
-            @ApiResponse(responseCode = "200", description = "Listing marked as sold successfully", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - Admin access required"),
-            @ApiResponse(responseCode = "404", description = "Listing not found"),
-            @ApiResponse(responseCode = "409", description = "Conflict (e.g., listing is archived or already sold)")
-        }
-    )
-    public ResponseEntity<?> markListingAsSoldAdmin(
-            @Parameter(description = "ID of the listing to mark as sold", required = true) @PathVariable("id") Long id) {
-        try {
-            log.info("Admin attempting to mark listing ID {} as sold", id);
-            CarListingResponse response = carListingService.markListingAsSoldByAdmin(id);
-            log.info("Admin successfully marked listing ID {} as sold", id);
-            return ResponseEntity.ok(response);
-        } catch (ResourceNotFoundException e) {
-            log.warn("Admin mark as sold failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
-        } catch (IllegalStateException e) {
-            log.warn("Admin mark as sold failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
-        }
-    }
+
 
     @PostMapping("/{id}/archive")
     @PreAuthorize("isAuthenticated()")
@@ -597,35 +542,7 @@ public class CarListingController {
         }
     }
 
-    @PostMapping("/admin/{id}/archive")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Operation(
-        summary = "Archive a car listing (Admin only)",
-        description = "Archives the specified car listing. Admin access required. Bypasses owner check.",
-        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
-        responses = {
-            @ApiResponse(responseCode = "200", description = "Listing archived successfully", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - Admin access required"),
-            @ApiResponse(responseCode = "404", description = "Listing not found"),
-            @ApiResponse(responseCode = "409", description = "Conflict (e.g., listing already archived)")
-        }
-    )
-    public ResponseEntity<?> archiveListingAdmin(
-            @Parameter(description = "ID of the listing to archive", required = true) @PathVariable("id") Long id) {
-        try {
-            log.info("Admin attempting to archive listing ID {}", id);
-            CarListingResponse response = carListingService.archiveListingByAdmin(id);
-            log.info("Admin successfully archived listing ID {}", id);
-            return ResponseEntity.ok(response);
-        } catch (ResourceNotFoundException e) {
-            log.warn("Admin archive failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
-        } catch (IllegalStateException e) {
-            log.warn("Admin archive failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
-        }
-    }
+
 
     @PostMapping("/{id}/unarchive")
     @PreAuthorize("isAuthenticated()")
@@ -661,35 +578,7 @@ public class CarListingController {
         }
     }
 
-    @PostMapping("/admin/{id}/unarchive")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Operation(
-        summary = "Unarchive a car listing (Admin only)",
-        description = "Unarchives the specified car listing. Admin access required. Bypasses owner check.",
-        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
-        responses = {
-            @ApiResponse(responseCode = "200", description = "Listing unarchived successfully", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - Admin access required"),
-            @ApiResponse(responseCode = "404", description = "Listing not found"),
-            @ApiResponse(responseCode = "409", description = "Conflict (e.g., listing not archived)")
-        }
-    )
-    public ResponseEntity<?> unarchiveListingAdmin(
-            @Parameter(description = "ID of the listing to unarchive", required = true) @PathVariable("id") Long id) {
-        try {
-            log.info("Admin attempting to unarchive listing ID {}", id);
-            CarListingResponse response = carListingService.unarchiveListingByAdmin(id);
-            log.info("Admin successfully unarchived listing ID {}", id);
-            return ResponseEntity.ok(response);
-        } catch (ResourceNotFoundException e) {
-            log.warn("Admin unarchive failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
-        } catch (IllegalStateException e) {
-            log.warn("Admin unarchive failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
-        }
-    }
+
 }
 
 
