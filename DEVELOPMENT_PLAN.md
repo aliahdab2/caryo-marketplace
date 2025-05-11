@@ -109,7 +109,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [x] **Add Additional Status Flags** (isSold, isArchived)
   - Default states: `isSold = false`, `isArchived = false`.
 
-- [ ] **Implement User-Controlled Listing Visibility (Pause/Resume)**
+- [x] **Implement User-Controlled Listing Visibility (Pause/Resume)**
   - Add `isUserActive` flag to `CarListing` model (default: `true` for new, approved listings not yet sold or archived).
   - Allow users to temporarily "pause" (hide) their own listings that are currently approved, not sold, and not archived by the system/admin.
   - Allow users to "resume" (unhide) their paused listings, provided the listing is not expired, sold, or archived by the system/admin.
