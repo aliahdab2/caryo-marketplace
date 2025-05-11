@@ -191,3 +191,4 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [Backend API Documentation](backend/autotrader-backend/API_DOCUMENTATION.md) - Details on API endpoints and usage
 - [Database Schema](docs/database_schema.md) - Complete database structure and relationships
 - [Testing Plan](docs/testing_plan.md) - Testing approach and coverage goals
+- [Frontend Development Plan](docs/frontend_development_plan.md) - Detailed frontend implementation roadmap
