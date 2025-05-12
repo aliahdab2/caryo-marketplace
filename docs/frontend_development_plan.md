@@ -308,6 +308,59 @@ frontend/
     - Set up visual testing specifically for RTL layouts in Storybook.
     - Create RTL-specific test cases to ensure proper layout flipping.
     - Test text alignment, icon positioning, and component flow in RTL mode.
+  - **Performance Considerations**:
+    - **Bundle Size Optimization**:
+      - Implement namespace-based loading to load only required translations for each page
+      - Use dynamic imports for language files: `import(`../locales/${locale}/messages`)`
+      - Configure code splitting per language to avoid downloading all translations at once:
+        ```js
+        // next.config.js
+        module.exports = {
+          i18n: {
+            // existing config...
+          },
+          webpack: (config) => {
+            // Create separate chunk for each locale
+            config.optimization.splitChunks.cacheGroups.i18n = {
+              name: 'i18n',
+              test: /locales/,
+              chunks: 'all',
+            };
+            return config;
+          },
+        }
+        ```
+    - **Runtime Performance**:
+      - Use translation compilation in production with `react-i18next` to avoid runtime parsing
+      - Memoize translation functions and components to prevent unnecessary re-renders:
+        ```jsx
+        const MemoizedTransComponent = React.memo(({ i18nKey }) => {
+          return <Trans i18nKey={i18nKey} />;
+        });
+        ```
+      - Avoid nested translation keys in performance-critical components
+    - **Server-Side Considerations**:
+      - Implement efficient language detection to avoid unnecessary redirects
+      - Pre-compute common translations during SSR to avoid hydration mismatch
+      - Use `getStaticProps` with revalidation for pages with translations that rarely change
+      - Consider implementing streaming SSR with Suspense boundaries around i18n content
+    - **RTL Performance**:
+      - Use CSS logical properties (e.g., `margin-inline-start` instead of `margin-left`) to avoid duplicated RTL styles
+      - Implement conditional CSS loading based on direction to avoid unnecessary RTL stylesheets:
+        ```tsx
+        {locale === 'ar' && <link rel="stylesheet" href="/styles/rtl-specific.css" />}
+        ```
+      - Consider using CSS variables for direction-sensitive values instead of duplicating entire style rules
+    - **i18n Analysis & Monitoring**:
+      - Add bundle analyzer configurations specifically for tracking i18n-related bundle size
+      - Set up performance monitoring to compare metrics between different languages
+      - Create custom performance marks to measure translation loading and application times:
+        ```js
+        performance.mark('i18n-load-start');
+        await i18n.loadNamespaces(['common']);
+        performance.mark('i18n-load-end');
+        performance.measure('i18n-load', 'i18n-load-start', 'i18n-load-end');
+        ```
 
 - **Frontend Security**
   - Use HttpOnly cookies for auth where possible.
