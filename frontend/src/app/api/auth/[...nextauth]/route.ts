@@ -107,7 +107,8 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "AdJ8m5EpqN6qPwEtH7XsKfRzV2yG9LcZ", // Use env var or fallback to hardcoded secret
+  debug: process.env.NODE_ENV === "development", // Enable debug logs in development
 };
 
 const handler = NextAuth(authOptions);

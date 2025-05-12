@@ -21,7 +21,7 @@ export interface AuthResponse {
   username: string;
   email: string;
   roles: string[];
-  token: string;  // JWT token from backend
+  token: string; 
 }
 
 export interface MessageResponse {
