@@ -19,8 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Duration;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -232,7 +230,7 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
             // Extract token and ensure it's not null or empty
             JwtResponse jwtResponse = loginResponse.getBody();
             assertThat(jwtResponse).isNotNull();
-            String token = jwtResponse.getToken();
+            String token = java.util.Objects.requireNonNull(jwtResponse).getToken();
             assertThat(token).isNotBlank();
             
             // Create headers with token

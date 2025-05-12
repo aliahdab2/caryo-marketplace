@@ -109,6 +109,21 @@ frontend/
     <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} />
     ```
 
+- Example next-i18next configuration (`frontend/next-i18next.config.js`):
+  ```js
+  module.exports = {
+    i18n: {
+      defaultLocale: 'ar',
+      locales: ['en', 'ar'], // Updated to match actual configuration
+      fallbackLng: 'ar',
+      detection: {
+        order: ['cookie', 'localStorage', 'navigator', 'htmlTag'],
+        caches: ['cookie'],
+      },
+    },
+  };
+  ```
+
 ### **Phase 1: Core Components & Pages**
 
 #### 1. User Authentication
@@ -276,8 +291,8 @@ frontend/
     module.exports = {
       i18n: {
         defaultLocale: 'ar',
-        locales: ['en', 'ar'],
-        fallbackLng: 'ar', // Default fallback to prevent undefined behavior
+        locales: ['en', 'ar'], // Updated to match actual configuration
+        fallbackLng: 'ar',
         detection: {
           order: ['cookie', 'localStorage', 'navigator', 'htmlTag'],
           caches: ['cookie'], // Cache detected language preference

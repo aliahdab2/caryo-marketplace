@@ -98,7 +98,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         assertNotNull(loginResponse.getBody(), "Login response body should not be null for user: " + username);
         JwtResponse jwtResponse = loginResponse.getBody();
         assertNotNull(jwtResponse, "JWT Response object should not be null");
-        String token = jwtResponse.getToken();
+        String token = java.util.Objects.requireNonNull(jwtResponse).getToken();
         assertNotNull(token, "JWT token should not be null for user: " + username);
 
         HttpHeaders headers = new HttpHeaders();

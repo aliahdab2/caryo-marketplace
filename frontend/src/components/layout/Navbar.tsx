@@ -97,10 +97,10 @@ export default function Navbar() {
                   Sign in
                 </button>
                 <Link 
-                  href="/auth/register" 
+                  href="/auth/signup" 
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  Register
+                  Signup
                 </Link>
               </div>
             )}
@@ -225,11 +225,11 @@ export default function Navbar() {
                   Sign in
                 </button>
                 <Link 
-                  href="/auth/register"
+                  href="/auth/signup"
                   className="block w-full text-center px-4 py-2 text-base font-medium text-blue-600 bg-white hover:bg-gray-50 border border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mt-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Register
+                  Signup
                 </Link>
               </div>
             )}

@@ -1,6 +1,5 @@
 package com.autotrader.autotraderbackend.test;
 
-import org.junit.jupiter.api.AfterAll; // Import AfterAll
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -97,5 +96,4 @@ public abstract class IntegrationTestWithS3 {
         }
     }
 
-    // No @AfterAll needed; S3Client is closed after use in @BeforeAll
 }
