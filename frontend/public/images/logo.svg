@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main car silhouette -->
+  <path d="M30,120 C30,110 50,100 90,100 L110,100 C150,100 170,110 170,120 L170,145 C170,150 165,155 160,155 L40,155 C35,155 30,150 30,145 L30,120 Z" fill="#3B82F6"/>
+  
+  <!-- Car windows -->
+  <path d="M60,100 L75,75 L125,75 L140,100" fill="#60A5FA"/>
+  
+  <!-- Wheels -->
+  <circle cx="65" cy="140" r="15" fill="#1F2937"/>
+  <circle cx="135" cy="140" r="15" fill="#1F2937"/>
+  <circle cx="65" cy="140" r="7" fill="#6B7280"/>
+  <circle cx="135" cy="140" r="7" fill="#6B7280"/>
+  
+  <!-- Headlights and details -->
+  <path d="M40,110 L50,110 L50,120 L40,120 Z" fill="#FBBF24"/>
+  <path d="M150,110 L160,110 L160,120 L150,120 Z" fill="#FBBF24"/>
+  
+  <!-- Grill -->
+  <rect x="85" y="110" width="30" height="10" fill="#1F2937"/>
+</svg>
