@@ -6,6 +6,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.springframework.lang.NonNull;
 
 /**
  * Listens for application startup completion and logs useful information
@@ -19,7 +20,7 @@ public class ApplicationStartupListener implements ApplicationListener<Applicati
     private final Environment env;
 
     @Override
-    public void onApplicationEvent(ApplicationReadyEvent event) {
+    public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
         String serverPort = env.getProperty("server.port", "8080");
         String contextPath = env.getProperty("server.servlet.context-path", "");
         String profileInfo = env.getActiveProfiles().length > 0 ? 

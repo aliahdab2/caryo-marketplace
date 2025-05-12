@@ -13,7 +13,6 @@ import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
-import com.autotrader.autotraderbackend.repository.ListingMediaRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.specification.CarListingSpecification;
@@ -43,7 +42,6 @@ public class CarListingService {
     private final CarListingRepository carListingRepository;
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
-    private final ListingMediaRepository listingMediaRepository;
     private final StorageService storageService;
     private final CarListingMapper carListingMapper;
 
