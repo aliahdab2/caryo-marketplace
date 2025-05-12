@@ -151,7 +151,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         HttpEntity<String> approveEntity = new HttpEntity<>(adminHeaders);
 
         ResponseEntity<Map<String, Object>> approveResponse = restTemplate.exchange(
-                baseUrl + "/api/listings/" + listingId + "/approve",
+                baseUrl + "/api/admin/listings/" + listingId + "/approve",
                 HttpMethod.PUT,
                 approveEntity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
