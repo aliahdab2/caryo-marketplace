@@ -77,7 +77,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         signupRequest.setRole(roles);
 
         restTemplate.postForEntity(
-                baseUrl + "/api/auth/signup",
+                baseUrl + "/auth/signup",
                 signupRequest,
                 Object.class
         );
@@ -89,7 +89,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         loginRequest.setPassword(password);
 
         ResponseEntity<JwtResponse> loginResponse = restTemplate.postForEntity(
-                baseUrl + "/api/auth/signin",
+                baseUrl + "/auth/signin",
                 loginRequest,
                 JwtResponse.class
         );
@@ -151,7 +151,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         HttpEntity<String> approveEntity = new HttpEntity<>(adminHeaders);
 
         ResponseEntity<Map<String, Object>> approveResponse = restTemplate.exchange(
-                baseUrl + "/api/admin/listings/" + listingId + "/approve",
+                baseUrl + "/api/listings/" + listingId + "/approve",
                 HttpMethod.PUT,
                 approveEntity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
