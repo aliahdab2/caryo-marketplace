@@ -84,29 +84,29 @@ frontend/
   - **Note for Next.js**: Next.js typically respects the `baseUrl` and `paths` in `tsconfig.json` automatically. If you\'re using a `src` directory, your path might be `"@/*": ["./src/*"]`. Custom Webpack aliases in `next.config.js` are often not needed for this specific purpose if `tsconfig.json` is set up correctly.
 
 #### 4. Internationalization (i18n) Setup
-- Add support for English and Arabic.
+- Add support for Arabic and English, with Arabic as the default language.
 - Use **next-i18next** for internationalization and automatic language detection.
 - Organize translations in:
   ```plaintext
   public/
   └── locales/
-      ├── en/
+      ├── ar/
       │   └── common.json
-      └── ar/
+      └── en/
           └── common.json
   ```
 - Create a language switcher (e.g., in the header or settings dropdown).
 - Implement the following best practices:
-  - **Default Language Fallback**: Configure `fallbackLng: \'en\'` in `next-i18next.config.js` to prevent undefined behavior.
-  - **Persist Language Selection**: Store user preference in cookies with `setCookie(\'NEXT_LOCALE\', lang)`.
-  - **Locale Detection**: Implement detection order: `[\'cookie\', \'localStorage\', \'navigator\', \'htmlTag\']`.
+  - **Default Language Fallback**: Configure `fallbackLng: 'ar'` in `next-i18next.config.js` to prevent undefined behavior.
+  - **Persist Language Selection**: Store user preference in cookies with `setCookie('NEXT_LOCALE', lang)`.
+  - **Locale Detection**: Implement detection order: `['cookie', 'localStorage', 'navigator', 'htmlTag']`.
   - **Translation Keys Convention**: Use semantic namespacing for translation keys (e.g., `header.login`).
   - **Date/Number Localization**: Use `Intl.DateTimeFormat` and `Intl.NumberFormat` for locale-specific formatting.
 - Ensure RTL (Right-to-Left) layout support when Arabic is active:
   - Tailwind supports RTL with `dir="rtl"` on the `<html>` or `<body>` tag.
   - You can dynamically set it using:
     ```tsx
-    <html lang={locale} dir={locale === \'ar\' ? \'rtl\' : \'ltr\'} />
+    <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} />
     ```
 
 ### **Phase 1: Core Components & Pages**
@@ -269,15 +269,15 @@ frontend/
 ## General Cross-Cutting Enhancements
 - **Internationalization (i18n)**
   - Integrate `next-i18next` for multi-language support.
-  - Add support for `en` (English) and `ar` (Arabic) with RTL layout handling for Arabic.
+  - Add support for `en` (English) and `ar` (Arabic) with RTL layout handling for Arabic. Arabic will be the default language.
   - Implement proper configuration:
     ```js
     // In next-i18next.config.js
     module.exports = {
       i18n: {
-        defaultLocale: 'en',
+        defaultLocale: 'ar',
         locales: ['en', 'ar'],
-        fallbackLng: 'en', // Default fallback to prevent undefined behavior
+        fallbackLng: 'ar', // Default fallback to prevent undefined behavior
         detection: {
           order: ['cookie', 'localStorage', 'navigator', 'htmlTag'],
           caches: ['cookie'], // Cache detected language preference
@@ -309,6 +309,13 @@ frontend/
     - Create RTL-specific test cases to ensure proper layout flipping.
     - Test text alignment, icon positioning, and component flow in RTL mode.
   - **Performance Considerations**:
+    - **How to Avoid Slowness (Optimization Strategies):**
+      - **Code Splitting & Dynamic Imports:** Only load the translation files needed for the current language and page (as described in your plan).
+      - **Namespace-based Loading:** Load only the translation namespaces required for each page/component.
+      - **Efficient Language Detection:** Use server-side language detection to avoid unnecessary client-side redirects or re-renders.
+      - **Memoization:** Memoize translation components to avoid unnecessary re-renders.
+      - **Conditional CSS:** Only load RTL styles when needed.
+      - **Bundle Analysis:** Regularly analyze and monitor bundle size, especially after adding new languages.
     - **Bundle Size Optimization**:
       - Implement namespace-based loading to load only required translations for each page
       - Use dynamic imports for language files: `import(`../locales/${locale}/messages`)`
@@ -331,19 +338,33 @@ frontend/
         }
         ```
     - **Runtime Performance**:
-      - Use translation compilation in production with `react-i18next` to avoid runtime parsing
-      - Memoize translation functions and components to prevent unnecessary re-renders:
+      - **Translation Compilation:** Use translation compilation in production with `react-i18next` to avoid runtime parsing. This is best achieved by pre-compiling translation JSON files or using tools like `i18next-scanner` to generate static translation resources for production builds.
+      - **Memoization:** Memoize translation functions and components to prevent unnecessary re-renders. For example:
         ```jsx
+        import { Trans } from 'react-i18next';
+        import React from 'react';
+
         const MemoizedTransComponent = React.memo(({ i18nKey }) => {
           return <Trans i18nKey={i18nKey} />;
         });
         ```
-      - Avoid nested translation keys in performance-critical components
+        Or, for hooks:
+        ```jsx
+        import { useTranslation } from 'react-i18next';
+        import { useMemo } from 'react';
+
+        function MyComponent() {
+          const { t } = useTranslation();
+          const label = useMemo(() => t('my.key'), [t]);
+          return <span>{label}</span>;
+        }
+        ```
+      - **Avoid Nested Translation Keys:** Avoid nested translation keys in performance-critical components. Deeply nested keys can increase lookup time and reduce maintainability. Prefer flat or shallow key structures for frequently used or performance-sensitive translations. Memoization is especially important in large lists or frequently re-rendered components.
     - **Server-Side Considerations**:
-      - Implement efficient language detection to avoid unnecessary redirects
-      - Pre-compute common translations during SSR to avoid hydration mismatch
-      - Use `getStaticProps` with revalidation for pages with translations that rarely change
-      - Consider implementing streaming SSR with Suspense boundaries around i18n content
+      - **Efficient Language Detection:** Implement efficient language detection (preferably on the server) to avoid unnecessary client-side redirects and ensure users see the correct language immediately.
+      - **Pre-compute Translations During SSR:** Pre-compute common translations during server-side rendering (SSR) to avoid hydration mismatches and ensure the initial HTML matches the user's language.
+      - **Static Generation with Revalidation:** Use `getStaticProps` with revalidation (Incremental Static Regeneration) for pages with translations that rarely change, improving performance and scalability.
+      - **Streaming SSR with Suspense:** Consider implementing streaming SSR with React Suspense boundaries around i18n content to progressively render pages as soon as translations are ready, improving time-to-first-byte and perceived performance.
     - **RTL Performance**:
       - Use CSS logical properties (e.g., `margin-inline-start` instead of `margin-left`) to avoid duplicated RTL styles
       - Implement conditional CSS loading based on direction to avoid unnecessary RTL stylesheets:
@@ -416,22 +437,3 @@ As the product matures, consider the following progressive enhancements:
   - Sync the queued submissions automatically when the connection is restored (Background Sync API).
 
 ---
-
-## **Technologies Stack Recap**
-
-- **Frontend**:
-  - **Next.js** (for SSR, SSG, and API routes)
-  - **TypeScript** (for type safety)
-  - **Tailwind CSS** (for styling)
-  - **React** (core UI library)
-  - **Redux Toolkit (with RTK Query)** (for global/remote state management)
-  - **Zustand** (for local/UI state management, optional)
-  - **NextAuth.js** (for authentication)
-  - **React Hook Form** (for form handling)
-  - **Cloud Storage (S3/MinIO)** (for image storage)
-  - **next-pwa** (for PWA features)
-  - **Cypress/Jest** (for testing)
-  - **Vercel** (for deployment)
-  - **Internationalization**: next-i18next for multi-language support (English + Arabic), with RTL layout handling for Arabic.
-
-This plan is designed to cover all the aspects of frontend development for your AutoTrader Marketplace

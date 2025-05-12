@@ -1,8 +1,8 @@
 module.exports = {
   i18n: {
-    defaultLocale: "en",
+    defaultLocale: "ar",
     locales: ["en", "ar"],
-    fallbackLng: "en",
+    fallbackLng: "ar",
     detection: {
       order: ["cookie", "localStorage", "navigator", "htmlTag"],
       caches: ["cookie"],
