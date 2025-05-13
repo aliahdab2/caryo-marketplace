@@ -2,7 +2,6 @@
 
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import Backend from "i18next-http-backend";
 import LanguageDetector from "i18next-browser-languagedetector";
 
 // Import translation resources
@@ -31,18 +30,20 @@ const getCurrentLanguage = (): string => {
 
 // Initialize i18next
 i18n
-  .use(Backend) // Load translations via http
   .use(LanguageDetector) // Detect user language
   .use(initReactI18next) // Pass i18n to react-i18next
   .init({
     resources: {
       en: {
         common: enCommon,
+        translation: enCommon, // Add translation namespace as an alias to common
       },
       ar: {
         common: arCommon,
+        translation: arCommon, // Add translation namespace as an alias to common
       },
     },
+    ns: ['common', 'translation'],
     defaultNS: 'common',
     lng: getCurrentLanguage(), // Get initial language dynamically
     fallbackLng: "ar",
@@ -54,7 +55,7 @@ i18n
       caches: ["cookie", "localStorage"],
       lookupCookie: "NEXT_LOCALE",
       lookupLocalStorage: "NEXT_LOCALE",
-    },
+    }
   });
 
 export default i18n;
