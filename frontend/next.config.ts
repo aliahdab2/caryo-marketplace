@@ -1,4 +1,9 @@
 import type { NextConfig } from "next";
+import withBundleAnalyzer from '@next/bundle-analyzer';
+
+const analyzeBundles = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -10,4 +15,4 @@ const nextConfig: NextConfig = {
   // App Router handles i18n differently - configuration is done through LanguageProvider
 };
 
-export default nextConfig;
+export default analyzeBundles(nextConfig);

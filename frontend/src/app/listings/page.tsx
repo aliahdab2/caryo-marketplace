@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import ResponsiveCard from '@/components/responsive/ResponsiveCard';
 import { fluidValue, useBreakpoint, responsiveSpace } from '@/utils/responsive';
+import { useSWRFetch } from '@/hooks/useSWRFetch';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Metadata } from 'next';
 
 // Define TypeScript interface for listings
 interface Listing {
@@ -19,15 +21,33 @@ interface Listing {
   image: string;
   fuelType: string;
   transmission: string;
+  listingDate: Date;
 }
 
 // This is a placeholder component that will be updated with real data
 // when the backend integration is complete
 export default function ListingsPage() {
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
   const breakpoint = useBreakpoint();
+  
+  // Create a memoized number formatter based on the current language
+  const priceFormatter = useMemo(() => {
+    return new Intl.NumberFormat(i18n.language === 'ar' ? 'ar-SY' : 'en-US', { 
+      style: 'currency', 
+      currency: 'SYP' 
+    });
+  }, [i18n.language]);
+  
+  // Create a memoized date formatter based on the current language
+  const dateFormatter = useMemo(() => {
+    return new Intl.DateTimeFormat(i18n.language === 'ar' ? 'ar-SY' : 'en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  }, [i18n.language]);
   
   const [loading, setLoading] = useState(true);
   const [listings, setListings] = useState<Listing[]>([]);
@@ -44,7 +64,7 @@ export default function ListingsPage() {
   
   const itemsPerPage = 8;
   const totalPages = Math.ceil(filteredListings.length / itemsPerPage);
-  const locations = ['All Locations', 'Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah'];
+  const locations = ['All Locations', 'Damascus', 'Aleppo', 'Homs', 'Latakia', 'Hama'];
   const years = Array.from({ length: 2023 - 2000 + 1 }, (_, i) => 2023 - i);
 
   // Simulating data fetch - this will be replaced with actual API call
@@ -55,10 +75,11 @@ export default function ListingsPage() {
       const mockListings = Array.from({ length: 24 }, (_, i) => ({
         id: `car-${i+1}`,
         title: `${i % 3 === 0 ? 'Toyota Camry' : i % 3 === 1 ? 'Honda Accord' : 'BMW 3 Series'} ${i+1}`,
-        price: Math.floor(10000 + Math.random() * 190000),
+        price: Math.floor(5000000 + Math.random() * 20000000), // Syrian Pound values (millions)
         year: Math.floor(2000 + Math.random() * 23),
+        listingDate: new Date(Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000)), // Random date within last 30 days
         mileage: Math.floor(10000 + Math.random() * 100000),
-        location: i % 5 === 0 ? 'Dubai' : i % 5 === 1 ? 'Abu Dhabi' : i % 5 === 2 ? 'Sharjah' : i % 5 === 3 ? 'Ajman' : 'Ras Al Khaimah',
+        location: i % 5 === 0 ? 'Damascus' : i % 5 === 1 ? 'Aleppo' : i % 5 === 2 ? 'Homs' : i % 5 === 3 ? 'Latakia' : 'Hama',
         image: `/images/vehicles/car${(i % 5) + 1}.jpg`,
         fuelType: i % 3 === 0 ? 'Petrol' : i % 3 === 1 ? 'Diesel' : 'Electric',
         transmission: i % 2 === 0 ? 'Automatic' : 'Manual',
@@ -226,9 +247,9 @@ export default function ListingsPage() {
                 aria-label={t('listings.minPrice')}
               >
                 <option value="">{t('common.any')}</option>
-                {[10000, 25000, 50000, 75000, 100000].map((price) => (
+                {[5000000, 7500000, 10000000, 12500000, 15000000].map((price) => (
                   <option key={price} value={price}>
-                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'AED' }).format(price)}
+                    {priceFormatter.format(price)}
                   </option>
                 ))}
               </select>
@@ -258,9 +279,9 @@ export default function ListingsPage() {
                 aria-label={t('listings.maxPrice')}
               >
                 <option value="">{t('common.any')}</option>
-                {[50000, 75000, 100000, 150000, 200000].map((price) => (
+                {[7500000, 10000000, 15000000, 20000000, 25000000].map((price) => (
                   <option key={price} value={price}>
-                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'AED' }).format(price)}
+                    {priceFormatter.format(price)}
                   </option>
                 ))}
               </select>
@@ -444,10 +465,7 @@ export default function ListingsPage() {
                 <div className="p-3 sm:p-5">
                   <h2 style={{ fontSize: fluidValue(1, 1.125, 375, 1280, 'rem') }} className="font-semibold text-gray-900 dark:text-white mb-1 sm:mb-2 line-clamp-2">{listing.title}</h2>
                   <p style={{ fontSize: fluidValue(1.125, 1.25, 375, 1280, 'rem') }} className="font-bold text-blue-600 dark:text-blue-400 mb-2 sm:mb-3">
-                    {new Intl.NumberFormat(i18n.language === 'ar' ? 'ar-AE' : 'en-US', { 
-                      style: 'currency', 
-                      currency: 'AED' 
-                    }).format(listing.price)}
+                    {priceFormatter.format(listing.price)}
                   </p>
                   <div className="grid grid-cols-2 gap-1 sm:gap-2 mb-3 sm:mb-4 text-gray-600 dark:text-gray-300" style={{ 
                     fontSize: fluidValue(0.75, 0.875, 375, 1280, 'rem'),
@@ -462,7 +480,7 @@ export default function ListingsPage() {
                       }} className="text-gray-500 rtl:mr-0 rtl:ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <span>{listing.year}</span>
+                      <span>{listing.year} {t('common.model')}</span>
                     </div>
                     <div className="flex items-center">
                       <svg style={{ 
@@ -494,6 +512,26 @@ export default function ListingsPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
                       </svg>
                       <span>{listing.transmission}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <svg style={{ 
+                        width: fluidValue(14, 16, 375, 1280, 'px'),
+                        height: fluidValue(14, 16, 375, 1280, 'px'),
+                        marginRight: fluidValue(4, 6, 375, 1280, 'px')
+                      }} className="text-gray-500 rtl:mr-0 rtl:ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span>{dateFormatter.format(listing.listingDate)}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <svg style={{ 
+                        width: fluidValue(14, 16, 375, 1280, 'px'),
+                        height: fluidValue(14, 16, 375, 1280, 'px'),
+                        marginRight: fluidValue(4, 6, 375, 1280, 'px')
+                      }} className="text-gray-500 rtl:mr-0 rtl:ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span>{dateFormatter.format(listing.listingDate)}</span>
                     </div>
                   </div>
                   <button 
