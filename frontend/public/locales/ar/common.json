@@ -56,6 +56,21 @@
     "mileage": "المسافة المقطوعة",
     "location": "الموقع",
     "language": "اللغة",
-    "notAvailable": "غير متوفر"
+    "notAvailable": "غير متوفر",
+    "back": "رجوع"
+  },
+  "listings": {
+    "categoryHeading": "قائمة {{category}}",
+    "pageDescription": "تصفح مجموعتنا من السيارات ذات الجودة العالية",
+    "notFound": "الإعلان غير موجود",
+    "notFoundDescription": "الإعلان الذي تبحث عنه غير موجود أو تمت إزالته.",
+    "description": "الوصف",
+    "features": "المميزات",
+    "specifications": "المواصفات",
+    "contactSeller": "تواصل مع البائع",
+    "phone": "الهاتف",
+    "email": "البريد الإلكتروني",
+    "contactNow": "تواصل الآن",
+    "schedule": "جدولة تجربة قيادة"
   }
 }

@@ -57,6 +57,21 @@
     "mileage": "Mileage",
     "location": "Location",
     "language": "Language",
-    "notAvailable": "Not available"
+    "notAvailable": "Not available",
+    "back": "Back"
+  },
+  "listings": {
+    "categoryHeading": "{{category}} Listings",
+    "pageDescription": "Browse our selection of quality vehicles",
+    "notFound": "Listing Not Found",
+    "notFoundDescription": "The listing you are looking for does not exist or has been removed.",
+    "description": "Description",
+    "features": "Features",
+    "specifications": "Specifications",
+    "contactSeller": "Contact Seller",
+    "phone": "Phone",
+    "email": "Email",
+    "contactNow": "Contact Now",
+    "schedule": "Schedule Test Drive"
   }
 }
