@@ -19,6 +19,12 @@ const getCurrentLanguage = (): string => {
     // Then check localStorage
     const localLang = localStorage.getItem('NEXT_LOCALE');
     if (localLang) return localLang;
+    
+    // If no saved preference, check browser language
+    const browserLang = navigator.language.split('-')[0];
+    if (browserLang === 'ar' || browserLang === 'en') {
+      return browserLang;
+    }
   }
   return 'ar'; // Default to Arabic
 };
@@ -37,6 +43,7 @@ i18n
         common: arCommon,
       },
     },
+    defaultNS: 'common',
     lng: getCurrentLanguage(), // Get initial language dynamically
     fallbackLng: "ar",
     interpolation: {

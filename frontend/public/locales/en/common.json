@@ -37,12 +37,33 @@
     "hero": {
       "title": "Find Your Perfect Car",
       "subtitle": "Browse thousands of cars from trusted sellers",
-      "search": "Search"
+      "search": "Search",
+      "browseCars": "Browse Cars",
+      "sellYourCar": "Sell Your Car"
     },
     "featured": "Featured Cars",
+    "subtitle": "Discover our handpicked selection of premium vehicles",
     "categories": "Browse By Category",
+    "categorySubtitle": "Find vehicles that match your needs",
     "viewAll": "View All",
-    "viewDetails": "View Details"
+    "viewAllListings": "View All Listings",
+    "viewDetails": "View Details",
+    "whyChooseUs": {
+      "title": "Why Choose AutoTrader",
+      "subtitle": "We make buying and selling vehicles simple",
+      "wideSelection": {
+        "title": "Wide Selection",
+        "description": "Access thousands of verified vehicles from trusted sellers across the region."
+      },
+      "secureTransactions": {
+        "title": "Secure Transactions",
+        "description": "Our platform ensures safe and transparent transactions for all users."
+      },
+      "expertSupport": {
+        "title": "Expert Support",
+        "description": "Get assistance from our automotive experts throughout your journey."
+      }
+    }
   },
   "common": {
     "loading": "Loading...",
@@ -57,6 +78,10 @@
     "mileage": "Mileage",
     "location": "Location",
     "language": "Language",
+    "languages": {
+      "english": "English",
+      "arabic": "Arabic"
+    },
     "notAvailable": "Not available",
     "back": "Back",
     "any": "Any",

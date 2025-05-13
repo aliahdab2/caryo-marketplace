@@ -18,18 +18,29 @@ export default function I18nProvider({ children }: I18nProviderProps) {
       .split('; ')
       .find(row => row.startsWith('NEXT_LOCALE='))
       ?.split('=')[1] || 
-      localStorage.getItem('NEXT_LOCALE') || 
-      'ar';
+      localStorage.getItem('NEXT_LOCALE');
+    
+    // Use the detected language or default to 'ar'
+    const initialLocale = savedLocale || 
+      (navigator.language.startsWith('ar') ? 'ar' : 
+       navigator.language.startsWith('en') ? 'en' : 'ar');
+    
+    // Set the document attributes based on language
+    document.documentElement.lang = initialLocale;
+    document.documentElement.dir = initialLocale === 'ar' ? 'rtl' : 'ltr';
     
     // Set the i18next language to match the saved locale
-    i18n.changeLanguage(savedLocale).then(() => {
-      setMounted(true);
+    i18n.changeLanguage(initialLocale).then(() => {
+      // Force reload resources
+      i18n.reloadResources().then(() => {
+        setMounted(true);
+      });
     });
   }, []);
 
   if (!mounted) {
-    // Return null or a simple loading state until the component mounts
-    return null;
+    // Return a lightweight loading indicator that doesn't block rendering
+    return <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-blue-600 animate-pulse"></div>;
   }
 
   return (

@@ -23,18 +23,18 @@ export const metadata: Metadata = {
   description: "Your trusted platform for buying and selling vehicles",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Use default locale setting since we're in a Server Component
-  // The actual language detection and switching happens in the client-side LanguageProvider
-  const defaultLocale = 'ar'; // Default to Arabic
-  const defaultDir = 'rtl'; // Default to RTL for Arabic
+  // Try to get the locale from cookies, defaulting to Arabic if not found
+  const cookieStore = await cookies();
+  const savedLocale = cookieStore.get('NEXT_LOCALE')?.value || 'ar';
+  const isRTL = savedLocale === 'ar';
   
   return (
-    <html lang={defaultLocale} dir={defaultDir}>
+    <html lang={savedLocale} dir={isRTL ? 'rtl' : 'ltr'}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

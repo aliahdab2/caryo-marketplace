@@ -1,7 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 export default function Home() {
+  const { t } = useTranslation('common');
   // Example featured car data (this would come from an API in a real app)
   const featuredCars = [
     {
@@ -54,24 +58,23 @@ export default function Home() {
           <div className="flex flex-col md:flex-row items-center">
             <div className="md:w-1/2 mb-8 md:mb-0">
               <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                Find Your Perfect Car
+                {t('home.hero.title')}
               </h1>
               <p className="text-xl mb-6">
-                Browse thousands of cars or list your vehicle for sale on AutoTrader
-                Marketplace.
+                {t('home.hero.subtitle')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
                   href="/listings"
                   className="bg-white text-blue-700 font-bold py-3 px-6 rounded-lg hover:bg-gray-100 transition duration-300 text-center"
                 >
-                  Browse Cars
+                  {t('home.hero.browseCars')}
                 </Link>
                 <Link
                   href="/sell"
                   className="bg-transparent border-2 border-white text-white font-bold py-3 px-6 rounded-lg hover:bg-white hover:text-blue-700 transition duration-300 text-center"
                 >
-                  Sell Your Car
+                  {t('home.hero.sellYourCar')}
                 </Link>
               </div>
             </div>
@@ -94,9 +97,9 @@ export default function Home() {
       {/* Featured Cars Section */}
       <div className="py-16 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold mb-2">Featured Vehicles</h2>
+          <h2 className="text-3xl font-bold mb-2">{t('home.featured')}</h2>
           <p className="text-gray-600 mb-8">
-            Discover our handpicked selection of premium vehicles
+            {t('home.subtitle', 'Discover our handpicked selection of premium vehicles')}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -144,7 +147,7 @@ export default function Home() {
               href="/listings"
               className="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition duration-300 inline-block"
             >
-              View All Listings
+              {t('home.viewAllListings')}
             </Link>
           </div>
         </div>
@@ -153,8 +156,8 @@ export default function Home() {
       {/* Categories Section */}
       <div className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold mb-2">Browse by Category</h2>
-          <p className="text-gray-600 mb-8">Find vehicles that match your needs</p>
+          <h2 className="text-3xl font-bold mb-2">{t('home.categories')}</h2>
+          <p className="text-gray-600 mb-8">{t('home.categorySubtitle', 'Find vehicles that match your needs')}</p>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {categories.map((category) => (
@@ -176,10 +179,10 @@ export default function Home() {
       <div className="py-16 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold mb-2 text-center">
-            Why Choose AutoTrader
+            {t('home.whyChooseUs.title')}
           </h2>
           <p className="text-gray-600 mb-12 text-center">
-            We make buying and selling vehicles simple
+            {t('home.whyChooseUs.subtitle')}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -187,10 +190,9 @@ export default function Home() {
               <div className="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
                 🔍
               </div>
-              <h3 className="text-xl font-bold mb-2">Wide Selection</h3>
+              <h3 className="text-xl font-bold mb-2">{t('home.whyChooseUs.wideSelection.title')}</h3>
               <p className="text-gray-600">
-                Access thousands of verified vehicles from trusted sellers across
-                the region.
+                {t('home.whyChooseUs.wideSelection.description')}
               </p>
             </div>
 
@@ -198,10 +200,9 @@ export default function Home() {
               <div className="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
                 🛡️
               </div>
-              <h3 className="text-xl font-bold mb-2">Secure Transactions</h3>
+              <h3 className="text-xl font-bold mb-2">{t('home.whyChooseUs.secureTransactions.title')}</h3>
               <p className="text-gray-600">
-                Our platform ensures safe and transparent transactions for all
-                users.
+                {t('home.whyChooseUs.secureTransactions.description')}
               </p>
             </div>
 
@@ -209,9 +210,9 @@ export default function Home() {
               <div className="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
                 💬
               </div>
-              <h3 className="text-xl font-bold mb-2">Expert Support</h3>
+              <h3 className="text-xl font-bold mb-2">{t('home.whyChooseUs.expertSupport.title')}</h3>
               <p className="text-gray-600">
-                Get assistance from our automotive experts throughout your journey.
+                {t('home.whyChooseUs.expertSupport.description')}
               </p>
             </div>
           </div>
