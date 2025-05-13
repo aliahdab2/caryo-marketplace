@@ -135,31 +135,33 @@ export default function ListingsPage() {
             <label htmlFor="search" className="sr-only">{t('common.search')}</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 pl-3 rtl:pr-3 rtl:pl-0 flex items-center pointer-events-none">
-                <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
               <input
                 type="text"
                 id="search"
-                className="form-control w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                className="form-control w-full pl-10 rtl:pl-4 rtl:pr-10 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 placeholder={t('listings.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                aria-label={t('listings.searchPlaceholder')}
               />
             </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 xs:gap-3 sm:gap-4">
             <div>
-              <label htmlFor="minPrice" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="minPrice" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 rtl:text-right">
                 {t('listings.minPrice')}
               </label>
               <select
                 id="minPrice"
-                className="form-control w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                className="form-control w-full text-xs sm:text-sm py-1.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white rtl:text-right"
                 value={filters.minPrice}
                 onChange={(e) => handleFilterChange('minPrice', e.target.value)}
+                aria-label={t('listings.minPrice')}
               >
                 <option value="">{t('common.any')}</option>
                 {[10000, 25000, 50000, 75000, 100000].map((price) => (
@@ -171,14 +173,15 @@ export default function ListingsPage() {
             </div>
             
             <div>
-              <label htmlFor="maxPrice" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="maxPrice" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 rtl:text-right">
                 {t('listings.maxPrice')}
               </label>
               <select
                 id="maxPrice"
-                className="form-control w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                className="form-control w-full text-xs sm:text-sm py-1.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white rtl:text-right"
                 value={filters.maxPrice}
                 onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                aria-label={t('listings.maxPrice')}
               >
                 <option value="">{t('common.any')}</option>
                 {[50000, 75000, 100000, 150000, 200000].map((price) => (
@@ -190,14 +193,15 @@ export default function ListingsPage() {
             </div>
             
             <div>
-              <label htmlFor="minYear" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="minYear" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 rtl:text-right">
                 {t('listings.minYear')}
               </label>
               <select
                 id="minYear"
-                className="form-control w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                className="form-control w-full text-xs sm:text-sm py-1.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white rtl:text-right"
                 value={filters.minYear}
                 onChange={(e) => handleFilterChange('minYear', e.target.value)}
+                aria-label={t('listings.minYear')}
               >
                 <option value="">{t('common.any')}</option>
                 {years.map((year) => (
@@ -209,14 +213,15 @@ export default function ListingsPage() {
             </div>
             
             <div>
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="location" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 rtl:text-right">
                 {t('common.location')}
               </label>
               <select
                 id="location"
-                className="form-control w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                className="form-control w-full text-xs sm:text-sm py-1.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white rtl:text-right"
                 value={filters.location}
                 onChange={(e) => handleFilterChange('location', e.target.value)}
+                aria-label={t('common.location')}
               >
                 {locations.map((location) => (
                   <option key={location} value={location}>
@@ -227,7 +232,7 @@ export default function ListingsPage() {
             </div>
           </div>
           
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-end rtl:justify-start">
             <button
               onClick={() => {
                 setSearchTerm('');
@@ -239,7 +244,8 @@ export default function ListingsPage() {
                   location: ''
                 });
               }}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-300 dark:border-gray-600 text-xs sm:text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-white dark:focus:ring-offset-gray-900"
+              aria-label={t('common.reset')}
             >
               {t('common.reset')}
             </button>
@@ -248,11 +254,11 @@ export default function ListingsPage() {
       </div>
       
       {/* Results info */}
-      <div className="mb-6 flex justify-between items-center">
-        <div className="text-sm text-gray-600 dark:text-gray-400">
+      <div className="mb-4 sm:mb-6 flex flex-col xs:flex-row justify-between items-start xs:items-center">
+        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 xs:mb-0">
           {t('listings.showing')} <span className="font-medium">{filteredListings.length}</span> {t('listings.results')}
         </div>
-        <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
           {t('listings.page')} {currentPage} {t('common.of')} {totalPages || 1}
         </div>
       </div>
@@ -268,16 +274,16 @@ export default function ListingsPage() {
           </div>
         </div>
       ) : filteredListings.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-700 text-center">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-8 shadow-sm border border-gray-200 dark:border-gray-700 text-center">
+          <svg className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">{t('listings.noResults')}</h3>
-          <p className="mt-1 text-gray-500 dark:text-gray-400">{t('listings.tryDifferentFilters')}</p>
+          <h3 className="mt-2 text-base sm:text-lg font-medium text-gray-900 dark:text-white">{t('listings.noResults')}</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('listings.tryDifferentFilters')}</p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {filteredListings
               .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
               .map((listing) => (
@@ -286,47 +292,47 @@ export default function ListingsPage() {
                 className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700"
               >
                 <div className="relative">
-                  <div className="w-full h-48 bg-gray-200 dark:bg-gray-700">
+                  <div className="w-full h-40 sm:h-48 bg-gray-200 dark:bg-gray-700">
                     {/* Image placeholder - would be an actual image in production */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
                   </div>
                   {listing.id.includes('1') && (
-                    <div className="absolute top-0 right-0 bg-blue-600 text-white px-2 py-1 m-2 rounded-md text-sm font-semibold">
+                    <div className="absolute top-0 right-0 rtl:right-auto rtl:left-0 bg-blue-600 text-white px-2 py-1 m-2 rounded-md text-xs sm:text-sm font-semibold">
                       NEW
                     </div>
                   )}
                 </div>
-                <div className="p-5">
-                  <h2 className="font-semibold text-lg text-gray-900 dark:text-white mb-2">{listing.title}</h2>
-                  <p className="text-xl font-bold text-blue-600 dark:text-blue-400 mb-3">
+                <div className="p-3 sm:p-5">
+                  <h2 className="font-semibold text-base sm:text-lg text-gray-900 dark:text-white mb-1 sm:mb-2 line-clamp-2">{listing.title}</h2>
+                  <p className="text-lg sm:text-xl font-bold text-blue-600 dark:text-blue-400 mb-2 sm:mb-3">
                     {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'AED' }).format(listing.price)}
                   </p>
-                  <div className="grid grid-cols-2 gap-2 mb-4 text-sm text-gray-600 dark:text-gray-300">
+                  <div className="grid grid-cols-2 gap-1 sm:gap-2 mb-3 sm:mb-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                     <div className="flex items-center">
-                      <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 rtl:ml-1 rtl:mr-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                       <span>{listing.year}</span>
                     </div>
                     <div className="flex items-center">
-                      <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 rtl:ml-1 rtl:mr-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                       <span>{listing.mileage.toLocaleString()} km</span>
                     </div>
                     <div className="flex items-center">
-                      <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 rtl:ml-1 rtl:mr-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                       <span>{listing.location}</span>
                     </div>
                     <div className="flex items-center">
-                      <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 rtl:ml-1 rtl:mr-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
                       </svg>
                       <span>{listing.transmission}</span>
@@ -334,10 +340,10 @@ export default function ListingsPage() {
                   </div>
                   <button 
                     onClick={() => window.location.href = `/listings/${listing.id}`}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition-colors duration-300 flex items-center justify-center"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-1.5 sm:py-2 text-xs sm:text-sm rounded-md transition-colors duration-300 flex items-center justify-center"
                   >
                     {t('home.viewDetails')}
-                    <svg className="w-4 h-4 ml-2 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1.5 rtl:mr-1.5 rtl:ml-0 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
                   </button>
@@ -348,18 +354,19 @@ export default function ListingsPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="mt-8 flex justify-center">
-              <nav className="relative z-0 inline-flex shadow-sm -space-x-px rounded-md" aria-label="Pagination">
+            <div className="mt-6 sm:mt-8 flex justify-center">
+              <nav className="relative z-0 inline-flex shadow-sm -space-x-px rtl:space-x-0 rtl:space-x-reverse rounded-md" aria-label="Pagination">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                  className={`relative inline-flex items-center px-1.5 sm:px-2 py-1.5 sm:py-2 rounded-l-md rtl:rounded-l-none rtl:rounded-r-md border border-gray-300 bg-white text-xs sm:text-sm font-medium ${
                     currentPage === 1
                       ? 'text-gray-400 cursor-not-allowed'
                       : 'text-gray-700 hover:bg-gray-50'
                   } dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700`}
+                  aria-label={t('pagination.previous')}
                 >
-                  <svg className="h-5 w-5 rtl:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5 rtl:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                 </button>
@@ -381,27 +388,35 @@ export default function ListingsPage() {
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`relative inline-flex items-center px-4 py-2 border ${
+                      className={`relative hidden xs:inline-flex items-center px-2 sm:px-4 py-1.5 sm:py-2 border ${
                         currentPage === pageNum
                           ? 'z-10 bg-blue-50 border-blue-500 text-blue-600 dark:bg-blue-900/30 dark:border-blue-500 dark:text-blue-400'
                           : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700'
-                      } text-sm font-medium`}
+                      } text-xs sm:text-sm font-medium`}
+                      aria-current={currentPage === pageNum ? "page" : undefined}
+                      aria-label={`${t('pagination.page')} ${pageNum}`}
                     >
                       {pageNum}
                     </button>
                   );
                 })}
                 
+                {/* Mobile view - current page indicator */}
+                <span className="inline-flex xs:hidden relative items-center px-3 py-1.5 border border-gray-300 bg-white text-xs font-medium dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200" aria-current="page">
+                  {currentPage}/{totalPages}
+                </span>
+                
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                  className={`relative inline-flex items-center px-1.5 sm:px-2 py-1.5 sm:py-2 rounded-r-md rtl:rounded-r-none rtl:rounded-l-md border border-gray-300 bg-white text-xs sm:text-sm font-medium ${
                     currentPage === totalPages
                       ? 'text-gray-400 cursor-not-allowed'
                       : 'text-gray-700 hover:bg-gray-50'
                   } dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700`}
+                  aria-label={t('pagination.next')}
                 >
-                  <svg className="h-5 w-5 rtl:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5 rtl:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                   </svg>
                 </button>
