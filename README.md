@@ -40,10 +40,7 @@ This repository uses Git LFS (Large File Storage) to handle large files. To work
    - Database files
    - Log files
    - Large data exports
-
-5. **Utility scripts**:
-   - `./find-large-git-objects.sh` - Find large objects that might cause issues
-   - `./cleanup-large-files.sh` - Clean up tracked large files that should be ignored
+   - Any file larger than 50MB
 
 ## Project Structure
 
