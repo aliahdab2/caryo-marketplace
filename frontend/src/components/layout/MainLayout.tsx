@@ -21,7 +21,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
             <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : (
-          <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-6xl lg:max-w-7xl mx-auto py-3 px-2 xs:py-4 xs:px-3 sm:py-6 sm:px-4 lg:px-6">
+          <div className="w-full max-w-[94%] xs:max-w-[92%] sm:max-w-[90%] md:max-w-[88%] lg:max-w-6xl xl:max-w-7xl mx-auto py-2 px-2 xs:py-3 xs:px-3 sm:py-4 sm:px-3 md:py-5 md:px-4 lg:py-6 lg:px-6">
             {children}
           </div>
         )}
