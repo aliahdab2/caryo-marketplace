@@ -1,0 +1,50 @@
+/* RTL specific styles */
+
+/* Fix direction for RTL content */
+[dir="rtl"] {
+  text-align: right;
+}
+
+/* Reverse padding and margins for RTL */
+[dir="rtl"] .rtl\:space-x-reverse > * + * {
+  margin-right: var(--space-x);
+  margin-left: 0;
+}
+
+/* Flip icons for RTL */
+[dir="rtl"] .flip-in-rtl {
+  transform: scaleX(-1);
+}
+
+/* Handle flex directions in RTL */
+[dir="rtl"] .rtl\:flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .rtl\:text-right {
+  text-align: right;
+}
+
+[dir="rtl"] .rtl\:mr-auto {
+  margin-right: auto;
+}
+
+[dir="rtl"] .rtl\:ml-auto {
+  margin-left: auto;
+}
+
+/* Adjust shadows for RTL */
+[dir="rtl"] .rtl\:shadow-r {
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Adjust borders for RTL */
+[dir="rtl"] .rtl\:border-l {
+  border-right: var(--border-width) solid var(--border-color);
+  border-left: 0;
+}
+
+[dir="rtl"] .rtl\:border-r {
+  border-left: var(--border-width) solid var(--border-color);
+  border-right: 0;
+}

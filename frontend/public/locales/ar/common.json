@@ -1,6 +1,61 @@
 {
   "header": {
     "login": "تسجيل الدخول",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "dashboard": "لوحة التحكم",
+    "home": "الرئيسية",
+    "about": "عن الموقع",
+    "contact": "اتصل بنا",
+    "listings": "السيارات",
+    "signup": "إنشاء حساب"
+  },
+  "auth": {
+    "signin": "تسجيل الدخول",
+    "signup": "إنشاء حساب",
+    "username": "اسم المستخدم",
+    "email": "البريد الإلكتروني",
+    "userId": "رقم المستخدم",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "dontHaveAccount": "ليس لديك حساب؟",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "signupSuccess": "تم التسجيل بنجاح!",
+    "loginToAccess": "الرجاء تسجيل الدخول للوصول إلى هذه الصفحة"
+  },
+  "dashboard": {
+    "welcome": "مرحباً بك في لوحة التحكم",
+    "myListings": "سياراتي المعروضة",
+    "createListing": "إضافة سيارة جديدة",
+    "loading": "جاري تحميل لوحة التحكم...",
+    "noListings": "ليس لديك أي سيارات معروضة حالياً",
+    "accountInfo": "معلومات الحساب",
+    "role": "الدور"
+  },
+  "home": {
+    "hero": {
+      "title": "ابحث عن سيارتك المثالية",
+      "subtitle": "تصفح آلاف السيارات من البائعين الموثوقين",
+      "search": "بحث"
+    },
+    "featured": "سيارات مميزة",
+    "categories": "تصفح حسب الفئة",
+    "viewAll": "عرض الكل",
+    "viewDetails": "عرض التفاصيل"
+  },
+  "common": {
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "submit": "إرسال",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "price": "السعر",
+    "year": "السنة",
+    "mileage": "المسافة المقطوعة",
+    "location": "الموقع",
+    "language": "اللغة",
+    "notAvailable": "غير متوفر"
   }
 }

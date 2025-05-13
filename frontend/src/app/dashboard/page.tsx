@@ -3,10 +3,12 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { t } = useTranslation('common');
 
   // For debugging - you can remove this later
   useEffect(() => {
@@ -16,14 +18,14 @@ export default function DashboardPage() {
   if (status === "loading") {
     return (
       <div style={{ padding: "20px", textAlign: "center" }}>
-        <p>Loading your dashboard...</p>
+        <p>{t('dashboard.loading')}</p>
       </div>
     );
   }
 
   if (status === "unauthenticated") {
     // This should ideally be handled by middleware, but as a fallback:
-    router.push("/auth/signin");
+    router.push(`/auth/signin?message=${t('auth.loginToAccess')}`);
     return null;
   }
 
@@ -41,7 +43,7 @@ export default function DashboardPage() {
       }}
     >
       <h1 style={{ borderBottom: "1px solid #eaeaea", paddingBottom: "10px" }}>
-        User Dashboard
+        {t('dashboard.welcome')}
       </h1>
 
       <div
@@ -52,25 +54,25 @@ export default function DashboardPage() {
           marginTop: "20px",
         }}
       >
-        <h2>User Profile</h2>
+        <h2>{t('dashboard.accountInfo')}</h2>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
             <tr style={{ borderBottom: "1px solid #eaeaea" }}>
               <td style={{ padding: "10px 0", fontWeight: "bold" }}>
-                Username:
+                {t('auth.username')}:
               </td>
-              <td>{session?.user?.name || "Not available"}</td>
+              <td>{session?.user?.name || t('common.notAvailable')}</td>
             </tr>
             <tr style={{ borderBottom: "1px solid #eaeaea" }}>
-              <td style={{ padding: "10px 0", fontWeight: "bold" }}>Email:</td>
-              <td>{session?.user?.email || "Not available"}</td>
+              <td style={{ padding: "10px 0", fontWeight: "bold" }}>{t('auth.email')}:</td>
+              <td>{session?.user?.email || t('common.notAvailable')}</td>
             </tr>
             <tr style={{ borderBottom: "1px solid #eaeaea" }}>
-              <td style={{ padding: "10px 0", fontWeight: "bold" }}>User ID:</td>
-              <td>{session?.user?.id || "Not available"}</td>
+              <td style={{ padding: "10px 0", fontWeight: "bold" }}>{t('auth.userId')}:</td>
+              <td>{session?.user?.id || t('common.notAvailable')}</td>
             </tr>
             <tr>
-              <td style={{ padding: "10px 0", fontWeight: "bold" }}>Roles:</td>
+              <td style={{ padding: "10px 0", fontWeight: "bold" }}>{t('dashboard.role')}:</td>
               <td>{userRoles}</td>
             </tr>
           </tbody>
@@ -96,7 +98,7 @@ export default function DashboardPage() {
               cursor: "pointer",
             }}
           >
-            Go to Home
+            {t('header.home')}
           </button>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
@@ -109,7 +111,7 @@ export default function DashboardPage() {
               cursor: "pointer",
             }}
           >
-            Sign Out
+            {t('header.logout')}
           </button>
         </div>
       </div>

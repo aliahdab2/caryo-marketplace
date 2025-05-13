@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { authService } from "@/services/auth";
 
 export default function SignUpPage() {
@@ -13,6 +14,7 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
+  const { t } = useTranslation('common');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,12 +23,12 @@ export default function SignUpPage() {
     
     // Basic validation
     if (!username || !email || !password) {
-      setError("All fields are required.");
+      setError(t('common.error'));
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+      setError(t('common.error'));
       return;
     }
 
@@ -40,7 +42,7 @@ export default function SignUpPage() {
         password,
       });
 
-      setSuccessMessage(result.message || "Registration successful!");
+      setSuccessMessage(result.message || t('auth.signupSuccess'));
       
       // Short delay to show the success message before signing in
       setTimeout(async () => {
@@ -85,7 +87,7 @@ export default function SignUpPage() {
       backgroundColor: "white",
       boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
     }}>
-      <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Sign Up</h1>
+      <h1 style={{ textAlign: "center", marginBottom: "20px" }}>{t('auth.signup')}</h1>
       
       <form onSubmit={handleSubmit}>
         {successMessage && (
@@ -116,7 +118,7 @@ export default function SignUpPage() {
         
         <div style={{ marginBottom: "15px" }}>
           <label htmlFor="username" style={{ display: "block", marginBottom: "5px", fontWeight: "500" }}>
-            Username
+            {t('auth.username')}
           </label>
           <input
             id="username"
@@ -137,7 +139,7 @@ export default function SignUpPage() {
         
         <div style={{ marginBottom: "15px" }}>
           <label htmlFor="email" style={{ display: "block", marginBottom: "5px", fontWeight: "500" }}>
-            Email
+            {t('auth.email')}
           </label>
           <input
             id="email"
@@ -158,7 +160,7 @@ export default function SignUpPage() {
         
         <div style={{ marginBottom: "20px" }}>
           <label htmlFor="password" style={{ display: "block", marginBottom: "5px", fontWeight: "500" }}>
-            Password
+            {t('auth.password')}
           </label>
           <input
             id="password"
@@ -193,14 +195,14 @@ export default function SignUpPage() {
             fontWeight: "500"
           }}
         >
-          {loading ? "Creating Account..." : "Sign Up"}
+          {loading ? t('common.loading') : t('auth.signup')}
         </button>
       </form>
       
       <p style={{ marginTop: "20px", textAlign: "center" }}>
-        Already have an account?{" "}
+        {t('auth.alreadyHaveAccount')}{" "}
         <a href="/auth/signin" style={{ color: "blue", textDecoration: "none" }}>
-          Sign In
+          {t('auth.signin')}
         </a>
       </p>
     </div>

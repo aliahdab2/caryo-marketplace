@@ -3,9 +3,11 @@
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function SignInPage() {
   const router = useRouter();
+  const { t } = useTranslation('common');
   const [username, setUsername] = useState(""); // Changed from email to username
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -56,7 +58,7 @@ export default function SignInPage() {
         boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
       }}
     >
-      <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Sign In</h1>
+      <h1 style={{ textAlign: "center", marginBottom: "20px" }}>{t('auth.signin')}</h1>
 
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: "15px" }}>
@@ -68,7 +70,7 @@ export default function SignInPage() {
               fontWeight: "500",
             }}
           >
-            Username
+            {t('auth.username')}
           </label>
           <input
             type="text" // Changed from email to text
@@ -96,7 +98,7 @@ export default function SignInPage() {
               fontWeight: "500",
             }}
           >
-            Password
+            {t('auth.password')}
           </label>
           <input
             type="password"
@@ -145,17 +147,17 @@ export default function SignInPage() {
             fontWeight: "500",
           }}
         >
-          {loading ? "Signing in..." : "Sign In"}
+          {loading ? t('common.loading') : t('auth.signin')}
         </button>
       </form>
 
       <p style={{ marginTop: "20px", textAlign: "center" }}>
-        Don't have an account?{" "}
+        {t('auth.dontHaveAccount')}{" "}
         <a
           href="/auth/signup"
           style={{ color: "blue", textDecoration: "none" }}
         >
-          Sign Up
+          {t('auth.signup')}
         </a>
       </p>
     </div>

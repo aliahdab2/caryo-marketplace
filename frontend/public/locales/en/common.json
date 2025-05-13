@@ -1,6 +1,62 @@
 {
   "header": {
     "login": "Login",
-    "logout": "Logout"
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact",
+    "listings": "Listings",
+    "signup": "Sign up"
+  },
+  "auth": {
+    "signin": "Sign In",
+    "signup": "Sign Up",
+    "username": "Username",
+    "email": "Email",
+    "userId": "User ID",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "signupSuccess": "Registration successful!",
+    "loginToAccess": "Please log in to access this page"
+  },
+  "dashboard": {
+    "welcome": "Welcome to your dashboard",
+    "myListings": "My Listings",
+    "createListing": "Create New Listing",
+    "loading": "Loading your dashboard...",
+    "noListings": "You don't have any listings yet",
+    "accountInfo": "Account Information",
+    "role": "Role",
+    "noRoles": "No roles assigned"
+  },
+  "home": {
+    "hero": {
+      "title": "Find Your Perfect Car",
+      "subtitle": "Browse thousands of cars from trusted sellers",
+      "search": "Search"
+    },
+    "featured": "Featured Cars",
+    "categories": "Browse By Category",
+    "viewAll": "View All",
+    "viewDetails": "View Details"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "price": "Price",
+    "year": "Year",
+    "mileage": "Mileage",
+    "location": "Location",
+    "language": "Language",
+    "notAvailable": "Not available"
   }
 }
