@@ -2,11 +2,12 @@
 
 import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/components/LanguageProvider";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import SignInButton from "@/components/auth/SignInButton";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -100,18 +101,7 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex sm:space-x-1 md:space-x-2 lg:space-x-4 rtl:space-x-reverse">
-                <button
-                  onClick={() => signIn()}
-                  className="inline-flex items-center mr-1 sm:mr-0 px-2 xs:px-2.5 sm:px-3 md:px-4 py-1 xs:py-1 sm:py-1.5 md:py-2 border border-transparent text-xs sm:text-xs md:text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  {t('auth.signin')}
-                </button>
-                <Link 
-                  href="/auth/signup" 
-                  className="inline-flex items-center px-2 xs:px-2.5 sm:px-3 md:px-4 py-1 xs:py-1 sm:py-1.5 md:py-2 border border-transparent text-xs sm:text-xs md:text-sm font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  {t('auth.signup')}
-                </Link>
+                <SignInButton className="text-xs xs:text-sm" />
               </div>
             )}
           </div>
@@ -228,22 +218,10 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="space-y-1.5 xs:space-y-2 px-3 xs:px-4">
-                <button
-                  onClick={() => {
-                    signIn();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="block w-full text-center px-3 xs:px-4 py-2 xs:py-2.5 text-xs xs:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-1 focus:ring-offset-1 xs:focus:ring-2 xs:focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                >
-                  {t('auth.signin')}
-                </button>
-                <Link 
-                  href="/auth/signup"
-                  className="block w-full text-center px-3 xs:px-4 py-2 xs:py-2.5 text-xs xs:text-sm font-medium text-blue-600 bg-white hover:bg-gray-50 border border-blue-600 rounded-md focus:outline-none focus:ring-1 focus:ring-offset-1 xs:focus:ring-2 xs:focus:ring-offset-2 focus:ring-blue-500 mt-1.5 xs:mt-2 transition-colors"
+                <SignInButton 
                   onClick={() => setMobileMenuOpen(false)}
-                >
-                  {t('auth.signup')}
-                </Link>
+                  className="w-full justify-center py-1.5 xs:py-2 text-xs xs:text-sm"
+                />
               </div>
             )}
           </div>
