@@ -10,6 +10,41 @@ For detailed information about this project, refer to these documents:
 - [System Design](docs/system_design.md) - Architecture and technology choices
 - [Testing Plan](docs/testing_plan.md) - Testing strategy and approach
 
+## Developer Guidelines for Large Files
+
+This repository uses Git LFS (Large File Storage) to handle large files. To work with this repository:
+
+1. **Install Git LFS**:
+   ```
+   # macOS
+   brew install git-lfs
+
+   # Ubuntu/Debian
+   sudo apt-get install git-lfs
+   ```
+
+2. **Initialize Git LFS**:
+   ```
+   git lfs install
+   ```
+
+3. **Large file types that are automatically tracked by Git LFS**:
+   - Binary files: `.jar`, `.war`, `.zip`, `.tar.gz`
+   - Node.js binaries: `.node`
+   - Minified JavaScript: `.min.js`
+   - Images: `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif`
+
+4. **Do not commit**:
+   - `node_modules` directories
+   - Build directories (`build`, `target`, etc.)
+   - Database files
+   - Log files
+   - Large data exports
+
+5. **Utility scripts**:
+   - `./find-large-git-objects.sh` - Find large objects that might cause issues
+   - `./cleanup-large-files.sh` - Clean up tracked large files that should be ignored
+
 ## Project Structure
 
 ```
