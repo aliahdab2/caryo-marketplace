@@ -444,7 +444,10 @@ export default function ListingsPage() {
                 <div className="p-3 sm:p-5">
                   <h2 style={{ fontSize: fluidValue(1, 1.125, 375, 1280, 'rem') }} className="font-semibold text-gray-900 dark:text-white mb-1 sm:mb-2 line-clamp-2">{listing.title}</h2>
                   <p style={{ fontSize: fluidValue(1.125, 1.25, 375, 1280, 'rem') }} className="font-bold text-blue-600 dark:text-blue-400 mb-2 sm:mb-3">
-                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'AED' }).format(listing.price)}
+                    {new Intl.NumberFormat(i18n.language === 'ar' ? 'ar-AE' : 'en-US', { 
+                      style: 'currency', 
+                      currency: 'AED' 
+                    }).format(listing.price)}
                   </p>
                   <div className="grid grid-cols-2 gap-1 sm:gap-2 mb-3 sm:mb-4 text-gray-600 dark:text-gray-300" style={{ 
                     fontSize: fluidValue(0.75, 0.875, 375, 1280, 'rem'),

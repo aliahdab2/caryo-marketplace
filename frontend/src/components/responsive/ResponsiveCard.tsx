@@ -37,17 +37,15 @@ export default function ResponsiveCard({
   return (
     <div 
       className={`
-        bg-white dark:bg-gray-800 shadow 
+        bg-white dark:bg-gray-800 rounded-lg shadow 
         ${aspectRatioClass}
         ${hoverClasses}
         ${className}
       `}
       style={{
-        // Use CSS to make padding responsive and fluid - more gradual transition
-        padding: fluidValue(0.4, 1.8, 320, 1600, 'rem'),
-        borderRadius: fluidValue(0.25, 0.625, 320, 1600, 'rem'),
-        boxShadow: `0 ${fluidValue(1, 4, 320, 1600, 'px')} ${fluidValue(3, 12, 320, 1600, 'px')} rgba(0, 0, 0, ${fluidValue(0.05, 0.1, 320, 1600, '')})`,
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease, padding 0.3s ease',
+        // Use CSS to make padding responsive and fluid
+        padding: fluidValue(0.5, 1.5, 375, 1280, 'rem'),
+        borderRadius: fluidValue(0.375, 0.5, 375, 1280, 'rem'),
       }}
     >
       {children}
