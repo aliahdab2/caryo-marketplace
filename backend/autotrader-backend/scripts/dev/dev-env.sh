@@ -69,9 +69,13 @@ check_docker() {
 check_health() {
     echo -e "${BLUE}Running health checks...${NC}"
     
+    # Get running containers for debugging
+    local db_containers=$(docker ps | grep "autotrader_dev-postgres-1\|postgres:15-alpine" || echo "No matching containers found")
+    
     # Check if all required containers are running
-    if ! docker ps | grep -q "autotrader-db"; then
+    if [[ -z "$db_containers" ]]; then
         echo -e "${RED}⚠️ Database container is not running${NC}"
+        echo -e "${YELLOW}Debug: No container matching 'autotrader_dev-postgres-1' or 'postgres:15-alpine' found${NC}"
         db_status="DOWN"
     else
         echo -e "${GREEN}✓ Database container is running${NC}"
