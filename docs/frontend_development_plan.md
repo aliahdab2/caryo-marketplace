@@ -84,9 +84,9 @@ frontend/
   - **Note for Next.js**: Next.js typically respects the `baseUrl` and `paths` in `tsconfig.json` automatically. If you\'re using a `src` directory, your path might be `"@/*": ["./src/*"]`. Custom Webpack aliases in `next.config.js` are often not needed for this specific purpose if `tsconfig.json` is set up correctly.
 
 #### 4. Internationalization (i18n) Setup
-- Add support for Arabic and English, with Arabic as the default language.
-- Use **next-i18next** for internationalization and automatic language detection.
-- Organize translations in:
+- ✅ Add support for Arabic and English, with Arabic as the default language.
+- ✅ Use **next-i18next** for internationalization and automatic language detection.
+- ✅ Organize translations in:
   ```plaintext
   public/
   └── locales/
@@ -95,21 +95,21 @@ frontend/
       └── en/
           └── common.json
   ```
-- Create a language switcher (e.g., in the header or settings dropdown).
+- ✅ Create a language switcher (e.g., in the header or settings dropdown).
 - Implement the following best practices:
-  - **Default Language Fallback**: Configure `fallbackLng: 'ar'` in `next-i18next.config.js` to prevent undefined behavior.
-  - **Persist Language Selection**: Store user preference in cookies with `setCookie('NEXT_LOCALE', lang)`.
-  - **Locale Detection**: Implement detection order: `['cookie', 'localStorage', 'navigator', 'htmlTag']`.
-  - **Translation Keys Convention**: Use semantic namespacing for translation keys (e.g., `header.login`).
-  - **Date/Number Localization**: Use `Intl.DateTimeFormat` and `Intl.NumberFormat` for locale-specific formatting.
-- Ensure RTL (Right-to-Left) layout support when Arabic is active:
-  - Tailwind supports RTL with `dir="rtl"` on the `<html>` or `<body>` tag.
-  - You can dynamically set it using:
+  - ✅ **Default Language Fallback**: Configure `fallbackLng: 'ar'` in `next-i18next.config.js` to prevent undefined behavior.
+  - ✅ **Persist Language Selection**: Store user preference in cookies with `setCookie('NEXT_LOCALE', lang)`.
+  - ✅ **Locale Detection**: Implement detection order: `['cookie', 'localStorage', 'navigator', 'htmlTag']`.
+  - ✅ **Translation Keys Convention**: Use semantic namespacing for translation keys (e.g., `header.login`).
+  - ⏳ **Date/Number Localization**: Use `Intl.DateTimeFormat` and `Intl.NumberFormat` for locale-specific formatting.
+- ✅ Ensure RTL (Right-to-Left) layout support when Arabic is active:
+  - ✅ Tailwind supports RTL with `dir="rtl"` on the `<html>` or `<body>` tag.
+  - ✅ You can dynamically set it using:
     ```tsx
     <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} />
     ```
 
-- Example next-i18next configuration (`frontend/next-i18next.config.js`):
+- ✅ Example next-i18next configuration (`frontend/next-i18next.config.js`):
   ```js
   module.exports = {
     i18n: {
