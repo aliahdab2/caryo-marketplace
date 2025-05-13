@@ -78,130 +78,107 @@ export default function SignUpPage() {
   };
 
   return (
-    <div style={{ 
-      maxWidth: "400px", 
-      margin: "50px auto", 
-      padding: "20px",
-      border: "1px solid #ccc",
-      borderRadius: "8px",
-      backgroundColor: "white",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-    }}>
-      <h1 style={{ textAlign: "center", marginBottom: "20px" }}>{t('auth.signup')}</h1>
+    <div className="max-w-md mx-auto my-12 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+      <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-white">
+        {t('auth.signup')}
+      </h1>
       
       <form onSubmit={handleSubmit}>
         {successMessage && (
-          <div style={{
-            padding: "10px",
-            backgroundColor: "#e8f5e9",
-            color: "#2e7d32",
-            borderRadius: "4px",
-            marginBottom: "15px",
-            fontSize: "14px"
-          }}>
-            {successMessage}
+          <div className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 p-4 rounded-md mb-6" role="alert">
+            <p className="text-sm">{successMessage}</p>
           </div>
         )}
         
         {error && (
-          <div style={{
-            padding: "10px",
-            backgroundColor: "#ffebee",
-            color: "#d32f2f",
-            borderRadius: "4px",
-            marginBottom: "15px",
-            fontSize: "14px"
-          }}>
-            {error}
+          <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-4 rounded-md mb-6" role="alert">
+            <p className="text-sm">{error}</p>
           </div>
         )}
         
-        <div style={{ marginBottom: "15px" }}>
-          <label htmlFor="username" style={{ display: "block", marginBottom: "5px", fontWeight: "500" }}>
+        <div className="mb-4">
+          <label
+            htmlFor="username"
+            className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             {t('auth.username')}
           </label>
           <input
             id="username"
             type="text"
+            className="form-control w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
             disabled={loading}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "4px",
-              border: "1px solid #ccc",
-              marginTop: "5px"
-            }}
+            placeholder={t('auth.username')}
           />
         </div>
         
-        <div style={{ marginBottom: "15px" }}>
-          <label htmlFor="email" style={{ display: "block", marginBottom: "5px", fontWeight: "500" }}>
+        <div className="mb-4">
+          <label
+            htmlFor="email"
+            className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             {t('auth.email')}
           </label>
           <input
             id="email"
             type="email"
+            className="form-control w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             disabled={loading}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "4px",
-              border: "1px solid #ccc",
-              marginTop: "5px"
-            }}
+            placeholder="example@email.com"
           />
         </div>
         
-        <div style={{ marginBottom: "20px" }}>
-          <label htmlFor="password" style={{ display: "block", marginBottom: "5px", fontWeight: "500" }}>
+        <div className="mb-6">
+          <label
+            htmlFor="password"
+            className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             {t('auth.password')}
           </label>
           <input
             id="password"
             type="password"
+            className="form-control w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
             disabled={loading}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "4px",
-              border: "1px solid #ccc",
-              marginTop: "5px"
-            }}
+            placeholder="••••••••"
           />
         </div>
         
         <button
           type="submit"
           disabled={loading}
-          style={{ 
-            width: "100%",
-            padding: "12px", 
-            backgroundColor: loading ? "#ccc" : "blue",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: loading ? "not-allowed" : "pointer",
-            fontSize: "16px",
-            fontWeight: "500"
-          }}
+          className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
-          {loading ? t('common.loading') : t('auth.signup')}
+          {loading ? (
+            <span className="flex items-center justify-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {t('common.loading')}
+            </span>
+          ) : (
+            t('auth.signup')
+          )}
         </button>
       </form>
       
-      <p style={{ marginTop: "20px", textAlign: "center" }}>
+      <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
         {t('auth.alreadyHaveAccount')}{" "}
-        <a href="/auth/signin" style={{ color: "blue", textDecoration: "none" }}>
+        <a
+          href="/auth/signin"
+          className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+        >
           {t('auth.signin')}
         </a>
       </p>

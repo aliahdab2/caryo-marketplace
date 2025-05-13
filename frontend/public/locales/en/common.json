@@ -58,7 +58,10 @@
     "location": "Location",
     "language": "Language",
     "notAvailable": "Not available",
-    "back": "Back"
+    "back": "Back",
+    "any": "Any",
+    "reset": "Reset",
+    "of": "of"
   },
   "listings": {
     "categoryHeading": "{{category}} Listings",
@@ -72,6 +75,15 @@
     "phone": "Phone",
     "email": "Email",
     "contactNow": "Contact Now",
-    "schedule": "Schedule Test Drive"
+    "schedule": "Schedule Test Drive",
+    "minPrice": "Min Price",
+    "maxPrice": "Max Price",
+    "minYear": "Min Year",
+    "page": "Page",
+    "showing": "Showing",
+    "results": "results",
+    "searchPlaceholder": "Search by make, model, or keywords",
+    "noResults": "No vehicles found",
+    "tryDifferentFilters": "Try using different filters or removing some search criteria"
   }
 }

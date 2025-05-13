@@ -1,11 +1,11 @@
 /* RTL specific styles */
 
-/* Fix direction for RTL content */
+/* Base RTL adjustments */
 [dir="rtl"] {
   text-align: right;
 }
 
-/* Reverse padding and margins for RTL */
+/* Reverse Tailwind utilities for RTL */
 [dir="rtl"] .rtl\:space-x-reverse > * + * {
   margin-right: var(--space-x);
   margin-left: 0;
@@ -21,16 +21,51 @@
   flex-direction: row-reverse;
 }
 
+/* Text alignment */
 [dir="rtl"] .rtl\:text-right {
   text-align: right;
 }
 
+[dir="rtl"] .rtl\:text-left {
+  text-align: left;
+}
+
+/* Margin adjustments */
 [dir="rtl"] .rtl\:mr-auto {
   margin-right: auto;
 }
 
 [dir="rtl"] .rtl\:ml-auto {
   margin-left: auto;
+}
+
+/* Flip margin and padding directionality */
+[dir="rtl"] .rtl\:ml-0 {
+  margin-left: 0;
+}
+
+[dir="rtl"] .rtl\:mr-0 {
+  margin-right: 0;
+}
+
+/* Reverse float properties */
+[dir="rtl"] .rtl\:float-right {
+  float: right;
+}
+
+[dir="rtl"] .rtl\:float-left {
+  float: left;
+}
+
+/* Fix input icons positioning */
+[dir="rtl"] .input-icon-right {
+  right: auto;
+  left: 0.75rem;
+}
+
+[dir="rtl"] .input-icon-left {
+  left: auto;
+  right: 0.75rem;
 }
 
 /* Adjust shadows for RTL */
@@ -47,4 +82,60 @@
 [dir="rtl"] .rtl\:border-r {
   border-left: var(--border-width) solid var(--border-color);
   border-right: 0;
+}
+
+/* RTL Form Adjustments */
+[dir="rtl"] .form-control {
+  text-align: right;
+}
+
+[dir="rtl"] .form-check-input {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+/* RTL Button Groups */
+[dir="rtl"] .btn-group > .btn:first-child {
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+[dir="rtl"] .btn-group > .btn:last-child {
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* RTL Card Adjustments */
+[dir="rtl"] .card-img-left {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+[dir="rtl"] .card-img-right {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+}
+
+/* RTL Navigation */
+[dir="rtl"] .dropdown-menu {
+  text-align: right;
+}
+
+[dir="rtl"] .dropdown-toggle::after {
+  margin-left: 0;
+  margin-right: 0.25rem;
+}
+
+/* RTL Table Adjustments */
+[dir="rtl"] th,
+[dir="rtl"] td {
+  text-align: right;
 }

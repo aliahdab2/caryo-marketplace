@@ -35,81 +35,58 @@ export default function DashboardPage() {
     : "No roles assigned";
 
   return (
-    <div
-      style={{
-        padding: "30px",
-        maxWidth: "800px",
-        margin: "0 auto",
-      }}
-    >
-      <h1 style={{ borderBottom: "1px solid #eaeaea", paddingBottom: "10px" }}>
+    <div className="max-w-4xl mx-auto px-4 py-8 md:px-8">
+      <h1 className="text-2xl md:text-3xl font-semibold pb-4 border-b border-gray-200 mb-6">
         {t('dashboard.welcome')}
       </h1>
 
-      <div
-        style={{
-          background: "#f9f9f9",
-          padding: "20px",
-          borderRadius: "8px",
-          marginTop: "20px",
-        }}
-      >
-        <h2>{t('dashboard.accountInfo')}</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <tbody>
-            <tr style={{ borderBottom: "1px solid #eaeaea" }}>
-              <td style={{ padding: "10px 0", fontWeight: "bold" }}>
-                {t('auth.username')}:
-              </td>
-              <td>{session?.user?.name || t('common.notAvailable')}</td>
-            </tr>
-            <tr style={{ borderBottom: "1px solid #eaeaea" }}>
-              <td style={{ padding: "10px 0", fontWeight: "bold" }}>{t('auth.email')}:</td>
-              <td>{session?.user?.email || t('common.notAvailable')}</td>
-            </tr>
-            <tr style={{ borderBottom: "1px solid #eaeaea" }}>
-              <td style={{ padding: "10px 0", fontWeight: "bold" }}>{t('auth.userId')}:</td>
-              <td>{session?.user?.id || t('common.notAvailable')}</td>
-            </tr>
-            <tr>
-              <td style={{ padding: "10px 0", fontWeight: "bold" }}>{t('dashboard.role')}:</td>
-              <td>{userRoles}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm p-6 mt-6">
+      
+        <h2 className="text-xl font-semibold mb-4">{t('dashboard.accountInfo')}</h2>
+        <div className="overflow-hidden border border-gray-200 dark:border-gray-700 rounded-lg">
+          <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              <tr className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">
+                  {t('auth.username')}:
+                </td>
+                <td className="py-3 px-4 text-sm text-gray-500 dark:text-gray-300">{session?.user?.name || t('common.notAvailable')}</td>
+              </tr>
+              <tr className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">{t('auth.email')}:</td>
+                <td className="py-3 px-4 text-sm text-gray-500 dark:text-gray-300">{session?.user?.email || t('common.notAvailable')}</td>
+              </tr>
+              <tr className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">{t('auth.userId')}:</td>
+                <td className="py-3 px-4 text-sm text-gray-500 dark:text-gray-300">{session?.user?.id || t('common.notAvailable')}</td>
+              </tr>
+              <tr className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">{t('dashboard.role')}:</td>
+                <td className="py-3 px-4 text-sm text-gray-500 dark:text-gray-300">{userRoles}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div style={{ marginTop: "30px" }}>
-        <h2>Actions</h2>
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            marginTop: "10px",
-          }}
-        >
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Actions</h2>
+        <div className="flex flex-wrap gap-4">
           <button
             onClick={() => router.push("/")}
-            style={{
-              padding: "10px 15px",
-              backgroundColor: "#f0f0f0",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
+            className="btn btn-outline"
           >
             {t('header.home')}
           </button>
           <button
+            onClick={() => router.push("/listings")}
+            className="btn btn-primary"
+          >
+            {t('header.listings')}
+          </button>
+          <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            style={{
-              padding: "10px 15px",
-              backgroundColor: "#ff4b4b",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
+            className="btn bg-red-500 hover:bg-red-600 text-white"
           >
             {t('header.logout')}
           </button>

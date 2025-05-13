@@ -57,7 +57,10 @@
     "location": "الموقع",
     "language": "اللغة",
     "notAvailable": "غير متوفر",
-    "back": "رجوع"
+    "back": "رجوع",
+    "any": "الكل",
+    "reset": "إعادة ضبط",
+    "of": "من"
   },
   "listings": {
     "categoryHeading": "قائمة {{category}}",
@@ -71,6 +74,15 @@
     "phone": "الهاتف",
     "email": "البريد الإلكتروني",
     "contactNow": "تواصل الآن",
-    "schedule": "جدولة تجربة قيادة"
+    "schedule": "جدولة تجربة قيادة",
+    "minPrice": "الحد الأدنى للسعر",
+    "maxPrice": "الحد الأقصى للسعر",
+    "minYear": "السنة من",
+    "page": "صفحة",
+    "showing": "يظهر",
+    "results": "نتيجة",
+    "searchPlaceholder": "ابحث عن الشركة المصنعة أو الموديل أو الكلمات الرئيسية",
+    "noResults": "لا توجد سيارات",
+    "tryDifferentFilters": "حاول استخدام معايير بحث مختلفة أو إزالة بعض الفلاتر"
   }
 }
