@@ -116,26 +116,26 @@ export default function ListingsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="mb-8 border-b border-gray-200 pb-5">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+    <div className="container mx-auto px-2 xs:px-3 sm:px-4 py-4 sm:py-8 max-w-full sm:max-w-7xl">
+      <div className="mb-4 sm:mb-8 border-b border-gray-200 pb-3 sm:pb-5">
+        <h1 className="text-2xl xs:text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
           {category 
             ? t('listings.categoryHeading', { category: category }) 
             : t('header.listings')}
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
+        <p className="text-sm xs:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">
           {t('listings.pageDescription')}
         </p>
       </div>
       
       {/* Search and Filters */}
-      <div className="mb-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="mb-6">
+      <div className="mb-4 sm:mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="mb-4 sm:mb-6">
             <label htmlFor="search" className="sr-only">{t('common.search')}</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <div className="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 pl-3 rtl:pr-3 rtl:pl-0 flex items-center pointer-events-none">
+                <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>

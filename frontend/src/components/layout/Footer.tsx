@@ -7,14 +7,14 @@ export default function Footer() {
   
   return (
     <footer className="bg-gray-100 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="col-span-1 md:col-span-2">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">AutoTrader Marketplace</h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
+      <div className="max-w-7xl mx-auto py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="col-span-1 sm:col-span-2">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">AutoTrader Marketplace</h3>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4">
               Your trusted platform for buying and selling vehicles. Find the perfect car or list yours today.
             </p>
-            <div className="flex space-x-6">
+            <div className="flex space-x-4 sm:space-x-6 rtl:space-x-reverse">
               <a href="#" className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
                 <span className="sr-only">Facebook</span>
                 <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -37,20 +37,20 @@ export default function Footer() {
           </div>
           
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white tracking-wider uppercase mb-4">Company</h3>
-            <ul className="space-y-4">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white tracking-wider uppercase mb-3 sm:mb-4">Company</h3>
+            <ul className="space-y-3 sm:space-y-4">
               <li>
-                <Link href="/about" className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                <Link href="/about" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
                   About
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                <Link href="/careers" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
                   Careers
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                <Link href="/contact" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
                   Contact
                 </Link>
               </li>
@@ -58,8 +58,8 @@ export default function Footer() {
           </div>
           
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white tracking-wider uppercase mb-4">Legal</h3>
-            <ul className="space-y-4">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white tracking-wider uppercase mb-3 sm:mb-4">Legal</h3>
+            <ul className="space-y-3 sm:space-y-4">
               <li>
                 <Link href="/privacy-policy" className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
                   Privacy Policy
@@ -79,8 +79,8 @@ export default function Footer() {
           </div>
         </div>
         
-        <div className="mt-12 border-t border-gray-200 dark:border-gray-700 pt-8">
-          <p className="text-base text-gray-500 dark:text-gray-400 text-center">&copy; {currentYear} AutoTrader Marketplace. All rights reserved.</p>
+        <div className="mt-8 sm:mt-12 border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8">
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 text-center">&copy; {currentYear} AutoTrader Marketplace. All rights reserved.</p>
         </div>
       </div>
     </footer>

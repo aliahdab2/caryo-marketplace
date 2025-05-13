@@ -18,10 +18,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <main className="flex-grow">
         {status === "loading" ? (
           <div className="flex justify-center items-center h-full py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : (
-          <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="w-full max-w-[95%] sm:max-w-[90%] md:max-w-6xl lg:max-w-7xl mx-auto py-3 px-2 xs:py-4 xs:px-3 sm:py-6 sm:px-4 lg:px-6">
             {children}
           </div>
         )}
