@@ -97,7 +97,7 @@ frontend/
   ```
 - ✅ Create a language switcher (e.g., in the header or settings dropdown).
 - Implement the following best practices:
-  - ✅ **Default Language Fallback**: Configure `fallbackLng: 'ar'` in `next-i18next.config.js` to prevent undefined behavior.
+  - ✅ **Default Language Fallback**: Configure `fallbackLng: \'ar\'` in `next-i18next.config.js` to prevent undefined behavior.
   - ✅ **Persist Language Selection**: Store user preference in cookies with `setCookie('NEXT_LOCALE', lang)`.
   - ✅ **Locale Detection**: Implement detection order: `['cookie', 'localStorage', 'navigator', 'htmlTag']`.
   - ✅ **Translation Keys Convention**: Use semantic namespacing for translation keys (e.g., `header.login`).
@@ -133,6 +133,7 @@ frontend/
 - ✅ **Login/Signup Pages**:
   - Implement **Login** and **Signup** pages. Forms can be managed with **React Hook Form**.
   - `NextAuth.js` will manage the core authentication flow (e.g., credentials provider for email/password).
+  - ✅ Implemented and refactored user verification component (`SimpleVerification.tsx`) for both sign-in (auto-verify) and sign-up (click-to-verify) flows, including RTL support and i18n.
 - ✅ **Protected Routes**: Set up **middleware** or use `NextAuth.js` helper functions (like `getSession` or `useSession`) to protect pages and API routes based on authentication status.
   
 #### 2. Navigation & Layout  
