@@ -1,0 +1,201 @@
+.verification-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 42px; /* Match password input height */
+  padding: 8px 12px; /* Match password input padding */
+  background-color: #fff;
+  border-radius: 0.375rem; /* Match password input border-radius */
+  border: 1px solid rgba(0, 138, 46, 0.3);
+  background-color: rgba(0, 138, 46, 0.05);
+  cursor: pointer;
+  width: 100%; /* Match password input width */
+}
+
+.clickable {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clickable:hover {
+  background-color: rgba(0, 138, 46, 0.1);
+}
+
+.verifying-container {
+  display: flex;
+  flex-direction: row; /* Change to row layout */
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Add gap between icon and text */
+}
+
+.verifying-circle {
+  width: 20px; /* Further reduced size */
+  height: 20px; /* Further reduced size */
+  margin-bottom: 0; /* Remove margin */
+}
+
+.verifying-circle line {
+  stroke: #008a2e; /* Green */
+  stroke-width: 2;
+  transform-origin: center;
+}
+
+.verifying-circle.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.verifying-text {
+  font-size: 13px; /* Reduced size */
+  color: #333;
+  margin-top: 0; /* Remove margin */
+  text-align: left;
+}
+
+.success-container {
+  display: flex;
+  flex-direction: row; /* Change to row layout */
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Add gap between icon and text */
+}
+
+.success-circle {
+  width: 24px; /* Further reduced size */
+  height: 24px; /* Further reduced size */
+}
+
+.success-circle circle {
+  stroke: #008a2e; /* Green */
+  stroke-width: 2;
+  fill: none;
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.success-circle path {
+  stroke: #008a2e; /* Green */
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+}
+
+@keyframes stroke {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.success-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #008a2e; /* Green */
+  margin-top: 0; /* Remove margin */
+  text-align: left;
+}
+
+.failure-container {
+  display: flex;
+  flex-direction: row; /* Change to row layout */
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px; /* Add gap between icon and text */
+}
+
+.failure-circle {
+  width: 24px; /* Reduced size */
+  height: 24px; /* Reduced size */
+  margin-bottom: 6px; /* Reduced margin */
+}
+
+.failure-circle circle {
+  stroke: #d32f2f;
+  stroke-width: 2;
+  fill: none;
+}
+
+.failure-circle path {
+  fill: #d32f2f;
+}
+
+.failure-text {
+  font-size: 13px; /* Reduced size */
+  color: #d32f2f;
+  margin-top: 0; /* Remove margin */
+  text-align: left;
+}
+
+.error-message {
+  font-size: 12px;
+  color: #666;
+  margin-top: 16px;
+}
+
+.idle-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  animation: pulse 2s infinite;
+}
+
+.idle-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #008a2e;
+  text-align: center;
+  width: 100%;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 138, 46, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(0, 138, 46, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 138, 46, 0);
+  }
+}
+
+/* Hide by default */
+.idle-container,
+.verifying-container,
+.success-container,
+.failure-container {
+  display: none;
+}
+
+/* Show when active */
+.idle-container.active {
+  display: flex;
+}
+
+.verifying-container.active {
+  display: flex;
+}
+
+.success-container.active {
+  display: flex;
+}
+
+.failure-container.active {
+  display: flex;
+}

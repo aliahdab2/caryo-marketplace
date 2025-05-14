@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { authService } from "@/services/auth";
 import SuccessAlert from "@/components/ui/alerts/SuccessAlert";
-import SimpleVerification from '@/components/auth/SimpleVerification';
+import SASVerification from '@/components/auth/SASVerification';
 
 export default function SignUpPage() {
   const [username, setUsername] = useState(""); // Changed from name to username
@@ -37,7 +37,7 @@ export default function SignUpPage() {
     
     // Check verification status
     if (!isVerified) {
-      setError(t('auth.verificationRequired', "Verification required before signup"));
+      setError(t('auth.verificationRequired', "Verification required before registration"));
       return;
     }
 
@@ -165,25 +165,18 @@ export default function SignUpPage() {
           />
         </div>
         
-        {/* Security verification component (simplified for signup) */}
+        {/* Security verification component */}
         <div className="mb-6">
-          <SimpleVerification
+          <SASVerification 
             onVerified={(verified: boolean) => {
-              // Only update state if it's different to avoid unnecessary re-renders
-              if (verified !== isVerified) {
-                setIsVerified(verified);
-                if (verified) {
-                  // Clear any previous verification errors
-                  if (error && error.includes("verification")) {
-                    setError("");
-                  }
-                }
-              }
+              setIsVerified(verified); // Update verification status
+              console.log('Verification status:', verified);
             }}
+            autoVerify={false} /* Let user manually verify for signup */
           />
         </div>
         
-        <div className="relative group">
+        <div className="relative">
           <button
             type="submit"
             disabled={loading || !isVerified} // Disable if not verified

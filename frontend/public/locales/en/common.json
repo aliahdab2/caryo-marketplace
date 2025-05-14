@@ -31,6 +31,10 @@
     "signinSuccessDashboard": "Signed in successfully! Redirecting to dashboard...",
     "loginToAccess": "Please log in to access this page",
     "changePassword": "Change Password",
+    "securityCheck": "Security Verification",
+    "clickToVerify": "Click to verify your device",
+    "verificationRequired": "Security verification required",
+    "pleaseVerifyFirst": "Please verify your device before signing up",
     "currentPassword": "Current Password",
     "newPassword": "New Password",
     "passwordChanged": "Password changed successfully",
@@ -40,7 +44,14 @@
     "resetPassword": "Reset Password",
     "resetPasswordLink": "We've sent a password reset link to your email",
     "verifyEmail": "Verify Email",
-    "accountVerified": "Your account has been verified"
+    "accountVerified": "Your account has been verified",
+    "verifyIdentity": "Verify Identity",
+    "verifying": "Verifying...",
+    "verified": "Verified",
+    "verificationFailed": "Verification Failed",
+    "verificationControl": "Device verification control",
+    "tryAgain": "Try Again",
+    "securityCheckCompleted": "Security Check Completed"
   },
   "dashboard": {
     "welcome": "Welcome to your dashboard",

@@ -40,7 +40,14 @@
     "resetPassword": "إعادة تعيين كلمة المرور",
     "resetPasswordLink": "لقد أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني",
     "verifyEmail": "التحقق من البريد الإلكتروني",
-    "accountVerified": "تم التحقق من حسابك"
+    "accountVerified": "تم التحقق من حسابك",
+    "verifyIdentity": "التحقق من الهوية",
+    "verifying": "جاري التحقق...",
+    "verified": "تم التحقق",
+    "verificationFailed": "فشل التحقق",
+    "tryAgain": "حاول مرة أخرى",
+    "securityCheck": "فحص الأمان",
+    "securityCheckCompleted": "تم إكمال فحص الأمان"
   },
   "dashboard": {
     "welcome": "مرحباً بك في لوحة التحكم",

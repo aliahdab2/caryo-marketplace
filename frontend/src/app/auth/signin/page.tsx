@@ -6,6 +6,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import SimpleSuccessAlert from '@/components/ui/alerts/SimpleSuccessAlert';
 import { useApiErrorHandler } from '@/utils/apiErrorHandler';
+import SigninVerification from '@/components/auth/SigninVerification';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("/dashboard");
+  const [isVerified, setIsVerified] = useState(false); // Track verification status
   
   // Extract callback URL from search params if present
   useEffect(() => {
@@ -44,6 +46,11 @@ export default function SignInPage() {
 
     if (!username || !password) {
       setError("Username and password are required");
+      return;
+    }
+
+    if (!isVerified) {
+      setError(t('auth.verificationRequired', "Verification required before login"));
       return;
     }
 
@@ -143,6 +150,24 @@ export default function SignInPage() {
           />
         </div>
 
+        {/* Security verification component (using specialized signin version) */}
+        <div className="mb-6">
+          <SigninVerification 
+            onVerified={(verified: boolean) => {
+              // Only update state if it's different to avoid unnecessary re-renders
+              if (verified !== isVerified) {
+                setIsVerified(verified);
+                if (verified) {
+                  // Clear any previous verification errors
+                  if (error && error.includes("verification")) {
+                    setError("");
+                  }
+                }
+              }
+            }}
+          />
+        </div>
+
         {error && (
           <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-4 rounded-md mb-6" role="alert">
             <p className="text-sm">{error}</p>
@@ -151,8 +176,8 @@ export default function SignInPage() {
 
         <button
           type="submit"
-          disabled={loading}
-          className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+          disabled={loading || !isVerified} // Disable if not verified
+          className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${(loading || !isVerified) ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
           {loading ? (
             <span className="flex items-center justify-center">
