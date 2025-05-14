@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { authService } from "@/services/auth";
+import SuccessAlert from "@/components/ui/alerts/SuccessAlert";
 
 export default function SignUpPage() {
   const [username, setUsername] = useState(""); // Changed from name to username
@@ -83,13 +84,15 @@ export default function SignUpPage() {
         {t('auth.signup')}
       </h1>
       
-      <form onSubmit={handleSubmit}>
-        {successMessage && (
-          <div className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 p-4 rounded-md mb-6" role="alert">
-            <p className="text-sm">{successMessage}</p>
-          </div>
-        )}
-        
+      {/* Display animated success alert when registration is successful */}
+      <SuccessAlert
+        message={successMessage}
+        visible={!!successMessage}
+        onComplete={() => setSuccessMessage("")}
+        autoHideDuration={3500}
+      />
+      
+      <form onSubmit={handleSubmit}>        
         {error && (
           <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-4 rounded-md mb-6" role="alert">
             <p className="text-sm">{error}</p>

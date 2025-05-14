@@ -1,7 +1,10 @@
+'use client';
+
 // Authentication API service
 // Handles authentication-related API calls
 
 import { api } from './api';
+import { ApiError } from '@/utils/apiErrorHandler';
 
 // Types
 export interface LoginCredentials {
@@ -41,6 +44,15 @@ export const authService = {
       return await api.post<AuthResponse>('/api/auth/signin', credentials);
     } catch (error) {
       console.error('Login failed:', error);
+      
+      // Convert regular errors to ApiErrors if needed
+      if (!(error instanceof ApiError)) {
+        throw new ApiError(
+          error instanceof Error ? error.message : 'Login failed', 
+          0
+        );
+      }
+      
       throw error;
     }
   },
@@ -56,6 +68,15 @@ export const authService = {
       return await api.post<MessageResponse>('/api/auth/signup', userData);
     } catch (error) {
       console.error('Registration failed:', error);
+      
+      // Convert regular errors to ApiErrors if needed
+      if (!(error instanceof ApiError)) {
+        throw new ApiError(
+          error instanceof Error ? error.message : 'Registration failed', 
+          0
+        );
+      }
+      
       throw error;
     }
   },

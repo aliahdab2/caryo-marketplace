@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthOptions } from "next-auth";
-import { authService } from "@/services/auth";
+import { serverAuth } from "@/services/server-auth";
 import { JWT } from "next-auth/jwt";
 
 // Extend the session interface
@@ -53,8 +53,8 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Call the backend API to authenticate
-          const response = await authService.login({
+          // Call the backend API to authenticate using server-side auth service
+          const response = await serverAuth.login({
             username: credentials.username,
             password: credentials.password,
           });

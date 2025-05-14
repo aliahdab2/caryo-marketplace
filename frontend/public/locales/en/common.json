@@ -21,6 +21,9 @@
     "dontHaveAccount": "Don't have an account?",
     "alreadyHaveAccount": "Already have an account?",
     "signupSuccess": "Registration successful!",
+    "signinSuccess": "Signed in successfully!",
+    "signinSuccessListings": "Signed in successfully! Redirecting to listings...",
+    "signinSuccessDashboard": "Signed in successfully! Redirecting to dashboard...",
     "loginToAccess": "Please log in to access this page"
   },
   "dashboard": {

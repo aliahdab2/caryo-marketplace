@@ -31,6 +31,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, AuthTokenFilter authTokenFilter, AuthenticationExceptionFilter authExceptionFilter, ObjectMapper objectMapper) throws Exception {
         // Disable CSRF, we're using JWT
         http.csrf(AbstractHttpConfigurer::disable)
+            // Enable CORS
+            .cors(cors -> cors.configure(http))
             // Don't authenticate these specific requests
             .authorizeHttpRequests(auth -> auth
                 // Admin role enforcement should come before permitAll for overlapping patterns

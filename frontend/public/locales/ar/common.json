@@ -21,6 +21,9 @@
     "dontHaveAccount": "ليس لديك حساب؟",
     "alreadyHaveAccount": "لديك حساب بالفعل؟",
     "signupSuccess": "تم التسجيل بنجاح!",
+    "signinSuccess": "تم تسجيل الدخول بنجاح!",
+    "signinSuccessListings": "تم تسجيل الدخول بنجاح! جارٍ التوجيه إلى قائمة السيارات...",
+    "signinSuccessDashboard": "تم تسجيل الدخول بنجاح! جارٍ التوجيه إلى لوحة التحكم...",
     "loginToAccess": "الرجاء تسجيل الدخول للوصول إلى هذه الصفحة"
   },
   "dashboard": {

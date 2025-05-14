@@ -2,16 +2,42 @@
 
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import SimpleSuccessAlert from '@/components/ui/alerts/SimpleSuccessAlert';
+import { useApiErrorHandler } from '@/utils/apiErrorHandler';
 
 export default function SignInPage() {
   const router = useRouter();
   const { t } = useTranslation('common');
+  const { getErrorMessage } = useApiErrorHandler();
   const [username, setUsername] = useState(""); // Changed from email to username
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [callbackUrl, setCallbackUrl] = useState("/dashboard");
+  
+  // Extract callback URL from search params if present
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Get the URL search params
+      const searchParams = new URLSearchParams(window.location.search);
+      const callback = searchParams.get('callbackUrl');
+      
+      if (callback) {
+        try {
+          // Parse the URL to extract the path
+          const url = new URL(decodeURIComponent(callback));
+          // Use the pathname + search for the redirect
+          setCallbackUrl(url.pathname + url.search);
+        } catch (e) {
+          // If there's an error parsing the URL, keep the default
+          console.warn('Error parsing callback URL:', e);
+        }
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,22 +58,48 @@ export default function SignInPage() {
       });
 
       if (result?.error) {
-        setError(result.error);
+        // Use our error handler to get user-friendly error messages
+        setError(getErrorMessage({ message: result.error }));
       } else if (result?.ok) {
-        router.push("/dashboard"); // Redirect to dashboard on successful sign-in
+        // Show success alert
+        setShowSuccess(true);
+        
+        // Redirect to the callback URL or dashboard after a slight delay
+        setTimeout(() => {
+          router.push(callbackUrl);
+        }, 1500);
       } else {
         setError("An unknown error occurred.");
       }
     } catch (err) {
-      setError("Failed to sign in.");
+      setError(getErrorMessage(err));
       console.error("Sign-in error", err);
     } finally {
       setLoading(false);
     }
   };
 
+  // Determine success message based on redirect location
+  const getSuccessMessage = () => {
+    if (callbackUrl.includes('/listings')) {
+      return t('auth.signinSuccessListings', 'Signed in successfully! Redirecting to listings...');
+    } else if (callbackUrl.includes('/dashboard')) {
+      return t('auth.signinSuccessDashboard', 'Signed in successfully! Redirecting to dashboard...');
+    } else {
+      return t('auth.signinSuccess', 'Signed in successfully!');
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto my-12 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+      {/* Simple success alert for login */}
+      <SimpleSuccessAlert 
+        visible={showSuccess}
+        message={getSuccessMessage()}
+        autoHideDuration={3000}
+        onComplete={() => setShowSuccess(false)}
+      />
+      
       <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-white">
         {t('auth.signin')}
       </h1>

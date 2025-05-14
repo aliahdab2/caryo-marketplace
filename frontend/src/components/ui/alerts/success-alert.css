@@ -1,0 +1,41 @@
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinner-animation {
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes checkmark-circle {
+  0% {
+    stroke-dashoffset: 166;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes checkmark-path {
+  0% {
+    stroke-dashoffset: 50;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.success-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 0;
+  stroke-width: 2;
+  stroke-miterlimit: 10;
+  fill: none;
+}
+
+.success-checkmark {
+  stroke-width: 6;
+  stroke-miterlimit: 10;
+  stroke-dasharray: 50;
+  stroke-dashoffset: 0;
+}

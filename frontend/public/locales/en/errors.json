@@ -1,0 +1,10 @@
+{
+  "errors": {
+    "general": "An error occurred. Please try again.",
+    "requestTimeout": "Request timed out. Please try again later.",
+    "networkError": "Network error. Please check your connection and try again.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "notFound": "The requested resource was not found.",
+    "validation": "Please check your input and try again."
+  }
+}
