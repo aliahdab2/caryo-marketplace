@@ -34,9 +34,9 @@ export default function ListingsPage() {
   
   // Create a memoized number formatter based on the current language
   const priceFormatter = useMemo(() => {
-    return new Intl.NumberFormat(i18n.language === 'ar' ? 'ar-SY' : 'en-US', { 
+    return new Intl.NumberFormat(i18n.language === 'ar' ? 'ar-SA' : 'en-US', { 
       style: 'currency', 
-      currency: 'SYP' 
+      currency: 'SAR' // Saudi Riyal as default currency
     });
   }, [i18n.language]);
   
@@ -75,7 +75,7 @@ export default function ListingsPage() {
       const mockListings = Array.from({ length: 24 }, (_, i) => ({
         id: `car-${i+1}`,
         title: `${i % 3 === 0 ? 'Toyota Camry' : i % 3 === 1 ? 'Honda Accord' : 'BMW 3 Series'} ${i+1}`,
-        price: Math.floor(5000000 + Math.random() * 20000000), // Syrian Pound values (millions)
+        price: Math.floor(50000 + Math.random() * 200000), // Saudi Riyal values
         year: Math.floor(2000 + Math.random() * 23),
         listingDate: new Date(Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000)), // Random date within last 30 days
         mileage: Math.floor(10000 + Math.random() * 100000),
@@ -247,7 +247,7 @@ export default function ListingsPage() {
                 aria-label={t('listings.minPrice')}
               >
                 <option value="">{t('common.any')}</option>
-                {[5000000, 7500000, 10000000, 12500000, 15000000].map((price) => (
+                {[50000, 75000, 100000, 125000, 150000].map((price) => (
                   <option key={price} value={price}>
                     {priceFormatter.format(price)}
                   </option>
@@ -279,7 +279,7 @@ export default function ListingsPage() {
                 aria-label={t('listings.maxPrice')}
               >
                 <option value="">{t('common.any')}</option>
-                {[7500000, 10000000, 15000000, 20000000, 25000000].map((price) => (
+                {[75000, 100000, 150000, 200000, 250000].map((price) => (
                   <option key={price} value={price}>
                     {priceFormatter.format(price)}
                   </option>

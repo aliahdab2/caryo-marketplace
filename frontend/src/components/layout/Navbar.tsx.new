@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
-import { useLanguage } from "@/components/EnhancedLanguageProvider";
+import { useLanguage } from "@/components/LanguageProvider";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
 
@@ -72,7 +72,7 @@ export default function Navbar() {
             </div>
           </div>
           <div className="hidden sm:ml-3 md:ml-4 lg:ml-6 sm:flex sm:items-center">
-            {/* Language Switcher in desktop view with SAS-style */}
+            {/* Language Switcher in desktop view with progressive sizing */}
             <div className="mr-2 xs:mr-3 sm:mr-4 rtl:mr-0 rtl:ml-2 rtl:xs:ml-3 rtl:sm:ml-4">
               <LanguageSwitcher />
             </div>
@@ -101,7 +101,7 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex sm:space-x-1 md:space-x-2 lg:space-x-4 rtl:space-x-reverse">
-                <SignInButton className="text-xs xs:text-sm" />
+                <SignInButton />
               </div>
             )}
           </div>
@@ -220,7 +220,7 @@ export default function Navbar() {
               <div className="space-y-1.5 xs:space-y-2 px-3 xs:px-4">
                 <SignInButton 
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full justify-center py-1.5 xs:py-2 text-xs xs:text-sm"
+                  className="w-full justify-center"
                 />
               </div>
             )}

@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import "./globals.css";
 import "./rtl.css";  // Import RTL specific styles
 import AuthProvider from "@/components/AuthProvider";
-import LanguageProvider from "@/components/LanguageProvider";
+import LanguageProvider from "@/components/EnhancedLanguageProvider";
 import I18nProvider from "@/components/I18nProvider";
 import MainLayout from "@/components/layout/MainLayout";
 

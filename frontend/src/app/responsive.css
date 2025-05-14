@@ -1,0 +1,123 @@
+/* Responsive utilities for the Caryo Marketplace application */
+
+/* Hide elements only on mobile */
+@media (max-width: 639px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+/* Hide elements only on tablet */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .hide-on-tablet {
+    display: none !important;
+  }
+}
+
+/* Hide elements only on desktop */
+@media (min-width: 1024px) {
+  .hide-on-desktop {
+    display: none !important;
+  }
+}
+
+/* Responsive Font Sizes */
+.responsive-text-xs {
+  font-size: 0.75rem !important; /* 12px */
+  line-height: 1rem !important; /* 16px */
+}
+
+.responsive-text-sm {
+  font-size: 0.875rem !important; /* 14px */
+  line-height: 1.25rem !important; /* 20px */
+}
+
+.responsive-text-base {
+  font-size: 1rem !important; /* 16px */
+  line-height: 1.5rem !important; /* 24px */
+}
+
+.responsive-text-lg {
+  font-size: 1.125rem !important; /* 18px */
+  line-height: 1.75rem !important; /* 28px */
+}
+
+.responsive-text-xl {
+  font-size: 1.25rem !important; /* 20px */
+  line-height: 1.75rem !important; /* 28px */
+}
+
+/* Responsive Spacing */
+.responsive-p-xs {
+  padding: 0.5rem !important; /* 8px */
+}
+
+.responsive-p-sm {
+  padding: 0.75rem !important; /* 12px */
+}
+
+.responsive-p-md {
+  padding: 1rem !important; /* 16px */
+}
+
+.responsive-p-lg {
+  padding: 1.5rem !important; /* 24px */
+}
+
+/* Mobile-first margin utilities */
+.responsive-m-xs {
+  margin: 0.5rem !important; /* 8px */
+}
+
+.responsive-m-sm {
+  margin: 0.75rem !important; /* 12px */
+}
+
+.responsive-m-md {
+  margin: 1rem !important; /* 16px */
+}
+
+.responsive-m-lg {
+  margin: 1.5rem !important; /* 24px */
+}
+
+/* Responsive container */
+.responsive-container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 0.5rem; /* 8px */
+  padding-right: 0.5rem; /* 8px */
+}
+
+@media (min-width: 640px) {
+  .responsive-container {
+    max-width: 640px;
+    padding-left: 1rem; /* 16px */
+    padding-right: 1rem; /* 16px */
+  }
+}
+
+@media (min-width: 768px) {
+  .responsive-container {
+    max-width: 768px;
+    padding-left: 1.5rem; /* 24px */
+    padding-right: 1.5rem; /* 24px */
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-container {
+    max-width: 1024px;
+    padding-left: 2rem; /* 32px */
+    padding-right: 2rem; /* 32px */
+  }
+}
+
+@media (min-width: 1280px) {
+  .responsive-container {
+    max-width: 1280px;
+    padding-left: 2.5rem; /* 40px */
+    padding-right: 2.5rem; /* 40px */
+  }
+}

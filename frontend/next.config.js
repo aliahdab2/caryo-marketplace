@@ -12,6 +12,11 @@ const nextConfig = {
   },
   // App Router handles i18n differently - configuration is done through LanguageProvider
   
+  // Next.js Image configuration - domains that are allowed to be loaded
+  images: {
+    domains: ['placehold.co'],
+  },
+  
   // Using the stable turbopack configuration
   turbopack: {
     // You can add Turbopack-specific options here if needed

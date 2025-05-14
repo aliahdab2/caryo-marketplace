@@ -105,7 +105,7 @@ i18n
     ns: ['common', 'translation'],
     defaultNS: 'common',
     lng: getCurrentLanguage(),
-    fallbackLng: LANGUAGES.AR,
+    fallbackLng: LANGUAGES.AR, // Default to Arabic if language detection fails
     interpolation: {
       escapeValue: false, // Not needed for React
     },
