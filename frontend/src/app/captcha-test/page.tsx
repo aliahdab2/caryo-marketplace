@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import SASVerification from '@/components/auth/SASVerification';
+import SimpleVerification from '@/components/auth/SimpleVerification';
 
 export default function VerificationTestPage() {
   const { t } = useTranslation('common');
@@ -30,9 +30,9 @@ export default function VerificationTestPage() {
             {t('auth.verifyIdentity')}
           </h2>
           
-          <SASVerification 
+          <SimpleVerification 
             onVerified={handleVerification}
-            autoVerify={false}
+            autoStart={true}
           />
         </div>
         
@@ -41,15 +41,24 @@ export default function VerificationTestPage() {
             {t('auth.securityCheckCompleted')}
           </p>
         )}
-        
-        <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <Link 
-            href="/dashboard"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+      </div>
+      
+      <div className="flex justify-between">
+        <Link href="/">
+          <button className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+            {t('common.back')}
+          </button>
+        </Link>
+        <Link href={isVerified ? "/dashboard" : "#"}>
+          <button 
+            className={`px-4 py-2 bg-blue-600 text-white rounded-md ${
+              isVerified ? "hover:bg-blue-700" : "opacity-50 cursor-not-allowed"
+            } transition`}
+            disabled={!isVerified}
           >
-            Go to Dashboard
-          </Link>
-        </div>
+            {t('common.continue')}
+          </button>
+        </Link>
       </div>
     </div>
   );

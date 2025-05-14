@@ -42,9 +42,13 @@
     "verifyEmail": "التحقق من البريد الإلكتروني",
     "accountVerified": "تم التحقق من حسابك",
     "verifyIdentity": "التحقق من الهوية",
+    "clickToVerify": "انقر للتحقق من جهازك",
+    "verificationRequired": "التحقق الأمني مطلوب",
+    "pleaseVerifyFirst": "يرجى التحقق من جهازك قبل التسجيل",
     "verifying": "جاري التحقق...",
     "verified": "تم التحقق",
     "verificationFailed": "فشل التحقق",
+    "verificationControl": "التحكم في التحقق من الجهاز",
     "tryAgain": "حاول مرة أخرى",
     "securityCheck": "فحص الأمان",
     "securityCheckCompleted": "تم إكمال فحص الأمان"

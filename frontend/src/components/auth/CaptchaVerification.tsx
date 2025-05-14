@@ -1,14 +1,14 @@
 /**
  * CaptchaVerification Component (DEPRECATED)
  * 
- * This component has been deprecated and now uses the new SASVerification component
- * with a green color scheme. It maintains backward compatibility with existing code.
+ * This component has been deprecated and now uses the SimpleVerification component.
+ * It maintains backward compatibility with existing code.
  */
 
 "use client";
 
 import React from 'react';
-import SASVerification from './SASVerification';
+import SimpleVerification from './SimpleVerification';
 
 interface CaptchaVerificationProps {
   onVerified: (isVerified: boolean) => void;
@@ -26,9 +26,9 @@ export default function CaptchaVerification({ onVerified, onRefresh }: CaptchaVe
   };
 
   return (
-    <SASVerification 
+    <SimpleVerification 
       onVerified={handleVerified}
-      autoVerify={true}
+      autoStart={true}
     />
   );
 }

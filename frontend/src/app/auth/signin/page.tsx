@@ -6,7 +6,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import SimpleSuccessAlert from '@/components/ui/alerts/SimpleSuccessAlert';
 import { useApiErrorHandler } from '@/utils/apiErrorHandler';
-import SigninVerification from '@/components/auth/SigninVerification';
+import SimpleVerification from '@/components/auth/SimpleVerification';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -150,9 +150,10 @@ export default function SignInPage() {
           />
         </div>
 
-        {/* Security verification component (using specialized signin version) */}
+        {/* Security verification component - auto-starts on login page */}
         <div className="mb-6">
-          <SigninVerification 
+          <SimpleVerification 
+            autoStart={true}
             onVerified={(verified: boolean) => {
               // Only update state if it's different to avoid unnecessary re-renders
               if (verified !== isVerified) {
