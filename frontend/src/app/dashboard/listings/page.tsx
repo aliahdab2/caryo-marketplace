@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image"; // Added Image import
+import Image from "next/image";
 import { useTranslation } from "react-i18next";
+import { formatDate, formatNumber } from "../../../utils/localization";
 
 // Mock data for listings (in a real app, this would come from an API)
 const MOCK_LISTINGS = [
@@ -11,6 +12,7 @@ const MOCK_LISTINGS = [
 		id: "1",
 		title: "Toyota Camry 2020",
 		price: 25000,
+		currency: "SAR",
 		location: "Dubai",
 		created: "2023-05-15",
 		expires: "2023-08-15",
@@ -22,6 +24,7 @@ const MOCK_LISTINGS = [
 		id: "2",
 		title: "Honda Civic 2019",
 		price: 18500,
+		currency: "SAR",
 		location: "Abu Dhabi",
 		created: "2023-04-20",
 		expires: "2023-07-20",
@@ -33,6 +36,7 @@ const MOCK_LISTINGS = [
 		id: "3",
 		title: "BMW X5 2018",
 		price: 35000,
+		currency: "SAR",
 		location: "Sharjah",
 		created: "2023-03-10",
 		expires: "2023-06-10",
@@ -43,7 +47,7 @@ const MOCK_LISTINGS = [
 ];
 
 export default function ListingsPage() {
-	const { t } = useTranslation("common");
+	const { t, i18n } = useTranslation("common");
 	const [search, setSearch] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
 	const [sortBy, setSortBy] = useState("newest");
@@ -229,13 +233,13 @@ export default function ListingsPage() {
 													</div>
 													<div className="text-xs text-gray-500 dark:text-gray-400">
 														{t("common.created")}:{" "}
-														{listing.created}
+														{formatDate(new Date(listing.created), i18n.language, { dateStyle: 'medium' })}
 													</div>
 												</div>
 											</div>
 										</td>
 										<td className="py-4 px-4 font-medium">
-											${listing.price.toLocaleString()}
+											{formatNumber(listing.price, i18n.language, { style: 'currency', currency: listing.currency })}
 										</td>
 										<td className="py-4 px-4">
 											<span
@@ -251,9 +255,9 @@ export default function ListingsPage() {
 											</span>
 										</td>
 										<td className="py-4 px-4 text-sm">
-											{listing.expires}
+											{formatDate(new Date(listing.expires), i18n.language, { dateStyle: 'medium' })}
 										</td>
-										<td className="py-4 px-4">{listing.views}</td>
+										<td className="py-4 px-4">{formatNumber(listing.views, i18n.language)}</td>
 										<td className="py-4 px-4">
 											<div className="flex flex-col space-y-1">
 												<Link

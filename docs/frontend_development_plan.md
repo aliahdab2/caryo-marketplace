@@ -101,7 +101,7 @@ frontend/
   - ✅ **Persist Language Selection**: Store user preference in cookies with `setCookie('NEXT_LOCALE', lang)`.
   - ✅ **Locale Detection**: Implement detection order: `['cookie', 'localStorage', 'navigator', 'htmlTag']`.
   - ✅ **Translation Keys Convention**: Use semantic namespacing for translation keys (e.g., `header.login`).
-  - ⏳ **Date/Number Localization**: Use `Intl.DateTimeFormat` and `Intl.NumberFormat` for locale-specific formatting.
+  - ✅ **Date/Number Localization**: Use `Intl.DateTimeFormat` and `Intl.NumberFormat` for locale-specific formatting. (Implemented in `src/utils/localization.ts`)
 - ✅ Ensure RTL (Right-to-Left) layout support when Arabic is active:
   - ✅ Tailwind supports RTL with `dir="rtl"` on the `<html>` or `<body>` tag.
   - ✅ You can dynamically set it using:

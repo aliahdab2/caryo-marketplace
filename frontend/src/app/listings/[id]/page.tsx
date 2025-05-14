@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { formatDate, formatNumber } from '../../../utils/localization';
 
 export default function ListingDetailPage() {
   const { t, i18n } = useTranslation('common');
@@ -13,14 +14,6 @@ export default function ListingDetailPage() {
   const [loading, setLoading] = useState(true);
   const [listing, setListing] = useState<any>(null);
   
-  // Create a price formatter with SAR currency
-  const priceFormatter = useMemo(() => {
-    return new Intl.NumberFormat(i18n.language === 'ar' ? 'ar-SA' : 'en-US', { 
-      style: 'currency', 
-      currency: 'SAR' 
-    });
-  }, [i18n.language]);
-
   // Simulating data fetch - this will be replaced with actual API call
   useEffect(() => {
     // Simulate API loading delay
@@ -31,9 +24,11 @@ export default function ListingDetailPage() {
         title: `Car Model ${id}`,
         description: 'This is a detailed description of the vehicle. It includes information about the condition, features, and history of the car.',
         price: Math.floor(10000 + Math.random() * 90000),
+        currency: 'SAR',
         year: Math.floor(2010 + Math.random() * 13),
         mileage: Math.floor(10000 + Math.random() * 100000),
         location: 'Dubai',
+        createdAt: new Date(Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000).toISOString(),
         features: [
           'Bluetooth Connectivity',
           'Backup Camera',
@@ -123,8 +118,10 @@ export default function ListingDetailPage() {
           </div>
           
           <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-6 sm:mb-8">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="bg-gray-200 dark:bg-gray-700 h-14 sm:h-20 rounded-md cursor-pointer hover:opacity-80 transition-opacity shadow-sm"></div>
+            {listing.images.map((imgSrc: string, i: number) => (
+              <div key={i} className="bg-gray-200 dark:bg-gray-700 h-14 sm:h-20 rounded-md cursor-pointer hover:opacity-80 transition-opacity shadow-sm">
+                {/* Placeholder for image thumbnail */}
+              </div>
             ))}
           </div>
           
@@ -132,13 +129,13 @@ export default function ListingDetailPage() {
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{listing.title}</h1>
             <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between mt-2 sm:mt-3 gap-2">
               <p className="text-xl sm:text-2xl text-blue-600 dark:text-blue-400 font-bold">
-                {priceFormatter.format(listing.price)}
+                {formatNumber(listing.price, i18n.language, listing.currency)}
               </p>
               <div className="flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium self-start xs:self-auto">
                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 rtl:mr-0 rtl:ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Added recently
+                {listing.createdAt ? formatDate(listing.createdAt, i18n.language, { dateStyle: 'medium' }) : t('listings.addedRecently')}
               </div>
             </div>
           </div>
@@ -204,7 +201,9 @@ export default function ListingDetailPage() {
                     </svg>
                     <span className="text-sm text-gray-600 dark:text-gray-300">{t('common.mileage')}:</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">{listing.mileage.toLocaleString()} km</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                    {formatNumber(listing.mileage, i18n.language)} {t('common.km')}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="flex items-center">
@@ -234,7 +233,7 @@ export default function ListingDetailPage() {
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 rtl:ml-1 rtl:mr-0 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
-                    Responds within a few hours
+                    {t('listings.respondsFast')}
                   </div>
                 </div>
                 

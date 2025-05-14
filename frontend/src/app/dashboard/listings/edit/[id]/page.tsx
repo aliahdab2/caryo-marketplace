@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import ListingExpiry from "../../components/ListingExpiry";
+import { formatDate, formatNumber } from '../../../../../utils/localization'; // Corrected import path
 
 // Mock data for a listing (in a real app, this would come from an API fetch)
 const MOCK_LISTING = {
@@ -14,6 +15,7 @@ const MOCK_LISTING = {
   model: "Camry",
   year: "2020",
   price: "25000",
+  currency: "USD", // Added currency
   condition: "used",
   mileage: "45000",
   exteriorColor: "Silver",
@@ -33,7 +35,7 @@ const MOCK_LISTING = {
 
 export default function EditListingPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common'); // Added i18n
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -45,6 +47,7 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
     model: "",
     year: "",
     price: "",
+    currency: "", // Added currency
     condition: "used",
     mileage: "",
     exteriorColor: "",
@@ -230,7 +233,7 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
         
         <div className="text-right">
           <span className="text-sm text-gray-500 dark:text-gray-400 block mb-1">{t('listings.views')}:</span>
-          <span className="font-medium">{formData.views}</span>
+          <span className="font-medium">{formatNumber(formData.views, i18n.language)}</span>
         </div>
       </div>
       

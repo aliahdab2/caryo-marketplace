@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { formatDate } from "../../../../utils/localization";
 
 interface ListingExpiryProps {
   listingId: string;
@@ -16,7 +17,7 @@ export default function ListingExpiry({
   status, 
   onRenew 
 }: ListingExpiryProps) {
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
   const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
   const [renewalDuration, setRenewalDuration] = useState(30); // Default 30 days
   
@@ -49,7 +50,7 @@ export default function ListingExpiry({
     } else if (daysRemaining <= 7) {
       return t('listings.expiresIn', { days: daysRemaining });
     } else {
-      return t('listings.validUntil', { date: expiryDate });
+      return t('listings.validUntil', { date: formatDate(new Date(expiryDate), i18n.language, {dateStyle: 'medium'}) });
     }
   };
   
