@@ -2,20 +2,38 @@
 
 import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/components/EnhancedLanguageProvider";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
-import { MdLogout } from "react-icons/md";
+import { MdLogout, MdPerson, MdSettings, MdDashboard } from "react-icons/md";
 
 export default function Navbar() {
   const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [logoSrc, setLogoSrc] = useState("/images/logo.svg");
   const [logoError, setLogoError] = useState(false);
   const { t } = useTranslation('common');
+  
+  // Ref for user dropdown menu to handle clicks outside
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Handle clicks outside the user menu to close it
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [userMenuRef]);
 
   // Handle logo loading only once
   const handleLogoError = () => {
@@ -80,24 +98,88 @@ export default function Navbar() {
             
             {session ? (
               <div className="flex items-center sm:space-x-2 md:space-x-3 lg:space-x-4 rtl:space-x-reverse">
-                <Link 
-                  href="/dashboard" 
-                  className="text-gray-600 hover:text-gray-800 px-1.5 xs:px-2 sm:px-2 md:px-3 py-1 xs:py-1.5 sm:py-1.5 md:py-2 rounded-md text-xs sm:text-xs md:text-sm font-medium dark:text-gray-300 dark:hover:text-white transition-colors"
-                >
-                  {t('header.dashboard')}
-                </Link>
-                <div className="relative ml-1 xs:ml-2 sm:ml-2 md:ml-3 rtl:ml-0 rtl:mr-1 rtl:xs:mr-2 rtl:md:mr-3">
-                  <div className="flex items-center sm:space-x-1 md:space-x-2 lg:space-x-3 rtl:space-x-reverse">
-                    <span className="hidden md:inline text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 max-w-[80px] lg:max-w-[120px] truncate">
-                      {session.user?.email}
-                    </span>
-                    <button
-                      onClick={() => signOut()}
-                      className="inline-flex items-center justify-center px-2 xs:px-2.5 sm:px-3 md:px-4 py-1 xs:py-1 sm:py-1.5 md:py-2 border border-transparent text-xs sm:text-xs md:text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                <div className="relative ml-1 xs:ml-2 sm:ml-2 md:ml-3 rtl:ml-0 rtl:mr-1 rtl:xs:mr-2 rtl:md:mr-3" ref={userMenuRef}>
+                  <button 
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="flex items-center space-x-1.5 sm:space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+                    aria-expanded={userMenuOpen ? "true" : "false"}
+                    aria-haspopup="true"
+                  >
+                    <div className="flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-full h-7 w-7 sm:h-8 sm:w-8 shadow-sm ring-2 ring-white dark:ring-gray-800">
+                      {session.user?.image ? (
+                        <Image 
+                          src={session.user.image} 
+                          alt={session.user?.name || "User"}
+                          width={32}
+                          height={32}
+                          className="rounded-full h-full w-full object-cover"
+                        />
+                      ) : (
+                        <MdPerson className="h-4 w-4 sm:h-5 sm:w-5" />
+                      )}
+                    </div>
+                    <div className="hidden md:block">
+                      <span className="text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 max-w-[80px] lg:max-w-[120px] truncate">
+                        {session.user?.name || session.user?.email?.split('@')[0] || "User"}
+                      </span>
+                    </div>
+                    <svg 
+                      className={`h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      viewBox="0 0 20 20" 
+                      fill="currentColor"
+                      aria-hidden="true"
                     >
-                      <MdLogout className="mr-1.5 rtl:ml-1.5 rtl:mr-0 hidden sm:inline-block" />
-                      {t('header.logout')}
-                    </button>
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  
+                  {/* User dropdown menu with animation */}
+                  <div 
+                    className={`absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 origin-top-right transition-all duration-200 ease-in-out ${
+                      userMenuOpen 
+                        ? 'opacity-100 transform scale-100 animate-fadeIn' 
+                        : 'opacity-0 transform scale-95 pointer-events-none'
+                    }`}
+                  >
+                    <div className="px-4 py-3 border-b dark:border-gray-700">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {session.user?.name || "User"}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {session.user?.email}
+                      </p>
+                    </div>
+                    
+                    <div className="py-1">
+                      <Link 
+                        href="/dashboard" 
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <MdDashboard className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" />
+                        {t('header.dashboard')}
+                      </Link>
+                      
+                      <Link 
+                        href="/dashboard/settings" 
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <MdSettings className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" />
+                        {"Account Settings"}
+                      </Link>
+                    </div>
+                    
+                    <div className="py-1 border-t dark:border-gray-700">
+                      <button
+                        onClick={() => { signOut(); setUserMenuOpen(false); }}
+                        className="w-full flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors"
+                      >
+                        <MdLogout className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4" />
+                        {t('header.logout')}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -191,21 +273,47 @@ export default function Navbar() {
           <div className="pt-3 xs:pt-4 pb-2 xs:pb-3 border-t border-gray-200 dark:border-gray-700">
             {session ? (
               <div className="space-y-2 xs:space-y-3">
-                <div className="px-3 xs:px-4">
-                  <p className="text-sm xs:text-base font-medium text-gray-800 dark:text-white">
-                    {session.user?.name || "User"}
-                  </p>
-                  <p className="text-xs xs:text-sm font-medium text-gray-500 dark:text-gray-400 truncate max-w-[95%] xs:max-w-[280px]">
-                    {session.user?.email}
-                  </p>
+                <div className="px-3 xs:px-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center mb-2">
+                    <div className="flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-full h-8 w-8 xs:h-9 xs:w-9 shadow-sm ring-2 ring-white dark:ring-gray-800">
+                      {session.user?.image ? (
+                        <Image 
+                          src={session.user.image} 
+                          alt={session.user?.name || "User"}
+                          width={36}
+                          height={36}
+                          className="rounded-full h-full w-full object-cover"
+                        />
+                      ) : (
+                        <MdPerson className="h-5 w-5 xs:h-6 xs:w-6" />
+                      )}
+                    </div>
+                    <div className="ml-3 rtl:mr-3 rtl:ml-0">
+                      <p className="text-sm xs:text-base font-medium text-gray-800 dark:text-white">
+                        {session.user?.name || session.user?.email?.split('@')[0] || "User"}
+                      </p>
+                      <p className="text-xs xs:text-sm font-medium text-gray-500 dark:text-gray-400 truncate max-w-[95%] xs:max-w-[280px]">
+                        {session.user?.email}
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-0.5 xs:space-y-1">
                   <Link 
                     href="/dashboard"
-                    className="block pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 rtl:pr-2 rtl:xs:pr-3 rtl:pl-3 rtl:xs:pl-4 border-transparent text-xs xs:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
+                    className="flex items-center pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 rtl:pr-2 rtl:xs:pr-3 rtl:pl-3 rtl:xs:pl-4 border-transparent text-xs xs:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
+                    <MdDashboard className="mr-2 rtl:ml-2 rtl:mr-0 h-4 w-4 xs:h-5 xs:w-5" />
                     {t('header.dashboard')}
+                  </Link>
+                  <Link 
+                    href="/dashboard/settings"
+                    className="flex items-center pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 rtl:pr-2 rtl:xs:pr-3 rtl:pl-3 rtl:xs:pl-4 border-transparent text-xs xs:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <MdSettings className="mr-2 rtl:ml-2 rtl:mr-0 h-4 w-4 xs:h-5 xs:w-5" />
+                    {"Account Settings"}
                   </Link>
                   <button
                     onClick={() => {
@@ -214,7 +322,7 @@ export default function Navbar() {
                     }}
                     className="block w-full text-left pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 rtl:pr-2 rtl:xs:pr-3 rtl:pl-3 rtl:xs:pl-4 border-transparent text-xs xs:text-sm font-medium text-red-600 hover:bg-gray-50 hover:border-red-300 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors flex items-center"
                   >
-                    <MdLogout className="mr-2 rtl:ml-2 rtl:mr-0" />
+                    <MdLogout className="mr-2 rtl:ml-2 rtl:mr-0 h-4 w-4 xs:h-5 xs:w-5" />
                     {t('header.logout')}
                   </button>
                 </div>
