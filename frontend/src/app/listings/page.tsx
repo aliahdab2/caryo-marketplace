@@ -91,6 +91,9 @@ const ListingsPage = () => {
       });
   }, [filters, currentPage, t]);
 
+  // Track the previous URL to avoid unnecessary updates
+  const prevUrlRef = React.useRef<string | null>(null);
+  
   useEffect(() => {
     const queryParams = new URLSearchParams();
     // Use currentPage for the 'page' query parameter
@@ -107,8 +110,13 @@ const ListingsPage = () => {
     if (filters.maxYear) queryParams.set('maxYear', String(filters.maxYear));
     if (filters.location) queryParams.set('location', filters.location);
 
-    router.replace(`/listings?${queryParams.toString()}`, { scroll: false });
-
+    const newUrl = `/listings?${queryParams.toString()}`;
+    
+    // Only update URL if it has changed, preventing infinite loops
+    if (newUrl !== prevUrlRef.current) {
+      prevUrlRef.current = newUrl;
+      router.replace(newUrl, { scroll: false });
+    }
   }, [filters, currentPage, router]);
 
   const handleFilterChange = (key: keyof Filters, value: string | number | undefined) => {
