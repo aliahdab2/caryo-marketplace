@@ -29,10 +29,19 @@ export default function SignInPage() {
       
       if (callback) {
         try {
-          // Parse the URL to extract the path
-          const url = new URL(decodeURIComponent(callback));
-          // Use the pathname + search for the redirect
-          setCallbackUrl(url.pathname + url.search);
+          // Handle both absolute and relative URLs properly
+          if (callback.startsWith('/')) {
+            // It's a relative URL path, use as is
+            setCallbackUrl(callback);
+          } else {
+            // It might be an encoded absolute URL
+            const url = new URL(decodeURIComponent(callback));
+            // Only use the pathname + search if it's from the same origin
+            // Otherwise use the default dashboard path
+            if (url.origin === window.location.origin) {
+              setCallbackUrl(url.pathname + url.search);
+            }
+          }
         } catch (e) {
           // If there's an error parsing the URL, keep the default
           console.warn('Error parsing callback URL:', e);
@@ -71,10 +80,24 @@ export default function SignInPage() {
         // Show success alert
         setShowSuccess(true);
         
-        // Redirect to the callback URL or dashboard after a slight delay
-        setTimeout(() => {
-          router.push(callbackUrl);
-        }, 1500);
+        // Force NextAuth to sync the session before redirecting
+        // This ensures the session is fully established before navigation
+        const syncSession = async () => {
+          try {
+            // Wait a moment for NextAuth to complete its internal processes
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Hard redirect to ensure complete page refresh with new session
+            window.location.href = callbackUrl;
+          } catch (err) {
+            console.error("Navigation error:", err);
+            // Fallback navigation if something goes wrong
+            window.location.href = callbackUrl;
+          }
+        };
+        
+        // Start the session sync process after showing the success message
+        setTimeout(syncSession, 1000);
       } else {
         setError("An unknown error occurred.");
       }
