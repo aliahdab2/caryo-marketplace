@@ -10,7 +10,7 @@ export default function Footer() {
       <div className="w-full max-w-[94%] xs:max-w-[92%] sm:max-w-[90%] md:max-w-[88%] lg:max-w-6xl xl:max-w-7xl mx-auto py-6 xs:py-7 sm:py-8 md:py-10 lg:py-12 px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8">
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 xs:gap-6 sm:gap-7 md:gap-8">
           <div className="col-span-1 xs:col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-2">
-            <h3 className="text-base xs:text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2 xs:mb-3 md:mb-4">AutoTrader Marketplace</h3>
+            <h3 className="text-base xs:text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2 xs:mb-3 md:mb-4">Caryo Marketplace</h3>
             <p className="text-xs xs:text-sm md:text-base text-gray-600 dark:text-gray-300 mb-3 xs:mb-4">
               Your trusted platform for buying and selling vehicles. Find the perfect car or list yours today.
             </p>
@@ -80,7 +80,7 @@ export default function Footer() {
         </div>
         
         <div className="mt-6 xs:mt-7 sm:mt-8 md:mt-10 lg:mt-12 border-t border-gray-200 dark:border-gray-700 pt-4 xs:pt-5 sm:pt-6 md:pt-7 lg:pt-8">
-          <p className="text-xs xs:text-sm md:text-base text-gray-500 dark:text-gray-400 text-center">&copy; {currentYear} AutoTrader Marketplace. All rights reserved.</p>
+          <p className="text-xs xs:text-sm md:text-base text-gray-500 dark:text-gray-400 text-center">&copy; {currentYear} Caryo Marketplace. All rights reserved.</p>
         </div>
       </div>
     </footer>

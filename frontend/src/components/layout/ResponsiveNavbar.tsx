@@ -70,13 +70,13 @@ export default function ResponsiveNavbar() {
               <Image 
                 className="h-7 w-auto sm:h-8" 
                 src={logoSrc} 
-                alt="AutoTrader Marketplace" 
+                alt="Caryo Marketplace" 
                 width={32} 
                 height={32}
                 onError={handleLogoError}
               />
               <span className="ml-2 rtl:mr-2 rtl:ml-0 text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">
-                AutoTrader
+                Caryo
               </span>
             </Link>
             

@@ -34,13 +34,13 @@ export default function Navbar() {
               <Image 
                 className="h-6 w-auto xs:h-7 sm:h-8" 
                 src={logoSrc} 
-                alt="AutoTrader Marketplace" 
+                alt="Caryo Marketplace" 
                 width={32} 
                 height={32}
                 onError={handleLogoError}
               />
               <span className="ml-1.5 xs:ml-2 rtl:mr-1.5 rtl:xs:mr-2 rtl:ml-0 text-base xs:text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">
-                AutoTrader
+                Caryo
               </span>
             </Link>
             {/* Navigation for larger screens with multiple breakpoints for smoother transition */}

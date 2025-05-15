@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AutoTrader Marketplace",
+  title: "Caryo Marketplace",
   description: "Your trusted platform for buying and selling vehicles",
 };
 

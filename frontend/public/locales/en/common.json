@@ -104,6 +104,7 @@
       "priceHighToLow": "Price: High to Low"
     },
     "title": "Title",
+    "image": "Image",
     "selectAll": "Select All",
     "city": "City",
     "km": "km",
@@ -186,7 +187,6 @@
     "searchPlaceholder": "Search by make, model, or keywords",
     "noResults": "No vehicles found",
     "tryDifferentFilters": "Try using different filters or removing some search criteria",
-    "image": "Image",
     "details": "Details",
     "expiryDate": "Expiry Date",
     "expiry": "Expiry",
@@ -302,7 +302,7 @@
     "viewAllListings": "View All Listings",
     "viewDetails": "View Details",
     "whyChooseUs": {
-      "title": "Why Choose AutoTrader",
+      "title": "Why Choose Caryo",
       "subtitle": "We make buying and selling vehicles simple",
       "wideSelection": {
         "title": "Wide Selection",
@@ -401,6 +401,7 @@
     "thisMonth": "This Month",
     "totalViewers": "Total Viewers",
     "inquiries": "Inquiries",
-    "viewers": "Viewers"
+    "viewers": "Viewers",
+    "image": "Image"
   }
 }
