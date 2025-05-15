@@ -7,12 +7,13 @@ import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/components/EnhancedLanguageProvider";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { MdLogout } from "react-icons/md";
 import { 
   ResponsiveContainer, 
   MobileOnly, 
   NotOnMobile 
 } from "@/components/responsive";
-import { useResponsive } from "@/utils/responsive";
+import { useBreakpoint, BREAKPOINTS } from "@/utils/responsive";
 
 export default function ResponsiveNavbar() {
   const { data: session } = useSession();
@@ -21,7 +22,8 @@ export default function ResponsiveNavbar() {
   const [logoSrc, setLogoSrc] = useState("/images/logo.svg");
   const [logoError, setLogoError] = useState(false);
   const { t } = useTranslation('common');
-  const { isMobile } = useResponsive();
+  const currentBreakpoint = useBreakpoint();
+  const isMobile = currentBreakpoint === 'xs' || currentBreakpoint === 'sm';
   
   // Refs for dropdown menus
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -158,8 +160,9 @@ export default function ResponsiveNavbar() {
                         </Link>
                         <button
                           onClick={() => { signOut(); setUserMenuOpen(false); }}
-                          className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
                         >
+                          <MdLogout className="mr-2 rtl:ml-2 rtl:mr-0" />
                           {t('header.logout')}
                         </button>
                       </div>
@@ -285,8 +288,9 @@ export default function ResponsiveNavbar() {
                   </Link>
                   <button
                     onClick={() => { signOut(); closeMobileMenu(); }}
-                    className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-gray-50 dark:text-red-400 dark:hover:bg-gray-700"
+                    className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-gray-50 dark:text-red-400 dark:hover:bg-gray-700 flex items-center"
                   >
+                    <MdLogout className="mr-2 rtl:ml-2 rtl:mr-0" />
                     {t('header.logout')}
                   </button>
                 </>

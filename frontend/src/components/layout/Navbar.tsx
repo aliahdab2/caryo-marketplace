@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/components/EnhancedLanguageProvider";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
+import { MdLogout } from "react-icons/md";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -94,6 +95,7 @@ export default function Navbar() {
                       onClick={() => signOut()}
                       className="inline-flex items-center justify-center px-2 xs:px-2.5 sm:px-3 md:px-4 py-1 xs:py-1 sm:py-1.5 md:py-2 border border-transparent text-xs sm:text-xs md:text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                     >
+                      <MdLogout className="mr-1.5 rtl:ml-1.5 rtl:mr-0 hidden sm:inline-block" />
                       {t('header.logout')}
                     </button>
                   </div>
@@ -210,8 +212,9 @@ export default function Navbar() {
                       signOut();
                       setMobileMenuOpen(false);
                     }}
-                    className="block w-full text-left pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 rtl:pr-2 rtl:xs:pr-3 rtl:pl-3 rtl:xs:pl-4 border-transparent text-xs xs:text-sm font-medium text-red-600 hover:bg-gray-50 hover:border-red-300 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                    className="block w-full text-left pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 rtl:pr-2 rtl:xs:pr-3 rtl:pl-3 rtl:xs:pl-4 border-transparent text-xs xs:text-sm font-medium text-red-600 hover:bg-gray-50 hover:border-red-300 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors flex items-center"
                   >
+                    <MdLogout className="mr-2 rtl:ml-2 rtl:mr-0" />
                     {t('header.logout')}
                   </button>
                 </div>
