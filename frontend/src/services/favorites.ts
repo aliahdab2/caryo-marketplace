@@ -49,9 +49,15 @@ export async function removeFromFavorites(listingId: string): Promise<void> {
 
 /**
  * Get all favorites for the current user
+ * @param options Optional configurations for the request
  * @returns A Promise that resolves to an array of Listing objects
  */
-export async function getFavorites(): Promise<Listing[]> {
+export async function getFavorites(options?: { mockMode?: boolean }): Promise<Listing[]> {
+  // If mockMode is enabled, return mock favorites data
+  if (options?.mockMode) {
+    return getMockFavorites();
+  }
+  
   const authHeaders = await getAuthHeaders();
   
   const response = await fetch(`${API_URL}/api/user/favorites`, {
@@ -68,6 +74,48 @@ export async function getFavorites(): Promise<Listing[]> {
   }
 
   return response.json();
+}
+
+/**
+ * Get mock favorites data for development and testing
+ * @returns Array of mock Listing objects
+ */
+function getMockFavorites(): Listing[] {
+  return [
+    {
+      id: 'mock-1',
+      title: 'BMW 3 Series 2022',
+      price: 45000,
+      currency: 'USD',
+      image: '/images/vehicles/car-1.jpg',
+      location: { city: 'New York', country: 'USA' },
+      createdAt: new Date().toISOString(),
+      category: 'sedan',
+      condition: 'new',
+    },
+    {
+      id: 'mock-2',
+      title: 'Toyota Camry 2021',
+      price: 28000,
+      currency: 'USD',
+      image: '/images/vehicles/car-2.jpg',
+      location: { city: 'Los Angeles', country: 'USA' },
+      createdAt: new Date().toISOString(),
+      category: 'sedan',
+      condition: 'used',
+    },
+    {
+      id: 'mock-3',
+      title: 'Tesla Model 3 2023',
+      price: 52000,
+      currency: 'USD',
+      image: '/images/vehicles/car-3.jpg',
+      location: { city: 'San Francisco', country: 'USA' },
+      createdAt: new Date().toISOString(),
+      category: 'electric',
+      condition: 'new',
+    }
+  ];
 }
 
 /**
