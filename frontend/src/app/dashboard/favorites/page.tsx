@@ -157,9 +157,9 @@ export default function FavoritesPage() {
                   <div className="flex items-center">
                     <MdCalendarToday className="mr-1" />
                     <span>
-                      {formatDate(new Date(listing.createdAt), i18n.language, { 
-                        dateStyle: 'medium' 
-                      })}
+                      {listing.createdAt ? (
+                        formatDate(listing.createdAt, i18n.language, { dateStyle: 'medium' }) || t('listings.addedRecently')
+                      ) : t('listings.addedRecently')}
                     </span>
                   </div>
                 </div>

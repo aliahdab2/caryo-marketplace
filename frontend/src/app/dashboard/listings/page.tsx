@@ -598,7 +598,9 @@ export default function ListingsPage() {
 														</span>
 													</div>
 													<div className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-														{t("common.created")}: {formatDate(new Date(listing.created), i18n.language, { dateStyle: 'medium' })}
+														{listing.created ? (
+															formatDate(listing.created, i18n.language, { dateStyle: 'medium' }) || t('listings.addedRecently')
+														) : t('listings.addedRecently')}
 													</div>
 												</div>
 											</div>
@@ -634,7 +636,7 @@ export default function ListingsPage() {
                         
                         {listing.status === "active" && (
                           <div className="text-xs text-green-600 dark:text-green-400 ml-1">
-                            {formatDate(new Date('2025-05-15'), i18n.language, { dateStyle: 'short' })} — {formatDate(new Date(listing.expires), i18n.language, { dateStyle: 'short' })}
+                            {formatDate(new Date(listing.expires), i18n.language, { dateStyle: 'short' })}
                           </div>
                         )}
                       </div>

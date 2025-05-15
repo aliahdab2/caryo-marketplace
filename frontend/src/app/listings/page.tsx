@@ -173,7 +173,9 @@ const ListingsPage = () => {
                   {listing.location?.city || t('unknownLocation')}
                   {listing.location?.country ? `, ${listing.location.country}` : ''}
                 </p>
-                <p>{t('postedOn')}: {formatDate(new Date(listing.createdAt), i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                <p>{t('postedOn')}: {listing.createdAt ? (
+                  formatDate(listing.createdAt, i18n.language, { dateStyle: 'medium' }) || t('listings.addedRecently')
+                ) : t('listings.addedRecently')}</p>
                 {listing.updatedAt && listing.updatedAt !== listing.createdAt && (
                   <p>{t('updatedOn')}: {formatDate(new Date(listing.updatedAt), i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}</p>
                 )}

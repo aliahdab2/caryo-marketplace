@@ -1,17 +1,30 @@
 /**
- * Formats a date object into a locale-specific string.
+ * Formats a date object or date string into a locale-specific string.
  *
- * @param date The Date object to format.
+ * @param date The Date object or date string to format.
  * @param locale The locale string (e.g., 'en-US', 'ar-EG').
  * @param options Optional Intl.DateTimeFormatOptions to customize formatting.
  * @returns A string representing the formatted date.
  */
 export const formatDate = (
-  date: Date,
+  date: Date | string | undefined | null,
   locale: string,
   options?: any
 ): string => {
   try {
+    // Handle null, undefined or invalid dates
+    if (!date) {
+      return ''; // or return a default value like 'N/A'
+    }
+
+    // Convert string dates to Date objects
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+    // Check if date is valid
+    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+      return ''; // or return a default value like 'N/A'
+    }
+
     // Handle dateStyle option separately, as it might cause issues in some environments
     if (options && options.dateStyle) {
       const dateStyleOptions: any = { ...options };
@@ -34,7 +47,7 @@ export const formatDate = (
         dateStyleOptions.day = 'numeric';
       }
       
-      return new Intl.DateTimeFormat(locale, dateStyleOptions).format(date);
+      return new Intl.DateTimeFormat(locale, dateStyleOptions).format(dateObj);
     }
     
     // Default options
@@ -45,11 +58,10 @@ export const formatDate = (
       ...(options || {}),
     };
     
-    return new Intl.DateTimeFormat(locale, defaultDateOptions).format(date);
+    return new Intl.DateTimeFormat(locale, defaultDateOptions).format(dateObj);
   } catch (error) {
     console.error('Error formatting date:', error);
-    // Fallback to a simple date string or handle error as appropriate
-    return date.toLocaleDateString(locale); // Basic fallback
+    return ''; // or return a default value like 'N/A'
   }
 };
 

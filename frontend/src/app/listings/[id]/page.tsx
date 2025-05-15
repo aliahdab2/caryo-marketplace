@@ -135,7 +135,9 @@ export default function ListingDetailPage() {
                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 rtl:mr-0 rtl:ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {listing.createdAt ? formatDate(listing.createdAt, i18n.language, { dateStyle: 'medium' }) : t('listings.addedRecently')}
+                {listing.createdAt ? (
+                  formatDate(listing.createdAt, i18n.language, { dateStyle: 'medium' }) || t('listings.addedRecently')
+                ) : t('listings.addedRecently')}
               </div>
             </div>
           </div>
