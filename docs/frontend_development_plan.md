@@ -102,12 +102,14 @@ frontend/
   - ✅ **Locale Detection**: Implement detection order: `['cookie', 'localStorage', 'navigator', 'htmlTag']`.
   - ✅ **Translation Keys Convention**: Use semantic namespacing for translation keys (e.g., `header.login`).
   - ✅ **Date/Number Localization**: Use `Intl.DateTimeFormat` and `Intl.NumberFormat` for locale-specific formatting. (Implemented in `src/utils/localization.ts`)
+  - ✅ **Complete Translation Coverage**: All UI elements have translations for both languages, including dashboard subtitles and listing-related notifications.
 - ✅ Ensure RTL (Right-to-Left) layout support when Arabic is active:
   - ✅ Tailwind supports RTL with `dir="rtl"` on the `<html>` or `<body>` tag.
   - ✅ You can dynamically set it using:
     ```tsx
     <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} />
     ```
+  - ✅ Fixed RTL spacing issues for UI elements (buttons, icons, etc.) to ensure proper display in Arabic mode.
 
 - ✅ Example next-i18next configuration (`frontend/next-i18next.config.js`):
   ```js
@@ -248,7 +250,9 @@ frontend/
   - ⏳ User preference settings for notifications planned
 
 #### 2. Listing Expiry & Renewal:
-- ⏳ **Expiration Management**:
+- 🔄 **Expiration Management**:
+  - ✅ Implemented expiry notice translations
+  - ✅ Added translation for expired listings alert
   - ⏳ Renewal reminder system planned
   - ⏳ Auto-expiry functionality planned
   - ⏳ Renewal process workflow planned
@@ -256,6 +260,7 @@ frontend/
 #### 3. User Interactions & Alerts — Expanded
 - 🔄 **Error Handling**:
   - ✅ Created API error handler utility
+  - ✅ Added comprehensive translations for user interaction messages
   - 🔄 Global error boundary in development
   - ⏳ Comprehensive error tracking planned
 
@@ -355,9 +360,10 @@ frontend/
     ```
   - Use `Intl.DateTimeFormat` and `Intl.NumberFormat` for proper date and currency formatting based on locale.
   - **RTL Testing & Validation**:
-    - Set up visual testing specifically for RTL layouts in Storybook.
-    - Create RTL-specific test cases to ensure proper layout flipping.
-    - Test text alignment, icon positioning, and component flow in RTL mode.
+    - ✅ Test text alignment, icon positioning, and component flow in RTL mode.
+    - ✅ Fix spacing issues in RTL mode for UI elements like action buttons.
+    - ⏳ Set up visual testing specifically for RTL layouts in Storybook.
+    - ⏳ Create RTL-specific test cases to ensure proper layout flipping.
   - **Performance Considerations**:
     - **How to Avoid Slowness (Optimization Strategies):**
       - **Code Splitting & Dynamic Imports:** Only load the translation files needed for the current language and page (as described in your plan).
@@ -416,12 +422,13 @@ frontend/
       - **Static Generation with Revalidation:** Use `getStaticProps` with revalidation (Incremental Static Regeneration) for pages with translations that rarely change, improving performance and scalability.
       - **Streaming SSR with Suspense:** Consider implementing streaming SSR with React Suspense boundaries around i18n content to progressively render pages as soon as translations are ready, improving time-to-first-byte and perceived performance.
     - **RTL Performance**:
-      - Use CSS logical properties (e.g., `margin-inline-start` instead of `margin-left`) to avoid duplicated RTL styles
-      - Implement conditional CSS loading based on direction to avoid unnecessary RTL stylesheets:
+      - ✅ Use CSS logical properties (e.g., `margin-inline-start` instead of `margin-left`) to avoid duplicated RTL styles
+      - ✅ Implement proper RTL spacing with the `rtl:space-x-reverse` utility and additional gap controls in CSS
+      - ✅ Use CSS variables for direction-sensitive values instead of duplicating entire style rules
+      - ⏳ Implement conditional CSS loading based on direction to avoid unnecessary RTL stylesheets:
         ```tsx
         {locale === 'ar' && <link rel="stylesheet" href="/styles/rtl-specific.css" />}
         ```
-      - Consider using CSS variables for direction-sensitive values instead of duplicating entire style rules
     - **i18n Analysis & Monitoring**:
       - Add bundle analyzer configurations specifically for tracking i18n-related bundle size
       - Set up performance monitoring to compare metrics between different languages
