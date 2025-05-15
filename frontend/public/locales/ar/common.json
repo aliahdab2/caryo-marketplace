@@ -273,6 +273,7 @@
     "addedRecently": "أضيف حديثاً",
     "postedOn": "نشر في",
     "showingResults": "عرض {{count}} نتيجة",
+    "noCategory": "بدون تصنيف",
     "description": "الوصف",
     "features": "المميزات",
     "specifications": "المواصفات",
@@ -382,7 +383,17 @@
       "alloyWheels": "عجلات سبائك",
       "electricWindows": "نوافذ كهربائية"
     },
-    "loadingListings": "جاري تحميل القوائم..."
+    "loadingListings": "جاري تحميل القوائم...",
+    "sorting": {
+      "newest": "الأحدث أولاً",
+      "oldest": "الأقدم أولاً",
+      "priceLowToHigh": "السعر: من الأقل إلى الأعلى",
+      "priceHighToLow": "السعر: من الأعلى إلى الأقل",
+      "titleAZ": "العنوان: أ-ي",
+      "titleZA": "العنوان: ي-أ",
+      "mostViewed": "الأكثر مشاهدة",
+      "leastViewed": "الأقل مشاهدة"
+    }
   },
   "error": {
     "general": "حدث خطأ",

@@ -246,7 +246,17 @@
     "selectToCompare": "Select to compare",
     "compareSelected": "Compare selected",
     "tooltipInfo": "Click for more information",
-    "filterByStatus": "Filter by status"
+    "filterByStatus": "Filter by status",
+    "sorting": {
+      "newest": "Newest First",
+      "oldest": "Oldest First",
+      "priceLowToHigh": "Price: Low to High",
+      "priceHighToLow": "Price: High to Low",
+      "titleAZ": "Title: A-Z",
+      "titleZA": "Title: Z-A",
+      "mostViewed": "Most Viewed",
+      "leastViewed": "Least Viewed"
+    }
   },
   "settings": {
     "savedSuccessfully": "Settings saved successfully",
