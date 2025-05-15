@@ -9,21 +9,47 @@
 export const formatDate = (
   date: Date,
   locale: string,
-  options?: Intl.DateTimeFormatOptions
+  options?: any
 ): string => {
-  // Default options can be set here if desired
-  const defaultDateOptions: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    ...options,
-  };
   try {
+    // Handle dateStyle option separately, as it might cause issues in some environments
+    if (options && options.dateStyle) {
+      const dateStyleOptions: any = { ...options };
+      const dateStyle = dateStyleOptions.dateStyle;
+      delete dateStyleOptions.dateStyle;
+      
+      // Convert dateStyle to standard options
+      if (dateStyle === 'full' || dateStyle === 'long') {
+        dateStyleOptions.year = 'numeric';
+        dateStyleOptions.month = 'long';
+        dateStyleOptions.day = 'numeric';
+        dateStyleOptions.weekday = 'long';
+      } else if (dateStyle === 'medium') {
+        dateStyleOptions.year = 'numeric';
+        dateStyleOptions.month = 'short';
+        dateStyleOptions.day = 'numeric';
+      } else if (dateStyle === 'short') {
+        dateStyleOptions.year = 'numeric';
+        dateStyleOptions.month = 'numeric';
+        dateStyleOptions.day = 'numeric';
+      }
+      
+      return new Intl.DateTimeFormat(locale, dateStyleOptions).format(date);
+    }
+    
+    // Default options
+    const defaultDateOptions: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      ...(options || {}),
+    };
+    
     return new Intl.DateTimeFormat(locale, defaultDateOptions).format(date);
   } catch (error) {
     console.error('Error formatting date:', error);
     // Fallback to a simple date string or handle error as appropriate
-    return date.toLocaleDateString(); // Basic fallback
+    return date.toLocaleDateString(locale); // Basic fallback
   }
 };
 
