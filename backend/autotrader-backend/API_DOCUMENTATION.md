@@ -201,6 +201,148 @@ Authorization: Bearer <your_jwt_token>
   ]
   ```
 
+#### Favorites
+
+#### Add Listing to Favorites
+
+- **Endpoint**: `POST /api/favorites/{listingId}`
+- **Access**: Authenticated users
+- **Description**: Adds a car listing to the user's favorites/watchlist
+- **Authentication**: Required (JWT token)
+- **Parameters**:
+  - `listingId` (path parameter): ID of the car listing to add to favorites
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "carListing": {
+      "id": 123,
+      "title": "2019 Toyota Camry",
+      // ... other car listing fields
+    },
+    "createdAt": "2024-03-21T10:15:30Z"
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "status": 404,
+    "message": "Resource not found",
+    "details": "Car listing with id '123' was not found",
+    "timestamp": "2024-03-21T10:15:30.123Z"
+  }
+  ```
+- **Response (401 Unauthorized)**:
+  ```json
+  {
+    "status": 401,
+    "message": "Unauthorized",
+    "details": "User must be authenticated",
+    "timestamp": "2024-03-21T10:15:30.123Z"
+  }
+  ```
+
+#### Remove Listing from Favorites
+
+- **Endpoint**: `DELETE /api/favorites/{listingId}`
+- **Access**: Authenticated users
+- **Description**: Removes a car listing from the user's favorites/watchlist
+- **Authentication**: Required (JWT token)
+- **Parameters**:
+  - `listingId` (path parameter): ID of the car listing to remove from favorites
+- **Response (200 OK)**: Empty response
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "status": 404,
+    "message": "Resource not found",
+    "details": "Car listing with id '123' was not found",
+    "timestamp": "2024-03-21T10:15:30.123Z"
+  }
+  ```
+- **Response (401 Unauthorized)**:
+  ```json
+  {
+    "status": 401,
+    "message": "Unauthorized",
+    "details": "User must be authenticated",
+    "timestamp": "2024-03-21T10:15:30.123Z"
+  }
+  ```
+
+#### Get User's Favorites
+
+- **Endpoint**: `GET /api/favorites`
+- **Access**: Authenticated users
+- **Description**: Returns all car listings that the user has marked as favorite/watchlist
+- **Authentication**: Required (JWT token)
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 123,
+      "title": "2019 Toyota Camry",
+      "brand": "Toyota",
+      "model": "Camry",
+      "modelYear": 2019,
+      "price": 18500,
+      "mileage": 35000,
+      "location": "New York, NY",
+      "description": "Excellent condition, one owner, no accidents",
+      "imageUrl": "https://example.com/camry.jpg",
+      "approved": true,
+      "userId": 1,
+      "createdAt": "2024-03-21T10:15:30Z",
+      "updatedAt": null
+    }
+    // ... more listings
+  ]
+  ```
+- **Response (401 Unauthorized)**:
+  ```json
+  {
+    "status": 401,
+    "message": "Unauthorized",
+    "details": "User must be authenticated",
+    "timestamp": "2024-03-21T10:15:30.123Z"
+  }
+  ```
+
+#### Check if Listing is Favorite
+
+- **Endpoint**: `GET /api/favorites/{listingId}/check`
+- **Access**: Authenticated users
+- **Description**: Checks if a specific car listing is in the user's favorites/watchlist
+- **Authentication**: Required (JWT token)
+- **Parameters**:
+  - `listingId` (path parameter): ID of the car listing to check
+- **Response (200 OK)**:
+  ```json
+  true
+  ```
+  or
+  ```json
+  false
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "status": 404,
+    "message": "Resource not found",
+    "details": "Car listing with id '123' was not found",
+    "timestamp": "2024-03-21T10:15:30.123Z"
+  }
+  ```
+- **Response (401 Unauthorized)**:
+  ```json
+  {
+    "status": 401,
+    "message": "Unauthorized",
+    "details": "User must be authenticated",
+    "timestamp": "2024-03-21T10:15:30.123Z"
+  }
+  ```
+
 ### Status Endpoints
 
 #### Check Service Status
@@ -291,6 +433,34 @@ curl -X POST http://localhost:8080/api/listings \
 ```bash
 # Using the token from previous step
 curl -X GET http://localhost:8080/api/listings/my-listings \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+#### Add a Listing to Favorites
+```bash
+# Using the token from previous step
+curl -X POST http://localhost:8080/api/favorites/123 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+#### Remove a Listing from Favorites
+```bash
+# Using the token from previous step
+curl -X DELETE http://localhost:8080/api/favorites/123 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+#### Get Your Favorite Listings
+```bash
+# Using the token from previous step
+curl -X GET http://localhost:8080/api/favorites \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+#### Check if a Listing is in Your Favorites
+```bash
+# Using the token from previous step
+curl -X GET http://localhost:8080/api/favorites/123/check \
   -H "Authorization: Bearer $TOKEN"
 ```
 
