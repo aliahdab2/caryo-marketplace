@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { cookies } from 'next/headers';
 import "./globals.css";
-import "./rtl.css";  // Import RTL specific styles
+// RTL styles are conditionally loaded client-side for performance
 import AuthProvider from "@/components/AuthProvider";
 import LanguageProvider from "@/components/EnhancedLanguageProvider";
 import I18nProvider from "@/components/I18nProvider";
 import MainLayout from "@/components/layout/MainLayout";
+import ClientRTLStylesLoader from "@/components/layout/ClientRTLStylesLoader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,10 @@ export default async function RootLayout({
   
   return (
     <html lang={savedLocale} dir={isRTL ? 'rtl' : 'ltr'}>
+      <head>
+        {/* ClientRTLStylesLoader will conditionally load RTL styles only when needed */}
+        <ClientRTLStylesLoader />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

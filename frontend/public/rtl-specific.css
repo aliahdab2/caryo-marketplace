@@ -1,0 +1,101 @@
+/* RTL specific styles */
+
+/* Base RTL adjustments */
+[dir="rtl"] {
+  text-align: right;
+}
+
+/* Reverse Tailwind utilities for RTL */
+[dir="rtl"] .rtl\:space-x-reverse > * + * {
+  margin-right: var(--spacing);
+  margin-left: 0;
+}
+
+/* Fix for flex items with space-x classes in RTL mode */
+[dir="rtl"] .space-x-3.rtl\:space-x-reverse > * + * {
+  margin-right: 0.75rem;
+  margin-left: 0;
+}
+
+/* Enhanced spacing for RTL flex layouts */
+[dir="rtl"] .rtl\:gap-3 {
+  gap: 0.75rem !important;
+}
+
+/* Ensure all action buttons have proper spacing in RTL */
+[dir="rtl"] .flex.items-center.space-x-3 {
+  gap: 0.75rem;
+}
+
+/* Flip icons for RTL */
+[dir="rtl"] .flip-in-rtl {
+  transform: scaleX(-1);
+}
+
+/* Handle flex directions in RTL */
+[dir="rtl"] .rtl\:flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
+/* Text alignment */
+[dir="rtl"] .rtl\:text-right {
+  text-align: right;
+}
+
+[dir="rtl"] .rtl\:text-left {
+  text-align: left;
+}
+
+/* Margin adjustments */
+[dir="rtl"] .rtl\:mr-auto {
+  margin-right: auto;
+}
+
+[dir="rtl"] .rtl\:ml-auto {
+  margin-left: auto;
+}
+
+/* Flip margin and padding directionality */
+[dir="rtl"] .rtl\:ml-0 {
+  margin-left: 0;
+}
+
+[dir="rtl"] .rtl\:mr-0 {
+  margin-right: 0;
+}
+
+/* Reverse float properties */
+[dir="rtl"] .rtl\:float-right {
+  float: right;
+}
+
+[dir="rtl"] .rtl\:float-left {
+  float: left;
+}
+
+/* Fix input icons positioning */
+[dir="rtl"] .input-icon-right {
+  right: auto;
+  left: 0.75rem;
+}
+
+[dir="rtl"] .input-icon-left {
+  left: auto;
+  right: 0.75rem;
+}
+
+/* Adjust shadows for RTL */
+[dir="rtl"] .rtl\:shadow-r {
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Adjust borders for RTL */
+[dir="rtl"] .rtl\:border-l {
+  border-right: var(--border-width) solid var(--border-color);
+  border-left: 0;
+}
+
+[dir="rtl"] .rtl\:border-r {
+  border-left: var(--border-width) solid var(--border-color);
+  border-right: 0;
+}

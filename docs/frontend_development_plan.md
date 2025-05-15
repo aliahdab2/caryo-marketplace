@@ -362,8 +362,8 @@ frontend/
   - **RTL Testing & Validation**:
     - ✅ Test text alignment, icon positioning, and component flow in RTL mode.
     - ✅ Fix spacing issues in RTL mode for UI elements like action buttons.
-    - ⏳ Set up visual testing specifically for RTL layouts in Storybook.
-    - ⏳ Create RTL-specific test cases to ensure proper layout flipping.
+    - ✅ Set up visual testing specifically for RTL layouts with Visual Testing Components.
+    - ✅ Create RTL-specific test cases to ensure proper layout flipping.
   - **Performance Considerations**:
     - **How to Avoid Slowness (Optimization Strategies):**
       - **Code Splitting & Dynamic Imports:** Only load the translation files needed for the current language and page (as described in your plan).
@@ -425,9 +425,15 @@ frontend/
       - ✅ Use CSS logical properties (e.g., `margin-inline-start` instead of `margin-left`) to avoid duplicated RTL styles
       - ✅ Implement proper RTL spacing with the `rtl:space-x-reverse` utility and additional gap controls in CSS
       - ✅ Use CSS variables for direction-sensitive values instead of duplicating entire style rules
-      - ⏳ Implement conditional CSS loading based on direction to avoid unnecessary RTL stylesheets:
+      - ✅ Implement conditional CSS loading based on direction to avoid unnecessary RTL stylesheets:
         ```tsx
-        {locale === 'ar' && <link rel="stylesheet" href="/styles/rtl-specific.css" />}
+        // ClientRTLStylesLoader component handles this now
+        const [isRTL, setIsRTL] = useState(false);
+        useEffect(() => {
+          setIsRTL(document.documentElement.dir === "rtl");
+        }, [pathname]);
+        
+        return isRTL ? <link rel="stylesheet" href="/rtl-specific.css" /> : null;
         ```
     - **i18n Analysis & Monitoring**:
       - Add bundle analyzer configurations specifically for tracking i18n-related bundle size
