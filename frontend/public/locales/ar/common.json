@@ -178,6 +178,9 @@
     "mileage": "المسافة المقطوعة",
     "location": "الموقع",
     "language": "اللغة",
+    "viewMode": "طريقة العرض",
+    "gridView": "عرض شبكي",
+    "listView": "عرض قائمة",
     "status": "الحالة",
     "views": "المشاهدات",
     "title": "العنوان",
@@ -190,6 +193,7 @@
     "back": "رجوع",
     "any": "الكل",
     "reset": "إعادة ضبط",
+    "clearFilters": "مسح الفلاتر",
     "of": "من",
     "viewAll": "عرض الكل",
     "saveChanges": "حفظ التغييرات",
@@ -206,10 +210,15 @@
     "search": "بحث",
     "filter": "تصفية",
     "sortBy": "ترتيب حسب",
+    "filterBy": "تصفية حسب",
     "allLocations": "جميع المواقع",
     "proceed": "متابعة",
     "date": "التاريخ",
     "time": "الوقت",
+    "minYear": "السنة من",
+    "maxYear": "السنة إلى",
+    "minMileage": "المسافة من",
+    "maxMileage": "المسافة إلى",
     "phone": "الهاتف",
     "contactUs": "اتصل بنا",
     "openMenu": "فتح القائمة",
@@ -234,6 +243,7 @@
     "priceLowToHigh": "السعر: من الأقل إلى الأعلى",
     "priceHighToLow": "السعر: من الأعلى إلى الأقل",
     "viewDetails": "عرض التفاصيل",
+    "km": "كم",
     "retry": "إعادة المحاولة"
   },
   "settings": {
@@ -307,9 +317,11 @@
     "make": "الشركة المصنعة",
     "model": "الموديل",
     "condition": "الحالة",
-    "new": "جديد",
-    "used": "مستعمل",
-    "certified": "معتمد مسبقا",
+    "conditions": {
+      "new": "جديد",
+      "used": "مستعمل",
+      "certified": "معتمد مسبقا"
+    },
     "exteriorColor": "اللون الخارجي",
     "interiorColor": "اللون الداخلي",
     "colorPlaceholder": "مثال: أبيض، أسود، أزرق",
@@ -371,6 +383,7 @@
     "expiry": "انتهاء الصلاحية",
     "date": "التاريخ",
     "viewsTooltip": "عدد مرات مشاهدة إعلانك من قبل المستخدمين",
+    "expiresIn": "ينتهي في {{days}} أيام",
     "featuresList": {
       "airConditioning": "تكييف هواء",
       "leatherSeats": "مقاعد جلدية",
@@ -393,12 +406,39 @@
       "titleZA": "العنوان: ي-أ",
       "mostViewed": "الأكثر مشاهدة",
       "leastViewed": "الأقل مشاهدة"
+    },
+    "itemsFound": "تم العثور على {{count}} عنصر",
+    "itemsFound_zero": "لم يتم العثور على أي عناصر",
+    "itemsFound_one": "تم العثور على عنصر واحد",
+    "itemsFound_two": "تم العثور على عنصرين",
+    "itemsFound_few": "تم العثور على {{count}} عناصر",
+    "itemsFound_many": "تم العثور على {{count}} عنصراً",
+    "itemsFound_other": "تم العثور على {{count}} عنصر"
+  },
+  "favorites": {
+    "title": "مفضلتي",
+    "noFavorites": "لا توجد سيارات في المفضلة",
+    "startBrowsing": "ابدأ بتصفح السيارات المعروضة لإضافتها إلى مفضلتك",
+    "browseCars": "تصفح السيارات",
+    "remove": "إزالة من المفضلة",
+    "itemCount": "سيارة",
+    "itemCount_zero": "لا توجد سيارات",
+    "itemCount_one": "سيارة واحدة",
+    "itemCount_two": "سيارتان",
+    "itemCount_few": "سيارات",
+    "itemCount_many": "سيارة",
+    "itemCount_other": "سيارة",
+    "empty": {
+      "title": "لا توجد مفضلات حتى الآن",
+      "message": "لم تقم بإضافة أي سيارات إلى مفضلتك بعد",
+      "browseListings": "تصفح السيارات المعروضة"
     }
   },
   "error": {
     "general": "حدث خطأ",
     "networkError": "خطأ في الشبكة. يرجى التحقق من اتصالك والمحاولة مرة أخرى.",
-    "loadingFavorites": "فشل في تحميل المفضلة. يرجى المحاولة مرة أخرى.",
-    "addFavorite": "فشل في الإضافة إلى المفضلة"
+    "loadingFavorites": "فشل في تحميل المفضلة",
+    "addFavorite": "فشل في الإضافة إلى المفضلة",
+    "removeFavorite": "فشل في الإزالة من المفضلة"
   }
 }

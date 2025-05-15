@@ -115,10 +115,18 @@ export default function ListingsPage() {
     setTimeout(() => setTableRefreshed(false), 1500);
   };
 
-	// Function to calculate days until expiry or days since expired
-  const getDaysUntilExpiry = (expiryDate: string) => {
+	/**
+   * Calculates days until expiry or days since expired
+   * @param expiryDate - The expiry date in ISO format
+   * @returns Positive number for days until expiry, negative number for days since expiry
+   */
+  const getDaysUntilExpiry = (expiryDate: string): number => {
     const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to start of day for consistent calculations
+    
     const expiry = new Date(expiryDate);
+    expiry.setHours(0, 0, 0, 0); // Normalize to start of day
+    
     const diffTime = expiry.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
@@ -421,14 +429,18 @@ export default function ListingsPage() {
 						</select>
 					</div>
 
-          <div className="md:col-span-1 flex items-end">
+          <div className="md:col-span-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 invisible">
+              {t("common.actions")}
+            </label>
             <button 
               onClick={handleClearFilters}
-              className="w-full md:w-auto p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors flex justify-center items-center"
+              className="w-full md:w-auto p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors flex justify-center items-center focus:ring-2 focus:ring-primary/30 focus:border-primary"
               title={t("common.clearFilters")}
               aria-label={t("common.clearFilters")}
+              type="button"
             >
-              <MdClose className="mr-1 md:mr-0" />
+              <MdClose className="mr-1 md:mr-0" aria-hidden="true" />
               <span className="md:hidden ml-1">{t("common.clearFilters")}</span>
             </button>
           </div>
@@ -540,15 +552,23 @@ export default function ListingsPage() {
 								filteredListings.map((listing) => {
                   // Calculate days until expiry
                   const daysUntilExpiry = getDaysUntilExpiry(listing.expires);
+                  
+                  // Format expiry text with appropriate translation
                   const expiryText = daysUntilExpiry > 0 
                     ? t("listings.expiresIn", { days: daysUntilExpiry })
                     : t("listings.expiredDaysAgo", { days: Math.abs(daysUntilExpiry) });
                   
-                  // Define row background color based on status
-                  const rowBgColor = listing.status === "active" 
-                    ? "hover:bg-green-50/30 dark:hover:bg-green-900/10" 
-                    : listing.status === "expired" 
-                      ? "hover:bg-red-50/30 dark:hover:bg-red-900/10 bg-red-50/20 dark:bg-red-900/5" 
+                  // Define row background color and styles based on status
+                  const isExpired = listing.status === "expired";
+                  const isExpiringSoon = !isExpired && daysUntilExpiry <= 7;
+                  
+                  // Apply appropriate visual styles based on status
+                  const rowBgColor = isExpired 
+                    ? "hover:bg-red-50/30 dark:hover:bg-red-900/10 bg-red-50/20 dark:bg-red-900/5" 
+                    : isExpiringSoon
+                      ? "hover:bg-amber-50/30 dark:hover:bg-amber-900/10 bg-amber-50/10 dark:bg-amber-900/5"
+                    : listing.status === "active"
+                      ? "hover:bg-green-50/30 dark:hover:bg-green-900/10" 
                       : "hover:bg-gray-50 dark:hover:bg-gray-700";
                   
                   return (

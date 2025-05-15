@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="60px" height="60px" viewBox="0 0 60 60" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
     <title>Default Car</title>
     <defs>
         <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="gradient">
@@ -8,16 +8,16 @@
         </linearGradient>
     </defs>
     <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <rect fill="#F3F4F6" x="0" y="0" width="60" height="60" rx="6"></rect>
-        <g transform="translate(5.000000, 15.000000)">
-            <path d="M46,20 L44,10 C43.5,7.5 41,5 37,5 L13,5 C9,5 6.5,7.5 6,10 L4,20" stroke="#4B5563" stroke-width="2" stroke-linecap="round"></path>
-            <rect fill="#4B5563" x="1" y="20" width="48" height="12" rx="2"></rect>
-            <circle fill="#F3F4F6" cx="10" cy="26" r="5"></circle>
-            <circle fill="#F3F4F6" cx="40" cy="26" r="5"></circle>
-            <circle fill="#4B5563" cx="10" cy="26" r="2"></circle>
-            <circle fill="#4B5563" cx="40" cy="26" r="2"></circle>
-            <path d="M15,14 L35,14" stroke="#4B5563" stroke-width="2" stroke-linecap="round"></path>
-            <rect fill="url(#gradient)" x="18" y="7" width="14" height="6" rx="1"></rect>
-        </g>
+        <rect width="800" height="600" fill="#F3F4F6"/>
+        <path d="M150 350 C150 350 200 350 250 350 L300 300 L500 300 L550 350 C600 350 650 350 650 350 L650 400 L150 400 L150 350 Z" fill="#E5E7EB"/>
+        <path d="M300 300 L350 250 L450 250 L500 300 L300 300 Z" fill="#D1D5DB"/>
+        <path d="M320 295 L360 255 L440 255 L480 295 Z" fill="#9CA3AF"/>
+        <circle cx="250" cy="400" r="50" fill="#4B5563"/>
+        <circle cx="250" cy="400" r="25" fill="#6B7280"/>
+        <circle cx="550" cy="400" r="50" fill="#4B5563"/>
+        <circle cx="550" cy="400" r="25" fill="#6B7280"/>
+        <path d="M180 340 L200 340 L200 360 L180 360 Z" fill="#FBBF24"/>
+        <path d="M600 340 L620 340 L620 360 L600 360 Z" fill="#EF4444"/>
+        <text x="400" y="500" font-family="Arial" font-size="24" fill="#6B7280" text-anchor="middle">No Image Available</text>
     </g>
 </svg>

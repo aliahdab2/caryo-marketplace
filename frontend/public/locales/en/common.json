@@ -56,6 +56,9 @@
     "status": "Status",
     "notAvailable": "Not available",
     "back": "Back",
+    "viewMode": "View Mode",
+    "gridView": "Grid View",
+    "listView": "List View",
     "any": "Any",
     "reset": "Reset",
     "of": "of",
@@ -77,9 +80,14 @@
     "filtersAndSort": "Filters & Sort",
     "clearFilters": "Clear Filters",
     "sortBy": "Sort by",
+    "filterBy": "Filter by",
     "proceed": "Proceed",
     "date": "Date",
     "time": "Time",
+    "minYear": "Min Year",
+    "maxYear": "Max Year",
+    "minMileage": "Min Mileage",
+    "maxMileage": "Max Mileage",
     "phone": "Phone",
     "contactUs": "Contact Us",
     "openMenu": "Open menu",
@@ -256,7 +264,8 @@
       "titleZA": "Title: Z-A",
       "mostViewed": "Most Viewed",
       "leastViewed": "Least Viewed"
-    }
+    },
+    "itemsFound": "{{count}} items found"
   },
   "settings": {
     "savedSuccessfully": "Settings saved successfully",
@@ -318,10 +327,23 @@
       }
     }
   },
+  "favorites": {
+    "title": "My Favorites",
+    "noFavorites": "No Favorite Vehicles",
+    "startBrowsing": "Start browsing our listings to add vehicles to your favorites",
+    "browseCars": "Browse Vehicles",
+    "remove": "Remove from favorites",
+    "itemCount": "vehicles",
+    "empty": {
+      "title": "No favorites yet",
+      "message": "You haven't added any vehicles to your favorites yet",
+      "browseListings": "Browse Listings"
+    }
+  },
   "error": {
     "general": "An error occurred",
     "networkError": "Network error. Please check your connection and try again.",
-    "loadingFavorites": "Failed to load favorites. Please try again.",
+    "loadingFavorites": "Failed to load favorites",
     "addFavorite": "Failed to add to favorites",
     "removeFavorite": "Failed to remove from favorites",
     "checkFavorite": "Failed to check favorite status"
