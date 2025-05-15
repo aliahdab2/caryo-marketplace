@@ -5,7 +5,7 @@ This directory contains configuration files for the AutoTrader Marketplace devel
 ## Files
 
 - `Dockerfile.dev`: Docker image definition for development with hot reloading
-- `docker-compose.dev.yml`: Docker Compose configuration for all development services
+- `docker compose.dev.yml`: Docker Compose configuration for all development services
 - `.env`: Environment variables for development configuration
 - `dev-env.sh`: Main script for managing the development environment
 
