@@ -12,6 +12,8 @@ interface FavoriteButtonProps {
   size?: 'sm' | 'md' | 'lg';
   variant?: 'filled' | 'outline';
   onToggle?: (isFavorite: boolean) => void;
+  mockMode?: boolean; // Add mock mode for development with mock data
+  initialFavorite?: boolean; // Add ability to set initial favorite status
 }
 
 export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
@@ -19,12 +21,15 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   className = '',
   size = 'md',
   variant = 'filled',
-  onToggle
+  onToggle,
+  mockMode = false,
+  initialFavorite = false
 }) => {
   const { t } = useTranslation('common');
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -45,6 +50,12 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
 
   useEffect(() => {
     const checkFavoriteStatus = async () => {
+      // If in mock mode, just use the initialFavorite value
+      if (mockMode) {
+        setIsFavorite(initialFavorite);
+        return;
+      }
+
       if (!session?.user) {
         // If user is not logged in, always show as not a favorite
         setIsFavorite(false);
@@ -67,21 +78,41 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
     };
 
     checkFavoriteStatus();
-  }, [listingId, session, t]);
+  }, [listingId, session, t, mockMode, initialFavorite]);
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault(); // Stop event propagation if button is inside a link/card
     e.stopPropagation();
     
-    if (!session?.user) {
-      // Redirect to login if user is not authenticated
-      router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.href));
+    // Start animation regardless of auth state
+    setIsAnimating(true);
+    
+    if (!session?.user && !mockMode) {
+      // Redirect to login if user is not authenticated and not in mock mode
+      setTimeout(() => {
+        setIsAnimating(false);
+        router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.href));
+      }, 300);
       return;
     }
     
     try {
-      setIsLoading(true);
+      if (!mockMode) {
+        setIsLoading(true);
+      }
       setError(null);
+      
+      const newFavoriteState = !isFavorite;
+      
+      if (mockMode) {
+        // In mock mode, just toggle the state without API calls
+        setTimeout(() => {
+          setIsFavorite(newFavoriteState);
+          if (onToggle) onToggle(newFavoriteState);
+          setIsAnimating(false);
+        }, 300);
+        return;
+      }
       
       if (isFavorite) {
         await removeFromFavorites(listingId);
@@ -104,6 +135,9 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       }, 3000);
     } finally {
       setIsLoading(false);
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 300);
     }
   };
 
@@ -112,7 +146,11 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       type="button"
       onClick={handleToggleFavorite}
       disabled={isLoading}
-      className={`rounded-full flex items-center justify-center transition-all duration-200 ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
+      className={`rounded-full flex items-center justify-center shadow-sm transition-all duration-200 
+        ${isAnimating ? 'scale-110 transform' : 'transform-none'} 
+        ${sizeClasses[size]} ${variantClasses[variant]} ${className}
+        ${isAnimating && isFavorite ? 'animate-heartbeat' : ''}
+        hover:scale-105 active:scale-95`}
       aria-label={isFavorite ? t('listings.removeFromFavorites') : t('listings.addToFavorites')}
       title={isFavorite ? t('listings.removeFromFavorites') : t('listings.addToFavorites')}
     >
@@ -124,7 +162,7 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       ) : (
         <svg 
           xmlns="http://www.w3.org/2000/svg" 
-          className={`h-5 w-5 ${isFavorite ? 'fill-current' : 'stroke-current fill-none'}`}
+          className={`h-5 w-5 transition-all duration-300 ${isAnimating ? 'scale-110' : ''} ${isFavorite ? 'fill-current' : 'stroke-current fill-none'}`}
           viewBox="0 0 24 24"
           strokeWidth={isFavorite ? "0" : "2"}
         >

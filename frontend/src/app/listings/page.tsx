@@ -4,10 +4,12 @@ import React, { useEffect, useState, Suspense, useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { useSession } from 'next-auth/react';
 import { Listing } from '@/types/listing';
 import { getListings, ListingFilters } from '@/services/listings';
 import { formatDate, formatNumber } from '@/utils/localization';
 import ResponsiveCard from '@/components/responsive/ResponsiveCard';
+import FavoriteButton from '@/components/common/FavoriteButton';
 import { fluidValue, useBreakpoint, responsiveSpace } from '@/utils/responsive';
 
 // Corrected Filters interface
@@ -28,6 +30,7 @@ interface Filters {
 
 const ListingsPage = () => {
   const { t, i18n } = useTranslation('listings');
+  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
   const categoryQuery = searchParams.get('category');
@@ -150,38 +153,53 @@ const ListingsPage = () => {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {listingsToDisplay.map((listing) => (
-          <Link href={`/listings/${listing.id}`} key={listing.id} className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out group">
-            <div className="relative h-48 w-full overflow-hidden">
-              <img
-                src={listing.media && listing.media.length > 0 ? listing.media[0].url : (listing.image || '/images/placeholder-image.png')}
-                alt={listing.title}
-                className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
+          <div key={listing.id} className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out">
+            <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+              <FavoriteButton
+                listingId={listing.id.toString()}
+                variant="filled"
+                size="sm"
+                className="shadow-md hover:shadow-lg"
+                mockMode={true} 
+                initialFavorite={false}
+                onToggle={(isFavorite) => {
+                  console.log(`Listing ${listing.id} favorite status: ${isFavorite}`);
+                }}
               />
             </div>
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 truncate group-hover:text-primary-500 transition-colors">
-                {listing.title}
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 capitalize">
-                {listing.category?.name || t('noCategory')}
-              </p>
-              <p className="text-xl font-bold text-primary-600 dark:text-primary-400 mb-2">
-                {formatNumber(listing.price, i18n.language, { style: 'currency', currency: listing.currency || 'SYP' })}
-              </p>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                <p className="truncate">
-                  {listing.location?.city || t('unknownLocation')}
-                  {listing.location?.country ? `, ${listing.location.country}` : ''}
-                </p>
-                <p>{t('postedOn')}: {listing.createdAt ? (
-                  formatDate(listing.createdAt, i18n.language, { dateStyle: 'medium' }) || t('listings.addedRecently')
-                ) : t('listings.addedRecently')}</p>
-                {listing.updatedAt && listing.updatedAt !== listing.createdAt && (
-                  <p>{t('updatedOn')}: {formatDate(new Date(listing.updatedAt), i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}</p>
-                )}
+            <Link href={`/listings/${listing.id}`} className="block group">
+              <div className="relative h-48 w-full overflow-hidden">
+                <img
+                  src={listing.media && listing.media.length > 0 ? listing.media[0].url : (listing.image || '/images/placeholder-image.png')}
+                  alt={listing.title}
+                  className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
+                />
               </div>
-            </div>
-          </Link>
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 truncate group-hover:text-primary-500 transition-colors">
+                  {listing.title}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 capitalize">
+                  {listing.category?.name || t('noCategory')}
+                </p>
+                <p className="text-xl font-bold text-primary-600 dark:text-primary-400 mb-2">
+                  {formatNumber(listing.price, i18n.language, { style: 'currency', currency: listing.currency || 'SYP' })}
+                </p>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="truncate">
+                    {listing.location?.city || t('unknownLocation')}
+                    {listing.location?.country ? `, ${listing.location.country}` : ''}
+                  </p>
+                  <p>{t('postedOn')}: {listing.createdAt ? (
+                    formatDate(listing.createdAt, i18n.language, { dateStyle: 'medium' }) || t('listings.addedRecently')
+                  ) : t('listings.addedRecently')}</p>
+                  {listing.updatedAt && listing.updatedAt !== listing.createdAt && (
+                    <p>{t('updatedOn')}: {formatDate(new Date(listing.updatedAt), i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                  )}
+                </div>
+              </div>
+            </Link>
+          </div>
         ))}
       </div>
     );

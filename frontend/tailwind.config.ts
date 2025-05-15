@@ -32,6 +32,7 @@ const config: Config = {
       animation: {
         'fadeIn': 'fadeIn 0.2s ease-in-out',
         'slideDown': 'slideDown 0.2s ease-in-out',
+        'heartbeat': 'heartbeat 1s ease-in-out',
       },
       keyframes: {
         fadeIn: {
@@ -41,6 +42,13 @@ const config: Config = {
         slideDown: {
           '0%': { transform: 'translateY(-10px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        heartbeat: {
+          '0%': { transform: 'scale(1)' },
+          '25%': { transform: 'scale(1.3)' },
+          '50%': { transform: 'scale(1)' },
+          '75%': { transform: 'scale(1.3)' },
+          '100%': { transform: 'scale(1)' },
         },
       },
     },
