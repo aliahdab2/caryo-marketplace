@@ -4,7 +4,6 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import SimpleSuccessAlert from '@/components/ui/alerts/SimpleSuccessAlert';
 import { useApiErrorHandler } from '@/utils/apiErrorHandler';
 import SimpleVerification from '@/components/auth/SimpleVerification';
 
@@ -16,7 +15,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [redirecting, setRedirecting] = useState(false); // Track redirect state
   const [callbackUrl, setCallbackUrl] = useState("/dashboard");
   const [isVerified, setIsVerified] = useState(false); // Track verification status
   
@@ -76,16 +75,17 @@ export default function SignInPage() {
       if (result?.error) {
         // Use our error handler to get user-friendly error messages
         setError(getErrorMessage({ message: result.error }));
+        setLoading(false);
       } else if (result?.ok) {
-        // Show success alert
-        setShowSuccess(true);
+        // Set redirecting state to trigger the visual transition
+        setRedirecting(true);
+        setError(""); // Clear any previous errors
         
         // Force NextAuth to sync the session before redirecting
-        // This ensures the session is fully established before navigation
         const syncSession = async () => {
           try {
             // Wait a moment for NextAuth to complete its internal processes
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 800));
             
             // Hard redirect to ensure complete page refresh with new session
             window.location.href = callbackUrl;
@@ -96,8 +96,8 @@ export default function SignInPage() {
           }
         };
         
-        // Start the session sync process after showing the success message
-        setTimeout(syncSession, 1000);
+        // Start the session sync process right away
+        syncSession();
       } else {
         setError("An unknown error occurred.");
       }
@@ -105,36 +105,32 @@ export default function SignInPage() {
       setError(getErrorMessage(err));
       console.error("Sign-in error", err);
     } finally {
-      setLoading(false);
-    }
-  };
-
-  // Determine success message based on redirect location
-  const getSuccessMessage = () => {
-    if (callbackUrl.includes('/listings')) {
-      return t('auth.signinSuccessListings', 'Signed in successfully! Redirecting to listings...');
-    } else if (callbackUrl.includes('/dashboard')) {
-      return t('auth.signinSuccessDashboard', 'Signed in successfully! Redirecting to dashboard...');
-    } else {
-      return t('auth.signinSuccess', 'Signed in successfully!');
+      // Only reset loading if we're not redirecting
+      if (!redirecting) {
+        setLoading(false);
+      }
     }
   };
 
   return (
-    <div className="max-w-md mx-auto my-12 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-      {/* Simple success alert for login */}
-      <SimpleSuccessAlert 
-        visible={showSuccess}
-        message={getSuccessMessage()}
-        autoHideDuration={3000}
-        onComplete={() => setShowSuccess(false)}
-      />
-      
+    <div className="max-w-md mx-auto my-12 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md transition-all duration-300 ease-in-out">
+      {/* Show a success banner when redirecting */}
+      {redirecting && (
+        <div className="absolute top-0 left-0 right-0 p-4 bg-green-500 text-white text-center rounded-t-lg transition-all transform animate-pulse">
+          <p className="flex items-center justify-center">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            {t('auth.loginSuccess', 'Login successful!')} {t('auth.redirecting', 'Redirecting...')}
+          </p>
+        </div>
+      )}
+
       <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-white">
         {t('auth.signin')}
       </h1>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className={redirecting ? 'opacity-50 pointer-events-none' : ''}>
         <div className="mb-4">
           <label
             htmlFor="username"
@@ -149,7 +145,7 @@ export default function SignInPage() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
-            disabled={loading}
+            disabled={loading || redirecting}
             placeholder={t('auth.username')}
           />
         </div>
@@ -168,7 +164,7 @@ export default function SignInPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            disabled={loading}
+            disabled={loading || redirecting}
             placeholder="••••••••"
           />
         </div>
@@ -200,8 +196,8 @@ export default function SignInPage() {
 
         <button
           type="submit"
-          disabled={loading || !isVerified} // Disable if not verified
-          className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${(loading || !isVerified) ? 'opacity-70 cursor-not-allowed' : ''}`}
+          disabled={loading || !isVerified || redirecting} // Disable if loading, not verified, or redirecting
+          className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${redirecting ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${(loading || !isVerified || redirecting) ? 'opacity-70 cursor-not-allowed' : ''} transition-colors`}
         >
           {loading ? (
             <span className="flex items-center justify-center">
@@ -209,7 +205,7 @@ export default function SignInPage() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              {t('common.loading')}
+              {redirecting ? t('auth.redirecting', 'Redirecting...') : t('common.loading')}
             </span>
           ) : (
             t('auth.signin')
