@@ -29,7 +29,7 @@ interface Filters {
 }
 
 const ListingsPage = () => {
-  const { t, i18n } = useTranslation('listings');
+  const { t, i18n } = useTranslation(['common']);
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -141,13 +141,13 @@ const ListingsPage = () => {
 
   const ListingsGrid = ({ listingsToDisplay }: { listingsToDisplay: Listing[] }) => {
     if (isLoading) {
-      return <div className="text-center py-10">{t('loadingListings')}</div>;
+      return <div className="text-center py-10">{t('listings.loadingListings')}</div>;
     }
     if (error) {
       return <div className="text-center py-10 text-red-500">{error}</div>;
     }
     if (listingsToDisplay.length === 0) {
-      return <div className="text-center py-10">{t('noListingsFound')}</div>;
+      return <div className="text-center py-10">{t('listings.noListingsFound')}</div>;
     }
 
     return (
@@ -170,7 +170,7 @@ const ListingsPage = () => {
             <Link href={`/listings/${listing.id}`} className="block group">
               <div className="relative h-48 w-full overflow-hidden">
                 <img
-                  src={listing.media && listing.media.length > 0 ? listing.media[0].url : (listing.image || '/images/placeholder-image.png')}
+                  src={listing.media && listing.media.length > 0 ? listing.media[0].url : '/images/vehicles/car-default.svg'}
                   alt={listing.title}
                   className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
                 />
@@ -180,21 +180,21 @@ const ListingsPage = () => {
                   {listing.title}
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 capitalize">
-                  {listing.category?.name || t('noCategory')}
+                  {listing.category?.name || t('listings.noCategory')}
                 </p>
                 <p className="text-xl font-bold text-primary-600 dark:text-primary-400 mb-2">
                   {formatNumber(listing.price, i18n.language, { style: 'currency', currency: listing.currency || 'SYP' })}
                 </p>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
                   <p className="truncate">
-                    {listing.location?.city || t('unknownLocation')}
+                    {listing.location?.city || t('listings.unknownLocation')}
                     {listing.location?.country ? `, ${listing.location.country}` : ''}
                   </p>
-                  <p>{t('postedOn')}: {listing.createdAt ? (
+                  <p>{t('listings.postedOn')}: {listing.createdAt ? (
                     formatDate(listing.createdAt, i18n.language, { dateStyle: 'medium' }) || t('listings.addedRecently')
                   ) : t('listings.addedRecently')}</p>
                   {listing.updatedAt && listing.updatedAt !== listing.createdAt && (
-                    <p>{t('updatedOn')}: {formatDate(new Date(listing.updatedAt), i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                    <p>{t('listings.updatedOn')}: {formatDate(new Date(listing.updatedAt), i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}</p>
                   )}
                 </div>
               </div>
@@ -450,7 +450,7 @@ const ListingsPage = () => {
             fontSize: fluidValue(0.75, 0.875, 375, 1280, 'rem')
           }}
         >
-          {t('listings.showing')} <span className="font-medium">{totalListings}</span> {t('listings.results')}
+          {t('listings.showingResults', { count: totalListings })}
         </div>
         <div 
           className="text-gray-600 dark:text-gray-400"

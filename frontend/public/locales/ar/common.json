@@ -19,7 +19,7 @@
     "signup": "إنشاء حساب",
     "username": "اسم المستخدم",
     "email": "البريد الإلكتروني",
-    "userId": "رقم المستخدم",
+    "userId": "معرف المستخدم",
     "password": "كلمة المرور",
     "confirmPassword": "تأكيد كلمة المرور",
     "forgotPassword": "نسيت كلمة المرور؟",
@@ -27,8 +27,8 @@
     "alreadyHaveAccount": "لديك حساب بالفعل؟",
     "signupSuccess": "تم التسجيل بنجاح!",
     "signinSuccess": "تم تسجيل الدخول بنجاح!",
-    "signinSuccessListings": "تم تسجيل الدخول بنجاح! جارٍ التوجيه إلى قائمة السيارات...",
-    "signinSuccessDashboard": "تم تسجيل الدخول بنجاح! جارٍ التوجيه إلى لوحة التحكم...",
+    "signinSuccessListings": "تم تسجيل الدخول بنجاح! جاري التحويل إلى القائمة...",
+    "signinSuccessDashboard": "تم تسجيل الدخول بنجاح! جاري التحويل إلى لوحة التحكم...",
     "loginToAccess": "الرجاء تسجيل الدخول للوصول إلى هذه الصفحة",
     "changePassword": "تغيير كلمة المرور",
     "currentPassword": "كلمة المرور الحالية",
@@ -44,20 +44,24 @@
     "verifyIdentity": "التحقق من الهوية",
     "clickToVerify": "انقر للتحقق من جهازك",
     "verificationRequired": "التحقق الأمني مطلوب",
+    "credentialsRequired": "اسم المستخدم وكلمة المرور مطلوبان",
+    "unknownError": "حدث خطأ غير معروف. الرجاء المحاولة مرة أخرى",
+    "rememberMe": "تذكرني",
     "pleaseVerifyFirst": "يرجى التحقق من جهازك قبل التسجيل",
     "verifying": "جاري التحقق...",
     "verified": "تم التحقق",
     "verificationFailed": "فشل التحقق",
     "verificationControl": "التحكم في التحقق من الجهاز",
     "tryAgain": "حاول مرة أخرى",
-    "securityCheck": "فحص الأمان",
-    "securityCheckCompleted": "تم إكمال فحص الأمان"
+    "securityCheck": "التحقق الأمني",
+    "securityCheckCompleted": "تم إكمال التحقق الأمني"
   },
   "dashboard": {
     "welcome": "مرحباً بك في لوحة التحكم",
     "welcomeUser": "مرحباً، {{name}}!",
     "myListings": "سياراتي المعروضة",
     "createListing": "إضافة سيارة جديدة",
+    "createListingDesc": "اعرض سيارتك للبيع",
     "loading": "جاري تحميل لوحة التحكم...",
     "noListings": "ليس لديك أي سيارات معروضة حالياً",
     "accountInfo": "معلومات الحساب",
@@ -68,6 +72,8 @@
     "overviewSubtitle": "إدارة سياراتك المعروضة، وتتبع الأداء، والمزيد",
     "profile": "الملف الشخصي",
     "settings": "الإعدادات",
+    "editProfileDesc": "تحديث معلومات ملفك الشخصي وتفضيلاتك",
+    "logoutDesc": "تسجيل الخروج من حسابك",
     "activeListings": "السيارات النشطة",
     "views": "المشاهدات",
     "messages": "الرسائل",
@@ -172,6 +178,10 @@
     "mileage": "المسافة المقطوعة",
     "location": "الموقع",
     "language": "اللغة",
+    "status": "الحالة",
+    "views": "المشاهدات",
+    "title": "العنوان",
+    "image": "الصورة",
     "languages": {
       "english": "الإنجليزية",
       "arabic": "العربية"
@@ -196,6 +206,7 @@
     "search": "بحث",
     "filter": "تصفية",
     "sortBy": "ترتيب حسب",
+    "allLocations": "جميع المواقع",
     "proceed": "متابعة",
     "date": "التاريخ",
     "time": "الوقت",
@@ -221,7 +232,9 @@
     "priceLow": "السعر: من الأقل إلى الأعلى",
     "priceHigh": "السعر: من الأعلى إلى الأقل",
     "priceLowToHigh": "السعر: من الأقل إلى الأعلى",
-    "priceHighToLow": "السعر: من الأعلى إلى الأقل"
+    "priceHighToLow": "السعر: من الأعلى إلى الأقل",
+    "viewDetails": "عرض التفاصيل",
+    "retry": "إعادة المحاولة"
   },
   "settings": {
     "savedSuccessfully": "تم حفظ الإعدادات بنجاح",
@@ -256,6 +269,10 @@
     "pageDescription": "تصفح مجموعتنا من السيارات ذات الجودة العالية",
     "notFound": "الإعلان غير موجود",
     "notFoundDescription": "الإعلان الذي تبحث عنه غير موجود أو تمت إزالته.",
+    "unknownLocation": "موقع غير معروف",
+    "addedRecently": "أضيف حديثاً",
+    "postedOn": "نشر في",
+    "showingResults": "عرض {{count}} نتيجة",
     "description": "الوصف",
     "features": "المميزات",
     "specifications": "المواصفات",
@@ -282,7 +299,7 @@
     "actions": "الإجراءات",
     "active": "نشط",
     "expired": "منتهي الصلاحية",
-    "pending": "قيد الانتظار",
+    "pending": "قيد المراجعة",
     "renew": "تجديد",
     "confirmDelete": "هل أنت متأكد من أنك تريد حذف هذا الإعلان؟ هذا الإجراء لا يمكن التراجع عنه.",
     "noMatchingListings": "لا توجد سيارات مطابقة",
@@ -324,7 +341,6 @@
     "step3Title": "الموقع والاتصال",
     "step4Title": "الصور والمدة",
     "preview": "معاينة",
-    "expiresIn": "ينتهي في {{days}} أيام",
     "expiredDaysAgo": "انتهى منذ {{days}} يوماً",
     "expiredListingsAlert": "لديك {{count}} إعلان (إعلانات) منتهية الصلاحية تحتاج إلى اهتمام",
     "itemsSelected": "تم تحديد {{count}} عناصر",
@@ -365,6 +381,13 @@
       "cruiseControl": "مثبت سرعة",
       "alloyWheels": "عجلات سبائك",
       "electricWindows": "نوافذ كهربائية"
-    }
+    },
+    "loadingListings": "جاري تحميل القوائم..."
+  },
+  "error": {
+    "general": "حدث خطأ",
+    "networkError": "خطأ في الشبكة. يرجى التحقق من اتصالك والمحاولة مرة أخرى.",
+    "loadingFavorites": "فشل في تحميل المفضلة. يرجى المحاولة مرة أخرى.",
+    "addFavorite": "فشل في الإضافة إلى المفضلة"
   }
 }

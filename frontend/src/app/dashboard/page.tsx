@@ -228,13 +228,13 @@ export default function Dashboard() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-800/50 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                <th className="py-3.5 px-5">{t('listings.image')}</th>
-                <th className="py-3.5 px-5">{t('listings.title')}</th>
+                <th className="py-3.5 px-5">{t('common.image')}</th>
+                <th className="py-3.5 px-5">{t('common.title')}</th>
                 <th className="py-3.5 px-5">{t('common.price')}</th>
-                <th className="py-3.5 px-5">{t('listings.date')}</th>
-                <th className="py-3.5 px-5">{t('listings.views')}</th>
-                <th className="py-3.5 px-5">{t('listings.status')}</th>
-                <th className="py-3.5 px-5">{t('listings.actions')}</th>
+                <th className="py-3.5 px-5">{t('common.date')}</th>
+                <th className="py-3.5 px-5">{t('common.views')}</th>
+                <th className="py-3.5 px-5">{t('common.status')}</th>
+                <th className="py-3.5 px-5">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">

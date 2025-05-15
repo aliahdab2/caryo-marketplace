@@ -496,7 +496,7 @@ export default function ListingsPage() {
                     onClick={() => handleSort("title")}
                     className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
                   >
-                    {t("listings.details")} {getSortIcon("title")}
+                    {t("common.title")} {getSortIcon("title")}
                   </span>
                 </th>
 								<th className="py-3 px-4">
@@ -507,13 +507,13 @@ export default function ListingsPage() {
                     {t("common.price")} {getSortIcon("price")}
                   </span>
                 </th>
-								<th className="py-3 px-4">{t("listings.status")}</th>
+								<th className="py-3 px-4">{t("common.status")}</th>
 								<th className="py-3 px-4">
                   <span 
                     onClick={() => handleSort("expiry")}
                     className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
                   >
-                    {t("listings.expiryDate")} {getSortIcon("expiry")}
+                    {t("common.date")} {getSortIcon("expiry")}
                   </span>
                 </th>
 								<th className="py-3 px-4">
@@ -522,7 +522,7 @@ export default function ListingsPage() {
                       onClick={() => handleSort("views")}
                       className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
                     >
-                      {t("listings.views")} {getSortIcon("views")}
+                      {t("common.views")} {getSortIcon("views")}
                     </span>
                     <div className="ml-1 group relative">
                       <MdHelpOutline size={16} className="text-gray-400 cursor-help" />
@@ -532,7 +532,7 @@ export default function ListingsPage() {
                     </div>
                   </div>
                 </th>
-								<th className="py-3 px-4">{t("listings.actions")}</th>
+								<th className="py-3 px-4">{t("common.actions")}</th>
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -578,10 +578,10 @@ export default function ListingsPage() {
 														height={64}
 														className="h-16 w-16 object-cover transition-transform duration-300 group-hover:scale-105"
 														onError={(e) => {
-															// Fallback to local image if remote image fails
+															// Fallback to default car image if remote image fails
 															const target = e.target as HTMLImageElement;
 															target.onerror = null; // Prevent infinite loop
-															target.src = "/images/logo.svg";
+															target.src = "/images/vehicles/car-default.svg";
 														}}
 													/>
 												</div>

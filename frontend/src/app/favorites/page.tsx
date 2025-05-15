@@ -11,7 +11,7 @@ import FavoriteButton from '@/components/common/FavoriteButton';
 import { Listing } from '@/types/listing';
 
 export default function FavoritesPage() {
-  const { t, i18n } = useTranslation(['common', 'listings']);
+  const { t, i18n } = useTranslation(['common']);
   const { data: session, status } = useSession();
   const router = useRouter();
   
@@ -120,7 +120,7 @@ export default function FavoritesPage() {
               <Link href={`/listings/${listing.id}`} className="block group">
                 <div className="relative h-48 w-full overflow-hidden">
                   <img
-                    src={listing.media && listing.media.length > 0 ? listing.media[0].url : (listing.image || '/images/placeholder-image.png')}
+                    src={listing.media && listing.media.length > 0 ? listing.media[0].url : '/images/vehicles/car-default.svg'}
                     alt={listing.title}
                     className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
                   />
@@ -141,18 +141,18 @@ export default function FavoritesPage() {
                     {listing.title}
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 capitalize">
-                    {listing.category?.name || t('noCategory', { ns: 'listings' })}
+                    {listing.category?.name || t('listings.noCategory')}
                   </p>
                   <p className="text-xl font-bold text-primary-600 dark:text-primary-400 mb-2">
                     {formatNumber(listing.price, i18n.language, { style: 'currency', currency: listing.currency || 'SYP' })}
                   </p>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
                     <p className="truncate">
-                      {listing.location?.city || t('unknownLocation', { ns: 'listings' })}
+                      {listing.location?.city || t('listings.unknownLocation')}
                       {listing.location?.country ? `, ${listing.location.country}` : ''}
                     </p>
                     <p>
-                      {t('postedOn', { ns: 'listings' })}: {formatDate(new Date(listing.createdAt), i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
+                      {t('listings.postedOn')}: {formatDate(new Date(listing.createdAt), i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
                     </p>
                   </div>
                 </div>
