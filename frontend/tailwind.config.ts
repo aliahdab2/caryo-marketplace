@@ -45,6 +45,22 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // Add custom plugin to handle RTL spacing 
+    function({ addUtilities, theme, config }: { addUtilities: any, theme: any, config: any }) {
+      const spacingUtilities = {};
+      const spacing = theme('spacing');
+      
+      Object.entries(spacing).forEach(([key, value]) => {
+        spacingUtilities[`.rtl\\:gap-${key}`] = {
+          '@media (dir: rtl), [dir="rtl"] &': {
+            gap: value
+          }
+        };
+      });
+      
+      addUtilities(spacingUtilities);
+    },
+  ],
 };
 export default config;

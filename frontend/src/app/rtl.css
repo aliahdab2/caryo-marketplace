@@ -7,8 +7,24 @@
 
 /* Reverse Tailwind utilities for RTL */
 [dir="rtl"] .rtl\:space-x-reverse > * + * {
-  margin-right: var(--space-x);
+  margin-right: var(--spacing);
   margin-left: 0;
+}
+
+/* Fix for flex items with space-x classes in RTL mode */
+[dir="rtl"] .space-x-3.rtl\:space-x-reverse > * + * {
+  margin-right: 0.75rem;
+  margin-left: 0;
+}
+
+/* Enhanced spacing for RTL flex layouts */
+[dir="rtl"] .rtl\:gap-3 {
+  gap: 0.75rem !important;
+}
+
+/* Ensure all action buttons have proper spacing in RTL */
+[dir="rtl"] .flex.items-center.space-x-3 {
+  gap: 0.75rem;
 }
 
 /* Flip icons for RTL */

@@ -279,7 +279,7 @@ export default function Dashboard() {
                       </span>
                     </td>
                     <td className="py-4 px-5">
-                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse rtl:gap-3">
                         <button 
                           onClick={() => router.push(`/dashboard/listings/edit/${listing.id}`)}
                           className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
