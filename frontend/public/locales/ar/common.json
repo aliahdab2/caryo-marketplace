@@ -54,7 +54,9 @@
     "verificationControl": "التحكم في التحقق من الجهاز",
     "tryAgain": "حاول مرة أخرى",
     "securityCheck": "التحقق الأمني",
-    "securityCheckCompleted": "تم إكمال التحقق الأمني"
+    "securityCheckCompleted": "تم إكمال التحقق الأمني",
+    "loginSuccess": "تم تسجيل الدخول بنجاح!",
+    "redirecting": "جاري التحويل..."
   },
   "dashboard": {
     "welcome": "مرحباً بك في لوحة التحكم",
