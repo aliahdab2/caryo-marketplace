@@ -113,24 +113,18 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto my-12 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md transition-all duration-300 ease-in-out">
-      {/* Show a success banner when redirecting */}
-      {redirecting && (
-        <div className="absolute top-0 left-0 right-0 p-4 bg-green-500 text-white text-center rounded-t-lg transition-all transform animate-pulse">
-          <p className="flex items-center justify-center">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            {t('auth.loginSuccess', 'Login successful!')} {t('auth.redirecting', 'Redirecting...')}
-          </p>
-        </div>
-      )}
+    <div className={`max-w-md mx-auto my-12 p-6 rounded-lg shadow-md transition-all duration-300 ${redirecting ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-white dark:bg-gray-800'}`}>
 
-      <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-white">
-        {t('auth.signin')}
+      <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-white flex items-center justify-center">
+        {redirecting && (
+          <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        )}
+        {redirecting ? t('auth.redirecting', 'Redirecting...') : t('auth.signin')}
       </h1>
 
-      <form onSubmit={handleSubmit} className={redirecting ? 'opacity-50 pointer-events-none' : ''}>
+      <form onSubmit={handleSubmit} className={redirecting ? 'opacity-60 pointer-events-none' : ''}>
         <div className="mb-4">
           <label
             htmlFor="username"
@@ -196,14 +190,23 @@ export default function SignInPage() {
 
         <button
           type="submit"
-          disabled={loading || !isVerified || redirecting} // Disable if loading, not verified, or redirecting
-          className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${redirecting ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${(loading || !isVerified || redirecting) ? 'opacity-70 cursor-not-allowed' : ''} transition-colors`}
+          disabled={loading || !isVerified || redirecting}
+          className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+            ${redirecting ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-700'} 
+            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
+            ${(loading || !isVerified || redirecting) ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
-          {loading ? (
+          {loading || redirecting ? (
             <span className="flex items-center justify-center">
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg className={`-ml-1 mr-3 h-5 w-5 text-white ${!redirecting ? 'animate-spin' : ''}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                {redirecting ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" stroke="currentColor" d="M5 13l4 4L19 7"></path>
+                ) : (
+                  <>
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </>
+                )}
               </svg>
               {redirecting ? t('auth.redirecting', 'Redirecting...') : t('common.loading')}
             </span>
