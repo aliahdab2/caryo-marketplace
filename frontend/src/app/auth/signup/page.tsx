@@ -82,7 +82,9 @@ export default function SignUpPage() {
         "Registration failed. Please try again."
       );
       setLoading(false);
-      console.error("Registration error:", err);
+      if (process.env.NODE_ENV !== 'test') {
+        console.error("Registration error:", err);
+      }
     }
   };
 
@@ -100,7 +102,7 @@ export default function SignUpPage() {
         autoHideDuration={3500}
       />
       
-      <form onSubmit={handleSubmit}>        
+      <form onSubmit={handleSubmit} data-testid="signup-form">        
         {error && (
           <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-4 rounded-md mb-6" role="alert">
             <p className="text-sm">{error}</p>

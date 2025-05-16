@@ -105,3 +105,187 @@ To view a detailed coverage report:
 2. **Component isolation**: Move more tests closer to their component implementations
 3. **E2E testing**: Implement Cypress for end-to-end testing of critical user flows
 4. **Visual regression testing**: Consider tools like Percy or Chromatic
+
+## Jest Mocking Best Practices
+
+When mocking components and modules in Jest, follow these guidelines to avoid common issues:
+
+### Proper Component Mocking
+
+When mocking components with Jest, avoid referencing variables from outer scope in the mock factory:
+
+```tsx
+// DON'T DO THIS - will cause "not allowed to reference out-of-scope variables" error
+jest.mock('@/components/MyComponent', () => {
+  const MockComponent = ({ onAction }) => { // Error: Using variables from outer scope
+    React.useEffect(() => {
+      // This will cause an error
+    }, []);
+    return <div>Mocked</div>;
+  };
+  return MockComponent;
+});
+
+// DO THIS INSTEAD - safe approach using function declaration
+jest.mock('@/components/MyComponent', () => {
+  return function MockComponent(props) {
+    // Access props safely without React references
+    if (props.autoStart) {
+      setTimeout(() => props.onAction(), 100);
+    }
+    return <div>Mocked</div>;
+  };
+});
+```
+
+### Handling Test-Specific Mocks
+
+When you need to modify a mock for a specific test:
+
+```tsx
+// DON'T nest jest.mock inside a test - it won't work
+test('my test', () => {
+  jest.mock('@/components/MyComponent', () => { // Error: jest.mock must be at top level
+    return () => <div>Mocked for this test</div>;
+  });
+});
+
+// DO THIS INSTEAD - override the existing mock for a specific test
+test('my test', () => {
+  // Save the original implementation
+  const originalMock = jest.requireMock('@/components/MyComponent').default;
+  
+  // Override the mock implementation temporarily
+  jest.requireMock('@/components/MyComponent').default = function(props) {
+    return <div>Mocked specifically for this test</div>;
+  };
+  
+  // Test your component...
+  
+  // Restore the original mock implementation for other tests
+  jest.requireMock('@/components/MyComponent').default = originalMock;
+});
+```
+
+### Handling Timeouts
+
+For tests that involve asynchronous operations, increase the timeout and use waitFor:
+
+```tsx
+test('handles async operations properly', async () => {
+  // Your test code here
+  await waitFor(() => {
+    expect(someCondition).toBeTruthy();
+  }, { timeout: 5000 }); // Increase timeout for waitFor
+}, 10000); // Increase the overall test timeout
+```
+
+These practices will help prevent common errors like:
+- "The module factory of jest.mock() is not allowed to reference any out-of-scope variables"
+- "Exceeded timeout of X ms for a test"
+- "Error: Invalid variable access: _jsxFileName"
+
+## userEvent vs fireEvent
+
+When testing user interactions, there are two main ways to simulate events:
+
+1. **userEvent**: More realistic simulation of user behavior (mouse movements, pointer events, keyboard events)
+   ```tsx
+   // More realistic but can cause timing issues
+   await userEvent.click(button);
+   await userEvent.type(input, 'test');
+   ```
+
+2. **fireEvent**: Direct event triggering (less realistic but more reliable for simple tests)
+   ```tsx
+   // More reliable for simple tests
+   fireEvent.click(button);
+   fireEvent.change(input, { target: { value: 'test' } });
+   ```
+
+Guidelines for choosing between them:
+
+- Use **userEvent** when:
+  - Testing complex user interactions
+  - Testing accessibility features
+  - Need to test realistic user behavior sequences
+
+- Use **fireEvent** when:
+  - Testing simple click handlers
+  - Encountering timing issues with userEvent
+  - Tests need to be synchronous for reliability
+  - Working with mocked components where realistic events aren't necessary
+
+Example of fixing timing issues by switching from userEvent to fireEvent:
+
+```tsx
+// Original test with timing issues
+test('calls handler when clicked', async () => {
+  const handler = jest.fn();
+  render(<Button onClick={handler}>Click me</Button>);
+  
+  // This can sometimes fail with timeout errors
+  await userEvent.click(screen.getByRole('button'));
+  
+  // This might not execute if the previous line times out
+  expect(handler).toHaveBeenCalled();
+}, 10000); // Even with timeout, might be unreliable
+
+// Fixed version
+test('calls handler when clicked', () => {
+  const handler = jest.fn();
+  render(<Button onClick={handler}>Click me</Button>);
+  
+  // Direct event triggering - synchronous and reliable
+  fireEvent.click(screen.getByRole('button'));
+  
+  expect(handler).toHaveBeenCalled();
+});
+```
+
+## Test Directory Structure
+
+For consistency and organization, we follow these conventions for test file placement:
+
+### Main Test Directory
+
+All tests should be placed in the `/src/tests` directory, organized by feature or module. This approach keeps tests separate from implementation code while maintaining a parallel structure.
+
+```
+/src
+  /tests
+    /auth
+      signin.test.tsx
+      signup.test.tsx
+      auth-service.test.ts
+    /components
+      navbar.test.tsx
+    /utils
+      formatter.test.ts
+```
+
+### Legacy Structure (Deprecated)
+
+Previously, some tests were placed in a `__tests__` directory following Jest's default convention:
+
+```
+/src
+  /__tests__
+    /auth
+      signin.test.tsx
+```
+
+We are standardizing on the `/src/tests` structure. Any tests found in the `/__tests__` directory should be moved to the corresponding location in `/src/tests`.
+
+### Component-Level Tests
+
+For simple component tests that are tightly coupled to a single component, you may place the test alongside the component:
+
+```
+/src/components/Button/
+  Button.tsx
+  Button.test.tsx
+  Button.module.css
+```
+
+This approach is suitable for UI components with minimal dependencies, but for components with complex integration requirements, prefer the main test directory structure.

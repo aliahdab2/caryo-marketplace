@@ -31,6 +31,16 @@ export interface MessageResponse {
   message: string;
 }
 
+/**
+ * Utility function to log errors conditionally
+ * Will not log errors during tests to keep test output clean
+ */
+const logError = (message: string, error: unknown) => {
+  if (process.env.NODE_ENV !== 'test') {
+    console.error(message, error);
+  }
+};
+
 // Auth API functions
 export const authService = {
   /**
@@ -43,7 +53,7 @@ export const authService = {
     try {
       return await api.post<AuthResponse>('/api/auth/signin', credentials);
     } catch (error) {
-      console.error('Login failed:', error);
+      logError('Login failed:', error);
       
       // Convert regular errors to ApiErrors if needed
       if (!(error instanceof ApiError)) {
@@ -67,7 +77,7 @@ export const authService = {
     try {
       return await api.post<MessageResponse>('/api/auth/signup', userData);
     } catch (error) {
-      console.error('Registration failed:', error);
+      logError('Registration failed:', error);
       
       // Convert regular errors to ApiErrors if needed
       if (!(error instanceof ApiError)) {
@@ -97,7 +107,7 @@ export const authService = {
       // Currently using a placeholder
       return await api.get<any>('/api/users/me', headers);
     } catch (error) {
-      console.error('Failed to get user profile:', error);
+      logError('Failed to get user profile:', error);
       throw error;
     }
   }

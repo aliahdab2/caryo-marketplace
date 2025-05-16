@@ -103,6 +103,12 @@ export function useApiErrorHandler() {
       if (error.message.includes('fetch') || error.message.includes('network')) {
         return t('errors.networkError', 'Network error. Please check your connection and try again.');
       }
+      // Check for authentication/credential errors
+      if (error.message.toLowerCase().includes('invalid credential') || 
+          error.message.toLowerCase().includes('incorrect password') ||
+          error.message.toLowerCase().includes('user not found')) {
+        return t('errors.invalidCredentials', 'Invalid username or password. Please try again.');
+      }
       return error.message;
     }
     
