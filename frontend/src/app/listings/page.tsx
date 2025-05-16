@@ -182,9 +182,9 @@ const ListingsPage = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 capitalize">
                   {listing.category?.name || t('listings.noCategory')}
                 </p>
-                <p className="text-xl font-bold text-primary-600 dark:text-primary-400 mb-2">
+                <h4 className="text-xl font-bold text-primary-600 dark:text-primary-400 mb-2">
                   {formatNumber(listing.price, i18n.language, { style: 'currency', currency: listing.currency || 'SYP' })}
-                </p>
+                </h4>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
                   <p className="truncate">
                     {listing.location?.city || t('listings.unknownLocation')}

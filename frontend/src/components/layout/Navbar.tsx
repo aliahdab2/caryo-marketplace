@@ -49,11 +49,15 @@ export default function Navbar() {
       <div className="w-full max-w-[94%] xs:max-w-[92%] sm:max-w-[90%] md:max-w-[88%] lg:max-w-6xl xl:max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6">
         <div className="flex justify-between h-12 xs:h-13 sm:h-14 md:h-16">
           <div className="flex items-center">
-            <Link href="/" className="flex-shrink-0 flex items-center">
+            <Link 
+              href="/" 
+              className="flex-shrink-0 flex items-center"
+              aria-label={t('header.home')}
+            >
               <Image 
                 className="h-6 w-auto xs:h-7 sm:h-8" 
                 src={logoSrc} 
-                alt="Caryo Marketplace" 
+                alt="" 
                 width={32} 
                 height={32}
                 onError={handleLogoError}
@@ -63,13 +67,8 @@ export default function Navbar() {
               </span>
             </Link>
             {/* Navigation for larger screens with multiple breakpoints for smoother transition */}
-            <div className="hidden sm:ml-3 md:ml-4 lg:ml-6 sm:flex sm:space-x-2 md:space-x-3 lg:space-x-5 xl:space-x-8 rtl:space-x-reverse">
-              <Link 
-                href="/" 
-                className="border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800 inline-flex items-center px-1 pt-1 border-b-2 text-xs sm:text-xs md:text-sm lg:text-base font-medium dark:text-gray-300 dark:hover:text-white transition-colors"
-              >
-                {t('header.home')}
-              </Link>
+            <div className="hidden sm:ml-3 md:ml-4 lg:ml-6 sm:flex sm:space-x-2 md:space-x-3 lg:space-x-5 xl:space-x-8 rtl:space-x-reverse" role="navigation" aria-label="Main navigation">
+              {/* Home link removed to prevent redundancy with logo link */}
               <Link 
                 href="/listings" 
                 className="border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800 inline-flex items-center px-1 pt-1 border-b-2 text-xs sm:text-xs md:text-sm lg:text-base font-medium dark:text-gray-300 dark:hover:text-white transition-colors"
@@ -100,10 +99,13 @@ export default function Navbar() {
               <div className="flex items-center sm:space-x-2 md:space-x-3 lg:space-x-4 rtl:space-x-reverse">
                 <div className="relative ml-1 xs:ml-2 sm:ml-2 md:ml-3 rtl:ml-0 rtl:mr-1 rtl:xs:mr-2 rtl:md:mr-3" ref={userMenuRef}>
                   <button 
+                    id="user-menu-button"
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                     className="flex items-center space-x-1.5 sm:space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
                     aria-expanded={userMenuOpen ? "true" : "false"}
-                    aria-haspopup="true"
+                    aria-haspopup="menu"
+                    aria-controls="user-menu"
+                    aria-label="User account menu"
                   >
                     <div className="flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-full h-7 w-7 sm:h-8 sm:w-8 shadow-sm ring-2 ring-white dark:ring-gray-800">
                       {session.user?.image ? (
@@ -136,6 +138,9 @@ export default function Navbar() {
                   
                   {/* User dropdown menu with animation */}
                   <div 
+                    id="user-menu"
+                    role="menu"
+                    aria-labelledby="user-menu-button"
                     className={`absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 origin-top-right transition-all duration-200 ease-in-out ${
                       userMenuOpen 
                         ? 'opacity-100 transform scale-100 animate-fadeIn' 
@@ -156,8 +161,9 @@ export default function Navbar() {
                         href="/dashboard" 
                         className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                         onClick={() => setUserMenuOpen(false)}
+                        role="menuitem"
                       >
-                        <MdDashboard className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" />
+                        <MdDashboard className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
                         {t('header.dashboard')}
                       </Link>
                       
@@ -165,8 +171,9 @@ export default function Navbar() {
                         href="/dashboard/settings" 
                         className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                         onClick={() => setUserMenuOpen(false)}
+                        role="menuitem"
                       >
-                        <MdSettings className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" />
+                        <MdSettings className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
                         {"Account Settings"}
                       </Link>
                     </div>
@@ -175,8 +182,9 @@ export default function Navbar() {
                       <button
                         onClick={() => { signOut(); setUserMenuOpen(false); }}
                         className="w-full flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors"
+                        role="menuitem"
                       >
-                        <MdLogout className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4" />
+                        <MdLogout className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4" aria-hidden="true" />
                         {t('header.logout')}
                       </button>
                     </div>
@@ -194,8 +202,10 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="inline-flex items-center justify-center p-1 xs:p-1.5 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors"
               aria-expanded={mobileMenuOpen ? "true" : "false"}
+              aria-controls="mobile-menu"
+              aria-label={mobileMenuOpen ? t('header.closeMenu') : t('header.openMenu')}
             >
-              <span className="sr-only">Open main menu</span>
+              <span className="sr-only">{mobileMenuOpen ? t('header.closeMenu') : t('header.openMenu')}</span>
               {mobileMenuOpen ? (
                 <svg
                   className="block h-5 w-5 xs:h-6 xs:w-6"
@@ -235,15 +245,13 @@ export default function Navbar() {
       </div>
 
       {/* Mobile menu with smooth transition */}
-      <div className={`sm:hidden transition-all duration-300 ease-in-out overflow-hidden transform ${mobileMenuOpen ? 'max-h-screen opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2'}`}>
+      <div 
+        id="mobile-menu"
+        className={`sm:hidden transition-all duration-300 ease-in-out overflow-hidden transform ${mobileMenuOpen ? 'max-h-screen opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2'}`}
+        aria-hidden={!mobileMenuOpen}
+      >
         <div className="pt-1 xs:pt-2 pb-2 xs:pb-3 space-y-0.5 xs:space-y-1">
-          <Link 
-            href="/"
-            className="block pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 border-transparent text-xs xs:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            {t('header.home')}
-          </Link>
+          {/* Home link removed from mobile menu to prevent redundancy with logo link */}
           <Link 
             href="/listings"
             className="block pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 border-transparent text-xs xs:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"

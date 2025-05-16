@@ -68,11 +68,15 @@ export default function ResponsiveNavbar() {
         <div className="flex justify-between h-14 sm:h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
-            <Link href="/" className="flex-shrink-0 flex items-center">
+            <Link 
+              href="/" 
+              className="flex-shrink-0 flex items-center"
+              aria-label={t('header.home')}
+            >
               <Image 
                 className="h-7 w-auto sm:h-8" 
                 src={logoSrc} 
-                alt="Caryo Marketplace" 
+                alt="" 
                 width={32} 
                 height={32}
                 onError={handleLogoError}
@@ -85,12 +89,7 @@ export default function ResponsiveNavbar() {
             {/* Desktop Navigation Links */}
             <NotOnMobile>
               <div className="ml-4 lg:ml-6 flex space-x-4 lg:space-x-8 rtl:space-x-reverse">
-                <Link 
-                  href="/" 
-                  className="border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800 inline-flex items-center px-1 pt-1 border-b-2 text-xs md:text-sm lg:text-base font-medium dark:text-gray-300 dark:hover:text-white transition-colors"
-                >
-                  {t('header.home')}
-                </Link>
+                {/* Home link removed to prevent redundancy with logo link */}
                 <Link 
                   href="/listings" 
                   className="border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800 inline-flex items-center px-1 pt-1 border-b-2 text-xs md:text-sm lg:text-base font-medium dark:text-gray-300 dark:hover:text-white transition-colors"
@@ -196,8 +195,10 @@ export default function ResponsiveNavbar() {
                 onClick={toggleMobileMenu}
                 className="ml-2 inline-flex items-center justify-center p-1.5 sm:p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors"
                 aria-expanded={mobileMenuOpen ? "true" : "false"}
+                aria-controls="responsive-mobile-menu"
+                aria-label={mobileMenuOpen ? t('header.closeMenu') : t('header.openMenu')}
               >
-                <span className="sr-only">Open main menu</span>
+                <span className="sr-only">{mobileMenuOpen ? t('header.closeMenu') : t('header.openMenu')}</span>
                 {mobileMenuOpen ? (
                   <svg
                     className="h-6 w-6"
@@ -240,14 +241,12 @@ export default function ResponsiveNavbar() {
       {/* Mobile Menu */}
       <MobileOnly>
         {mobileMenuOpen && (
-          <div className="px-2 pt-2 pb-3 space-y-1 bg-white dark:bg-gray-900 shadow-lg animate-slideDown">
-            <Link
-              href="/"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700"
-              onClick={closeMobileMenu}
-            >
-              {t('header.home')}
-            </Link>
+          <div 
+            id="responsive-mobile-menu" 
+            className="px-2 pt-2 pb-3 space-y-1 bg-white dark:bg-gray-900 shadow-lg animate-slideDown"
+            role="navigation"
+            aria-label="Mobile navigation">
+            {/* Home link removed to prevent redundancy with logo link */}
             <Link
               href="/listings"
               className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700"

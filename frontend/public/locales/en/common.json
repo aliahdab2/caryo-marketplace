@@ -39,6 +39,7 @@
     "rememberMe": "Remember me",
     "securityCheckCompleted": "Security Check Completed",
     "verified": "Verification Completed",
+    "verifying": "Verifying...",
     "loginSuccess": "Login successful!",
     "redirecting": "Redirecting..."
   },

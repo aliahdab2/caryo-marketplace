@@ -193,9 +193,9 @@ export default function FavoritesPage() {
                   </button>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
-                  <span className="text-lg font-semibold text-primary-600 dark:text-primary-400">
+                  <h4 className="text-lg font-semibold text-primary-600 dark:text-primary-400 m-0">
                     {formatNumber(listing.price, i18n.language, { style: 'currency', currency: listing.currency || 'SYP' })}
-                  </span>
+                  </h4>
                   <span className="text-sm text-gray-500 flex items-center gap-1">
                     <MdSpeed />
                     {formatNumber(listing.mileage, i18n.language)} {t('common.km') || 'km'}

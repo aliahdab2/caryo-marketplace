@@ -82,7 +82,7 @@ export default function Home() {
               <div className="relative w-full max-w-md h-64 md:h-80">
                 <Image
                   src="/images/logo.svg"
-                  alt="Car hero image"
+                  alt="Caryo marketplace logo showing a stylized car"
                   fill
                   style={{ objectFit: "contain" }}
                   className="drop-shadow-xl"
@@ -119,9 +119,9 @@ export default function Home() {
                     <h3 className="text-xl font-bold mb-2 group-hover:text-blue-600 transition duration-300">
                       {car.title}
                     </h3>
-                    <p className="text-2xl font-bold text-blue-600 mb-3">
+                    <h4 className="text-2xl font-bold text-blue-600 mb-3">
                       {car.price}
-                    </p>
+                    </h4>
                     <div className="flex flex-wrap gap-2 text-sm text-gray-700">
                       <span className="flex items-center gap-1">
                         📍{car.location}
@@ -165,8 +165,9 @@ export default function Home() {
                 key={category.name}
                 href={`/listings?category=${category.name.toLowerCase()}`}
                 className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition duration-300 text-center"
+                aria-label={`${category.name} category with ${category.count} listings`}
               >
-                <div className="text-4xl mb-2">{category.icon}</div>
+                <div className="text-4xl mb-2" aria-hidden="true">{category.icon}</div>
                 <h3 className="font-bold mb-1">{category.name}</h3>
                 <p className="text-sm text-gray-600">{category.count} listings</p>
               </Link>
