@@ -134,7 +134,12 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 ### Phase 5: Deployment (In Progress)
 
 - [x] **Dockerize Storage** (set up MinIO with Docker Compose)
-- [ ] **Create production-grade Dockerfile for Backend**
+- [x] **Create production-grade Dockerfile for Backend**
+  - [x] Multi-stage build (JDK for build → JRE for runtime)
+  - [x] Health check configuration
+  - [x] Proper security (non-root user)
+  - [x] Compatible docker-compose.yml for local development
+  - [x] Production environment configuration
 - [ ] **Enhance docker compose.yml for local dev** (Backend, PostgreSQL)
 - [ ] **Set up CI/CD pipeline** (GitHub Actions: test, build, deploy)
 - [ ] **Implement Secrets Management** (env vars for local, GitHub Secrets/Vault for prod)
