@@ -159,7 +159,7 @@ Detailed API documentation is available in [backend/autotrader-backend/API_DOCUM
 
 - Java 21
 - Gradle
-- Node.js (for frontend, coming soon)
+- Node.js (for frontend)
 - PostgreSQL (for production)
 
 ### Running the Application
@@ -171,7 +171,7 @@ cd backend/autotrader-backend
 ./gradlew bootRun
 ```
 
-#### Frontend (coming soon)
+#### Frontend 
 
 ```bash
 cd frontend
