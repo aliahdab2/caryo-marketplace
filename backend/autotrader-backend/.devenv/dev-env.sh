@@ -69,7 +69,7 @@ start_dev_env() {
 
 stop_dev_env() {
     echo -e "${YELLOW}Stopping environment...${NC}"
-    docker-compose -f .devenv/docker-compose.dev.yml down || error_exit "Failed to stop services"
+    docker compose -f .devenv/docker-compose.dev.yml down || error_exit "Failed to stop services"
     echo -e "${GREEN}Stopped${NC}"
 }
 
