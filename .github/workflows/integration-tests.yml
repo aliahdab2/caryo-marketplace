@@ -1,0 +1,80 @@
+name: Backend Integration Tests
+
+on:
+  workflow_dispatch:  # Manual trigger only
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sundays at midnight
+  pull_request:
+    paths:
+      - 'backend/autotrader-backend/**'
+      - '.github/workflows/integration-tests.yml'
+    branches: [ 'main', 'develop' ]
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20  # Prevent hanging builds
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Fetch all history for better change detection
+    
+    - name: Set up Docker Compose
+      uses: isbang/compose-action@v1.4.1
+      with:
+        compose-file: "./backend/autotrader-backend/docker-compose.dev.yml"
+        down-flags: "--volumes"  # Clean up volumes when done
+        services: |
+          db
+          minio
+          createbuckets
+          redis
+    
+    # Check if services are healthy
+    - name: Wait for services to be ready
+      run: |
+        echo "Waiting for PostgreSQL to be ready..."
+        docker exec $(docker ps -q -f name=db) pg_isready -U autotrader -t 30
+        
+        echo "Checking MinIO health..."
+        curl --retry 10 --retry-delay 3 -f http://localhost:9000/minio/health/live
+        
+        echo "All services are ready!"
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+    
+    # Check for Gradle cache and use it if available
+    - name: Setup Gradle Cache
+      uses: gradle/gradle-build-action@v2
+      with:
+        gradle-version: wrapper
+        cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+    
+    - name: Run Integration Tests
+      working-directory: ./backend/autotrader-backend
+      run: |
+        chmod +x ./gradlew
+        ./gradlew integrationTest --info
+      
+    - name: Upload integration test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: integration-test-results
+        path: |
+          backend/autotrader-backend/build/reports/tests/integrationTest/
+          backend/autotrader-backend/build/test-results/integrationTest/
+    
+    - name: Upload test coverage
+      if: success() || failure()
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./backend/autotrader-backend/build/reports/jacoco/test/jacocoTestReport.xml
+        flags: integration-tests
+        fail_ci_if_error: false

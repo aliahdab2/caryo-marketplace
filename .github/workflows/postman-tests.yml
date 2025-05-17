@@ -1,0 +1,47 @@
+name: Postman API Tests
+
+on:
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '0 0 * * 1'  # Run weekly on Mondays at midnight
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    # Set up environment for API tests
+    - name: Set up environment
+      run: |
+        echo "Setting up test environment"
+        # You could potentially:
+        # 1. Deploy to a test environment
+        # 2. Start docker-compose with test configuration
+        # 3. Wait for services to be available
+    
+    - name: Install Newman
+      run: npm install -g newman
+    
+    - name: Run Postman Collection
+      run: |
+        newman run ./postman/Caryo_Marketplace_API_Tests.json \
+          --environment ./postman/test_environment.json \
+          --reporters cli,junit,htmlextra \
+          --reporter-junit-export results/junit-report.xml \
+          --reporter-htmlextra-export results/html-report.html
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: postman-test-results
+        path: results/
+
+    # Cleanup test environment if needed
+    - name: Cleanup
+      if: always()
+      run: |
+        echo "Cleaning up test environment"
+        # Add cleanup commands here

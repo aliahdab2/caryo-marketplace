@@ -1,21 +1,71 @@
-# Car Marketplace Application
+# Caryo Marketplace Application
 
-A full-stack application for buying and selling cars, featuring authentication, car listings, and user management.
+A modern full-stack application for buying and selling cars, featuring authentication, car listings, location-based filtering, and comprehensive admin management features.
+
+## Project Status
+
+The project is currently in active development with these key features implemented:
+- User authentication with JWT and social login
+- Car listing management (create, read, update, delete)
+- Admin approval workflow for listings
+- Location-based filtering system
+- Multiple media uploads with S3-compatible storage
+- Development environment with Docker Compose
+- CI/CD workflows with GitHub Actions
 
 ## Project Documentation
 
 For detailed information about this project, refer to these documents:
 
-- [Development Plan](DEVELOPMENT_PLAN.md) - Complete roadmap for the project
+- [Development Plan](DEVELOPMENT_PLAN.md) - Complete roadmap and current status
 - [System Design](docs/system_design.md) - Architecture and technology choices
 - [Testing Plan](docs/testing_plan.md) - Testing strategy and approach
+- [CI/CD Documentation](.github/workflows/README.md) - GitHub Actions workflows
+- [Redis Integration](backend/autotrader-backend/docs/redis-integration-guide.md) - Guide for Redis caching
+- [MailDev Integration](backend/autotrader-backend/docs/maildev-integration-guide.md) - Email testing setup
+
+## Getting Started
+
+### Prerequisites
+- Docker and Docker Compose
+- Java 17
+- Node.js 18+
+- Git LFS
+
+### Development Setup
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/yourusername/caryo-marketplace.git
+   cd caryo-marketplace
+   ```
+
+2. **Start the backend services**:
+   ```bash
+   cd backend/autotrader-backend
+   docker-compose -f docker-compose.dev.yml up -d
+   ```
+
+3. **Start the frontend development server**:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+4. **Access the application**:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8080
+   - MailDev: http://localhost:1080
+   - PgAdmin: http://localhost:5050
+   - MinIO Console: http://localhost:9001
 
 ## Developer Guidelines for Large Files
 
 This repository uses Git LFS (Large File Storage) to handle large files. To work with this repository:
 
 1. **Install Git LFS**:
-   ```
+   ```bash
    # macOS
    brew install git-lfs
 
@@ -24,7 +74,7 @@ This repository uses Git LFS (Large File Storage) to handle large files. To work
    ```
 
 2. **Initialize Git LFS**:
-   ```
+   ```bash
    git lfs install
    ```
 
@@ -45,11 +95,34 @@ This repository uses Git LFS (Large File Storage) to handle large files. To work
 ## Project Structure
 
 ```
-autotrader-marketplace/
+caryo-marketplace/
 ├── backend/
-│   └── autotrader-backend/   # Spring Boot Java backend
-└── frontend/                 # Frontend (coming soon)
+│   └── autotrader-backend/   # Spring Boot backend (Gradle)
+│       ├── src/              # Source code
+│       ├── docker-compose.dev.yml  # Development Docker setup
+│       ├── Dockerfile        # Production Docker image
+│       └── Dockerfile.dev    # Development Docker image
+│
+├── frontend/                 # React/Next.js frontend
+│   ├── src/                  # Source code
+│   ├── public/               # Static assets
+│   └── components/           # React components
+│
+├── .github/                  # GitHub configurations
+│   └── workflows/            # GitHub Actions CI/CD
+│
+└── docs/                     # Project documentation
 ```
+
+## CI/CD Pipeline
+
+This project uses GitHub Actions for CI/CD with three main workflows:
+
+1. **Main Pipeline**: Builds and tests both frontend and backend
+2. **Integration Tests**: Runs tests requiring Docker services
+3. **API Tests**: Executes Postman collections
+
+For details on the CI/CD setup, see the [CI/CD Documentation](.github/workflows/README.md).
 
 ## Backend
 

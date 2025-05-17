@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: caryo-backend
+  cloud:
+    vault:
+      host: vault
+      port: 8200
+      scheme: http
+      authentication: approle
+      app-role:
+        role-id: ${VAULT_ROLE_ID}
+        secret-id: ${VAULT_SECRET_ID}
+      kv:
+        enabled: true
+        backend: kv
+        default-context: application
+        application-name: caryo-backend
+      fail-fast: true
