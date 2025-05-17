@@ -62,7 +62,7 @@ start_dev_env() {
     echo -e "- Adminer: ${GREEN}http://localhost:8081${NC} (postgres/${DB_PASSWORD:-postgres})"
     echo -e "- Debug Port: ${GREEN}${JVM_DEBUG_PORT:-5005}${NC}"
 
-    if [ "${REDIS_ENABLED:-true}" = "true" ] && docker-compose -f .devenv/docker-compose.dev.yml ps | grep -q redis; then
+    if [ "${REDIS_ENABLED:-true}" = "true" ] && docker compose -f .devenv/docker-compose.dev.yml ps | grep -q redis; then
         echo -e "- Redis: ${GREEN}localhost:${REDIS_PORT:-6379}${NC}"
     fi
 }
