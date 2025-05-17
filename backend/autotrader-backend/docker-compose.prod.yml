@@ -1,0 +1,74 @@
+version: '3.8'
+
+# Production overrides for docker-compose.yml
+services:
+  db:
+    restart: always
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-autotrader}  # Use environment variable or fall back to default
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  minio:
+    restart: always
+    volumes:
+      - minio_prod_data:/data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/autotrader
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-autotrader}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-autotrader}
+      - STORAGE_S3_ENABLED=true
+      - STORAGE_S3_ENDPOINT=http://minio:9000
+      - STORAGE_S3_BUCKET_NAME=${S3_BUCKET_NAME:-autotrader-assets}
+      - STORAGE_S3_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
+      - STORAGE_S3_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin}
+      - STORAGE_S3_REGION=${S3_REGION:-us-east-1}
+      - SERVER_PORT=8080
+      - JAVA_OPTS=-Xms512m -Xmx1g -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/app/logs
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+    command: java ${JAVA_OPTS} -jar /app/app.jar
+
+volumes:
+  postgres_prod_data:
+    driver: local
+  minio_prod_data:
+    driver: local
