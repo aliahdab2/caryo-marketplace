@@ -158,7 +158,12 @@ This section outlines the development plan for the AutoTrader Marketplace backen
     - [x] Enhanced logging and debugging for development
   
 - [ ] **Set up CI/CD pipeline** (GitHub Actions: test, build, deploy)
-- [ ] **Implement Secrets Management** (env vars for local, GitHub Secrets/Vault for prod)
+- [x] **Implement Secrets Management** (env vars for local, GitHub Secrets/Vault for prod)
+  - [x] HashiCorp Vault integration for secure secrets storage
+  - [x] Local development setup with Docker Compose
+  - [x] Spring Boot integration for retrieving secrets
+  - [x] GitHub Actions integration documentation
+  - [x] Migration strategy from hardcoded secrets
 - [x] **Enable Monitoring & Health Checks** (Spring Boot Actuator)
 - [ ] **Deploy to a cloud platform** (AWS, DigitalOcean, etc.)
 

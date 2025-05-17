@@ -12,6 +12,7 @@ The project is currently in active development with these key features implement
 - Multiple media uploads with S3-compatible storage
 - Development environment with Docker Compose
 - CI/CD workflows with GitHub Actions
+- Secrets management with HashiCorp Vault
 
 ## Project Documentation
 
@@ -21,6 +22,10 @@ For detailed information about this project, refer to these documents:
 - [System Design](docs/system_design.md) - Architecture and technology choices
 - [Testing Plan](docs/testing_plan.md) - Testing strategy and approach
 - [CI/CD Documentation](.github/workflows/README.md) - GitHub Actions workflows
+- [Secrets Management](docs/secrets_management.md) - HashiCorp Vault implementation
+- [Spring Vault Integration](docs/spring_vault_integration.md) - Spring Boot and Vault integration
+- [GitHub Actions and Vault](docs/vault_github_actions_integration.md) - CI/CD pipeline with Vault
+- [Migrating to Vault](docs/migrating_to_vault.md) - Strategy for migrating secrets
 - [Redis Integration](backend/autotrader-backend/docs/redis-integration-guide.md) - Guide for Redis caching
 - [MailDev Integration](backend/autotrader-backend/docs/maildev-integration-guide.md) - Email testing setup
 
@@ -44,6 +49,9 @@ For detailed information about this project, refer to these documents:
    ```bash
    cd backend/autotrader-backend
    docker-compose -f docker-compose.dev.yml up -d
+   
+   # Optional: Start and initialize HashiCorp Vault for secrets management
+   ./start-vault.sh
    ```
 
 3. **Start the frontend development server**:
@@ -59,6 +67,7 @@ For detailed information about this project, refer to these documents:
    - MailDev: http://localhost:1080
    - PgAdmin: http://localhost:5050
    - MinIO Console: http://localhost:9001
+   - Vault UI: http://localhost:8200 (token: caryo-dev-token)
 
 ## Developer Guidelines for Large Files
 
