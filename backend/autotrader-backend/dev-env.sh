@@ -79,7 +79,7 @@ start_dev_env() {
     fi
     
     echo -e "${YELLOW}Starting development environment...${NC}"
-    docker-compose -f docker-compose.dev.yml up -d || error_exit "Failed to start services"
+    docker compose -f docker compose.dev.yml up -d || error_exit "Failed to start services"
     
     # Wait for app to be healthy
     echo -e "${YELLOW}Waiting for services to be ready...${NC}"
@@ -96,7 +96,7 @@ start_dev_env() {
         if [ $retries -eq $max_retries ]; then
             echo -e "\n${RED}✗ Backend service failed to start within the timeout period.${NC}"
             echo -e "${YELLOW}Checking logs for errors...${NC}"
-            docker-compose -f docker-compose.dev.yml logs app --tail 50
+            docker compose -f docker compose.dev.yml logs app --tail 50
             echo -e "${RED}Startup failed. Please check the logs above for errors.${NC}"
             exit 1
         fi
@@ -113,7 +113,7 @@ start_dev_env() {
     echo -e "- Debug Port:       ${GREEN}${JVM_DEBUG_PORT:-5005}${NC} (attach your IDE for debugging)"
     
     # Check if Redis is used
-    if [ "${REDIS_ENABLED:-true}" = "true" ] && docker-compose -f docker-compose.dev.yml ps | grep -q redis; then
+    if [ "${REDIS_ENABLED:-true}" = "true" ] && docker compose -f docker compose.dev.yml ps | grep -q redis; then
         echo -e "- Redis:            ${GREEN}localhost:${REDIS_PORT:-6379}${NC}"
     fi
     
@@ -125,33 +125,33 @@ start_dev_env() {
 # Stop the development environment
 stop_dev_env() {
     echo -e "${YELLOW}Stopping development environment...${NC}"
-    docker-compose -f docker-compose.dev.yml down || error_exit "Failed to stop services"
+    docker compose -f docker compose.dev.yml down || error_exit "Failed to stop services"
     echo -e "${GREEN}Development environment stopped${NC}"
 }
 
 # Check status of containers
 check_status() {
     echo -e "${YELLOW}Development environment status:${NC}"
-    docker-compose -f docker-compose.dev.yml ps
+    docker compose -f docker compose.dev.yml ps
 }
 
 # Show logs from all containers
 show_logs() {
     echo -e "${YELLOW}Following logs from all containers. Press Ctrl+C to exit.${NC}"
-    docker-compose -f docker-compose.dev.yml logs -f
+    docker compose -f docker compose.dev.yml logs -f
 }
 
 # Run tests in the dev environment
 run_tests() {
     echo -e "${YELLOW}Running tests in development environment...${NC}"
-    docker-compose -f docker-compose.dev.yml exec app gradle test || error_exit "Tests failed"
+    docker compose -f docker compose.dev.yml exec app gradle test || error_exit "Tests failed"
     echo -e "${GREEN}Tests completed successfully${NC}"
 }
 
 # Show all api endpoints from Spring Boot
 show_api_endpoints() {
     echo -e "${YELLOW}Fetching API endpoints...${NC}"
-    docker-compose -f docker-compose.dev.yml exec app curl -s http://localhost:8080/actuator/mappings | \
+    docker compose -f docker compose.dev.yml exec app curl -s http://localhost:8080/actuator/mappings | \
         grep -o '"patterns":\[[^]]*\]' | \
         sed 's/"patterns":\[//g' | \
         sed 's/\]//g' | \

@@ -38,6 +38,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 ### Phase 2.1: Simplified Location System (Inspired by Blocket) ✅
 
 - [x] **Location Data Model** ✅
+
   - Implement flat `locations` table (id, name, slug, country_code, latitude, longitude)
   - Include `display_name_ar` and `display_name_en` directly in the model for easy rendering
   - Support for URL-friendly slugs generated consistently via a `slugify()` utility
@@ -46,11 +47,13 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - Create indexes on `slug` and `country_code` for faster queries
 
 - [x] **Location Data Seeding** ✅
+
   - Seed major cities and regions in Syria using reliable datasets
   - Include proper UTF-8 encoding for Arabic names
   - Generate search-friendly slugs for all locations
 
 - [x] **Location API Endpoints** ✅
+
   - Create endpoints to fetch locations by country (GET ?country=SY)
   - Implement search functionality (GET /search?q=dam)
   - Add caching for location data (Redis or in-memory)
@@ -58,6 +61,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - Implement admin-only endpoints for managing locations
 
 - [x] **Integration with Listings** ✅
+
   - Add location_id foreign key to CarListing entity
   - Enhance filter API to support location-based searches via ?location=damascus
   - Include location details in listing responses (both Arabic and English names)
@@ -95,7 +99,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 
 - [x] **Dockerize Storage** (set up MinIO with Docker Compose)
 - [ ] **Create production-grade Dockerfile for Backend**
-- [ ] **Enhance docker-compose.yml for local dev** (Backend, PostgreSQL)
+- [ ] **Enhance docker compose.yml for local dev** (Backend, PostgreSQL)
 - [ ] **Set up CI/CD pipeline** (GitHub Actions: test, build, deploy)
 - [ ] **Implement Secrets Management** (env vars for local, GitHub Secrets/Vault for prod)
 - [x] **Enable Monitoring & Health Checks** (Spring Boot Actuator)
@@ -107,9 +111,11 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - Track listing status through its lifecycle.
   - Default state: `approved = false` (already implemented in CarListing model).
 - [x] **Add Additional Status Flags** (isSold, isArchived)
+
   - Default states: `isSold = false`, `isArchived = false`.
 
 - [x] **Implement User-Controlled Listing Visibility (Pause/Resume)**
+
   - Add `isUserActive` flag to `CarListing` model (default: `true` for new, approved listings not yet sold or archived).
   - Allow users to temporarily "pause" (hide) their own listings that are currently approved, not sold, and not archived by the system/admin.
   - Allow users to "resume" (unhide) their paused listings, provided the listing is not expired, sold, or archived by the system/admin.
@@ -117,6 +123,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - Define behavior: User pausing a listing does not stop the package-based expiration timer.
 
 - [ ] **Implement Package-Based Expiration & Renewal Workflow**
+
   - This feature depends on the "Ad Package Management System" from Phase 7.
   - Listing active duration will be determined by the `durationDays` (or similar) field from the selected `AdPackage`.
   - Calculate expiration date based on `listing.createdAt` (or `activatedAt`) + `adPackage.durationDays`.
@@ -133,10 +140,12 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - The actual expiration period (e.g., 30, 60, 90 days) will be derived from the `AdPackage` associated with the listing.
 
 - [x] **Admin Approval & Listing Workflow**
+
   - ✅ Implement admin review for approving listings before they go live. (Already implemented with `/{id}/approve` endpoint)
   - ✅ Admins can mark listings as sold or archived. (Implemented through dedicated admin endpoints)
 
 - [x] **API Enhancements**
+
   - Ensure public listing APIs (e.g., get all listings, search) only return listings that are: `isApproved = true` AND `isSold = false` AND `isArchived = false` AND `isUserActive = true`.
   - APIs for renewal/upgrade will be part of Phase 7.
 
@@ -152,6 +161,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 ### Phase 7: Pricing & Ad Services
 
 - [ ] **Create Ad Package Management System** (Store, update, delete ad packages)
+
   - Each `AdPackage` should define:
     - `name` (e.g., "Basic," "Premium," "Free Trial")
     - `price`
@@ -172,7 +182,8 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 
 ## Technical Stack
 
-- **Backend**: 
+- **Backend**:
+
   - Spring Boot
   - PostgreSQL (H2 for development)
   - JWT Authentication

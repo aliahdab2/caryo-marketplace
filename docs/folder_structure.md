@@ -9,7 +9,7 @@ car-marketplace/
 │   ├── application.properties # Configuration files
 │   └── pom.xml            # Maven dependencies and build configuration
 ├── deployments/           # Docker Compose & Kubernetes manifests
-│   ├── docker-compose.yml # Development environment orchestration
+│   ├── docker compose.yml # Development environment orchestration
 │   ├── k8s/               # Kubernetes manifests (if applicable)
 │   └── README.md          # Deployment instructions
 ├── docs/                  # Project documentation (system design, testing, roadmap)
@@ -21,6 +21,6 @@ car-marketplace/
 ├── scripts/               # Database setup, admin tools, and utilities
 │   ├── db/                # Database scripts (migrations, seed data)
 │   └── utils/             # Helper scripts for automation tasks
-├── docker-compose.yml     # Main file to set up the Docker environment
+├── docker compose.yml     # Main file to set up the Docker environment
 └── README.md              # Main project overview
 ```
