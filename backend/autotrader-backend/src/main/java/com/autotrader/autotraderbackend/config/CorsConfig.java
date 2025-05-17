@@ -17,9 +17,9 @@ public class CorsConfig {
         // Allow all origins for development - you can restrict this in production
         config.addAllowedOrigin("http://localhost:3000"); // Next.js frontend
         config.addAllowedOrigin("http://localhost:3001"); // Alternative port
-        // If you're testing from other origins, you might want to add them here
-        // Or use the following for development only:
-        // config.addAllowedOriginPattern("*"); // BE CAREFUL! Only use in development
+        
+        // Enable this temporarily if you're still having CORS issues
+        config.addAllowedOriginPattern("*"); // BE CAREFUL! Only use in development, remove for production
         
         // Allow credentials (cookies, authorization headers, etc.)
         config.setAllowCredentials(true);
