@@ -18,10 +18,46 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 ### Phase 1: User Authentication ✅
 
 - [x] **Setup Spring Security** with JWT for authentication
+  - [x] Implement JWT-based authentication with token-based stateless sessions
+  - [x] Configure proper CORS and security headers
+  - [x] Set up proper error handling for authentication failures
+
 - [x] **Implement Register API** (accepts user details and stores in DB)
+  - [x] Accept username/email and password (with confirmation)
+  - [x] Collect and validate email address (mandatory)
+  - [x] Add full name field (mandatory)
+  - [x] Add phone number field (optional, for 2FA and recovery)
+  - [x] Add location field (optional, for localized experience)
+  - [x] Require acceptance of Terms of Service and Privacy Policy
+  - [x] Sanitize and validate all input fields
+  - [x] Store passwords securely using BCrypt encoding
+
+- [x] **Social Authentication**
+  - [x] Implement Google Sign-In integration
+  - [x] Create social login endpoint to handle OAuth token verification
+  - [x] Auto-create user accounts for new social login users
+  - [x] Associate social profile with existing users (by email)
+  - [x] Handle profile picture synchronization
+  - [x] Add tests for social login functionality
+
 - [x] **Implement Login API** (returns JWT on successful login)
+  - [x] Support username/email and password authentication
+  - [x] Return JWT token with appropriate expiration
+  - [x] Include user roles and basic user info in the response
+  - [x] Handle invalid credentials with proper error messages
+
 - [x] **Role-based Access Control** (admin/user roles)
+  - [x] Implement role-based authorization with Spring Security
+  - [x] Define user and admin roles and permissions
+  - [x] Secure endpoints based on user role
+  - [x] Support dynamic role assignment during registration
+
 - [x] **Test Authentication APIs** with Postman or integration tests
+  - [x] Unit tests for core authentication logic
+  - [x] Integration tests for registration and login flows
+  - [x] Test edge cases (existing usernames, invalid inputs, etc.)
+  - [x] Test social authentication flows
+  - [x] Ensure proper error handling and validation
 
 ### Phase 2: Car Listings ✅
 

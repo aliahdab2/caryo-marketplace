@@ -159,4 +159,67 @@ public class AuthController {
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
+
+    @Operation(
+        summary = "Social Login",
+        description = "Authenticate or register a user with social login (Google, etc.)"
+    )
+    @PostMapping("/social-login")
+    public ResponseEntity<?> socialLogin(@Valid @RequestBody com.autotrader.autotraderbackend.model.dto.SocialLoginRequest request) {
+        // Check if user exists by email
+        User user;
+        
+        if (userRepository.existsByEmail(request.getEmail())) {
+            // User exists, use existing account
+            user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Error: User not found."));
+            
+            // You could update the user with additional social provider info here if needed
+        } else {
+            // Create new user with info from social provider
+            // Generate a username from the email or name
+            String username = request.getEmail().split("@")[0];
+            
+            // Ensure username is unique
+            int counter = 1;
+            String baseUsername = username;
+            while (userRepository.existsByUsername(username)) {
+                username = baseUsername + counter++;
+            }
+            
+            // Create the user without a password (social login users don't need one)
+            user = new User();
+            user.setUsername(username);
+            user.setEmail(request.getEmail());
+            user.setPassword(encoder.encode(java.util.UUID.randomUUID().toString())); // Random password
+            
+            // Add default role
+            Set<Role> roles = new HashSet<>();
+            Role userRole = roleRepository.findByName("ROLE_USER")
+                .orElseGet(() -> {
+                    Role newRole = new Role("ROLE_USER");
+                    return roleRepository.save(newRole);
+                });
+            roles.add(userRole);
+            user.setRoles(roles);
+            
+            userRepository.save(user);
+        }
+        
+        // Generate token
+        String jwt = jwtUtils.generateJwtTokenForUser(user);
+        
+        // Return response with token and user details
+        List<String> roles = user.getRoles().stream()
+            .map(role -> role.getName())
+            .collect(Collectors.toList());
+            
+        return ResponseEntity.ok(new JwtResponse(
+            jwt, 
+            user.getId(), 
+            user.getUsername(), 
+            user.getEmail(), 
+            roles
+        ));
+    }
 }
