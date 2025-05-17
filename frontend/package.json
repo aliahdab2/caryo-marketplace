@@ -8,14 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "prepare": "husky",
-    "analyze": "ANALYZE=true next build",
     "test": "node --no-deprecation ./node_modules/.bin/jest",
-    "test:watch": "node --no-deprecation ./node_modules/.bin/jest --watch",
-    "test:coverage": "node --no-deprecation ./node_modules/.bin/jest --coverage",
-    "check:api": "node ./scripts/check-api-cors.js",
-    "check:google-auth": "node ./scripts/test-google-oauth-credentials.js",
-    "monitor:auth": "node ./scripts/monitor-auth-session.js",
-    "restart": "sh ./scripts/restart-dev.sh"
+    "restart": "sh ./scripts/restart-dev.sh",
+    "diagnose": "node ./scripts/diagnostics/simple-diagnostics.js"
   },
   "dependencies": {
     "cookies-next": "^5.1.0",

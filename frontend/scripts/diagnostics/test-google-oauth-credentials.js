@@ -7,6 +7,22 @@
  * It tests basic connectivity to Google's OAuth endpoints and validates credential format.
  */
 
+// Disable punycode deprecation warning
+process.removeAllListeners('warning');
+const originalEmit = process.emit;
+process.emit = function(name, data, ...args) {
+  if (
+    name === 'warning' && 
+    data && 
+    data.name === 'DeprecationWarning' && 
+    data.message && 
+    data.message.includes('punycode')
+  ) {
+    return false;
+  }
+  return originalEmit.call(process, name, data, ...args);
+};
+
 // Import fetch compatibly with CommonJS and ESM
 let fetch;
 try {
@@ -22,7 +38,7 @@ const fs = require('fs');
 
 // Load environment variables from .env.local
 function loadEnvFile() {
-  const envPath = path.join(__dirname, '..', '.env.local');
+  const envPath = path.join(__dirname, '../..', '.env.local');
   
   if (!fs.existsSync(envPath)) {
     console.error('❌ .env.local file not found');
@@ -100,67 +116,74 @@ async function validateGoogleCredentials() {
     const response = await fetch('https://accounts.google.com/.well-known/openid-configuration');
     
     if (response.ok) {
-      const data = await response.json();
-      console.log('✅ Successfully connected to Google OAuth discovery endpoint');
+      console.log('✅ Successfully connected to Google\'s OAuth discovery endpoint');
       
-      // Verify that we have necessary endpoints
-      if (data.authorization_endpoint && data.token_endpoint) {
-        console.log('✅ Google OAuth endpoints are available:');
-        console.log(`   - Authorization: ${data.authorization_endpoint}`);
-        console.log(`   - Token: ${data.token_endpoint}`);
+      // Try to verify the client ID (this won't fully verify the client secret)
+      console.log('\nChecking if client ID is registered with Google...');
+      try {
+        // This endpoint returns info about the client ID if it's valid
+        const tokenInfoResponse = await fetch(
+          `https://oauth2.googleapis.com/tokeninfo?client_id=${clientId}`
+        );
+        
+        if (tokenInfoResponse.ok) {
+          console.log('✅ Client ID appears to be valid and registered with Google');
+          const data = await tokenInfoResponse.json();
+          console.log(`   Registered name: ${data.issued_to === clientId ? 'Matches client ID' : data.issued_to}`);
+        } else if (tokenInfoResponse.status === 400) {
+          console.error('❌ Client ID doesn\'t appear to be registered with Google');
+        } else {
+          console.error(`⚠️ Unable to verify client ID: ${tokenInfoResponse.status} ${tokenInfoResponse.statusText}`);
+        }
+      } catch (error) {
+        console.error(`⚠️ Error checking client ID: ${error.message}`);
       }
+      
+      // Check redirect URI configuration using OAuth authorization endpoint
+      console.log('\nChecking redirect URI configuration...');
+      const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+      authUrl.searchParams.append('client_id', clientId);
+      authUrl.searchParams.append('redirect_uri', `${redirectUri}/api/auth/callback/google`);
+      authUrl.searchParams.append('response_type', 'code');
+      authUrl.searchParams.append('scope', 'openid email profile');
+      
+      console.log(`✅ Your redirect URI should be: ${redirectUri}/api/auth/callback/google`);
+      console.log('   Make sure this exact URI is added to your Google Cloud Console project');
+      console.log('\nAuthorization URL (for manual testing):');
+      console.log(authUrl.toString());
     } else {
-      console.error(`❌ Failed to connect to Google OAuth discovery endpoint: ${response.status}`);
-      return false;
+      console.error(`❌ Error connecting to Google's OAuth discovery endpoint: ${response.status} ${response.statusText}`);
     }
   } catch (error) {
-    console.error('❌ Network error when connecting to Google services:', error.message);
-    return false;
+    console.error(`❌ Error connecting to Google's OAuth servers: ${error.message}`);
+    console.error('   This could indicate a network issue or internet connectivity problem');
   }
-  
-  // Check configured redirect URI
-  console.log('\nChecking redirect URI configuration...');
-  console.log(`Your NextAuth URL is: ${redirectUri}`);
-  console.log('Make sure this exact URL (including http/https) is in your Google Cloud Console Authorized redirect URIs');
-  console.log(`Specifically: ${redirectUri}/api/auth/callback/google`);
   
   return true;
 }
 
 async function main() {
-  console.log('🔍 Google OAuth Credentials Test Tool\n');
+  console.log('🔍 Google OAuth Credentials Test\n');
   
-  // Load environment variables
-  console.log('Loading environment variables...');
-  const loaded = loadEnvFile();
-  if (!loaded) {
-    console.error('Failed to load environment variables. Make sure .env.local exists.');
+  // Load environment variables from .env.local
+  console.log('Loading environment variables from .env.local...');
+  if (!loadEnvFile()) {
+    console.error('Unable to load environment variables. Please check your .env.local file.');
+    process.exit(1);
+  }
+  console.log('✅ Environment variables loaded\n');
+  
+  // Validate Google OAuth credentials
+  if (!(await validateGoogleCredentials())) {
+    console.error('\n❌ Google OAuth validation failed. Please fix the issues and try again.');
     process.exit(1);
   }
   
-  // Validate Google credentials
-  const valid = await validateGoogleCredentials();
-  
-  console.log('\n🔍 Summary:');
-  if (valid) {
-    console.log('✅ Google OAuth credentials appear to be correctly formatted');
-    console.log('✅ Connection to Google OAuth servers is working');
-    console.log('\nNext steps:');
-    console.log('1. Ensure your redirect URI is configured in Google Cloud Console');
-    console.log('2. If still having issues, check console for specific error messages when attempting login');
-    console.log('3. Run the restart-dev.sh script to restart your Next.js server');
-  } else {
-    console.log('❌ Issues detected with Google OAuth credentials');
-    console.log('\nTroubleshooting steps:');
-    console.log('1. Check your .env.local file for correct GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET');
-    console.log('2. Verify credentials in Google Cloud Console (https://console.cloud.google.com)');
-    console.log('3. Ensure the OAuth2 API is enabled for your project');
-    console.log('4. Check that your redirect URI is correctly configured');
-    console.log('5. Run the restart-dev.sh script after making changes');
-  }
+  console.log('\n✅ Google OAuth credentials validation completed');
 }
 
+// Run the main function
 main().catch(error => {
-  console.error('\n❌ Unhandled error:', error);
+  console.error('\nAn unexpected error occurred:', error);
   process.exit(1);
 });

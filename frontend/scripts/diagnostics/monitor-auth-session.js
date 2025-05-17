@@ -7,6 +7,22 @@
  * and help diagnose authentication-related issues.
  */
 
+// Disable punycode deprecation warning
+process.removeAllListeners('warning');
+const originalEmit = process.emit;
+process.emit = function(name, data, ...args) {
+  if (
+    name === 'warning' && 
+    data && 
+    data.name === 'DeprecationWarning' && 
+    data.message && 
+    data.message.includes('punycode')
+  ) {
+    return false;
+  }
+  return originalEmit.call(process, name, data, ...args);
+};
+
 // Import fetch compatibly with CommonJS and ESM
 let fetch;
 try {
@@ -17,12 +33,12 @@ try {
   fetch = require('node-fetch');
 }
 
-import path from 'path';
-import fs from 'fs';
+const path = require('path');
+const fs = require('fs');
 
 // Load environment variables from .env.local
 function loadEnvFile() {
-  const envPath = path.join(process.cwd(), '.env.local');
+  const envPath = path.join(__dirname, '../..', '.env.local');
   
   if (!fs.existsSync(envPath)) {
     console.error('❌ .env.local file not found');
@@ -65,8 +81,13 @@ async function monitorSession(baseUrl, pollInterval = 3000) {
       
       const response = await fetch(`${baseUrl}/api/auth/session`, {
         headers: {
-          'Accept': 'application/json'
-        }
+          'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+          'Origin': baseUrl,
+          'Referer': baseUrl,
+          'Cookie': process.env.SESSION_COOKIE || '' // If you provide a session cookie via env var
+        },
+        credentials: 'include'
       });
       
       if (response.ok) {
@@ -75,7 +96,15 @@ async function monitorSession(baseUrl, pollInterval = 3000) {
         if (data && data.user) {
           process.stdout.write(`✓ Authenticated as: ${data.user.name || data.user.email}\n`);
         } else {
+          // Show more details about the session response
           process.stdout.write('✗ Not authenticated\n');
+          
+          // Check if there's any session data at all
+          if (Object.keys(data).length > 0) {
+            console.log(`   Session data received but no user: ${JSON.stringify(data)}`);
+          } else {
+            console.log('   Empty session data received');
+          }
         }
       } else {
         process.stdout.write(`✗ Error: ${response.status} ${response.statusText}\n`);
@@ -99,16 +128,20 @@ async function main() {
   
   // Load environment variables
   console.log('Loading environment variables...');
-  loadEnvFile();
+  if (!loadEnvFile()) {
+    console.log('No .env.local file found, using defaults');
+  }
+  console.log('✅ Environment loaded\n');
   
-  // Get frontend URL
-  const FRONTEND_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  // Get base URL from environment or use default
+  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
   
-  // Monitor session with 3-second polling
-  await monitorSession(FRONTEND_URL, 3000);
+  // Start monitoring
+  await monitorSession(baseUrl);
 }
 
+// Run the main function
 main().catch(error => {
-  console.error('Unhandled error:', error);
+  console.error('An unexpected error occurred:', error);
   process.exit(1);
 });
