@@ -1,0 +1,140 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Mount initialization scripts for development database
+      - ./config/dev/db-init:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_DB: autotrader
+      POSTGRES_USER: autotrader
+      POSTGRES_PASSWORD: autotrader
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autotrader"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"  # Expose PostgreSQL port for local development tools
+    networks:
+      - backend-network
+
+  minio:
+    image: minio/minio:latest
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server --console-address ":9001" /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    ports:
+      - "9000:9000"  # MinIO API port
+      - "9001:9001"  # MinIO Console port
+    networks:
+      - backend-network
+
+  # Development-specific MinIO setup script
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    restart: on-failure
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb --ignore-existing myminio/autotrader-assets;
+      /usr/bin/mc policy set download myminio/autotrader-assets;
+      exit 0;
+      "
+    networks:
+      - backend-network
+
+  # In development mode, we use the spring-boot Maven plugin instead of the Dockerfile
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev  # Development-specific Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/autotrader
+      - SPRING_DATASOURCE_USERNAME=autotrader
+      - SPRING_DATASOURCE_PASSWORD=autotrader
+      - STORAGE_S3_ENABLED=true
+      - STORAGE_S3_ENDPOINT=http://minio:9000
+      - STORAGE_S3_BUCKET_NAME=autotrader-assets
+      - STORAGE_S3_ACCESS_KEY=minioadmin
+      - STORAGE_S3_SECRET_KEY=minioadmin
+      - STORAGE_S3_REGION=us-east-1
+      - SERVER_PORT=8080
+      # Development-specific settings
+      - LOGGING_LEVEL_COM_AUTOTRADER=DEBUG # Enhanced logging
+      - SPRING_JPA_SHOW_SQL=true  # Show SQL queries
+      - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true  # Format SQL for readability
+    volumes:
+      - ./:/app  # Mount the entire project for hot reloading
+      - ~/.m2:/root/.m2  # Mount Maven cache
+    ports:
+      - "8080:8080"  # API port
+      - "5005:5005"  # Remote debugging port
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  # Development utilities
+  maildev:
+    image: maildev/maildev
+    ports:
+      - "1080:1080"  # Web interface
+      - "1025:1025"  # SMTP server
+    environment:
+      - MAILDEV_INCOMING_USER=admin
+      - MAILDEV_INCOMING_PASS=password
+    networks:
+      - backend-network
+
+  # pgadmin for database management
+  pgadmin:
+    image: dpage/pgadmin4
+    depends_on:
+      - db
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: adminpassword
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - backend-network
+      
+  # Redis for caching
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  minio_data:
+  pgadmin_data:
+  redis_data:

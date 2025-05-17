@@ -111,9 +111,15 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 
 ### Phase 3: Infrastructure & Optimizations (Partially Complete)
 
-- [ ] **PostgreSQL Setup** (create DB schema for users, listings, etc.)
+- [x] **PostgreSQL Setup** (create DB schema for users, listings, etc.)
+  - [x] Configured in docker-compose.dev.yml with proper database initialization
+  - [x] Exposed on port 5432 for local development tools
+  - [x] PgAdmin integration for easier database management
 - [ ] **Flyway for DB Migrations** (auto versioning of database schema)
 - [x] **Set up Redis** (implemented caching annotations for location data)
+  - [x] Configured in docker-compose.dev.yml with persistent volume
+  - [x] Integration documentation in /docs/redis-integration-guide.md
+  - [x] Cache configuration for different data types
 - [x] **Add basic logging** with Lombok's @Slf4j annotation (leveraging Spring Boot's logging infrastructure)
 - [x] **Configure application.properties** (database connections, security, file storage)
 - [x] **Validate file uploads** (size, format - jpeg, png, webp, etc.)
@@ -140,7 +146,17 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - [x] Proper security (non-root user)
   - [x] Compatible docker-compose.yml for local development
   - [x] Production environment configuration
-- [ ] **Enhance docker compose.yml for local dev** (Backend, PostgreSQL)
+- [x] **Enhance docker compose.yml for local dev** 
+  - [x] Comprehensive docker-compose.dev.yml configuration with:
+    - [x] PostgreSQL with health checks, exposed ports, and initialization scripts
+    - [x] MinIO with automatic bucket creation and properly configured permissions
+    - [x] MailDev for email testing (web interface on port 1080)
+    - [x] PgAdmin for database management (web interface on port 5050)
+    - [x] Redis for caching with persistent volume
+    - [x] Development-specific Dockerfile (Dockerfile.dev) with remote debugging
+    - [x] Hot-reload configuration with volume mounts
+    - [x] Enhanced logging and debugging for development
+  
 - [ ] **Set up CI/CD pipeline** (GitHub Actions: test, build, deploy)
 - [ ] **Implement Secrets Management** (env vars for local, GitHub Secrets/Vault for prod)
 - [x] **Enable Monitoring & Health Checks** (Spring Boot Actuator)
@@ -170,6 +186,8 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - Calculate expiration date based on `listing.createdAt` (or `activatedAt`) + `adPackage.durationDays`.
   - **Notifications & Renewal Process:**
     - Send email/in-app notifications to users several days before their listing package is due to expire.
+    - Use configured MailDev service for testing email notifications in development
+    - Email integration documentation available in `/docs/maildev-integration-guide.md`
     - Notifications should include clear calls to action:
       - Option to "Renew" the current package (potentially for a fee).
       - Option to "Upgrade" to a different package (potentially with a longer duration or more features).
@@ -226,10 +244,14 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - **Backend**:
 
   - Spring Boot
-  - PostgreSQL (H2 for development)
+  - PostgreSQL 
+  - Redis for caching
   - JWT Authentication
+  - MinIO/S3 for file storage
+  - MailDev for email testing
   - Swagger/OpenAPI Documentation
   - JUnit, Mockito for testing
+  - Docker & Docker Compose for development environment
 
 - **Frontend** (Planned):
   - React.js
