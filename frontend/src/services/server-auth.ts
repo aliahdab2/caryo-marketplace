@@ -1,8 +1,6 @@
 // Server-side authentication service
 // This is a simplified version of auth.ts that works in Server Components and API routes
 
-import { cookies } from 'next/headers';
-
 // Types
 export interface LoginCredentials {
   username: string;
@@ -16,6 +14,38 @@ export interface RegistrationData {
   firstName?: string;
   lastName?: string;
   phone?: string;
+}
+
+export interface SocialLoginData {
+  email: string;
+  name: string;
+  provider: string;
+  providerAccountId: string;
+  image?: string;
+}
+
+/**
+ * Helper function to handle API responses consistently
+ */
+async function handleApiResponse(response: Response) {
+  if (!response.ok) {
+    let errorMessage = `Request failed (${response.status}: ${response.statusText})`;
+    
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.message || errorMessage;
+    } catch (jsonError) {
+      // If JSON parsing fails, use the status text (already set above)
+    }
+    
+    throw new Error(errorMessage);
+  }
+  
+  try {
+    return await response.json();
+  } catch (jsonError) {
+    throw new Error('Invalid response format from server');
+  }
 }
 
 /**
@@ -39,26 +69,11 @@ export const serverAuth = {
         cache: 'no-store'
       });
       
-      if (!response.ok) {
-        let errorMessage = 'Authentication failed';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch (jsonError) {
-          // If JSON parsing fails, use status text
-          errorMessage = `Authentication failed (${response.status}: ${response.statusText})`;
-        }
-        throw new Error(errorMessage);
-      }
-      
-      try {
-        const data = await response.json();
-        return data;
-      } catch (jsonError) {
-        throw new Error('Invalid response format from authentication server');
-      }
+      return await handleApiResponse(response);
     } catch (error) {
-      console.error('Server auth login error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Authentication error:', error);
+      }
       throw error;
     }
   },
@@ -79,15 +94,49 @@ export const serverAuth = {
         cache: 'no-store'
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
+      return await handleApiResponse(response);
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Registration error:', error);
+      }
+      throw error;
+    }
+  },
+  
+  /**
+   * Authenticate or register a user via social login
+   */
+  async socialLogin(socialData: SocialLoginData) {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    
+    try {
+      const response = await fetch(`${API_URL}/api/auth/social-login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(socialData),
+        cache: 'no-store'
+      });
+      
+      const data = await handleApiResponse(response);
+      
+      if (process.env.NODE_ENV === 'development' && data) {
+        // Only log minimal info in development
+        console.log('Social login successful:', data.username || data.email);
       }
       
-      const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Server auth register error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Social login error:', error);
+        
+        // Enhanced error reporting only in development
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+          console.error(`Network error. Check if backend is running at ${API_URL}`);
+        }
+      }
+      
       throw error;
     }
   }

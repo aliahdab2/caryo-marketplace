@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { authService } from "@/services/auth";
 import SuccessAlert from "@/components/ui/alerts/SuccessAlert";
 import SimpleVerification from '@/components/auth/SimpleVerification';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 
 export default function SignUpPage() {
   const [username, setUsername] = useState(""); // Changed from name to username
@@ -213,6 +214,23 @@ export default function SignUpPage() {
           )}
         </div>
       </form>
+      
+      <div className="mt-6">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+              {t('auth.orContinueWith', 'Or continue with')}
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <GoogleSignInButton callbackUrl="/dashboard" />
+        </div>
+      </div>
       
       <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
         {t('auth.alreadyHaveAccount')}{" "}

@@ -6,7 +6,6 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 const nextConfig = {
   /* config options here */
   env: {
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || "AdJ8m5EpqN6qPwEtH7XsKfRzV2yG9LcZ",
     NEXTAUTH_URL: process.env.NEXTAUTH_URL || "http://localhost:3000",
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
   },
@@ -14,7 +13,19 @@ const nextConfig = {
   
   // Next.js Image configuration - domains that are allowed to be loaded
   images: {
-    domains: ['placehold.co'],
+    domains: ['placehold.co', 'lh3.googleusercontent.com'], // Legacy approach
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+        pathname: '/**',
+      }
+    ],
   },
   
   // Using the stable turbopack configuration

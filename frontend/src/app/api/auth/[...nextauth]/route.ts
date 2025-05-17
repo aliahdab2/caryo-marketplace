@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import type { NextAuthOptions } from "next-auth";
 import { serverAuth } from "@/services/server-auth";
 import { JWT } from "next-auth/jwt";
@@ -23,6 +24,7 @@ declare module "next-auth" {
       roles: string[];
     };
     accessToken: string;
+    expires: string;
   }
 }
 
@@ -32,11 +34,24 @@ declare module "next-auth/jwt" {
     id: string;
     roles: string[];
     accessToken: string;
+    error?: string;
   }
 }
 
 export const authOptions: NextAuthOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      // Add additional Google configuration if needed
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
+    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -69,10 +84,13 @@ export const authOptions: NextAuthOptions = {
               token: response.token, // Store the token for future API calls
             };
           } else {
-            throw new Error("Authentication failed");
+            throw new Error("Authentication failed: Invalid response from server");
           }
         } catch (error) {
-          console.error("Authentication error:", error);
+          // Only log in development
+          if (process.env.NODE_ENV === "development") {
+            console.error("Authentication error:", error);
+          }
           throw new Error(
             error instanceof Error ? error.message : "Authentication failed"
           );
@@ -82,33 +100,82 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: "jwt",
+    maxAge: 24 * 60 * 60, // 24 hours
   },
   pages: {
     signIn: "/auth/signin",
+    error: "/auth/error",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       // Initial sign in
       if (user) {
-        // Add user info to the token
-        token.id = user.id;
-        token.roles = user.roles;
-        token.accessToken = user.token;
+        if (account?.provider === "credentials") {
+          // Credentials login - we already have user data structured as we need
+          token.id = user.id;
+          token.roles = user.roles;
+          token.accessToken = user.token;
+        } else if (account?.provider === "google") {
+          // Google login
+          try {
+            // Register or login this Google user with our backend
+            const response = await serverAuth.socialLogin({
+              email: user.email!,
+              name: user.name!,
+              provider: "google",
+              providerAccountId: account.providerAccountId,
+              image: user.image || undefined,
+            });
+
+            if (response && response.token) {
+              // Store the token and user info from our backend
+              token.id = response.id.toString();
+              token.roles = response.roles || ["user"];
+              token.accessToken = response.token;
+            } else {
+              throw new Error("Invalid response format from backend");
+            }
+          } catch (error) {
+            // Only log in development
+            if (process.env.NODE_ENV === "development") {
+              console.error("Error during Google authentication:", error);
+            }
+
+            // Add error info to the token
+            token.error =
+              error instanceof Error
+                ? error.message
+                : "Unknown error during social login";
+
+            // Still set some basic identity info from Google
+            token.id = user.id || user.email!;
+            token.roles = ["user"];
+            token.accessToken = "";
+          }
+        }
       }
+
       return token;
     },
+
     async session({ session, token }) {
       if (session.user) {
         // Add user info to the session
         session.user.id = token.id;
-        session.user.roles = token.roles;
+        session.user.roles = token.roles || ["user"];
         session.accessToken = token.accessToken;
+
+        // If there was an error during login, forward it to the session
+        if (token.error) {
+          (session as any).error = token.error;
+        }
       }
+
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET || "AdJ8m5EpqN6qPwEtH7XsKfRzV2yG9LcZ", // Use env var or fallback to hardcoded secret
-  debug: process.env.NODE_ENV === "development", // Enable debug logs in development
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
 };
 
 const handler = NextAuth(authOptions);
