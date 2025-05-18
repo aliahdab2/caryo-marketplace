@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import Head from 'next/head';
 
 /**
  * ClientRTLStylesLoader - A client component that conditionally loads RTL styles
@@ -22,10 +23,12 @@ export default function ClientRTLStylesLoader() {
   }
 
   return (
-    <link 
-      rel="stylesheet" 
-      href="/rtl-specific.css" 
-      data-testid="rtl-stylesheet"
-    />
+    <Head>
+      <link 
+        rel="stylesheet" 
+        href="/rtl-specific.css" 
+        data-testid="rtl-stylesheet"
+      />
+    </Head>
   );
 }

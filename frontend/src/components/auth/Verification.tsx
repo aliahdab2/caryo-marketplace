@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './verification.module.css';
 
@@ -20,14 +20,7 @@ export default function Verification({
   const [isVerified, setIsVerified] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Auto-verify on mount if requested
-  useEffect(() => {
-    if (autoVerify) {
-      handleVerify();
-    }
-  }, [autoVerify]);
-
-  const handleVerify = async () => {
+  const handleVerify = useCallback(async () => {
     setIsVerifying(true);
     setError(null);
 
@@ -44,13 +37,21 @@ export default function Verification({
 
       setIsVerified(true);
       onVerified(true);
-    } catch (err: any) {
-      setError(err.message || t('auth.verificationFailed'));
+    } catch (err) {
+      const error = err as Error; // Type assertion
+      setError(error.message || t('auth.verificationFailed'));
       onVerified(false);
     } finally {
       setIsVerifying(false);
     }
-  };
+  }, [onVerified, t]); // Added t to dependency array
+
+  // Auto-verify on mount if requested
+  useEffect(() => {
+    if (autoVerify) {
+      handleVerify();
+    }
+  }, [autoVerify, handleVerify]);
 
   if (!showIndicator && autoVerify) {
     return null; // Don't render anything if indicator is hidden and auto-verifying

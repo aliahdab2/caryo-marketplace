@@ -53,7 +53,7 @@ export default function SimpleVerification({
         clearTimeout(verificationTimeoutRef.current);
       }
     };
-  }, []); 
+  }, [autoStart, onVerified, state]); 
 
   const handleVerify = useCallback(() => {
     if (state !== 'idle') return;

@@ -1,4 +1,4 @@
-export default {
+const mockStyles = {
   'verification-wrapper': 'mocked-verification-wrapper',
   'idle-container': 'mocked-idle-container',
   'idle-text': 'mocked-idle-text',
@@ -9,3 +9,5 @@ export default {
   'success-text': 'mocked-success-text',
   'active': 'mocked-active'
 };
+
+export default mockStyles;

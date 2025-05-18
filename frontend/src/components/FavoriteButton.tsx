@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { MdFavorite, MdFavoriteBorder } from 'react-icons/md';
@@ -22,20 +22,20 @@ export default function FavoriteButton({
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (session) {
-      checkFavoriteStatus();
-    }
-  }, [session, listingId]);
-
-  const checkFavoriteStatus = async () => {
+  const checkFavoriteStatus = useCallback(async () => {
     try {
       const status = await checkIsFavorite(listingId);
       setIsFavorite(status);
     } catch (err) {
       console.error('Error checking favorite status:', err);
     }
-  };
+  }, [listingId]);
+
+  useEffect(() => {
+    if (session) {
+      checkFavoriteStatus();
+    }
+  }, [session, listingId, checkFavoriteStatus]);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent navigation if button is inside a link
@@ -87,4 +87,4 @@ export default function FavoriteButton({
       )}
     </button>
   );
-} 
+}
