@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 
@@ -531,10 +532,13 @@ export default function NewListingPage() {
                     {formData.images.map((file, index) => (
                       <div key={index} className="relative">
                         <div className="h-24 rounded-lg overflow-hidden">
-                          <img
+                          <Image
                             src={URL.createObjectURL(file)}
                             alt={`Preview ${index}`}
                             className="w-full h-full object-cover"
+                            width={200}
+                            height={96}
+                            unoptimized
                           />
                         </div>
                         <button

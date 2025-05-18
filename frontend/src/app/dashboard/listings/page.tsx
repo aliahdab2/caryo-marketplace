@@ -17,7 +17,6 @@ import {
   MdArrowUpward,
   MdArrowDownward,
   MdHelpOutline,
-  MdWarning,
   MdCheckBox,
   MdCheckBoxOutlineBlank,
   MdViewList,
@@ -27,63 +26,63 @@ import {
 
 // Mock data for listings (in a real app, this would come from an API)
 const MOCK_LISTINGS = [
-	{
-		id: "1",
-		title: "Toyota Camry 2020",
-		price: 25000,
-		currency: "SYP",
-		location: "Dubai",
-		created: "2023-05-15",
-		expires: "2025-07-20", // future date
-		status: "active",
-		views: 120,
-		image: "/images/vehicles/car-default.svg",
-	},
-	{
-		id: "2",
-		title: "Honda Civic 2019",
-		price: 18500,
-		currency: "SYP",
-		location: "Abu Dhabi",
-		created: "2023-04-20",
-		expires: "2025-05-22", // future date
-		status: "active",
-		views: 75,
-		image: "/images/vehicles/car-default.svg",
-	},
-	{
-		id: "3",
-		title: "BMW X5 2018",
-		price: 35000,
-		currency: "SYP",
-		location: "Sharjah",
-		created: "2023-03-10",
-		expires: "2023-06-10", // past date
-		status: "expired",
-		views: 210,
-		image: "/images/vehicles/car-default.svg",
-	},
   {
-		id: "4",
-		title: "Mercedes E-Class 2019",
-		price: 32500,
-		currency: "SYP",
-		location: "Dubai",
-		created: "2023-05-10",
-		expires: "2023-07-05", // past date
-		status: "expired",
-		views: 180,
-		image: "/images/vehicles/car-default.svg",
-	},
+    id: "1",
+    title: "Toyota Camry 2020",
+    price: 25000,
+    currency: "SYP",
+    location: "Dubai",
+    created: "2023-05-15",
+    expires: "2025-07-20", // future date
+    status: "active",
+    views: 120,
+    image: "/images/vehicles/car-default.svg",
+  },
+  {
+    id: "2",
+    title: "Honda Civic 2019",
+    price: 18500,
+    currency: "SYP",
+    location: "Abu Dhabi",
+    created: "2023-04-20",
+    expires: "2025-05-22", // future date
+    status: "active",
+    views: 75,
+    image: "/images/vehicles/car-default.svg",
+  },
+  {
+    id: "3",
+    title: "BMW X5 2018",
+    price: 35000,
+    currency: "SYP",
+    location: "Sharjah",
+    created: "2023-03-10",
+    expires: "2023-06-10", // past date
+    status: "expired",
+    views: 210,
+    image: "/images/vehicles/car-default.svg",
+  },
+  {
+    id: "4",
+    title: "Mercedes E-Class 2019",
+    price: 32500,
+    currency: "SYP",
+    location: "Dubai",
+    created: "2023-05-10",
+    expires: "2023-07-05", // past date
+    status: "expired",
+    views: 180,
+    image: "/images/vehicles/car-default.svg",
+  },
 ];
 
 export default function ListingsPage() {
-	const { t, i18n } = useTranslation("common");
-	const [search, setSearch] = useState("");
-	const [statusFilter, setStatusFilter] = useState("all");
-	const [sortBy, setSortBy] = useState("newest");
+  const { t, i18n } = useTranslation("common");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-	const [listings, setListings] = useState(MOCK_LISTINGS);
+  const [listings, setListings] = useState(MOCK_LISTINGS);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
   const [tableRefreshed, setTableRefreshed] = useState(false);
@@ -115,7 +114,7 @@ export default function ListingsPage() {
     setTimeout(() => setTableRefreshed(false), 1500);
   };
 
-	/**
+  /**
    * Calculates days until expiry or days since expired
    * @param expiryDate - The expiry date in ISO format
    * @returns Positive number for days until expiry, negative number for days since expiry
@@ -132,38 +131,38 @@ export default function ListingsPage() {
     return diffDays;
   };
 
-	// Function to filter and sort listings
-	const filteredListings = listings
-		.filter((listing) => {
-			// Filter by search term
-			const searchMatch = listing.title
-				.toLowerCase()
-				.includes(search.toLowerCase());
+  // Function to filter and sort listings
+  const filteredListings = listings
+    .filter((listing) => {
+      // Filter by search term
+      const searchMatch = listing.title
+        .toLowerCase()
+        .includes(search.toLowerCase());
 
-			// Filter by status
-			const statusMatch =
-				statusFilter === "all" || listing.status === statusFilter;
+      // Filter by status
+      const statusMatch =
+        statusFilter === "all" || listing.status === statusFilter;
 
-			return searchMatch && statusMatch;
-		})
-		.sort((a, b) => {
-			// Sort listings
+      return searchMatch && statusMatch;
+    })
+    .sort((a, b) => {
+      // Sort listings
       const sortMultiplier = sortOrder === "asc" ? 1 : -1;
-			switch (sortBy) {
-				case "price":
-					return sortMultiplier * (a.price - b.price);
-				case "date":
-					return sortMultiplier * (new Date(a.created).getTime() - new Date(b.created).getTime());
-				case "views":
-					return sortMultiplier * (a.views - b.views);
-				case "expiry":
-					return sortMultiplier * (new Date(a.expires).getTime() - new Date(b.expires).getTime());
-				case "title":
+      switch (sortBy) {
+        case "price":
+          return sortMultiplier * (a.price - b.price);
+        case "date":
+          return sortMultiplier * (new Date(a.created).getTime() - new Date(b.created).getTime());
+        case "views":
+          return sortMultiplier * (a.views - b.views);
+        case "expiry":
+          return sortMultiplier * (new Date(a.expires).getTime() - new Date(b.expires).getTime());
+        case "title":
           return sortMultiplier * a.title.localeCompare(b.title);
-				default:
-					return sortMultiplier * (new Date(b.created).getTime() - new Date(a.created).getTime());
-			}
-		});
+        default:
+          return sortMultiplier * (new Date(b.created).getTime() - new Date(a.created).getTime());
+      }
+    });
 
   // Count of expired listings
   const expiredCount = listings.filter(listing => listing.status === "expired").length;
@@ -176,36 +175,36 @@ export default function ListingsPage() {
     setSortOrder("desc");
   };
 
-	// Function to handle listing delete
-	const handleDelete = (id: string) => {
-		if (window.confirm(t("listings.confirmDelete"))) {
-			setListings((prev) => prev.filter((listing) => listing.id !== id));
+  // Function to handle listing delete
+  const handleDelete = (id: string) => {
+    if (window.confirm(t("listings.confirmDelete"))) {
+      setListings((prev) => prev.filter((listing) => listing.id !== id));
       // Also remove from selected items if present
       if (selectedItems.includes(id)) {
         setSelectedItems(prev => prev.filter(itemId => itemId !== id));
       }
-		}
-	};
+    }
+  };
 
-	// Function to handle listing renewal
-	const handleRenew = (id: string) => {
-		setListings((prev) =>
-			prev.map((listing) => {
-				if (listing.id === id) {
-					// Calculate new expiry date (+ 3 months from now)
-					const newExpiry = new Date();
-					newExpiry.setMonth(newExpiry.getMonth() + 3);
+  // Function to handle listing renewal
+  const handleRenew = (id: string) => {
+    setListings((prev) =>
+      prev.map((listing) => {
+        if (listing.id === id) {
+          // Calculate new expiry date (+ 3 months from now)
+          const newExpiry = new Date();
+          newExpiry.setMonth(newExpiry.getMonth() + 3);
 
-					return {
-						...listing,
-						status: "active",
-						expires: newExpiry.toISOString().split("T")[0],
-					};
-				}
-				return listing;
-			})
-		);
-	};
+          return {
+            ...listing,
+            status: "active",
+            expires: newExpiry.toISOString().split("T")[0],
+          };
+        }
+        return listing;
+      })
+    );
+  };
 
   // Handle bulk operations
   const handleBulkAction = (action: 'delete' | 'renew') => {
@@ -286,39 +285,39 @@ export default function ListingsPage() {
     );
   };
 
-	return (
-		<div className={`transition-all duration-300 ${tableRefreshed ? 'opacity-70' : 'opacity-100'}`}>
-			<div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
-				<div>
-					<h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-1">
-						{t("dashboard.myListings")}
-					</h1>
-					<p className="text-sm text-gray-500 dark:text-gray-400">
-						{new Date().toLocaleDateString(i18n.language, { 
-							weekday: 'long', 
-							year: 'numeric', 
-							month: 'long', 
-							day: 'numeric' 
-						})}
-					</p>
-				</div>
-				<div className="flex items-center gap-2">
-					<button
-						onClick={refreshTable}
-						className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
-						title={t("listings.refreshTable")}
-					>
-						<MdReload className={`${tableRefreshed ? 'animate-spin' : ''}`} size={20} />
-					</button>
-					<Link
-						href="/dashboard/listings/new"
-						className="inline-flex items-center py-2.5 px-4 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-sm hover:shadow"
-					>
-						<span className="mr-2">+</span>
-						{t("dashboard.createListing")}
-					</Link>
-				</div>
-			</div>
+  return (
+    <div className={`transition-all duration-300 ${tableRefreshed ? 'opacity-70' : 'opacity-100'}`}>
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-1">
+            {t("dashboard.myListings")}
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {new Date().toLocaleDateString(i18n.language, { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={refreshTable}
+            className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
+            title={t("listings.refreshTable")}
+          >
+            <MdReload className={`${tableRefreshed ? 'animate-spin' : ''}`} size={20} />
+          </button>
+          <Link
+            href="/dashboard/listings/new"
+            className="inline-flex items-center py-2.5 px-4 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-sm hover:shadow"
+          >
+            <span className="mr-2">+</span>
+            {t("dashboard.createListing")}
+          </Link>
+        </div>
+      </div>
 
       {/* Alert for expired listings */}
       {expiredCount > 0 && (
@@ -344,8 +343,8 @@ export default function ListingsPage() {
         </div>
       )}
 
-			{/* Filters & Search */}
-			<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 md:p-6 mb-6">
+      {/* Filters & Search */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 md:p-6 mb-6">
         {/* Mobile Sort Button */}
         <div className="md:hidden mb-4">
           <button
@@ -362,14 +361,14 @@ export default function ListingsPage() {
           </button>
         </div>
 
-				<div 
+        <div 
           id="filter-controls"
           className={`grid grid-cols-1 md:grid-cols-12 gap-5 ${isMobileSortOpen ? '' : 'hidden md:grid'}`}
         >
-					<div className="md:col-span-5">
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-							{t("common.search")}
-						</label>
+          <div className="md:col-span-5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              {t("common.search")}
+            </label>
             <div className="relative">
               <input
                 type="text"
@@ -390,44 +389,44 @@ export default function ListingsPage() {
                 </button>
               )}
             </div>
-					</div>
+          </div>
 
-					<div className="md:col-span-3">
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5" htmlFor="status-filter">
-							{t("listings.status")}
-						</label>
-						<select
-							id="status-filter"
-							value={statusFilter}
-							onChange={(e) => setStatusFilter(e.target.value)}
-							className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-							aria-label={t("listings.filterByStatus")}
-						>
-							<option value="all">{t("common.all")}</option>
-							<option value="active">{t("listings.active")}</option>
-							<option value="expired">{t("listings.expired")}</option>
-							<option value="pending">{t("listings.pending")}</option>
-						</select>
-					</div>
+          <div className="md:col-span-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5" htmlFor="status-filter">
+              {t("listings.status")}
+            </label>
+            <select
+              id="status-filter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+              aria-label={t("listings.filterByStatus")}
+            >
+              <option value="all">{t("common.all")}</option>
+              <option value="active">{t("listings.active")}</option>
+              <option value="expired">{t("listings.expired")}</option>
+              <option value="pending">{t("listings.pending")}</option>
+            </select>
+          </div>
 
-					<div className="md:col-span-3">
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5" htmlFor="sort-by">
-							{t("common.sortBy")}
-						</label>
-						<select
-							id="sort-by"
-							value={sortBy}
-							onChange={(e) => setSortBy(e.target.value)}
-							className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-							aria-label={t("common.sortBy")}
-						>
-							<option value="date">{t("common.date")}</option>
-							<option value="price">{t("common.price")}</option>
-							<option value="title">{t("common.title")}</option>
-							<option value="views">{t("common.views")}</option>
-							<option value="expiry">{t("listings.expiry")}</option>
-						</select>
-					</div>
+          <div className="md:col-span-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5" htmlFor="sort-by">
+              {t("common.sortBy")}
+            </label>
+            <select
+              id="sort-by"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+              aria-label={t("common.sortBy")}
+            >
+              <option value="date">{t("common.date")}</option>
+              <option value="price">{t("common.price")}</option>
+              <option value="title">{t("common.title")}</option>
+              <option value="views">{t("common.views")}</option>
+              <option value="expiry">{t("listings.expiry")}</option>
+            </select>
+          </div>
 
           <div className="md:col-span-1">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 invisible">
@@ -444,8 +443,8 @@ export default function ListingsPage() {
               <span className="md:hidden ml-1">{t("common.clearFilters")}</span>
             </button>
           </div>
-				</div>
-			</div>
+        </div>
+      </div>
 
       {/* Bulk Actions */}
       {selectedItems.length > 0 && (
@@ -484,12 +483,12 @@ export default function ListingsPage() {
         </div>
       )}
 
-			{/* Listings Table */}
-			<div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-				<div className="overflow-x-auto">
-					<table className="w-full">
-						<thead ref={tableHeaderRef} className="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider sticky top-0 z-10">
-							<tr>
+      {/* Listings Table */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead ref={tableHeaderRef} className="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider sticky top-0 z-10">
+              <tr>
                 <th className="py-3 px-4">
                   <div 
                     className="cursor-pointer"
@@ -503,7 +502,7 @@ export default function ListingsPage() {
                     )}
                   </div>
                 </th>
-								<th className="py-3 px-4">
+                <th className="py-3 px-4">
                   <span 
                     onClick={() => handleSort("title")}
                     className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
@@ -511,7 +510,7 @@ export default function ListingsPage() {
                     {t("common.title")} {getSortIcon("title")}
                   </span>
                 </th>
-								<th className="py-3 px-4">
+                <th className="py-3 px-4">
                   <span 
                     onClick={() => handleSort("price")}
                     className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
@@ -519,8 +518,8 @@ export default function ListingsPage() {
                     {t("common.price")} {getSortIcon("price")}
                   </span>
                 </th>
-								<th className="py-3 px-4">{t("common.status")}</th>
-								<th className="py-3 px-4">
+                <th className="py-3 px-4">{t("common.status")}</th>
+                <th className="py-3 px-4">
                   <span 
                     onClick={() => handleSort("expiry")}
                     className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
@@ -528,7 +527,7 @@ export default function ListingsPage() {
                     {t("common.date")} {getSortIcon("expiry")}
                   </span>
                 </th>
-								<th className="py-3 px-4">
+                <th className="py-3 px-4">
                   <div className="flex items-center">
                     <span 
                       onClick={() => handleSort("views")}
@@ -544,12 +543,12 @@ export default function ListingsPage() {
                     </div>
                   </div>
                 </th>
-								<th className="py-3 px-4">{t("common.actions")}</th>
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-							{filteredListings.length > 0 ? (
-								filteredListings.map((listing) => {
+                <th className="py-3 px-4">{t("common.actions")}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {filteredListings.length > 0 ? (
+                filteredListings.map((listing) => {
                   // Calculate days until expiry
                   const daysUntilExpiry = getDaysUntilExpiry(listing.expires);
                   
@@ -572,10 +571,10 @@ export default function ListingsPage() {
                       : "hover:bg-gray-50 dark:hover:bg-gray-700";
                   
                   return (
-									<tr
-										key={listing.id}
-										className={`${rowBgColor} transition-colors`}
-									>
+                  <tr
+                    key={listing.id}
+                    className={`${rowBgColor} transition-colors`}
+                  >
                     <td className="py-4 px-4">
                       <div 
                         className="cursor-pointer"
@@ -588,53 +587,53 @@ export default function ListingsPage() {
                         )}
                       </div>
                     </td>
-										<td className="py-4 px-4">
-											<div className="flex items-center">
-												<div className="h-16 w-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 mr-3 rtl:ml-3 rtl:mr-0 border border-gray-200 dark:border-gray-600 shadow-sm">
-													<Image
-														src={listing.image || "/images/vehicles/car-default.svg"}
-														alt={listing.title}
-														width={64}
-														height={64}
-														className="h-16 w-16 object-cover transition-transform duration-300 group-hover:scale-105"
-														onError={(e) => {
-															// Fallback to default car image if remote image fails
-															const target = e.target as HTMLImageElement;
-															target.onerror = null; // Prevent infinite loop
-															target.src = "/images/vehicles/car-default.svg";
-														}}
-													/>
-												</div>
-												<div>
-													<div className="font-bold text-lg text-gray-900 dark:text-white mb-1 line-clamp-1">
-														{listing.title}
-													</div>
-													<div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-														<span className="inline-flex items-center">
-															<svg className="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
-																<path d="M12,2C8.13,2,5,5.13,5,9c0,5.25,7,13,7,13s7-7.75,7-13C19,5.13,15.87,2,12,2z M12,11.5c-1.38,0-2.5-1.12-2.5-2.5s1.12-2.5,2.5-2.5s2.5,1.12,2.5,2.5S13.38,11.5,12,11.5z"/>
-															</svg>
-															{listing.location}
-														</span>
-													</div>
-													<div className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-														{listing.created ? (
-															formatDate(listing.created, i18n.language, { dateStyle: 'medium' }) || t('listings.addedRecently')
-														) : t('listings.addedRecently')}
-													</div>
-												</div>
-											</div>
-										</td>
-										<td className="py-4 px-4">
+                    <td className="py-4 px-4">
+                      <div className="flex items-center">
+                        <div className="h-16 w-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 mr-3 rtl:ml-3 rtl:mr-0 border border-gray-200 dark:border-gray-600 shadow-sm">
+                          <Image
+                            src={listing.image || "/images/vehicles/car-default.svg"}
+                            alt={listing.title}
+                            width={64}
+                            height={64}
+                            className="h-16 w-16 object-cover transition-transform duration-300 group-hover:scale-105"
+                            onError={(e) => {
+                              // Fallback to default car image if remote image fails
+                              const target = e.target as HTMLImageElement;
+                              target.onerror = null; // Prevent infinite loop
+                              target.src = "/images/vehicles/car-default.svg";
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <div className="font-bold text-lg text-gray-900 dark:text-white mb-1 line-clamp-1">
+                            {listing.title}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                            <span className="inline-flex items-center">
+                              <svg className="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12,2C8.13,2,5,5.13,5,9c0,5.25,7,13,7,13s7-7.75,7-13C19,5.13,15.87,2,12,2z M12,11.5c-1.38,0-2.5-1.12-2.5-2.5s1.12-2.5,2.5-2.5s2.5,1.12,2.5,2.5S13.38,11.5,12,11.5z"/>
+                              </svg>
+                              {listing.location}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+                            {listing.created ? (
+                              formatDate(listing.created, i18n.language, { dateStyle: 'medium' }) || t('listings.addedRecently')
+                            ) : t('listings.addedRecently')}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
                       <div className="font-medium text-gray-900 dark:text-white text-lg">
-											  {formatNumber(listing.price, i18n.language, { style: 'currency', currency: listing.currency })}
+                        {formatNumber(listing.price, i18n.language, { style: 'currency', currency: listing.currency })}
                         <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           {listing.currency === 'SYP' ? 'Syrian Pound' : 'US Dollar'}
                         </div>
                       </div>
                     </td>
-										<td className="py-4 px-4">
-											<div className="flex flex-col items-start gap-1">
+                    <td className="py-4 px-4">
+                      <div className="flex flex-col items-start gap-1">
                         <span
                           className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center w-fit shadow-sm ${
                             listing.status === "active"
@@ -660,8 +659,8 @@ export default function ListingsPage() {
                           </div>
                         )}
                       </div>
-										</td>
-										<td className="py-4 px-4">
+                    </td>
+                    <td className="py-4 px-4">
                       <div>
                         <div className="font-medium text-gray-800 dark:text-gray-200">
                           {formatDate(new Date(listing.expires), i18n.language, { dateStyle: 'medium' })}
@@ -697,7 +696,7 @@ export default function ListingsPage() {
                         </div>
                       </div>
                     </td>
-										<td className="py-4 px-4">
+                    <td className="py-4 px-4">
                       <div className="group relative">
                         <div className="flex items-center">
                           <span className="font-medium text-lg">{formatNumber(listing.views, i18n.language)}</span>
@@ -714,7 +713,7 @@ export default function ListingsPage() {
                         </div>
                       </div>
                     </td>
-										<td className="py-4 px-4">
+                    <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
                         <Link
                           href={`/dashboard/listings/edit/${listing.id}`}
@@ -761,53 +760,53 @@ export default function ListingsPage() {
                           </div>
                         </div>
                       </div>
-										</td>
-									</tr>
+                    </td>
+                  </tr>
                   );
                 })
-							) : (
-								<tr>
-									<td
-										colSpan={8}
-										className="py-6 px-4 text-center text-gray-500 dark:text-gray-400"
-									>
-										{search || statusFilter !== "all"
-											? t("listings.noMatchingListings")
-											: t("listings.noListings")}
-									</td>
-								</tr>
-							)}
-						</tbody>
-					</table>
-				</div>
-			</div>
+              ) : (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="py-6 px-4 text-center text-gray-500 dark:text-gray-400"
+                  >
+                    {search || statusFilter !== "all"
+                      ? t("listings.noMatchingListings")
+                      : t("listings.noListings")}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-			{/* Pagination - could be implemented here */}
-			<div className="flex justify-center mt-6">
-				{/* Pagination would go here */}
-			</div>
+      {/* Pagination - could be implemented here */}
+      <div className="flex justify-center mt-6">
+        {/* Pagination would go here */}
+      </div>
 
-			{/* Help box */}
-			<div className="mt-8 bg-blue-50 dark:bg-blue-900/30 rounded-lg p-6 border border-blue-100 dark:border-blue-800">
-				<h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-2">
-					{t("dashboard.listingsTips")}
-				</h3>
-				<ul className="text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
-					<li>{t("dashboard.tip1")}</li>
-					<li>{t("dashboard.tip2")}</li>
-					<li>{t("dashboard.tip3")}</li>
-				</ul>
-				<div className="mt-4">
-					<Link
-						href="/help/listings"
-						className="text-primary hover:underline"
-					>
-						{t("common.learnMore")} →
-					</Link>
-				</div>
-			</div>
-		</div>
-	);
+      {/* Help box */}
+      <div className="mt-8 bg-blue-50 dark:bg-blue-900/30 rounded-lg p-6 border border-blue-100 dark:border-blue-800">
+        <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-2">
+          {t("dashboard.listingsTips")}
+        </h3>
+        <ul className="text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
+          <li>{t("dashboard.tip1")}</li>
+          <li>{t("dashboard.tip2")}</li>
+          <li>{t("dashboard.tip3")}</li>
+        </ul>
+        <div className="mt-4">
+          <Link
+            href="/help/listings"
+            className="text-primary hover:underline"
+          >
+            {t("common.learnMore")} →
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // CSS for sticky header effects would typically be in a separate stylesheet 
@@ -830,4 +829,3 @@ export default function ListingsPage() {
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out forwards;
 }
-*/

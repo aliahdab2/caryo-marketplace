@@ -19,8 +19,7 @@ import {
   MdEmail,
   MdAnalytics,
   MdSupportAgent,
-  MdAdd,
-  MdTrendingUp
+  MdAdd
 } from "react-icons/md";
 
 // Navigation item type
@@ -32,7 +31,7 @@ type NavItem = {
 };
 
 // Memoized Sidebar component for improved performance
-const SidebarItem = memo(({ 
+const SidebarItem = memo(function SidebarItem({ 
   item, 
   isActive, 
   onClick 
@@ -40,7 +39,8 @@ const SidebarItem = memo(({
   item: NavItem; 
   isActive: boolean; 
   onClick?: () => void;
-}) => (
+}) {
+  return (
   <li>
     <Link 
       href={item.href}
@@ -62,7 +62,8 @@ const SidebarItem = memo(({
       )}
     </Link>
   </li>
-));
+  );
+});
 
 // Memoized User profile component with improved styling
 type UserProfileSession = {
@@ -72,28 +73,30 @@ type UserProfileSession = {
   };
 } | null;
 
-const UserProfile = memo(({ 
+const UserProfile = memo(function UserProfile({ 
   session, 
   t 
 }: { 
   session: UserProfileSession; 
   t: (key: string) => string;
-}) => (
-  <div className="flex items-center mb-4 group">
-    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-sm
-                  group-hover:scale-105 transition-transform duration-200">
-      {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : '?'}
+}) {
+  return (
+    <div className="flex items-center mb-4 group">
+      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-sm
+                    group-hover:scale-105 transition-transform duration-200">
+        {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : '?'}
+      </div>
+      <div className="ml-3 overflow-hidden">
+        <p className="text-sm font-medium truncate group-hover:text-primary transition-colors duration-200">
+          {session?.user?.name || t('common.guest')}
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+          {session?.user?.email || ''}
+        </p>
+      </div>
     </div>
-    <div className="ml-3 overflow-hidden">
-      <p className="text-sm font-medium truncate group-hover:text-primary transition-colors duration-200">
-        {session?.user?.name || t('common.guest')}
-      </p>
-      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-        {session?.user?.email || ''}
-      </p>
-    </div>
-  </div>
-));
+  );
+});
 
 export default function DashboardLayout({
   children,
