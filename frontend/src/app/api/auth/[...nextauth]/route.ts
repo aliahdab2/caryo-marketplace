@@ -18,7 +18,7 @@ interface AppUserAdditions {
 // Type aliases for this file to avoid type recursion issues
 type AppUser = NextAuthUser & AppUserAdditions & {
   id: string; // Ensure id is always a string
-  // name, email, image are typically part of NextAuthUser already
+  // name, email, image are typically part of NextAuth User already
 };
 
 type AppJWT = NextAuthJWT & AppUserAdditions & {
@@ -26,12 +26,6 @@ type AppJWT = NextAuthJWT & AppUserAdditions & {
   accessToken: string;
   error?: string;
   // name, email, picture may be added by NextAuth for OAuth providers
-};
-
-type AppSession = Omit<NextAuthSession, 'user'> & {
-  user: AppUser;
-  accessToken: string;
-  error?: string;
 };
 
 // Augment NextAuth types
@@ -115,7 +109,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, account, profile }: { token: NextAuthJWT; user?: NextAuthUser; account?: NextAuthAccount | null; profile?: NextAuthProfile }): Promise<NextAuthJWT> {
-      const resultToken = token as JWT; // Use our augmented JWT type
+      const resultToken = token as AppJWT; // Use our augmented JWT type
 
       if (user) { // `user` is present on initial sign-in
         resultToken.id = user.id;
