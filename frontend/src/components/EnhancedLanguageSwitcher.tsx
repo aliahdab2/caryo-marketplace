@@ -132,7 +132,7 @@ export default function EnhancedLanguageSwitcher({
     if (lang !== locale) {
       try {
         import(`../../public/locales/${lang}/common.json`);
-      } catch (e) {
+      } catch {
         // Ignore errors
       }
     }

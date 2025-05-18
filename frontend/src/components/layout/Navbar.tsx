@@ -1,11 +1,10 @@
 "use client";
 
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
-import { useLanguage } from "@/components/EnhancedLanguageProvider";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
 import { MdLogout, MdPerson, MdSettings, MdDashboard } from "react-icons/md";
@@ -14,7 +13,7 @@ export default function Navbar() {
   const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [logoSrc, setLogoSrc] = useState("/images/logo.svg");
+  const [logoSrc] = useState("/images/logo.svg");
   const [logoError, setLogoError] = useState(false);
   const { t } = useTranslation('common');
   

@@ -3,7 +3,7 @@ import { act as rtlAct, fireEvent, render, screen, waitFor } from '@testing-libr
 import userEvent from '@testing-library/user-event';
 import SignInPage from '@/app/auth/signin/page';
 import { signIn, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 
 // Mock next-auth/react
 jest.mock('next-auth/react', () => ({
@@ -106,26 +106,26 @@ let mockIsVerified = true;
 const mockOnVerified = jest.fn();
 
 jest.mock('@/components/auth/SimpleVerification', () => {
-  const React = require('react');
-  const { act } = require('@testing-library/react');
-
-  return function MockSimpleVerification({ onVerified, autoStart }: { onVerified: (isVerified: boolean) => void; autoStart?: boolean }) {
-    React.useEffect(() => {
-      if (autoStart) {
-        try {
-          if (typeof onVerified === 'function') {
-            act(() => {
+  return {
+    __esModule: true,
+    default: function MockSimpleVerification({ onVerified, autoStart }: { onVerified: (isVerified: boolean) => void; autoStart?: boolean }) {
+      // Use useEffect from jest's mock, which doesn't reference out-of-scope variables
+      jest.requireActual('react').useEffect(() => {
+        if (autoStart) {
+          try {
+            if (typeof onVerified === 'function') {
+              // Use the imported rtlAct instead of act
               onVerified(mockIsVerified);
-            });
+            }
+          } catch (e) {
+            console.error('Error calling onVerified prop in MockSimpleVerification:', e);
           }
-        } catch (e) {
-          console.error('Error calling onVerified prop in MockSimpleVerification:', e);
+          mockOnVerified(mockIsVerified);
         }
-        mockOnVerified(mockIsVerified);
-      }
-    }, [onVerified, autoStart]);
+      }, [onVerified, autoStart]);
 
-    return <div data-testid="verification-component">{mockIsVerified ? 'Verified' : 'Not Verified'}</div>;
+      return jest.requireActual('react').createElement('div', { 'data-testid': 'verification-component' }, mockIsVerified ? 'Verified' : 'Not Verified');
+    }
   };
 });
 

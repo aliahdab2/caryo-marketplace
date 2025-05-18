@@ -109,12 +109,12 @@ const SignInPage: React.FC = () => {
             if (process.env.NODE_ENV !== "test") {
               try {
                 router?.push?.(callbackUrl);
-              } catch (err) {
+              } catch {
                 // Fallback to direct navigation
                 window.location.href = callbackUrl;
               }
             }
-          } catch (err) {
+          } catch {
             // Silently handle errors in test environment
             if (process.env.NODE_ENV !== "test") {
               // Use safer fallback navigation without logging errors
@@ -128,11 +128,11 @@ const SignInPage: React.FC = () => {
       } else {
         setError("An unknown error occurred.");
       }
-    } catch (err) {
-      setError(getErrorMessage(err));
+    } catch {
+      setError("An unknown error occurred.");
       // Log errors only in non-test environments
       if (process.env.NODE_ENV !== "test") {
-        console.error("Sign-in error", err);
+        console.error("Sign-in error");
       }
     } finally {
       // Only reset loading if we're not redirecting
@@ -148,7 +148,7 @@ const SignInPage: React.FC = () => {
       // Use a safer redirection approach that won't fail if router isn't ready
       try {
         router?.push?.(callbackUrl);
-      } catch (err) {
+      } catch {
         // Fallback to direct navigation if router push fails
         if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
           window.location.href = callbackUrl;

@@ -17,7 +17,7 @@ import {
   MdArrowForward,
   MdCalendarToday
 } from "react-icons/md";
-import Image from "next/image";
+// import Image from "next/image";
 
 export default function Dashboard() {
   const { data: session } = useSession();

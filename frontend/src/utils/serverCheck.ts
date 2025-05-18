@@ -112,3 +112,11 @@ export const waitForServer = async (
   
   return false; // Server not available after all retries
 };
+
+if (typeof window === 'undefined') {
+  // This will only run on the server
+  console.log('Running on the server');
+} else {
+  // This will only run on the client
+  console.log('Running on the client');
+}

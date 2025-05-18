@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLanguage } from '@/components/EnhancedLanguageProvider';
 import { SupportedLanguage } from '@/utils/i18n';
@@ -50,9 +50,18 @@ export function useLanguagePath(config: Partial<LanguagePathConfig> = {}) {
    * @param path Path to check
    * @returns Whether the path is excluded
    */
-  const isExcludedPath = (path: string): boolean => {
+  const isExcludedPath = useCallback((path: string): boolean => {
     return mergedConfig.excludePaths.some(excludePath => path.startsWith(excludePath));
-  };
+  }, [mergedConfig.excludePaths]);
+  
+  /**
+   * Check if a path segment is a supported language code
+   * @param segment Path segment to check
+   * @returns Whether the segment is a supported language
+   */
+  const isSupportedLanguagePathSegment = useCallback((segment: string): boolean => {
+    return ['en', 'ar'].includes(segment);
+  }, []);
   
   /**
    * Get path with or without language prefix
@@ -60,7 +69,7 @@ export function useLanguagePath(config: Partial<LanguagePathConfig> = {}) {
    * @param lang Language code
    * @returns Path with appropriate language handling
    */
-  const getPathWithLanguage = (path: string, lang: SupportedLanguage): string => {
+  const getPathWithLanguage = useCallback((path: string, lang: SupportedLanguage): string => {
     // If path shouldn't include language, return as is
     if (!mergedConfig.includeLanguageInPath || isExcludedPath(path)) {
       return path;
@@ -79,16 +88,7 @@ export function useLanguagePath(config: Partial<LanguagePathConfig> = {}) {
     
     // Add language prefix to path
     return `/${lang}${normalizedPath}`;
-  };
-  
-  /**
-   * Check if a path segment is a supported language code
-   * @param segment Path segment to check
-   * @returns Whether the segment is a supported language
-   */
-  const isSupportedLanguagePathSegment = (segment: string): boolean => {
-    return ['en', 'ar'].includes(segment);
-  };
+  }, [mergedConfig.includeLanguageInPath, isExcludedPath, isSupportedLanguagePathSegment]);
   
   // Effect to handle path redirection based on language
   useEffect(() => {
@@ -108,7 +108,7 @@ export function useLanguagePath(config: Partial<LanguagePathConfig> = {}) {
       const restOfPath = `/${pathParts.slice(1).join('/')}`;
       router.replace(getPathWithLanguage(restOfPath, locale));
     }
-  }, [pathname, locale, mergedConfig.redirectToLocalizedPath]);
+  }, [pathname, locale, router, getPathWithLanguage, isExcludedPath, isSupportedLanguagePathSegment, mergedConfig.redirectToLocalizedPath]);
   
   /**
    * Get a localized URL based on the current language

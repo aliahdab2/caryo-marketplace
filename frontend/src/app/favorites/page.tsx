@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
@@ -12,7 +13,7 @@ import { Listing } from '@/types/listing';
 
 export default function FavoritesPage() {
   const { t, i18n } = useTranslation(['common']);
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   
   const [favorites, setFavorites] = useState<Listing[]>([]);
@@ -30,6 +31,7 @@ export default function FavoritesPage() {
     if (status === 'authenticated') {
       fetchFavorites();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, router]);
 
   const fetchFavorites = async () => {
@@ -119,10 +121,13 @@ export default function FavoritesPage() {
             <div key={listing.id} className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out">
               <Link href={`/listings/${listing.id}`} className="block group">
                 <div className="relative h-48 w-full overflow-hidden">
-                  <img
+                  <Image
                     src={listing.media && listing.media.length > 0 ? listing.media[0].url : '/images/vehicles/car-default.svg'}
                     alt={listing.title}
                     className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    unoptimized
                   />
                   <div className="absolute top-2 right-2" onClick={(e) => e.stopPropagation()}>
                     <FavoriteButton

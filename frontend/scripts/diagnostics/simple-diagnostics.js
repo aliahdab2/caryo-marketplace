@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 
 /**
  * Simplified Caryo Diagnostics Tool
@@ -26,12 +27,13 @@ process.emit = function(name, data, ...args) {
 let fetch;
 try {
   fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-} catch (error) {
-  fetch = require('node-fetch');
+} catch { // Removed unused 'error' variable
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  fetch = require('node-fetch'); 
 }
 
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
 
 // Load environment variables from .env.local
 function loadEnvFile() {

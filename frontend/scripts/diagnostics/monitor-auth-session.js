@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 
 /**
  * NextAuth Session Monitor
@@ -23,18 +24,10 @@ process.emit = function(name, data, ...args) {
   return originalEmit.call(process, name, data, ...args);
 };
 
-// Import fetch compatibly with CommonJS and ESM
-let fetch;
-try {
-  // Try ESM import (for newer Node versions)
-  fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-} catch (error) {
-  // Fall back to CommonJS import (for older Node versions)
-  fetch = require('node-fetch');
-}
-
-const path = require('path');
-const fs = require('fs');
+// Import required modules
+import fetch from 'node-fetch';
+import path from 'path';
+import fs from 'fs';
 
 // Load environment variables from .env.local
 function loadEnvFile() {

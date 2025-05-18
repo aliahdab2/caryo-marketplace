@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* eslint-disable no-console */
+
 /**
  * CORS and API Check Script
  * 
@@ -23,18 +25,13 @@ process.emit = function(name, data, ...args) {
   return originalEmit.call(process, name, data, ...args);
 };
 
-// Import fetch compatibly with CommonJS and ESM
+// Use dynamic import for node-fetch
 let fetch;
-try {
-  // Try ESM import (for newer Node versions)
-  fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-} catch (error) {
-  // Fall back to CommonJS import (for older Node versions)
-  fetch = require('node-fetch');
-}
+const fetchModule = await import('node-fetch');
+fetch = fetchModule.default; 
 
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
 
 // Load environment variables from .env.local
 function loadEnvFile() {
@@ -249,7 +246,7 @@ async function main() {
       try {
         const data = await response.json();
         console.log('   API response:', JSON.stringify(data, null, 2).substring(0, 200) + '...');
-      } catch (error) {
+      } catch  {
         console.log('   API returned a non-JSON response');
       }
     } else {

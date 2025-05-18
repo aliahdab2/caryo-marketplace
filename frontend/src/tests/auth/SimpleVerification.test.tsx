@@ -1,15 +1,15 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent } from '@testing-library/react';
+// import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 // Import this after the mock
 import SimpleVerification from '@/components/auth/SimpleVerification';
 
 // Define the prop types for our mocked component
-type VerificationProps = {
-  onVerified: (verified: boolean) => void;
-  autoStart?: boolean;
-};
+// type VerificationProps = {
+//   onVerified: (verified: boolean) => void;
+//   autoStart?: boolean;
+// };
 
 // Mock the entire component rather than try to deal with CSS modules
 jest.mock('@/components/auth/SimpleVerification', () => {

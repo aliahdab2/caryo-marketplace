@@ -34,7 +34,7 @@ export function useTranslation() {
    * @param options Translation options including variables
    * @returns Translated text
    */
-  const tSafe = (key: CommonKeys, options?: Record<string, any>): string => {
+  const tSafe = (key: CommonKeys, options?: Record<string, unknown>): string => {
     return t(key, options);
   };
   

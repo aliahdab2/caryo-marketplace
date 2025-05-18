@@ -130,3 +130,59 @@ export function responsiveSpace(
 ): string {
   return fluidValue(baseSize, maxSize, BREAKPOINTS.xs, BREAKPOINTS.xl, unit);
 }
+
+/**
+ * Generates font sizes that scale properly with screen size
+ * Similar to responsiveSpace but with font-specific defaults
+ * 
+ * @param baseSize Base font size (for smallest screen)
+ * @param maxSize Maximum font size (for largest screen)
+ * @param unit CSS unit (px, rem, etc)
+ * @returns CSS calc value as a string
+ */
+export function responsiveFontSize(
+  baseSize: number,
+  maxSize: number = baseSize * 1.25,
+  unit: string = 'rem'
+): string {
+  return fluidValue(baseSize, maxSize, BREAKPOINTS.xs, BREAKPOINTS.xl, unit);
+}
+
+/**
+ * Hook that provides responsive functionality including breakpoint and various screen size checks
+ * @returns Object with current breakpoint and boolean flags for different screen sizes
+ */
+export function useResponsive() {
+  const currentBreakpoint = useBreakpoint();
+  const [isMounted, setIsMounted] = useState(false);
+  
+  const isXs = useMediaQuery(`(max-width: ${BREAKPOINTS.sm - 1}px)`);
+  const isSm = useMediaQuery(`(min-width: ${BREAKPOINTS.sm}px) and (max-width: ${BREAKPOINTS.md - 1}px)`);
+  const isMd = useMediaQuery(`(min-width: ${BREAKPOINTS.md}px) and (max-width: ${BREAKPOINTS.lg - 1}px)`);
+  const isLg = useMediaQuery(`(min-width: ${BREAKPOINTS.lg}px) and (max-width: ${BREAKPOINTS.xl - 1}px)`);
+  const isXl = useMediaQuery(`(min-width: ${BREAKPOINTS.xl}px) and (max-width: ${BREAKPOINTS['2xl'] - 1}px)`);
+  const is2Xl = useMediaQuery(`(min-width: ${BREAKPOINTS['2xl']}px)`);
+  
+  const isMobile = isXs || isSm;
+  const isTablet = isMd;
+  const isDesktop = isLg || isXl || is2Xl;
+  
+  // Set isMounted to true after the component mounts to avoid hydration issues
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+  
+  return {
+    breakpoint: currentBreakpoint,
+    isXs,
+    isSm,
+    isMd,
+    isLg,
+    isXl,
+    is2Xl,
+    isMobile,
+    isTablet,
+    isDesktop,
+    isMounted
+  };
+}

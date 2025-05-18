@@ -19,8 +19,8 @@ export type SupportedLanguage = typeof LANGUAGES[keyof typeof LANGUAGES];
 // Define resource type for better type checking
 type TranslationResources = {
   [key in SupportedLanguage]: {
-    common: Record<string, any>;
-    translation: Record<string, any>;
+    common: Record<string, unknown>;
+    translation: Record<string, unknown>;
   };
 };
 

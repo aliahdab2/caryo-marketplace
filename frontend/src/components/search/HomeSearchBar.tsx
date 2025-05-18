@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
@@ -26,15 +26,16 @@ const HomeSearchBar: React.FC = () => {
   const [availableModels, setAvailableModels] = useState<CarModel[]>([]);
   
   // Mock car data - in a real app, this would come from an API
-  const carMakes: CarMake[] = [
+  const carMakes: CarMake[] = useMemo(() => [
     { id: 'toyota', name: 'Toyota' },
     { id: 'honda', name: 'Honda' },
     { id: 'bmw', name: 'BMW' },
     { id: 'mercedes', name: 'Mercedes-Benz' },
     { id: 'audi', name: 'Audi' },
-  ];
+  ], []);
   
-  const carModels: CarModel[] = [
+  // Use useMemo to prevent recreation of this array on each render
+  const carModels = useMemo(() => [
     { id: 'camry', name: 'Camry', makeId: 'toyota' },
     { id: 'corolla', name: 'Corolla', makeId: 'toyota' },
     { id: 'rav4', name: 'RAV4', makeId: 'toyota' },
@@ -50,7 +51,7 @@ const HomeSearchBar: React.FC = () => {
     { id: 'a4', name: 'A4', makeId: 'audi' },
     { id: 'q5', name: 'Q5', makeId: 'audi' },
     { id: 'a6', name: 'A6', makeId: 'audi' },
-  ];
+  ], []);
   
   const locations = ['Damascus', 'Aleppo', 'Homs', 'Latakia', 'Hama', 'Tartus'];
   
@@ -65,7 +66,7 @@ const HomeSearchBar: React.FC = () => {
       setAvailableModels([]);
       setSelectedModel('');
     }
-  }, [selectedMake]); // Remove carModels from dependency array as it's static
+  }, [selectedMake, carModels]); // Include carModels in the dependency array
   
   const handleSearch = (e?: React.FormEvent) => {
     // Prevent default form submission behavior if event is provided

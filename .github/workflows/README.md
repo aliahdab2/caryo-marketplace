@@ -114,10 +114,11 @@ For these workflows to function properly, add the following secrets in your GitH
 2. `DOCKERHUB_TOKEN`: Your Docker Hub access token
 3. `SSH_PRIVATE_KEY`: SSH key for deployment to your server (if using SSH deployment)
 4. `SONAR_TOKEN`: Token for SonarQube analysis
-5. `POSTGRES_PASSWORD`: Database password for integration tests
-6. `REDIS_PASSWORD`: Redis password for integration tests
-7. `DEPLOYMENT_SERVER_HOST`: Production server hostname
-8. `DEPLOYMENT_SERVER_USER`: Production server username
+5. `CODECOV_TOKEN`: Token for Codecov coverage reports (required for protected branches)
+6. `POSTGRES_PASSWORD`: Database password for integration tests
+7. `REDIS_PASSWORD`: Redis password for integration tests
+8. `DEPLOYMENT_SERVER_HOST`: Production server hostname
+9. `DEPLOYMENT_SERVER_USER`: Production server username
 
 To add these secrets:
 1. Go to your GitHub repository
@@ -181,6 +182,8 @@ The project employs a multi-layered testing approach:
   - Solution: Increase the wait time in the workflow or improve health checks
 - **MinIO bucket permissions**: Verify bucket creation and access rights
   - Solution: Check MinIO environment variables in the workflow
+- **Gradle wrapper validation errors**: Network connectivity issues
+  - Solution: The workflow includes a fallback validation method
 
 ### Docker Build Failures
 

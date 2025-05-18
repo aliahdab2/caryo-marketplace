@@ -17,7 +17,6 @@ import {
   MdArrowUpward,
   MdArrowDownward,
   MdHelpOutline,
-  MdWarning,
   MdCheckBox,
   MdCheckBoxOutlineBlank,
   MdViewList,
@@ -810,24 +809,3 @@ export default function ListingsPage() {
 	);
 }
 
-// CSS for sticky header effects would typically be in a separate stylesheet 
-// But for the purpose of this example, we could include some sample CSS here:
-/*
-.fixed-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out forwards;
-}
-*/

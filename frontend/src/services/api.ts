@@ -16,13 +16,16 @@ type RequestOptions = {
   timeout?: number; // Request timeout in ms
 };
 
+// Define a type for request data
+type RequestData = Record<string, unknown> | unknown[] | null | undefined;
+
 /**
  * Generic function to make API requests
  */
 async function apiRequest<T>(
   endpoint: string, 
   method: string, 
-  data?: any, 
+  data?: RequestData, 
   customHeaders?: Record<string, string>,
   timeout: number = 15000 // Default timeout: 15 seconds
 ): Promise<T> {
@@ -55,7 +58,7 @@ async function apiRequest<T>(
     clearTimeout(timeoutId);
     
     // Parse the response
-    let responseData: any;
+    let responseData: unknown;
     
     // Try to parse as JSON first
     const contentType = response.headers.get('content-type');
@@ -70,7 +73,7 @@ async function apiRequest<T>(
       // Create an ApiError with status code and response data
       const errorMessage = typeof responseData === 'string' 
         ? responseData 
-        : responseData.message || `Error ${response.status}: Request failed`;
+        : (responseData as { message?: string })?.message || `Error ${response.status}: Request failed`;
         
       throw new ApiError(errorMessage, response.status, responseData);
     }
@@ -102,10 +105,10 @@ export const api = {
   get: <T>(endpoint: string, customHeaders?: Record<string, string>, timeout?: number) => 
     apiRequest<T>(endpoint, 'GET', undefined, customHeaders, timeout),
   
-  post: <T>(endpoint: string, data: any, customHeaders?: Record<string, string>, timeout?: number) => 
+  post: <T>(endpoint: string, data: RequestData, customHeaders?: Record<string, string>, timeout?: number) => 
     apiRequest<T>(endpoint, 'POST', data, customHeaders, timeout),
   
-  put: <T>(endpoint: string, data: any, customHeaders?: Record<string, string>, timeout?: number) => 
+  put: <T>(endpoint: string, data: RequestData, customHeaders?: Record<string, string>, timeout?: number) => 
     apiRequest<T>(endpoint, 'PUT', data, customHeaders, timeout),
   
   delete: <T>(endpoint: string, customHeaders?: Record<string, string>) => 

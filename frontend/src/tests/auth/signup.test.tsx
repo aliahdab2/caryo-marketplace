@@ -1,10 +1,10 @@
-// filepath: /Users/aliahdab/Documents/Dev/caryo-marketplace/frontend/src/tests/auth/signup.test.tsx
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+
+// Import signIn is commented out as it's currently not used in tests
+// import { signIn } from 'next-auth/react';
 import SignUpPage from '@/app/auth/signup/page';
-import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 
 // Mock next-auth/react
 jest.mock('next-auth/react', () => ({

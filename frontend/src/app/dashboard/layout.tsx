@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState, useCallback, memo, useMemo } from "react";
+import { useEffect, useState, useCallback, memo } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { 
@@ -19,9 +19,7 @@ import {
   MdEmail,
   MdAnalytics,
   MdSupportAgent,
-  MdAdd,
-  MdTrendingUp,
-  MdInfo
+  MdAdd
 } from "react-icons/md";
 
 // Navigation item type
@@ -33,7 +31,7 @@ type NavItem = {
 };
 
 // Memoized Sidebar component for improved performance
-const SidebarItem = memo(({ 
+const SidebarItem = memo(function SidebarItem({ 
   item, 
   isActive, 
   onClick 
@@ -41,7 +39,8 @@ const SidebarItem = memo(({
   item: NavItem; 
   isActive: boolean; 
   onClick?: () => void;
-}) => (
+}) {
+  return (
   <li>
     <Link 
       href={item.href}
@@ -63,31 +62,41 @@ const SidebarItem = memo(({
       )}
     </Link>
   </li>
-));
+  );
+});
 
 // Memoized User profile component with improved styling
-const UserProfile = memo(({ 
+type UserProfileSession = {
+  user?: {
+    name?: string | null;
+    email?: string | null;
+  };
+} | null;
+
+const UserProfile = memo(function UserProfile({ 
   session, 
   t 
 }: { 
-  session: any; 
+  session: UserProfileSession; 
   t: (key: string) => string;
-}) => (
-  <div className="flex items-center mb-4 group">
-    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-sm
-                  group-hover:scale-105 transition-transform duration-200">
-      {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : '?'}
+}) {
+  return (
+    <div className="flex items-center mb-4 group">
+      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-sm
+                    group-hover:scale-105 transition-transform duration-200">
+        {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : '?'}
+      </div>
+      <div className="ml-3 overflow-hidden">
+        <p className="text-sm font-medium truncate group-hover:text-primary transition-colors duration-200">
+          {session?.user?.name || t('common.guest')}
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+          {session?.user?.email || ''}
+        </p>
+      </div>
     </div>
-    <div className="ml-3 overflow-hidden">
-      <p className="text-sm font-medium truncate group-hover:text-primary transition-colors duration-200">
-        {session?.user?.name || t('common.guest')}
-      </p>
-      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-        {session?.user?.email || ''}
-      </p>
-    </div>
-  </div>
-));
+  );
+});
 
 export default function DashboardLayout({
   children,
@@ -98,6 +107,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const { t } = useTranslation('common');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   // Handle authentication redirection with a consistent user experience
   useEffect(() => {
@@ -129,8 +139,6 @@ export default function DashboardLayout({
       </div>
     );
   }
-
-  const pathname = usePathname();
   
   // Enhanced sidebar items with tooltips and additional sections
   const sidebarItems = [

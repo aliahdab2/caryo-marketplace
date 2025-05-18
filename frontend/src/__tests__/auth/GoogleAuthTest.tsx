@@ -2,8 +2,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { signIn } from 'next-auth/react';
 import { LoginForm } from '@/components/auth/LoginForm';
 import userEvent from '@testing-library/user-event';
-import { useRouter } from 'next/navigation';
-import { useSearchParams } from 'next/navigation';
 import { useState as useStateMock } from 'react';
 
 // Mock next-auth/react
@@ -11,10 +9,20 @@ jest.mock('next-auth/react', () => ({
   signIn: jest.fn(),
 }));
 
-// Mock next/navigation
+// Mock next/navigation - use manual mock with default exports
 jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(),
-  useSearchParams: jest.fn(),
+  useRouter: jest.fn(() => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+    forward: jest.fn(),
+    prefetch: jest.fn()
+  })),
+  useSearchParams: jest.fn(() => ({
+    get: jest.fn(),
+    has: jest.fn(),
+    forEach: jest.fn()
+  }))
 }));
 
 // Mock React's useState

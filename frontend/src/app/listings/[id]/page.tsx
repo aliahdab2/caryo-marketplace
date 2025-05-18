@@ -5,6 +5,27 @@ import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { formatDate, formatNumber } from '../../../utils/localization';
 
+interface SellerInfo {
+  name: string;
+  phone: string;
+  email: string;
+}
+
+interface ListingData {
+  id: string | string[] | undefined;
+  title: string;
+  description: string;
+  price: number;
+  currency: string;
+  year: number;
+  mileage: number;
+  location: string;
+  createdAt: string;
+  features: string[];
+  sellerInfo: SellerInfo;
+  images: string[];
+}
+
 export default function ListingDetailPage() {
   const { t, i18n } = useTranslation('common');
   const params = useParams();
@@ -12,7 +33,7 @@ export default function ListingDetailPage() {
   const { id } = params;
   
   const [loading, setLoading] = useState(true);
-  const [listing, setListing] = useState<any>(null);
+  const [listing, setListing] = useState<ListingData | null>(null);
   
   // Simulating data fetch - this will be replaced with actual API call
   useEffect(() => {
@@ -129,7 +150,7 @@ export default function ListingDetailPage() {
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{listing.title}</h1>
             <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between mt-2 sm:mt-3 gap-2">
               <h2 className="text-xl sm:text-2xl text-blue-600 dark:text-blue-400 font-bold">
-                {formatNumber(listing.price, i18n.language, listing.currency)}
+                {formatNumber(listing.price, i18n.language, { currency: listing.currency, style: 'currency' })}
               </h2>
               <div className="flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium self-start xs:self-auto">
                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 rtl:mr-0 rtl:ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

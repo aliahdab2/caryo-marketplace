@@ -1,6 +1,6 @@
 "use client";
 
-import { LANGUAGES, SupportedLanguage } from './i18n';
+import { LANGUAGES } from './i18n';
 import { useEffect, useState } from 'react';
 
 /**

@@ -8,15 +8,15 @@ import { ApiError } from '@/utils/apiErrorHandler';
 
 // Types
 export interface LoginCredentials {
-  username: string;  // Changed from email to username to match backend
+  username: string;
   password: string;
 }
 
 export interface SignupCredentials {
-  username: string;  // Changed from name to username to match backend
+  username: string;
   email: string;
   password: string;
-  role?: string[];  // Optional role specification
+  role?: string[];
 }
 
 export interface AuthResponse {
@@ -51,14 +51,18 @@ export const authService = {
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      return await api.post<AuthResponse>('/api/auth/signin', credentials);
+      // Use type assertion to handle the API's expected input type
+      return await api.post<AuthResponse>(
+        '/api/auth/signin', 
+        credentials as unknown as Record<string, unknown>
+      );
     } catch (error) {
       logError('Login failed:', error);
       
-      // Convert regular errors to ApiErrors if needed
+      // Properly transform error to ApiError for consistent error handling
       if (!(error instanceof ApiError)) {
         throw new ApiError(
-          error instanceof Error ? error.message : 'Login failed', 
+          error instanceof Error ? error.message : 'Authentication failed', 
           0
         );
       }
@@ -75,11 +79,15 @@ export const authService = {
    */
   async signup(userData: SignupCredentials): Promise<MessageResponse> {
     try {
-      return await api.post<MessageResponse>('/api/auth/signup', userData);
+      // Use type assertion to handle the API's expected input type
+      return await api.post<MessageResponse>(
+        '/api/auth/signup', 
+        userData as unknown as Record<string, unknown>
+      );
     } catch (error) {
       logError('Registration failed:', error);
       
-      // Convert regular errors to ApiErrors if needed
+      // Properly transform error to ApiError for consistent error handling
       if (!(error instanceof ApiError)) {
         throw new ApiError(
           error instanceof Error ? error.message : 'Registration failed', 
@@ -92,22 +100,29 @@ export const authService = {
   },
 
   /**
-   * Get current user profile (to be implemented when backend supports it)
+   * Get current user profile
    * 
    * @param token Authentication token
    * @returns User profile data
    */
-  async getProfile(token: string): Promise<any> {
+  async getProfile(token: string): Promise<Record<string, unknown>> {
     const headers: Record<string, string> = {
       'Authorization': `Bearer ${token}`
     };
 
     try {
-      // This endpoint might need to be updated once the backend implements it
-      // Currently using a placeholder
-      return await api.get<any>('/api/users/me', headers);
+      return await api.get<Record<string, unknown>>('/api/users/me', headers);
     } catch (error) {
       logError('Failed to get user profile:', error);
+      
+      // Properly transform error to ApiError for consistent error handling
+      if (!(error instanceof ApiError)) {
+        throw new ApiError(
+          error instanceof Error ? error.message : 'Failed to get user profile', 
+          0
+        );
+      }
+      
       throw error;
     }
   }
