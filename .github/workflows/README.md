@@ -182,6 +182,8 @@ The project employs a multi-layered testing approach:
   - Solution: Increase the wait time in the workflow or improve health checks
 - **MinIO bucket permissions**: Verify bucket creation and access rights
   - Solution: Check MinIO environment variables in the workflow
+- **Gradle wrapper validation errors**: Network connectivity issues
+  - Solution: The workflow includes a fallback validation method
 
 ### Docker Build Failures
 
