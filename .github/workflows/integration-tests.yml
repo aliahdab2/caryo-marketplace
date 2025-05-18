@@ -49,6 +49,9 @@ jobs:
         distribution: 'temurin'
         cache: gradle
     
+    - name: Validate Gradle wrapper
+      uses: gradle/wrapper-validation-action@v2
+    
     # Check for Gradle cache and use it if available
     - name: Setup Gradle Cache
       uses: gradle/gradle-build-action@v3
@@ -56,6 +59,14 @@ jobs:
         gradle-version: wrapper
         cache-read-only: ${{ github.ref != 'refs/heads/main' }}
     
+    - name: Setup Gradle wrapper if needed
+      working-directory: ./backend/autotrader-backend
+      run: |
+        if [ ! -f ./gradle/wrapper/gradle-wrapper.jar ]; then
+          echo "Gradle wrapper jar not found, generating wrapper..."
+          gradle wrapper
+        fi
+        
     - name: Run Integration Tests
       working-directory: ./backend/autotrader-backend
       run: |

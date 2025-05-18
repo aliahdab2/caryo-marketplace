@@ -12,6 +12,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history to ensure proper checkout of all files
     
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -26,6 +28,14 @@ jobs:
     - name: Grant execute permission for gradlew
       working-directory: ./backend/autotrader-backend
       run: chmod +x ./gradlew
+      
+    - name: Setup Gradle wrapper if needed
+      working-directory: ./backend/autotrader-backend
+      run: |
+        if [ ! -f ./gradle/wrapper/gradle-wrapper.jar ]; then
+          echo "Gradle wrapper jar not found, generating wrapper..."
+          gradle wrapper
+        fi
     
     - name: Build with Gradle
       working-directory: ./backend/autotrader-backend
