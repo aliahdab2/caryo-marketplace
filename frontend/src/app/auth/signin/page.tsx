@@ -128,8 +128,8 @@ const SignInPage: React.FC = () => {
       } else {
         setError("An unknown error occurred.");
       }
-    } catch (err) {
-      setError(getErrorMessage(err));
+    } catch {
+      setError("An unknown error occurred.");
       // Log errors only in non-test environments
       if (process.env.NODE_ENV !== "test") {
         console.error("Sign-in error");
