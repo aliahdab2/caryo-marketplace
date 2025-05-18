@@ -5,13 +5,12 @@ import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { useSession } from 'next-auth/react';
 import { Listing } from '@/types/listing';
 import { getListings, ListingFilters } from '@/services/listings';
 import { formatDate, formatNumber } from '@/utils/localization';
 import ResponsiveCard from '@/components/responsive/ResponsiveCard';
 import FavoriteButton from '@/components/common/FavoriteButton';
-import { fluidValue, useBreakpoint, responsiveSpace } from '@/utils/responsive';
+import { fluidValue, responsiveSpace } from '@/utils/responsive';
 
 // Corrected Filters interface
 interface Filters {
@@ -31,11 +30,9 @@ interface Filters {
 
 const ListingsPage = () => {
   const { t, i18n } = useTranslation(['common']);
-  // const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
   const categoryQuery = searchParams.get('category');
-  // const breakpoint = useBreakpoint();
 
   const initialFilters: Filters = {
     page: parseInt(searchParams.get('page') || '1', 10),
