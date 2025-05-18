@@ -11,6 +11,7 @@ export async function getSession() {
     const session = await nextAuthGetSession();
     return session;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error getting session:', error);
     return null;
   }

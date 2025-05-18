@@ -2,7 +2,8 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
-import { signIn } from 'next-auth/react';
+// Import signIn is commented out as it's currently not used in tests
+// import { signIn } from 'next-auth/react';
 import SignUpPage from '@/app/auth/signup/page';
 
 // Mock next-auth/react

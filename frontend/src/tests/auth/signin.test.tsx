@@ -119,6 +119,7 @@ jest.mock('@/components/auth/SimpleVerification', () => {
             });
           }
         } catch (e) {
+          // eslint-disable-next-line no-console
           console.error('Error calling onVerified prop in MockSimpleVerification:', e);
         }
         mockOnVerified(mockIsVerified);

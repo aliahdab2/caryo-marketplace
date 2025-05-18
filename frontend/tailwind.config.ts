@@ -55,9 +55,11 @@ const config: Config = {
   },
   plugins: [
     // Add custom plugin to handle RTL spacing 
-    function({ addUtilities, theme, config }: { addUtilities: any, theme: any, config: any }) {
-      const spacingUtilities = {};
-      const spacing = theme('spacing');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function({ addUtilities, theme, config: _config }: { addUtilities: (utilities: any) => void, theme: (path: string) => any, config: (path: string) => any }) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const spacingUtilities: Record<string, any> = {};
+      const spacing: Record<string, string> = theme('spacing');
       
       Object.entries(spacing).forEach(([key, value]) => {
         spacingUtilities[`.rtl\\:gap-${key}`] = {
