@@ -8,30 +8,117 @@ on:
 jobs:
   api-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 20  # Prevent hanging builds
     
     steps:
     - uses: actions/checkout@v4
-    
+      with:
+        fetch-depth: 0
+        lfs: true # Explicitly enable LFS file download
+
+    # Verify and fix Gradle wrapper if needed (for backend builds)
+    - name: Verify Gradle Wrapper (if backend build is needed)
+      working-directory: ./backend/autotrader-backend
+      run: |
+        echo "Verifying Gradle wrapper files..."
+        
+        # Check if JAR exists and is valid
+        if [ ! -f ./gradle/wrapper/gradle-wrapper.jar ]; then
+          echo "ERROR: gradle-wrapper.jar is missing."
+          MISSING_JAR=true
+        else
+          JAR_SIZE=$(stat -c%s ./gradle/wrapper/gradle-wrapper.jar)
+          echo "Current gradle-wrapper.jar size: $JAR_SIZE bytes"
+          
+          # Check for suspiciously small size (LFS pointer is ~130 bytes)
+          if [ "$JAR_SIZE" -lt 10000 ]; then
+            echo "WARNING: gradle-wrapper.jar is suspiciously small ($JAR_SIZE bytes). It might be an LFS pointer."
+            echo "Content of the suspicious file:"
+            cat ./gradle/wrapper/gradle-wrapper.jar
+            
+            # Fix the wrapper
+            echo "Generating a new wrapper..."
+            if command -v gradle &> /dev/null; then
+              gradle wrapper --gradle-version 8.5 --distribution-type bin
+            else
+              echo "Downloading Gradle 8.5..."
+              GRADLE_ZIP=gradle-8.5-bin.zip
+              curl -L -o $GRADLE_ZIP https://services.gradle.org/distributions/gradle-8.5-bin.zip
+              unzip -q -d . $GRADLE_ZIP
+              chmod +x ./gradle-8.5/bin/gradle
+              ./gradle-8.5/bin/gradle wrapper --gradle-version 8.5 --distribution-type bin
+              rm -rf gradle-8.5 $GRADLE_ZIP
+            fi
+            
+            # Verify new wrapper
+            if [ -f ./gradle/wrapper/gradle-wrapper.jar ]; then
+              NEW_SIZE=$(stat -c%s ./gradle/wrapper/gradle-wrapper.jar)
+              echo "New gradle-wrapper.jar generated. Size: $NEW_SIZE bytes"
+            fi
+          fi
+        fi
+        
+        # Final verification
+        echo "Final verification of gradle-wrapper.jar:"
+        ls -la ./gradle/wrapper/gradle-wrapper.jar || echo "gradle-wrapper.jar still missing!"
+        file ./gradle/wrapper/gradle-wrapper.jar || echo "Cannot get file info"
+
     # Set up environment for API tests
     - name: Set up environment
       run: |
         echo "Setting up test environment"
-        # You could potentially:
-        # 1. Deploy to a test environment
-        # 2. Start docker-compose with test configuration
-        # 3. Wait for services to be available
-    
+        
+        # Start Docker services if needed
+        if [ -f "./backend/autotrader-backend/docker-compose.dev.yml" ]; then
+          echo "Starting backend services with Docker Compose..."
+          cd ./backend/autotrader-backend
+          docker-compose -f docker-compose.dev.yml up -d
+          cd -
+          
+          # Wait for services to be available
+          echo "Waiting for services to initialize (60 seconds)..."
+          sleep 60
+          
+          # Check service health
+          echo "Checking service health..."
+          if docker ps | grep -q "db"; then
+            echo "Checking PostgreSQL readiness..."
+            MAX_RETRIES=15
+            RETRY_COUNT=0
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if docker exec $(docker ps -q -f name=db) pg_isready -U autotrader -t 15 2>/dev/null; then
+                echo "PostgreSQL is ready!"
+                break
+              else
+                RETRY_COUNT=$((RETRY_COUNT+1))
+                echo "PostgreSQL not ready yet. Attempt $RETRY_COUNT of $MAX_RETRIES"
+                if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+                  echo "PostgreSQL failed to become ready. Showing logs but continuing..."
+                  docker logs $(docker ps -q -f name=db)
+                fi
+                sleep $((RETRY_COUNT * 5))
+              fi
+            done
+          fi
+        else
+          echo "No Docker Compose file found. Assuming services are already running remotely."
+        fi
+
     - name: Install Newman
-      run: npm install -g newman
-    
+      run: npm install -g newman newman-reporter-htmlextra
+
+    - name: Create Results Directory
+      run: mkdir -p results
+
     - name: Run Postman Collection
       run: |
+        echo "Running Postman collection tests..."
         newman run ./postman/Caryo_Marketplace_API_Tests.json \
           --environment ./postman/test_environment.json \
           --reporters cli,junit,htmlextra \
           --reporter-junit-export results/junit-report.xml \
           --reporter-htmlextra-export results/html-report.html
-    
+
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
@@ -44,4 +131,11 @@ jobs:
       if: always()
       run: |
         echo "Cleaning up test environment"
-        # Add cleanup commands here
+        # Stop Docker services if they were started
+        if [ -f "./backend/autotrader-backend/docker-compose.dev.yml" ]; then
+          echo "Stopping Docker services..."
+          cd ./backend/autotrader-backend
+          docker-compose -f docker-compose.dev.yml down -v
+          cd -
+        fi
+        echo "Cleanup complete"
