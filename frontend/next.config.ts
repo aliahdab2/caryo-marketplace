@@ -1,4 +1,3 @@
-import { type NextConfig } from "next";
 import withBundleAnalyzer from '@next/bundle-analyzer';
 
 const analyzeBundles = withBundleAnalyzer({
