@@ -20,10 +20,10 @@ export type ApiErrorType =
  */
 export class ApiError extends Error {
   public status?: number;
-  public data?: any;
+  public data?: unknown;
   public type: ApiErrorType;
 
-  constructor(message: string, status?: number, data?: any) {
+  constructor(message: string, status?: number, data?: unknown) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
@@ -78,11 +78,23 @@ export function useApiErrorHandler() {
         
         case 'validation':
           // Try to extract field-specific validation errors
-          if (error.data?.errors && Array.isArray(error.data.errors)) {
-            return error.data.errors.map((e: any) => e.message || e).join(', ');
+          if (
+            error.data &&
+            typeof error.data === 'object' &&
+            'errors' in error.data &&
+            Array.isArray((error.data as { errors?: unknown[] }).errors)
+          ) {
+            return ((error.data as { errors: Array<{ message?: string } | string> }).errors)
+              .map((e) => (typeof e === 'string' ? e : e.message) || e)
+              .join(', ');
           }
-          if (error.data?.message) {
-            return error.data.message;
+          if (
+            error.data &&
+            typeof error.data === 'object' &&
+            'message' in error.data &&
+            typeof (error.data as { message?: string }).message === 'string'
+          ) {
+            return (error.data as { message: string }).message;
           }
           return t('errors.validation', 'Please check your input and try again.');
           

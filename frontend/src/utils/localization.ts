@@ -9,7 +9,7 @@
 export const formatDate = (
   date: Date | string | undefined | null,
   locale: string,
-  options?: any
+  options?: Intl.DateTimeFormatOptions
 ): string => {
   try {
     // Handle null, undefined or invalid dates
@@ -27,7 +27,7 @@ export const formatDate = (
 
     // Handle dateStyle option separately, as it might cause issues in some environments
     if (options && options.dateStyle) {
-      const dateStyleOptions: any = { ...options };
+      const dateStyleOptions: Intl.DateTimeFormatOptions = { ...options };
       const dateStyle = dateStyleOptions.dateStyle;
       delete dateStyleOptions.dateStyle;
       

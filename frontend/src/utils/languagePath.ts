@@ -108,7 +108,8 @@ export function useLanguagePath(config: Partial<LanguagePathConfig> = {}) {
       const restOfPath = `/${pathParts.slice(1).join('/')}`;
       router.replace(getPathWithLanguage(restOfPath, locale));
     }
-  }, [pathname, locale, mergedConfig.redirectToLocalizedPath]);
+  // Only depend on values that affect the effect
+  }, [pathname, locale, mergedConfig.excludePaths, mergedConfig.includeLanguageInPath, mergedConfig.redirectToLocalizedPath]);
   
   /**
    * Get a localized URL based on the current language

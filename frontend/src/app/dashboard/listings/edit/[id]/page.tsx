@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import ListingExpiry from "../../components/ListingExpiry";
@@ -596,16 +597,20 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
                         <div key={index} className="relative">
                           <div className="h-24 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
                             {typeof file === 'string' ? (
-                              <img
+                              <Image
                                 src={file}
                                 alt={`Preview ${index}`}
                                 className="w-full h-full object-cover"
+                                width={200}
+                                height={96}
                               />
                             ) : (
-                              <img
+                              <Image
                                 src={URL.createObjectURL(file)}
                                 alt={`Preview ${index}`}
                                 className="w-full h-full object-cover"
+                                width={200}
+                                height={96}
                               />
                             )}
                           </div>

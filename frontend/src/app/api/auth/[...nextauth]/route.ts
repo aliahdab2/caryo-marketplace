@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import type { NextAuthOptions } from "next-auth";
 import { serverAuth } from "@/services/server-auth";
-import { JWT } from "next-auth/jwt";
+
 
 // Extend the session interface
 declare module "next-auth" {
@@ -167,7 +167,7 @@ export const authOptions: NextAuthOptions = {
 
         // If there was an error during login, forward it to the session
         if (token.error) {
-          (session as any).error = token.error;
+          (session as { error?: string }).error = token.error;
         }
       }
 

@@ -75,13 +75,17 @@ export default function SignUpPage() {
           setLoading(false);
         }
       }, 1500);
-    } catch (err: any) {
+    } catch (err) {
       // Display the error message from the server if available
-      setError(
-        err.data?.message || 
-        err.message || 
-        "Registration failed. Please try again."
-      );
+      let message = "Registration failed. Please try again.";
+      if (typeof err === "object" && err !== null) {
+        if ("data" in err && typeof (err as any).data?.message === "string") {
+          message = (err as any).data.message;
+        } else if ("message" in err && typeof (err as any).message === "string") {
+          message = (err as any).message;
+        }
+      }
+      setError(message);
       setLoading(false);
       if (process.env.NODE_ENV !== 'test') {
         console.error("Registration error:", err);
