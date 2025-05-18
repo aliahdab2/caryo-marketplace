@@ -24,17 +24,8 @@ process.emit = function(name, data, ...args) {
   return originalEmit.call(process, name, data, ...args);
 };
 
-// Import fetch compatibly with CommonJS and ESM
-let fetch;
-try {
-  // Try ESM import (for newer Node versions)
-  fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-} catch {
-  // Fall back to CommonJS import (for older Node versions)
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  fetch = require('node-fetch');
-}
-
+// Import required modules
+import fetch from 'node-fetch';
 import path from 'path';
 import fs from 'fs';
 
