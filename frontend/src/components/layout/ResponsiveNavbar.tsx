@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
-import { useLanguage } from "@/components/EnhancedLanguageProvider";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { MdLogout } from "react-icons/md";
 import { 
@@ -13,13 +12,13 @@ import {
   MobileOnly, 
   NotOnMobile 
 } from "@/components/responsive";
-import { useBreakpoint, BREAKPOINTS } from "@/utils/responsive";
+import { useBreakpoint } from "@/utils/responsive";
 
 export default function ResponsiveNavbar() {
   const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [logoSrc, setLogoSrc] = useState("/images/logo.svg");
+  const [logoSrc] = useState("/images/logo.svg");
   const [logoError, setLogoError] = useState(false);
   const { t } = useTranslation('common');
   const currentBreakpoint = useBreakpoint();
