@@ -117,6 +117,16 @@ newman run "$COLLECTIONS_DIR/seller-types-tests.json" -e "$ENV_FILE" \
   --reporters cli,html \
   --reporter-html-export "$REPORT_DIR/collections/seller-types-report.html"
 
+echo "Running pause and resume tests..."
+newman run "$COLLECTIONS_DIR/pause-resume-tests.json" -e "$ENV_FILE" \
+  --reporters cli,html \
+  --reporter-html-export "$REPORT_DIR/collections/pause-resume-report.html"
+
+echo "Running listings media tests..."
+newman run "$COLLECTIONS_DIR/listings-media-tests.json" -e "$ENV_FILE" \
+  --reporters cli,html \
+  --reporter-html-export "$REPORT_DIR/collections/listings-media-report.html"
+
 # Create a combined HTML report index
 cat > "$REPORT_DIR/index.html" << EOL
 <!DOCTYPE html>
@@ -143,6 +153,8 @@ cat > "$REPORT_DIR/index.html" << EOL
     <div class="collection"><a href="collections/fuel-types-report.html">Fuel Types Tests</a></div>
     <div class="collection"><a href="collections/transmissions-report.html">Transmissions Tests</a></div>
     <div class="collection"><a href="collections/seller-types-report.html">Seller Types Tests</a></div>
+    <div class="collection"><a href="collections/pause-resume-report.html">Pause and Resume Tests</a></div>
+    <div class="collection"><a href="collections/listings-media-report.html">Listings Media Tests</a></div>
 </body>
 </html>
 EOL

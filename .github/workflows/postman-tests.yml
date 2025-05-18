@@ -1,7 +1,10 @@
 name: Postman API Tests
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:  
+  pull_request:
+    branches:
+      - main 
   schedule:
     - cron: '0 0 * * 1'  # Run weekly on Mondays at midnight
 
@@ -17,6 +20,28 @@ jobs:
         lfs: true # Explicitly enable LFS file download
 
     # Verify and fix Gradle wrapper if needed (for backend builds)
+    - name: Set up Gradle environment
+      run: |
+        echo "Setting up Gradle environment with proper permissions..."
+        
+        # Create a custom Gradle home directory in the workspace instead of /home/runner/.gradle
+        mkdir -p $GITHUB_WORKSPACE/gradle-home
+        echo "GRADLE_USER_HOME=$GITHUB_WORKSPACE/gradle-home" >> $GITHUB_ENV
+        
+        # Create necessary subdirectories
+        mkdir -p $GITHUB_WORKSPACE/gradle-home/wrapper/dists
+        mkdir -p $GITHUB_WORKSPACE/gradle-home/caches
+        mkdir -p $GITHUB_WORKSPACE/gradle-home/daemon
+        
+        # Set full permissions on the custom Gradle home
+        chmod -R 777 $GITHUB_WORKSPACE/gradle-home
+        
+        # List directory contents to verify setup
+        echo "Checking custom Gradle home setup:"
+        ls -la $GITHUB_WORKSPACE/gradle-home/
+        
+        echo "Custom Gradle home directory is ready at $GITHUB_WORKSPACE/gradle-home"
+
     - name: Verify Gradle Wrapper (if backend build is needed)
       working-directory: ./backend/autotrader-backend
       run: |
@@ -72,7 +97,7 @@ jobs:
         if [ -f "./backend/autotrader-backend/docker-compose.dev.yml" ]; then
           echo "Starting backend services with Docker Compose..."
           cd ./backend/autotrader-backend
-          docker-compose -f docker-compose.dev.yml up -d
+          docker compose -f docker-compose.dev.yml up -d
           cd -
           
           # Wait for services to be available
@@ -104,6 +129,132 @@ jobs:
           echo "No Docker Compose file found. Assuming services are already running remotely."
         fi
 
+    # Build and start the Spring Boot backend application
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Build and start Spring Boot application
+      working-directory: ./backend/autotrader-backend
+      run: |
+        echo "Building and starting Spring Boot application..."
+        # Grant execute permission to gradlew
+        chmod +x ./gradlew
+        
+        # Ensure proper permissions for project Gradle files
+        echo "Setting permissions for project Gradle files..."
+        chmod -R u+rwX,go+rX ./gradle
+        
+        # Create a gradle.properties file to enforce the custom Gradle home
+        echo "org.gradle.daemon=false" > gradle.properties
+        echo "org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError" >> gradle.properties
+        
+        echo "Using custom Gradle home: $GRADLE_USER_HOME"
+        
+        # Check for application.properties/yml and ensure database config is correct
+        echo "Checking application configuration..."
+        if [ -f "src/main/resources/application-dev.yml" ]; then
+          echo "Found application-dev.yml:"
+          cat src/main/resources/application-dev.yml | grep -A 10 datasource || echo "No datasource configuration found"
+        elif [ -f "src/main/resources/application-dev.properties" ]; then
+          echo "Found application-dev.properties:"
+          cat src/main/resources/application-dev.properties | grep datasource || echo "No datasource configuration found"
+        else
+          echo "No application-dev config found, checking main application config..."
+          if [ -f "src/main/resources/application.yml" ]; then
+            cat src/main/resources/application.yml | grep -A 10 datasource || echo "No datasource configuration found"
+          elif [ -f "src/main/resources/application.properties" ]; then
+            cat src/main/resources/application.properties | grep datasource || echo "No datasource configuration found"
+          else
+            echo "WARNING: No application configuration files found!"
+          fi
+        fi
+        
+        # Try with no daemon mode first
+        ./gradlew build -x test --no-daemon || {
+          echo "First build attempt failed, trying with more diagnostics..."
+          
+          # Check if Gradle home is accessible and writable
+          echo "Verifying Gradle home directory:"
+          ls -la $GRADLE_USER_HOME
+          touch $GRADLE_USER_HOME/test_write && echo "Write test passed" || echo "Write test failed"
+          
+          # Try with specific properties for troubleshooting
+          echo "Retrying with debug flags..."
+          ./gradlew build -x test --no-daemon --stacktrace --info
+        }
+        
+        # Start the application in the background with dev profile and additional properties
+        echo "Starting Spring Boot with enhanced debugging..."
+        nohup ./gradlew bootRun --no-daemon \
+          --args='--spring.profiles.active=dev --debug --logging.level.root=DEBUG --logging.level.org.springframework=DEBUG' \
+          > spring-boot.log 2>&1 &
+        
+        # Store the PID for later cleanup
+        echo "SPRING_PID=$!" >> $GITHUB_ENV
+        
+        echo "Spring Boot application started with PID: $!"
+        
+        # Show initial log output to help with debugging
+        sleep 5
+        echo "Initial Spring Boot startup log (first 20 lines):"
+        head -n 20 spring-boot.log || true
+        
+        # Wait for Spring Boot to become ready with enhanced diagnostics
+        echo "Waiting for Spring Boot application to become ready..."
+        MAX_RETRIES=45  # Increased from 30 to give more time
+        RETRY_COUNT=0
+        while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+          echo "Checking Spring Boot health (attempt $((RETRY_COUNT+1))/$MAX_RETRIES)..."
+          
+          # Check process is still running
+          if ! ps -p $SPRING_PID > /dev/null; then
+            echo "ERROR: Spring Boot process is not running anymore! Checking logs..."
+            cat spring-boot.log
+            echo "Attempting to restart the application..."
+            nohup ./gradlew bootRun --no-daemon --args='--spring.profiles.active=dev --debug' > spring-boot.log 2>&1 &
+            echo "SPRING_PID=$!" >> $GITHUB_ENV
+            echo "New process started with PID: $!"
+            sleep 10
+            continue
+          fi
+          
+          # Try different health endpoints with verbose output
+          HEALTH_CHECK=$(curl -v http://localhost:8080/actuator/health 2>&1)
+          if echo "$HEALTH_CHECK" | grep -q "UP"; then
+            echo "Spring Boot application is ready! (via actuator)"
+            break
+          fi
+          
+          echo "Actuator health check response:"
+          echo "$HEALTH_CHECK" | tail -n 10
+          
+          OTHER_CHECK=$(curl -v http://localhost:8080/ 2>&1)
+          if echo "$OTHER_CHECK" | grep -q "HTTP/1.1 200\|HTTP/1.1 302"; then
+            echo "Spring Boot application is ready! (via root path)"
+            break
+          fi
+          
+          # Show current log state periodically
+          if [ $((RETRY_COUNT % 5)) -eq 0 ]; then
+            echo "Current Spring Boot log tail:"
+            tail -n 20 spring-boot.log
+            echo "Checking if server is listening on port 8080..."
+            netstat -tulpn 2>/dev/null | grep 8080 || echo "No process listening on port 8080"
+          fi
+          
+          RETRY_COUNT=$((RETRY_COUNT+1))
+          if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+            echo "Spring Boot application failed to become ready in time."
+            echo "Full application log:"
+            cat spring-boot.log
+            echo "Continuing anyway to see if the tests can connect..."
+          fi
+          sleep 10
+        done
+
     - name: Install Newman
       run: npm install -g newman newman-reporter-htmlextra
 
@@ -113,7 +264,21 @@ jobs:
     - name: Run Postman Collection
       run: |
         echo "Running Postman collection tests..."
-        newman run ./postman/Caryo_Marketplace_API_Tests.json \
+        # Determine which collection file to use
+        if [ -f "./postman/Caryo_Marketplace_API_Tests.json" ]; then
+          COLLECTION_PATH="./postman/Caryo_Marketplace_API_Tests.json"
+          echo "Using Caryo_Marketplace_API_Tests.json collection file"
+        elif [ -f "./backend/autotrader-backend/src/test/resources/postman/autotrader-api-collection.json" ]; then
+          COLLECTION_PATH="./backend/autotrader-backend/src/test/resources/postman/autotrader-api-collection.json"
+          echo "Using autotrader-api-collection.json collection file"
+        else
+          echo "ERROR: Postman collection file not found"
+          echo "Searching for collection files in project..."
+          find . -name "*.json" | grep -i -E "collection|postman|api[-_]test"
+          exit 1
+        fi
+        
+        newman run "$COLLECTION_PATH" \
           --environment ./postman/test_environment.json \
           --reporters cli,junit,htmlextra \
           --reporter-junit-export results/junit-report.xml \
@@ -131,11 +296,22 @@ jobs:
       if: always()
       run: |
         echo "Cleaning up test environment"
+        
+        # Stop Spring Boot application if it was started
+        if [ ! -z "$SPRING_PID" ]; then
+          echo "Stopping Spring Boot application (PID: $SPRING_PID)..."
+          kill $SPRING_PID || true
+          echo "Spring Boot logs (last 50 lines):"
+          if [ -f "./backend/autotrader-backend/spring-boot.log" ]; then
+            tail -n 50 ./backend/autotrader-backend/spring-boot.log
+          fi
+        fi
+        
         # Stop Docker services if they were started
         if [ -f "./backend/autotrader-backend/docker-compose.dev.yml" ]; then
           echo "Stopping Docker services..."
           cd ./backend/autotrader-backend
-          docker-compose -f docker-compose.dev.yml down -v
+          docker compose -f docker-compose.dev.yml down -v
           cd -
         fi
         echo "Cleanup complete"

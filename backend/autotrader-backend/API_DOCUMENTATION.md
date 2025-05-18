@@ -477,10 +477,664 @@ To run all API tests automatically:
 ./src/test/scripts/run_postman_tests.sh
 ```
 
-## Future Endpoints (Coming Soon)
+## Core Endpoints
 
 - `GET /api/listings` - Get all approved car listings (public)
 - `GET /api/listings/{id}` - Get details of a specific car listing (public)
 - `PUT /api/listings/{id}` - Update a listing (authenticated owner only)
 - `DELETE /api/listings/{id}` - Delete a listing (authenticated owner only)
 - `POST /api/admin/listings/{id}/approve` - Approve a listing (admin only)
+- `PUT /api/listings/{id}/pause` - Pause a listing (authenticated owner only)
+- `PUT /api/listings/{id}/resume` - Resume a listing (authenticated owner only)
+- `POST /api/listings/{id}/mark-sold` - Mark a listing as sold (authenticated owner only)
+- `POST /api/listings/{id}/archive` - Archive a listing (authenticated owner only)
+- `POST /api/listings/{id}/unarchive` - Unarchive a listing (authenticated owner only)
+
+### Listing Management (Admin)
+
+- **POST** `/api/admin/listings/{id}/unarchive`
+  - Description: Unarchive any listing.
+- **DELETE** /api/listings/admin/{id}
+  - Description: Delete any listing.
+
+### Listing Endpoints (Detailed)
+
+#### Create Listing (No Image)
+- **Endpoint**: `POST /api/listings` (consumes application/json)
+- **Access**: Authenticated users
+- **Description**: Creates a new car listing without an image
+- **Authentication**: Required (JWT token)
+- **Request Body**: JSON representation of listing details
+- **Response**: Created listing with status 201
+
+#### Create Listing With Image
+- **Endpoint**: `POST /api/listings/with-image` (consumes multipart/form-data)
+- **Access**: Authenticated users
+- **Description**: Creates a new car listing with an initial image
+- **Authentication**: Required (JWT token)
+- **Request Parts**: 
+  - `listing`: JSON representation of listing details
+  - `image`: Image file (JPEG, PNG, etc.)
+- **Response**: Created listing with media and status 201
+
+## Media Management
+
+### Upload Image for Listing
+
+- **Endpoint**: `POST /api/listings/{listingId}/upload-image`
+- **Access**: Authenticated owner of the listing
+- **Description**: Uploads an image file and associates it with the specified car listing
+- **Authentication**: Required (JWT token)
+- **Content-Type**: `multipart/form-data`
+- **Parameters**:
+  - `listingId` (path parameter): ID of the car listing
+  - `file` (form-data): The image file to upload (JPEG, PNG, GIF, or WebP)
+- **Response (200 OK)**:
+  ```json
+  {
+    "message": "File uploaded successfully",
+    "imageKey": "listings/123/your-image.jpg"
+  }
+  ```
+- **Response (400 Bad Request)**:
+  ```json
+  {
+    "message": "Error: File cannot be empty!"
+  }
+  ```
+- **Response (401 Unauthorized)**:
+  ```json
+  {
+    "message": "User must be logged in to upload images"
+  }
+  ```
+- **Response (403 Forbidden)**:
+  ```json
+  {
+    "message": "You don't have permission to upload images for this listing"
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "Listing not found"
+  }
+  ```
+- **Response (500 Internal Server Error)**:
+  ```json
+  {
+    "message": "Failed to upload file: [error details]"
+  }
+  ```
+
+### Create Listing with Image
+
+- **Endpoint**: `POST /api/listings/with-image`
+- **Access**: Authenticated users
+- **Description**: Creates a new car listing with an initial image
+- **Authentication**: Required (JWT token)
+- **Content-Type**: `multipart/form-data`
+- **Request Parts**:
+  - `listing` (JSON): Car listing details in JSON format
+  - `image` (file): The image file to upload
+- **Response (201 Created)**:
+  ```json
+  {
+    "id": 125,
+    "title": "2024 Honda Civic",
+    // ... other listing fields
+    "media": [
+      {
+        "id": 1,
+        "url": "https://storage.example.com/listings/125/civic.jpg",
+        "type": "IMAGE",
+        "sortOrder": 1
+      }
+    ]
+  }
+  ```
+- **Response (400 Bad Request)**:
+  ```json
+  {
+    "message": "Image file is required and cannot be empty"
+  }
+  ```
+
+#### Filter Listings (GET)
+- **Endpoint**: `GET /api/listings/filter`
+- **Access**: Public
+- **Description**: Returns filtered listings using query parameters
+- **Parameters**: brand, model, minYear, maxYear, location, locationId, minPrice, maxPrice, minMileage, maxMileage, isSold, isArchived
+- **Response**: Paginated list of listings
+
+#### Filter Listings (POST)
+- **Endpoint**: `POST /api/listings/filter`
+- **Access**: Public
+- **Description**: Returns filtered listings using request body
+- **Request Body**: JSON with filter criteria
+- **Response**: Paginated list of listings
+
+## Pause & Resume Functionality
+
+### Pause a Listing
+
+- **Endpoint**: `PUT /api/listings/{id}/pause`
+- **Access**: Authenticated owner of the listing
+- **Description**: Temporarily hides a listing from public view while preserving all its data
+- **Authentication**: Required (JWT token)
+- **Parameters**:
+  - `id` (path parameter): ID of the car listing to pause
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 123,
+    "title": "2019 Toyota Camry",
+    "brand": "Toyota",
+    "model": "Camry",
+    "isUserActive": false,
+    "approved": true,
+    // ... other listing fields
+  }
+  ```
+- **Response (401 Unauthorized)**:
+  ```json
+  {
+    "message": "Unauthorized"
+  }
+  ```
+- **Response (403 Forbidden)**:
+  ```json
+  {
+    "message": "You are not authorized to pause this listing"
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "Listing not found"
+  }
+  ```
+- **Response (409 Conflict)**:
+  ```json
+  {
+    "message": "Listing is already paused or cannot be paused in its current state"
+  }
+  ```
+
+### Resume a Listing
+
+- **Endpoint**: `PUT /api/listings/{id}/resume`
+- **Access**: Authenticated owner of the listing
+- **Description**: Makes a previously paused listing visible again in public listings
+- **Authentication**: Required (JWT token)
+- **Parameters**:
+  - `id` (path parameter): ID of the car listing to resume
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 123,
+    "title": "2019 Toyota Camry",
+    "brand": "Toyota",
+    "model": "Camry",
+    "isUserActive": true,
+    "approved": true,
+    // ... other listing fields
+  }
+  ```
+- **Response (401 Unauthorized)**:
+  ```json
+  {
+    "message": "Unauthorized"
+  }
+  ```
+- **Response (403 Forbidden)**:
+  ```json
+  {
+    "message": "You are not authorized to resume this listing"
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "Listing not found"
+  }
+  ```
+- **Response (409 Conflict)**:
+  ```json
+  {
+    "message": "Listing is already active or cannot be resumed in its current state"
+  }
+  ```
+
+### Reference Data Endpoints
+
+#### Car Conditions
+- **Endpoint**: `GET /api/car-conditions`
+- **Access**: Public
+- **Description**: Returns all car condition options
+- **Response**: List of car conditions
+
+#### Drive Types
+- **Endpoint**: `GET /api/drive-types`
+- **Access**: Public
+- **Description**: Returns all drive type options
+- **Response**: List of drive types
+
+#### Body Styles
+- **Endpoint**: `GET /api/body-styles`
+- **Access**: Public
+- **Description**: Returns all body style options
+- **Response**: List of body styles
+
+#### Transmissions
+- **Endpoint**: `GET /api/transmissions`
+- **Access**: Public
+- **Description**: Returns all transmission options
+- **Response**: List of transmissions
+
+#### Commonly Used Values
+
+- **Car Brands**: Toyota, Ford, Honda, BMW, Tesla
+- **Car Models**: Camry, Mustang, Civic, 3 Series, Model S
+- **Locations**: New York, NY; Los Angeles, CA; Chicago, IL; Houston, TX; Phoenix, AZ
+
+## Admin Operations
+
+### Admin Dashboard and Management
+
+#### Get All Listings (Admin)
+- **Endpoint**: `GET /api/admin/listings`
+- **Access**: Admin only
+- **Description**: Retrieves all car listings, including unapproved, paused, and archived listings
+- **Authentication**: Required (JWT token with ROLE_ADMIN)
+- **Parameters**:
+  - `page` (query parameter, optional): Page number for pagination (default: 0)
+  - `size` (query parameter, optional): Number of items per page (default: 10)
+  - `sort` (query parameter, optional): Field and direction to sort by (e.g., "createdAt,desc")
+- **Response (200 OK)**:
+  ```json
+  {
+    "content": [
+      {
+        "id": 1,
+        "title": "2019 Toyota Camry",
+        "brand": "Toyota",
+        "model": "Camry",
+        "modelYear": 2019,
+        "price": 18500,
+        "mileage": 35000,
+        "approved": false,
+        "isUserActive": true,
+        "archived": false,
+        "sold": false,
+        "userId": 1,
+        "createdAt": "2025-04-30T10:15:30Z"
+      },
+      // ... more listings
+    ],
+    "pageable": {
+      "sort": {
+        "sorted": true,
+        "unsorted": false,
+        "empty": false
+      },
+      "pageNumber": 0,
+      "pageSize": 10,
+      "offset": 0,
+      "paged": true,
+      "unpaged": false
+    },
+    "totalElements": 42,
+    "totalPages": 5,
+    "last": false,
+    "first": true,
+    "sort": {
+      "sorted": true,
+      "unsorted": false,
+      "empty": false
+    },
+    "size": 10,
+    "number": 0,
+    "numberOfElements": 10,
+    "empty": false
+  }
+  ```
+
+#### Get Pending Approval Listings
+- **Endpoint**: `GET /api/admin/listings/pending`
+- **Access**: Admin only
+- **Description**: Retrieves all car listings that are awaiting approval
+- **Authentication**: Required (JWT token with ROLE_ADMIN)
+- **Parameters**:
+  - `page` (query parameter, optional): Page number for pagination (default: 0)
+  - `size` (query parameter, optional): Number of items per page (default: 10)
+- **Response (200 OK)**:
+  ```json
+  {
+    "content": [
+      {
+        "id": 1,
+        "title": "2019 Toyota Camry",
+        "brand": "Toyota",
+        "model": "Camry",
+        "modelYear": 2019,
+        "price": 18500,
+        "mileage": 35000,
+        "approved": false,
+        "isUserActive": true,
+        "archived": false,
+        "sold": false,
+        "userId": 1,
+        "createdAt": "2025-04-30T10:15:30Z"
+      },
+      // ... more listings
+    ],
+    "totalElements": 15,
+    "totalPages": 2,
+    // ... pagination details
+  }
+  ```
+
+#### Approve Listing
+- **Endpoint**: `POST /api/admin/listings/{id}/approve`
+- **Access**: Admin only
+- **Description**: Approves a car listing, making it visible to the public
+- **Authentication**: Required (JWT token with ROLE_ADMIN)
+- **Parameters**:
+  - `id` (path parameter): ID of the car listing to approve
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "title": "2019 Toyota Camry",
+    "approved": true,
+    // ... other listing fields
+    "updatedAt": "2025-04-30T10:15:30Z"
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "Listing not found"
+  }
+  ```
+- **Response (409 Conflict)**:
+  ```json
+  {
+    "message": "Listing is already approved"
+  }
+  ```
+
+#### Reject Listing
+- **Endpoint**: `POST /api/admin/listings/{id}/reject`
+- **Access**: Admin only
+- **Description**: Rejects a car listing with optional feedback
+- **Authentication**: Required (JWT token with ROLE_ADMIN)
+- **Parameters**:
+  - `id` (path parameter): ID of the car listing to reject
+- **Request Body**:
+  ```json
+  {
+    "reason": "Insufficient information provided about vehicle history"
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "title": "2019 Toyota Camry",
+    "approved": false,
+    "rejectionReason": "Insufficient information provided about vehicle history",
+    // ... other listing fields
+    "updatedAt": "2025-04-30T10:15:30Z"
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "Listing not found"
+  }
+  ```
+
+#### Delete Any Listing
+- **Endpoint**: `DELETE /api/admin/listings/{id}`
+- **Access**: Admin only
+- **Description**: Permanently deletes any car listing
+- **Authentication**: Required (JWT token with ROLE_ADMIN)
+- **Parameters**:
+  - `id` (path parameter): ID of the car listing to delete
+- **Response (204 No Content)**
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "Listing not found"
+  }
+  ```
+
+#### Archive Any Listing
+- **Endpoint**: `POST /api/admin/listings/{id}/archive`
+- **Access**: Admin only
+- **Description**: Archives any car listing
+- **Authentication**: Required (JWT token with ROLE_ADMIN)
+- **Parameters**:
+  - `id` (path parameter): ID of the car listing to archive
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "title": "2019 Toyota Camry",
+    "archived": true,
+    // ... other listing fields
+    "updatedAt": "2025-04-30T10:15:30Z"
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "Listing not found"
+  }
+  ```
+
+#### Unarchive Any Listing
+- **Endpoint**: `POST /api/admin/listings/{id}/unarchive`
+- **Access**: Admin only
+- **Description**: Unarchives any car listing
+- **Authentication**: Required (JWT token with ROLE_ADMIN)
+- **Parameters**:
+  - `id` (path parameter): ID of the car listing to unarchive
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "title": "2019 Toyota Camry",
+    "archived": false,
+    // ... other listing fields
+    "updatedAt": "2025-04-30T10:15:30Z"
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "Listing not found"
+  }
+  ```
+
+#### Get Listing Statistics
+- **Endpoint**: `GET /api/admin/stats/listings`
+- **Access**: Admin only
+- **Description**: Retrieves statistics about all listings in the system
+- **Authentication**: Required (JWT token with ROLE_ADMIN)
+- **Response (200 OK)**:
+  ```json
+  {
+    "totalListings": 356,
+    "pendingApproval": 42,
+    "approved": 287,
+    "rejected": 27,
+    "archived": 53,
+    "sold": 124,
+    "paused": 15,
+    "listingsByBrand": {
+      "Toyota": 87,
+      "Ford": 65,
+      "Honda": 45,
+      // ... other brands
+    },
+    "listingsByLocation": {
+      "New York, NY": 56,
+      "Los Angeles, CA": 42,
+      // ... other locations
+    },
+    "averagePrice": 22450.75,
+    "averageDaysToSell": 23.5
+  }
+  ```
+
+### User Management (Admin)
+
+#### Get All Users
+- **Endpoint**: `GET /api/admin/users`
+- **Access**: Admin only
+- **Description**: Retrieves all users registered in the system
+- **Authentication**: Required (JWT token with ROLE_ADMIN)
+- **Parameters**:
+  - `page` (query parameter, optional): Page number for pagination (default: 0)
+  - `size` (query parameter, optional): Number of items per page (default: 10)
+- **Response (200 OK)**:
+  ```json
+  {
+    "content": [
+      {
+        "id": 1,
+        "username": "johndoe",
+        "email": "john.doe@example.com",
+        "roles": ["ROLE_USER"],
+        "enabled": true,
+        "createdAt": "2025-03-10T08:15:30Z",
+        "listingCount": 3
+      },
+      // ... more users
+    ],
+    "totalElements": 156,
+    "totalPages": 16,
+    // ... pagination details
+  }
+  ```
+
+#### Get User Details
+- **Endpoint**: `GET /api/admin/users/{id}`
+- **Access**: Admin only
+- **Description**: Retrieves detailed information about a specific user
+- **Authentication**: Required (JWT token with ROLE_ADMIN)
+- **Parameters**:
+  - `id` (path parameter): ID of the user to retrieve
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "username": "johndoe",
+    "email": "john.doe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "roles": ["ROLE_USER"],
+    "enabled": true,
+    "createdAt": "2025-03-10T08:15:30Z",
+    "lastActive": "2025-04-29T14:23:45Z",
+    "listings": [
+      {
+        "id": 42,
+        "title": "2020 Ford Mustang",
+        "approved": true,
+        "isUserActive": true,
+        "archived": false,
+        "sold": false,
+        "createdAt": "2025-04-15T10:30:22Z"
+      },
+      // ... more listings
+    ],
+    "listingCount": 3,
+    "favoriteCount": 7,
+    "messageCount": 15
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "User not found"
+  }
+  ```
+
+#### Disable User
+- **Endpoint**: `PUT /api/admin/users/{id}/disable`
+- **Access**: Admin only
+- **Description**: Disables a user account, preventing them from logging in
+- **Authentication**: Required (JWT token with ROLE_ADMIN)
+- **Parameters**:
+  - `id` (path parameter): ID of the user to disable
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "username": "johndoe",
+    "email": "john.doe@example.com",
+    "enabled": false,
+    // ... other user fields
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "User not found"
+  }
+  ```
+
+#### Enable User
+- **Endpoint**: `PUT /api/admin/users/{id}/enable`
+- **Access**: Admin only
+- **Description**: Enables a previously disabled user account
+- **Authentication**: Required (JWT token with ROLE_ADMIN)
+- **Parameters**:
+  - `id` (path parameter): ID of the user to enable
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "username": "johndoe",
+    "email": "john.doe@example.com",
+    "enabled": true,
+    // ... other user fields
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "User not found"
+  }
+  ```
+
+#### Get User Statistics
+- **Endpoint**: `GET /api/admin/stats/users`
+- **Access**: Admin only
+- **Description**: Retrieves statistics about user activity in the system
+- **Authentication**: Required (JWT token with ROLE_ADMIN)
+- **Response (200 OK)**:
+  ```json
+  {
+    "totalUsers": 156,
+    "activeInLastWeek": 87,
+    "activeInLastMonth": 124,
+    "usersWithListings": 83,
+    "averageListingsPerUser": 2.3,
+    "registrationsLastMonth": 24,
+    "topListingCreators": [
+      {"username": "cardealer1", "count": 45},
+      {"username": "autoseller", "count": 32},
+      // ... other users
+    ],
+    "usersByRole": {
+      "ROLE_USER": 152,
+      "ROLE_ADMIN": 4,
+      "ROLE_MODERATOR": 8
+    }
+  }
+  ```
