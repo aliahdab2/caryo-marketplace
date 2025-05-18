@@ -1,6 +1,6 @@
-import Image from 'next/image';
 "use client";
 
+import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';

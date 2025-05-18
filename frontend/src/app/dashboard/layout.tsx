@@ -107,6 +107,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const { t } = useTranslation('common');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   // Handle authentication redirection with a consistent user experience
   useEffect(() => {
@@ -138,8 +139,6 @@ export default function DashboardLayout({
       </div>
     );
   }
-
-  const pathname = usePathname();
   
   // Enhanced sidebar items with tooltips and additional sections
   const sidebarItems = [

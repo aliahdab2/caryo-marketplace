@@ -13,9 +13,7 @@ import {
   MdLocationOn,
   MdCalendarToday,
   MdDelete,
-  MdLocalOffer,
   MdSpeed,
-  MdSort
 } from 'react-icons/md';
 
 export default function FavoritesPage() {
@@ -35,7 +33,7 @@ export default function FavoritesPage() {
   // Apply sorting to the favorites list
   const sortedFavorites = useMemo(() => {
     // Create a new array to sort
-    let sorted = [...favorites];
+    const sorted = [...favorites];
     
     // Apply sorting
     if (sortBy === 'price') {
@@ -222,4 +220,4 @@ export default function FavoritesPage() {
       </div>
     </section>
   );
-} 
+}

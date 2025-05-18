@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import ListingExpiry from "../../components/ListingExpiry";
-import { formatDate, formatNumber } from '../../../../../utils/localization'; // Corrected import path
+// import { formatDate, formatNumber } from '../../../../../utils/localization'; // Corrected import path
 
 // Mock data for a listing (in a real app, this would come from an API fetch)
 const MOCK_LISTING = {
@@ -80,7 +80,7 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
     const fetchListing = async () => {
       try {
         setTimeout(() => {
-          setFormData(MOCK_LISTING as any);
+          setFormData(MOCK_LISTING as any); // Kept as any for mock data flexibility
           setIsLoading(false);
         }, 500);
       } catch (error) {

@@ -17,7 +17,6 @@ import {
   MdArrowUpward,
   MdArrowDownward,
   MdHelpOutline,
-  MdWarning,
   MdCheckBox,
   MdCheckBoxOutlineBlank,
   MdViewList,
