@@ -80,7 +80,6 @@ async function apiRequest<T>(
 
     return responseData as T;
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error('API request failed:', error);
     
     // Handle timeout/abort errors explicitly

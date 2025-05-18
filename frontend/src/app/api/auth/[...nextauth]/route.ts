@@ -1,40 +1,36 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import type { NextAuthOptions } from "next-auth";
+import type { NextAuthOptions, User as NextAuthUser, Account as NextAuthAccount, Profile as NextAuthProfile, Session as NextAuthSession } from "next-auth";
+import type { JWT as NextAuthJWT } from "next-auth/jwt";
 import { serverAuth } from "@/services/server-auth";
 
+// Define the additional properties we expect on our User and JWT
+interface AppUserAdditions {
+  roles: string[];
+  token?: string; // Specific to credentials user from our backend, optional for Google user
+}
 
-// Extend the session interface
+// Augment NextAuth types
 declare module "next-auth" {
-  interface User {
-    id: string;
-    name: string;
-    email: string;
-    roles: string[];
-    token: string;
+  interface User extends AppUserAdditions {
+    id: string; // Ensure id is always a string
+    // name, email, image are typically part of NextAuthUser already
   }
 
-  interface Session {
-    user: {
-      id: string;
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
-      roles: string[];
-    };
+  interface Session extends NextAuthSession {
+    user: User; // Use our augmented User
     accessToken: string;
-    expires: string;
+    error?: string;
   }
 }
 
-// Extend the JWT interface
 declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    roles: string[];
+  interface JWT extends NextAuthJWT, AppUserAdditions {
+    id: string; // Ensure id is always a string
     accessToken: string;
     error?: string;
+    // name, email, picture may be added by NextAuth for OAuth providers
   }
 }
 
@@ -43,7 +39,6 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      // Add additional Google configuration if needed
       authorization: {
         params: {
           prompt: "consent",
@@ -62,120 +57,100 @@ export const authOptions: NextAuthOptions = {
         },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<NextAuthUser | null> {
         if (!credentials?.username || !credentials?.password) {
           throw new Error("Username and password are required");
         }
-
         try {
-          // Call the backend API to authenticate using server-side auth service
           const response = await serverAuth.login({
             username: credentials.username,
             password: credentials.password,
           });
-
-          // Return user object that will be saved in the JWT token
           if (response && response.token) {
+            // Return an object that conforms to our augmented NextAuth.User
             return {
               id: response.id.toString(),
               name: response.username,
               email: response.email,
               roles: response.roles,
-              token: response.token, // Store the token for future API calls
-            };
+              token: response.token, // This is our custom field
+            } as NextAuthUser; // Cast to NextAuthUser, augmentation will apply
           } else {
-            throw new Error("Authentication failed: Invalid response from server");
+            console.warn("Authorize: Authentication failed, server response missing token or user data.");
+            return null;
           }
-        } catch (error) {
-          // Only log in development
-          if (process.env.NODE_ENV === "development") {
-            console.error("Authentication error:", error);
-          }
-          throw new Error(
-            error instanceof Error ? error.message : "Authentication failed"
-          );
+        } catch (authError: any) {
+          console.error("Authorize callback error:", authError.message || authError);
+          return null;
         }
       },
     }),
   ],
   session: {
     strategy: "jwt",
-    maxAge: 24 * 60 * 60, // 24 hours
-  },
-  pages: {
-    signIn: "/auth/signin",
-    error: "/auth/error",
   },
   callbacks: {
-    async jwt({ token, user, account }) {
-      // Initial sign in
-      if (user) {
-        if (account?.provider === "credentials") {
-          // Credentials login - we already have user data structured as we need
-          token.id = user.id;
-          token.roles = user.roles;
-          token.accessToken = user.token;
-        } else if (account?.provider === "google") {
-          // Google login
-          try {
-            // Register or login this Google user with our backend
-            const response = await serverAuth.socialLogin({
-              email: user.email!,
-              name: user.name!,
-              provider: "google",
-              providerAccountId: account.providerAccountId,
-              image: user.image || undefined,
-            });
+    async jwt({ token, user, account, profile }: { token: NextAuthJWT; user?: NextAuthUser; account?: NextAuthAccount | null; profile?: NextAuthProfile }): Promise<NextAuthJWT> {
+      const resultToken = token as JWT; // Use our augmented JWT type
 
-            if (response && response.token) {
-              // Store the token and user info from our backend
-              token.id = response.id.toString();
-              token.roles = response.roles || ["user"];
-              token.accessToken = response.token;
-            } else {
-              throw new Error("Invalid response format from backend");
-            }
-          } catch (error) {
-            // Only log in development
-            if (process.env.NODE_ENV === "development") {
-              console.error("Error during Google authentication:", error);
-            }
+      if (user) { // `user` is present on initial sign-in
+        resultToken.id = user.id;
+        resultToken.roles = (user as User).roles || []; // user is augmented User
+        resultToken.name = user.name;
+        resultToken.email = user.email;
+        resultToken.picture = user.image || resultToken.picture; // NextAuth might map image to picture
 
-            // Add error info to the token
-            token.error =
-              error instanceof Error
-                ? error.message
-                : "Unknown error during social login";
-
-            // Still set some basic identity info from Google
-            token.id = user.id || user.email!;
-            token.roles = ["user"];
-            token.accessToken = "";
+        if (account?.provider === "google") {
+          if (account.access_token) {
+            resultToken.accessToken = account.access_token;
+          } else {
+            console.error("JWT Callback: Google OAuth access_token is missing.");
+            resultToken.error = "OAuthTokenError";
+            resultToken.accessToken = ""; // Ensure accessToken is always a string
           }
+          // If profile exists (it should for Google sign-in), ensure image is set
+          if (profile?.image) {
+            resultToken.picture = profile.image;
+          } else if ((profile as any)?.picture) { // Some providers might use 'picture'
+             resultToken.picture = (profile as any).picture;
+          }
+
+
+        } else if ((user as User).token) { // Credentials provider, user.token is from our augmented User
+          resultToken.accessToken = (user as User).token!;
+        } else {
+          // console.warn("JWT Callback: User token is missing for non-Google provider or accessToken not set.");
+          // Ensure accessToken is at least an empty string if not set
+          resultToken.accessToken = resultToken.accessToken || "";
         }
       }
-
-      return token;
+      return resultToken;
     },
+    async session({ session, token: jwtToken }: { session: NextAuthSession; token: NextAuthJWT }): Promise<NextAuthSession> {
+      const extendedSession = session as Session; // Use our augmented Session type
+      const extendedToken = jwtToken as JWT;   // Use our augmented JWT type
 
-    async session({ session, token }) {
-      if (session.user) {
-        // Add user info to the session
-        session.user.id = token.id;
-        session.user.roles = token.roles || ["user"];
-        session.accessToken = token.accessToken;
+      // Transfer properties from token to session.user
+      extendedSession.user.id = extendedToken.id;
+      extendedSession.user.roles = extendedToken.roles;
+      extendedSession.user.name = extendedToken.name || null;
+      extendedSession.user.email = extendedToken.email || null;
+      extendedSession.user.image = extendedToken.picture || null; // 'picture' is common in JWT for image
 
-        // If there was an error during login, forward it to the session
-        if (token.error) {
-          (session as { error?: string }).error = token.error;
-        }
+      extendedSession.accessToken = extendedToken.accessToken;
+
+      if (extendedToken.error) {
+        extendedSession.error = extendedToken.error;
       }
 
-      return session;
+      return extendedSession;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === "development",
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error', // Error code passed in query string as ?error=
+  },
+  debug: process.env.NODE_ENV === 'development',
 };
 
 const handler = NextAuth(authOptions);

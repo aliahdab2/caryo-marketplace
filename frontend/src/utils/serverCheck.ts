@@ -22,7 +22,6 @@ export const isServerAvailable = async (forceCheck: boolean = false): Promise<bo
   
   // Return cached result if valid and not forcing a check
   if (!forceCheck && availabilityCache && (now - availabilityCache.timestamp) < CACHE_TTL) {
-    // eslint-disable-next-line no-console
     console.log('Using cached server availability result:', availabilityCache.result);
     return availabilityCache.result;
   }
@@ -58,7 +57,6 @@ export const isServerAvailable = async (forceCheck: boolean = false): Promise<bo
           // Consider the server available even if we get 401/403 responses
           // These indicate the server is running but requires authentication
           if (response.status === 200 || response.status === 401 || response.status === 403) {
-            // eslint-disable-next-line no-console
             console.log(`Server check succeeded via ${endpoint} with status ${response.status}`);
             return true;
           }
@@ -117,10 +115,8 @@ export const waitForServer = async (
 
 if (typeof window === 'undefined') {
   // This will only run on the server
-  // eslint-disable-next-line no-console
   console.log('Running on the server');
 } else {
   // This will only run on the client
-  // eslint-disable-next-line no-console
   console.log('Running on the client');
 }

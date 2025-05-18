@@ -67,7 +67,6 @@ const getCurrentLanguage = (): SupportedLanguage => {
         return browserLang as SupportedLanguage;
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.warn("Error detecting language:", error);
       // Fall through to default
     }
@@ -128,7 +127,6 @@ i18n
  */
 export const changeLanguage = async (language: SupportedLanguage): Promise<void> => {
   if (!isValidLanguage(language)) {
-    // eslint-disable-next-line no-console
     console.error(`Invalid language code: ${language}`);
     return;
   }
@@ -148,7 +146,6 @@ export const changeLanguage = async (language: SupportedLanguage): Promise<void>
       localStorage.setItem('NEXT_LOCALE', language);
     } catch (e) {
       // localStorage might be unavailable in some contexts
-      // eslint-disable-next-line no-console
       console.warn('Could not save language preference to localStorage', e);
     }
     

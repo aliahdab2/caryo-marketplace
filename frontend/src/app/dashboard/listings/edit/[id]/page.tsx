@@ -111,7 +111,6 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
           setIsLoading(false);
         }, 500);
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error("Error fetching listing:", error);
         // Redirect to listings page in case of error
         router.push("/dashboard/listings");
@@ -172,7 +171,6 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
     setIsSubmitting(true);
     
     // In a real app, perform API call to update listing
-    // eslint-disable-next-line no-console
     console.log("Updating listing data:", formData);
     
     // Simulate API call
@@ -183,7 +181,6 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
         router.push("/dashboard/listings");
       }, 1500);
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error("Error updating listing:", error);
       setIsSubmitting(false);
       // Show error message
@@ -193,7 +190,6 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
   // Handle listing renewal
   const handleRenewal = (id: string, duration: number) => {
     // In a real app, perform API call to renew listing
-    // eslint-disable-next-line no-console
     console.log(`Renewing listing ${id} for ${duration} days`);
     
     // Update expiry date in the local state
