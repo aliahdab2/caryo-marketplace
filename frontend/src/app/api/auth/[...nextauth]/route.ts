@@ -11,7 +11,7 @@ import type {
 import type { JWT as NextAuthJWT } from "next-auth/jwt";
 import { serverAuth } from "@/services/server-auth";
 
-// Augmented interfaces used locally to avoid recursive type errors
+// Augmented interfaces
 interface AugmentedUser {
   id: string;
   roles: string[];
@@ -74,7 +74,7 @@ export const authOptions: NextAuthOptions = {
               email: response.email,
               roles: response.roles,
               token: response.token,
-            } as NextAuthUser;
+            } as unknown as NextAuthUser;
           } else {
             console.warn("Authentication failed: No token in response.");
             return null;
@@ -104,11 +104,13 @@ export const authOptions: NextAuthOptions = {
       const resultToken = token as AugmentedJWT;
 
       if (user) {
-        resultToken.id = user.id;
-        resultToken.roles = user.roles || [];
-        resultToken.name = user.name ?? null;
-        resultToken.email = user.email ?? null;
-        resultToken.picture = user.image ?? resultToken.picture ?? null;
+        const typedUser = user as unknown as AugmentedUser;
+
+        resultToken.id = typedUser.id;
+        resultToken.roles = typedUser.roles ?? [];
+        resultToken.name = typedUser.name ?? null;
+        resultToken.email = typedUser.email ?? null;
+        resultToken.picture = typedUser.image ?? resultToken.picture ?? null;
 
         if (account?.provider === "google") {
           resultToken.accessToken = account.access_token ?? "";
@@ -116,15 +118,17 @@ export const authOptions: NextAuthOptions = {
             resultToken.error = "OAuthTokenError";
           }
 
-          if (profile?.image) {
-            resultToken.picture = profile.image;
-          } else if ("picture" in profile!) {
+          if (
+            profile &&
+            typeof profile === "object" &&
+            "picture" in profile &&
+            typeof (profile as { picture: unknown }).picture === "string"
+          ) {
             resultToken.picture = (profile as { picture: string }).picture;
           }
-        } else if ("token" in user) {
-          resultToken.accessToken = user.token ?? "";
         } else {
-          resultToken.accessToken = resultToken.accessToken || "";
+          resultToken.accessToken =
+            typedUser.token ?? resultToken.accessToken ?? "";
         }
       }
 
