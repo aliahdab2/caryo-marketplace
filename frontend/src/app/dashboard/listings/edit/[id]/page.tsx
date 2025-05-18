@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import ListingExpiry from "../../components/ListingExpiry";
-// import { formatDate, formatNumber } from '../../../../../utils/localization'; // Corrected import path
+import { formatNumber } from '../../../../../utils/localization'; // Corrected import path
 
 // Mock data for a listing (in a real app, this would come from an API fetch)
 const MOCK_LISTING = {
