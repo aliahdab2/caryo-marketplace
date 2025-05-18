@@ -39,9 +39,15 @@ export async function getListings(filters: ListingFilters = {}): Promise<{ listi
 
 // Constants for mock data generation
 const CITIES = ['Damascus', 'Aleppo', 'Homs', 'Latakia', 'Hama'];
-const CAR_MODELS = ['Toyota Camry', 'Honda Accord', 'BMW 3 Series'];
-const FUEL_TYPES = ['Petrol', 'Diesel', 'Electric'];
-const TRANSMISSIONS = ['Automatic', 'Manual'];
+const CAR_MAKES_MODELS = [
+  { make: 'Toyota', models: ['Camry', 'Corolla', 'RAV4', 'Land Cruiser'] },
+  { make: 'Honda', models: ['Accord', 'Civic', 'CR-V', 'Pilot'] },
+  { make: 'BMW', models: ['3 Series', '5 Series', 'X3', 'X5'] },
+  { make: 'Mercedes', models: ['C-Class', 'E-Class', 'GLC', 'S-Class'] },
+  { make: 'Hyundai', models: ['Elantra', 'Sonata', 'Tucson', 'Santa Fe'] }
+];
+const FUEL_TYPES = ['Petrol', 'Diesel', 'Electric', 'Hybrid'];
+const TRANSMISSIONS = ['Automatic', 'Manual', 'CVT', 'DCT'];
 
 /**
  * Generate a random date within the last month
@@ -57,12 +63,15 @@ function getRandomRecentDate(): string {
 function mockListingsData(filters: ListingFilters = {}): { listings: Listing[], total: number } {
   // Generate 24 mock listings
   const allMockListings = Array.from({ length: 24 }, (_, i): Listing => {
+    const makeModelIndex = i % CAR_MAKES_MODELS.length;
+    const make = CAR_MAKES_MODELS[makeModelIndex].make;
+    const model = CAR_MAKES_MODELS[makeModelIndex].models[i % CAR_MAKES_MODELS[makeModelIndex].models.length];
     const city = CITIES[i % CITIES.length];
     const randomDate = getRandomRecentDate();
     
     return {
       id: `car-${i+1}`,
-      title: `${CAR_MODELS[i % CAR_MODELS.length]} ${i+1}`,
+      title: `${make} ${model} ${i+1}`,
       price: Math.floor(5000000 + Math.random() * 20000000), // Syrian Pound values (millions)
       year: Math.floor(2000 + Math.random() * 23),
       listingDate: new Date(randomDate),
@@ -79,54 +88,56 @@ function mockListingsData(filters: ListingFilters = {}): { listings: Listing[], 
   });
   
   // Apply filters
-  const filtered = allMockListings.filter(item => {
-    // Price range filter
-    if (filters.minPrice && item.price < parseInt(filters.minPrice as string)) {
-      return false;
-    }
-    
-    if (filters.maxPrice && item.price > parseInt(filters.maxPrice as string)) {
-      return false;
-    }
-    
-    // Year range filter
-    if (filters.minYear && item.year < parseInt(filters.minYear as string)) {
-      return false;
-    }
-    
-    if (filters.maxYear && item.year > parseInt(filters.maxYear as string)) {
-      return false;
-    }
-    
-    // Location filter
-    if (filters.location && filters.location !== 'All Locations') {
-      const locationMatches = 
-        (item.location?.city === filters.location) || 
-        (item.location?.country === filters.location);
-      
-      if (!locationMatches) {
-        return false;
-      }
-    }
-    
-    // Search term filter
-    if (filters.searchTerm) {
-      const term = filters.searchTerm.toLowerCase();
+  let filtered = [...allMockListings];
+  
+  // Parse numeric filters safely
+  const minPrice = filters.minPrice ? Number(filters.minPrice) : null;
+  const maxPrice = filters.maxPrice ? Number(filters.maxPrice) : null;
+  const minYear = filters.minYear ? Number(filters.minYear) : null;
+  const maxYear = filters.maxYear ? Number(filters.maxYear) : null;
+  
+  // Apply numeric filters only if they parsed correctly
+  if (minPrice !== null && !isNaN(minPrice)) {
+    filtered = filtered.filter(item => item.price >= minPrice);
+  }
+  
+  if (maxPrice !== null && !isNaN(maxPrice)) {
+    filtered = filtered.filter(item => item.price <= maxPrice);
+  }
+  
+  if (minYear !== null && !isNaN(minYear)) {
+    filtered = filtered.filter(item => item.year >= minYear);
+  }
+  
+  if (maxYear !== null && !isNaN(maxYear)) {
+    filtered = filtered.filter(item => item.year <= maxYear);
+  }
+  
+  if (filters.location && filters.location !== 'All Locations') {
+    filtered = filtered.filter(item => 
+      item.location?.city === filters.location || 
+      item.location?.country === filters.location
+    );
+  }
+  
+  if (filters.searchTerm) {
+    const term = filters.searchTerm.toLowerCase();
+    filtered = filtered.filter(item => {
+      // Expanded search to include more fields
       const titleMatch = item.title.toLowerCase().includes(term);
       const cityMatch = item.location?.city?.toLowerCase().includes(term) || false;
       const countryMatch = item.location?.country?.toLowerCase().includes(term) || false;
+      const fuelMatch = item.fuelType?.toLowerCase().includes(term) || false;
+      const transMatch = item.transmission?.toLowerCase().includes(term) || false;
+      const yearMatch = String(item.year).includes(term);
       
-      if (!titleMatch && !cityMatch && !countryMatch) {
-        return false;
-      }
-    }
-    
-    return true;
-  });
+      return titleMatch || cityMatch || countryMatch || fuelMatch || transMatch || yearMatch;
+    });
+  }
   
   // Handle pagination
-  const page = Math.max(1, filters.page || 1); // Ensure page is at least 1
-  const limit = Math.max(1, Math.min(50, filters.limit || 8)); // Limit between 1 and 50, default 8
+  const page = filters.page || 1;
+  const limit = filters.limit || 8;
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + limit;
   const paginatedListings = filtered.slice(startIndex, endIndex);
