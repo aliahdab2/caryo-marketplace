@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * NextAuth Session Monitor
