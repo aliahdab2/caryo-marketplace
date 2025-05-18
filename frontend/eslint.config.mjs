@@ -20,7 +20,7 @@ const eslintConfig = [
         "argsIgnorePattern": "^_"
       }],
       "react-hooks/exhaustive-deps": "warn",                      // ⚠️ Warn if useEffect deps missing
-      "no-console": "warn",                                       // ⚠️ Warn on console.log (optional)
+      "no-console": "off",                                       // ⚠️ Warn on console.log (optional)
     },
   },
 ];

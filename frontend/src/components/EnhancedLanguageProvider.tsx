@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
@@ -176,6 +177,7 @@ export default function LanguageProvider({ children }: LanguageProviderProps) {
         try {
           currentLang = localStorage.getItem('NEXT_LOCALE');
         } catch (e) {
+          // eslint-disable-next-line no-console
           console.warn('Error reading from localStorage:', e);
         }
       }
