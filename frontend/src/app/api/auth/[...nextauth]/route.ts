@@ -5,11 +5,35 @@ import type { NextAuthOptions, User as NextAuthUser, Account as NextAuthAccount,
 import type { JWT as NextAuthJWT } from "next-auth/jwt";
 import { serverAuth } from "@/services/server-auth";
 
+// Import our application's custom types to use locally in this file
+import type { User } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
+import type { Session } from 'next-auth';
+
 // Define the additional properties we expect on our User and JWT
 interface AppUserAdditions {
   roles: string[];
   token?: string; // Specific to credentials user from our backend, optional for Google user
 }
+
+// Type aliases for this file to avoid type recursion issues
+type AppUser = NextAuthUser & AppUserAdditions & {
+  id: string; // Ensure id is always a string
+  // name, email, image are typically part of NextAuthUser already
+};
+
+type AppJWT = NextAuthJWT & AppUserAdditions & {
+  id: string; // Ensure id is always a string
+  accessToken: string;
+  error?: string;
+  // name, email, picture may be added by NextAuth for OAuth providers
+};
+
+type AppSession = Omit<NextAuthSession, 'user'> & {
+  user: AppUser;
+  accessToken: string;
+  error?: string;
+};
 
 // Augment NextAuth types
 declare module "next-auth" {
@@ -79,8 +103,9 @@ export const authOptions: NextAuthOptions = {
             console.warn("Authorize: Authentication failed, server response missing token or user data.");
             return null;
           }
-        } catch (authError: any) {
-          console.error("Authorize callback error:", authError.message || authError);
+        } catch (authError: unknown) {
+          const errorMessage = authError instanceof Error ? authError.message : String(authError);
+          console.error("Authorize callback error:", errorMessage);
           return null;
         }
       },
@@ -95,7 +120,7 @@ export const authOptions: NextAuthOptions = {
 
       if (user) { // `user` is present on initial sign-in
         resultToken.id = user.id;
-        resultToken.roles = (user as User).roles || []; // user is augmented User
+        resultToken.roles = user.roles || []; // Use the roles from our augmented NextAuthUser
         resultToken.name = user.name;
         resultToken.email = user.email;
         resultToken.picture = user.image || resultToken.picture; // NextAuth might map image to picture
@@ -111,13 +136,13 @@ export const authOptions: NextAuthOptions = {
           // If profile exists (it should for Google sign-in), ensure image is set
           if (profile?.image) {
             resultToken.picture = profile.image;
-          } else if ((profile as any)?.picture) { // Some providers might use 'picture'
-             resultToken.picture = (profile as any).picture;
+          } else if (profile && typeof profile === 'object' && 'picture' in profile) { // Some providers might use 'picture'
+             resultToken.picture = (profile as { picture: string }).picture;
           }
 
 
-        } else if ((user as User).token) { // Credentials provider, user.token is from our augmented User
-          resultToken.accessToken = (user as User).token!;
+        } else if (user.token) { // Credentials provider, user.token is from our augmented NextAuthUser
+          resultToken.accessToken = user.token;
         } else {
           // console.warn("JWT Callback: User token is missing for non-Google provider or accessToken not set.");
           // Ensure accessToken is at least an empty string if not set
