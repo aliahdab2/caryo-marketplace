@@ -34,11 +34,42 @@ jobs:
     # Check if services are healthy
     - name: Wait for services to be ready
       run: |
+        echo "Listing all running Docker containers for debugging..."
+        docker ps
+        
+        # Give services extra time to start
+        echo "Sleeping for 30 seconds to ensure containers are fully initialized..."
+        sleep 30
+        
         echo "Waiting for PostgreSQL to be ready..."
-        docker exec $(docker ps -q -f name=db) pg_isready -U autotrader -t 30
+        # Try multiple times with increasing sleep periods
+        MAX_RETRIES=5
+        RETRY_COUNT=0
+        
+        while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+          if docker exec $(docker ps -q -f name=db) pg_isready -U autotrader -t 10; then
+            echo "PostgreSQL is ready!"
+            break
+          else
+            RETRY_COUNT=$((RETRY_COUNT+1))
+            echo "PostgreSQL not ready yet. Attempt $RETRY_COUNT of $MAX_RETRIES"
+            
+            if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+              echo "PostgreSQL failed to become ready. Showing container logs:"
+              docker logs $(docker ps -q -f name=db)
+              exit 1
+            fi
+            
+            sleep $((RETRY_COUNT * 10))
+          fi
+        done
         
         echo "Checking MinIO health..."
-        curl --retry 10 --retry-delay 3 -f http://localhost:9000/minio/health/live
+        curl --retry 10 --retry-delay 5 --connect-timeout 10 -f http://localhost:9000/minio/health/live || {
+          echo "MinIO health check failed. Showing container logs:"
+          docker logs $(docker ps -q -f name=minio)
+          exit 1
+        }
         
         echo "All services are ready!"
     
@@ -71,7 +102,13 @@ jobs:
       working-directory: ./backend/autotrader-backend
       run: |
         chmod +x ./gradlew
-        ./gradlew integrationTest --info
+        ./gradlew integrationTest jacocoTestReport --info
+        
+    - name: Verify JaCoCo report exists
+      run: |
+        echo "Checking for JaCoCo report file..."
+        ls -la ./backend/autotrader-backend/build/reports/jacoco/test/ || echo "JaCoCo test directory not found"
+        find ./backend/autotrader-backend/build/reports/ -name "*.xml" -type f
       
     - name: Upload integration test results
       if: always()
@@ -86,6 +123,11 @@ jobs:
       if: success() || failure()
       uses: codecov/codecov-action@v4
       with:
-        files: ./backend/autotrader-backend/build/reports/jacoco/test/jacocoTestReport.xml
+        files: |
+          ./backend/autotrader-backend/build/reports/jacoco/test/jacocoTestReport.xml
+          ./backend/autotrader-backend/build/reports/jacoco/integrationTest/jacocoIntegrationTestReport.xml
+        directory: ./backend/autotrader-backend/build/reports/
         flags: integration-tests
         fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
+        verbose: true
