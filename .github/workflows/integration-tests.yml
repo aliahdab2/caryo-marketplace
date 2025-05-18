@@ -16,12 +16,12 @@ jobs:
     timeout-minutes: 20  # Prevent hanging builds
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Fetch all history for better change detection
     
     - name: Set up Docker Compose
-      uses: isbang/compose-action@v1.4.1
+      uses: isbang/compose-action@v1.5.1
       with:
         compose-file: "./backend/autotrader-backend/docker-compose.dev.yml"
         down-flags: "--volumes"  # Clean up volumes when done
@@ -43,7 +43,7 @@ jobs:
         echo "All services are ready!"
     
     - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
@@ -51,7 +51,7 @@ jobs:
     
     # Check for Gradle cache and use it if available
     - name: Setup Gradle Cache
-      uses: gradle/gradle-build-action@v2
+      uses: gradle/gradle-build-action@v3
       with:
         gradle-version: wrapper
         cache-read-only: ${{ github.ref != 'refs/heads/main' }}
@@ -64,7 +64,7 @@ jobs:
       
     - name: Upload integration test results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: integration-test-results
         path: |
@@ -73,7 +73,7 @@ jobs:
     
     - name: Upload test coverage
       if: success() || failure()
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         files: ./backend/autotrader-backend/build/reports/jacoco/test/jacocoTestReport.xml
         flags: integration-tests
