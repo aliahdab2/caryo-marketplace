@@ -6,7 +6,6 @@ import type { JWT as NextAuthJWT } from "next-auth/jwt";
 import { serverAuth } from "@/services/server-auth";
 
 // Import our application's custom types to use locally in this file
-import type { User } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import type { Session } from 'next-auth';
 
