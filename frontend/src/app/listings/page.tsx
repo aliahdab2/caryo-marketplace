@@ -1,6 +1,6 @@
-import Image from 'next/image';
 "use client";
 
+import Image from 'next/image';
 import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
