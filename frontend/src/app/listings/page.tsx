@@ -1,6 +1,7 @@
+import Image from 'next/image';
 "use client";
 
-import React, { useEffect, useState, Suspense, useMemo } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -30,11 +31,11 @@ interface Filters {
 
 const ListingsPage = () => {
   const { t, i18n } = useTranslation(['common']);
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
   const categoryQuery = searchParams.get('category');
-  const breakpoint = useBreakpoint();
+  // const breakpoint = useBreakpoint();
 
   const initialFilters: Filters = {
     page: parseInt(searchParams.get('page') || '1', 10),
@@ -169,10 +170,13 @@ const ListingsPage = () => {
             </div>
             <Link href={`/listings/${listing.id}`} className="block group">
               <div className="relative h-48 w-full overflow-hidden">
-                <img
+                <Image
                   src={listing.media && listing.media.length > 0 ? listing.media[0].url : '/images/vehicles/car-default.svg'}
                   alt={listing.title}
                   className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  unoptimized
                 />
               </div>
               <div className="p-4">
