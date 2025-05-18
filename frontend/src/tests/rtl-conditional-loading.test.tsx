@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { isRTLStylesheetLoaded, setDocumentDirection } from '@/utils/rtl-test-utils';
+import { isRTLStylesheetLoaded } from '@/utils/rtl-test-utils';
 import ClientRTLStylesLoader from '@/components/layout/ClientRTLStylesLoader';
 
 // Mock usePathname to avoid router context errors
@@ -10,7 +10,7 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Create a fake document.documentElement to manipulate dir
-const mockDocumentElementDir = (dir) => {
+const mockDocumentElementDir = (dir: string) => {
   Object.defineProperty(document.documentElement, 'dir', {
     value: dir,
     writable: true

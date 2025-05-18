@@ -1,11 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { setDocumentDirection, checkRTLAlignment } from '@/utils/rtl-test-utils';
+import { setDocumentDirection } from '@/utils/rtl-test-utils';
 
 // Mock function for window.getComputedStyle
 window.getComputedStyle = jest.fn().mockImplementation(() => ({
-  getPropertyValue: (prop) => {
+  getPropertyValue: (prop: string) => {
     // Return appropriate values based on document.dir
     if (document.documentElement.dir === 'rtl') {
       switch (prop) {
@@ -41,7 +41,8 @@ describe('RTL Visual Layout Tests', () => {
       </div>
     );
     
-    const element = container.firstChild;
+    const element = container.firstChild as Element | null;
+    if (!element) return;
     const ltrStyle = window.getComputedStyle(element);
     expect(ltrStyle.getPropertyValue('text-align')).toBe('left');
     
@@ -54,6 +55,7 @@ describe('RTL Visual Layout Tests', () => {
       </div>
     );
     
+    if (!element) return;
     const rtlStyle = window.getComputedStyle(element);
     expect(rtlStyle.getPropertyValue('text-align')).toBe('right');
   });
@@ -69,7 +71,8 @@ describe('RTL Visual Layout Tests', () => {
       </div>
     );
     
-    const element = container.firstChild;
+    const element = container.firstChild as Element | null;
+    if (!element) return;
     const ltrStyle = window.getComputedStyle(element);
     expect(ltrStyle.getPropertyValue('flex-direction')).toBe('row');
     
@@ -83,6 +86,7 @@ describe('RTL Visual Layout Tests', () => {
       </div>
     );
     
+    if (!element) return;
     const rtlStyle = window.getComputedStyle(element);
     expect(rtlStyle.getPropertyValue('flex-direction')).toBe('row-reverse');
   });

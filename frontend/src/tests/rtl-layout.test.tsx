@@ -58,7 +58,7 @@ describe('RTL Layout Tests', () => {
     setDirection('rtl');
     
     // Setup a simple component with RTL styling
-    const { container } = render(
+    render(
       <div dir="rtl" className="rtl:text-right">
         <p data-testid="rtl-paragraph">This text should be right-aligned in RTL mode.</p>
       </div>
@@ -75,7 +75,7 @@ describe('RTL Layout Tests', () => {
     setDirection('rtl');
     
     // Setup a flex container with RTL styling
-    const { container } = render(
+    render(
       <div dir="rtl" className="flex rtl:flex-row-reverse" data-testid="rtl-flex-container">
         <div>Item 1</div>
         <div>Item 2</div>
@@ -93,7 +93,7 @@ describe('RTL Layout Tests', () => {
     setDirection('rtl');
     
     // Setup button group with RTL spacing
-    const { container } = render(
+    render(
       <div dir="rtl" className="flex space-x-2 rtl:space-x-reverse" data-testid="button-group">
         <button>Button 1</button>
         <button>Button 2</button>

@@ -1,9 +1,8 @@
-// filepath: /Users/aliahdab/Documents/Dev/caryo-marketplace/frontend/src/tests/auth/signup.test.tsx
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import SignUpPage from '@/app/auth/signup/page';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
+// import { signIn } from 'next-auth/react';
 import { signIn } from 'next-auth/react';
 
 // Mock next-auth/react
@@ -90,4 +89,3 @@ describe('SignUpPage Component', () => {
   test.skip('handles sign-up error', () => {});
   test.skip('prevents submission when password is too short', () => {});
   test.skip('button is disabled when verification is not complete', () => {});
-});

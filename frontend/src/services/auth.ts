@@ -97,7 +97,7 @@ export const authService = {
    * @param token Authentication token
    * @returns User profile data
    */
-  async getProfile(token: string): Promise<any> {
+  async getProfile(token: string): Promise<Record<string, unknown>> {
     const headers: Record<string, string> = {
       'Authorization': `Bearer ${token}`
     };
@@ -105,7 +105,7 @@ export const authService = {
     try {
       // This endpoint might need to be updated once the backend implements it
       // Currently using a placeholder
-      return await api.get<any>('/api/users/me', headers);
+      return await api.get<Record<string, unknown>>('/api/users/me', headers);
     } catch (error) {
       logError('Failed to get user profile:', error);
       throw error;
