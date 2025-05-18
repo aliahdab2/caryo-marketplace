@@ -70,7 +70,7 @@ export default function SignUpPage() {
           } else if (signInResult?.ok) {
             router.push("/dashboard"); // Redirect to dashboard after successful registration and sign-in
           }
-        } catch (signInError) {
+        } catch {
           setError("Sign in failed after registration. Please try signing in manually.");
           setLoading(false);
         }
@@ -79,10 +79,14 @@ export default function SignUpPage() {
       // Display the error message from the server if available
       let message = "Registration failed. Please try again.";
       if (typeof err === "object" && err !== null) {
-        if ("data" in err && typeof (err as any).data?.message === "string") {
-          message = (err as any).data.message;
-        } else if ("message" in err && typeof (err as any).message === "string") {
-          message = (err as any).message;
+        if (
+          "data" in err &&
+          typeof (err as Record<string, unknown>).data === "object" &&
+          (err as { data?: { message?: string } }).data?.message
+        ) {
+          message = String((err as { data?: { message?: string } }).data?.message);
+        } else if ("message" in err && typeof (err as { message?: string }).message === "string") {
+          message = (err as { message?: string }).message!;
         }
       }
       setError(message);

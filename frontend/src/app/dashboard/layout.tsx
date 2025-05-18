@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState, useCallback, memo, useMemo } from "react";
+import { useEffect, useState, useCallback, memo } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { 
@@ -20,8 +20,7 @@ import {
   MdAnalytics,
   MdSupportAgent,
   MdAdd,
-  MdTrendingUp,
-  MdInfo
+  MdTrendingUp
 } from "react-icons/md";
 
 // Navigation item type
@@ -66,11 +65,18 @@ const SidebarItem = memo(({
 ));
 
 // Memoized User profile component with improved styling
+type UserProfileSession = {
+  user?: {
+    name?: string | null;
+    email?: string | null;
+  };
+} | null;
+
 const UserProfile = memo(({ 
   session, 
   t 
 }: { 
-  session: any; 
+  session: UserProfileSession; 
   t: (key: string) => string;
 }) => (
   <div className="flex items-center mb-4 group">
