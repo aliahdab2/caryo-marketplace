@@ -37,17 +37,17 @@ jobs:
         echo "Listing all running Docker containers for debugging..."
         docker ps
         
-        # Give services extra time to start
-        echo "Sleeping for 30 seconds to ensure containers are fully initialized..."
-        sleep 30
+        # Give services extra time to start - longer initialization period
+        echo "Sleeping for 60 seconds to ensure containers are fully initialized..."
+        sleep 60
         
         echo "Waiting for PostgreSQL to be ready..."
         # Try multiple times with increasing sleep periods
-        MAX_RETRIES=5
+        MAX_RETRIES=10
         RETRY_COUNT=0
         
         while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-          if docker exec $(docker ps -q -f name=db) pg_isready -U autotrader -t 10; then
+          if docker exec $(docker ps -q -f name=db) pg_isready -U autotrader -t 15; then
             echo "PostgreSQL is ready!"
             break
           else
@@ -60,7 +60,7 @@ jobs:
               exit 1
             fi
             
-            sleep $((RETRY_COUNT * 10))
+            sleep $((RETRY_COUNT * 15))
           fi
         done
         
@@ -102,7 +102,7 @@ jobs:
       working-directory: ./backend/autotrader-backend
       run: |
         chmod +x ./gradlew
-        ./gradlew integrationTest jacocoTestReport --info
+        ./gradlew integrationTest jacocoIntegrationTestReport jacocoTestReport --info
         
     - name: Verify JaCoCo report exists
       run: |
@@ -129,5 +129,4 @@ jobs:
         directory: ./backend/autotrader-backend/build/reports/
         flags: integration-tests
         fail_ci_if_error: false
-        token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
