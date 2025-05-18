@@ -244,7 +244,7 @@ async function main() {
       try {
         const data = await response.json();
         console.log('   API response:', JSON.stringify(data, null, 2).substring(0, 200) + '...');
-      } catch (error) {
+      } catch  {
         console.log('   API returned a non-JSON response');
       }
     } else {

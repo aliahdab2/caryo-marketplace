@@ -7,8 +7,35 @@ import { useTranslation } from "react-i18next";
 import ListingExpiry from "../../components/ListingExpiry";
 import { formatNumber } from '../../../../../utils/localization'; // Corrected import path
 
+// Define the interface for the form data
+interface ListingFormData {
+  id?: string;
+  title: string;
+  description: string;
+  make: string;
+  model: string;
+  year: string;
+  price: string;
+  currency: string;
+  condition: string;
+  mileage: string;
+  exteriorColor: string;
+  interiorColor: string;
+  transmission: string;
+  fuelType: string;
+  features: string[];
+  location: string;
+  city: string;
+  contactPreference: string;
+  images: File[];
+  status: 'active' | 'expired' | 'pending' | ''; // Adjusted to include empty string for initial state
+  created: string;
+  expires: string;
+  views: number;
+}
+
 // Mock data for a listing (in a real app, this would come from an API fetch)
-const MOCK_LISTING = {
+const MOCK_LISTING: ListingFormData = {
   id: "1",
   title: "Toyota Camry 2020",
   description: "Well maintained Toyota Camry with low mileage. One owner, service history available.",
@@ -27,7 +54,7 @@ const MOCK_LISTING = {
   location: "Dubai Marina",
   city: "Dubai",
   contactPreference: "both",
-  images: [],
+  images: [], // This empty array is assignable to File[]
   status: "active",
   created: "2023-05-15",
   expires: "2023-08-15",
@@ -41,14 +68,14 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
   const [isLoading, setIsLoading] = useState(true);
   
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ListingFormData>({
     title: "",
     description: "",
     make: "",
     model: "",
     year: "",
     price: "",
-    currency: "", // Added currency
+    currency: "",
     condition: "used",
     mileage: "",
     exteriorColor: "",
@@ -60,7 +87,7 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
     city: "",
     contactPreference: "both",
     images: [] as File[],
-    status: "",
+    status: "", // Initial state can be an empty string
     created: "",
     expires: "",
     views: 0
@@ -80,10 +107,11 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
     const fetchListing = async () => {
       try {
         setTimeout(() => {
-          setFormData(MOCK_LISTING as any); // Kept as any for mock data flexibility
+          setFormData(MOCK_LISTING); // Kept as any for mock data flexibility
           setIsLoading(false);
         }, 500);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error("Error fetching listing:", error);
         // Redirect to listings page in case of error
         router.push("/dashboard/listings");
@@ -144,6 +172,7 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
     setIsSubmitting(true);
     
     // In a real app, perform API call to update listing
+    // eslint-disable-next-line no-console
     console.log("Updating listing data:", formData);
     
     // Simulate API call
@@ -154,6 +183,7 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
         router.push("/dashboard/listings");
       }, 1500);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("Error updating listing:", error);
       setIsSubmitting(false);
       // Show error message
@@ -163,6 +193,7 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
   // Handle listing renewal
   const handleRenewal = (id: string, duration: number) => {
     // In a real app, perform API call to renew listing
+    // eslint-disable-next-line no-console
     console.log(`Renewing listing ${id} for ${duration} days`);
     
     // Update expiry date in the local state
@@ -228,7 +259,7 @@ export default function EditListingPage({ params }: { params: { id: string } }) 
         <ListingExpiry 
           listingId={params.id}
           expiryDate={formData.expires}
-          status={formData.status}
+          status={formData.status as ('active' | 'expired' | 'pending')}
           onRenew={handleRenewal}
         />
         

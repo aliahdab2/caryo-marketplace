@@ -23,18 +23,21 @@ process.emit = function(name, data, ...args) {
   return originalEmit.call(process, name, data, ...args);
 };
 
-// Import fetch compatibly with CommonJS and ESM
+// Import fetch using dynamic import
 let fetch;
 try {
-  // Try ESM import (for newer Node versions)
-  fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-} catch (error) {
-  // Fall back to CommonJS import (for older Node versions)
-  fetch = require('node-fetch');
+  // Try ESM import 
+  const fetchModule = await import('node-fetch');
+  fetch = fetchModule.default;
+} catch {
+  // This should not happen with proper ESM setup
+  console.error('Failed to import node-fetch');
+  process.exit(1);
 }
 
-const path = require('path');
-const fs = require('fs');
+// Use ESM imports for path and fs
+import path from 'path';
+import fs from 'fs';
 
 // Load environment variables from .env.local
 function loadEnvFile() {
