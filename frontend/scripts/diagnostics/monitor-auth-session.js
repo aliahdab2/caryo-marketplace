@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 
 /**
  * NextAuth Session Monitor
@@ -28,13 +29,14 @@ let fetch;
 try {
   // Try ESM import (for newer Node versions)
   fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-} catch (error) {
+} catch {
   // Fall back to CommonJS import (for older Node versions)
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   fetch = require('node-fetch');
 }
 
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
 
 // Load environment variables from .env.local
 function loadEnvFile() {
