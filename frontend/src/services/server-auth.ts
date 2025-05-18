@@ -34,7 +34,7 @@ async function handleApiResponse(response: Response) {
     try {
       const errorData = await response.json();
       errorMessage = errorData.message || errorMessage;
-    } catch (jsonError) {
+    } catch {
       // If JSON parsing fails, use the status text (already set above)
     }
     
@@ -43,7 +43,7 @@ async function handleApiResponse(response: Response) {
   
   try {
     return await response.json();
-  } catch (jsonError) {
+  } catch {
     throw new Error('Invalid response format from server');
   }
 }

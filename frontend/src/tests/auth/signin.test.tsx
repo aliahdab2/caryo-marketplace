@@ -3,7 +3,7 @@ import { act as rtlAct, fireEvent, render, screen, waitFor } from '@testing-libr
 import userEvent from '@testing-library/user-event';
 import SignInPage from '@/app/auth/signin/page';
 import { signIn, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 
 // Mock next-auth/react
 jest.mock('next-auth/react', () => ({
@@ -106,8 +106,8 @@ let mockIsVerified = true;
 const mockOnVerified = jest.fn();
 
 jest.mock('@/components/auth/SimpleVerification', () => {
-  const React = require('react');
-  const { act } = require('@testing-library/react');
+  // const React = require('react');
+  // const { act } = require('@testing-library/react');
 
   return function MockSimpleVerification({ onVerified, autoStart }: { onVerified: (isVerified: boolean) => void; autoStart?: boolean }) {
     React.useEffect(() => {
