@@ -13,6 +13,7 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 
   {
+    ignores: [".next/**"], // Ignore the .next directory
     rules: {
       "@typescript-eslint/no-explicit-any": "error",             // ❌ Prevent using `any`
       "@typescript-eslint/no-unused-vars": ["error", {           // ❌ No unused vars unless start with _
