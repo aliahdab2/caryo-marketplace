@@ -173,7 +173,7 @@ export default function Navbar() {
                         role="menuitem"
                       >
                         <MdSettings className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
-                        {"Account Settings"}
+                        {t("dashboard.accountSettings")}
                       </Link>
                     </div>
                     
