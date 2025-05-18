@@ -38,7 +38,7 @@ export default function ProfilePage() {
   };
 
   // Get user roles as string
-  const userRoles = session?.user?.roles
+  const userRoles = session?.user && 'roles' in session.user && Array.isArray(session.user.roles)
     ? session.user.roles.join(", ")
     : t('dashboard.noRoles');
 

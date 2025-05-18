@@ -222,7 +222,6 @@ export default function LanguageProvider({ children }: LanguageProviderProps) {
       
       setIsReady(true);
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('Error initializing language:', err);
       
       try {
@@ -238,7 +237,6 @@ export default function LanguageProvider({ children }: LanguageProviderProps) {
           try {
             localStorage.setItem('NEXT_LOCALE', DEFAULT_LANGUAGE);
           } catch (localStorageErr) {
-            // eslint-disable-next-line no-console
             console.warn('Failed to set localStorage fallback:', localStorageErr);
           }
           
@@ -258,10 +256,8 @@ export default function LanguageProvider({ children }: LanguageProviderProps) {
         
         // Default to fallback language if there's an error
         setLocale(DEFAULT_LANGUAGE);
-        // eslint-disable-next-line no-console
         console.info(`Successfully reverted to default language (${DEFAULT_LANGUAGE}) after initialization error`);
       } catch (fallbackErr) {
-        // eslint-disable-next-line no-console
         console.error('Critical error: Failed to apply default language after initialization error:', fallbackErr);
       } finally {
         // Make sure we set ready state no matter what
@@ -322,13 +318,11 @@ export default function LanguageProvider({ children }: LanguageProviderProps) {
       // This is necessary for RTL/LTR layout changes
       router.refresh();
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('Error changing language:', error);
       
       // Fallback to default language
       if (lang !== DEFAULT_LANGUAGE) {
         try {
-          // eslint-disable-next-line no-console
           console.info(`Language change to ${lang} failed. Falling back to default language (${DEFAULT_LANGUAGE})`);
           
           // Change language in i18n to the default
@@ -364,10 +358,8 @@ export default function LanguageProvider({ children }: LanguageProviderProps) {
           setLocale(DEFAULT_LANGUAGE);
           
           // Display some kind of notification to the user
-          // eslint-disable-next-line no-console
           console.warn(`Switched to ${DEFAULT_LANGUAGE} as fallback language`);
         } catch (fallbackError) {
-          // eslint-disable-next-line no-console
           console.error('Critical error: Failed to fall back to default language:', fallbackError);
         }
       }
@@ -381,17 +373,14 @@ export default function LanguageProvider({ children }: LanguageProviderProps) {
         // Dynamic import of the language file
         await import(`../../public/locales/${lang}/common.json`);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error(`Failed to preload language ${lang}:`, err);
         
         // Try to load default language as fallback if the requested language failed
         if (lang !== DEFAULT_LANGUAGE) {
           try {
-            // eslint-disable-next-line no-console
             console.info(`Falling back to default language (${DEFAULT_LANGUAGE})`);
             await import(`../../public/locales/${DEFAULT_LANGUAGE}/common.json`);
           } catch (fallbackErr) {
-            // eslint-disable-next-line no-console
             console.error(`Failed to load fallback language ${DEFAULT_LANGUAGE}:`, fallbackErr);
           }
         }

@@ -51,7 +51,8 @@ export const authService = {
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      return await api.post<AuthResponse>('/api/auth/signin', credentials);
+      // Properly cast credentials to satisfy TypeScript
+      return await api.post<AuthResponse>('/api/auth/signin', credentials as unknown as Record<string, unknown>);
     } catch (error) {
       logError('Login failed:', error);
       
@@ -75,7 +76,8 @@ export const authService = {
    */
   async signup(userData: SignupCredentials): Promise<MessageResponse> {
     try {
-      return await api.post<MessageResponse>('/api/auth/signup', userData);
+      // Properly cast userData to satisfy TypeScript
+      return await api.post<MessageResponse>('/api/auth/signup', userData as unknown as Record<string, unknown>);
     } catch (error) {
       logError('Registration failed:', error);
       
