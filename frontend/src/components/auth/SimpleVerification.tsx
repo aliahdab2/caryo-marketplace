@@ -30,12 +30,54 @@ export default function SimpleVerification({
   const [state, setState] = useState<VerificationState>(autoStart ? 'verifying' : 'idle');
   
   const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const autoVerifyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isMounted = useRef<boolean>(true);
+  const hasAutoVerified = useRef<boolean>(false);
 
-  // Effect for component mount/unmount lifecycle
+  // Clear all timeouts on unmount
   useEffect(() => {
     isMounted.current = true;
+    
+    return () => {
+      isMounted.current = false;
+      
+      // Clean up all timeouts
+      if (verificationTimeoutRef.current) {
+        clearTimeout(verificationTimeoutRef.current);
+        verificationTimeoutRef.current = null;
+      }
+      
+      if (autoVerifyTimeoutRef.current) {
+        clearTimeout(autoVerifyTimeoutRef.current);
+        autoVerifyTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
+  // Handle verification process
+  const handleVerify = useCallback(() => {
+    // Don't start verification if already past the idle state
+    if (state !== 'idle') return;
+    
+    // Update UI state
+    setState('verifying');
+    
+    // Clear any existing verification timer
+    if (verificationTimeoutRef.current) {
+      clearTimeout(verificationTimeoutRef.current);
+    }
+    
+    // Start new verification timer
+    verificationTimeoutRef.current = setTimeout(() => {
+      if (isMounted.current) {
+        setState('success');
+        onVerified(true);
+      }
+    }, 1500);
+  }, [state, onVerified]);
+
+  // Handle auto-start if specified
+  useEffect(() => {
     // If autoStart is true, begin verification immediately
     if (autoStart && state === 'verifying') {
       verificationTimeoutRef.current = setTimeout(() => {
@@ -45,50 +87,28 @@ export default function SimpleVerification({
         }
       }, 1500);
     }
-    
-    // This cleanup will run when the component unmounts
-    return () => {
-      isMounted.current = false;
-      if (verificationTimeoutRef.current) {
-        clearTimeout(verificationTimeoutRef.current);
-      }
-    };
-  }, [autoStart, onVerified, state]); 
+  }, [autoStart, onVerified, state]);
 
-  const handleVerify = useCallback(() => {
-    if (state !== 'idle') return;
-    
-    setState('verifying');
-    
-    // Clear any potentially existing timer
-    if (verificationTimeoutRef.current) {
-        clearTimeout(verificationTimeoutRef.current);
-    }
-
-    verificationTimeoutRef.current = setTimeout(() => {
-      if (isMounted.current) { // Check if component is still mounted
-        setState('success');
-        onVerified(true);
-      }
-    }, 1500);
-  }, [state, onVerified]);
-
-  // Auto-verify after 3 seconds if still idle
+  // Auto-verify after 3 seconds if still idle and hasn't auto-verified yet
   useEffect(() => {
-    let autoVerifyTimeoutId: NodeJS.Timeout | null = null;
-    
-    if (state === 'idle') {
-      autoVerifyTimeoutId = setTimeout(() => {
-        handleVerify(); 
+    // Only for idle state and if we haven't auto-verified yet
+    if (state === 'idle' && !hasAutoVerified.current && !autoStart) {
+      autoVerifyTimeoutRef.current = setTimeout(() => {
+        hasAutoVerified.current = true;
+        if (isMounted.current && state === 'idle') {
+          handleVerify();
+        }
       }, 3000);
     }
     
     return () => {
-      if (autoVerifyTimeoutId) {
-        clearTimeout(autoVerifyTimeoutId);
+      // Clean up auto verify timeout on unmount or state change
+      if (autoVerifyTimeoutRef.current) {
+        clearTimeout(autoVerifyTimeoutRef.current);
+        autoVerifyTimeoutRef.current = null;
       }
     };
-  }, [state, handleVerify]);
+  }, [state, handleVerify, autoStart]);
   
   return (
     <div 
