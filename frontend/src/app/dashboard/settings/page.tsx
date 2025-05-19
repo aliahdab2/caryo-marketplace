@@ -1,18 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/components/EnhancedLanguageProvider";
+import { SupportedLanguage } from "@/utils/i18n";
 
 export default function SettingsPage() {
   const { t } = useTranslation('common');
-  
-  // Account settings state
+  const { locale, changeLanguage } = useLanguage();
+
   const [accountSettings, setAccountSettings] = useState({
-    language: "en",
-    timezone: "UTC+4",
-    currency: "SAR", // Default to Saudi Riyal
+    language: locale, // Initialize with current locale
+    timezone: "UTC+3", // Default to Syria timezone
+    currency: "SYP", // Default to Syrian Pound
   });
-  
+
+  // State for loading indicator during language change
+  const [isChangingLanguage, setIsChangingLanguage] = useState(false);
+
+  // Effect to keep the language dropdown value synchronized with the actual locale from context
+  useEffect(() => {
+    setAccountSettings(prev => ({
+      ...prev,
+      language: locale,
+    }));
+  }, [locale]);
+
   // Notification settings state
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
@@ -34,10 +47,31 @@ export default function SettingsPage() {
   // Handle account settings changes
   const handleAccountChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setAccountSettings(prev => ({
-      ...prev,
-      [name]: value
-    }));
+
+    if (name === "language") {
+      const newLanguage = value as SupportedLanguage;
+      if (newLanguage !== locale) { // Only proceed if the language is actually different
+        setIsChangingLanguage(true);
+        changeLanguage(newLanguage)
+          .catch((error) => {
+            console.error("Failed to change language:", error);
+            // If change fails, locale won't update.
+            // The useEffect above will ensure accountSettings.language reverts to the old locale.
+          })
+          .finally(() => {
+            setIsChangingLanguage(false);
+          });
+      }
+      // The useEffect syncing with `locale` will handle updating the dropdown display
+      // once the language change is complete and the context updates.
+      // No immediate local state update for language here.
+    } else {
+      // For other settings like timezone, currency
+      setAccountSettings(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   // Handle notification toggle
@@ -65,8 +99,9 @@ export default function SettingsPage() {
       privacySettings
     });
     
-    // Show success message (in a real app)
-    alert(t('settings.savedSuccessfully'));
+    // TODO: If a global notification system exists and is preferred for "Settings Saved",
+    // trigger it here. For now, this component will not show its own toast for this action.
+    // alert(t('settings.savedSuccessfully')); // Example of a simple browser alert if needed
   };
 
   return (
@@ -86,7 +121,8 @@ export default function SettingsPage() {
               name="language"
               value={accountSettings.language}
               onChange={handleAccountChange}
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+              disabled={isChangingLanguage} // Disable while changing
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 disabled:opacity-50"
             >
               <option value="en">English</option>
               <option value="ar">العربية (Arabic)</option>
@@ -103,8 +139,8 @@ export default function SettingsPage() {
               onChange={handleAccountChange}
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
             >
+              <option value="UTC+3">Syria (GMT+3)</option>
               <option value="UTC+4">UAE (GMT+4)</option>
-              <option value="UTC+3">Saudi Arabia (GMT+3)</option>
               <option value="UTC+0">London (GMT+0)</option>
             </select>
           </div>
@@ -119,6 +155,7 @@ export default function SettingsPage() {
               onChange={handleAccountChange}
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
             >
+              <option value="SYP">SYP (Syrian Pound)</option>
               <option value="SAR">SAR (Saudi Riyal)</option>
               <option value="USD">USD (US Dollar)</option>
             </select>
