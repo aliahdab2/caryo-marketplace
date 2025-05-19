@@ -1,0 +1,93 @@
+name: 'Frontend Setup and Test Action'
+description: 'Sets up Node.js, installs dependencies, lints, builds, tests, and uploads reports for a frontend project.'
+
+inputs:
+  node-version:
+    description: 'Version of Node.js to use.'
+    required: false
+    default: '18'
+  working-directory:
+    description: 'Directory where frontend project is located.'
+    required: false
+    default: './frontend'
+  cache-dependency-path:
+    description: 'Path to package-lock.json, yarn.lock, etc. for caching.'
+    required: false
+    default: './frontend/package.json' # Assuming package.json is in the working-directory
+  eslint-report-name:
+    description: 'Name for the ESLint report artifact.'
+    required: false
+    default: 'eslint-report'
+  eslint-cache-path:
+    description: 'Path to the ESLint cache file or directory.'
+    required: false
+    default: 'frontend/.eslintcache' # Relative to repository root
+  coverage-report-name:
+    description: 'Name for the test coverage artifact.'
+    required: false
+    default: 'frontend-test-coverage'
+  coverage-path:
+    description: 'Path to the coverage report directory.'
+    required: false
+    default: 'frontend/coverage/' # Relative to repository root
+  test-command:
+    description: 'Command to run tests.'
+    required: false
+    default: 'npm test'
+  build-command:
+    description: 'Command to build the project.'
+    required: false
+    default: 'npm run build'
+  lint-command:
+    description: 'Command to run linter.'
+    required: false
+    default: 'npm run lint'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm' # Assuming npm, adjust if using yarn or pnpm
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+
+    - name: Install dependencies
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: npm ci
+
+    - name: Run ESLint
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: |
+        echo "Running ESLint check to identify code issues..."
+        ${{ inputs.lint-command }} || (echo "::warning::ESLint issues found. See output above for details.")
+
+    - name: Build frontend
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      continue-on-error: false # Ensure build failure stops the workflow
+      run: ${{ inputs.build-command }}
+
+    - name: Run Jest tests
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: ${{ inputs.test-command }}
+
+    - name: Upload ESLint report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.eslint-report-name }}
+        path: ${{ inputs.eslint-cache-path }}
+        if-no-files-found: ignore
+
+    - name: Upload test coverage
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.coverage-report-name }}
+        path: ${{ inputs.coverage-path }}
+        if-no-files-found: ignore

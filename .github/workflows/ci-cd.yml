@@ -1,193 +1,76 @@
 name: CI/CD Pipeline
 
 on:
+  # For direct pushes to main (e.g. merges), only run the deployment steps
   push:
     branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+  # For PRs, run the full test suite on PRs to main branch
   pull_request:
     branches: [ main ]
+    types: [opened, synchronize, reopened] # Be specific about which PR events trigger the workflow
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
 
 jobs:
   backend-build-and-test:
     runs-on: ubuntu-latest
-    
+    # Only run this job for pull_request events to main branch
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         lfs: true # Explicitly enable LFS file download
-
-    - name: Initial Check of Gradle Wrapper files (Post-Checkout)
-      working-directory: ./backend/autotrader-backend
-      run: |
-        echo "=== Initial Check (Post-Checkout) ==="
-        echo "Checking for gradle-wrapper.jar and gradle-wrapper.properties in $(pwd)..."
-        if [ ! -d ./gradle/wrapper ]; then
-          echo "ERROR: ./gradle/wrapper directory does not exist!"
-          ls -la ./gradle/
-          exit 1
-        fi
-        if [ ! -f ./gradle/wrapper/gradle-wrapper.jar ]; then
-          echo "ERROR: ./gradle/wrapper/gradle-wrapper.jar is MISSING post-checkout!"
-          ls -la ./gradle/wrapper/
-          exit 1
-        else
-          echo "./gradle/wrapper/gradle-wrapper.jar found post-checkout."
-          JAR_SIZE=$(stat -c%s ./gradle/wrapper/gradle-wrapper.jar)
-          echo "Size: $JAR_SIZE bytes"
-          echo "SHA256: $(sha256sum ./gradle/wrapper/gradle-wrapper.jar | awk '{print $1}')"
-          if [ "$JAR_SIZE" -lt 1024 ]; then
-            echo "Content of small gradle-wrapper.jar:"
-            cat ./gradle/wrapper/gradle-wrapper.jar
-            echo "--- End of small gradle-wrapper.jar content ---"
-          fi
-        fi
-        if [ ! -f ./gradle/wrapper/gradle-wrapper.properties ]; then
-          echo "ERROR: ./gradle/wrapper/gradle-wrapper.properties is MISSING post-checkout!"
-          ls -la ./gradle/wrapper/
-          exit 1
-        else
-          echo "./gradle/wrapper/gradle-wrapper.properties found post-checkout."
-        fi
-        echo "=== End of Initial Check ==="
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
+        
+    # Use the Gradle setup composite action
+    - name: Setup Gradle Environment
+      uses: ./.github/actions/gradle-setup
       with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
+        working-directory: "./backend/autotrader-backend"
+        java-version: "17"
+        cache: true
 
-    - name: Validate Gradle wrapper
-      uses: gradle/wrapper-validation-action@v2
-      continue-on-error: true
-      id: wrapper-validation
-
-    - name: Check Gradle Wrapper files after setup-java and validation action
+    # Ensure Gradle Wrapper exists
+    - name: Ensure Gradle Wrapper
       working-directory: ./backend/autotrader-backend
       run: |
-        echo "=== Check After setup-java & Validation Action ==="
-        echo "Gradle wrapper validation action outcome: ${{ steps.wrapper-validation.outcome }}"
-        echo "Checking for gradle-wrapper.jar and gradle-wrapper.properties in $(pwd)..."
-        
-        if [ ! -f ./gradle/wrapper/gradle-wrapper.jar ]; then
-          echo "ERROR: ./gradle/wrapper/gradle-wrapper.jar is MISSING!"
-          echo "Listing ./gradle/wrapper/ contents:"
-          ls -la ./gradle/wrapper/
-          exit 1
-        else
-          echo "./gradle/wrapper/gradle-wrapper.jar found."
-          JAR_SIZE=$(stat -c%s ./gradle/wrapper/gradle-wrapper.jar)
-          echo "Size: $JAR_SIZE bytes"
-          echo "SHA256: $(sha256sum ./gradle/wrapper/gradle-wrapper.jar | awk '{print $1}')"
-          if [ "$JAR_SIZE" -lt 1024 ]; then # If it's small, cat its content
-            echo "Content of small gradle-wrapper.jar:"
-            cat ./gradle/wrapper/gradle-wrapper.jar
-            echo "--- End of small gradle-wrapper.jar content ---"
-          fi
-        fi
-
-        if [ ! -f ./gradle/wrapper/gradle-wrapper.properties ]; then
-          echo "ERROR: ./gradle/wrapper/gradle-wrapper.properties is MISSING!"
-          echo "Listing ./gradle/wrapper/ contents:"
-          ls -la ./gradle/wrapper/
-          exit 1
-        else
-          echo "./gradle/wrapper/gradle-wrapper.properties found."
-          echo "Contents of ./gradle/wrapper/gradle-wrapper.properties:"
-          cat ./gradle/wrapper/gradle-wrapper.properties
-          if ! grep -q "services.gradle.org/distributions" ./gradle/wrapper/gradle-wrapper.properties; then
-            echo "ERROR: Invalid distributionUrl in ./gradle/wrapper/gradle-wrapper.properties"
-            exit 1
-          fi
-        fi
-        echo "Gradle wrapper files appear to be correctly in place."
-
-    - name: Grant execute permission for gradlew
-      working-directory: ./backend/autotrader-backend
-      run: chmod +x ./gradlew
-
-    - name: Setup Gradle wrapper properly if issues detected
-      working-directory: ./backend/autotrader-backend
-      run: |
-        echo "Checking if gradle-wrapper.jar might be an LFS pointer or otherwise invalid..."
-        MISSING_JAR=false
-        INVALID_JAR=false
-        JAR_SIZE=0
-        
-        # Check if JAR exists
-        if [ ! -f ./gradle/wrapper/gradle-wrapper.jar ]; then
-          echo "ERROR: gradle-wrapper.jar is missing."
-          MISSING_JAR=true
-        else
-          # Check JAR size
-          JAR_SIZE=$(stat -c%s ./gradle/wrapper/gradle-wrapper.jar)
-          echo "Current gradle-wrapper.jar size: $JAR_SIZE bytes"
-          
-          # Check for suspiciously small size (LFS pointer is ~130 bytes)
-          if [ "$JAR_SIZE" -lt 10000 ]; then
-            echo "WARNING: gradle-wrapper.jar is suspiciously small ($JAR_SIZE bytes). It might be an LFS pointer."
-            echo "Content of the suspicious file:"
-            cat ./gradle/wrapper/gradle-wrapper.jar
-            INVALID_JAR=true
-          fi
-          
-          # Try to verify JAR validity by checking ZIP header
-          if ! file ./gradle/wrapper/gradle-wrapper.jar | grep -q "Zip archive"; then
-            echo "WARNING: gradle-wrapper.jar does not appear to be a valid ZIP archive"
-            INVALID_JAR=true
-          fi
-        fi
-        
-        # Fix wrapper if issues detected
-        if [ "$MISSING_JAR" = true ] || [ "$INVALID_JAR" = true ]; then
-          echo "Issues detected with gradle-wrapper.jar. Generating a new wrapper..."
-          
-          # Backup existing wrapper files
-          mkdir -p ./gradle/wrapper-backup
-          if [ -f ./gradle/wrapper/gradle-wrapper.jar ]; then
-            mv ./gradle/wrapper/gradle-wrapper.jar ./gradle/wrapper-backup/gradle-wrapper.jar.bak
-          fi
-          if [ -f ./gradle/wrapper/gradle-wrapper.properties ]; then
-            cp ./gradle/wrapper/gradle-wrapper.properties ./gradle/wrapper-backup/gradle-wrapper.properties.bak
-          fi
-          
-          # Try to use local gradle to generate wrapper
+        if [ ! -f "./gradlew" ]; then
+          echo "gradlew script not found! Generating a new one..."
+          # First try to use the Gradle CLI if available
           if command -v gradle &> /dev/null; then
-            echo "Generating wrapper using local gradle installation..."
-            gradle wrapper --gradle-version 8.5 --distribution-type bin
+            echo "Using gradle CLI to generate wrapper"
+            gradle wrapper --gradle-version=8.5
           else
-            # Try to download and use Gradle directly
-            echo "Local gradle not found. Downloading Gradle 8.5..."
-            GRADLE_ZIP=gradle-8.5-bin.zip
-            GRADLE_URL=https://services.gradle.org/distributions/gradle-8.5-bin.zip
-            
-            curl -L -o $GRADLE_ZIP $GRADLE_URL
-            unzip -q -d . $GRADLE_ZIP
-            chmod +x ./gradle-8.5/bin/gradle
-            ./gradle-8.5/bin/gradle wrapper --gradle-version 8.5 --distribution-type bin
-            rm -rf gradle-8.5 $GRADLE_ZIP
-          fi
-          
-          # Verify new wrapper
-          if [ -f ./gradle/wrapper/gradle-wrapper.jar ]; then
-            NEW_SIZE=$(stat -c%s ./gradle/wrapper/gradle-wrapper.jar)
-            echo "New gradle-wrapper.jar generated. Size: $NEW_SIZE bytes"
-            if [ "$NEW_SIZE" -lt 10000 ]; then
-              echo "ERROR: New gradle-wrapper.jar still suspiciously small. CI environment may need investigation."
+            # If gradle CLI isn't available, use any gradle wrapper in other projects
+            echo "Trying to copy Gradle wrapper from elsewhere"
+            # First look for wrapper jar
+            if [ -f "../gradle/wrapper/gradle-wrapper.jar" ]; then
+              echo "Found ../gradle/wrapper/gradle-wrapper.jar"
+              mkdir -p ./gradle/wrapper/
+              cp ../gradle/wrapper/gradle-wrapper.jar ./gradle/wrapper/
+              cp ../gradle/wrapper/gradle-wrapper.properties ./gradle/wrapper/
+              cp ../gradlew ./
+              cp ../gradlew.bat ./
+              chmod +x ./gradlew
+            else
+              echo "ERROR: Could not generate or find Gradle wrapper!"
+              echo "Current directory structure:"
+              ls -la ./
+              echo "Parent directory structure:"
+              ls -la ../
               exit 1
             fi
-          else
-            echo "ERROR: Failed to generate gradle-wrapper.jar. CI environment may need investigation."
-            exit 1
           fi
-        else
-          echo "gradle-wrapper.jar appears valid. Size: $JAR_SIZE bytes."
         fi
-        
-        # Final verification
-        echo "Final verification of gradle-wrapper.jar:"
-        ls -la ./gradle/wrapper/gradle-wrapper.jar
-        file ./gradle/wrapper/gradle-wrapper.jar
+        echo "Verifying gradlew exists:"
+        ls -la ./gradlew || echo "gradlew still not found!"
 
     - name: Build with Gradle
       working-directory: ./backend/autotrader-backend
@@ -197,22 +80,13 @@ jobs:
         ls -la ./gradle/wrapper/
         echo "DEBUG: Verifying ./gradle/wrapper/gradle-wrapper.jar existence and size:"
         if [ -f ./gradle/wrapper/gradle-wrapper.jar ]; then
-          JAR_SIZE_BUILD=$(stat -c%s ./gradle/wrapper/gradle-wrapper.jar)
+          JAR_SIZE_BUILD=$(stat --format=%s ./gradle/wrapper/gradle-wrapper.jar)
           echo "DEBUG: ./gradle/wrapper/gradle-wrapper.jar EXISTS. Size: $JAR_SIZE_BUILD bytes."
-          if [ "$JAR_SIZE_BUILD" -lt 1024 ]; then # If it's small, cat its content
-            echo "DEBUG: Content of small gradle-wrapper.jar before build:"
-            cat ./gradle/wrapper/gradle-wrapper.jar
-            echo "--- End of small gradle-wrapper.jar content ---"
-          fi
         else
-          echo "DEBUG: CRITICAL ERROR! ./gradle/wrapper/gradle-wrapper.jar DOES NOT EXIST right before build command."
-          # Attempt to list parent directories to understand path issues
-          echo "DEBUG: Listing ./gradle/ :"
-          ls -la ./gradle/
-          echo "DEBUG: Listing . (current directory):"
-          ls -la .
+          echo "ERROR: ./gradle/wrapper/gradle-wrapper.jar is MISSING before build command!"
+          exit 1
         fi
-        ./gradlew build -x test
+        ./gradlew build --info
 
     - name: Run Unit Tests (excluding integration tests)
       working-directory: ./backend/autotrader-backend
@@ -235,58 +109,60 @@ jobs:
 
   frontend-build-and-test:
     runs-on: ubuntu-latest
-    
+    # Only run this job for pull_request events to main branch
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
+    - name: Frontend Build and Test
+      uses: ./.github/actions/frontend-setup
       with:
+        working-directory: './frontend'
         node-version: '18'
-        cache: 'npm'
         cache-dependency-path: './frontend/package.json'
+        # Default values for commands and report paths are used from the action itself
 
-    - name: Install dependencies
-      working-directory: ./frontend
-      run: npm ci
-
-    - name: Run ESLint
-      working-directory: ./frontend
+  # This job runs quick tests before building/deploying for pushes to main
+  main-quick-test:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        lfs: true
+    
+    # Setup Gradle for Backend
+    - name: Setup Gradle Environment
+      uses: ./.github/actions/gradle-setup
+      with:
+        working-directory: "./backend/autotrader-backend"
+        java-version: "17"
+        cache: true
+    
+    # Run basic backend sanity check
+    - name: Quick Backend Test
+      working-directory: ./backend/autotrader-backend
       run: |
-        echo "Running ESLint check to identify code issues..."
-        npm run lint || (echo "::warning::ESLint issues found. See output above for details.")
-
-    - name: Build frontend
-      working-directory: ./frontend
-      continue-on-error: false
-      run: npm run build
-
-    - name: Run Jest tests
-      working-directory: ./frontend
-      run: npm test
-
-    - name: Upload ESLint report
-      if: always()
-      uses: actions/upload-artifact@v4
+        echo "Running quick sanity check for the backend code..."
+        ./gradlew assemble --info
+    
+    # Run basic frontend sanity check
+    - name: Quick Frontend Test
+      uses: ./.github/actions/frontend-setup
       with:
-        name: eslint-report
-        path: frontend/.eslintcache
-        if-no-files-found: ignore
-
-    - name: Upload test coverage
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend-test-coverage
-        path: frontend/coverage/
-
+        working-directory: './frontend'
+        node-version: '18'
+        cache-dependency-path: './frontend/package.json'
+        run-tests: 'false'  # Skip tests, just build to ensure code compiles
+        
   docker-build:
     runs-on: ubuntu-latest
-    needs: [backend-build-and-test, frontend-build-and-test]
+    needs: [main-quick-test]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
+
     steps:
     - uses: actions/checkout@v4
       with:
@@ -319,9 +195,9 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [docker-build]
+    needs: [docker-build]  # This is fine because docker-build will run for push events
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
+
     steps:
     - uses: actions/checkout@v4
       with:
@@ -338,14 +214,14 @@ jobs:
         # - Pull the new Docker images
         # - Update docker-compose.yml with new image tags
         # - Restart services
-        
+
         # Example SSH deployment (you'll need to set up SSH_PRIVATE_KEY in secrets)
         # install SSH key
         # mkdir -p ~/.ssh
         # echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         # chmod 600 ~/.ssh/id_rsa
-        
+
         # ssh commands
-        # ssh user@your-server "cd /path/to/app && \
-        #   docker-compose pull && \
+        # ssh user@your-server "cd /path/to/app &&
+        #   docker-compose pull &&
         #   docker-compose up -d"

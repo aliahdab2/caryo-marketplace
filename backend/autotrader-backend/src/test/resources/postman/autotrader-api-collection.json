@@ -65,7 +65,7 @@
             "url": {
               "raw": "{{baseUrl}}/api/auth/signup",
               "host": ["{{baseUrl}}"],
-              "path": ["auth", "signup"]
+              "path": ["api", "auth", "signup"]
             }
           }
         },
@@ -111,7 +111,7 @@
             "url": {
               "raw": "{{baseUrl}}/api/auth/signin",
               "host": ["{{baseUrl}}"],
-              "path": ["auth", "signin"]
+              "path": ["api", "auth", "signin"]
             }
           }
         }

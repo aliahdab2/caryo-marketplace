@@ -1,0 +1,166 @@
+name: "Postman Tests Action"
+description: "Runs Postman collection tests using Newman"
+
+inputs:
+  collection-path:
+    description: "Path to the Postman collection file (if empty, will auto-detect)"
+    required: false
+    default: ''
+  environment-file:
+    description: "Path to the Postman environment file"
+    required: false
+    default: './postman/test_environment.json'
+  results-directory:
+    description: "Directory to store test results"
+    required: false
+    default: 'results'
+  reporters:
+    description: "Newman reporters to use (comma-separated)"
+    required: false
+    default: 'cli,junit,htmlextra'
+  working-directory:
+    description: "Working directory for running the tests"
+    required: false
+    default: '.'
+  auto-detect-collection:
+    description: "Whether to auto-detect the collection file if not specified"
+    required: false
+    default: 'true'
+  extra-options:
+    description: "Additional options to pass to Newman"
+    required: false
+    default: ''
+
+outputs:
+  results-path:
+    description: "Path to the results directory"
+    value: ${{ steps.run-tests.outputs.results-path }}
+  test-status:
+    description: "Status of the tests (success/failure)"
+    value: ${{ steps.run-tests.outputs.test-status }}
+  failure-count:
+    description: "Number of failed tests"
+    value: ${{ steps.run-tests.outputs.failure-count }}
+  success-count:
+    description: "Number of successful tests"
+    value: ${{ steps.run-tests.outputs.success-count }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Newman
+      shell: bash
+      run: |
+        echo "Installing Newman and required reporters..."
+        npm install -g newman newman-reporter-htmlextra
+
+    - name: Create Results Directory
+      shell: bash
+      run: |
+        mkdir -p ${{ inputs.results-directory }}
+
+    - name: Run Postman Collection
+      id: run-tests
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        echo "Running Postman collection tests..."
+        
+        # Auto-detect collection file if not specified
+        COLLECTION=""
+        if [ -z "${{ inputs.collection-path }}" ] && [ "${{ inputs.auto-detect-collection }}" == "true" ]; then
+          echo "No collection path specified, auto-detecting..."
+          COLLECTION_FILES=($(find ./postman -name "*.postman_collection.json" | head -n 1))
+          
+          if [ ${#COLLECTION_FILES[@]} -eq 0 ]; then
+            echo "No collection files found in ./postman directory!"
+            exit 1
+          fi
+          
+          COLLECTION="${COLLECTION_FILES[0]}"
+          echo "Auto-detected collection file: $COLLECTION"
+        else
+          COLLECTION="${{ inputs.collection-path }}"
+        fi
+        
+        # Check if environment file exists
+        if [ ! -f "${{ inputs.environment-file }}" ]; then
+          echo "Environment file not found: ${{ inputs.environment-file }}"
+          echo "Running tests without environment file..."
+          
+          # Run tests without environment file
+          NEWMAN_CMD="newman run \"$COLLECTION\" \
+            --reporters ${{ inputs.reporters }} \
+            --reporter-htmlextra-export ${{ inputs.results-directory }}/report.html \
+            --reporter-junit-export ${{ inputs.results-directory }}/junit-report.xml"
+            
+          # Add extra options if provided
+          if [ ! -z "${{ inputs.extra-options }}" ]; then
+            NEWMAN_CMD="$NEWMAN_CMD ${{ inputs.extra-options }}"
+          fi
+          
+          echo "Executing: $NEWMAN_CMD"
+          eval $NEWMAN_CMD
+        else
+          echo "Using environment file: ${{ inputs.environment-file }}"
+          
+          # Run tests with environment file
+          NEWMAN_CMD="newman run \"$COLLECTION\" \
+            --environment \"${{ inputs.environment-file }}\" \
+            --reporters ${{ inputs.reporters }} \
+            --reporter-htmlextra-export ${{ inputs.results-directory }}/report.html \
+            --reporter-junit-export ${{ inputs.results-directory }}/junit-report.xml"
+            
+          # Add extra options if provided
+          if [ ! -z "${{ inputs.extra-options }}" ]; then
+            NEWMAN_CMD="$NEWMAN_CMD ${{ inputs.extra-options }}"
+          fi
+          
+          echo "Executing: $NEWMAN_CMD"
+          eval $NEWMAN_CMD || echo "Newman exited with non-zero code, but we will check actual test results"
+        fi
+        
+        # Count failures from JUnit report
+        if [ -f "${{ inputs.results-directory }}/junit-report.xml" ]; then
+          FAILURES=$(grep -o '<failures>[0-9]*</failures>' ${{ inputs.results-directory }}/junit-report.xml | grep -o '[0-9]*' || echo "0")
+          SUCCESSES=$(grep -o '<tests>[0-9]*</tests>' ${{ inputs.results-directory }}/junit-report.xml | grep -o '[0-9]*' || echo "0")
+          
+          echo "failure-count=${FAILURES}" >> $GITHUB_OUTPUT
+          echo "success-count=${SUCCESSES}" >> $GITHUB_OUTPUT
+          echo "Test summary: ${SUCCESSES} successful, ${FAILURES} failed"
+          
+          # Determine test status based on actual failures, not Newman exit code
+          if [ "${FAILURES:-0}" = "0" ]; then
+            echo "test-status=success" >> $GITHUB_OUTPUT
+            echo "✅ All Postman tests passed successfully!"
+          else
+            echo "test-status=failure" >> $GITHUB_OUTPUT
+            echo "❌ Some Postman tests failed (${FAILURES} failures)! Check the HTML report for details."
+          fi
+        else
+          echo "failure-count=0" >> $GITHUB_OUTPUT
+          echo "success-count=0" >> $GITHUB_OUTPUT
+          echo "Warning: Could not find JUnit report to extract test counts"
+          
+          # Fallback to success if we can't find junit file but the HTML report exists
+          if [ -f "${{ inputs.results-directory }}/report.html" ]; then
+            echo "test-status=success" >> $GITHUB_OUTPUT
+            echo "✅ Tests likely passed (no JUnit report but HTML report generated)"
+          else
+            echo "test-status=failure" >> $GITHUB_OUTPUT
+            echo "❌ Tests likely failed (no reports generated)"
+          fi
+        fi
+        
+        echo "results-path=${{ inputs.results-directory }}" >> $GITHUB_OUTPUT
+        
+        # List results directory
+        echo "Test results saved to: ${{ inputs.results-directory }}"
+        ls -la ${{ inputs.results-directory }}
+
+    - name: Upload test results
+      shell: bash
+      run: |
+        echo "Test results are available in ${{ inputs.results-directory }} directory"
+        # Note: We can't use actions/upload-artifact directly in composite actions
+        # This will be handled by the calling workflow

@@ -1,0 +1,99 @@
+name: "Gradle Setup Action"
+description: "Sets up Gradle environment with proper caching"
+
+inputs:
+  working-directory:
+    description: "Path to the directory containing the Gradle wrapper"
+    required: true
+  java-version:
+    description: "Java version to use"
+    required: false
+    default: '17'
+  distribution:
+    description: "Java distribution to use"
+    required: false
+    default: 'temurin'
+  gradle-version:
+    description: "Gradle version to use if wrapper needs to be fixed"
+    required: false
+    default: '8.5'
+  cache:
+    description: "Whether to cache Gradle dependencies"
+    required: false
+    default: 'true'
+  cache-read-only:
+    description: "Whether the Gradle cache should be read-only"
+    required: false
+    default: 'false'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up custom Gradle environment
+      shell: bash
+      run: |
+        echo "Setting up Gradle environment with proper permissions..."
+
+        # Create a custom Gradle home directory in the workspace instead of /home/runner/.gradle
+        mkdir -p $GITHUB_WORKSPACE/gradle-home
+        echo "GRADLE_USER_HOME=$GITHUB_WORKSPACE/gradle-home" >> $GITHUB_ENV
+
+        # Create necessary subdirectories
+        mkdir -p $GITHUB_WORKSPACE/gradle-home/wrapper/dists
+        mkdir -p $GITHUB_WORKSPACE/gradle-home/caches
+        mkdir -p $GITHUB_WORKSPACE/gradle-home/daemon
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: ${{ inputs.distribution }}
+        java-version: ${{ inputs.java-version }}
+        cache: 'gradle'
+
+    - name: Verify Gradle wrapper
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        # Check if the gradle wrapper exists and is valid
+        if [ ! -f "./gradlew" ]; then
+          echo "gradlew script not found in ${{ inputs.working-directory }}!"
+          exit 1
+        fi
+        
+        chmod +x ./gradlew
+        
+        if [ ! -f "./gradle/wrapper/gradle-wrapper.jar" ]; then
+          echo "gradle-wrapper.jar not found!"
+          echo "Attempting to generate a new wrapper..."
+          
+          # Try to generate a new wrapper
+          gradle wrapper --gradle-version=${{ inputs.gradle-version }}
+          
+          if [ ! -f "./gradle/wrapper/gradle-wrapper.jar" ]; then
+            echo "Failed to create gradle wrapper jar!"
+            exit 1
+          else
+            echo "Successfully created new gradle wrapper."
+          fi
+        fi
+        
+        echo "Gradle wrapper validated successfully."
+
+    - name: Cache Gradle files
+      if: inputs.cache == 'true'
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ inputs.working-directory }}/.gradle
+          ${{ inputs.working-directory }}/build
+          ${{ env.GRADLE_USER_HOME }}
+        key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/buildSrc/**/*.kt') }}
+        restore-keys: |
+          gradle-${{ runner.os }}-
+
+    - name: Run Gradle info
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        echo "Printing Gradle and JDK versions..."
+        ./gradlew --version

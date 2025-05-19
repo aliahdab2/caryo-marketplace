@@ -1,0 +1,201 @@
+name: "Spring Boot Setup Action"
+description: "Builds and starts a Spring Boot application"
+
+inputs:
+  working-directory:
+    description: "Path to the Spring Boot application directory"
+    required: true
+  build-args:
+    description: "Gradle build arguments"
+    required: false
+    default: "build -x test"
+  spring-profiles:
+    description: "Spring profiles to activate"
+    required: false
+    default: "dev"
+  debug-mode:
+    description: "Whether to enable debug logging"
+    required: false
+    default: 'true'
+  wait-retries:
+    description: "Number of retries for health check"
+    required: false
+    default: '45'
+  wait-time:
+    description: "Time in seconds between retries"
+    required: false
+    default: '10'
+  health-check-path:
+    description: "Path for health check"
+    required: false
+    default: "/actuator/health"
+  skip-build:
+    description: "Whether to skip build step"
+    required: false
+    default: 'false'
+  server-port:
+    description: "Port for the Spring Boot server"
+    required: false
+    default: '8080'
+
+outputs:
+  pid:
+    description: "Process ID of the Spring Boot application"
+    value: ${{ steps.start-app.outputs.pid }}
+  log-file:
+    description: "Path to the log file"
+    value: ${{ inputs.working-directory }}/spring-boot.log
+
+runs:
+  using: "composite"
+  steps:
+    - name: Build Spring Boot Application
+      if: inputs.skip-build != 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        echo "Building Spring Boot application..."
+        ./gradlew ${{ inputs.build-args }}
+
+    - name: Start Spring Boot Application
+      id: start-app
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        echo "Starting Spring Boot application with profiles: ${{ inputs.spring-profiles }}"
+        
+        # Set debug mode if enabled
+        DEBUG_ARGS=""
+        if [ "${{ inputs.debug-mode }}" == "true" ]; then
+          DEBUG_ARGS="--debug"
+        fi
+        
+        # Ensure we have a clean start
+        echo "Checking for any running Java processes before starting..."
+        ps aux | grep java | grep -v grep || echo "No Java processes found"
+        
+        # Verify application.properties or application-dev.yml exists
+        if [ ! -f "src/main/resources/application.properties" ] && [ ! -f "src/main/resources/application-${{ inputs.spring-profiles }}.yml" ] && [ ! -f "src/main/resources/application-${{ inputs.spring-profiles }}.yaml" ] && [ ! -f "src/main/resources/application-${{ inputs.spring-profiles }}.properties" ]; then
+          echo "⚠️ Warning: No application configuration file found for profile: ${{ inputs.spring-profiles }}"
+          echo "Checking what configuration files do exist:"
+          ls -la src/main/resources/ || echo "Cannot access resources directory"
+        fi
+        
+        # Check for port conflicts before starting
+        echo "Checking if port ${{ inputs.server-port }} is already in use..."
+        if netstat -tuln | grep -q ":${{ inputs.server-port }} "; then
+          echo "⚠️ WARNING: Port ${{ inputs.server-port }} is already in use! This might cause Spring Boot to fail."
+          netstat -tuln | grep ":${{ inputs.server-port }} "
+        else
+          echo "✅ Port ${{ inputs.server-port }} is available."
+        fi
+        
+        # Verify dependencies are available
+        echo "Checking database connection..."
+        if pg_isready -h localhost -p 5432 -U autotrader > /dev/null 2>&1; then
+          echo "✅ PostgreSQL database is responding on localhost:5432"
+        else
+          echo "⚠️ WARNING: Cannot connect to PostgreSQL database on localhost:5432"
+        fi
+        
+        # Check MinIO
+        echo "Checking MinIO connection..."
+        if curl -s -I http://localhost:9000 > /dev/null; then
+          echo "✅ MinIO is responding on localhost:9000"
+        else
+          echo "⚠️ WARNING: Cannot connect to MinIO on localhost:9000"
+        fi
+
+        # Start with increased memory and proper options for CI environments
+        echo "Starting Spring Boot with bootRun and enhanced logging..."
+        nohup ./gradlew bootRun \
+          -Pargs="--spring.profiles.active=${{ inputs.spring-profiles }} --logging.level.org.springframework=DEBUG --logging.level.com.autotrader=DEBUG" \
+          -Dorg.gradle.jvmargs="-Xmx1024m -XX:+HeapDumpOnOutOfMemoryError" \
+          ${DEBUG_ARGS} > spring-boot.log 2>&1 &
+        
+        # Store the PID
+        APP_PID=$!
+        echo "Spring Boot app started with PID: ${APP_PID}"
+        echo "pid=${APP_PID}" >> $GITHUB_OUTPUT
+        
+        # Show initial startup log immediately
+        echo "Initial Spring Boot startup log:"
+        sleep 10 # Wait slightly longer for more log content
+        if [ -f "spring-boot.log" ]; then
+          echo "Log file found with $(wc -l < spring-boot.log) lines"
+          cat spring-boot.log
+        else
+          echo "⚠️ No log file found yet - this might indicate a very early failure"
+        fi
+        
+        # Wait for application to start up with improved health check
+        echo "Waiting for Spring Boot application to start up (retries: ${{ inputs.wait-retries }}, interval: ${{ inputs.wait-time }}s)..."
+        for i in $(seq 1 ${{ inputs.wait-retries }}); do
+          echo "Health check attempt $i/${{ inputs.wait-retries }}..."
+          
+          # Try multiple health check methods
+          if curl -s http://localhost:${{ inputs.server-port }}${{ inputs.health-check-path }} | grep -q "UP"; then
+            echo "✅ Spring Boot application is up and running via health endpoint!"
+            break
+          elif curl -s http://localhost:${{ inputs.server-port }}/ > /dev/null 2>&1; then
+            echo "✅ Spring Boot application is responding on root path!"
+            break
+          elif curl -s -I http://localhost:${{ inputs.server-port }}/ 2>&1 | grep -q "200\|302\|301"; then
+            echo "✅ Spring Boot application is responding with HTTP success or redirect!"
+            break
+          fi
+          
+          # Check if the process is still running
+          if ! ps -p ${APP_PID} > /dev/null; then
+            echo "❌ Spring Boot application process has died! Check logs:"
+            cat spring-boot.log
+            echo "Attempting one restart with additional diagnostics..."
+            
+            # Show system state before restart
+            echo "System state before restart:"
+            free -h
+            df -h
+            
+            # Try one more time with additional JVM args
+            nohup ./gradlew bootRun \
+              -Pargs="--spring.profiles.active=${{ inputs.spring-profiles }} --logging.level.root=DEBUG --logging.level.org.springframework=DEBUG" \
+              -Dorg.gradle.jvmargs="-Xmx512m -XX:+HeapDumpOnOutOfMemoryError -verbose:gc" \
+              > spring-boot-restart.log 2>&1 &
+            
+            APP_PID=$!
+            echo "Restarted Spring Boot app with PID: ${APP_PID}"
+            echo "pid=${APP_PID}" >> $GITHUB_OUTPUT
+            
+            # Wait a bit longer after restart before failing
+            echo "Waiting for restart to complete..."
+            sleep 20
+            echo "Restart log:"
+            cat spring-boot-restart.log
+            
+            # Check one more time after restart
+            if curl -s http://localhost:${{ inputs.server-port }}${{ inputs.health-check-path }} | grep -q "UP"; then
+              echo "✅ Spring Boot application is up after restart!"
+              break
+            fi
+          fi
+          
+          # Show incremental logs while waiting
+          if [ $((i % 3)) -eq 0 ] || [ $i -eq ${{ inputs.wait-retries }} ]; then
+            echo "Spring Boot log (last 20 lines) after $i attempts:"
+            tail -n 20 spring-boot.log
+          fi
+          
+          sleep ${{ inputs.wait-time }}
+          
+          # If we've reached the last retry, show the logs and fail
+          if [ "$i" -eq "${{ inputs.wait-retries }}" ]; then
+            echo "❌ Spring Boot application health check failed after ${{ inputs.wait-retries }} attempts!"
+            echo "Last 50 lines of application log:"
+            tail -n 50 spring-boot.log
+            exit 1
+          fi
+        done
+        
+        # Display server info
+        echo "Server running on port: ${{ inputs.server-port }}"
+        echo "Health check URL: http://localhost:${{ inputs.server-port }}${{ inputs.health-check-path }}"

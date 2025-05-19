@@ -1,0 +1,346 @@
+name: "Docker Services Setup Action"
+description: "Sets up Docker services required for testing"
+
+inputs:
+  docker-compose-file:
+    description: "Path to the docker-compose file to use"
+    required: false
+    default: './backend/autotrader-backend/docker-compose.dev.yml'
+  down-flags:
+    description: "Flags to pass to docker-compose down"
+    required: false
+    default: "--volumes"
+  services:
+    description: "Space-separated list of services to start"
+    required: false
+    default: "db minio createbuckets redis"
+  wait-time:
+    description: "Time in seconds to wait for services to initialize"
+    required: false
+    default: '60'
+  db-container-name:
+    description: "Name of the database container"
+    required: false
+    default: "db"
+  db-user:
+    description: "Database user"
+    required: false
+    default: "autotrader"
+  minio-health-check:
+    description: "Whether to check MinIO health"
+    required: false
+    default: 'true'
+  minio-health-url:
+    description: "URL to check MinIO health"
+    required: false
+    default: "http://localhost:9000/minio/health/ready" # Changed to /ready
+  minio-container-name:
+    description: "Name of the MinIO container for logging"
+    required: false
+    default: "minio"
+  minio-root-user:
+    description: "MinIO root user for authentication"
+    required: false
+    default: "minioadmin"
+  minio-root-password:
+    description: "MinIO root password for authentication"
+    required: false
+    default: "minioadmin"
+  createbuckets-container-name: # New input
+    description: "Name of the createbuckets container to check"
+    required: false
+    default: "createbuckets" # Will likely need to be overridden by the caller
+  post-minio-ready-wait-seconds:
+    description: "Seconds to wait after MinIO is ready before proceeding (e.g., to check createbuckets)"
+    required: false
+    default: '5'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Docker Compose
+      shell: bash
+      run: |
+        # Ensure Docker and Docker Compose are installed and available
+        docker --version
+        docker compose version
+        
+        # Clean up any existing containers
+        echo "Cleaning up any existing containers from previous runs..."
+        if [ -f "${{ inputs.docker-compose-file }}" ]; then
+          docker compose -f ${{ inputs.docker-compose-file }} down ${{ inputs.down-flags }} || true
+        fi
+
+    - name: Start required Docker services
+      shell: bash
+      run: |
+        echo "Starting required Docker services: ${{ inputs.services }}"
+        
+        # Set MinIO credentials as environment variables for Docker Compose
+        export MINIO_ROOT_USER="${{ inputs.minio-root-user }}"
+        export MINIO_ROOT_PASSWORD="${{ inputs.minio-root-password }}"
+        echo "Using MinIO credentials: User=$MINIO_ROOT_USER"
+        
+        # Create a comprehensive .env file for docker-compose
+        ENV_FILE="$(dirname "${{ inputs.docker-compose-file }}")/.env"
+        echo "Creating Docker Compose .env file at $ENV_FILE"
+        
+        # Add MinIO credentials
+        echo "MINIO_ROOT_USER=$MINIO_ROOT_USER" > "$ENV_FILE"
+        echo "MINIO_ROOT_PASSWORD=$MINIO_ROOT_PASSWORD" >> "$ENV_FILE"
+        
+        # Add environment variables for createbuckets container
+        # These match the ones in the entrypoint script
+        echo "MINIO_SERVER=minio:9000" >> "$ENV_FILE"
+        echo "MINIO_USER=$MINIO_ROOT_USER" >> "$ENV_FILE" 
+        echo "MINIO_PASSWORD=$MINIO_ROOT_PASSWORD" >> "$ENV_FILE"
+        
+        # Show the generated .env file
+        echo "Created Docker Compose .env file:"
+        cat "$ENV_FILE"
+        
+        # Override docker-compose.yml variables directly
+        echo "Starting services with explicit environment variable overrides..."
+        
+        # Start the services with explicit environment variables
+        MINIO_ROOT_USER=$MINIO_ROOT_USER \
+        MINIO_ROOT_PASSWORD=$MINIO_ROOT_PASSWORD \
+        docker compose -f ${{ inputs.docker-compose-file }} up -d ${{ inputs.services }}
+        
+        # Show all running containers
+        echo "Running containers:"
+        docker ps
+        
+        # Verify that MinIO container has the environment variables set
+        echo "Checking if MinIO container has environment variables set:"
+        docker inspect ${{ inputs.minio-container-name }} -f '{{range .Config.Env}}{{println .}}{{end}}' | grep -i "MINIO" || echo "WARNING: MINIO environment variables not found in container"
+        
+        # Check minio container logs
+        echo "MinIO startup logs:"
+        docker logs ${{ inputs.minio-container-name }} | tail -20
+        
+        # Give services time to initialize
+        echo "Waiting for services to initialize (${{ inputs.wait-time }} seconds)..."
+        sleep ${{ inputs.wait-time }}
+
+    - name: Check database health
+      shell: bash
+      run: |
+        echo "Checking PostgreSQL database health..."
+        max_retries=10
+        retries=0
+        
+        until docker exec ${{ inputs.db-container-name }} pg_isready -U ${{ inputs.db-user }} || [ $retries -eq $max_retries ]
+        do
+          echo "Waiting for PostgreSQL to be ready... ($retries/$max_retries)"
+          sleep 5
+          retries=$((retries+1))
+        done
+        
+        if [ $retries -eq $max_retries ]; then
+          echo "PostgreSQL database failed to start in time!"
+          docker logs ${{ inputs.db-container-name }}
+          exit 1
+        else
+          echo "PostgreSQL database is ready!"
+        fi
+        
+        # Show running containers
+        echo "Running Docker containers:"
+        docker ps
+
+    - name: Verify MinIO status
+      if: inputs.minio-health-check == 'true'
+      shell: bash
+      run: |
+        echo "Verifying MinIO readiness..."
+        max_retries=30 # Increased retries for better reliability
+        retries=0
+        is_ready=false
+        
+        # Pull MinIO logs to check what credentials it's using
+        echo "=== MinIO Container Details ==="
+        echo "MinIO container environment variables:"
+        docker exec ${{ inputs.minio-container-name }} env | grep -i "MINIO" || echo "No MinIO env vars found"
+        
+        echo "MinIO logs to determine active credentials:"
+        docker logs ${{ inputs.minio-container-name }} 2>&1 | grep -i "AccessKey\|SecretKey\|credential" || true
+        
+        # Check network connectivity from host to MinIO
+        echo "=== Network Connectivity Check ==="
+        curl -v http://localhost:9000/ || echo "Cannot connect to MinIO from host"
+        
+        # Check for MinIO process in container
+        docker exec ${{ inputs.minio-container-name }} ps aux || echo "Cannot check processes in container"
+        
+        # Prepare mc client for checking MinIO health
+        echo "=== Setting up MinIO Client ==="
+        # First try to remove any existing hosts
+        docker exec ${{ inputs.minio-container-name }} mc config host rm local &>/dev/null || true
+        docker exec ${{ inputs.minio-container-name }} mc config host rm localhost &>/dev/null || true
+        docker exec ${{ inputs.minio-container-name }} mc config host rm myminio &>/dev/null || true
+        
+        # Configure the client with explicit credentials
+        echo "Configuring MinIO client with provided credentials (${{ inputs.minio-root-user }})..."
+        docker exec ${{ inputs.minio-container-name }} mc config host add local http://localhost:9000 ${{ inputs.minio-root-user }} ${{ inputs.minio-root-password }} || echo "Failed to add local host"
+        
+        # Also configure for internal container networking
+        echo "Configuring MinIO client with internal network access..."
+        docker exec ${{ inputs.minio-container-name }} mc config host add myminio http://minio:9000 ${{ inputs.minio-root-user }} ${{ inputs.minio-root-password }} || echo "Failed to add myminio host"
+        
+        # Fall back to default credentials if needed
+        docker exec ${{ inputs.minio-container-name }} mc config host add default http://localhost:9000 minioadmin minioadmin || echo "Failed to add default host"
+       
+        echo "=== MinIO Readiness Check ==="
+        until [ "$is_ready" == true ] || [ $retries -eq $max_retries ]
+        do        
+          echo "Attempt $((retries+1))/$max_retries: Checking MinIO readiness..."
+          
+          # First try with myminio (internal networking)
+          if docker exec ${{ inputs.minio-container-name }} mc ready myminio; then
+            echo "✅ MinIO is ready via internal networking with provided credentials!"
+            is_ready=true
+            break
+          fi
+          
+          # Try with local (localhost networking)
+          if docker exec ${{ inputs.minio-container-name }} mc ready local; then
+            echo "✅ MinIO is ready via localhost with provided credentials!"
+            is_ready=true
+            break
+          fi
+          
+          # Last resort - try default credentials
+          if docker exec ${{ inputs.minio-container-name }} mc ready default; then
+            echo "⚠️ MinIO is ready with DEFAULT credentials!"
+            echo "WARNING: Using default credentials. Custom credentials were not applied correctly."
+            is_ready=true
+            break
+          fi
+          
+          # Show port status
+          echo "Checking port 9000 status:"
+          docker exec ${{ inputs.minio-container-name }} netstat -tulpn | grep 9000 || echo "Port 9000 not found in container netstat"
+          
+          echo "MinIO not yet ready. Current MinIO logs:"
+          docker logs ${{ inputs.minio-container-name }} --tail 10
+
+          # Sometimes MinIO needs to be restarted
+          if [ $retries -eq 15 ]; then
+            echo "Attempting to restart MinIO service after multiple failures..."
+            docker restart ${{ inputs.minio-container-name }}
+            sleep 15
+          fi
+          
+          sleep 5
+          retries=$((retries+1))
+        done
+        
+        if [ "$is_ready" != true ]; then
+          echo "❌ ERROR: MinIO failed to become ready after $max_retries attempts."
+          echo "Full MinIO logs:"
+          docker logs ${{ inputs.minio-container-name }}
+          echo "MinIO container inspect:"
+          docker inspect ${{ inputs.minio-container-name }}
+          exit 1
+        fi
+        
+        echo "✅ MinIO is confirmed ready! Testing bucket creation..."
+        # Test bucket creation to fully verify service is working
+        docker exec ${{ inputs.minio-container-name }} mc mb --ignore-existing myminio/test-bucket || echo "Warning: Could not create test bucket"
+        docker exec ${{ inputs.minio-container-name }} mc ls myminio || echo "Warning: Could not list buckets"
+        
+        echo "⏳ Waiting an additional ${{ inputs.post-minio-ready-wait-seconds }} seconds before proceeding..."
+        sleep ${{ inputs.post-minio-ready-wait-seconds }}
+
+    - name: Check createbuckets service completion and verify buckets
+      # This step assumes createbuckets is a short-lived container that should run to completion.
+      # It runs after MinIO is confirmed to be ready.
+      if: inputs.createbuckets-container-name != '' && inputs.createbuckets-container-name != 'none'
+      shell: bash
+      run: |
+        echo "=== Verifying createbuckets container setup ==="
+        
+        # Check if container exists
+        if ! docker ps -a --format '{{.Names}}' | grep -q "${{ inputs.createbuckets-container-name }}"; then
+          echo "⚠️ Warning: createbuckets container ${{ inputs.createbuckets-container-name }} not found."
+          echo "Attempting to create required buckets manually..."
+          
+          # Try to create the buckets directly using the MinIO container
+          docker exec ${{ inputs.minio-container-name }} mc mb --ignore-existing myminio/autotrader-assets || echo "Failed to create autotrader-assets bucket"
+          docker exec ${{ inputs.minio-container-name }} mc policy set download myminio/autotrader-assets || echo "Failed to set policy on autotrader-assets bucket"
+          
+          # List buckets to verify
+          echo "Manually created buckets:"
+          docker exec ${{ inputs.minio-container-name }} mc ls myminio
+          exit 0
+        fi
+
+        echo "Waiting for createbuckets container (${{ inputs.createbuckets-container-name }}) to complete..."
+        
+        # Wait for container to exit, timeout after 120 seconds
+        timeout_seconds=120
+        elapsed_seconds=0
+        exit_code=""
+
+        while [ $elapsed_seconds -lt $timeout_seconds ]; do
+          container_state=$(docker inspect --format='{{.State.Status}}' ${{ inputs.createbuckets-container-name }} 2>/dev/null || echo "notfound")
+          if [ "$container_state" == "exited" ]; then
+            exit_code=$(docker inspect --format='{{.State.ExitCode}}' ${{ inputs.createbuckets-container-name }})
+            break
+          elif [ "$container_state" == "notfound" ]; then
+             echo "❌ Error: createbuckets container ${{ inputs.createbuckets-container-name }} disappeared."
+             exit 1
+          fi
+          
+          # Show logs while waiting to help diagnose issues
+          if [ $((elapsed_seconds % 15)) -eq 0 ]; then
+            echo "createbuckets logs (while waiting):"
+            docker logs ${{ inputs.createbuckets-container-name }} --tail 10
+          fi
+          
+          sleep 5
+          elapsed_seconds=$((elapsed_seconds + 5))
+          echo "Waiting for ${{ inputs.createbuckets-container-name }} to exit... ($elapsed_seconds/$timeout_seconds s)"
+        done
+
+        if [ -z "$exit_code" ]; then # Container still running or state unknown
+            echo "⚠️ createbuckets container did not complete within $timeout_seconds seconds."
+            echo "Attempting to force completion and verify buckets..."
+            docker logs ${{ inputs.createbuckets-container-name }}
+            
+            # Try to stop the container cleanly
+            docker stop ${{ inputs.createbuckets-container-name }} || true
+        elif [ "$exit_code" -ne 0 ]; then
+            echo "❌ createbuckets container completed with error. Exit code: $exit_code"
+            echo "createbuckets logs:"
+            docker logs ${{ inputs.createbuckets-container-name }}
+            
+            echo "Attempting to create buckets manually as a recovery step..."
+            docker exec ${{ inputs.minio-container-name }} mc mb --ignore-existing myminio/autotrader-assets || echo "Failed to create bucket"
+            docker exec ${{ inputs.minio-container-name }} mc policy set download myminio/autotrader-assets || echo "Failed to set policy"
+        else
+            echo "✅ createbuckets container completed successfully. Exit code: 0"
+        fi
+        
+        # Verify that buckets were actually created successfully
+        echo "=== Verifying MinIO buckets ==="
+        echo "Listing buckets to verify successful creation:"
+        if docker exec ${{ inputs.minio-container-name }} mc ls myminio | grep -q "autotrader-assets"; then
+          echo "✅ autotrader-assets bucket exists!"
+          
+          # Verify bucket permissions
+          echo "Checking bucket policy:"
+          docker exec ${{ inputs.minio-container-name }} mc policy get myminio/autotrader-assets || echo "⚠️ Could not verify bucket policy"
+        else
+          echo "❌ autotrader-assets bucket not found! Creating it now..."
+          docker exec ${{ inputs.minio-container-name }} mc mb --ignore-existing myminio/autotrader-assets
+          docker exec ${{ inputs.minio-container-name }} mc policy set download myminio/autotrader-assets
+          
+          # Verify again after manual creation
+          if docker exec ${{ inputs.minio-container-name }} mc ls myminio | grep -q "autotrader-assets"; then
+            echo "✅ Successfully created autotrader-assets bucket manually."
+          else
+            echo "❌ Failed to create required bucket. Applications may not function correctly."
+          fi
+        fi

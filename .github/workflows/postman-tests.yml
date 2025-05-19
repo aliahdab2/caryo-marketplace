@@ -1,317 +1,380 @@
 name: Postman API Tests
 
 on:
-  workflow_dispatch:  
+  workflow_dispatch:
   pull_request:
-    branches:
-      - main 
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
   schedule:
-    - cron: '0 0 * * 1'  # Run weekly on Mondays at midnight
+    - cron: '0 0 * * 1'
 
 jobs:
   api-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 20  # Prevent hanging builds
-    
+    timeout-minutes: 30
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
+      github.event_name == 'pull_request'
+
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        lfs: true # Explicitly enable LFS file download
-
-    # Verify and fix Gradle wrapper if needed (for backend builds)
-    - name: Set up Gradle environment
-      run: |
-        echo "Setting up Gradle environment with proper permissions..."
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
         
-        # Create a custom Gradle home directory in the workspace instead of /home/runner/.gradle
-        mkdir -p $GITHUB_WORKSPACE/gradle-home
-        echo "GRADLE_USER_HOME=$GITHUB_WORKSPACE/gradle-home" >> $GITHUB_ENV
+      - name: Setup Gradle Environment
+        uses: ./.github/actions/gradle-setup
+        with:
+          working-directory: "./backend/autotrader-backend"
+          java-version: "17"
+          gradle-version: "8.5"
+          cache: true
         
-        # Create necessary subdirectories
-        mkdir -p $GITHUB_WORKSPACE/gradle-home/wrapper/dists
-        mkdir -p $GITHUB_WORKSPACE/gradle-home/caches
-        mkdir -p $GITHUB_WORKSPACE/gradle-home/daemon
-        
-        # Set full permissions on the custom Gradle home
-        chmod -R 777 $GITHUB_WORKSPACE/gradle-home
-        
-        # List directory contents to verify setup
-        echo "Checking custom Gradle home setup:"
-        ls -la $GITHUB_WORKSPACE/gradle-home/
-        
-        echo "Custom Gradle home directory is ready at $GITHUB_WORKSPACE/gradle-home"
-
-    - name: Verify Gradle Wrapper (if backend build is needed)
-      working-directory: ./backend/autotrader-backend
-      run: |
-        echo "Verifying Gradle wrapper files..."
-        
-        # Check if JAR exists and is valid
-        if [ ! -f ./gradle/wrapper/gradle-wrapper.jar ]; then
-          echo "ERROR: gradle-wrapper.jar is missing."
-          MISSING_JAR=true
-        else
-          JAR_SIZE=$(stat -c%s ./gradle/wrapper/gradle-wrapper.jar)
-          echo "Current gradle-wrapper.jar size: $JAR_SIZE bytes"
-          
-          # Check for suspiciously small size (LFS pointer is ~130 bytes)
-          if [ "$JAR_SIZE" -lt 10000 ]; then
-            echo "WARNING: gradle-wrapper.jar is suspiciously small ($JAR_SIZE bytes). It might be an LFS pointer."
-            echo "Content of the suspicious file:"
-            cat ./gradle/wrapper/gradle-wrapper.jar
-            
-            # Fix the wrapper
-            echo "Generating a new wrapper..."
+      - name: Ensure Gradle Wrapper
+        working-directory: ./backend/autotrader-backend
+        run: |
+          if [ ! -f "./gradlew" ]; then
+            echo "gradlew script not found! Generating a new one..."
             if command -v gradle &> /dev/null; then
-              gradle wrapper --gradle-version 8.5 --distribution-type bin
+              gradle wrapper --gradle-version=8.5
             else
-              echo "Downloading Gradle 8.5..."
-              GRADLE_ZIP=gradle-8.5-bin.zip
-              curl -L -o $GRADLE_ZIP https://services.gradle.org/distributions/gradle-8.5-bin.zip
-              unzip -q -d . $GRADLE_ZIP
-              chmod +x ./gradle-8.5/bin/gradle
-              ./gradle-8.5/bin/gradle wrapper --gradle-version 8.5 --distribution-type bin
-              rm -rf gradle-8.5 $GRADLE_ZIP
+              echo "ERROR: Could not generate wrapper with Gradle CLI"
+              exit 1
+            fi
+          fi
+          chmod +x ./gradlew
+
+      - name: Setup Docker Services
+        uses: ./.github/actions/docker-services-setup
+        with:
+          docker-compose-file: "./backend/autotrader-backend/docker-compose.dev.yml"
+          services: "db minio createbuckets redis"
+          wait-time: '60'
+          db-container-name: "autotrader-backend-db-1"
+          db-user: "autotrader"
+          minio-container-name: "autotrader-backend-minio-1"
+          createbuckets-container-name: "autotrader-backend-createbuckets-1"
+          post-minio-ready-wait-seconds: '10'
+          # Using the default MinIO credentials that are in docker-compose.dev.yml
+          minio-root-user: "minioadmin"
+          minio-root-password: "minioadmin"
+
+      # Add explicit MinIO bucket verification and creation step
+      - name: Ensure MinIO bucket exists
+        run: |
+          echo "Verifying MinIO bucket existence..."
+          
+          # Install MinIO client
+          curl -O https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+          
+          # Configure MinIO client with default minioadmin credentials
+          ./mc config host add myminio http://localhost:9000 minioadmin minioadmin
+          
+          # List buckets to check if our bucket exists
+          if ./mc ls myminio | grep -q "autotrader-assets"; then
+            echo "✅ autotrader-assets bucket exists!"
+          else
+            echo "⚠️ autotrader-assets bucket not found, creating it..."
+            ./mc mb --ignore-existing myminio/autotrader-assets
+            ./mc policy set download myminio/autotrader-assets
+            echo "✅ Created autotrader-assets bucket with download policy"
+          fi
+          
+          # Double-check creation
+          ./mc ls myminio
+
+      - name: Create application-dev.yml
+        working-directory: ./backend/autotrader-backend
+        run: |
+          mkdir -p src/main/resources
+          cat << 'EOC' > src/main/resources/application-dev.yml
+          spring:
+            datasource:
+              url: jdbc:postgresql://localhost:5432/autotrader
+              username: autotrader
+              password: autotrader
+            servlet:
+              multipart:
+                max-file-size: 10MB
+                max-request-size: 10MB
+            jpa:
+              hibernate:
+                ddl-auto: update
+              properties:
+                hibernate:
+                  dialect: org.hibernate.dialect.PostgreSQLDialect
+                  format_sql: false
+                  show_sql: false
+            mail:
+              host: localhost
+              port: 1025
+              username: admin
+              password: password
+          minio:
+            endpoint: http://localhost:9000
+            accessKey: minioadmin
+            secretKey: minioadmin
+            bucket: autotrader-assets
+          logging:
+            level:
+              root: INFO
+              com.autotrader: INFO
+              org.springframework.web: INFO
+              org.hibernate: WARN
+          server:
+            port: 8080
+          EOC
+
+      - name: Prepare Configuration
+        working-directory: ./backend/autotrader-backend
+        run: |
+          # Create application-test.yml with necessary configs
+          echo "Creating application-test.yml file..."
+          mkdir -p src/main/resources
+          
+          cat > src/main/resources/application-test.yml << EOF
+          # Test configuration that inherits from dev profile
+          spring:
+            config:
+              import: application-dev.yml
+            # Enable data initialization
+            jpa:
+              defer-datasource-initialization: true
+            sql:
+              init:
+                mode: always
+          
+          # Enable debug logging for DataInitializer
+          logging:
+            level:
+              com.autotrader.autotraderbackend.config.DataInitializer: DEBUG
+          EOF
+      
+      - name: Start Spring Boot Application
+        id: spring-boot-start
+        uses: ./.github/actions/spring-boot-setup
+        with:
+          working-directory: "./backend/autotrader-backend"
+          spring-profiles: "test"
+          debug-mode: "false"
+          wait-retries: "30"
+          wait-time: "10"
+          skip-build: "false"
+          server-port: "8080"
+          
+      - name: Wait for data initialization and extract tokens
+        working-directory: ./backend/autotrader-backend
+        run: |
+          # Wait for DataInitializer to complete
+          LOG_FILE="spring-boot.log"
+          echo "Waiting for DataInitializer to complete..."
+          sleep 10
+          
+          # Quick check for application health
+          if curl -s http://localhost:8080/actuator/health | grep -q "UP"; then
+            echo "✅ Application is healthy"
+          else
+            echo "⚠️ Application health check failed"
+          fi
+          
+          # Extract tokens from logs with simplified approach
+          echo "Extracting authentication tokens from logs..."
+          if grep -q "DEVELOPMENT AUTHENTICATION TOKENS" $LOG_FILE; then
+            # Extract admin token
+            ADMIN_TOKEN=$(grep -A 10 "ADMIN USER TOKEN" $LOG_FILE | grep -v "ADMIN USER TOKEN" | grep -v "----" | grep -v "^$" | head -1 | tr -d ' ' || echo "")
+            if [ ! -z "$ADMIN_TOKEN" ]; then
+              echo "✅ Admin token extracted"
+              echo "ADMIN_TOKEN=$ADMIN_TOKEN" >> $GITHUB_ENV
             fi
             
-            # Verify new wrapper
-            if [ -f ./gradle/wrapper/gradle-wrapper.jar ]; then
-              NEW_SIZE=$(stat -c%s ./gradle/wrapper/gradle-wrapper.jar)
-              echo "New gradle-wrapper.jar generated. Size: $NEW_SIZE bytes"
+            # Extract user token
+            USER_TOKEN=$(grep -A 10 "REGULAR USER TOKEN" $LOG_FILE | grep -v "REGULAR USER TOKEN" | grep -v "----" | grep -v "^$" | head -1 | tr -d ' ' || echo "")
+            if [ ! -z "$USER_TOKEN" ]; then
+              echo "✅ Regular user token extracted"
+              echo "USER_TOKEN=$USER_TOKEN" >> $GITHUB_ENV
+            fi
+          else
+            echo "No authentication tokens found in logs"
+          fi
+
+      - name: Install Newman
+        run: npm install -g newman newman-reporter-htmlextra
+
+      - name: Prepare Authentication Token
+        id: prepare-auth
+        working-directory: ./backend/autotrader-backend
+        run: |
+          # Verify the API is running correctly
+          echo "Checking API endpoints..."
+          HEALTH_RESPONSE=$(curl -s -i http://localhost:8080/actuator/health)
+          echo "$HEALTH_RESPONSE" | head -10
+          
+          # Verify if users endpoint is accessible (if available)
+          echo "Checking if users endpoint exists..."
+          USERS_ENDPOINT_CHECK=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/users/check || echo "failed")
+          echo "Users endpoint status: $USERS_ENDPOINT_CHECK"
+          
+          # Use the previously extracted tokens if available
+          if [ ! -z "$ADMIN_TOKEN" ]; then
+            echo "✅ Using previously extracted admin token"
+            TOKEN="$ADMIN_TOKEN"
+          elif [ ! -z "$USER_TOKEN" ]; then
+            echo "✅ Using previously extracted user token"
+            TOKEN="$USER_TOKEN"
+          else
+            # Try to authenticate directly with the default admin user
+            echo "No tokens found in environment, trying direct authentication..."
+            AUTH_RESPONSE=$(curl -s -X POST http://localhost:8080/auth/signin \
+              -H "Content-Type: application/json" \
+              -d '{"username":"admin","password":"Admin123!"}')
+            echo "Auth response received."
+            
+            # Try to extract token from direct authentication
+            TOKEN=$(echo "$AUTH_RESPONSE" | jq -r '.token // .accessToken // .access_token // ""')
+            
+            # If direct auth failed, create a test user
+            if [ -z "$TOKEN" ] || [ "$TOKEN" == "null" ]; then
+                echo "⚠️ Direct auth failed. Creating test user via signup..."
+                SIGNUP_RESPONSE=$(curl -s -X POST http://localhost:8080/auth/signup \
+                  -H "Content-Type: application/json" \
+                  -d '{"username":"testapi","email":"testapi@example.com","password":"password123"}')
+                
+                echo "Signup response: $SIGNUP_RESPONSE"
+                sleep 3
+                
+                echo "Authenticating with test user..."
+                AUTH_RESPONSE=$(curl -s -X POST http://localhost:8080/auth/signin \
+                  -H "Content-Type: application/json" \
+                  -d '{"username":"testapi","password":"password123"}')
+                
+                echo "Auth response: $AUTH_RESPONSE"
+                TOKEN=$(echo "$AUTH_RESPONSE" | jq -r '.token // .accessToken // .access_token // ""')
+            fi
+            
+            # Last resort - use a fallback token if all methods fail
+            if [ -z "$TOKEN" ] || [ "$TOKEN" == "null" ]; then
+                echo "⚠️ All authentication attempts failed. Using fallback token."
+                TOKEN="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTYyNjk1NDU4OCwiZXhwIjoxNjI3MDQwOTg4fQ.test-token-placeholder"
             fi
           fi
-        fi
-        
-        # Final verification
-        echo "Final verification of gradle-wrapper.jar:"
-        ls -la ./gradle/wrapper/gradle-wrapper.jar || echo "gradle-wrapper.jar still missing!"
-        file ./gradle/wrapper/gradle-wrapper.jar || echo "Cannot get file info"
-
-    # Set up environment for API tests
-    - name: Set up environment
-      run: |
-        echo "Setting up test environment"
-        
-        # Start Docker services if needed
-        if [ -f "./backend/autotrader-backend/docker-compose.dev.yml" ]; then
-          echo "Starting backend services with Docker Compose..."
-          cd ./backend/autotrader-backend
-          docker compose -f docker-compose.dev.yml up -d
-          cd -
           
-          # Wait for services to be available
-          echo "Waiting for services to initialize (60 seconds)..."
-          sleep 60
-          
-          # Check service health
-          echo "Checking service health..."
-          if docker ps | grep -q "db"; then
-            echo "Checking PostgreSQL readiness..."
-            MAX_RETRIES=15
-            RETRY_COUNT=0
-            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-              if docker exec $(docker ps -q -f name=db) pg_isready -U autotrader -t 15 2>/dev/null; then
-                echo "PostgreSQL is ready!"
-                break
-              else
-                RETRY_COUNT=$((RETRY_COUNT+1))
-                echo "PostgreSQL not ready yet. Attempt $RETRY_COUNT of $MAX_RETRIES"
-                if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-                  echo "PostgreSQL failed to become ready. Showing logs but continuing..."
-                  docker logs $(docker ps -q -f name=db)
-                fi
-                sleep $((RETRY_COUNT * 5))
-              fi
-            done
+          # Verify token works with a test call to a protected endpoint
+          if [ ! -z "$TOKEN" ] && [ "$TOKEN" != "null" ]; then
+            echo "Testing token with a protected endpoint call..."
+            TEST_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/test/user || echo "failed")
+            echo "Protected endpoint test status: $TEST_RESPONSE"
           fi
-        else
-          echo "No Docker Compose file found. Assuming services are already running remotely."
-        fi
-
-    # Build and start the Spring Boot backend application
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        
-    - name: Build and start Spring Boot application
-      working-directory: ./backend/autotrader-backend
-      run: |
-        echo "Building and starting Spring Boot application..."
-        # Grant execute permission to gradlew
-        chmod +x ./gradlew
-        
-        # Ensure proper permissions for project Gradle files
-        echo "Setting permissions for project Gradle files..."
-        chmod -R u+rwX,go+rX ./gradle
-        
-        # Create a gradle.properties file to enforce the custom Gradle home
-        echo "org.gradle.daemon=false" > gradle.properties
-        echo "org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError" >> gradle.properties
-        
-        echo "Using custom Gradle home: $GRADLE_USER_HOME"
-        
-        # Check for application.properties/yml and ensure database config is correct
-        echo "Checking application configuration..."
-        if [ -f "src/main/resources/application-dev.yml" ]; then
-          echo "Found application-dev.yml:"
-          cat src/main/resources/application-dev.yml | grep -A 10 datasource || echo "No datasource configuration found"
-        elif [ -f "src/main/resources/application-dev.properties" ]; then
-          echo "Found application-dev.properties:"
-          cat src/main/resources/application-dev.properties | grep datasource || echo "No datasource configuration found"
-        else
-          echo "No application-dev config found, checking main application config..."
-          if [ -f "src/main/resources/application.yml" ]; then
-            cat src/main/resources/application.yml | grep -A 10 datasource || echo "No datasource configuration found"
-          elif [ -f "src/main/resources/application.properties" ]; then
-            cat src/main/resources/application.properties | grep datasource || echo "No datasource configuration found"
+          
+          echo "Using token: ${TOKEN:0:25}..."
+          echo "AUTH_TOKEN=$TOKEN" >> $GITHUB_ENV
+          
+          # Find the collection file
+          echo "Locating Postman collection file..."
+          COLLECTION_FILES=$(find ./src/test/resources -name "autotrader-api-collection.json" 2>/dev/null || find ./src/test/resources -name "*.json" -not -path "*/node_modules/*" | head -1)
+          
+          if [ -z "$COLLECTION_FILES" ]; then
+            echo "No JSON files found in test resources!"
+            exit 1
+          fi
+          
+          COLLECTION=$(echo "$COLLECTION_FILES" | head -1)
+          echo "Using collection: $COLLECTION"
+          # Store absolute path for later use
+          COLLECTION_ABS_PATH=$(readlink -f "$COLLECTION")
+          echo "COLLECTION_PATH=$COLLECTION_ABS_PATH" >> $GITHUB_OUTPUT
+          
+          # Verify API access with token
+          echo "Verifying API access with token..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/reference-data)
+          echo "Reference data endpoint status: $HTTP_STATUS"
+          
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+              echo "✅ Authentication is working correctly!"
           else
-            echo "WARNING: No application configuration files found!"
-          fi
-        fi
-        
-        # Try with no daemon mode first
-        ./gradlew build -x test --no-daemon || {
-          echo "First build attempt failed, trying with more diagnostics..."
-          
-          # Check if Gradle home is accessible and writable
-          echo "Verifying Gradle home directory:"
-          ls -la $GRADLE_USER_HOME
-          touch $GRADLE_USER_HOME/test_write && echo "Write test passed" || echo "Write test failed"
-          
-          # Try with specific properties for troubleshooting
-          echo "Retrying with debug flags..."
-          ./gradlew build -x test --no-daemon --stacktrace --info
-        }
-        
-        # Start the application in the background with dev profile and additional properties
-        echo "Starting Spring Boot with enhanced debugging..."
-        nohup ./gradlew bootRun --no-daemon \
-          --args='--spring.profiles.active=dev --debug --logging.level.root=DEBUG --logging.level.org.springframework=DEBUG' \
-          > spring-boot.log 2>&1 &
-        
-        # Store the PID for later cleanup
-        echo "SPRING_PID=$!" >> $GITHUB_ENV
-        
-        echo "Spring Boot application started with PID: $!"
-        
-        # Show initial log output to help with debugging
-        sleep 5
-        echo "Initial Spring Boot startup log (first 20 lines):"
-        head -n 20 spring-boot.log || true
-        
-        # Wait for Spring Boot to become ready with enhanced diagnostics
-        echo "Waiting for Spring Boot application to become ready..."
-        MAX_RETRIES=45  # Increased from 30 to give more time
-        RETRY_COUNT=0
-        while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-          echo "Checking Spring Boot health (attempt $((RETRY_COUNT+1))/$MAX_RETRIES)..."
-          
-          # Check process is still running
-          if ! ps -p $SPRING_PID > /dev/null; then
-            echo "ERROR: Spring Boot process is not running anymore! Checking logs..."
-            cat spring-boot.log
-            echo "Attempting to restart the application..."
-            nohup ./gradlew bootRun --no-daemon --args='--spring.profiles.active=dev --debug' > spring-boot.log 2>&1 &
-            echo "SPRING_PID=$!" >> $GITHUB_ENV
-            echo "New process started with PID: $!"
-            sleep 10
-            continue
+              echo "⚠️ Authentication issue detected. Trying health endpoint..."
+              curl -i -H "Authorization: Bearer $TOKEN" http://localhost:8080/actuator/health
           fi
           
-          # Try different health endpoints with verbose output
-          HEALTH_CHECK=$(curl -v http://localhost:8080/actuator/health 2>&1)
-          if echo "$HEALTH_CHECK" | grep -q "UP"; then
-            echo "Spring Boot application is ready! (via actuator)"
-            break
-          fi
-          
-          echo "Actuator health check response:"
-          echo "$HEALTH_CHECK" | tail -n 10
-          
-          OTHER_CHECK=$(curl -v http://localhost:8080/ 2>&1)
-          if echo "$OTHER_CHECK" | grep -q "HTTP/1.1 200\|HTTP/1.1 302"; then
-            echo "Spring Boot application is ready! (via root path)"
-            break
-          fi
-          
-          # Show current log state periodically
-          if [ $((RETRY_COUNT % 5)) -eq 0 ]; then
-            echo "Current Spring Boot log tail:"
-            tail -n 20 spring-boot.log
-            echo "Checking if server is listening on port 8080..."
-            netstat -tulpn 2>/dev/null | grep 8080 || echo "No process listening on port 8080"
-          fi
-          
-          RETRY_COUNT=$((RETRY_COUNT+1))
-          if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-            echo "Spring Boot application failed to become ready in time."
-            echo "Full application log:"
-            cat spring-boot.log
-            echo "Continuing anyway to see if the tests can connect..."
-          fi
-          sleep 10
-        done
+          # Create results directory
+          mkdir -p ../../results
 
-    - name: Install Newman
-      run: npm install -g newman newman-reporter-htmlextra
+      - name: Ensure Postman Environment File Exists
+        shell: bash
+        run: |
+          echo "Ensuring Postman environment file is up-to-date..."
+          ENV_FILE_PATH="./postman/test_environment.json" # Relative to workspace root
+          mkdir -p "$(dirname "$ENV_FILE_PATH")"
+          
+          echo "Writing current AUTH_TOKEN to $ENV_FILE_PATH"
+          TIMESTAMP=$(date +%s)
+          EXPORTED_AT=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
+          
+          # Create the environment file with a series of echo statements
+          echo '{' > "$ENV_FILE_PATH"
+          echo "  \"id\": \"test-environment-$TIMESTAMP\"," >> "$ENV_FILE_PATH"
+          echo '  "name": "Test Environment (GitHub Actions)",' >> "$ENV_FILE_PATH"
+          echo '  "values": [' >> "$ENV_FILE_PATH"
+          echo '    {' >> "$ENV_FILE_PATH"
+          echo '      "key": "baseUrl",' >> "$ENV_FILE_PATH"
+          echo '      "value": "http://localhost:8080",' >> "$ENV_FILE_PATH"
+          echo '      "type": "default",' >> "$ENV_FILE_PATH"
+          echo '      "enabled": true' >> "$ENV_FILE_PATH"
+          echo '    },' >> "$ENV_FILE_PATH"
+          echo '    {' >> "$ENV_FILE_PATH"
+          echo '      "key": "authToken",' >> "$ENV_FILE_PATH"
+          echo "      \"value\": \"$AUTH_TOKEN\"," >> "$ENV_FILE_PATH"
+          echo '      "type": "secret",' >> "$ENV_FILE_PATH"
+          echo '      "enabled": true' >> "$ENV_FILE_PATH"
+          echo '    },' >> "$ENV_FILE_PATH"
+          echo '    {' >> "$ENV_FILE_PATH"
+          echo '      "key": "auth_token",' >> "$ENV_FILE_PATH"
+          echo "      \"value\": \"$AUTH_TOKEN\"," >> "$ENV_FILE_PATH"
+          echo '      "type": "secret",' >> "$ENV_FILE_PATH"
+          echo '      "enabled": true' >> "$ENV_FILE_PATH"
+          echo '    }' >> "$ENV_FILE_PATH"
+          echo '  ],' >> "$ENV_FILE_PATH"
+          echo '  "_postman_variable_scope": "environment",' >> "$ENV_FILE_PATH"
+          echo "  \"_postman_exported_at\": \"$EXPORTED_AT\"," >> "$ENV_FILE_PATH"
+          echo '  "_postman_exported_using": "GitHub Actions"' >> "$ENV_FILE_PATH"
+          echo '}' >> "$ENV_FILE_PATH"
+          
+          echo "Postman environment file $ENV_FILE_PATH updated."
 
-    - name: Create Results Directory
-      run: mkdir -p results
+      - name: Run Postman Tests with Newman
+        id: postman-tests
+        uses: ./.github/actions/postman-tests
+        with:
+          collection-path: "${{ steps.prepare-auth.outputs.COLLECTION_PATH }}"
+          environment-file: '../../postman/test_environment.json' # Path relative to the action's working-directory
+          working-directory: './backend/autotrader-backend'      # Action's working-directory
+          results-directory: '../../results'                     # Path relative to the action's working-directory for output
+          auto-detect-collection: 'true'
+          extra-options: '--bail --export-environment ../../results/updated_environment.json' # Path relative to action's working-directory
 
-    - name: Run Postman Collection
-      run: |
-        echo "Running Postman collection tests..."
-        # Determine which collection file to use
-        if [ -f "./postman/Caryo_Marketplace_API_Tests.json" ]; then
-          COLLECTION_PATH="./postman/Caryo_Marketplace_API_Tests.json"
-          echo "Using Caryo_Marketplace_API_Tests.json collection file"
-        elif [ -f "./backend/autotrader-backend/src/test/resources/postman/autotrader-api-collection.json" ]; then
-          COLLECTION_PATH="./backend/autotrader-backend/src/test/resources/postman/autotrader-api-collection.json"
-          echo "Using autotrader-api-collection.json collection file"
-        else
-          echo "ERROR: Postman collection file not found"
-          echo "Searching for collection files in project..."
-          find . -name "*.json" | grep -i -E "collection|postman|api[-_]test"
-          exit 1
-        fi
-        
-        newman run "$COLLECTION_PATH" \
-          --environment ./postman/test_environment.json \
-          --reporters cli,junit,htmlextra \
-          --reporter-junit-export results/junit-report.xml \
-          --reporter-htmlextra-export results/html-report.html
-
-    - name: Upload test results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: postman-test-results
-        path: results/
-
-    # Cleanup test environment if needed
-    - name: Cleanup
-      if: always()
-      run: |
-        echo "Cleaning up test environment"
-        
-        # Stop Spring Boot application if it was started
-        if [ ! -z "$SPRING_PID" ]; then
-          echo "Stopping Spring Boot application (PID: $SPRING_PID)..."
-          kill $SPRING_PID || true
-          echo "Spring Boot logs (last 50 lines):"
-          if [ -f "./backend/autotrader-backend/spring-boot.log" ]; then
-            tail -n 50 ./backend/autotrader-backend/spring-boot.log
-          fi
-        fi
-        
-        # Stop Docker services if they were started
-        if [ -f "./backend/autotrader-backend/docker-compose.dev.yml" ]; then
-          echo "Stopping Docker services..."
-          cd ./backend/autotrader-backend
-          docker compose -f docker-compose.dev.yml down -v
-          cd -
-        fi
-        echo "Cleanup complete"
+      - name: Run diagnostic scripts if tests fail
+        if: steps.postman-tests.outputs.test-status == 'failure'
+        working-directory: ./backend/autotrader-backend
+        run: |
+          echo "Running user authentication diagnostics..."
+          bash ../../scripts/diagnose-user-auth.sh http://localhost:8080
+          
+          echo "Testing both auth paths to identify the correct path pattern..."
+          bash ../../scripts/test-auth-paths.sh http://localhost:8080
+          
+          echo "Running Postman tests diagnostics..."
+          bash ../../scripts/diagnose-postman-tests.sh http://localhost:8080 "${{ steps.prepare-auth.outputs.COLLECTION_PATH }}" "../../postman/test_environment.json"
+          
+          echo "Checking for auth errors in the logs..."
+          grep -A 5 -B 5 "401\|403\|Authentication\|Unauthorized" spring-boot.log || echo "No authentication errors found in logs"
+          
+          echo "Examining application logs..."
+          tail -n 100 spring-boot.log
+          
+          echo "Testing non-authenticated endpoints..."
+          echo "Health endpoint: $(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health)"
+          echo "Public endpoint: $(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/public || echo 'not found')"

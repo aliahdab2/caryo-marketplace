@@ -1,0 +1,70 @@
+name: Backend Unit Tests
+
+on:
+  workflow_dispatch:  # Manual trigger
+  pull_request:
+    paths:
+      - 'backend/autotrader-backend/**'
+      - '.github/workflows/unit-tests.yml'
+      - '.github/actions/gradle-setup/**'
+    branches: [ 'main', 'develop' ]  # Run on PRs to both main and develop
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        lfs: true
+
+    # Use the Gradle setup composite action
+    - name: Setup Gradle Environmen
+      uses: ./.github/actions/gradle-setup
+      with:
+        working-directory: "./backend/autotrader-backend"
+        java-version: "17"
+        cache: true
+
+    # Run unit tests using Gradle
+    - name: Run Unit Tests
+      working-directory: ./backend/autotrader-backend
+      run: |
+        echo "Running unit tests (excluding integration tests)..."
+
+        # Check if integrationTest task exists
+        if ./gradlew tasks --all | grep -q "integrationTest"; then
+          echo "integrationTest task found, excluding it from test run"
+          ./gradlew test --exclude-task integrationTes
+        else
+          echo "integrationTest task not found, running regular tests"
+          ./gradlew tes
+        fi
+
+        # Generate JaCoCo reports if available
+        if ./gradlew tasks --all | grep -q "jacocoTestReport"; then
+          echo "Generating JaCoCo test report..."
+          ./gradlew jacocoTestRepor
+        fi
+
+    # Upload test results and coverage
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: unit-test-results
+        path: |
+          backend/autotrader-backend/build/reports/tests/test/
+          backend/autotrader-backend/build/test-results/test/
+
+    - name: Upload test coverage
+      if: success() || failure()
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./backend/autotrader-backend/build/reports/jacoco/test/jacocoTestReport.xml
+        directory: ./backend/autotrader-backend/build/reports/
+        flags: unit-tests
+        fail_ci_if_error: false
+        verbose: true

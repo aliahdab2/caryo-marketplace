@@ -8,201 +8,92 @@ on:
     paths:
       - 'backend/autotrader-backend/**'
       - '.github/workflows/integration-tests.yml'
-    branches: [ 'main', 'develop' ]
+      - '.github/actions/docker-services-setup/**'
+      - '.github/actions/gradle-setup/**'
+      - '.github/actions/spring-boot-setup/**'
+    branches: [ 'develop' ]  # Only run on PRs to develop branch
 
 jobs:
   integration-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 20  # Prevent hanging builds
-    
+
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Fetch all history for better change detection
-    
-    - name: Set up Docker Compose
-      uses: isbang/compose-action@v1.5.1
+        lfs: true
+        
+    # Use the Gradle setup composite action
+    - name: Setup Gradle Environment
+      uses: ./.github/actions/gradle-setup
       with:
-        compose-file: "./backend/autotrader-backend/docker-compose.dev.yml"
-        down-flags: "--volumes"  # Clean up volumes when done
-        services: |
-          db
-          minio
-          createbuckets
-          redis
-    
-    # Check if services are healthy
-    - name: Wait for services to be ready
-      run: |
-        echo "Listing all running Docker containers for debugging..."
-        docker ps
+        working-directory: "./backend/autotrader-backend"
+        java-version: "17"
+        cache: true
         
-        # Give services extra time to start - longer initialization period
-        echo "Sleeping for 60 seconds to ensure containers are fully initialized..."
-        sleep 60
-        
-        echo "Waiting for PostgreSQL to be ready..."
-        # Try multiple times with increasing sleep periods
-        MAX_RETRIES=15  # Increased from 10 to 15
-        RETRY_COUNT=0
-        
-        while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-          if docker exec $(docker ps -q -f name=db) pg_isready -U autotrader -t 15; then
-            echo "PostgreSQL is ready!"
-            break
-          else
-            RETRY_COUNT=$((RETRY_COUNT+1))
-            echo "PostgreSQL not ready yet. Attempt $RETRY_COUNT of $MAX_RETRIES"
-            
-            if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-              echo "PostgreSQL failed to become ready. Showing container logs:"
-              docker logs $(docker ps -q -f name=db)
-              exit 1
-            fi
-            
-            # Exponential backoff - wait longer as retry count increases
-            sleep $((RETRY_COUNT * 20))  # Increased from previous value
-          fi
-        done
-        
-        echo "Checking MinIO health..."
-        curl --retry 15 --retry-delay 10 --connect-timeout 15 -f http://localhost:9000/minio/health/live || {
-          echo "MinIO health check failed. Showing container logs:"
-          docker logs $(docker ps -q -f name=minio)
-          exit 1
-        }
-        
-        echo "All services are ready!"
-    
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
-    
-    - name: Validate Gradle wrapper
-      uses: gradle/wrapper-validation-action@v2
-      continue-on-error: true
-      id: wrapper-validation
-
-    - name: Manual Gradle wrapper validation (fallback)
-      if: always()
-      run: |
-        echo "Gradle wrapper validation action status: ${{ steps.wrapper-validation.outcome }}"
-        if [[ "${{ steps.wrapper-validation.outcome }}" == "failure" ]]; then
-          echo "Gradle wrapper validation action failed, performing manual validation"
-          # Check if wrapper jar exists
-          if [ ! -f backend/autotrader-backend/gradle/wrapper/gradle-wrapper.jar ]; then
-            echo "ERROR: gradle-wrapper.jar is missing!"
-            exit 1
-          fi
-          # Check wrapper properties
-          if [ ! -f backend/autotrader-backend/gradle/wrapper/gradle-wrapper.properties ]; then
-            echo "ERROR: gradle-wrapper.properties is missing!"
-            exit 1
-          fi
-          # Check for proper distribution URL format in properties
-          if ! grep -q "services.gradle.org/distributions" backend/autotrader-backend/gradle/wrapper/gradle-wrapper.properties; then
-            echo "ERROR: Invalid distribution URL in gradle-wrapper.properties"
-            cat backend/autotrader-backend/gradle/wrapper/gradle-wrapper.properties
-            exit 1
-          fi
-          echo "Manual Gradle wrapper validation passed"
-        else
-          echo "Gradle wrapper validation action succeeded."
-        fi
-    
-    # Check for Gradle cache and use it if available
-    - name: Setup Gradle Cache
-      uses: gradle/gradle-build-action@v3
-      with:
-        gradle-version: wrapper
-        cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-    
-    - name: Setup Gradle wrapper properly if issues detected
+    # Ensure Gradle Wrapper exists
+    - name: Ensure Gradle Wrapper
       working-directory: ./backend/autotrader-backend
       run: |
-        echo "Checking if gradle-wrapper.jar might be an LFS pointer or otherwise invalid..."
-        MISSING_JAR=false
-        INVALID_JAR=false
-        JAR_SIZE=0
-        
-        # Check if JAR exists
-        if [ ! -f ./gradle/wrapper/gradle-wrapper.jar ]; then
-          echo "ERROR: gradle-wrapper.jar is missing."
-          MISSING_JAR=true
-        else
-          # Check JAR size
-          JAR_SIZE=$(stat -c%s ./gradle/wrapper/gradle-wrapper.jar)
-          echo "Current gradle-wrapper.jar size: $JAR_SIZE bytes"
-          
-          # Check for suspiciously small size (LFS pointer is ~130 bytes)
-          if [ "$JAR_SIZE" -lt 10000 ]; then
-            echo "WARNING: gradle-wrapper.jar is suspiciously small ($JAR_SIZE bytes). It might be an LFS pointer."
-            echo "Content of the suspicious file:"
-            cat ./gradle/wrapper/gradle-wrapper.jar
-            INVALID_JAR=true
-          fi
-          
-          # Try to verify JAR validity by checking ZIP header
-          if ! file ./gradle/wrapper/gradle-wrapper.jar | grep -q "Zip archive"; then
-            echo "WARNING: gradle-wrapper.jar does not appear to be a valid ZIP archive"
-            INVALID_JAR=true
-          fi
-        fi
-        
-        # Fix wrapper if issues detected
-        if [ "$MISSING_JAR" = true ] || [ "$INVALID_JAR" = true ]; then
-          echo "Issues detected with gradle-wrapper.jar. Generating a new wrapper..."
-          
-          # Try to use local gradle to generate wrapper
+        if [ ! -f "./gradlew" ]; then
+          echo "gradlew script not found! Generating a new one..."
+          # First try to use the Gradle CLI if available
           if command -v gradle &> /dev/null; then
-            echo "Generating wrapper using local gradle installation..."
-            gradle wrapper --gradle-version 8.5 --distribution-type bin
+            echo "Using gradle CLI to generate wrapper"
+            gradle wrapper --gradle-version=8.5
           else
-            # Try to download and use Gradle directly
-            echo "Local gradle not found. Downloading Gradle 8.5..."
-            GRADLE_ZIP=gradle-8.5-bin.zip
-            GRADLE_URL=https://services.gradle.org/distributions/gradle-8.5-bin.zip
-            
-            curl -L -o $GRADLE_ZIP $GRADLE_URL
-            unzip -q -d . $GRADLE_ZIP
-            chmod +x ./gradle-8.5/bin/gradle
-            ./gradle-8.5/bin/gradle wrapper --gradle-version 8.5 --distribution-type bin
-            rm -rf gradle-8.5 $GRADLE_ZIP
-          fi
-          
-          # Verify new wrapper
-          if [ -f ./gradle/wrapper/gradle-wrapper.jar ]; then
-            NEW_SIZE=$(stat -c%s ./gradle/wrapper/gradle-wrapper.jar)
-            echo "New gradle-wrapper.jar generated. Size: $NEW_SIZE bytes"
-            if [ "$NEW_SIZE" -lt 10000 ]; then
-              echo "ERROR: New gradle-wrapper.jar still suspiciously small. CI environment may need investigation."
+            # If gradle CLI isn't available, use any gradle wrapper in other projects
+            echo "Trying to copy Gradle wrapper from elsewhere"
+            # First look for wrapper jar
+            if [ -f "../gradle/wrapper/gradle-wrapper.jar" ]; then
+              echo "Found ../gradle/wrapper/gradle-wrapper.jar"
+              mkdir -p ./gradle/wrapper/
+              cp ../gradle/wrapper/gradle-wrapper.jar ./gradle/wrapper/
+              cp ../gradle/wrapper/gradle-wrapper.properties ./gradle/wrapper/
+              cp ../gradlew ./
+              cp ../gradlew.bat ./
+              chmod +x ./gradlew
+            else
+              echo "ERROR: Could not generate or find Gradle wrapper!"
+              echo "Current directory structure:"
+              ls -la ./
+              echo "Parent directory structure:"
+              ls -la ../
               exit 1
             fi
-          else
-            echo "ERROR: Failed to generate gradle-wrapper.jar. CI environment may need investigation."
-            exit 1
           fi
-        else
-          echo "gradle-wrapper.jar appears valid. Size: $JAR_SIZE bytes."
         fi
+        echo "Verifying gradlew exists:"
+        ls -la ./gradlew || echo "gradlew still not found!"
         
-        # Final verification
-        echo "Final verification of gradle-wrapper.jar:"
-        ls -la ./gradle/wrapper/gradle-wrapper.jar
-        file ./gradle/wrapper/gradle-wrapper.jar
-        
+    # Use the Docker services setup composite action
+    - name: Setup Docker Services
+      uses: ./.github/actions/docker-services-setup
+      env:
+        # Set env vars at job level so they're available to docker-compose directly
+        MINIO_ROOT_USER: "newuser"
+        MINIO_ROOT_PASSWORD: "newpassword"
+      with:
+        docker-compose-file: "./backend/autotrader-backend/docker-compose.dev.yml"
+        services: "db minio createbuckets redis"
+        wait-time: '120'  # Increased wait time
+        db-container-name: "autotrader-backend-db-1"
+        db-user: "autotrader"
+        minio-container-name: "autotrader-backend-minio-1"
+        createbuckets-container-name: "autotrader-backend-createbuckets-1"
+        post-minio-ready-wait-seconds: '20'  # Increased post-ready wait time
+        minio-root-user: "newuser"  # Custom MinIO user
+        minio-root-password: "newpassword"  # Custom MinIO password
+
+    # Run the actual integration tests
     - name: Run Integration Tests
       working-directory: ./backend/autotrader-backend
       run: |
-        chmod +x ./gradlew
-        
         # Check available tasks
         echo "Checking available Gradle tasks..."
         ./gradlew tasks
-        
+
         # Check if integrationTest task exists
         if ./gradlew tasks --all | grep -q "integrationTest"; then
           echo "integrationTest task found, running integration tests"
@@ -211,24 +102,24 @@ jobs:
           echo "WARNING: integrationTest task not found! Running regular tests instead."
           ./gradlew test --info
         fi
-        
+
         # Check if JaCoCo report tasks exist and run them
         if ./gradlew tasks --all | grep -q "jacocoTestReport"; then
           echo "jacocoTestReport task found, generating reports"
           ./gradlew jacocoTestReport --info
         fi
-        
+
         if ./gradlew tasks --all | grep -q "jacocoIntegrationTestReport"; then
           echo "jacocoIntegrationTestReport task found, generating reports"
           ./gradlew jacocoIntegrationTestReport --info
         fi
-        
+
     - name: Verify JaCoCo report exists
       run: |
         echo "Checking for JaCoCo report file..."
         ls -la ./backend/autotrader-backend/build/reports/jacoco/test/ || echo "JaCoCo test directory not found"
         find ./backend/autotrader-backend/build/reports/ -name "*.xml" -type f
-      
+
     - name: Upload integration test results
       if: always()
       uses: actions/upload-artifact@v4
@@ -237,7 +128,7 @@ jobs:
         path: |
           backend/autotrader-backend/build/reports/tests/integrationTest/
           backend/autotrader-backend/build/test-results/integrationTest/
-    
+
     - name: Upload test coverage
       if: success() || failure()
       uses: codecov/codecov-action@v4
