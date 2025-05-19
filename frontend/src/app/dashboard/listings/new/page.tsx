@@ -247,7 +247,7 @@ export default function NewListingPage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {t('common.price')} *
+                    {t('price')} *
                   </label>
                   <input
                     type="number"
@@ -405,7 +405,7 @@ export default function NewListingPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {t('common.location')} *
+                    {t('location')} *
                   </label>
                   <input
                     type="text"
@@ -420,7 +420,7 @@ export default function NewListingPage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {t('common.city')} *
+                    {t('city')} *
                   </label>
                   <input
                     type="text"
@@ -579,7 +579,7 @@ export default function NewListingPage() {
                 onClick={prevStep}
                 className="py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
               >
-                {t('common.back')}
+                {t('back')}
               </button>
             ) : (
               <div></div> // Empty div to maintain flex spacing
@@ -591,7 +591,7 @@ export default function NewListingPage() {
                 onClick={nextStep}
                 className="py-2 px-4 bg-primary text-white rounded-lg hover:bg-primary/90"
               >
-                {t('common.next')}
+                {t('next')}
               </button>
             ) : (
               <button
@@ -601,7 +601,7 @@ export default function NewListingPage() {
                   isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
                 }`}
               >
-                {isSubmitting ? t('common.submitting') : t('common.publish')}
+                {isSubmitting ? t('submitting') : t('publish')}
               </button>
             )}
           </div>

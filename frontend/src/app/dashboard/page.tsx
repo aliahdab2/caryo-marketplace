@@ -199,7 +199,7 @@ export default function Dashboard() {
               </div>
               <div className="flex items-center justify-end mt-4">
                 <span className="text-xs text-gray-500 dark:text-gray-400 opacity-70 mr-1.5 group-hover:mr-2.5 transition-all">
-                  {t('common.viewDetails')}
+                  {t('viewDetails')}
                 </span>
                 <MdArrowForward className={`opacity-0 group-hover:opacity-100 transition-opacity ${colorStyle.text}`} />
               </div>
@@ -219,7 +219,7 @@ export default function Dashboard() {
             href="/dashboard/listings"
             className="text-primary hover:text-primary-dark flex items-center text-sm font-medium transition-colors"
           >
-            {t('common.viewAll')}
+            {t('viewAll')}
             <MdArrowForward className="ml-1 rtl:rotate-180" />
           </Link>
         </div>
@@ -228,13 +228,13 @@ export default function Dashboard() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-800/50 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                <th className="py-3.5 px-5">{t('common.image')}</th>
-                <th className="py-3.5 px-5">{t('common.title')}</th>
-                <th className="py-3.5 px-5">{t('common.price')}</th>
-                <th className="py-3.5 px-5">{t('common.date')}</th>
-                <th className="py-3.5 px-5">{t('common.views')}</th>
-                <th className="py-3.5 px-5">{t('common.status')}</th>
-                <th className="py-3.5 px-5">{t('common.actions')}</th>
+                <th className="py-3.5 px-5">{t('image')}</th>
+                <th className="py-3.5 px-5">{t('title')}</th>
+                <th className="py-3.5 px-5">{t('price')}</th>
+                <th className="py-3.5 px-5">{t('date')}</th>
+                <th className="py-3.5 px-5">{t('views')}</th>
+                <th className="py-3.5 px-5">{t('status')}</th>
+                <th className="py-3.5 px-5">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -283,15 +283,15 @@ export default function Dashboard() {
                         <button 
                           onClick={() => router.push(`/dashboard/listings/edit/${listing.id}`)}
                           className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                          aria-label={t('common.edit')}
-                          title={t('common.edit')}
+                          aria-label={t('edit')}
+                          title={t('edit')}
                         >
                           <MdEditNote size={22} />
                         </button>
                         <button 
                           className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                          aria-label={t('common.delete')}
-                          title={t('common.delete')}
+                          aria-label={t('delete')}
+                          title={t('delete')}
                         >
                           <MdDelete size={20} />
                         </button>

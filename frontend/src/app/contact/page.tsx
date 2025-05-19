@@ -203,7 +203,7 @@ export default function ContactPage() {
                   className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 w-full sm:w-auto"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? t('common.sending') : t('contact.send')}
+                  {isSubmitting ? t('sending') : t('contact.send')}
                   {isSubmitting && (
                     <span className="ml-2 inline-block animate-spin">⟳</span>
                   )}

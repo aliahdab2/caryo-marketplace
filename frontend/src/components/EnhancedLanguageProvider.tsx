@@ -371,7 +371,7 @@ export default function LanguageProvider({ children }: LanguageProviderProps) {
     if (isSupportedLanguage(lang)) {
       try {
         // Dynamic import of the language file
-        await import(`../../public/locales/${lang}/common.json`);
+        await import(`../../public/locales/${lang}/json`);
       } catch (err) {
         console.error(`Failed to preload language ${lang}:`, err);
         
@@ -379,7 +379,7 @@ export default function LanguageProvider({ children }: LanguageProviderProps) {
         if (lang !== DEFAULT_LANGUAGE) {
           try {
             console.info(`Falling back to default language (${DEFAULT_LANGUAGE})`);
-            await import(`../../public/locales/${DEFAULT_LANGUAGE}/common.json`);
+            await import(`../../public/locales/${DEFAULT_LANGUAGE}/json`);
           } catch (fallbackErr) {
             console.error(`Failed to load fallback language ${DEFAULT_LANGUAGE}:`, fallbackErr);
           }

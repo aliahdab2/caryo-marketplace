@@ -1,13 +1,11 @@
 {
   "header": {
-    "login": "Login",
     "logout": "Logout",
     "dashboard": "Dashboard",
     "home": "Home",
     "about": "About",
     "contact": "Contact",
-    "listings": "Listings",
-    "signup": "Sign up"
+    "listings": "Listings"
   },
   "auth": {
     "signin": "Sign In",
@@ -16,8 +14,6 @@
     "email": "Email",
     "userId": "User ID",
     "password": "Password",
-    "confirmPassword": "Confirm Password",
-    "forgotPassword": "Forgot Password?",
     "dontHaveAccount": "Don't have an account?",
     "alreadyHaveAccount": "Already have an account?",
     "signupSuccess": "Registration successful!",
@@ -27,8 +23,6 @@
     "welcome": "Welcome to your dashboard",
     "myListings": "My Listings",
     "createListing": "Create New Listing",
-    "loading": "Loading your dashboard...",
-    "noListings": "You don't have any listings yet",
     "accountInfo": "Account Information",
     "role": "Role",
     "noRoles": "No roles assigned"
@@ -37,7 +31,6 @@
     "hero": {
       "title": "Find Your Perfect Car",
       "subtitle": "Browse thousands of cars from trusted sellers",
-      "search": "Search",
       "browseCars": "Browse Cars",
       "sellYourCar": "Sell Your Car"
     },
@@ -45,9 +38,7 @@
     "subtitle": "Discover our handpicked selection of premium vehicles",
     "categories": "Browse By Category",
     "categorySubtitle": "Find vehicles that match your needs",
-    "viewAll": "View All",
     "viewAllListings": "View All Listings",
-    "viewDetails": "View Details",
     "whyChooseUs": "Why Choose Us"
   }
 }

@@ -75,7 +75,7 @@ export default function FavoritesPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-        <span className="text-gray-500 dark:text-gray-400 text-lg">{t('common.loading')}</span>
+        <span className="text-gray-500 dark:text-gray-400 text-lg">{t('loading')}</span>
       </div>
     );
   }
@@ -88,7 +88,7 @@ export default function FavoritesPage() {
           onClick={loadFavorites}
           className="mt-2 px-5 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-200 shadow"
         >
-          {t('common.retry')}
+          {t('retry')}
         </button>
       </div>
     );
@@ -113,7 +113,7 @@ export default function FavoritesPage() {
             {/* Sort Dropdown */}
             <div className="flex items-center gap-2">
               <label htmlFor="sortBy" className="text-sm text-gray-600 dark:text-gray-300 font-medium">
-                {t('common.sortBy', 'Sort by')}:
+                {t('sortBy', 'Sort by')}:
               </label>
               <select
                 id="sortBy"
@@ -121,9 +121,9 @@ export default function FavoritesPage() {
                 onChange={e => setSortBy(e.target.value as 'date' | 'price' | 'year')}
                 className="border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-white dark:bg-gray-800 text-sm"
               >
-                <option value="date">{t('common.newest', 'Newest')}</option>
-                <option value="price">{t('common.price', 'Price')}</option>
-                <option value="year">{t('common.year', 'Year')}</option>
+                <option value="date">{t('newest', 'Newest')}</option>
+                <option value="price">{t('price', 'Price')}</option>
+                <option value="year">{t('year', 'Year')}</option>
               </select>
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function FavoritesPage() {
                   </h4>
                   <span className="text-sm text-gray-500 flex items-center gap-1">
                     <MdSpeed />
-                    {formatNumber(listing.mileage, i18n.language)} {t('common.km') || 'km'}
+                    {formatNumber(listing.mileage, i18n.language)} {t('km') || 'km'}
                   </span>
                   <span className="text-xs text-gray-400 flex items-center gap-1">
                     <MdCalendarToday />

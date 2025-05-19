@@ -88,7 +88,7 @@ const UserProfile = memo(function UserProfile({
       </div>
       <div className="ml-3 overflow-hidden">
         <p className="text-sm font-medium truncate group-hover:text-primary transition-colors duration-200">
-          {session?.user?.name || t('common.guest')}
+          {session?.user?.name || t('guest')}
         </p>
         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
           {session?.user?.email || ''}
@@ -134,7 +134,7 @@ export default function DashboardLayout({
       <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
         <div className="flex flex-col items-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('common.loading')}</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('loading')}</p>
         </div>
       </div>
     );
@@ -217,7 +217,7 @@ export default function DashboardLayout({
             className="flex items-center justify-center h-10 w-10 text-gray-700 dark:text-gray-200 
                      focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full 
                      hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
-            aria-label={t('common.notifications')}
+            aria-label={t('notifications')}
           >
             <MdNotifications size={22} />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
@@ -229,7 +229,7 @@ export default function DashboardLayout({
             className="flex items-center justify-center h-10 w-10 text-gray-700 dark:text-gray-200 
                      focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full 
                      hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            aria-label={isMobileMenuOpen ? t('common.closeMenu') : t('common.openMenu')}
+            aria-label={isMobileMenuOpen ? t('closeMenu') : t('openMenu')}
             aria-expanded={isMobileMenuOpen}
           >
             {isMobileMenuOpen ? <MdClose size={24} /> : <MdMenu size={24} />}
@@ -388,8 +388,8 @@ export default function DashboardLayout({
               className="flex items-center justify-center h-9 w-9 text-gray-700 dark:text-gray-300 
                        focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full 
                        hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
-              aria-label={t('common.notifications')}
-              title={t('common.notifications')}
+              aria-label={t('notifications')}
+              title={t('notifications')}
             >
               <MdNotifications size={20} />
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
@@ -415,7 +415,7 @@ export default function DashboardLayout({
         <footer className="mt-12 border-t border-gray-200 dark:border-gray-700 py-6 px-4 md:px-8">
           <div className="max-w-7xl mx-auto">
             <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-              © {new Date().getFullYear()} Caryo Marketplace. {t('common.allRightsReserved')}
+              © {new Date().getFullYear()} Caryo Marketplace. {t('allRightsReserved')}
             </p>
           </div>
         </footer>

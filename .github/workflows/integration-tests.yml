@@ -11,8 +11,10 @@ on:
       - '.github/actions/docker-services-setup/**'
       - '.github/actions/gradle-setup/**'
       - '.github/actions/spring-boot-setup/**'
-    branches: [ 'develop' ]  # Only run on PRs to develop branch
-
+    branches: [ 'develop', 'main' ]  # Only run on PRs to develop branch and main branch
+  push:
+    branches:
+      - 'main'  # Only run on pushes to main branch
 jobs:
   integration-tests:
     runs-on: ubuntu-latest

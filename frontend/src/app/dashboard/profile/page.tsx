@@ -51,7 +51,7 @@ export default function ProfilePage() {
             onClick={() => setIsEditing(true)}
             className="py-2 px-4 bg-primary text-white rounded-lg hover:bg-primary/90"
           >
-            {t('common.edit')}
+            {t('edit')}
           </button>
         )}
       </div>
@@ -89,7 +89,7 @@ export default function ProfilePage() {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('common.phone')}
+                {t('phone')}
               </label>
               <input
                 type="tel"
@@ -102,7 +102,7 @@ export default function ProfilePage() {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('common.location')}
+                {t('location')}
               </label>
               <input
                 type="text"
@@ -133,13 +133,13 @@ export default function ProfilePage() {
               onClick={() => setIsEditing(false)}
               className="py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
             >
-              {t('common.cancel')}
+              {t('cancel')}
             </button>
             <button
               type="submit"
               className="py-2 px-4 bg-primary text-white rounded-lg hover:bg-primary/90"
             >
-              {t('common.save')}
+              {t('save')}
             </button>
           </div>
         </form>
@@ -150,8 +150,8 @@ export default function ProfilePage() {
               {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : '?'}
             </div>
             <div className="ml-6">
-              <h2 className="text-xl font-semibold">{session?.user?.name || t('common.notAvailable')}</h2>
-              <p className="text-gray-500 dark:text-gray-400">{session?.user?.email || t('common.notAvailable')}</p>
+              <h2 className="text-xl font-semibold">{session?.user?.name || t('notAvailable')}</h2>
+              <p className="text-gray-500 dark:text-gray-400">{session?.user?.email || t('notAvailable')}</p>
               <p className="text-sm mt-1">
                 <span className="font-medium">{t('dashboard.role')}:</span> {userRoles}
               </p>
@@ -164,10 +164,10 @@ export default function ProfilePage() {
               <div className="space-y-2">
                 <p className="flex justify-between">
                   <span className="text-gray-500 dark:text-gray-400">{t('auth.userId')}:</span>
-                  <span>{session?.user?.id || t('common.notAvailable')}</span>
+                  <span>{session?.user?.id || t('notAvailable')}</span>
                 </p>
                 <p className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">{t('common.memberSince')}:</span>
+                  <span className="text-gray-500 dark:text-gray-400">{t('memberSince')}:</span>
                   <span>May 2023</span>
                 </p>
               </div>
@@ -177,12 +177,12 @@ export default function ProfilePage() {
               <h3 className="font-medium text-gray-900 dark:text-white mb-2">{t('dashboard.contactInfo')}</h3>
               <div className="space-y-2">
                 <p className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">{t('common.phone')}:</span>
-                  <span>{formData.phone || t('common.notProvided')}</span>
+                  <span className="text-gray-500 dark:text-gray-400">{t('phone')}:</span>
+                  <span>{formData.phone || t('notProvided')}</span>
                 </p>
                 <p className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">{t('common.location')}:</span>
-                  <span>{formData.location || t('common.notProvided')}</span>
+                  <span className="text-gray-500 dark:text-gray-400">{t('location')}:</span>
+                  <span>{formData.location || t('notProvided')}</span>
                 </p>
               </div>
             </div>

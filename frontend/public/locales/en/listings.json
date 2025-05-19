@@ -8,10 +8,7 @@
     "searchPlaceholder": "Search listings...",
     "minPrice": "Min Price",
     "maxPrice": "Max Price",
-    "minYear": "Min Year", 
-    "maxYear": "Max Year",
-    "showing": "Showing",
-    "results": "results",
+    "minYear": "Min Year",
     "page": "Page",
     "loadingListings": "Loading listings...",
     "noListingsFound": "No listings found",
@@ -19,18 +16,6 @@
     "addToFavorites": "Add to favorites",
     "removeFromFavorites": "Remove from favorites"
   },
-  "common": {
-    "any": "Any",
-    "search": "Search",
-    "location": "Location",
-    "allLocations": "All Locations",
-    "reset": "Reset",
-    "of": "of"
-  },
-  "postedOn": "Posted on",
-  "updatedOn": "Updated on",
-  "noCategory": "Uncategorized",
-  "unknownLocation": "Unknown location",
   "error": {
     "loadingListings": "Failed to load listings. Please try again."
   }

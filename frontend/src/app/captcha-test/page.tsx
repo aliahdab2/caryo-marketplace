@@ -46,7 +46,7 @@ export default function VerificationTestPage() {
       <div className="flex justify-between">
         <Link href="/">
           <button className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-            {t('common.back')}
+            {t('back')}
           </button>
         </Link>
         <Link href={isVerified ? "/dashboard" : "#"}>
@@ -56,7 +56,7 @@ export default function VerificationTestPage() {
             } transition`}
             disabled={!isVerified}
           >
-            {t('common.continue')}
+            {t('continue')}
           </button>
         </Link>
       </div>

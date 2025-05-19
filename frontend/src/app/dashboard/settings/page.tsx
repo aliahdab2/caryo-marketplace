@@ -344,7 +344,7 @@ export default function SettingsPage() {
           onClick={handleSaveSettings}
           className="py-2 px-6 bg-primary text-white rounded-lg hover:bg-primary/90"
         >
-          {t('common.saveChanges')}
+          {t('saveChanges')}
         </button>
       </div>
       

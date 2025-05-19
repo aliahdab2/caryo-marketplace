@@ -131,7 +131,7 @@ export default function EnhancedLanguageSwitcher({
   const handleLanguageHover = (lang: SupportedLanguage) => {
     if (lang !== locale) {
       try {
-        import(`../../public/locales/${lang}/common.json`);
+        import(`../../public/locales/${lang}/json`);
       } catch {
         // Ignore errors
       }

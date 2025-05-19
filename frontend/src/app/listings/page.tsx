@@ -250,7 +250,7 @@ const ListingsPage = () => {
           }}
         >
           <div style={{ marginBottom: responsiveSpace(1, 1.5, 'rem') }}>
-            <label htmlFor="search" className="sr-only">{t('common.search')}</label>
+            <label htmlFor="search" className="sr-only">{t('search')}</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 pl-3 rtl:pr-3 rtl:pl-0 flex items-center pointer-events-none">
                 <svg 
@@ -314,7 +314,7 @@ const ListingsPage = () => {
                 onChange={(e) => handleFilterChange('minPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
                 aria-label={t('listings.minPrice')}
               >
-                <option value="">{t('common.any')}</option>
+                <option value="">{t('any')}</option>
                 {[5000000, 7500000, 10000000, 15000000, 20000000].map((price) => (
                   <option key={price} value={price}>
                     {formatNumber(price, i18n.language, { style: 'currency', currency: 'SYP', minimumFractionDigits: 0 })}
@@ -346,7 +346,7 @@ const ListingsPage = () => {
                 onChange={(e) => handleFilterChange('maxPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
                 aria-label={t('listings.maxPrice')}
               >
-                <option value="">{t('common.any')}</option>
+                <option value="">{t('any')}</option>
                 {[10000000, 15000000, 20000000, 25000000, 30000000].map((price) => (
                   <option key={price} value={price}>
                     {formatNumber(price, i18n.language, { style: 'currency', currency: 'SYP', minimumFractionDigits: 0 })}
@@ -378,7 +378,7 @@ const ListingsPage = () => {
                 onChange={(e) => handleFilterChange('minYear', e.target.value ? parseInt(e.target.value, 10) : undefined)}
                 aria-label={t('listings.minYear')}
               >
-                <option value="">{t('common.any')}</option>
+                <option value="">{t('any')}</option>
                 {years.map((year) => (
                   <option key={year} value={year}>
                     {year}
@@ -396,7 +396,7 @@ const ListingsPage = () => {
                   marginBottom: fluidValue(0.25, 0.375, 375, 1280, 'rem')
                 }}
               >
-                {t('common.location')}
+                {t('location')}
               </label>
               <select
                 id="location"
@@ -408,11 +408,11 @@ const ListingsPage = () => {
                 }}
                 value={filters.location || 'All Locations'}
                 onChange={(e) => handleFilterChange('location', e.target.value === 'All Locations' ? undefined : e.target.value)}
-                aria-label={t('common.location')}
+                aria-label={t('location')}
               >
                 {locations.map((location) => (
                   <option key={location} value={location}>
-                    {location === 'All Locations' ? t('common.allLocations') : location} 
+                    {location === 'All Locations' ? t('allLocations') : location} 
                   </option>
                 ))}
               </select>
@@ -431,9 +431,9 @@ const ListingsPage = () => {
                 padding: `${responsiveSpace(0.375, 0.5, 'rem')} ${responsiveSpace(0.75, 1, 'rem')}`,
                 borderRadius: fluidValue(0.25, 0.375, 375, 1280, 'rem')
               }}
-              aria-label={t('common.reset')}
+              aria-label={t('reset')}
             >
-              {t('common.reset')}
+              {t('reset')}
             </button>
           </div>
         </div>
@@ -459,7 +459,7 @@ const ListingsPage = () => {
             fontSize: fluidValue(0.75, 0.875, 375, 1280, 'rem')
           }}
         >
-          {t('listings.page')} {currentPage} {t('common.of')} {totalPages || 1}
+          {t('listings.page')} {currentPage} {t('of')} {totalPages || 1}
         </div>
       </div>
 

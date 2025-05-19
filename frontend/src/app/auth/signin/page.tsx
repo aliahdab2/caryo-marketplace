@@ -223,7 +223,7 @@ const SignInPage: React.FC = () => {
                 loading || !isVerified ? 'opacity-70 cursor-not-allowed' : ''
               }`}
             >
-              {loading ? t('common.loading') : t('auth.signin')}
+              {loading ? t('loading') : t('auth.signin')}
             </button>
           </div>
         </form>

@@ -48,7 +48,7 @@ import { useTranslation } from '@/utils/useTranslation';
 function MyComponent() {
   const { t } = useTranslation();
   
-  return <h1>{t('common.welcome')}</h1>;
+  return <h1>{t('welcome')}</h1>;
 }
 ```
 
@@ -60,7 +60,7 @@ import { useTranslation } from '@/utils/useTranslation';
 function MyComponent() {
   const { t } = useTranslation();
   
-  return <p>{t('common.greeting', { name: 'John' })}</p>;
+  return <p>{t('greeting', { name: 'John' })}</p>;
 }
 ```
 
@@ -75,7 +75,7 @@ function LanguageSwitcher() {
   
   return (
     <button onClick={() => changeLanguage(language === LANGUAGES.AR ? LANGUAGES.EN : LANGUAGES.AR)}>
-      {t('common.switchLanguage')}
+      {t('switchLanguage')}
     </button>
   );
 }

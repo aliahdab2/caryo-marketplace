@@ -28,8 +28,8 @@ const mockTranslations: Record<string, string> = {
   'auth.pleaseVerifyFirst': 'Please verify your device before signing up',
   'auth.alreadyHaveAccount': 'Already have an account?',
   'auth.signin': 'Sign In',
-  'common.error': 'Please fill in all required fields',
-  'common.loading': 'Loading...',
+  'error': 'Please fill in all required fields',
+  'loading': 'Loading...',
   'auth.signupSuccess': 'Registration successful!',
 };
 

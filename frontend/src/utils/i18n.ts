@@ -4,6 +4,19 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
+/**
+ * DEVELOPER NOTE:
+ * -----------------------------------------------------------------------------
+ * When using translations with useTranslation('common'), use the direct key format:
+ * 
+ * ✅ CORRECT: t('key')
+ * ❌ INCORRECT: t('common.key')
+ * 
+ * The namespace ('common') is already specified in useTranslation('common'),
+ * so keys should be accessed directly without the namespace prefix.
+ * -----------------------------------------------------------------------------
+ */
+
 // Import translation resources
 import enCommon from "../../public/locales/en/common.json";
 import arCommon from "../../public/locales/ar/common.json";

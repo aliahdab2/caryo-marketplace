@@ -355,7 +355,7 @@ export default function ListingsPage() {
           >
             <span className="flex items-center text-gray-700 dark:text-gray-300 font-medium">
               <MdFilterListAlt className="mr-2" /> 
-              {t("common.filtersAndSort")}
+              {t("filtersAndSort")}
             </span>
             <span className="text-lg">{isMobileSortOpen ? '−' : '+'}</span>
           </button>
@@ -367,7 +367,7 @@ export default function ListingsPage() {
         >
 					<div className="md:col-span-5">
 						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-							{t("common.search")}
+							{t("search")}
 						</label>
             <div className="relative">
               <input
@@ -383,7 +383,7 @@ export default function ListingsPage() {
                 <button 
                   onClick={() => setSearch('')}
                   className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  aria-label={t("common.clearFilters")}
+                  aria-label={t("clearFilters")}
                 >
                   <MdClose size={18} />
                 </button>
@@ -402,7 +402,7 @@ export default function ListingsPage() {
 							className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
 							aria-label={t("listings.filterByStatus")}
 						>
-							<option value="all">{t("common.all")}</option>
+							<option value="all">{t("all")}</option>
 							<option value="active">{t("listings.active")}</option>
 							<option value="expired">{t("listings.expired")}</option>
 							<option value="pending">{t("listings.pending")}</option>
@@ -411,36 +411,36 @@ export default function ListingsPage() {
 
 					<div className="md:col-span-3">
 						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5" htmlFor="sort-by">
-							{t("common.sortBy")}
+							{t("sortBy")}
 						</label>
 						<select
 							id="sort-by"
 							value={sortBy}
 							onChange={(e) => setSortBy(e.target.value)}
 							className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-							aria-label={t("common.sortBy")}
+							aria-label={t("sortBy")}
 						>
-							<option value="date">{t("common.date")}</option>
-							<option value="price">{t("common.price")}</option>
-							<option value="title">{t("common.title")}</option>
-							<option value="views">{t("common.views")}</option>
+							<option value="date">{t("date")}</option>
+							<option value="price">{t("price")}</option>
+							<option value="title">{t("title")}</option>
+							<option value="views">{t("views")}</option>
 							<option value="expiry">{t("listings.expiry")}</option>
 						</select>
 					</div>
 
           <div className="md:col-span-1">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 invisible">
-              {t("common.actions")}
+              {t("actions")}
             </label>
             <button 
               onClick={handleClearFilters}
               className="w-full md:w-auto p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors flex justify-center items-center focus:ring-2 focus:ring-primary/30 focus:border-primary"
-              title={t("common.clearFilters")}
-              aria-label={t("common.clearFilters")}
+              title={t("clearFilters")}
+              aria-label={t("clearFilters")}
               type="button"
             >
               <MdClose className="mr-1 md:mr-0" aria-hidden="true" />
-              <span className="md:hidden ml-1">{t("common.clearFilters")}</span>
+              <span className="md:hidden ml-1">{t("clearFilters")}</span>
             </button>
           </div>
 				</div>
@@ -493,7 +493,7 @@ export default function ListingsPage() {
                   <div 
                     className="cursor-pointer"
                     onClick={toggleAllSelection}
-                    title={t("common.selectAll")}
+                    title={t("selectAll")}
                   >
                     {selectedItems.length === filteredListings.length && filteredListings.length > 0 ? (
                       <MdCheckBox size={20} className="text-primary" />
@@ -507,7 +507,7 @@ export default function ListingsPage() {
                     onClick={() => handleSort("title")}
                     className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
                   >
-                    {t("common.title")} {getSortIcon("title")}
+                    {t("title")} {getSortIcon("title")}
                   </span>
                 </th>
 								<th className="py-3 px-4">
@@ -515,16 +515,16 @@ export default function ListingsPage() {
                     onClick={() => handleSort("price")}
                     className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
                   >
-                    {t("common.price")} {getSortIcon("price")}
+                    {t("price")} {getSortIcon("price")}
                   </span>
                 </th>
-								<th className="py-3 px-4">{t("common.status")}</th>
+								<th className="py-3 px-4">{t("status")}</th>
 								<th className="py-3 px-4">
                   <span 
                     onClick={() => handleSort("expiry")}
                     className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
                   >
-                    {t("common.date")} {getSortIcon("expiry")}
+                    {t("date")} {getSortIcon("expiry")}
                   </span>
                 </th>
 								<th className="py-3 px-4">
@@ -533,7 +533,7 @@ export default function ListingsPage() {
                       onClick={() => handleSort("views")}
                       className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
                     >
-                      {t("common.views")} {getSortIcon("views")}
+                      {t("views")} {getSortIcon("views")}
                     </span>
                     <div className="ml-1 group relative">
                       <MdHelpOutline size={16} className="text-gray-400 cursor-help" />
@@ -543,7 +543,7 @@ export default function ListingsPage() {
                     </div>
                   </div>
                 </th>
-								<th className="py-3 px-4">{t("common.actions")}</th>
+								<th className="py-3 px-4">{t("actions")}</th>
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -718,7 +718,7 @@ export default function ListingsPage() {
                         <Link
                           href={`/dashboard/listings/edit/${listing.id}`}
                           className="p-2 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
-                          title={t("common.edit")}
+                          title={t("edit")}
                         >
                           <MdEdit size={18} />
                         </Link>
@@ -726,7 +726,7 @@ export default function ListingsPage() {
                         <button
                           onClick={() => handleDelete(listing.id)}
                           className="p-2 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors"
-                          title={t("common.delete")}
+                          title={t("delete")}
                         >
                           <MdDelete size={18} />
                         </button>
@@ -753,7 +753,7 @@ export default function ListingsPage() {
                               className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
                               <MdViewList size={16} className="mr-2 text-gray-600 dark:text-gray-400" />
-                              {t("common.view")}
+                              {t("view")}
                             </Link>
                             
                             {/* More actions could go here */}
@@ -801,7 +801,7 @@ export default function ListingsPage() {
 						href="/help/listings"
 						className="text-primary hover:underline"
 					>
-						{t("common.learnMore")} →
+						{t("learnMore")} →
 					</Link>
 				</div>
 			</div>

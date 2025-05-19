@@ -117,7 +117,7 @@ export default function ListingExpiry({
                 onClick={() => setIsRenewalModalOpen(false)}
                 className="py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
-                {t('common.cancel')}
+                {t('cancel')}
               </button>
               <button
                 type="button"

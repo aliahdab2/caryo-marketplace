@@ -223,7 +223,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
             onClick={() => router.push("/dashboard/listings")}
             className="py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
           >
-            {t('common.cancel')}
+            {t('cancel')}
           </button>
           <button
             onClick={() => router.push(`/listings/${id}`)}
@@ -351,7 +351,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      {t('common.price')} *
+                      {t('price')} *
                     </label>
                     <input
                       type="number"
@@ -376,7 +376,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
                 onClick={() => router.push("/dashboard/listings")}
                 className="py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
               >
-                {t('common.cancel')}
+                {t('cancel')}
               </button>
               
               <button
@@ -386,7 +386,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
                   isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
                 }`}
               >
-                {isSubmitting ? t('common.updating') : t('common.saveChanges')}
+                {isSubmitting ? t('updating') : t('saveChanges')}
               </button>
             </div>
           </div>
