@@ -142,7 +142,7 @@ describe('GoogleSignInButton', () => {
     expect(googleButton).toHaveClass('cursor-not-allowed');
     
     // Verify loading spinner is shown
-    const spinner = screen.getByRole('img', { hidden: true }) || screen.getByTestId('loading-spinner');
+    const spinner = screen.getByTestId('loading-spinner');
     expect(spinner).toHaveClass('animate-spin');
     
     // Resolve the sign-in promise

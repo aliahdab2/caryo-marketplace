@@ -180,7 +180,7 @@ export default function Navbar() {
                     <div className="py-1 border-t dark:border-gray-700">
                       <button
                         onClick={() => { signOut(); setUserMenuOpen(false); }}
-                        className="w-full flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors"
+                        className="w-full flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors whitespace-nowrap"
                         role="menuitem"
                       >
                         <MdLogout className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4" aria-hidden="true" />

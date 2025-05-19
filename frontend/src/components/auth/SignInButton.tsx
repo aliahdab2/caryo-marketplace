@@ -19,9 +19,9 @@ export default function SignInButton({ className = "", onClick }: SignInButtonPr
   return (
     <button
       onClick={handleClick}
-      className={`flex items-center gap-1.5 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md px-2 xs:px-2.5 py-1 xs:py-1.5 text-xs xs:text-sm font-medium transition-all duration-200 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 ${className}`}
+      className={`flex items-center gap-1.5 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md px-2 xs:px-2.5 py-1 xs:py-1.5 text-xs xs:text-sm font-medium transition-all duration-200 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 whitespace-nowrap ${className}`}
     >
-      <span className="text-link display-inline-block">{t('auth.signin')}</span>
+      <span className="text-link">{t('auth.signin')}</span>
       <span className="profile-icon">
         <svg 
           xmlns="http://www.w3.org/2000/svg" 

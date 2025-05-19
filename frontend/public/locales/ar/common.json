@@ -127,6 +127,14 @@
         "description": "احصل على المساعدة من خبراء السيارات لدينا طوال رحلتك."
       }
     }
+  },"carsFeatures":{
+      "convertible": " قابل_للتحويل",
+      "electric": "كهرباء",
+      "sports": "رياضي",
+      "luxury": "فاخر",
+      "suv": "رباعي",
+      "sedan": "سيدان"
+    
   },
   "settings": {
     "savedSuccessfully": "تم حفظ الإعدادات بنجاح",
@@ -336,7 +344,18 @@
       "submissionFailed": "حدثت مشكلة أثناء إرسال رسالتك. يرجى المحاولة مرة أخرى."
     }
   },
-  "search": "بحث",
+  "search": {
+    "make": "الشركة المصنعة",
+    "model": "الموديل",
+    "city": "المدينة",
+    "selectMake": "اختر الشركة المصنعة",
+    "selectModel": "اختر الموديل",
+    "selectCity": "اختر المدينة",
+    "anyMake": "أي شركة مصنعة",
+    "anyModel": "أي موديل",
+    "anyCity": "أي مدينة",
+    "searchCars": "بحث عن سيارات"
+  },
   "clearFilters": "مسح الفلاتر",
   "selectAll": "تحديد الكل",
   "view": "عرض",
