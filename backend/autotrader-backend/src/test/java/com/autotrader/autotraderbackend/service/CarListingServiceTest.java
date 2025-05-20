@@ -2,6 +2,9 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.exception.StorageException;
+import com.autotrader.autotraderbackend.events.ListingApprovedEvent;
+import com.autotrader.autotraderbackend.events.ListingArchivedEvent;
+import com.autotrader.autotraderbackend.events.ListingMarkedAsSoldEvent;
 import com.autotrader.autotraderbackend.mapper.CarListingMapper;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.ListingMedia;
@@ -22,6 +25,7 @@ import org.mockito.ArgumentMatchers; // Import ArgumentMatchers
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -62,6 +66,9 @@ class CarListingServiceTest {
 
     @Mock // Add mock for the mapper
     private CarListingMapper carListingMapper;
+
+    @Mock // Add mock for the event publisher
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks // Ensure this injects all mocks into the service
     private CarListingService carListingService;
@@ -360,6 +367,8 @@ class CarListingServiceTest {
             approvedResponse.setSellerUsername(approvedListing.getSeller().getUsername());
         }
 
+        // Setup argument captor for the event
+        ArgumentCaptor<ListingApprovedEvent> eventCaptor = ArgumentCaptor.forClass(ListingApprovedEvent.class);
 
         when(carListingRepository.findById(listingId)).thenReturn(Optional.of(savedListing));
         when(carListingRepository.save(any(CarListing.class))).thenReturn(approvedListing); // Return the approved state
@@ -376,6 +385,13 @@ class CarListingServiceTest {
         verify(carListingRepository).findById(listingId);
         verify(carListingRepository).save(argThat(listing -> listing.getId().equals(listingId) && Boolean.TRUE.equals(listing.getApproved())));
         verify(carListingMapper).toCarListingResponse(approvedListing);
+
+        // Verify event publishing
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        ListingApprovedEvent capturedEvent = eventCaptor.getValue();
+        assertNotNull(capturedEvent);
+        assertEquals(approvedListing, capturedEvent.getListing());
+        assertEquals(carListingService, capturedEvent.getSource());
     }
 
     @Test
@@ -392,6 +408,8 @@ class CarListingServiceTest {
         verify(carListingRepository).findById(nonExistentId);
         verify(carListingRepository, never()).save(any());
         verify(carListingMapper, never()).toCarListingResponse(any());
+        // Verify no events were published
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -409,6 +427,8 @@ class CarListingServiceTest {
         verify(carListingRepository).findById(listingId);
         verify(carListingRepository, never()).save(any());
         verify(carListingMapper, never()).toCarListingResponse(any());
+        // Verify no events were published
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test

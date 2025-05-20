@@ -17,8 +17,12 @@ import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.specification.CarListingSpecification;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
+import com.autotrader.autotraderbackend.events.ListingApprovedEvent; // Re-added import
+import com.autotrader.autotraderbackend.events.ListingArchivedEvent;
+import com.autotrader.autotraderbackend.events.ListingMarkedAsSoldEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +48,7 @@ public class CarListingService {
     private final LocationRepository locationRepository;
     private final StorageService storageService;
     private final CarListingMapper carListingMapper;
+    private final ApplicationEventPublisher eventPublisher; 
 
     /**
      * Pauses a car listing (sets isUserActive to false).
@@ -364,17 +369,21 @@ public class CarListingService {
     @Transactional
     public CarListingResponse approveListing(Long id) {
         log.info("Attempting to approve listing with ID: {}", id);
-        CarListing carListing = findListingById(id); // Throws ResourceNotFoundException if not found
+        CarListing carListing = findListingById(id); 
 
         if (Boolean.TRUE.equals(carListing.getApproved())) {
             log.warn("Listing ID {} is already approved. No action taken.", id);
-            throw new IllegalStateException("Listing with ID " + id + " is already approved."); // Caught by Controller -> 409 Conflict
+            throw new IllegalStateException("Listing with ID " + id + " is already approved.");
         }
 
         carListing.setApproved(true);
 
         CarListing approvedListing = carListingRepository.save(carListing);
         log.info("Successfully approved listing ID: {}", approvedListing.getId());
+
+        // Publish ListingApprovedEvent
+        eventPublisher.publishEvent(new ListingApprovedEvent(this, approvedListing)); 
+        log.info("Published ListingApprovedEvent for listing ID: {}", approvedListing.getId());
 
         return carListingMapper.toCarListingResponse(approvedListing);
     }
@@ -403,6 +412,10 @@ public class CarListingService {
             throw new SecurityException("You are not authorized to update this listing");
         }
         
+        // Store original status for event publishing
+        boolean originalIsSold = existingListing.getSold();
+        boolean originalIsArchived = existingListing.getArchived();
+
         // Update only non-null fields
         if (request.getTitle() != null) {
             existingListing.setTitle(request.getTitle());
@@ -455,6 +468,20 @@ public class CarListingService {
         
         CarListing updatedListing = carListingRepository.save(existingListing);
         log.info("Successfully updated listing ID: {} by user: {}", id, username);
+
+        // Publish events if status changed
+        if (updatedListing.getSold() && !originalIsSold) {
+            // Determine if admin action based on who is making the call, for now, assume false if called via this method by a user
+            boolean isAdminAction = false; // This might need to be determined by user roles or a specific parameter
+            eventPublisher.publishEvent(new ListingMarkedAsSoldEvent(this, updatedListing, isAdminAction)); 
+            log.info("Published ListingMarkedAsSoldEvent for listing ID: {} (isAdminAction: {})", updatedListing.getId(), isAdminAction);
+        }
+        if (updatedListing.getArchived() && !originalIsArchived) {
+            // Determine if admin action
+            boolean isAdminAction = false; // This might need to be determined by user roles or a specific parameter
+            eventPublisher.publishEvent(new ListingArchivedEvent(this, updatedListing, isAdminAction)); 
+            log.info("Published ListingArchivedEvent for listing ID: {} (isAdminAction: {})", updatedListing.getId(), isAdminAction);
+        }
         
         return carListingMapper.toCarListingResponse(updatedListing);
     }
@@ -558,6 +585,9 @@ public class CarListingService {
 
         listing.setSold(true);
         CarListing updatedListing = carListingRepository.save(listing);
+        
+        // Publish event
+        eventPublisher.publishEvent(new ListingMarkedAsSoldEvent(this, updatedListing, false));
         log.info("Successfully marked listing ID {} as sold by user {}", listingId, username);
         return carListingMapper.toCarListingResponse(updatedListing);
     }
@@ -630,6 +660,11 @@ public class CarListingService {
         // Optionally, consider if archiving should also mark it as "not sold" if it was sold.
         // For now, archiving is independent of the sold status.
         CarListing updatedListing = carListingRepository.save(listing);
+        
+        // Publish the event for successful archival
+        eventPublisher.publishEvent(new ListingArchivedEvent(this, updatedListing, false));
+        log.info("Published ListingArchivedEvent for listing ID: {}", updatedListing.getId());
+        
         log.info("Successfully archived listing ID {} by user {}", listingId, username);
         return carListingMapper.toCarListingResponse(updatedListing);
     }
