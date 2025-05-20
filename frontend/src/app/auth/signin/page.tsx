@@ -161,7 +161,7 @@ const SignInPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Left section - Brand/imagery - RESPONSIVE SIZE */}
+      {/* Left section - Brand/imagery - RESPONSIVE */}
       <div className="hidden md:flex md:w-2/5 lg:w-1/3 xl:w-1/4 bg-gradient-to-r from-blue-600 to-blue-800 text-white flex-col justify-between relative overflow-hidden">
         {/* Improved background pattern - more subtle waves instead of grid */}
         <div className="absolute inset-0 overflow-hidden">
@@ -198,7 +198,7 @@ const SignInPage: React.FC = () => {
       
       {/* Right section - Sign in form - OPTIMIZED FOR RESPONSIVE */}
       <div className="flex-1 flex justify-center items-center p-4 md:p-6 lg:p-8 xl:p-10 auth-container">
-        <div className="w-full max-w-md md:max-w-lg lg:max-w-xl my-auto">
+        <div className="w-full max-w-md md:max-w-lg lg:max-w-xl mt-2 sm:mt-4 mb-auto">
           {/* Mobile logo (shown only on mobile) */}
           <div className="flex md:hidden items-center justify-center mb-6 sm:mb-8">
             <div className="flex items-center responsive-fade-in">

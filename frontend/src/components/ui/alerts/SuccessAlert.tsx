@@ -110,8 +110,7 @@ export default function SuccessAlert({
     }
   }, [visible, autoHideDuration, onComplete]);
 
-  if (!isVisible) return null;
-
+  // Always render the component to avoid layout shifts, but control visibility
   return (
     <>
       <style jsx>{spinnerStyle}</style>
@@ -120,10 +119,12 @@ export default function SuccessAlert({
         className="cb-container fixed top-5 right-5 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 flex items-center gap-3 transition-all duration-300 ease-in-out"
         role="alert"
         style={{
-          display: 'grid',
-          visibility: 'visible',
+          display: isVisible ? 'flex' : 'none', // Use display none when not visible
+          visibility: isVisible ? 'visible' : 'hidden',
           opacity: isVisible ? 1 : 0,
-          transform: isVisible ? 'translateY(0)' : 'translateY(-20px)'
+          transform: isVisible ? 'translateY(0)' : 'translateY(-20px)',
+          position: 'fixed', // Ensure it's fixed positioned
+          pointerEvents: isVisible ? 'auto' : 'none' // Prevent interactions when hidden
         }}
       >
         {/* Animated checkmark */}

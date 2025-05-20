@@ -166,16 +166,16 @@ export default function SignUpPage() {
       
       {/* Right section - Sign up form */}
       <div className="flex-1 flex justify-center items-center p-4 md:p-6 lg:p-8 xl:p-10 auth-container">
-        <div className="w-full max-w-md md:max-w-lg lg:max-w-xl my-auto">
+        <div className="w-full max-w-md md:max-w-lg lg:max-w-xl mt-2 sm:mt-4 mb-auto">
           {/* Mobile logo (shown only on mobile) */}
           <div className="flex md:hidden items-center justify-center mb-6 sm:mb-8">
             <div className="flex items-center responsive-fade-in">
               <Image 
-                src="/logo.svg" 
+                src="/images/logo.svg" 
                 alt={t('auth.logo', 'Caryo Logo')} 
                 width={40} 
                 height={40} 
-                className="mr-2.5 sm:mr-3 w-8 h-8 sm:w-10 sm:h-10" 
+                className="mr-2.5 sm:mr-3 w-8 h-8 sm:w-10 sm:h-10 object-contain" 
               />
               <h1 className="text-lg sm:text-xl font-bold">{t('appName')}</h1>
             </div>
@@ -187,15 +187,17 @@ export default function SignUpPage() {
               <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">{t('auth.createAccountDescription')}</p>
             </div>
             
-            {/* Display animated success alert when registration is successful */}
-            <SuccessAlert
-              message={successMessage}
-              visible={!!successMessage}
-              onComplete={() => setSuccessMessage("")}
-              autoHideDuration={3500}
-            />
-            
             <form onSubmit={handleSubmit} className={`responsive-fade-in ${loading ? 'opacity-70 transition-opacity' : ''}`} data-testid="signup-form">
+              
+              {/* Display animated success alert when registration is successful - placed at top of form but fixed positioned */}
+              <div style={{ height: 0, overflow: "visible", position: "relative" }}>
+                <SuccessAlert
+                  message={successMessage}
+                  visible={!!successMessage}
+                  onComplete={() => setSuccessMessage("")}
+                  autoHideDuration={3500}
+                />
+              </div>
               {error && (
                 <div role="alert" className="mb-6 p-3 sm:p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md dark:bg-red-900/30 dark:text-red-200 dark:border-red-700 flex items-center text-xs sm:text-sm">
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
