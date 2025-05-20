@@ -160,6 +160,14 @@ body {
   border-top: 1px solid var(--gray-200);
 }
 
+/* Grid pattern for sign-in page */
+.grid-pattern {
+  background-image: url('/path/to/your/grid-pattern.svg');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .card {
@@ -178,5 +186,204 @@ body {
   
   .btn-outline:hover {
     background-color: var(--gray-800);
+  }
+}
+
+/* Refined subtle background patterns */
+.bg-grid-pattern {
+  background-size: 20px 20px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+
+/* Dots pattern - a more subtle alternative */
+.bg-dots-pattern {
+  background-size: 20px 20px;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+}
+
+/* Lines pattern - another subtle option */
+.bg-lines-pattern {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.03),
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 10px
+  );
+}
+
+/* Dark mode adjustments for patterns */
+@media (prefers-color-scheme: dark) {
+  .bg-grid-pattern, .bg-dots-pattern, .bg-lines-pattern {
+    opacity: 0.5;
+  }
+}
+
+/* Add responsive styles for auth pages */
+.auth-gradient {
+  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
+  --tw-gradient-from: #2563eb;
+  --tw-gradient-to: #1d4ed8;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.responsive-container {
+  width: 100%;
+  max-width: 28rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .responsive-container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+.auth-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+.dark .auth-input {
+  background-color: #1f2937;
+  border-color: #4b5563;
+  color: #fff;
+}
+.auth-input:focus {
+  outline: none;
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+  --tw-ring-color: #3b82f6;
+  border-color: transparent;
+}
+
+/* Responsive typography */
+.responsive-heading {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+@media (min-width: 768px) {
+  .responsive-heading {
+    font-size: 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .responsive-heading {
+    font-size: 1.875rem;
+  }
+}
+
+.responsive-subheading {
+  font-size: 0.875rem;
+}
+@media (min-width: 768px) {
+  .responsive-subheading {
+    font-size: 1rem;
+  }
+}
+@media (min-width: 1024px) {
+  .responsive-subheading {
+    font-size: 1.125rem;
+  }
+}
+
+/* Wave animation for background */
+@keyframes wave {
+  0% {
+    transform: translateX(0) translateZ(0);
+  }
+  50% {
+    transform: translateX(-5%) translateZ(0);
+  }
+  100% {
+    transform: translateX(0) translateZ(0);
+  }
+}
+
+.animate-wave {
+  animation: wave 15s ease-in-out infinite;
+}
+
+/* Responsive transitions */
+.responsive-fade-in {
+  opacity: 0;
+  animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive hover effects */
+@media (hover: hover) {
+  .hover-lift {
+    transition: transform 0.2s ease;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Responsive media queries for small screens */
+/* Auth containers vertical centering */
+.auth-container {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.my-auto {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+@media screen and (max-width: 390px) {
+  .auth-container {
+    padding: 0.75rem !important;
+    min-height: 100vh;
+  }
+  
+  .auth-form {
+    padding: 1rem !important;
+  }
+  
+  .auth-input {
+    font-size: 14px !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+}
+
+/* Improved form focus state for mobile */
+@media (max-width: 640px) {
+  input:focus, 
+  button:focus {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  }
+  
+  .auth-heading {
+    font-size: 1.5rem !important;
+  }
+  
+  .auth-description {
+    font-size: 0.875rem !important;
   }
 }

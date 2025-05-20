@@ -63,18 +63,23 @@ afterAll(() => {
 // Mock translations for i18n
 const mockTranslations: Record<string, string> = {
   'auth.usernamePasswordRequired': 'Username and password are required.',
+  'auth.fieldRequired': 'Username and password are required.',
   'auth.verificationRequired': 'Verification required before login.',
-  'errors:errors.invalidCredentials': 'Invalid username or password. Please try again.',
+  'errors:invalidCredentials': 'Invalid username or password. Please try again.',
   'auth.signin': 'Sign In',
+  'auth.sign_in': 'Sign In',
   'auth.username': 'Username',
   'auth.password': 'Password',
   'auth.loginSuccess': 'Login successful!',
   'auth.redirecting': 'Redirecting...',
   'auth.dontHaveAccount': "Don't have an account?",
+  'auth.dont_have_account': "Don't have an account?",
   'auth.signup': 'Sign up',
+  'auth.sign_up': 'Sign up',
   'auth.securityCheck': 'Security Check',
   'auth.securityCheckCompleted': 'Security check completed.',
   'auth.pleaseVerifyFirst': 'Please verify your device first.',
+  'auth.sign_in_to_continue': 'Sign in to continue to your account',
 };
 
 jest.mock('react-i18next', () => ({
@@ -83,7 +88,21 @@ jest.mock('react-i18next', () => ({
       const defaultValue = typeof options === 'string' 
         ? options 
         : (typeof options === 'object' && options !== null ? options.defaultValue : undefined);
-      return mockTranslations[key] || defaultValue || key;
+      
+      // First check for exact key match
+      if (mockTranslations[key]) {
+        return mockTranslations[key];
+      }
+      
+      // If no exact match, try to handle snake case vs camel case conversion
+      const normalizedKey = key.replace(/_/g, '').toLowerCase();
+      for (const [k, v] of Object.entries(mockTranslations)) {
+        if (k.replace(/_/g, '').toLowerCase() === normalizedKey) {
+          return v;
+        }
+      }
+      
+      return defaultValue || key;
     },
     i18n: {
       changeLanguage: jest.fn().mockResolvedValue(undefined),
@@ -95,7 +114,21 @@ jest.mock('react-i18next', () => ({
         const dv = typeof o === 'string' 
           ? o 
           : (typeof o === 'object' && o !== null ? o.defaultValue : undefined);
-        return mockTranslations[k] || dv || k;
+        
+        // First check for exact key match
+        if (mockTranslations[k]) {
+          return mockTranslations[k];
+        }
+        
+        // If no exact match, try to handle snake case vs camel case conversion
+        const normalizedKey = k.replace(/_/g, '').toLowerCase();
+        for (const [key, value] of Object.entries(mockTranslations)) {
+          if (key.replace(/_/g, '').toLowerCase() === normalizedKey) {
+            return value;
+          }
+        }
+        
+        return dv || k;
       }
     },
   }),

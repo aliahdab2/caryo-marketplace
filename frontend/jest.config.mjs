@@ -9,7 +9,7 @@ export default {
     '!src/**/*.stories.{ts,tsx}',
     '!**/node_modules/**',
   ],
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js', '<rootDir>/jest.setup.extra.js'],
   moduleNameMapper: {
     // Handle module aliases
     '^@/(.*)$': '<rootDir>/src/$1',

@@ -20,6 +20,8 @@ import LanguageDetector from "i18next-browser-languagedetector";
 // Import translation resources
 import enCommon from "../../public/locales/en/common.json";
 import arCommon from "../../public/locales/ar/common.json";
+import enErrors from "../../public/locales/en/errors.json";
+import arErrors from "../../public/locales/ar/errors.json";
 
 // Define supported languages
 export const LANGUAGES = {
@@ -34,6 +36,7 @@ type TranslationResources = {
   [key in SupportedLanguage]: {
     common: Record<string, unknown>;
     translation: Record<string, unknown>;
+    errors: Record<string, unknown>;
   };
 };
 
@@ -102,10 +105,12 @@ const resources: TranslationResources = {
   [LANGUAGES.EN]: {
     common: enCommon,
     translation: enCommon, // Add translation namespace as an alias to common
+    errors: enErrors,
   },
   [LANGUAGES.AR]: {
     common: arCommon,
     translation: arCommon, // Add translation namespace as an alias to common
+    errors: arErrors,
   },
 };
 
@@ -115,7 +120,7 @@ i18n
   .use(initReactI18next) // Pass i18n to react-i18next
   .init({
     resources,
-    ns: ['common', 'translation'],
+    ns: ['common', 'translation', 'errors'],
     defaultNS: 'common',
     lng: getCurrentLanguage(),
     fallbackLng: LANGUAGES.AR, // Default to Arabic if language detection fails
