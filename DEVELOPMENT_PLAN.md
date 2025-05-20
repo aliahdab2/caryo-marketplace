@@ -167,82 +167,68 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [x] **Enable Monitoring & Health Checks** (Spring Boot Actuator)
 - [ ] **Deploy to a cloud platform** (AWS, DigitalOcean, etc.)
 
-### Phase 6: Listing Lifecycle Management
+### Phase 6: Listing Lifecycle Management (✅ Partially Complete)
 
-- [x] **Add Listing Status Flags** (isApproved)
-  - Track listing status through its lifecycle.
-  - Default state: `approved = false` (already implemented in CarListing model).
-- [x] **Add Additional Status Flags** (isSold, isArchived)
+#### ✅ Core Listing Status Model (Completed)
+  - `isApproved`, `isSold`, `isArchived`, `isUserActive` flags implemented in CarListing model
+  - Admin approval functionality in place (approve, archive, mark as sold)
+  - User pause/resume listing functionality implemented
 
-  - Default states: `isSold = false`, `isArchived = false`.
+#### ✅ REST API Enhancements (Completed)
+  - Listing visibility logic updated in public APIs to filter by:
+    - `isApproved = true`
+    - `isSold = false`
+    - `isArchived = false`
+    - `isUserActive = true`
 
-- [x] **Implement User-Controlled Listing Visibility (Pause/Resume)**
+#### 🔄 Domain Events Structure (Partially Implemented)
+  - ✅ Initial structure for event package created
+  - ✅ `ListingApprovedEvent` class implemented
+  - ✅ Event classes implementation completed:
+    - ✅ `ListingExpiredEvent`
+    - ✅ `ListingMarkedAsSoldEvent`
+    - ✅ `ListingRenewalInitiatedEvent` (with validation for duration 1-365 days)
+  - ❌ Event publishing not yet integrated:
+    - Need to inject ApplicationEventPublisher in services
+    - Update service methods to publish events on status changes
+  - ❌ Event listeners not yet implemented:
+    - Create listener package and handler classes
+    - Implement event handler methods for emails, logging, etc.
 
-  - Add `isUserActive` flag to `CarListing` model (default: `true` for new, approved listings not yet sold or archived).
-  - Allow users to temporarily "pause" (hide) their own listings that are currently approved, not sold, and not archived by the system/admin.
-  - Allow users to "resume" (unhide) their paused listings, provided the listing is not expired, sold, or archived by the system/admin.
-  - Create API endpoints for user pause/resume actions (e.g., `PUT /api/listings/{id}/pause`, `PUT /api/listings/{id}/resume`).
-  - Define behavior: User pausing a listing does not stop the package-based expiration timer.
+#### 🚧 Package-Based Expiration & Renewal (Planned - Depends on Phase 7)
+  - ❌ Calculate expiration based on `listing.createdAt` + `adPackage.durationDays`
+  - ❌ Notifications & renewal process:
+    - Email/in-app notifications before expiration
+    - Options to renew, upgrade, mark as sold, or let expire
+  - ❌ Automatic archival for expired listings
 
-- [ ] **Implement Package-Based Expiration & Renewal Workflow**
+#### 🧑‍💻 Frontend Adjustments (Planned)
+  - ❌ User dashboard to display listing status
+  - ❌ UI controls for pause/resume actions
+  - ❌ Renewal/upgrade call-to-action elements
+  - ❌ Admin dashboard enhancements
 
-  - This feature depends on the "Ad Package Management System" from Phase 7.
-  - Listing active duration will be determined by the `durationDays` (or similar) field from the selected `AdPackage`.
-  - Calculate expiration date based on `listing.createdAt` (or `activatedAt`) + `adPackage.durationDays`.
-  - **Notifications & Renewal Process:**
-    - Send email/in-app notifications to users several days before their listing package is due to expire.
-    - Use configured MailDev service for testing email notifications in development
-    - Email integration documentation available in `/docs/maildev-integration-guide.md`
-    - Notifications should include clear calls to action:
-      - Option to "Renew" the current package (potentially for a fee).
-      - Option to "Upgrade" to a different package (potentially with a longer duration or more features).
-      - Option to "Mark as Sold."
-      - Option to "Let it Expire."
-  - **Automatic Archival:**
-    - If a listing reaches its calculated expiration date and is not renewed or marked as sold, automatically set `isArchived = true` and populate an `archivedAt` timestamp.
-    - Ensure this logic respects existing `isSold` or admin-set `isArchived` statuses.
-  - The actual expiration period (e.g., 30, 60, 90 days) will be derived from the `AdPackage` associated with the listing.
+### Phase 7: Pricing & Ad Services (🚧 Coming Up)
+📦 **Ad Package System**
+  - Entity: `AdPackage` with:
+    - `name`, `price`, `durationDays`, `numberOfPhotosAllowed`, `features`
+  - Admin APIs:
+    - CRUD operations for ad packages
+  - UI for managing packages
 
-- [x] **Admin Approval & Listing Workflow**
-
-  - ✅ Implement admin review for approving listings before they go live. (Already implemented with `/{id}/approve` endpoint)
-  - ✅ Admins can mark listings as sold or archived. (Implemented through dedicated admin endpoints)
-
-- [x] **API Enhancements**
-
-  - Ensure public listing APIs (e.g., get all listings, search) only return listings that are: `isApproved = true` AND `isSold = false` AND `isArchived = false` AND `isUserActive = true`.
-  - APIs for renewal/upgrade will be part of Phase 7.
-
-- [ ] **Frontend Adjustments**
-  - User dashboard:
-    - Display clear status for each listing (e.g., "Active," "Paused by You," "Awaiting Approval," "Expires in X days," "Expired," "Sold").
-    - Provide controls for users to pause/resume their eligible listings.
-    - Prominently display renewal/upgrade options for listings nearing expiration.
-  - Admin dashboard:
-    - Continue to support reviewing, approving, and manually archiving/marking listings as sold.
-  - Implement email/in-app notifications for expiration warnings, confirmations, and renewal/upgrade actions.
-
-### Phase 7: Pricing & Ad Services
-
-- [ ] **Create Ad Package Management System** (Store, update, delete ad packages)
-
-  - Each `AdPackage` should define:
-    - `name` (e.g., "Basic," "Premium," "Free Trial")
-    - `price`
-    - `durationDays` (e.g., 30, 60, 90, or -1 for "until sold" if applicable)
-    - `numberOfPhotosAllowed`
-    - `otherFeatures` (e.g., "highlighted listing," "video upload")
-  - Users select an ad package when creating or renewing a listing.
-  - Add flexibility to adjust pricing and features easily through an admin interface.
-
-- [ ] **Ad Services & Renewal/Upgrade Logic**
-  - Implement API endpoints for:
-    - Fetching available ad packages.
-    - Allowing users to renew their listing with the same or a different package.
-    - Allowing users to upgrade their listing's package.
-  - Integrate with a payment gateway if renewals/upgrades are paid.
-  - Optional add-ons like "Highlight Ad," "Vehicle History Reports" can be managed here.
-  - Admins can adjust the prices for these services dynamically.
+🔁 **Ad Services & Renewal Logic**
+  - APIs:
+    - Fetch available packages
+    - Renew/upgrade existing listings
+  - Users:
+    - Select package on creation
+    - Renew with same or different package
+  - Admin:
+    - Adjust package prices and features
+  - (Optional): Integrate with payment provider (Stripe, PayPal)
+  - Add-ons (optional):
+    - Highlight ads
+    - Vehicle history reports
 
 ## Technical Stack
 
