@@ -5,6 +5,7 @@ import com.autotrader.autotraderbackend.listeners.ListingEventUtils;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.service.AsyncTransactionService;
+import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.*;
  */
 @SpringBootTest
 @ActiveProfiles("test")
-public class AsyncEventTransactionIntegrationTest {
+public class AsyncEventTransactionIntegrationTest extends IntegrationTestWithS3 {
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
