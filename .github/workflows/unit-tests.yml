@@ -33,20 +33,24 @@ jobs:
       working-directory: ./backend/autotrader-backend
       run: |
         echo "Running unit tests (excluding integration tests)..."
-
-        # Check if integrationTest task exists
+        
+        # List all test tasks for debugging
+        echo "Available test tasks:"
+        ./gradlew tasks --all | grep -E "test|Test" || true
+        
+        # Run unit tests, properly excluding integration tests
         if ./gradlew tasks --all | grep -q "integrationTest"; then
           echo "integrationTest task found, excluding it from test run"
-          ./gradlew test --exclude-task integrationTes
+          ./gradlew test --exclude-task integrationTest
         else
-          echo "integrationTest task not found, running regular tests"
-          ./gradlew tes
+          echo "integrationTest task not found, running standard unit tests"
+          ./gradlew test
         fi
 
         # Generate JaCoCo reports if available
         if ./gradlew tasks --all | grep -q "jacocoTestReport"; then
           echo "Generating JaCoCo test report..."
-          ./gradlew jacocoTestRepor
+          ./gradlew jacocoTestReport
         fi
 
     # Upload test results and coverage
