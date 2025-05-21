@@ -45,13 +45,12 @@ class ListingExpiredListenerTest {
         carListing.setId(1L);
         carListing.setTitle("Expired Test Car");
         carListing.setSeller(seller);
-
-        event = new ListingExpiredEvent(this, carListing, false);
     }
 
     @Test
     void handleListingExpired_shouldExecuteInTransaction() {
         // Arrange
+        ListingExpiredEvent event = new ListingExpiredEvent(this, carListing, false);
         when(eventUtils.getListingInfo(any(CarListing.class)))
             .thenReturn("listing ID: " + carListing.getId() + ", Title: " + carListing.getTitle());
             
@@ -79,6 +78,7 @@ class ListingExpiredListenerTest {
     void handleListingExpired_withNullSeller_shouldHandleGracefully() {
         // Arrange
         carListing.setSeller(null);
+        ListingExpiredEvent event = new ListingExpiredEvent(this, carListing, false);
         when(eventUtils.getListingInfo(any(CarListing.class)))
             .thenReturn("listing ID: " + carListing.getId() + ", Title: " + carListing.getTitle());
         

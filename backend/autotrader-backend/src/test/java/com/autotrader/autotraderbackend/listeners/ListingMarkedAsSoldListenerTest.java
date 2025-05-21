@@ -31,7 +31,6 @@ class ListingMarkedAsSoldListenerTest {
     private ListingMarkedAsSoldListener listener;
     private CarListing carListing;
     private User seller;
-    private ListingMarkedAsSoldEvent event;
 
     @BeforeEach
     void setUp() {
@@ -50,6 +49,7 @@ class ListingMarkedAsSoldListenerTest {
     @Test
     void handleListingMarkedAsSold_shouldExecuteInTransaction() {
         // Arrange
+        ListingMarkedAsSoldEvent event = new ListingMarkedAsSoldEvent(this, carListing, false);
         when(eventUtils.getListingInfo(any(CarListing.class)))
             .thenReturn("listing ID: " + carListing.getId() + ", Title: " + carListing.getTitle());
             
