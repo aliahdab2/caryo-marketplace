@@ -78,6 +78,10 @@ class ListingRenewalInitiatedListenerTest {
     
     @Test
     void handleListingRenewalInitiated_withSpecificDuration_shouldIncludeDurationInLog() {
+        // Arrange
+        when(eventUtils.getListingInfo(any(CarListing.class)))
+            .thenReturn("listing ID: " + carListing.getId() + ", Title: " + carListing.getTitle());
+            
         // Act
         listener.handleListingRenewalInitiated(event);
         
