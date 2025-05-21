@@ -159,7 +159,11 @@ Authorization: Bearer <your_jwt_token>
     "approved": false,
     "userId": 1,
     "createdAt": "2025-04-30T10:15:30Z",
-    "updatedAt": null
+    "updatedAt": null,
+    "isSold": false,
+    "isArchived": false,
+    "isUserActive": true,
+    "isExpired": false
   }
   ```
 - **Response (400 Bad Request)** - Invalid data:
@@ -196,7 +200,11 @@ Authorization: Bearer <your_jwt_token>
       "approved": false,
       "userId": 1,
       "createdAt": "2025-04-30T10:15:30Z",
-      "updatedAt": null
+      "updatedAt": null,
+      "isSold": false,
+      "isArchived": false,
+      "isUserActive": true,
+      "isExpired": false
     }
   ]
   ```
@@ -226,19 +234,23 @@ Authorization: Bearer <your_jwt_token>
 - **Response (404 Not Found)**:
   ```json
   {
+    "timestamp": "2024-03-21T10:15:30.123Z",
     "status": 404,
-    "message": "Resource not found",
-    "details": "Car listing with id '123' was not found",
-    "timestamp": "2024-03-21T10:15:30.123Z"
+    "error": "Not Found",
+    "message": "Car listing with id '123' was not found",
+    "path": "/api/favorites/123",
+    "details": null
   }
   ```
 - **Response (401 Unauthorized)**:
   ```json
   {
+    "timestamp": "2024-03-21T10:15:30.123Z",
     "status": 401,
-    "message": "Unauthorized",
-    "details": "User must be authenticated",
-    "timestamp": "2024-03-21T10:15:30.123Z"
+    "error": "Unauthorized",
+    "message": "User must be authenticated",
+    "path": "/api/favorites/123",
+    "details": null
   }
   ```
 
@@ -254,19 +266,23 @@ Authorization: Bearer <your_jwt_token>
 - **Response (404 Not Found)**:
   ```json
   {
+    "timestamp": "2024-03-21T10:15:30.123Z",
     "status": 404,
-    "message": "Resource not found",
-    "details": "Car listing with id '123' was not found",
-    "timestamp": "2024-03-21T10:15:30.123Z"
+    "error": "Not Found",
+    "message": "Car listing with id '123' was not found",
+    "path": "/api/favorites/123",
+    "details": null
   }
   ```
 - **Response (401 Unauthorized)**:
   ```json
   {
+    "timestamp": "2024-03-21T10:15:30.123Z",
     "status": 401,
-    "message": "Unauthorized",
-    "details": "User must be authenticated",
-    "timestamp": "2024-03-21T10:15:30.123Z"
+    "error": "Unauthorized",
+    "message": "User must be authenticated",
+    "path": "/api/favorites/123",
+    "details": null
   }
   ```
 
@@ -293,7 +309,11 @@ Authorization: Bearer <your_jwt_token>
       "approved": true,
       "userId": 1,
       "createdAt": "2024-03-21T10:15:30Z",
-      "updatedAt": null
+      "updatedAt": null,
+      "isSold": false,
+      "isArchived": false,
+      "isUserActive": true,
+      "isExpired": false
     }
     // ... more listings
   ]
@@ -301,10 +321,12 @@ Authorization: Bearer <your_jwt_token>
 - **Response (401 Unauthorized)**:
   ```json
   {
+    "timestamp": "2024-03-21T10:15:30.123Z",
     "status": 401,
-    "message": "Unauthorized",
-    "details": "User must be authenticated",
-    "timestamp": "2024-03-21T10:15:30.123Z"
+    "error": "Unauthorized",
+    "message": "User must be authenticated",
+    "path": "/api/favorites",
+    "details": null
   }
   ```
 
@@ -327,19 +349,23 @@ Authorization: Bearer <your_jwt_token>
 - **Response (404 Not Found)**:
   ```json
   {
+    "timestamp": "2024-03-21T10:15:30.123Z",
     "status": 404,
-    "message": "Resource not found",
-    "details": "Car listing with id '123' was not found",
-    "timestamp": "2024-03-21T10:15:30.123Z"
+    "error": "Not Found",
+    "message": "Car listing with id '123' was not found",
+    "path": "/api/favorites/123/check",
+    "details": null
   }
   ```
 - **Response (401 Unauthorized)**:
   ```json
   {
+    "timestamp": "2024-03-21T10:15:30.123Z",
     "status": 401,
-    "message": "Unauthorized",
-    "details": "User must be authenticated",
-    "timestamp": "2024-03-21T10:15:30.123Z"
+    "error": "Unauthorized",
+    "message": "User must be authenticated",
+    "path": "/api/favorites/123/check",
+    "details": null
   }
   ```
 
@@ -379,11 +405,12 @@ Most error responses follow this format:
 
 ```json
 {
-  "timestamp": "2025-04-30T12:34:56Z",
-  "status": 400,
-  "error": "Bad Request",
-  "message": "Error message details",
-  "path": "/api/endpoint"
+  "timestamp": "2025-04-30T12:34:56Z", // Or current time in yyyy-MM-dd hh:mm:ss format
+  "status": 400, // HTTP status code
+  "error": "Bad Request", // HTTP status reason phrase
+  "message": "Error message details", // Specific error message
+  "path": "/api/endpoint", // The request path that caused the error
+  "details": null // Optional map for more detailed errors, e.g., validation errors Map<String, List<String>>
 }
 ```
 
@@ -481,41 +508,58 @@ To run all API tests automatically:
 
 - `GET /api/listings` - Get all approved car listings (public)
 - `GET /api/listings/{id}` - Get details of a specific car listing (public)
+- **Response (200 OK)** should also include `isSold`, `isArchived`, `isUserActive`, `isExpired`.
 - `PUT /api/listings/{id}` - Update a listing (authenticated owner only)
 - `DELETE /api/listings/{id}` - Delete a listing (authenticated owner only)
 - `POST /api/admin/listings/{id}/approve` - Approve a listing (admin only)
-- `PUT /api/listings/{id}/pause` - Pause a listing (authenticated owner only)
-- `PUT /api/listings/{id}/resume` - Resume a listing (authenticated owner only)
-- `POST /api/listings/{id}/mark-sold` - Mark a listing as sold (authenticated owner only)
-- `POST /api/listings/{id}/archive` - Archive a listing (authenticated owner only)
-- `POST /api/listings/{id}/unarchive` - Unarchive a listing (authenticated owner only)
 
-### Listing Management (Admin)
+### Pause & Resume Operations
 
-- **POST** `/api/admin/listings/{id}/unarchive`
-  - Description: Unarchive any listing.
-- **DELETE** /api/listings/admin/{id}
-  - Description: Delete any listing.
-
-### Listing Endpoints (Detailed)
-
-#### Create Listing (No Image)
-- **Endpoint**: `POST /api/listings` (consumes application/json)
-- **Access**: Authenticated users
-- **Description**: Creates a new car listing without an image
+#### Pause Listing
+- **Endpoint**: `PUT /api/listings/{id}/pause`
+- **Access**: Authenticated owner of the listing
+- **Description**: Temporarily deactivates a listing, hiding it from public view
 - **Authentication**: Required (JWT token)
-- **Request Body**: JSON representation of listing details
-- **Response**: Created listing with status 201
+- **Parameters**:
+  - `id` (path parameter): ID of the car listing to pause
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 123,
+    "title": "2019 Toyota Camry",
+    "isUserActive": false,
+    "message": "Listing successfully paused"
+  }
+  ```
+- **Error Responses**:
+  - **400 Bad Request**: When listing cannot be paused in its current state
+  - **403 Forbidden**: When user is not the owner of the listing
+  - **404 Not Found**: When listing does not exist
+  - **409 Conflict**: When listing is already paused
 
-#### Create Listing With Image
-- **Endpoint**: `POST /api/listings/with-image` (consumes multipart/form-data)
-- **Access**: Authenticated users
-- **Description**: Creates a new car listing with an initial image
+#### Resume Listing
+- **Endpoint**: `PUT /api/listings/{id}/resume`
+- **Access**: Authenticated owner of the listing
+- **Description**: Reactivates a paused listing, making it visible in public listings
 - **Authentication**: Required (JWT token)
-- **Request Parts**: 
-  - `listing`: JSON representation of listing details
-  - `image`: Image file (JPEG, PNG, etc.)
-- **Response**: Created listing with media and status 201
+- **Parameters**:
+  - `id` (path parameter): ID of the car listing to resume
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 123,
+    "title": "2019 Toyota Camry",
+    "isUserActive": true,
+    "message": "Listing successfully resumed"
+  }
+  ```
+- **Error Responses**:
+  - **400 Bad Request**: When listing cannot be resumed in its current state
+  - **403 Forbidden**: When user is not the owner of the listing
+  - **404 Not Found**: When listing does not exist
+  - **409 Conflict**: When listing is already active
+
+### Additional Operations
 
 ## Media Management
 
@@ -948,7 +992,7 @@ To run all API tests automatically:
     "id": 1,
     "title": "2019 Toyota Camry",
     "archived": false,
-    // ... other listing fields
+    // ... other listing fields 
     "updatedAt": "2025-04-30T10:15:30Z"
   }
   ```

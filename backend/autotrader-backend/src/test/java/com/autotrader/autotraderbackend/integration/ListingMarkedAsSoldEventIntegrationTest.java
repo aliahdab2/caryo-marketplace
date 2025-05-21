@@ -7,7 +7,7 @@ import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
-import com.autotrader.autotraderbackend.service.CarListingService;
+import com.autotrader.autotraderbackend.service.CarListingStatusService;
 import org.mockito.InjectMocks;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 public class ListingMarkedAsSoldEventIntegrationTest {
 
     @InjectMocks
-    private CarListingService carListingService;
+    private CarListingStatusService carListingStatusService;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -76,7 +76,7 @@ public class ListingMarkedAsSoldEventIntegrationTest {
         doNothing().when(eventPublisher).publishEvent(any(ListingMarkedAsSoldEvent.class));
 
         // Act
-        carListingService.markListingAsSold(mockListing.getId(), "testuser");
+        carListingStatusService.markListingAsSold(mockListing.getId(), "testuser");
 
         // Assert
         verify(eventPublisher, times(1)).publishEvent(any(ListingMarkedAsSoldEvent.class));

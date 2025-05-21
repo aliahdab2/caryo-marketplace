@@ -54,13 +54,15 @@ class CarListingResponseTest {
         LocalDateTime createdAt = LocalDateTime.now();
         Boolean isSold = false;
         Boolean isArchived = false;
-        Boolean isUserActive = true; // Added field
+        Boolean isUserActive = true;
+        Boolean isExpired = false;  // Added isExpired field
 
         // Create response with all args constructor
         CarListingResponse response = new CarListingResponse(
                 id, title, brand, model, modelYear, mileage, price,
                 locationDetails, description, media, approved, sellerId,
-                sellerUsername, createdAt, isSold, isArchived, isUserActive // Added argument
+                sellerUsername, createdAt, isSold, isArchived, isUserActive,
+                isExpired // Added isExpired argument
         );
 
         // Verify all fields

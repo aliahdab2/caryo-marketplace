@@ -2,7 +2,7 @@ package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
-import com.autotrader.autotraderbackend.service.CarListingService;
+import com.autotrader.autotraderbackend.service.CarListingStatusService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -29,7 +29,7 @@ import java.util.Map;
 @Tag(name = "Admin Listings", description = "Admin-only operations for car listings")
 public class AdminListingController {
 
-    private final CarListingService carListingService;
+    private final CarListingStatusService carListingStatusService;
 
     /**
      * Admin endpoint to approve a listing.
@@ -51,7 +51,7 @@ public class AdminListingController {
     public ResponseEntity<?> approveListingAdmin(@PathVariable Long id) {
         log.info("Admin API: Received request to approve listing ID: {}", id);
         try {
-            CarListingResponse approvedListing = carListingService.approveListing(id);
+            CarListingResponse approvedListing = carListingStatusService.approveListing(id);
             log.info("Admin API: Successfully approved listing ID: {}", id);
             return ResponseEntity.ok(approvedListing);
         } catch (ResourceNotFoundException e) {
@@ -83,7 +83,7 @@ public class AdminListingController {
     public ResponseEntity<?> markListingAsSoldAdmin(@PathVariable Long id) {
         log.info("Admin API: Received request to mark listing ID: {} as sold", id);
         try {
-            CarListingResponse soldListing = carListingService.markListingAsSoldByAdmin(id);
+            CarListingResponse soldListing = carListingStatusService.markListingAsSoldByAdmin(id);
             log.info("Admin API: Successfully marked listing ID: {} as sold", id);
             return ResponseEntity.ok(soldListing);
         } catch (ResourceNotFoundException e) {
@@ -115,7 +115,7 @@ public class AdminListingController {
     public ResponseEntity<?> archiveListingAdmin(@PathVariable Long id) {
         log.info("Admin API: Received request to archive listing ID: {}", id);
         try {
-            CarListingResponse archivedListing = carListingService.archiveListingByAdmin(id);
+            CarListingResponse archivedListing = carListingStatusService.archiveListingByAdmin(id);
             log.info("Admin API: Successfully archived listing ID: {}", id);
             return ResponseEntity.ok(archivedListing);
         } catch (ResourceNotFoundException e) {
@@ -147,7 +147,7 @@ public class AdminListingController {
     public ResponseEntity<?> unarchiveListingAdmin(@PathVariable Long id) {
         log.info("Admin API: Received request to unarchive listing ID: {}", id);
         try {
-            CarListingResponse unarchivedListing = carListingService.unarchiveListingByAdmin(id);
+            CarListingResponse unarchivedListing = carListingStatusService.unarchiveListingByAdmin(id);
             log.info("Admin API: Successfully unarchived listing ID: {}", id);
             return ResponseEntity.ok(unarchivedListing);
         } catch (ResourceNotFoundException e) {

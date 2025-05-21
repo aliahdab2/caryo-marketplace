@@ -96,6 +96,9 @@ public class CarListing {
     @Column(name = "archived", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean archived = false;
 
+    @Column(name = "expired", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean expired = false;
+
     @Column(name = "is_user_active", nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean isUserActive = true;
 
