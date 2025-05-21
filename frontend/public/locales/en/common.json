@@ -200,7 +200,13 @@
     "dangerZone": "Danger Zone",
     "deleteAccount": "Delete My Account",
     "deleteAccountDesc": "Once deleted, your account cannot be recovered"
-  },
+  },"contactInformation": {
+  "phone": "Phone",
+  "location": "Location",
+  "memberSince": "Member Since",
+  "notProvided": "Not Provided"
+}
+,
   "home": {
     "hero": {
       "title": "Find Your Perfect Car",
@@ -271,7 +277,8 @@
     "views": "Views",
     "messages": "Messages",
     "favorites": "Favorites",
-    "recentListings": "Recent Vehicles",
+    "recentListings": "Recent Vehicles", 
+    "edit": "تعديل",
     "quickActions": "Quick Actions",
     "editProfile": "Edit Profile",
     "emailCannotBeChanged": "Email address cannot be changed",

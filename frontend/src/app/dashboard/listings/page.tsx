@@ -718,7 +718,7 @@ export default function ListingsPage() {
                         <Link
                           href={`/dashboard/listings/edit/${listing.id}`}
                           className="p-2 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
-                          title={t("edit")}
+                          title={t("dashboard.edit")}
                         >
                           <MdEdit size={18} />
                         </Link>

@@ -105,6 +105,7 @@
     "messages": "الرسائل",
     "favorites": "المفضلة",
     "recentListings": "السيارات الحديثة",
+    "edit": "تعديل",
     "quickActions": "إجراءات سريعة",
     "views": "المشاهدات",
     "editProfile": "تعديل الملف الشخصي",
@@ -203,7 +204,12 @@
     "dangerZone": "منطقة الخطر",
     "deleteAccount": "حذف حسابي",
     "deleteAccountDesc": "بمجرد الحذف، لا يمكن استعادة حسابك"
-  },
+  },"contactInformation": {
+  "phone": "هاتف",
+  "location": "الموقع",
+  "memberSince": "عضو منذ",
+  "notProvided": "غير متوفر"
+},
   "listings": {
     "categoryHeading": "قائمة {{category}}",
     "pageDescription": "تصفح مجموعتنا من السيارات ذات الجودة العالية",
@@ -425,6 +431,5 @@
   "views": "المشاهدات",
   "status": "الحالة",
   "actions": "الإجراءات",
-  "edit": "تعديل",
   "delete": "حذف"
 }
