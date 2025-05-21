@@ -115,7 +115,7 @@ export default function Home() {
           }}>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               <div>
-                <label htmlFor="make" className="block text-sm font-medium text-gray-700 mb-1">{t('search.make', 'Make')}</label>
+                <label htmlFor="make" className="block text-sm font-medium text-gray-700 mb-1">{t('searchOptions.make', 'Make')}</label>
                 <div className="relative">
                   <select 
                     id="make" 
@@ -123,7 +123,7 @@ export default function Home() {
                     onChange={(e) => setMake(e.target.value)} 
                     className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 appearance-none pr-8"
                   >
-                    <option value="" className="font-semibold">{t('search.anyMake', 'Any Make')}</option>
+                    <option value="" className="font-semibold">{t('searchOptions.anyMake', 'Any Make')}</option>
                     {makes.map((m) => <option key={m} value={m}>{m}</option>)}
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">

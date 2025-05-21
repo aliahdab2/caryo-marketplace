@@ -91,14 +91,11 @@
     "minPrice": "Min Price",
     "maxPrice": "Max Price",
     "minYear": "Min Year",
+    "status": "Status",
     "conditions": {
       "new": "New",
       "used": "Used"
-    },
-    "status": {
-      "active": "Active",
-      "expired": "Expired",
-      "pending": "Pending"
+    
     },"carsFeatures":{
       "convertible": "convertible",
       "electric": "electric",
@@ -364,13 +361,19 @@
   "sortBy": "Sort by",
   "newest": "Newest",
   "price": "Price",
+  "status":"Status",
   "year": "Year",
+  "views": "Views",
+  "title": "Title",
+  "actions": "Actions",
   "km": "km",
   "learnMore": "Learn More",
   "allRightsReserved": "All rights reserved",
   "all": "All",
   "date": "Date",
-  "search": {
+  "search": "Search",
+
+  "searchOptions": {
     "make": "Make",
     "model": "Model",
     "city": "City",
