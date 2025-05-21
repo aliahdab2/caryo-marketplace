@@ -8,15 +8,20 @@ import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.concurrent.Executor;
 
 /**
  * Configuration class for asynchronous event handling.
  * Enables asynchronous event processing for listing events.
+ * Also configures transaction management for async events.
  */
 @Configuration
 @EnableAsync
+@EnableTransactionManagement
 @Slf4j
 public class AsyncEventsConfig {
 
@@ -47,5 +52,16 @@ public class AsyncEventsConfig {
         log.info("Configured async executor for @Async methods with pool size {}-{}", 
                 executor.getCorePoolSize(), executor.getMaxPoolSize());
         return executor;
+    }
+    
+    /**
+     * Creates a transaction template for programmatic transaction management in async contexts.
+     * This allows async operations to properly interact with the database using transactions.
+     */
+    @Bean
+    public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
+        TransactionTemplate template = new TransactionTemplate(transactionManager);
+        log.info("Configured transaction template for async operations");
+        return template;
     }
 }
