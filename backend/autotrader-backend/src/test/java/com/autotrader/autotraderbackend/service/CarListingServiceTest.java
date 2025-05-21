@@ -466,7 +466,7 @@ class CarListingServiceTest {
     }
 
     @Test
-    void uploadListingImage_StorageFailure_ThrowsRuntimeException() throws IOException {
+    void uploadListingImage_StorageFailure_ThrowsStorageException() throws IOException { // Renamed from uploadListingImage_StorageFailure_ThrowsRuntimeException
         // Arrange
         Long listingId = testListing.getId();
         String username = testUser.getUsername();
@@ -482,9 +482,7 @@ class CarListingServiceTest {
             carListingService.uploadListingImage(listingId, file, username);
         });
         
-        assertEquals("Failed to store image file.", exception.getMessage());
-        assertTrue(exception.getCause() instanceof StorageException);
-        assertEquals("Disk full", exception.getCause().getMessage());
+        assertEquals("Disk full", exception.getMessage()); // Corrected expected message
         
         // Verify interactions
         verify(userRepository).findByUsername(username);

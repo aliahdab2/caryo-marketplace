@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -34,6 +37,8 @@ public class CarListingResponse {
      * Collection of media items (images/videos) associated with this car listing
      */
     private List<ListingMediaResponse> media = new ArrayList<>();
+    
+    @JsonProperty("approved")
     private Boolean approved;
     private Long sellerId;
     private String sellerUsername;

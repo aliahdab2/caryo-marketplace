@@ -78,7 +78,7 @@ public class CarListingService {
                 log.info("Successfully uploaded image for new listing ID: {}", savedListing.getId());
             } catch (StorageException e) {
                 // If image upload/update fails, log it but proceed with listing creation response
-                log.error("Failed to upload image or update listing with image key for listing ID {}: {}", savedListing.getId(), e.getMessage(), e);
+                log.error("Failed to upload image or update listing with image key for listing ID {}: {}. Error: {}", savedListing.getId(), e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "N/A", e);
             } catch (Exception e) {
                 // Catch unexpected errors during image handling
                 log.error("Unexpected error during image handling for listing ID {}: {}", savedListing.getId(), e.getMessage(), e);
@@ -115,9 +115,9 @@ public class CarListingService {
             media.setFileName(file.getOriginalFilename());
             media.setContentType(file.getContentType());
             media.setSize(file.getSize());
-            media.setSortOrder(0);
-            media.setIsPrimary(true);
-            media.setMediaType("image");
+            media.setSortOrder(0); // TODO: Determine sort order logic if multiple images
+            media.setIsPrimary(listing.getMedia().isEmpty()); // First image is primary
+            media.setMediaType("image"); // Assuming all uploads here are images
             
             // Add the media to the listing using helper method
             listing.addMedia(media);
@@ -126,10 +126,17 @@ public class CarListingService {
             log.info("Successfully uploaded image with key '{}' and updated listing ID: {}", imageKey, listingId);
             return imageKey;
         } catch (StorageException e) {
-            log.error("Storage service failed to store image for listing ID {}: {}", listingId, e.getMessage(), e);
-            throw new StorageException("Failed to store image file.", e);
+            log.error("Storage service failed to store image for listing ID {}: {}. Error: {}", listingId, e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "N/A", e);
+            // Re-throw the original StorageException to be handled by the controller or a global exception handler.
+            // This preserves the specific details of the storage failure.
+            throw e; 
         } catch (Exception e) {
             log.error("Unexpected error saving listing {} after image upload: {}", listingId, e.getMessage(), e);
+            // Wrap other exceptions in a RuntimeException if they are not already.
+            // Consider a more specific custom exception if appropriate for your error handling strategy.
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
             throw new RuntimeException("Failed to update listing after image upload.", e);
         }
     }

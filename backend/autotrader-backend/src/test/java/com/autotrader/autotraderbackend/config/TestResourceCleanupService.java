@@ -28,12 +28,20 @@ public class TestResourceCleanupService implements AutoCloseable {
     public void cleanupResources() {
         // Clean up stored car listings for tests
         // Using deleteAll() is fine for tests as the database is ephemeral
-        carListingRepository.deleteAll();
+        try {
+            carListingRepository.deleteAll();
+        } catch (Exception e) {
+            logger.warn("Exception during carListingRepository.deleteAll() in cleanup: {}", e.getMessage());
+        }
         
         // Clean up stored users for tests
-        userRepository.deleteAll();
+        try {
+            userRepository.deleteAll();
+        } catch (Exception e) {
+            logger.warn("Exception during userRepository.deleteAll() in cleanup: {}", e.getMessage());
+        }
         
-        logger.info("Test resources cleaned up successfully");
+        logger.info("Test resources cleanup attempt finished.");
     }
     
     /**

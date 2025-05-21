@@ -181,19 +181,21 @@ This section outlines the development plan for the AutoTrader Marketplace backen
     - `isArchived = false`
     - `isUserActive = true`
 
-#### 🔄 Domain Events Structure (Partially Implemented)
+#### 🔄 Domain Events Structure (Implemented)
   - ✅ Initial structure for event package created
   - ✅ `ListingApprovedEvent` class implemented
   - ✅ Event classes implementation completed:
     - ✅ `ListingExpiredEvent`
     - ✅ `ListingMarkedAsSoldEvent`
     - ✅ `ListingRenewalInitiatedEvent` (with validation for duration 1-365 days)
-  - ❌ Event publishing not yet integrated:
-    - Need to inject ApplicationEventPublisher in services
-    - Update service methods to publish events on status changes
-  - ❌ Event listeners not yet implemented:
-    - Create listener package and handler classes
-    - Implement event handler methods for emails, logging, etc.
+  - ✅ Event publishing integrated:
+    - ✅ ApplicationEventPublisher injected in services
+    - ✅ Service methods updated to publish events on status changes
+  - ✅ Event listeners implemented:
+    - ✅ Created listener package with `ListingEventUtils` helper class
+    - ✅ Implemented all event listeners (approved, archived, expired, sold, renewal)
+    - ✅ Added asynchronous event processing with `@Async`
+    - ✅ Configured thread pool for event processing
 
 #### 🚧 Package-Based Expiration & Renewal (Planned - Depends on Phase 7)
   - ❌ Calculate expiration based on `listing.createdAt` + `adPackage.durationDays`

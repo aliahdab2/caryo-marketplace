@@ -55,11 +55,12 @@ public class CarListingMapper {
             // and the legacy response.setLocation() is not set.
             
             response.setCreatedAt(carListing.getCreatedAt());
-            response.setApproved(carListing.getApproved());
+            // Ensure approved is properly set (never null)
+            response.setApproved(carListing.getApproved() != null ? carListing.getApproved() : false);
 
-            // Map isSold and isArchived fields
             response.setIsSold(carListing.getSold());
             response.setIsArchived(carListing.getArchived());
+            response.setIsExpired(carListing.getExpired());
 
             if (carListing.getSeller() != null) {
                 response.setSellerId(carListing.getSeller().getId());
@@ -85,6 +86,9 @@ public class CarListingMapper {
             fallbackResponse.setId(carListing.getId());
             fallbackResponse.setIsSold(carListing.getSold());
             fallbackResponse.setIsArchived(carListing.getArchived());
+            fallbackResponse.setIsExpired(carListing.getExpired());
+            // Ensure approved is properly set in fallback response
+            fallbackResponse.setApproved(carListing.getApproved() != null ? carListing.getApproved() : false);
             fallbackResponse.setMedia(new ArrayList<>());
             return fallbackResponse;
         }
@@ -159,6 +163,13 @@ public class CarListingMapper {
                 log.warn("Error setting isArchived for listing ID {}, defaulting to false", carListing.getId());
                 response.setIsArchived(false);
             }
+            
+            try { 
+                response.setIsExpired(carListing.getExpired()); 
+            } catch (Exception e) { 
+                log.warn("Error setting isExpired for listing ID {}, defaulting to false", carListing.getId());
+                response.setIsExpired(false);
+            }
 
             // Set seller info safely
             try {
@@ -201,6 +212,20 @@ public class CarListingMapper {
                 fallback.setIsArchived(carListing.getArchived());
             } catch (Exception ex) {
                 fallback.setIsArchived(false);
+            }
+            
+            try {
+                fallback.setIsExpired(carListing.getExpired());
+            } catch (Exception ex) {
+                fallback.setIsExpired(false);
+            }
+            
+            // Ensure approved is properly set in fallback response
+            try {
+                fallback.setApproved(carListing.getApproved() != null ? carListing.getApproved() : false);
+            } catch (Exception ex) {
+                fallback.setApproved(false);
+                log.warn("Error setting approved for listing ID {} in fallback, defaulting to false", carListing.getId());
             }
             
             fallback.setMedia(new ArrayList<>());

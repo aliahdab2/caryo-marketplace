@@ -32,4 +32,6 @@ export interface Listing {
   features?: string[];
   views?: number;
   status?: 'active' | 'pending' | 'sold' | 'expired';
+  approved?: boolean; //
+  expired?: boolean; 
 }
