@@ -45,15 +45,14 @@ class ListingMarkedAsSoldListenerTest {
         carListing.setId(1L);
         carListing.setTitle("Sold Test Car");
         carListing.setSeller(seller);
-
-        event = new ListingMarkedAsSoldEvent(this, carListing, false);
-
-        when(eventUtils.getListingInfo(any(CarListing.class)))
-            .thenReturn("listing ID: " + carListing.getId() + ", Title: " + carListing.getTitle());
     }
 
     @Test
     void handleListingMarkedAsSold_shouldExecuteInTransaction() {
+        // Arrange
+        when(eventUtils.getListingInfo(any(CarListing.class)))
+            .thenReturn("listing ID: " + carListing.getId() + ", Title: " + carListing.getTitle());
+            
         // Act
         listener.handleListingMarkedAsSold(event);
         
