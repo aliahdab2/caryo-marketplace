@@ -4,6 +4,7 @@ import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.model.dto.SocialLoginRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
+import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
@@ -23,7 +24,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -45,6 +45,9 @@ public class SocialLoginIntegrationTest extends IntegrationTestWithS3 {
 
     @Autowired
     private RoleRepository roleRepository;
+    
+    @Autowired
+    private CarListingRepository carListingRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -54,6 +57,9 @@ public class SocialLoginIntegrationTest extends IntegrationTestWithS3 {
     @BeforeEach
     public void setUp() {
         baseUrl = "http://localhost:" + port;
+        
+        // Clean up database - delete car listings first due to foreign key constraints
+        carListingRepository.deleteAll();
         userRepository.deleteAll();
         
         // Ensure we have the USER role available
