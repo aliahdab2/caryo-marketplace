@@ -1,0 +1,13 @@
+${AnsiColor.MAGENTA}
+  _____                       
+ / ____|                      
+| |     __ _ _ __ _   _  ___  
+| |    / _` | '__| | | |/ _ \ 
+| |___| (_| | |  | |_| | (_) |
+ \_____\__,_|_|   \__, |\___/ 
+                   __/ |      
+                  |___/       
+${AnsiColor.BRIGHT_MAGENTA}
+:: Caryo Marketplace :: ${AnsiColor.YELLOW}DEFAULT MODE${AnsiColor.BRIGHT_MAGENTA} ::
+:: Spring Boot ${spring-boot.version} ::
+${AnsiColor.DEFAULT}

@@ -1,0 +1,13 @@
+${AnsiColor.GREEN}
+  _____                       
+ / ____|                      
+| |     __ _ _ __ _   _  ___  
+| |    / _` | '__| | | |/ _ \ 
+| |___| (_| | |  | |_| | (_) |
+ \_____\__,_|_|   \__, |\___/ 
+                   __/ |      
+                  |___/       
+${AnsiColor.BRIGHT_GREEN}
+:: Caryo Marketplace :: ${AnsiColor.RED}DEVELOPMENT MODE${AnsiColor.BRIGHT_GREEN} ::
+:: Spring Boot ${spring-boot.version} ::
+${AnsiColor.DEFAULT}
