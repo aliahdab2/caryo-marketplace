@@ -21,7 +21,7 @@ jobs:
         lfs: true
 
     # Use the Gradle setup composite action
-    - name: Setup Gradle Environmen
+    - name: Setup Gradle Environment
       uses: ./.github/actions/gradle-setup
       with:
         working-directory: "./backend/autotrader-backend"
