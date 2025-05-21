@@ -31,7 +31,6 @@ class ListingExpiredListenerTest {
     private ListingExpiredListener listener;
     private CarListing carListing;
     private User seller;
-    private ListingExpiredEvent event;
 
     @BeforeEach
     void setUp() {
