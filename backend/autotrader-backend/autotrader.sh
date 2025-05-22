@@ -105,8 +105,8 @@ handle_dev_command() {
           "$PROJECT_ROOT/.devenv/dev-env.sh" rebuild
         fi
       else
-        ensure_executable "$PROJECT_ROOT/scripts/dev/dev-env.sh"
-        "$PROJECT_ROOT/scripts/dev/dev-env.sh" start "${args[@]}"
+        ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
+        "$PROJECT_ROOT/.devenv/dev-env.sh" start "${args[@]}"
       fi
       ;;
     # Direct mapping to existing commands
@@ -121,24 +121,29 @@ handle_dev_command() {
       "$PROJECT_ROOT/.devenv/dev-env.sh" rebuild-notest "${args[@]}"
       ;;
     stop)
-      ensure_executable "$PROJECT_ROOT/scripts/dev/dev-env.sh"
-      "$PROJECT_ROOT/scripts/dev/dev-env.sh" stop "${args[@]}"
+      ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
+      "$PROJECT_ROOT/.devenv/dev-env.sh" stop "${args[@]}"
       ;;
     restart)
-      ensure_executable "$PROJECT_ROOT/scripts/dev/dev-env.sh"
-      "$PROJECT_ROOT/scripts/dev/dev-env.sh" restart "${args[@]}"
+      ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
+      "$PROJECT_ROOT/.devenv/dev-env.sh" restart "${args[@]}"
       ;;
     status)
-      ensure_executable "$PROJECT_ROOT/scripts/dev/dev-env.sh"
-      "$PROJECT_ROOT/scripts/dev/dev-env.sh" status "${args[@]}"
+      ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
+      "$PROJECT_ROOT/.devenv/dev-env.sh" status "${args[@]}"
       ;;
     logs)
-      ensure_executable "$PROJECT_ROOT/scripts/dev/dev-env.sh"
-      "$PROJECT_ROOT/scripts/dev/dev-env.sh" logs "${args[@]}"
+      ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
+      "$PROJECT_ROOT/.devenv/dev-env.sh" logs "${args[@]}"
+      ;;
+    health) # New case for health check
+      print_header "Checking Development Environment Health"
+      ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
+      "$PROJECT_ROOT/.devenv/dev-env.sh" health "${args[@]}"
       ;;
     *)
       echo -e "${RED}Unknown dev command: $command${NC}"
-      echo -e "Available dev commands: start, stop, restart, status, logs, rebuild, rebuild-notest"
+      echo -e "Available dev commands: start, stop, restart, status, logs, rebuild, rebuild-notest, health"
       echo -e "Available flags for 'start': --rebuild (performs clean build before starting), --skip-tests (skip tests when rebuilding)"
       exit 1
       ;;

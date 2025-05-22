@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Spring Boot Application
   app:
@@ -123,8 +121,16 @@ services:
       - redis_data:/data
     networks:
       - backend-network
-    profiles:
-      - ${REDIS_ENABLED:-true}
+
+  # Mailhog (mail catching service)
+  mailhog:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - backend-network
 
 volumes:
   postgres_data:
