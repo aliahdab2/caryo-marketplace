@@ -1,3 +1,4 @@
+import org.gradle.api.GradleException
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.3'
@@ -104,9 +105,9 @@ jacocoTestReport {
 
 // Configure Flyway
 flyway {
-    url = 'jdbc:postgresql://localhost:5432/autotrader'
-    user = 'postgres'
-    password = 'postgres'
+    url = System.getenv("FLYWAY_URL") ?: 'jdbc:postgresql://localhost:5432/autotrader'
+    user = System.getenv("FLYWAY_USER") ?: 'postgres'
+    password = System.getenv("FLYWAY_PASSWORD") ?: 'postgres' // Use environment variable
     locations = ['filesystem:src/main/resources/db/migration']
     baselineOnMigrate = true
     validateOnMigrate = true
@@ -119,6 +120,9 @@ tasks.register('flywayMigrateDev') {
     description = 'Migrates the database for development environment'
     doFirst {
         flyway {
+            url = System.getenv("FLYWAY_DEV_URL") ?: System.getenv("FLYWAY_URL") ?: 'jdbc:postgresql://localhost:5432/autotrader'
+            user = System.getenv("FLYWAY_DEV_USER") ?: System.getenv("FLYWAY_USER") ?: 'postgres'
+            password = System.getenv("FLYWAY_DEV_PASSWORD") ?: System.getenv("FLYWAY_PASSWORD") ?: 'postgres'
             locations = ['filesystem:src/main/resources/db/migration', 'filesystem:src/main/resources/db/dev']
             placeholders = [
                 'environment': 'development'
@@ -133,9 +137,9 @@ tasks.register('flywayMigrateTest') {
     description = 'Migrates the database for test environment'
     doFirst {
         flyway {
-            url = 'jdbc:postgresql://localhost:5432/autotrader_test'
-            user = 'postgres'
-            password = 'postgres'
+            url = System.getenv("FLYWAY_TEST_URL") ?: 'jdbc:postgresql://localhost:5432/autotrader_test'
+            user = System.getenv("FLYWAY_TEST_USER") ?: System.getenv("FLYWAY_USER") ?: 'postgres'
+            password = System.getenv("FLYWAY_TEST_PASSWORD") ?: System.getenv("FLYWAY_PASSWORD") ?: 'postgres' // Use environment variable
             locations = ['filesystem:src/main/resources/db/migration', 'filesystem:src/main/resources/db/test']
             placeholders = [
                 'environment': 'test'
@@ -149,7 +153,22 @@ tasks.register('flywayMigrateProd') {
     group = 'Database'
     description = 'Migrates the database for production environment'
     doFirst {
+        def prodUrlValue = System.getenv("FLYWAY_PROD_URL") ?: System.getenv("FLYWAY_URL")
+        if (!prodUrlValue) {
+            throw new GradleException("For production migration (flywayMigrateProd), the database URL must be set via either the FLYWAY_PROD_URL or FLYWAY_URL environment variable.")
+        }
+        def prodUserValue = System.getenv("FLYWAY_PROD_USER") ?: System.getenv("FLYWAY_USER")
+        if (!prodUserValue) {
+            throw new GradleException("For production migration (flywayMigrateProd), the database user must be set via either the FLYWAY_PROD_USER or FLYWAY_USER environment variable.")
+        }
+        def prodPasswordValue = System.getenv("FLYWAY_PROD_PASSWORD") ?: System.getenv("FLYWAY_PASSWORD")
+        if (!prodPasswordValue) {
+            throw new GradleException("For production migration (flywayMigrateProd), the database password must be set via either the FLYWAY_PROD_PASSWORD or FLYWAY_PASSWORD environment variable.")
+        }
         flyway {
+            url = prodUrlValue
+            user = prodUserValue
+            password = prodPasswordValue
             cleanDisabled = true
             locations = ['classpath:db/migration']
             placeholders = [
