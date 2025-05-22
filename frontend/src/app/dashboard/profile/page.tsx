@@ -51,7 +51,7 @@ export default function ProfilePage() {
             onClick={() => setIsEditing(true)}
             className="py-2 px-4 bg-primary text-white rounded-lg hover:bg-primary/90"
           >
-            {t('edit')}
+            {t('dashboard.edit')}
           </button>
         )}
       </div>
@@ -167,7 +167,7 @@ export default function ProfilePage() {
                   <span>{session?.user?.id || t('notAvailable')}</span>
                 </p>
                 <p className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">{t('memberSince')}:</span>
+                  <span className="text-gray-500 dark:text-gray-400">{t('contactInformation.memberSince')}:</span>
                   <span>May 2023</span>
                 </p>
               </div>
@@ -177,12 +177,12 @@ export default function ProfilePage() {
               <h3 className="font-medium text-gray-900 dark:text-white mb-2">{t('dashboard.contactInfo')}</h3>
               <div className="space-y-2">
                 <p className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">{t('phone')}:</span>
-                  <span>{formData.phone || t('notProvided')}</span>
+                  <span className="text-gray-500 dark:text-gray-400">{t('contactInformation.phone')}:</span>
+                  <span>{formData.phone || t('contactInformation.notProvided')}</span>
                 </p>
                 <p className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">{t('location')}:</span>
-                  <span>{formData.location || t('notProvided')}</span>
+                  <span className="text-gray-500 dark:text-gray-400">{t('contactInformation.location')}:</span>
+                  <span>{formData.location || t('contactInformation.notProvided')}</span>
                 </p>
               </div>
             </div>

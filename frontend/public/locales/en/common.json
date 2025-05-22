@@ -1,5 +1,4 @@
 {
-  "appName": "Caryo Marketplace",
   "languages": {
     "english": "English",
     "arabic": "Arabic"
@@ -30,53 +29,7 @@
     "verified": "Verification Completed",
     "verifying": "Verifying...",
     "loginSuccess": "Login successful!",
-    "redirecting": "Redirecting...",
-    "welcomeBack": "Welcome back!",
-    "signInDescription": "Sign in to continue to your account and access all vehicle listings.",
-    "benefitSafety": "Secure and verified marketplace for buying and selling vehicles",
-    "benefitExperience": "Personalized experience based on your preferences",
-    "allRightsReserved": "All rights reserved.",
-    "enterCredentials": "Enter your credentials to access your account",
-    "usernamePlaceholder": "Enter your username",
-    "passwordPlaceholder": "••••••••",
-    "forgotPassword": "Forgot password?",
-    "verificationControl": "Verification control",
-    "orContinueWith": "Or continue with",
-    "continueWithGoogle": "Continue with Google",
-    "signingIn": "Signing in...",
-    "usernamePasswordRequired": "Username and password are required.",
-    "welcome_back": "Welcome back to Caryo",
-    "sign_in_description": "Access your account to manage your vehicle listings, saved searches, and connect with sellers.",
-    "sign_in": "Sign in to your account",
-    "sign_in_to_continue": "Access your account securely",
-    "email_label": "Email address",
-    "email_placeholder": "example@email.com",
-    "password_label": "Password",
-    "password_placeholder": "Enter your password",
-    "forgot_password": "Forgot password?",
-    "remember_me": "Remember me",
-    "dont_have_account": "New to Caryo?",
-    "sign_up": "Create an account",
-    "or": "OR",
-    "privacy_policy": "Privacy Policy",
-    "terms_of_service": "Terms of Service",
-    "joinUs": "Join Caryo Marketplace",
-    "createAccountDescription": "Create an account to start buying and selling vehicles on our marketplace.",
-    "passwordRequirement": "Minimum 6 characters",
-    "signupUsernamePlaceholder": "Choose a username",
-    "pleaseVerifyFirst": "Please verify your device before signing up",
-    "passwordTooShort": "Password must be at least 6 characters",
-    "logo": "Caryo Logo",
-    "emailPlaceholder": "example@email.com",
-    "appName": "Caryo Marketplace",
-    "fieldRequired": "Please fill in this field",
-    "invalidField": "Please enter a valid value",
-    "formError": "Please correct the errors in the form",
-    "emailInvalid": "Please enter a valid email address",
-    "errorOccurred": "An error occurred. Please try again.",
-    "authVerificationText": "We use security verification to ensure your account is protected",
-    "registrationFailed": "Registration failed. Please try again.",
-    "securityCheck": "Security Check"
+    "redirecting": "Redirecting..."
   },
   "listings": {
     "loadingListings": "Loading listings...",
@@ -91,18 +44,14 @@
     "minPrice": "Min Price",
     "maxPrice": "Max Price",
     "minYear": "Min Year",
-    "status": "Status",
     "conditions": {
       "new": "New",
       "used": "Used"
-    
-    },"carsFeatures":{
-      "convertible": "convertible",
-      "electric": "electric",
-      "sports": "sports",
-      "luxury": "luxury",
-      "suv": "suv",
-      "sedan": "sedan"
+    },
+    "status": {
+      "active": "Active",
+      "expired": "Expired",
+      "pending": "Pending"
     }
     ,
     "features": {
@@ -229,7 +178,14 @@
         "description": "Get assistance from our automotive experts throughout your journey."
       }
     }
-  },
+  },"carsFeatures":{
+      "convertible": "convertible",
+      "electric": "electric",
+      "sports": "sports",
+      "luxury": "luxury",
+      "suv": "suv",
+      "sedan": "sedan"
+    },
   "favorites": {
     "title": "My Favorites",
     "noFavorites": "No Favorite Vehicles",
@@ -284,6 +240,7 @@
     "improveAccountSecurity": "Improve your account security with two-factor authentication",
     "setupTwoFactor": "Set up Two-Factor Authentication",
     "editListing": "Edit Listing",
+    "edit":"Edit",
     "navigation": "Navigation",
     "mainNavigation": "Main Menu",
     "overviewTooltip": "Dashboard overview and summary",
@@ -325,18 +282,6 @@
     "weekdays": "Monday to Friday",
     "weekend": "Saturday & Sunday",
     "closed": "Closed",
-    "quickResponse": "We aim to respond to all inquiries within 24 hours.",
-    "supportHours": "Our support team is available Monday to Friday, 9:00 AM - 5:00 PM.",
-    "backToHome": "Back to Home",
-    "formDescription": "Fill in the form below and we'll get back to you as soon as possible.",
-    "namePlaceholder": "Enter your full name",
-    "emailPlaceholder": "Enter your email address",
-    "messagePlaceholder": "Write your message here...",
-    "pleaseVerify": "Please complete the verification first",
-    "pleaseVerifyFirst": "Please verify your device first",
-    "logo": "Caryo Logo",
-    "privacy_policy": "Privacy Policy",
-    "terms_of_service": "Terms of Service",
     "subjects": {
       "general": "General Inquiry",
       "support": "Technical Support",
@@ -346,43 +291,28 @@
     },
     "errors": {
       "nameRequired": "Please enter your name",
-      "nameLength": "Name must be at least 2 characters",
       "emailRequired": "Please enter your email address",
       "emailInvalid": "Please enter a valid email address",
       "subjectRequired": "Please select a subject",
       "messageRequired": "Please enter your message",
       "messageLength": "Your message should be at least 20 characters",
-      "submissionFailed": "There was a problem sending your message. Please try again.",
-      "verificationRequired": "Please complete the verification before submitting"
+      "submissionFailed": "There was a problem sending your message. Please try again."
     }
+  },"contactInformation": {
+    "phone": "Phone",
+    "location": "Location",
+    "memberSince": "Member Since",
+    "notProvided": "Not Provided"
   },
   "loading": "Loading...",
   "retry": "Try Again",
   "sortBy": "Sort by",
   "newest": "Newest",
   "price": "Price",
-  "status":"Status",
   "year": "Year",
-  "views": "Views",
-  "title": "Title",
-  "actions": "Actions",
   "km": "km",
   "learnMore": "Learn More",
   "allRightsReserved": "All rights reserved",
   "all": "All",
-  "date": "Date",
-  "search": "Search",
-
-  "searchOptions": {
-    "make": "Make",
-    "model": "Model",
-    "city": "City",
-    "selectMake": "Select Make",
-    "selectModel": "Select Model",
-    "selectCity": "Select City",
-    "anyMake": "Any Make",
-    "anyModel": "Any Model",
-    "anyCity": "Any City",
-    "searchCars": "Search Cars"
-  }
+  "date": "Date"
 }

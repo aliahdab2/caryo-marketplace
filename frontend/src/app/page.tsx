@@ -69,7 +69,7 @@ export default function Home() {
     },
   ];
 
-  // Vehicle categories
+  // Vehicle categories.
   const categories = [
     { name: t("carsFeatures.sedan"), icon: "🚗", count: 128 },
     { name: t("carsFeatures.suv"), icon: "🚙", count: 96 },
