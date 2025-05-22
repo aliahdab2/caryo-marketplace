@@ -20,7 +20,7 @@ VALUES ('Test Location', 'موقع اختبار', 'test-location', 'AE', 'Test R
 -- Single Test Car Listing
 MERGE INTO car_listings (
     title, description, price, mileage, model_year,
-    brand, model, location_id, user_id, condition_id,
+    brand, model, location_id, seller_id, condition_id,
     body_style_id, transmission_id, fuel_type_id, drive_type_id
 )
 KEY(title)

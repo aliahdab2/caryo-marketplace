@@ -86,6 +86,26 @@ public class CarListing {
     @Size(max = 50)
     @Column(name = "transmission", length = 50)
     private String transmission;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "condition_id")
+    private CarCondition condition;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "body_style_id")
+    private BodyStyle bodyStyle;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "transmission_id")
+    private Transmission transmissionType;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fuel_type_id")
+    private FuelType fuelType;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "drive_type_id")
+    private DriveType driveType;
 
     @Column(name = "approved", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean approved = false;
@@ -120,15 +140,26 @@ public class CarListing {
     
     @PrePersist
     protected void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = now;
+        }
+        if (updatedAt == null) {
+            updatedAt = now;
         }
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+    /**
+     * The @PreUpdate method is commented out because we're using a PostgreSQL trigger
+     * to automatically update the updated_at timestamp.
+     * 
+     * If we ever need to handle updates at the application level, uncomment this method.
+     *
+     * @PreUpdate
+     * protected void onUpdate() {
+     *     updatedAt = LocalDateTime.now();
+     * }
+     */
     
 
     
@@ -164,5 +195,15 @@ public class CarListing {
      */
     public void removeMedia(ListingMedia media) {
         this.media.remove(media);
+    }
+    
+    /**
+     * Synchronizes the transmission string field with the transmissionType entity.
+     * This method should be called before saving a car listing.
+     */
+    protected void syncTransmissionField() {
+        if (transmissionType != null) {
+            this.transmission = transmissionType.getName();
+        }
     }
 }

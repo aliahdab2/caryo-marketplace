@@ -4,7 +4,7 @@ This directory contains all utility scripts for the AutoTrader Backend project. 
 
 ## Directory Structure
 
-- **run-tests.sh** - Unified test runner for all types of tests
+- ~~**run-tests.sh** - Unified test runner for all types of tests~~ (Note: This script has been removed)
 
 - **dev/** - Development environment scripts
   - `dev-env.sh` - Start, stop, and manage the development environment
@@ -12,7 +12,7 @@ This directory contains all utility scripts for the AutoTrader Backend project. 
 
 - **test/** - Testing scripts and documentation
   - `README.md` - Comprehensive testing documentation
-  - Tests are now centralized through the main run-tests.sh script
+  - ~~Tests are now centralized through the main run-tests.sh script~~ (Note: Test runner script is no longer available)
 
 - **postman/** - Postman-related scripts
   - `generate-docs.sh` - Generate API documentation from Postman collections
@@ -26,7 +26,7 @@ This directory contains all utility scripts for the AutoTrader Backend project. 
 
 The script infrastructure has been improved for better organization:
 
-1. **Centralized Testing**: The `run-tests.sh` script provides a unified interface for all tests
+1. ~~**Centralized Testing**: The `run-tests.sh` script provides a unified interface for all tests~~ (Note: This functionality is no longer available)
 2. **Consistent API Paths**: Fixed inconsistencies between `/auth/*` and `/api/auth/*`
 3. **Better Authentication**: Improved token management in Postman tests
 4. **Removed Redundancy**: Eliminated duplicate scripts doing similar functions
@@ -34,12 +34,12 @@ The script infrastructure has been improved for better organization:
 
 ### Key Improvements
 
-1. **Test Runner**: The new test runner supports:
-   - Running specific Postman collections
-   - Unit and integration tests
-   - Environment management
-   - Health checks
-   - HTML report generation
+1. ~~**Test Runner**: The new test runner supports:~~ (Note: Test runner functionality is no longer available)
+   ~~- Running specific Postman collections~~
+   ~~- Unit and integration tests~~
+   ~~- Environment management~~
+   ~~- Health checks~~
+   ~~- HTML report generation~~
 
 2. **Fixed Postman Scripts**: 
    - Consistent API paths across collections

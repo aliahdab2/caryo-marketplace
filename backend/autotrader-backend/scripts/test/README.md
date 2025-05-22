@@ -7,13 +7,11 @@ This directory contains the unified test infrastructure for the AutoTrader backe
 The testing infrastructure has been simplified and improved to provide:
 1. Consistent API endpoints across all tests
 2. Better authentication handling
-3. Centralized test execution
 4. Removal of redundant script files
 5. Clear documentation and usage information
 
 ## Directory Structure
 
-- `run-tests.sh` - Main test runner script
 - `postman/` - Postman collections and environment files
   - `collections/` - Test collections organized by functional area
     - `auth-tests.json` - Authentication tests
@@ -23,9 +21,10 @@ The testing infrastructure has been simplified and improved to provide:
 
 ## Using the Test Runner
 
-The main script `run-tests.sh` provides a unified interface for running all tests:
 
-```bash
+> **Note:** The centralized test runner script has been removed. Please use Gradle tasks or other available testing mechanisms for running tests.
+
+~~```bash
 # Run all tests
 ./run-tests.sh all
 
@@ -42,7 +41,7 @@ The main script `run-tests.sh` provides a unified interface for running all test
 
 # Check environment health
 ./run-tests.sh health
-```
+```~~
 
 ## Postman Tests
 

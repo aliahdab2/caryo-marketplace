@@ -104,9 +104,9 @@ jacocoTestReport {
 
 // Configure Flyway
 flyway {
-    url = 'jdbc:postgresql://localhost:5433/autotrader'
-    user = 'autotrader'
-    password = 'autotrader'
+    url = 'jdbc:postgresql://localhost:5432/autotrader'
+    user = 'postgres'
+    password = 'postgres'
     locations = ['filesystem:src/main/resources/db/migration']
     baselineOnMigrate = true
     validateOnMigrate = true
@@ -133,7 +133,9 @@ tasks.register('flywayMigrateTest') {
     description = 'Migrates the database for test environment'
     doFirst {
         flyway {
-            url = 'jdbc:postgresql://localhost:5433/autotrader_test'
+            url = 'jdbc:postgresql://localhost:5432/autotrader_test'
+            user = 'postgres'
+            password = 'postgres'
             locations = ['filesystem:src/main/resources/db/migration', 'filesystem:src/main/resources/db/test']
             placeholders = [
                 'environment': 'test'
@@ -166,8 +168,8 @@ tasks.register('createTestDb') {
         exec {
             workingDir '.'
             commandLine 'docker', 'compose', '-f', 'docker-compose.dev.yml', 'exec', '-T', 'db', 
-                       'psql', '-U', 'autotrader', '-d', 'postgres', '-c', 
-                       'CREATE DATABASE autotrader_test WITH OWNER autotrader;'
+                       'psql', '-U', 'postgres', '-d', 'postgres', '-c', 
+                       'CREATE DATABASE autotrader_test WITH OWNER postgres;'
             ignoreExitValue = true
         }
     }
@@ -180,7 +182,7 @@ tasks.register('dropTestDb') {
         exec {
             workingDir '.'
             commandLine 'docker', 'compose', '-f', 'docker-compose.dev.yml', 'exec', '-T', 'db',
-                       'psql', '-U', 'autotrader', '-d', 'postgres', '-c',
+                       'psql', '-U', 'postgres', '-d', 'postgres', '-c',
                        'DROP DATABASE IF EXISTS autotrader_test;'
             ignoreExitValue = true
         }

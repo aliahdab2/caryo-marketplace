@@ -55,9 +55,17 @@ This document outlines the database schema for the AutoTrader Marketplace backen
 - **cylinders**: INTEGER
 - **seller_id**: BIGINT NOT NULL (Foreign Key to users.id)
 - **location_id**: BIGINT (Foreign Key to locations.id)
+- **condition_id**: BIGINT (Foreign Key to car_conditions.id)
+- **body_style_id**: BIGINT (Foreign Key to body_styles.id)
+- **transmission_id**: BIGINT (Foreign Key to transmissions.id)
+- **fuel_type_id**: BIGINT (Foreign Key to fuel_types.id)
+- **drive_type_id**: BIGINT (Foreign Key to drive_types.id)
+- **transmission**: VARCHAR(50)
 - **approved**: BOOLEAN DEFAULT FALSE
 - **sold**: BOOLEAN DEFAULT FALSE
 - **archived**: BOOLEAN DEFAULT FALSE
+- **expired**: BOOLEAN DEFAULT FALSE
+- **is_user_active**: BOOLEAN DEFAULT TRUE
 - **expiration_date**: TIMESTAMP
 - **created_at**: TIMESTAMP NOT NULL
 - **updated_at**: TIMESTAMP NOT NULL
@@ -197,6 +205,11 @@ This document outlines the database schema for the AutoTrader Marketplace backen
 - **users** has many **roles** through **user_roles**
 - **car_listings** belongs to **users** (seller)
 - **car_listings** belongs to **locations**
+- **car_listings** belongs to **car_conditions**
+- **car_listings** belongs to **body_styles**
+- **car_listings** belongs to **transmissions**
+- **car_listings** belongs to **fuel_types**
+- **car_listings** belongs to **drive_types**
 - **car_listings** has many **listing_media**
 - **car_listings** has many **ad_packages** through **listing_packages**
 - **car_listings** has many **ad_services** through **listing_services**
@@ -209,7 +222,12 @@ This document outlines the database schema for the AutoTrader Marketplace backen
 
 ```
 [users] 1——* [car_listings] *——1 [locations]
-   |                |
+   |                |                
+   |                |——————*——1 [car_conditions]
+   |                |——————*——1 [body_styles]
+   |                |——————*——1 [transmissions]
+   |                |——————*——1 [fuel_types]
+   |                |——————*——1 [drive_types]
    |                |
    |                *
    |         [listing_media]
@@ -240,3 +258,18 @@ This document outlines the database schema for the AutoTrader Marketplace backen
 3. **Data Integrity**:
    - Foreign key constraints ensure referential integrity
    - Cascade delete for certain relationships (e.g., listing images when a listing is deleted)
+
+## Database Triggers
+
+### Timestamp Auto-Update Triggers
+
+The following tables have triggers to automatically update their `updated_at` timestamp whenever a row is updated:
+
+- **users** - `update_users_modtime`
+- **locations** - `update_locations_modtime`
+- **car_listings** - `update_car_listings_modtime`
+- **listing_packages** - `update_listing_packages_modtime`
+- **ad_packages** - `update_ad_packages_modtime`
+- **ad_services** - `update_ad_services_modtime`
+
+All these triggers use the `update_modified_column()` function which sets `NEW.updated_at = now()`.

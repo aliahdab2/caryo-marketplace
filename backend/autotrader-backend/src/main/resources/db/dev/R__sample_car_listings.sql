@@ -35,12 +35,12 @@ BEGIN
         -- Sample Car Listings with various conditions and types
         INSERT INTO car_listings (
             title, description, price, mileage, model_year, brand, model,
-            location_id, user_id, condition_id, body_style_id, transmission_id,
-            fuel_type_id, drive_type_id
+            location_id, seller_id, condition_id, body_style_id, transmission_id,
+            fuel_type_id, drive_type_id, approved, sold, archived
         ) 
         SELECT 
             title, description, price, mileage, model_year, brand, model,
-            l.id, u.id, c.id, b.id, t.id, f.id, d.id
+            l.id, u.id, c.id, b.id, t.id, f.id, d.id, true, false, false
         FROM (
             VALUES 
             (
@@ -118,13 +118,16 @@ BEGIN
         ON CONFLICT DO NOTHING;
 
         -- Sample Images
-        INSERT INTO car_images (car_listing_id, image_url, sort_order, is_primary)
+        INSERT INTO listing_media (listing_id, file_key, file_name, content_type, size, sort_order, is_primary, media_type)
         SELECT 
             cl.id,
-            'https://dev-sample-bucket.s3.amazonaws.com/cars/' || 
+            'cars/' || LOWER(REPLACE(REPLACE(cl.brand || '-' || cl.model || '-' || cl.model_year::text, ' ', '-'), '/', '-')) || '.jpg',
             LOWER(REPLACE(REPLACE(cl.brand || '-' || cl.model || '-' || cl.model_year::text, ' ', '-'), '/', '-')) || '.jpg',
+            'image/jpeg',
+            1000000,
             1,
-            true
+            true,
+            'image'
         FROM car_listings cl
         WHERE cl.title IN ('BMW 3 Series 2021', 'Mercedes-Benz G63 AMG 2022', 'Tesla Model 3 2023')
         ON CONFLICT DO NOTHING;

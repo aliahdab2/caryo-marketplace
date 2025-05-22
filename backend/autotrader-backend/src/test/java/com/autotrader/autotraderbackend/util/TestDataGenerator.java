@@ -67,6 +67,7 @@ public class TestDataGenerator {
         listing.setSold(false);
         listing.setArchived(false);
         listing.setCreatedAt(LocalDateTime.now());
+        listing.setUpdatedAt(LocalDateTime.now());
         return listing;
     }
 }

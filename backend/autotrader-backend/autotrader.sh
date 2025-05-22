@@ -195,48 +195,13 @@ handle_api_command() {
 
 # Test command
 handle_test_command() {
-  # Ensure our main test runner script is executable
-  ensure_executable "$PROJECT_ROOT/scripts/run-tests.sh"
+  echo -e "${YELLOW}Warning: Test runner scripts have been removed.${NC}"
+  echo -e "${YELLOW}Test commands are currently unavailable.${NC}"
+  echo -e "${YELLOW}Please contact the development team for assistance with running tests.${NC}"
   
-  case "$1" in
-    all)
-      # Run all tests with automatic environment management
-      "$PROJECT_ROOT/scripts/run-tests.sh" all --start-env
-      ;;
-    auth)
-      # Run only authentication tests
-      "$PROJECT_ROOT/scripts/run-tests.sh" postman auth --start-env
-      ;;
-    endpoints)
-      # Run API endpoints tests
-      "$PROJECT_ROOT/scripts/run-tests.sh" postman endpoints --start-env
-      ;;
-    reference-data|refdata)
-      # Run reference data tests
-      "$PROJECT_ROOT/scripts/run-tests.sh" postman reference-data --start-env
-      ;;
-    postman)
-      # Run all Postman collections
-      "$PROJECT_ROOT/scripts/run-tests.sh" postman --start-env
-      ;;
-    unit)
-      # Run unit tests
-      "$PROJECT_ROOT/scripts/run-tests.sh" unit
-      ;;
-    integration)
-      # Run integration tests
-      "$PROJECT_ROOT/scripts/run-tests.sh" integration
-      ;;
-    health)
-      # Run health check
-      "$PROJECT_ROOT/scripts/run-tests.sh" health
-      ;;
-    *)
-      echo -e "${RED}Unknown test command: $1${NC}"
-      echo -e "Available test commands: all, auth, endpoints, reference-data, postman, unit, integration, health"
-      exit 1
-      ;;
-  esac
+  # Future implementation will go here when tests are properly set up
+  # For now, just exit with an error code
+  exit 1
 }
 
 # Documentation command

@@ -7,7 +7,6 @@ This directory contains several scripts to help with development and deployment:
 - `autotrader.sh` - Main CLI for development tasks
 - `dev-env.sh` - Sets up the development environment
 - `start-dev.sh` - Starts the application in development mode
-- `run-tests.sh` - Runs the application tests
 
 Development environment configuration is in the `.devenv` directory.
 
