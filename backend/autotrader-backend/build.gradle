@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot' version '3.2.3'
     id 'io.spring.dependency-management' version '1.1.4'
     id 'jacoco'
+    id 'org.flywaydb.flyway' version '9.22.3'
 }
 
 group = 'com.autotrader'
@@ -28,8 +29,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     
+   // Flyway for database migrations
+   implementation 'org.flywaydb:flyway-core:9.22.3'
+
     // JSR 305 for @NonNull, @Nullable, etc.
-    implementation 'com.google.code.findbugs:jsr305:3.0.2' // Added this line
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.30'
@@ -96,4 +100,99 @@ jacocoTestReport {
             ])
         }))
     }
+}
+
+// Configure Flyway
+flyway {
+    url = 'jdbc:postgresql://localhost:5433/autotrader'
+    user = 'autotrader'
+    password = 'autotrader'
+    locations = ['filesystem:src/main/resources/db/migration']
+    baselineOnMigrate = true
+    validateOnMigrate = true
+    cleanDisabled = false  // Enable clean for development
+}
+
+// Environment-specific Flyway tasks
+tasks.register('flywayMigrateDev') {
+    group = 'Database'
+    description = 'Migrates the database for development environment'
+    doFirst {
+        flyway {
+            locations = ['filesystem:src/main/resources/db/migration', 'filesystem:src/main/resources/db/dev']
+            placeholders = [
+                'environment': 'development'
+            ]
+        }
+    }
+    finalizedBy flywayMigrate
+}
+
+tasks.register('flywayMigrateTest') {
+    group = 'Database'
+    description = 'Migrates the database for test environment'
+    doFirst {
+        flyway {
+            url = 'jdbc:postgresql://localhost:5433/autotrader_test'
+            locations = ['filesystem:src/main/resources/db/migration', 'filesystem:src/main/resources/db/test']
+            placeholders = [
+                'environment': 'test'
+            ]
+        }
+    }
+    finalizedBy flywayMigrate
+}
+
+tasks.register('flywayMigrateProd') {
+    group = 'Database'
+    description = 'Migrates the database for production environment'
+    doFirst {
+        flyway {
+            cleanDisabled = true
+            locations = ['classpath:db/migration']
+            placeholders = [
+                'environment': 'production'
+            ]
+        }
+    }
+    finalizedBy flywayMigrate
+}
+
+// Database management tasks
+tasks.register('createTestDb') {
+    group = 'Database'
+    description = 'Creates the test database if it does not exist'
+    doFirst {
+        exec {
+            workingDir '.'
+            commandLine 'docker', 'compose', '-f', 'docker-compose.dev.yml', 'exec', '-T', 'db', 
+                       'psql', '-U', 'autotrader', '-d', 'postgres', '-c', 
+                       'CREATE DATABASE autotrader_test WITH OWNER autotrader;'
+            ignoreExitValue = true
+        }
+    }
+}
+
+tasks.register('dropTestDb') {
+    group = 'Database'
+    description = 'Drops the test database if it exists'
+    doFirst {
+        exec {
+            workingDir '.'
+            commandLine 'docker', 'compose', '-f', 'docker-compose.dev.yml', 'exec', '-T', 'db',
+                       'psql', '-U', 'autotrader', '-d', 'postgres', '-c',
+                       'DROP DATABASE IF EXISTS autotrader_test;'
+            ignoreExitValue = true
+        }
+    }
+}
+
+tasks.register('resetTestDb') {
+    group = 'Database'
+    description = 'Resets the test database (drop, create, migrate)'
+    dependsOn dropTestDb
+    dependsOn createTestDb
+    dependsOn flywayMigrateTest
+    tasks.findByName('createTestDb').mustRunAfter dropTestDb
+    tasks.findByName('flywayMigrateTest').mustRunAfter createTestDb
 }

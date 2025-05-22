@@ -17,7 +17,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "5432:5432"  # Expose PostgreSQL port for local development tools
+      - "5433:5432"  # Expose PostgreSQL port for local development tools
     networks:
       - backend-network
 
