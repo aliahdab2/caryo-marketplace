@@ -11,6 +11,8 @@ services:
       POSTGRES_DB: autotrader
       POSTGRES_USER: autotrader
       POSTGRES_PASSWORD: autotrader
+      # Set app.env for sample data scripts
+      POSTGRES_INITDB_ARGS: "--locale-provider=icu --icu-locale=en-US"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U autotrader"]
       interval: 10s

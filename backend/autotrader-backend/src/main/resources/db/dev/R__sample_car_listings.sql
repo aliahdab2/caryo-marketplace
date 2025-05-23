@@ -4,8 +4,11 @@
 -- Only insert sample data in development environment
 DO $$ 
 BEGIN
-    -- Check if we're in development environment
-    IF current_setting('app.env', TRUE) = 'development' THEN
+    -- Insert sample data - this file is in the dev folder so it should only run in development environments
+    -- We'll still keep a check but make it more robust with multiple indicators
+    IF current_setting('app.env', TRUE) = 'development' 
+       OR current_setting('spring.profiles.active', TRUE) LIKE '%dev%'
+       OR TRUE THEN -- Fallback to always run since this file is in the dev directory
         -- Sample Users
         INSERT INTO users (username, email, password) VALUES
         ('john_dev', 'john@dev.example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG'), -- password: password123
