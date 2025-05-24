@@ -1,12 +1,14 @@
 package com.autotrader.autotraderbackend.payload.response;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
 
 @Getter
 @Setter
+@NoArgsConstructor 
 public class JwtResponse {
     private String token;
     private String type = "Bearer";
