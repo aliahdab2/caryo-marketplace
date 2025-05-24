@@ -782,6 +782,66 @@ To run all API tests automatically:
 - **Car Models**: Camry, Mustang, Civic, 3 Series, Model S
 - **Locations**: New York, NY; Los Angeles, CA; Chicago, IL; Houston, TX; Phoenix, AZ
 
+### Car Brand and Model Data
+
+#### Get All Car Brands
+
+- **Endpoint**: `GET /api/reference-data/brands`
+- **Access**: Public
+- **Description**: Retrieves a list of all active car brands.
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "Toyota",
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "Ford",
+      "active": true
+    }
+    // ... more brands
+  ]
+  ```
+
+#### Get Models for a Specific Brand
+
+- **Endpoint**: `GET /api/reference-data/brands/{brandId}/models`
+- **Access**: Public
+- **Description**: Retrieves a list of active car models for a given brand ID.
+- **Parameters**:
+  - `brandId` (path parameter): The ID of the car brand.
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 101,
+      "name": "Camry",
+      "active": true,
+      "brandId": 1 
+    },
+    {
+      "id": 102,
+      "name": "Corolla",
+      "active": true,
+      "brandId": 1
+    }
+    // ... more models for the brand
+  ]
+  ```
+- **Response (404 Not Found)** - Brand not found:
+  ```json
+  {
+    "timestamp": "2025-05-01T10:00:00Z",
+    "status": 404,
+    "error": "Not Found",
+    "message": "CarBrand not found with id: 999",
+    "path": "/api/reference-data/brands/999/models"
+  }
+  ```
+
 ## Admin Operations
 
 ### Admin Dashboard and Management

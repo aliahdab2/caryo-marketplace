@@ -26,6 +26,8 @@ interface Filters {
   minYear?: number;
   maxYear?: number;
   location?: string;
+  brand?: string;
+  model?: string;
 }
 
 const ListingsPage = () => {
@@ -40,7 +42,7 @@ const ListingsPage = () => {
     search: searchParams.get('search') || undefined,
     category: searchParams.get('category') || undefined,
     minPrice: searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : undefined,
-    maxPrice: searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined, // Corrected here
+    maxPrice: searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined,
     condition: searchParams.get('condition') || undefined,
     sortBy: searchParams.get('sortBy') || 'createdAt', // Default sortBy
     sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc', // Default sortOrder
@@ -48,6 +50,12 @@ const ListingsPage = () => {
     maxYear: searchParams.get('maxYear') ? parseInt(searchParams.get('maxYear')!, 10) : undefined,
     location: searchParams.get('location') || undefined,
   };
+
+  // Add these for the API
+  const make = searchParams.get('brand') || undefined;
+  const model = searchParams.get('model') || undefined;
+  if (make) initialFilters.brand = make;
+  if (model) initialFilters.model = model;
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [filters, setFilters] = useState<Filters>(initialFilters);
@@ -70,17 +78,35 @@ const ListingsPage = () => {
       minYear: filters.minYear?.toString(),
       maxYear: filters.maxYear?.toString(),
       location: filters.location,
-      // These are not in ListingFilters type but mock service might use them if passed
-      // For a real API, ensure ListingFilters includes them if supported
-      ...(filters.category && { category: filters.category }),
-      ...(filters.condition && { condition: filters.condition }),
-      ...(filters.sortBy && { sortBy: filters.sortBy }),
-      ...(filters.sortOrder && { sortOrder: filters.sortOrder }),
+      brand: filters.brand,
+      model: filters.model
     };
 
     getListings(apiFilters)
       .then(data => {
-        setListings(data.listings);
+        // Apply additional client-side filtering for brand and model if specified
+        let filteredListings = [...data.listings];
+        
+        // Double check that brand filter is applied correctly (for extra reliability)
+        if (filters.brand) {
+          const brandLower = filters.brand.toLowerCase();
+          filteredListings = filteredListings.filter(listing => 
+            listing.brand?.toLowerCase() === brandLower ||
+            listing.title.toLowerCase().startsWith(brandLower)
+          );
+        }
+        
+        // Double check that model filter is applied correctly
+        if (filters.model) {
+          const modelLower = filters.model.toLowerCase();
+          filteredListings = filteredListings.filter(listing => 
+            listing.model?.toLowerCase() === modelLower ||
+            listing.title.toLowerCase().includes(modelLower)
+          );
+        }
+        
+        setListings(filteredListings);
+        // Keep the total and pages the same as what came from the API
         setTotalListings(data.total);
         setTotalPages(Math.ceil(data.total / (filters.limit || 12)));
         setIsLoading(false);
@@ -110,6 +136,8 @@ const ListingsPage = () => {
     if (filters.minYear) queryParams.set('minYear', String(filters.minYear));
     if (filters.maxYear) queryParams.set('maxYear', String(filters.maxYear));
     if (filters.location) queryParams.set('location', filters.location);
+    if (filters.brand) queryParams.set('brand', filters.brand);
+    if (filters.model) queryParams.set('model', filters.model);
 
     const newUrl = `/listings?${queryParams.toString()}`;
     
@@ -167,14 +195,29 @@ const ListingsPage = () => {
             </div>
             <Link href={`/listings/${listing.id}`} className="block group">
               <div className="relative h-48 w-full overflow-hidden">
-                <Image
-                  src={listing.media && listing.media.length > 0 ? listing.media[0].url : '/images/vehicles/car-default.svg'}
-                  alt={listing.title}
-                  className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  unoptimized
-                />
+                {listing.media && listing.media.length > 0 ? (
+                  <Image
+                    src={listing.media.find(m => m.isPrimary)?.url || listing.media[0].url}
+                    alt={listing.title}
+                    className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    unoptimized
+                  />
+                ) : (
+                  <Image
+                    src="/images/vehicles/car-default.svg"
+                    alt={listing.title}
+                    className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                )}
+                {listing.media && listing.media.length > 1 && (
+                  <div className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded-md">
+                    +{listing.media.length - 1} {t('listings.moreImages')}
+                  </div>
+                )}
               </div>
               <div className="p-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 truncate group-hover:text-primary-500 transition-colors">
@@ -188,7 +231,9 @@ const ListingsPage = () => {
                 </h4>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
                   <p className="truncate">
-                    {listing.location?.city || t('listings.unknownLocation')}
+                    {i18n.language === 'ar' && listing.location?.cityAr 
+                      ? listing.location.cityAr 
+                      : listing.location?.city || t('listings.unknownLocation')}
                     {listing.location?.country ? `, ${listing.location.country}` : ''}
                   </p>
                   <p>{t('listings.postedOn')}: {listing.createdAt ? (

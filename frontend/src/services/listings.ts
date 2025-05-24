@@ -1,7 +1,6 @@
 // Listings API service
 import { Listing } from '@/types/listing';
-
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+import { api } from './api';
 
 export type ListingFilters = {
   minPrice?: string;
@@ -9,141 +8,143 @@ export type ListingFilters = {
   minYear?: string;
   maxYear?: string;
   location?: string;
+  brand?: string;
+  model?: string;
   searchTerm?: string;
   page?: number;
   limit?: number;
 };
 
-export async function getListings(filters: ListingFilters = {}): Promise<{ listings: Listing[], total: number }> {
-  // In a real app, this would call the API with filters
-  // For now, we'll simulate this with mock data
-  const params = new URLSearchParams();
-  
-  if (filters.minPrice) params.append('minPrice', filters.minPrice);
-  if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
-  if (filters.minYear) params.append('minYear', filters.minYear);
-  if (filters.maxYear) params.append('maxYear', filters.maxYear);
-  if (filters.location) params.append('location', filters.location);
-  if (filters.searchTerm) params.append('search', filters.searchTerm);
-  if (filters.page) params.append('page', String(filters.page));
-  if (filters.limit) params.append('limit', String(filters.limit));
-  
-  // In a real implementation, you would fetch from the API:
-  // const response = await fetch(`${API_URL}/api/listings?${params.toString()}`);
-  // const data = await response.json();
-  // return data;
-  
-  // For now, return mock data
-  return mockListingsData(filters);
+interface ListingApiResponse {
+  content: Array<{
+    id: number;
+    title: string;
+    brand: string;
+    model: string;
+    modelYear: number;
+    mileage: number;
+    price: number;
+    locationDetails: {
+      id: number;
+      name: string;
+      displayNameEn: string;
+      displayNameAr: string;
+      slug: string;
+      region: string;
+      countryCode: string;
+    };
+    description: string;
+    media: Array<{
+      id: number;
+      url: string;
+      contentType: string;
+      isPrimary: boolean;
+    }>;
+    approved: boolean;
+    sellerId: number;
+    sellerUsername: string;
+    createdAt: string;
+    isSold: boolean;
+    isArchived: boolean;
+    isUserActive: boolean;
+    isExpired: boolean;
+  }>;
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
 }
 
-// Constants for mock data generation
-const CITIES = ['Damascus', 'Aleppo', 'Homs', 'Latakia', 'Hama'];
-const CAR_MAKES_MODELS = [
-  { make: 'Toyota', models: ['Camry', 'Corolla', 'RAV4', 'Land Cruiser'] },
-  { make: 'Honda', models: ['Accord', 'Civic', 'CR-V', 'Pilot'] },
-  { make: 'BMW', models: ['3 Series', '5 Series', 'X3', 'X5'] },
-  { make: 'Mercedes', models: ['C-Class', 'E-Class', 'GLC', 'S-Class'] },
-  { make: 'Hyundai', models: ['Elantra', 'Sonata', 'Tucson', 'Santa Fe'] }
-];
-const FUEL_TYPES = ['Petrol', 'Diesel', 'Electric', 'Hybrid'];
-const TRANSMISSIONS = ['Automatic', 'Manual', 'CVT', 'DCT'];
-
-/**
- * Generate a random date within the last month
- * @returns ISO string date
- */
-function getRandomRecentDate(): string {
-  const now = Date.now();
-  const oneMonthMs = 30 * 24 * 60 * 60 * 1000;
-  return new Date(now - Math.floor(Math.random() * oneMonthMs)).toISOString();
-}
-
-// Mock function to simulate API response
-function mockListingsData(filters: ListingFilters = {}): { listings: Listing[], total: number } {
-  // Generate 24 mock listings
-  const allMockListings = Array.from({ length: 24 }, (_, i): Listing => {
-    const makeModelIndex = i % CAR_MAKES_MODELS.length;
-    const make = CAR_MAKES_MODELS[makeModelIndex].make;
-    const model = CAR_MAKES_MODELS[makeModelIndex].models[i % CAR_MAKES_MODELS[makeModelIndex].models.length];
-    const city = CITIES[i % CITIES.length];
-    const randomDate = getRandomRecentDate();
+// Helper function to convert API response to our Listing type
+function mapApiResponseToListings(apiResponse: ListingApiResponse): { listings: Listing[], total: number } {
+  const listings = apiResponse.content.map(item => {
+    // Default seller type to 'private' if not available
+    const sellerType: 'private' | 'dealer' = 'private';
+    
+    // Determine the status based on the item properties
+    let status: 'active' | 'pending' | 'sold' | 'expired' | undefined;
+    if (item.isSold) {
+      status = 'sold';
+    } else if (item.isExpired) {
+      status = 'expired';
+    } else if (item.approved) {
+      status = 'active';
+    } else {
+      status = 'pending';
+    }
+    
+    // Get primary image or first image if available
+    const primaryMedia = item.media?.find(m => m.isPrimary);
+    const firstMedia = item.media && item.media.length > 0 ? item.media[0] : null;
+    const mainImageUrl = primaryMedia?.url || firstMedia?.url || '/images/vehicles/car-default.svg';
+    
+    // Prepare all media URLs
+    const mediaItems = item.media?.map(m => ({ 
+      url: m.url, 
+      type: m.contentType,
+      isPrimary: m.isPrimary || false
+    })) || [];
     
     return {
-      id: `car-${i+1}`,
-      title: `${make} ${model} ${i+1}`,
-      price: Math.floor(5000000 + Math.random() * 20000000), // Syrian Pound values (millions)
-      year: Math.floor(2000 + Math.random() * 23),
-      listingDate: new Date(randomDate),
-      mileage: Math.floor(10000 + Math.random() * 100000),
+      id: item.id.toString(),
+      title: `${item.brand} ${item.model} ${item.modelYear}`,
+      price: item.price,
+      year: item.modelYear,
+      mileage: item.mileage,
+      brand: item.brand,
+      model: item.model,
       location: {
-        city: city,
-        country: 'Syria'
+        city: item.locationDetails?.displayNameEn || '',
+        cityAr: item.locationDetails?.displayNameAr || '',
+        country: 'Syria',
+        countryCode: item.locationDetails?.countryCode || 'SY'
       },
-      image: `/images/vehicles/car${(i % 5) + 1}.jpg`,
-      fuelType: FUEL_TYPES[i % FUEL_TYPES.length],
-      transmission: TRANSMISSIONS[i % TRANSMISSIONS.length],
-      createdAt: randomDate,
+      image: mainImageUrl,
+      media: mediaItems,
+      fuelType: '', // This could be added to the response if available
+      transmission: '', // This could be added to the response if available
+      createdAt: item.createdAt,
+      description: item.description,
+      status,
+      approved: item.approved,
+      expired: item.isExpired,
+      seller: {
+        id: item.sellerId.toString(),
+        name: item.sellerUsername,
+        type: sellerType,
+      }
     };
   });
   
-  // Apply filters
-  let filtered = [...allMockListings];
-  
-  // Parse numeric filters safely
-  const minPrice = filters.minPrice ? Number(filters.minPrice) : null;
-  const maxPrice = filters.maxPrice ? Number(filters.maxPrice) : null;
-  const minYear = filters.minYear ? Number(filters.minYear) : null;
-  const maxYear = filters.maxYear ? Number(filters.maxYear) : null;
-  
-  // Apply numeric filters only if they parsed correctly
-  if (minPrice !== null && !isNaN(minPrice)) {
-    filtered = filtered.filter(item => item.price >= minPrice);
-  }
-  
-  if (maxPrice !== null && !isNaN(maxPrice)) {
-    filtered = filtered.filter(item => item.price <= maxPrice);
-  }
-  
-  if (minYear !== null && !isNaN(minYear)) {
-    filtered = filtered.filter(item => item.year >= minYear);
-  }
-  
-  if (maxYear !== null && !isNaN(maxYear)) {
-    filtered = filtered.filter(item => item.year <= maxYear);
-  }
-  
-  if (filters.location && filters.location !== 'All Locations') {
-    filtered = filtered.filter(item => 
-      item.location?.city === filters.location || 
-      item.location?.country === filters.location
-    );
-  }
-  
-  if (filters.searchTerm) {
-    const term = filters.searchTerm.toLowerCase();
-    filtered = filtered.filter(item => {
-      // Expanded search to include more fields
-      const titleMatch = item.title.toLowerCase().includes(term);
-      const cityMatch = item.location?.city?.toLowerCase().includes(term) || false;
-      const countryMatch = item.location?.country?.toLowerCase().includes(term) || false;
-      const fuelMatch = item.fuelType?.toLowerCase().includes(term) || false;
-      const transMatch = item.transmission?.toLowerCase().includes(term) || false;
-      const yearMatch = String(item.year).includes(term);
-      
-      return titleMatch || cityMatch || countryMatch || fuelMatch || transMatch || yearMatch;
-    });
-  }
-  
-  // Handle pagination
-  const page = filters.page || 1;
-  const limit = filters.limit || 8;
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
-  const paginatedListings = filtered.slice(startIndex, endIndex);
-  
   return {
-    listings: paginatedListings,
-    total: filtered.length
+    listings,
+    total: apiResponse.totalElements
   };
+}
+
+export async function getListings(filters: ListingFilters = {}): Promise<{ listings: Listing[], total: number }> {
+  try {
+    // Build query parameters
+    const params = new URLSearchParams();
+    
+    if (filters.minPrice) params.append('minPrice', filters.minPrice);
+    if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+    if (filters.minYear) params.append('minYear', filters.minYear);
+    if (filters.maxYear) params.append('maxYear', filters.maxYear);
+    if (filters.location) params.append('location', filters.location);
+    if (filters.brand) params.append('brand', filters.brand);
+    if (filters.model) params.append('model', filters.model);
+    if (filters.searchTerm) params.append('search', filters.searchTerm);
+    if (filters.page) params.append('page', String(filters.page - 1)); // API uses 0-based indexing
+    if (filters.limit) params.append('size', String(filters.limit));
+    
+    // Call the real API
+    const response = await api.get<ListingApiResponse>(`/api/listings/filter?${params.toString()}`);
+    return mapApiResponseToListings(response);
+  } catch (error) {
+    console.error('Error fetching listings:', error);
+    // Fallback to empty results
+    return { listings: [], total: 0 };
+  }
 }

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { FaSearch, FaChevronDown } from "react-icons/fa";
+import { getLocations } from "@/services/locations";
+import { getListings } from "@/services/listings";
 
 export default function Home() {
   const { t } = useTranslation('common');
@@ -12,24 +14,69 @@ export default function Home() {
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
   const [city, setCity] = useState("");
-  const [models, setModels] = useState<string[]>([]);
   
-  // Mock data for dropdowns
-  const makes = ["Toyota", "Honda", "Ford", "BMW", "Mercedes-Benz", "Audi", "Chevrolet", "Nissan"];
-  const cities = ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain"];
+  // State for API data
+  const [models, setModels] = useState<string[]>([]);
+  const [makes, setMakes] = useState<string[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
+  
+  // Fetch reference data on component mount
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // Fetch locations
+        const locationsData = await getLocations();
+        
+        // Extract city names from locations
+        const cityNames = locationsData.map(loc => loc.displayNameEn);
+        setCities(cityNames);
+        
+        // Fetch car makes (using the first result for demo)
+        const listingsData = await getListings({ limit: 10 });
+        if (listingsData.listings.length > 0) {
+          // Extract unique makes from the listings
+          const uniqueMakes = Array.from(
+            new Set(
+              listingsData.listings.map(listing => 
+                listing.title.split(' ')[0] // Assuming format is "Make Model Year"
+              )
+            )
+          );
+          setMakes(uniqueMakes.length > 0 ? uniqueMakes : ["Toyota", "Honda", "BMW"]); // Fallback
+        } else {
+          // Fallback if no listings available
+          setMakes(["Toyota", "Honda", "Ford", "BMW", "Mercedes-Benz"]);
+        }
+      } catch (error) {
+        console.error("Error fetching reference data:", error);
+        // Fallback data
+        setMakes(["Toyota", "Honda", "Ford", "BMW", "Mercedes-Benz"]);
+        setCities(["Damascus", "Aleppo", "Homs", "Latakia", "Hama"]);
+      }
+    }
+    
+    fetchData();
+  }, []);
 
   // Update available models when make changes
   useEffect(() => {
+    if (!make) {
+      setModels([]);
+      return;
+    }
+    
+    // In a real implementation, this would fetch models from the API based on the selected make
+    // For now, we'll use a simple mapping
     if (make === "Toyota") {
-      setModels(["Camry", "Corolla", "RAV4", "Highlander", "4Runner"]);
+      setModels(["Camry", "Corolla", "RAV4", "Highlander"]);
     } else if (make === "Honda") {
-      setModels(["Civic", "Accord", "CR-V", "Pilot", "Odyssey"]);
+      setModels(["Civic", "Accord", "CR-V", "Pilot"]);
     } else if (make === "Ford") {
-      setModels(["F-150", "Escape", "Explorer", "Mustang", "Bronco"]);
+      setModels(["F-150", "Escape", "Explorer", "Mustang"]);
     } else if (make === "BMW") {
-      setModels(["3 Series", "5 Series", "X3", "X5", "7 Series"]);
+      setModels(["3 Series", "5 Series", "X3", "X5"]);
     } else if (make === "Mercedes-Benz") {
-      setModels(["C-Class", "E-Class", "GLC", "GLE", "S-Class"]);
+      setModels(["C-Class", "E-Class", "GLC", "GLE"]);
     } else {
       setModels([]);
     }
@@ -106,9 +153,9 @@ export default function Home() {
             e.preventDefault();
             // Build the search URL with parameters
             const params = new URLSearchParams();
-            if (make) params.append('make', make);
+            if (make) params.append('brand', make);
             if (model) params.append('model', model);
-            if (city) params.append('city', city);
+            if (city) params.append('location', city);
             
             // Navigate to the listings page with the search parameters
             window.location.href = `/listings?${params.toString()}`;

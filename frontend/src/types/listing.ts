@@ -5,13 +5,21 @@ export interface Listing {
   price: number;
   year: number; // Added year back
   mileage: number;
+  brand?: string; // Added brand
+  model?: string; // Added model
   location?: { // Changed to object
     city?: string;
+    cityAr?: string; // Added Arabic city name
     country?: string;
+    countryCode?: string; // Added country code
     address?: string; // Optional address line
   };
   image?: string; // Kept for simplicity, though page.tsx uses media
-  media?: { url: string; type?: string; }[]; // Added media for richer content
+  media?: { 
+    url: string; 
+    type?: string; 
+    isPrimary?: boolean; 
+  }[]; // Added isPrimary flag to media items
   fuelType?: string;
   transmission?: string;
   listingDate?: Date; // Kept for now

@@ -4,15 +4,13 @@ import com.autotrader.autotraderbackend.model.*;
 import com.autotrader.autotraderbackend.payload.response.CarReferenceDataResponse; // Added import
 import com.autotrader.autotraderbackend.service.*;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List; // Removed java.util.Map and java.util.HashMap imports as they are no longer needed.
 
@@ -30,6 +28,8 @@ public class CarReferenceDataController {
     private final FuelTypeService fuelTypeService;
     private final TransmissionService transmissionService;
     private final SellerTypeService sellerTypeService;
+    private final CarBrandService carBrandService;
+    private final CarModelService carModelService;
 
     @GetMapping
     @Operation(
@@ -60,5 +60,38 @@ public class CarReferenceDataController {
         
         log.debug("Returning all car reference data");
         return ResponseEntity.ok(referenceData);
+    }
+    
+    @GetMapping("/brands")
+    @Operation(
+        summary = "Get all active car brands",
+        description = "Returns a list of all active car brands. These can be used to populate dropdown lists in the UI.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "List of active car brands retrieved successfully")
+        }
+    )
+    public ResponseEntity<List<CarBrand>> getAllActiveBrands() {
+        log.debug("Request received to get all active car brands");
+        List<CarBrand> brands = carBrandService.getActiveBrands();
+        log.debug("Returning {} active car brands", brands.size());
+        return ResponseEntity.ok(brands);
+    }
+    
+    @GetMapping("/brands/{brandId}/models")
+    @Operation(
+        summary = "Get all active car models for a specific brand",
+        description = "Returns a list of all active car models belonging to the specified brand ID. These can be used to populate dependent dropdown lists in the UI.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "List of active car models retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Brand not found")
+        }
+    )
+    public ResponseEntity<List<CarModel>> getActiveModelsByBrand(
+            @Parameter(description = "ID of the car brand", required = true) 
+            @PathVariable Long brandId) {
+        log.debug("Request received to get active car models for brand ID: {}", brandId);
+        List<CarModel> models = carModelService.getActiveModelsByBrandId(brandId);
+        log.debug("Returning {} active car models for brand ID: {}", models.size(), brandId);
+        return ResponseEntity.ok(models);
     }
 }
