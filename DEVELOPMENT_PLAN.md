@@ -137,7 +137,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [x] **Exception handling** (implemented GlobalExceptionHandler with appropriate status codes and messages)
 - [ ] **API Rate Limiting/Throttling** (optional for security)
 
-### Phase 5: Deployment (✅ CI/CD Complete, Deployment In Progress)
+### Phase 5: Deployment (🚧 Testing Complete, Deployment Setup Needed)
 
 - [x] **Dockerize Storage** (set up MinIO with Docker Compose)
 - [x] **Create production-grade Dockerfile for Backend**
@@ -157,8 +157,8 @@ This section outlines the development plan for the AutoTrader Marketplace backen
     - [x] Hot-reload configuration with volume mounts
     - [x] Enhanced logging and debugging for development
   
-- [x] **Set up CI/CD pipeline with GitHub Actions**
-  - [x] Main CI/CD Pipeline (ci-cd.yml)
+- [x] **Set up CI pipeline with GitHub Actions**
+  - [x] Main CI Pipeline (ci-cd.yml)
     - [x] Build automation with Gradle
     - [x] Unit test integration
     - [x] Composite actions for reusability
@@ -173,6 +173,12 @@ This section outlines the development plan for the AutoTrader Marketplace backen
     - [x] Timeout configurations
     - [x] Conditional job execution
     - [x] Debug logging
+- [ ] **Implement CD (Continuous Deployment)**
+  - [ ] Add deployment workflow to GitHub Actions
+  - [ ] Set up staging environment
+  - [ ] Configure production deployment
+  - [ ] Implement rollback procedures
+  - [ ] Set up deployment notifications
 - [x] **Implement Secrets Management** (env vars for local, GitHub Secrets/Vault for prod)
   - [x] HashiCorp Vault integration for secure secrets storage
   - [x] Local development setup with Docker Compose
@@ -180,7 +186,12 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - [x] GitHub Actions integration documentation
   - [x] Migration strategy from hardcoded secrets
 - [x] **Enable Monitoring & Health Checks** (Spring Boot Actuator)
-- [ ] **Deploy to a cloud platform** (AWS, DigitalOcean, etc.)
+- [ ] **Deploy to a cloud platform** 
+  - [ ] Choose and set up cloud provider (AWS/DigitalOcean)
+  - [ ] Configure infrastructure as code
+  - [ ] Set up monitoring and logging
+  - [ ] Implement backup strategy
+  - [ ] Document deployment procedures
 
 ### Phase 6: Listing Lifecycle Management (✅ Partially Complete)
 
