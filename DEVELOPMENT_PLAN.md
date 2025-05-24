@@ -137,7 +137,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [x] **Exception handling** (implemented GlobalExceptionHandler with appropriate status codes and messages)
 - [ ] **API Rate Limiting/Throttling** (optional for security)
 
-### Phase 5: Deployment (In Progress)
+### Phase 5: Deployment (✅ CI/CD Complete, Deployment In Progress)
 
 - [x] **Dockerize Storage** (set up MinIO with Docker Compose)
 - [x] **Create production-grade Dockerfile for Backend**
@@ -157,7 +157,22 @@ This section outlines the development plan for the AutoTrader Marketplace backen
     - [x] Hot-reload configuration with volume mounts
     - [x] Enhanced logging and debugging for development
   
-- [ ] **Set up CI/CD pipeline** (GitHub Actions: test, build, deploy)
+- [x] **Set up CI/CD pipeline with GitHub Actions**
+  - [x] Main CI/CD Pipeline (ci-cd.yml)
+    - [x] Build automation with Gradle
+    - [x] Unit test integration
+    - [x] Composite actions for reusability
+    - [x] Multi-environment support
+  - [x] Dedicated Test Workflows
+    - [x] Integration tests (integration-tests.yml)
+    - [x] API testing with Postman (postman-tests.yml)
+    - [x] Scheduled test runs
+  - [x] Pipeline Optimizations
+    - [x] Caching and artifact management
+    - [x] LFS support for large files
+    - [x] Timeout configurations
+    - [x] Conditional job execution
+    - [x] Debug logging
 - [x] **Implement Secrets Management** (env vars for local, GitHub Secrets/Vault for prod)
   - [x] HashiCorp Vault integration for secure secrets storage
   - [x] Local development setup with Docker Compose
