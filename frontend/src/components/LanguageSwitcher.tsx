@@ -1,11 +1,14 @@
 "use client";
 
+import { ComponentProps } from "@/types/components";
 import { useLanguage } from '@/components/EnhancedLanguageProvider';
 import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
 import { SupportedLanguage } from '@/utils/i18n';
 
-export default function LanguageSwitcher() {
+type LanguageSwitcherProps = ComponentProps;
+
+export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const { locale, changeLanguage } = useLanguage();
   const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
@@ -89,7 +92,7 @@ export default function LanguageSwitcher() {
   
   return (
     <div 
-      className="relative inline-block" 
+      className={`relative inline-block ${className || ''}`} 
       ref={dropdownRef}
     >
       <button 

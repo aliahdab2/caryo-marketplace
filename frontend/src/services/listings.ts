@@ -1,5 +1,5 @@
 // Listings API service
-import { Listing } from '@/types/listing';
+import { Listing } from '@/types/listings';
 import { api } from './api';
 
 export type ListingFilters = {

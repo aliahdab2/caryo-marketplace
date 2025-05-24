@@ -15,6 +15,7 @@ export default function SignUpPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState(""); // Added confirmPassword state
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -26,13 +27,19 @@ export default function SignUpPage() {
     e.preventDefault();
     setError("");
     setSuccessMessage("");      // Basic validation
-    if (!username || !email || !password) {
+    if (!username || !email || !password || !confirmPassword) { // Added confirmPassword to validation
       setError(t('auth.fieldRequired'));
       return;
     }
 
     if (password.length < 6) {
       setError(t('auth.passwordTooShort'));
+      return;
+    }
+
+    if (password !== confirmPassword) { // Added password match validation
+      setError(t('auth.passwordsDoNotMatch'));
+      setLoading(false);
       return;
     }
     
@@ -50,6 +57,7 @@ export default function SignUpPage() {
         username,
         email,
         password,
+        confirmPassword, // Added confirmPassword to service call
       });
 
       setSuccessMessage(result.message || t('auth.signupSuccess'));
@@ -270,6 +278,7 @@ export default function SignUpPage() {
                   </div>
                   <input
                     id="password"
+                    data-testid="password-input"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -283,6 +292,33 @@ export default function SignUpPage() {
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {t('auth.passwordRequirement')}
                 </p>
+              </div>
+              
+              {/* Added Confirm Password Field */}
+              <div className="mb-5">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  {t('auth.confirmPassword')}
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                    <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                  </div>
+                  <input
+                    id="confirmPassword"
+                    data-testid="confirm-password-input"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    disabled={loading}
+                    className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
+                    placeholder={t('auth.confirmPasswordPlaceholder', "Confirm your password")}
+                  />
+                </div>
               </div>
               
               {/* Security verification component (simplified for signup) */}

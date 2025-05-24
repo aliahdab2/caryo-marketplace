@@ -1,19 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-
-interface SuccessAlertProps {
-  message?: string;
-  visible: boolean;
-  onComplete?: () => void;
-  autoHideDuration?: number;
-}
+import type { SuccessAlertProps } from '@/types/ui';
 
 export default function SuccessAlert({
   message = "Success!",
   visible = false,
   onComplete,
-  autoHideDuration = 3000
+  autoHideDuration = 3000,
+  className
 }: SuccessAlertProps) {
   const [isVisible, setIsVisible] = useState(visible);
   const [animationComplete, setAnimationComplete] = useState(false);
@@ -49,7 +44,7 @@ export default function SuccessAlert({
   return (
     <div
       id="success"
-      className="cb-container fixed top-5 right-5 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 flex items-center gap-3 transition-all duration-300 ease-in-out"
+      className={`cb-container fixed top-5 right-5 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 flex items-center gap-3 transition-all duration-300 ease-in-out ${className}`}
       role="alert"
       style={{
         display: 'grid',

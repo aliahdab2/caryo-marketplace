@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import type { ComponentProps } from "@/types/components";
 
-export default function Footer() {
+export default function Footer({ className }: ComponentProps) {
   const currentYear = new Date().getFullYear();
   
   return (
-    <footer className="bg-gray-100 dark:bg-gray-900" role="contentinfo" aria-label="Site footer">
+    <footer className={`bg-gray-100 dark:bg-gray-900 ${className || ''}`} role="contentinfo" aria-label="Site footer">
       <div className="w-full max-w-[94%] xs:max-w-[92%] sm:max-w-[90%] md:max-w-[88%] lg:max-w-6xl xl:max-w-7xl mx-auto py-6 xs:py-7 sm:py-8 md:py-10 lg:py-12 px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8">
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 xs:gap-6 sm:gap-7 md:gap-8">
           <div className="col-span-1 xs:col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-2">

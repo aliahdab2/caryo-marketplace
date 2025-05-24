@@ -4,16 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
-interface CarMake {
-  id: string;
-  name: string;
-}
-
-interface CarModel {
-  id: string;
-  name: string;
-  makeId: string;
-}
+import { CarMake, CarModel } from '@/types/car'; // Corrected path
 
 const HomeSearchBar: React.FC = () => {
   const { t } = useTranslation('common');

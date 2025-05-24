@@ -8,32 +8,7 @@ import { useTranslation } from "react-i18next";
 import ListingExpiry from "../../components/ListingExpiry";
 import { formatNumber } from '../../../../../utils/localization'; // Corrected import path
 
-// Define the interface for the form data
-interface ListingFormData {
-  id?: string;
-  title: string;
-  description: string;
-  make: string;
-  model: string;
-  year: string;
-  price: string;
-  currency: string;
-  condition: string;
-  mileage: string;
-  exteriorColor: string;
-  interiorColor: string;
-  transmission: string;
-  fuelType: string;
-  features: string[];
-  location: string;
-  city: string;
-  contactPreference: string;
-  images: File[];
-  status: 'active' | 'expired' | 'pending' | ''; // Adjusted to include empty string for initial state
-  created: string;
-  expires: string;
-  views: number;
-}
+import { ListingFormData } from '@/types/listings';
 
 // Mock data for a listing (in a real app, this would come from an API fetch)
 const MOCK_LISTING: ListingFormData = {
@@ -223,175 +198,41 @@ export default function EditListingPageClient({ id }: { id: string }) {
             onClick={() => router.push("/dashboard/listings")}
             className="py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
           >
-            {t('cancel')}
+            {t('common.backToListings', 'Back to Listings')}
           </button>
-          <button
-            onClick={() => router.push(`/listings/${id}`)}
-            className="py-2 px-4 border border-primary text-primary rounded-lg hover:bg-primary/10"
-          >
-            {t('listings.preview')}
-          </button>
+          {/* Save button might be part of a form element later */}
         </div>
       </div>
-      
-      {/* Listing Status */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <div>
-          <span className="text-sm text-gray-500 dark:text-gray-400 block mb-1">{t('listings.status')}:</span>
-          <div className="flex items-center">
-            <span 
-              className={`inline-block w-3 h-3 rounded-full mr-2 ${
-                formData.status === 'active' 
-                  ? 'bg-green-500' 
-                  : formData.status === 'expired'
-                  ? 'bg-red-500'
-                  : 'bg-yellow-500'
-              }`}
-            ></span>
-            <span className="font-medium">
-              {t(`listings.${formData.status}`)}
-            </span>
-          </div>
-        </div>
-        
-        <ListingExpiry 
-          listingId={id}
-          expiryDate={formData.expires}
-          status={formData.status as ('active' | 'expired' | 'pending')}
-          onRenew={handleRenewal}
-        />
-        
-        <div className="text-right">
-          <span className="text-sm text-gray-500 dark:text-gray-400 block mb-1">{t('listings.views')}:</span>
-          <span className="font-medium">{formatNumber(formData.views, i18n.language)}</span>
-        </div>
+
+      {/* Section for Listing Status and Expiry */}
+      <div className="mt-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow">
+        <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t('dashboard.listingStatusTitle', 'Listing Status & Expiry')}</h3>
+        {formData.expires && formData.expires.trim() !== "" ? (
+          <ListingExpiry
+            listingId={id}
+            expiryDate={formData.expires}
+            status={formData.status as 'active' | 'expired' | 'pending'} // Note: This type cast might need further review for robustness
+            onRenew={handleRenewal}
+          />
+        ) : (
+          <p className="text-gray-600 dark:text-gray-400">
+            {t('dashboard.expiryDateNotSet', 'Expiry date is not currently set for this listing.')}
+          </p>
+        )}
       </div>
-      
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-8">
-            {/* Basic Info */}
-            <div>
-              <h2 className="text-xl font-semibold mb-4">{t('listings.step1Title')}</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {t('listings.title')} *
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    required
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {t('listings.description')} *
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    required
-                    rows={4}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      {t('listings.make')} *
-                    </label>
-                    <input
-                      type="text"
-                      name="make"
-                      value={formData.make}
-                      onChange={handleChange}
-                      required
-                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      {t('listings.model')} *
-                    </label>
-                    <input
-                      type="text"
-                      name="model"
-                      value={formData.model}
-                      onChange={handleChange}
-                      required
-                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      {t('listings.year')} *
-                    </label>
-                    <input
-                      type="number"
-                      name="year"
-                      value={formData.year}
-                      onChange={handleChange}
-                      required
-                      min="1900"
-                      max={new Date().getFullYear()}
-                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      {t('price')} *
-                    </label>
-                    <input
-                      type="number"
-                      name="price"
-                      value={formData.price}
-                      onChange={handleChange}
-                      required
-                      min="0"
-                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* More sections omitted for brevity */}
-            
-            {/* Bottom action buttons */}
-            <div className="flex justify-between mt-8 pt-6 border-t dark:border-gray-700">
-              <button
-                type="button"
-                onClick={() => router.push("/dashboard/listings")}
-                className="py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                {t('cancel')}
-              </button>
-              
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`py-2 px-6 bg-primary text-white rounded-lg hover:bg-primary/90 ${
-                  isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
-                }`}
-              >
-                {isSubmitting ? t('updating') : t('saveChanges')}
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
+
+      {/* Placeholder for the rest of the form where listing details are edited */}
+      {/* <form onSubmit={handleSubmit} className="mt-8 space-y-6"> */}
+      {/*   Form fields for title, description, price, etc. would go here */}
+      {/*   <div className="flex justify-end space-x-3"> */}
+      {/*     <button type="button" onClick={() => router.push('/dashboard/listings')} className="px-4 py-2 border rounded-md text-sm font-medium"> */}
+      {/*       {t('common.cancel', 'Cancel')} */}
+      {/*     </button> */}
+      {/*     <button type="submit" disabled={isSubmitting} className="px-4 py-2 border rounded-md text-sm font-medium bg-primary text-white hover:bg-primary-dark"> */}
+      {/*       {isSubmitting ? t('common.saving', 'Saving...') : t('common.saveChanges', 'Save Changes')} */}
+      {/*     </button> */}
+      {/*   </div> */}
+      {/* </form> */}
     </div>
   );
 }

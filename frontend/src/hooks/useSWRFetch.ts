@@ -1,17 +1,17 @@
 import useSWR, { SWRConfiguration } from 'swr';
-
-// Define a custom error type for fetch errors with extra info and status
-interface FetchError extends Error {
-  info?: unknown;  // You can narrow this further if you want
-  status?: number;
-}
+import type { FetchError, FetcherResponse } from '@/types/api';
 
 const fetcher = async <T>(url: string): Promise<T> => {
   const res = await fetch(url);
 
   if (!res.ok) {
     const error: FetchError = new Error('An error occurred while fetching the data.');
-    error.info = await res.json();
+    try {
+      error.info = await res.json();
+    } catch {
+      // If res.json() fails, set info to the response text
+      error.info = { message: await res.text() || 'No additional error information available.' };
+    }
     error.status = res.status;
     throw error;
   }
@@ -22,7 +22,7 @@ const fetcher = async <T>(url: string): Promise<T> => {
 export function useSWRFetch<Data = unknown, Err = FetchError>(
   url: string | null,
   config?: SWRConfiguration<Data, Err>
-) {
+): FetcherResponse<Data, Err> { // Add return type
   const { data, error, isLoading, isValidating, mutate } = useSWR<Data, Err>(
     url,
     fetcher,
@@ -45,7 +45,7 @@ export function useSWRFetch<Data = unknown, Err = FetchError>(
 
 // Authenticated fetcher with Bearer token
 export const authenticatedFetcher = async <T>(url: string): Promise<T> => {
-  const token = localStorage.getItem('token');
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
   const res = await fetch(url, {
     headers: {

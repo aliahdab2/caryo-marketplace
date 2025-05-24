@@ -1,19 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-
-interface SimpleSuccessAlertProps {
-  visible?: boolean;
-  onComplete?: () => void;
-  autoHideDuration?: number;
-  message?: string;
-}
+import type { SimpleSuccessAlertProps } from '@/types/ui';
 
 export default function SimpleSuccessAlert({
   visible = true,
   onComplete,
   autoHideDuration = 3000,
-  message = "Success!"
+  message = "Success!",
+  className = ''
 }: SimpleSuccessAlertProps) {
   const [isVisible, setIsVisible] = useState(visible);
 
@@ -35,7 +30,7 @@ export default function SimpleSuccessAlert({
   return (
     <div 
       id="success" 
-      className="cb-container" 
+      className={`cb-container ${className}`} 
       role="alert" 
       style={{
         display: 'grid',
@@ -48,9 +43,6 @@ export default function SimpleSuccessAlert({
         borderRadius: '8px',
         boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
         padding: '16px',
-        gridTemplateColumns: 'auto auto',
-        alignItems: 'center',
-        gap: '12px'
       }}
     >
       <svg 

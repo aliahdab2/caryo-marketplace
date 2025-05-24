@@ -5,31 +5,12 @@
 
 import { api } from './api';
 import { ApiError } from '@/utils/apiErrorHandler';
-
-// Types
-export interface LoginCredentials {
-  username: string;
-  password: string;
-}
-
-export interface SignupCredentials {
-  username: string;
-  email: string;
-  password: string;
-  role?: string[];
-}
-
-export interface AuthResponse {
-  id: number;
-  username: string;
-  email: string;
-  roles: string[];
-  token: string; 
-}
-
-export interface MessageResponse {
-  message: string;
-}
+import { 
+  LoginCredentials, 
+  SignupCredentials, 
+  AuthResponse,
+  MessageResponse // Added MessageResponse back
+} from '@/types/auth';
 
 /**
  * Utility function to log errors conditionally

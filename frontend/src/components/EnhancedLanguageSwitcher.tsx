@@ -4,8 +4,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from './EnhancedLanguageProvider';
 import { SupportedLanguage } from '@/utils/i18n';
 import { useTranslation } from '@/utils/useTranslation';
+import { ComponentProps } from "@/types/components";
 
-interface LanguageSwitcherProps {
+interface LanguageSwitcherProps extends ComponentProps {
   /** Optional additional CSS classes */
   className?: string;
   

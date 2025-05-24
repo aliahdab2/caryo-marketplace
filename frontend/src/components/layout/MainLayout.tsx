@@ -3,10 +3,7 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useSession } from "next-auth/react";
-
-interface MainLayoutProps {
-  children: React.ReactNode;
-}
+import type { MainLayoutProps } from "@/types/components";
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const { status } = useSession();

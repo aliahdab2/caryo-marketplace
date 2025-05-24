@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import type { SuccessAlertProps } from '@/types/ui'; // Use SuccessAlertProps directly
 
 // Define the spinner style CSS
 const spinnerStyle = `
@@ -68,19 +69,13 @@ const spinnerStyle = `
   }
 `;
 
-interface SuccessAlertProps {
-  message?: string;
-  visible: boolean;
-  onComplete?: () => void;
-  autoHideDuration?: number;
-}
-
 export default function SuccessAlert({
   message = "Success!",
-  visible = false,
+  visible = false, // This 'visible' comes from AlertProps now
   onComplete,
-  autoHideDuration = 3000
-}: SuccessAlertProps) {
+  autoHideDuration = 3000,
+  className = ''
+}: SuccessAlertProps) { // Use SuccessAlertProps directly
   const [isVisible, setIsVisible] = useState(visible);
   const [animationComplete, setAnimationComplete] = useState(false);
 
@@ -99,7 +94,9 @@ export default function SuccessAlert({
         if (autoHideDuration) {
           const hideTimer = setTimeout(() => {
             setIsVisible(false);
-            if (onComplete) onComplete();
+            if (onComplete) {
+              onComplete();
+            }
           }, autoHideDuration);
           
           return () => clearTimeout(hideTimer);
@@ -111,12 +108,14 @@ export default function SuccessAlert({
   }, [visible, autoHideDuration, onComplete]);
 
   // Always render the component to avoid layout shifts, but control visibility
+  if (!isVisible) return null;
+
   return (
     <>
       <style jsx>{spinnerStyle}</style>
       <div
         id="success"
-        className="cb-container fixed top-5 right-5 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 flex items-center gap-3 transition-all duration-300 ease-in-out"
+        className={`cb-container fixed top-5 right-5 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 flex items-center gap-3 transition-all duration-300 ease-in-out ${className}`}
         role="alert"
         style={{
           display: isVisible ? 'flex' : 'none', // Use display none when not visible

@@ -3,13 +3,14 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
 import { FaUserCircle } from 'react-icons/fa';
+import type { ComponentProps } from "@/types/components";
 
-const NavigationBar = () => {
+const NavigationBar = ({ className }: ComponentProps) => {
   const { t } = useTranslation('common');
   const { data: session } = useSession();
 
   return (
-    <nav className="bg-gray-800 text-white p-4 shadow-md">
+    <nav className={`bg-gray-800 text-white p-4 shadow-md ${className || ''}`}>
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
         <div className="text-2xl font-bold">

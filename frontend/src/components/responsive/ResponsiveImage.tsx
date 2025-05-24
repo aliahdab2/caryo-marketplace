@@ -1,23 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image, { ImageProps } from 'next/image';
+import Image from 'next/image';
 import { useResponsive } from '@/utils/responsive';
-
-interface ResponsiveImageProps extends Omit<ImageProps, 'src'> {
-  src: {
-    default: string;
-    mobile?: string;
-    tablet?: string;
-    desktop?: string;
-  } | string;
-  fallbackSrc?: string;
-  aspectRatio?: string;
-  objectFit?: 'cover' | 'contain' | 'fill';
-  rounded?: boolean | 'sm' | 'md' | 'lg' | 'full';
-  className?: string;
-  containerClassName?: string;
-}
+import type { ResponsiveImageProps } from '@/types/responsive';
 
 /**
  * A responsive image component that selects different image sources based on screen size

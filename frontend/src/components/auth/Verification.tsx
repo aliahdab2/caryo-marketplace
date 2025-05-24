@@ -2,18 +2,14 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { VerificationProps } from "@/types/components";
 import styles from './verification.module.css';
-
-interface VerificationProps {
-  onVerified: (isVerified: boolean) => void;
-  autoVerify?: boolean;
-  showIndicator?: boolean;
-}
 
 export default function Verification({ 
   onVerified, 
   autoVerify = false,
-  showIndicator = true
+  showIndicator = true,
+  className // Added className from ComponentProps
 }: VerificationProps) {
   const { t } = useTranslation('common');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -58,7 +54,7 @@ export default function Verification({
   }
 
   return (
-    <div className={styles.verificationContainer}>
+    <div className={`${styles.verificationContainer} ${className || ''}`}>
       {!isVerified ? (
         <>
           {!isVerifying ? (

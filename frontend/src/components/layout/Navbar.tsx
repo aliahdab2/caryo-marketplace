@@ -8,8 +8,9 @@ import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
 import { MdLogout, MdPerson, MdSettings, MdDashboard } from "react-icons/md";
+import type { ComponentProps } from "@/types/components";
 
-export default function Navbar() {
+export default function Navbar({ className }: ComponentProps) {
   const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -44,7 +45,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white shadow-md dark:bg-gray-900">
+    <nav className={`bg-white shadow-md dark:bg-gray-900 ${className || ''}`}>
       <div className="w-full max-w-[94%] xs:max-w-[92%] sm:max-w-[90%] md:max-w-[88%] lg:max-w-6xl xl:max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6">
         <div className="flex justify-between h-12 xs:h-13 sm:h-14 md:h-16">
           <div className="flex items-center">

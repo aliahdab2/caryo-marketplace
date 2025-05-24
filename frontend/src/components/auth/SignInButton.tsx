@@ -2,11 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useTranslation } from "react-i18next";
-
-interface SignInButtonProps {
-  className?: string;
-  onClick?: () => void;
-}
+import { SignInButtonProps } from "@/types/components";
 
 export default function SignInButton({ className = "", onClick }: SignInButtonProps) {
   const { t } = useTranslation('common');

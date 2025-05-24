@@ -9,11 +9,7 @@
 
 import React from 'react';
 import SimpleVerification from './SimpleVerification';
-
-interface CaptchaVerificationProps {
-  onVerified: (isVerified: boolean) => void;
-  onRefresh?: () => void;
-}
+import { CaptchaVerificationProps } from "@/types/components";
 
 export default function CaptchaVerification({ onVerified, onRefresh }: CaptchaVerificationProps) {
   const handleVerified = (isVerified: boolean) => {

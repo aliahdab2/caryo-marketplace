@@ -3,21 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import useServerConnectivity from '@/hooks/useServerConnectivity';
 import { useTranslation } from 'react-i18next';
-
-interface ConnectivityStatusProps {
-  checkInterval?: number; // Time in milliseconds between checks (0 to disable interval checking)
-  onStatusChange?: (isConnected: boolean) => void;
-  autoHide?: boolean; // Whether to auto-hide the connected status
-  autoHideDelay?: number; // Time before hiding the connected status
-  reactive?: boolean; // Whether to check connectivity only when API requests are made
-}
+import type { ConnectivityStatusProps } from '@/types/ui';
 
 export default function ConnectivityStatus({ 
   checkInterval = 180000, // Check every 3 minutes by default (reduced from 30 seconds)
   onStatusChange,
   autoHide = true, // Auto-hide by default
   autoHideDelay = 5000, // 5 seconds by default
-  reactive = false // Reactive mode disabled by default
+  reactive = false, // Reactive mode disabled by default
+  className = ''
 }: ConnectivityStatusProps) {
   const { t } = useTranslation('errors');
   const { isConnected, isUnknown, status, checkNow } = useServerConnectivity({
@@ -93,7 +87,7 @@ export default function ConnectivityStatus({
       isConnected 
         ? 'bg-green-100 border border-green-200 text-green-800 dark:bg-green-900/30 dark:border-green-800 dark:text-green-400'
         : 'bg-amber-100 border border-amber-200 text-amber-800 dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-400'
-    }`}>
+    } ${className}`}>
       <div className="flex items-center gap-2">
         <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-amber-500'}`}></div>
         <p className="text-sm font-medium">

@@ -2,16 +2,7 @@
 
 import React from 'react';
 import { useResponsive } from '@/utils/responsive';
-
-interface ResponsiveContainerProps {
-  children: React.ReactNode;
-  className?: string;
-  as?: React.ElementType;
-  fluid?: boolean;
-  maxWidth?: string | null; // Optional max width override
-  padding?: string | null; // Optional padding override
-  scale?: 'fluid' | 'step' | 'hybrid'; // Fluid scales continuously, step uses breakpoints, hybrid uses both
-}
+import type { ResponsiveContainerProps } from '@/types/responsive';
 
 /**
  * A responsive container component that adjusts width based on screen size

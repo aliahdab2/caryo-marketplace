@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { compareRTLandLTR, getRTLStyleRules, isRTLStylesheetLoaded, setDocumentDirection } from "@/utils/rtl-test-utils";
+import type { DirectionType, ComparisonResult, RTLVisualTestProps } from "@/types/testing";
 
-export default function RTLVisualTest() {
-  const [direction, setDirection] = useState<'rtl' | 'ltr'>('ltr');
+export default function RTLVisualTest({ className = '', testName = 'Main UI Components Test' }: RTLVisualTestProps) {
+  const [direction, setDirection] = useState<DirectionType>('ltr');
   const [rtlStylesLoaded, setRtlStylesLoaded] = useState(false);
   const [rtlRules, setRtlRules] = useState<string[]>([]);
-  
+  const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
+
   useEffect(() => {
     const dir = document.documentElement.dir;
-    setDirection(dir as 'rtl' | 'ltr');
+    setDirection(dir as DirectionType);
     
     setRtlStylesLoaded(isRTLStylesheetLoaded());
     setRtlRules(getRTLStyleRules());
@@ -28,8 +30,6 @@ export default function RTLVisualTest() {
     return () => observer.disconnect();
   }, []);
 
-  const [comparisonResult, setComparisonResult] = useState<{ message: string; timestamp: string } | null>(null);
-
   const toggleDirection = () => {
     const newDir = direction === 'rtl' ? 'ltr' : 'rtl';
     setDocumentDirection(newDir);
@@ -38,7 +38,7 @@ export default function RTLVisualTest() {
   };
   
   const runVisualComparison = () => {
-    const result = compareRTLandLTR('Main UI Components Test', direction);
+    const result = compareRTLandLTR(testName, direction);
     setComparisonResult({
       message: result.message,
       timestamp: new Date().toLocaleTimeString()
@@ -46,7 +46,7 @@ export default function RTLVisualTest() {
   };
   
   return (
-    <div className="space-y-12">
+    <div className={`space-y-12 ${className}`}>
       <div className="bg-gray-100 p-4 rounded-lg mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-medium">Visual Testing Control Panel</h2>

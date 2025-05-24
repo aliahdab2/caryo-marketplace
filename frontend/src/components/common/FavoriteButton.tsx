@@ -5,16 +5,7 @@ import { addToFavorites, removeFromFavorites, checkIsFavorite } from '@/services
 import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-
-interface FavoriteButtonProps {
-  listingId: string;
-  className?: string;
-  size?: 'sm' | 'md' | 'lg';
-  variant?: 'filled' | 'outline';
-  onToggle?: (isFavorite: boolean) => void;
-  mockMode?: boolean; // Add mock mode for development with mock data
-  initialFavorite?: boolean; // Add ability to set initial favorite status
-}
+import { FavoriteButtonProps } from '@/types/components'; // Import shared props
 
 export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   listingId,
@@ -66,7 +57,7 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         setIsLoading(true);
         setError(null);
         const result = await checkIsFavorite(listingId);
-        setIsFavorite(result);
+        setIsFavorite(result.isFavorite); // Correctly use the boolean from the response object
       } catch (err) {
         console.error('Error checking favorite status:', err);
         // Don't show error for checking status, just default to not favorite

@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import type { ComponentProps } from "@/types/components";
 
 /**
  * ClientRTLStylesLoader - A client component that conditionally loads RTL styles
  * This helps optimize bundle size by only loading RTL styles when needed
  */
-export default function ClientRTLStylesLoader() {
+export default function ClientRTLStylesLoader({ className: _className }: ComponentProps) {
   const pathname = usePathname();
   const [isRTL, setIsRTL] = useState(false);
 

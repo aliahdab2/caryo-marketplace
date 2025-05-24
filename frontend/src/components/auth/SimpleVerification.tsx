@@ -11,21 +11,15 @@
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SimpleVerificationProps } from "@/types/components";
 import styles from './simpleVerification.module.css';
-
-interface VerificationProps {
-  /** Callback function that receives the verification status */
-  onVerified: (verified: boolean) => void;
-  /** Whether to automatically start verification without user interaction. Default: true for login, false for signup */
-  autoStart?: boolean;
-}
 
 type VerificationState = 'idle' | 'verifying' | 'success';
 
 export default function SimpleVerification({ 
   onVerified, 
   autoStart = false 
-}: VerificationProps) {
+}: SimpleVerificationProps) {
   const { t } = useTranslation('common');
   const [state, setState] = useState<VerificationState>(autoStart ? 'verifying' : 'idle');
   

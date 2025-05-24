@@ -1,14 +1,7 @@
 "use client";
 
-import { ReactNode } from 'react';
 import { fluidValue } from '@/utils/responsive';
-
-interface ResponsiveCardProps {
-  children: ReactNode;
-  className?: string;
-  aspectRatio?: 'square' | 'video' | 'portrait' | 'landscape' | string;
-  hover?: boolean;
-}
+import type { ResponsiveCardProps } from '@/types/responsive';
 
 /**
  * A responsive card component that maintains proper proportions across screen sizes

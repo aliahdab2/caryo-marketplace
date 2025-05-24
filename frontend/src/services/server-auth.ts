@@ -1,28 +1,11 @@
 // Server-side authentication service
 // This is a simplified version of auth.ts that works in Server Components and API routes
 
-// Types
-export interface LoginCredentials {
-  username: string;
-  password: string;
-}
-
-export interface RegistrationData {
-  username: string;
-  email: string;
-  password: string;
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-}
-
-export interface SocialLoginData {
-  email: string;
-  name: string;
-  provider: string;
-  providerAccountId: string;
-  image?: string;
-}
+import { 
+  LoginCredentials,
+  RegistrationData,
+  SocialLoginData
+} from '@/types/auth';
 
 /**
  * Helper function to handle API responses consistently

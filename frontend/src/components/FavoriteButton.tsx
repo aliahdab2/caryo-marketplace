@@ -3,20 +3,14 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { MdFavorite, MdFavoriteBorder } from 'react-icons/md';
 import { addToFavorites, removeFromFavorites, checkIsFavorite } from '@/services/favorites';
-
-interface FavoriteButtonProps {
-  listingId: string;
-  className?: string;
-  size?: number;
-  showText?: boolean;
-}
+import { LegacyFavoriteButtonProps } from '@/types/components'; // Import shared props
 
 export default function FavoriteButton({ 
   listingId, 
   className = '', 
   size = 24,
   showText = false 
-}: FavoriteButtonProps) {
+}: LegacyFavoriteButtonProps) { // Use imported LegacyFavoriteButtonProps
   const { data: session } = useSession();
   const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(false);
@@ -25,7 +19,7 @@ export default function FavoriteButton({
   const checkFavoriteStatus = useCallback(async () => {
     try {
       const status = await checkIsFavorite(listingId);
-      setIsFavorite(status);
+      setIsFavorite(status.isFavorite); // Correctly use the boolean from the response object
     } catch (err) {
       console.error('Error checking favorite status:', err);
     }

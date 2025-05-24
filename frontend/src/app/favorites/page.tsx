@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { getFavorites } from '@/services/favorites';
 import { formatDate, formatNumber } from '@/utils/localization';
 import FavoriteButton from '@/components/common/FavoriteButton';
-import { Listing } from '@/types/listing';
+import { Listing } from '@/types/listings';
 
 export default function FavoritesPage() {
   const { t, i18n } = useTranslation(['common']);

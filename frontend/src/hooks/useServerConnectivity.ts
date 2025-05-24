@@ -5,10 +5,7 @@ import { isServerAvailable } from '@/utils/serverCheck';
 
 type ServerStatus = 'unknown' | 'connected' | 'disconnected';
 
-interface UseServerConnectivityProps {
-  checkInterval?: number; // Time between checks in ms
-  initialDelay?: number; // Delay before first check in ms
-}
+import { UseServerConnectivityProps } from '@/types/api';
 
 /**
  * Hook for monitoring backend server connectivity

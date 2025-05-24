@@ -1,4 +1,5 @@
-import { Listing } from '@/types/listing';
+import { Listing } from '@/types/listings';
+import { FavoriteServiceOptions, FavoriteStatusResponse, UserFavoritesResponse } from '@/types/favorites';
 import { getAuthHeaders } from '@/utils/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -10,7 +11,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
  */
 export async function addToFavorites(
   listingId: string, 
-  options?: { mockMode?: boolean }
+  options?: FavoriteServiceOptions
 ): Promise<void> {
   if (options?.mockMode) {
     // In mock mode, just simulate success
@@ -18,7 +19,7 @@ export async function addToFavorites(
   }
   const authHeaders = await getAuthHeaders();
   
-  const response = await fetch(`${API_URL}/api/user/favorites/${listingId}`, {
+  const response = await fetch(`${API_URL}/api/favorites/${listingId}`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -40,7 +41,7 @@ export async function addToFavorites(
  */
 export async function removeFromFavorites(
   listingId: string,
-  options?: { mockMode?: boolean }
+  options?: FavoriteServiceOptions
 ): Promise<void> {
   if (options?.mockMode) {
     // In mock mode, just simulate success
@@ -48,7 +49,7 @@ export async function removeFromFavorites(
   }
   const authHeaders = await getAuthHeaders();
   
-  const response = await fetch(`${API_URL}/api/user/favorites/${listingId}`, {
+  const response = await fetch(`${API_URL}/api/favorites/${listingId}`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {
@@ -64,19 +65,21 @@ export async function removeFromFavorites(
 }
 
 /**
- * Get all favorites for the current user
+ * Get user's favorites
  * @param options Optional configurations for the request
- * @returns A Promise that resolves to an array of Listing objects
+ * @returns Promise<UserFavoritesResponse>
  */
-export async function getFavorites(options?: { mockMode?: boolean }): Promise<Listing[]> {
-  // If mockMode is enabled, return mock favorites data
+export async function getFavorites(options?: FavoriteServiceOptions): Promise<UserFavoritesResponse> {
   if (options?.mockMode) {
-    return getMockFavorites();
+    const mockData = getMockFavorites();
+    return {
+      favorites: mockData,
+      total: mockData.length
+    };
   }
-  
+
   const authHeaders = await getAuthHeaders();
-  
-  const response = await fetch(`${API_URL}/api/user/favorites`, {
+  const response = await fetch(`${API_URL}/api/favorites`, {
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
@@ -89,7 +92,49 @@ export async function getFavorites(options?: { mockMode?: boolean }): Promise<Li
     throw new Error(errorData?.message || 'Failed to fetch favorites');
   }
 
-  return response.json();
+  const data = await response.json();
+  return {
+    favorites: data,
+    total: data.length
+  };
+}
+
+/**
+ * Check if a listing is favorited
+ * @param listingId The ID of the listing to check
+ * @param options Optional configurations for the request
+ * @returns Promise<FavoriteStatusResponse>
+ */
+export async function checkIsFavorite(
+  listingId: string,
+  options?: FavoriteServiceOptions
+): Promise<FavoriteStatusResponse> {
+  if (options?.mockMode) {
+    return {
+      isFavorite: false,
+      listingId
+    };
+  }
+
+  const authHeaders = await getAuthHeaders();
+  const response = await fetch(`${API_URL}/api/favorites/${listingId}/check`, {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders
+    } as HeadersInit,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    throw new Error(errorData?.message || 'Failed to check favorite status');
+  }
+
+  const data = await response.json();
+  return {
+    isFavorite: data,
+    listingId
+  };
 }
 
 /**
@@ -104,8 +149,9 @@ function getMockFavorites(): Listing[] {
       price: 45000,
       year: 2022,
       mileage: 1500,
+      make: 'BMW',
+      model: '3 Series',
       currency: 'USD',
-      image: '/images/vehicles/car-1.jpg',
       location: { city: 'New York', country: 'USA' },
       createdAt: new Date().toISOString(),
       category: { name: 'Sedan' },
@@ -117,8 +163,9 @@ function getMockFavorites(): Listing[] {
       price: 28000,
       year: 2021,
       mileage: 15000,
+      make: 'Toyota',
+      model: 'Camry',
       currency: 'USD',
-      image: '/images/vehicles/car-2.jpg',
       location: { city: 'Los Angeles', country: 'USA' },
       createdAt: new Date().toISOString(),
       category: { name: 'Sedan' },
@@ -130,44 +177,13 @@ function getMockFavorites(): Listing[] {
       price: 52000,
       year: 2023,
       mileage: 500,
+      make: 'Tesla',
+      model: 'Model 3',
       currency: 'USD',
-      image: '/images/vehicles/car-3.jpg',
       location: { city: 'San Francisco', country: 'USA' },
       createdAt: new Date().toISOString(),
       category: { name: 'Electric' },
       condition: 'new'
     }
   ];
-}
-
-/**
- * Check if a listing is in the user's favorites
- * @param listingId The ID of the listing to check
- * @param options Optional configurations for the request
- * @returns A Promise that resolves to true if the listing is in favorites, false otherwise
- */
-export async function checkIsFavorite(
-  listingId: string, 
-  options?: { mockMode?: boolean }
-): Promise<boolean> {
-  if (options?.mockMode) {
-    // In mock mode, simulate a random favorite status or use fixed value
-    return Promise.resolve(Math.random() > 0.5);
-  }
-  const authHeaders = await getAuthHeaders();
-  
-  const response = await fetch(`${API_URL}/api/user/favorites/${listingId}/check`, {
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders
-    } as HeadersInit,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.message || 'Failed to check favorite status');
-  }
-
-  return response.json();
 }

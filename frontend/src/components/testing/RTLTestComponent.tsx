@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { isRTLStylesheetLoaded } from "@/utils/rtl-test-utils";
+import type { RTLTestComponentProps } from "@/types/testing";
 
-export default function RTLTestComponent() {
+export default function RTLTestComponent({ className = '' }: RTLTestComponentProps) {
   const [isRTL, setIsRTL] = useState(false);
   const [styleLoaded, setStyleLoaded] = useState(false);
   const [direction, setDirection] = useState("");
@@ -31,7 +32,7 @@ export default function RTLTestComponent() {
   }, []);
   
   return (
-    <div className="p-4 border rounded my-4">
+    <div className={`p-4 border rounded my-4 ${className}`}>
       <h2 className="text-xl font-bold mb-4">RTL Testing Panel</h2>
       <div className="grid grid-cols-2 gap-4">
         <div>

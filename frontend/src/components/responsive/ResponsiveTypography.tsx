@@ -2,58 +2,16 @@
 
 import React, { memo } from 'react';
 import { responsiveFontSize } from '@/utils/responsive';
+import type { 
+  ResponsiveTextProps,
+  FontSizeType,
+  ComponentType,
+} from '@/types/responsive';
 
 /**
- * Font size options available for responsive typography
+ * A responsive typography component that adjusts text styling based on screen size
  */
-type FontSizeType = 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl';
-
-/**
- * HTML elements that can be used as text components
- */
-type ComponentType = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span' | 'div';
-
-/**
- * Font weight options
- */
-type WeightType = 'normal' | 'medium' | 'semibold' | 'bold';
-
-/**
- * Text alignment options
- */
-type AlignType = 'left' | 'center' | 'right';
-
-/**
- * Props for ResponsiveText component
- */
-interface ResponsiveTextProps {
-  /** Content to be rendered within the text component */
-  children: React.ReactNode;
-  /** Font size that will be responsively adjusted based on screen size */
-  size?: FontSizeType;
-  /** HTML element to render */
-  component?: ComponentType;
-  /** Additional CSS classes to apply */
-  className?: string;
-  /** Font weight to apply */
-  weight?: WeightType;
-  /** Text color - provide Tailwind classes */
-  color?: string;
-  /** Text alignment */
-  align?: AlignType;
-  /** Optional ID attribute for the element */
-  id?: string;
-  /** Optional data-testid for testing */
-  testId?: string;
-}
-
-/**
- * A responsive text component that adjusts font size based on screen size
- * 
- * @param {ResponsiveTextProps} props - Component properties
- * @returns {React.ReactElement} - Rendered component
- */
-export const ResponsiveText = memo<ResponsiveTextProps>(({
+const ResponsiveText = ({
   children,
   size = 'base',
   component: Component = 'p',
@@ -63,7 +21,7 @@ export const ResponsiveText = memo<ResponsiveTextProps>(({
   align = 'left',
   id,
   testId,
-}) => {
+}: ResponsiveTextProps) => {
   // Map string size to numeric value for responsiveFontSize
   const fontSizeMap: Record<FontSizeType, number> = {
     xs: 0.75,
@@ -104,7 +62,7 @@ export const ResponsiveText = memo<ResponsiveTextProps>(({
       {children}
     </Component>
   );
-});
+};
 
 // Add display name for better debugging
 ResponsiveText.displayName = 'ResponsiveText';

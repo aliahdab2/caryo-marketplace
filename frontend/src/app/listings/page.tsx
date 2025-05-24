@@ -5,7 +5,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { Listing } from '@/types/listing';
+import { Listing } from '@/types/listings';
 import { getListings, ListingFilters } from '@/services/listings';
 import { formatDate, formatNumber } from '@/utils/localization';
 import ResponsiveCard from '@/components/responsive/ResponsiveCard';

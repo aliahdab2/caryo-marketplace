@@ -1,33 +1,7 @@
 'use client';
 
 import React from 'react';
-
-type GridColumnValue = 1|2|3|4|5|6|7|8|9|10|11|12|'full';
-
-interface ResponsiveGridProps {
-  children: React.ReactNode;
-  className?: string;
-  cols?: {
-    default?: GridColumnValue;
-    xxs?: GridColumnValue;
-    xs?: GridColumnValue;
-    sm?: GridColumnValue;
-    md?: GridColumnValue;
-    lg?: GridColumnValue;
-    xl?: GridColumnValue;
-    '2xl'?: GridColumnValue;
-  };
-  gap?: {
-    default?: number;
-    xxs?: number;
-    xs?: number;
-    sm?: number;
-    md?: number;
-    lg?: number;
-    xl?: number;
-    '2xl'?: number;
-  };
-}
+import type { ResponsiveGridProps } from '@/types/responsive';
 
 /**
  * A responsive grid component that adjusts columns and gaps based on screen size

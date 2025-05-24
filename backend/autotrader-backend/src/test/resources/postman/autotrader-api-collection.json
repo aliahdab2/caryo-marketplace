@@ -1,16 +1,15 @@
 {
   "info": {
-    "_postman_id": "autotrader-api-main-collection",
-    "name": "AutoTrader API Tests",
-    "description": "AutoTrader Marketplace API Tests - Combined collection of all tests.",
+    "name": "Autotrader API",
+    "description": "API collection for the Autotrader application",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Authentication Tests",
+      "name": "Reference Data",
       "item": [
         {
-          "name": "Register User",
+          "name": "Get All Active Car Brands",
           "event": [
             {
               "listen": "prerequest",
@@ -117,7 +116,7 @@
       "name": "Reference Data Tests",
       "item": [
         {
-          "name": "Get All Active Car Brands",
+          "name": "Get All Reference Data",
           "event": [
             {
               "listen": "test",
@@ -125,30 +124,6 @@
                 "exec": [
                   "pm.test(\"Status code is 200\", function () {",
                   "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Response is an array\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(Array.isArray(jsonData)).to.be.true;",
-                  "});",
-                  "",
-                  "pm.test(\"Each brand has required fields and is active\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    if (jsonData.length > 0) {",
-                  "        jsonData.forEach(function(brand) {",
-                  "            pm.expect(brand).to.have.property('id');",
-                  "            pm.expect(brand).to.have.property('name');",
-                  "            pm.expect(brand).to.have.property('displayNameEn');",
-                  "            pm.expect(brand).to.have.property('displayNameAr');",
-                  "            pm.expect(brand).to.have.property('isActive');",
-                  "            pm.expect(brand.isActive).to.be.true;",
-                  "        });",
-                  "        pm.collectionVariables.set(\"dynamicBrandId\", jsonData[0].id);",
-                  "        console.log(\"Saved dynamicBrandId: \" + jsonData[0].id);",
-                  "    } else {",
-                  "        pm.collectionVariables.set(\"dynamicBrandId\", \"0\");",
-                  "        console.log(\"No brands found, dynamicBrandId set to 0\");",
-                  "    }",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -157,67 +132,12 @@
           ],
           "request": {
             "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/reference-data/brands",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "reference-data", "brands"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Active Car Models for Dynamic Brand",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Response is an array\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(Array.isArray(jsonData)).to.be.true;",
-                  "});",
-                  "",
-                  "pm.test(\"Each model has required fields and matches brandId\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    var expectedBrandId = Number(pm.collectionVariables.get(\"dynamicBrandId\"));",
-                  "    if (jsonData.length > 0) {",
-                  "        jsonData.forEach(function(model) {",
-                  "            pm.expect(model).to.have.property('id');",
-                  "            pm.expect(model).to.have.property('name');",
-                  "            pm.expect(model).to.have.property('displayNameEn');",
-                  "            pm.expect(model).to.have.property('displayNameAr');",
-                  "            pm.expect(model).to.have.property('isActive');",
-                  "            pm.expect(model.isActive).to.be.true;",
-                  "            pm.expect(model).to.have.property('brand');",
-                  "            pm.expect(model.brand).to.have.property('id');",
-                  "            pm.expect(model.brand.id).to.equal(expectedBrandId);",
-                  "        });",
-                  "    }",
-                  "});"
-                ],
-                "type": "text/javascript"
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
               }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "if (!pm.collectionVariables.get(\"dynamicBrandId\")) {",
-                  "    console.warn(\"dynamicBrandId not set, this test might not run correctly or use a default. Consider running 'Get All Active Car Brands' first.\");",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/reference-data/brands/{{dynamicBrandId}}/models",
               "host": ["{{baseUrl}}"],
