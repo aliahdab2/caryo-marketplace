@@ -206,4 +206,16 @@ public class CarListing {
             this.transmission = transmissionType.getName();
         }
     }
+    /**
+     * Returns true if the listing is considered active according to business rules.
+     * A listing is active if it is approved, not sold, not archived, not expired,
+     * and (if expirationDate is set) the expirationDate is in the future.
+     */
+    public boolean isActive() {
+        return Boolean.TRUE.equals(approved)
+            && Boolean.FALSE.equals(sold)
+            && Boolean.FALSE.equals(archived)
+            && Boolean.FALSE.equals(expired)
+            && (expirationDate == null || expirationDate.isAfter(LocalDateTime.now()));
+    }
 }

@@ -32,7 +32,7 @@ jobs:
         uses: ./.github/actions/gradle-setup
         with:
           working-directory: "./backend/autotrader-backend"
-          java-version: "17"
+          java-version: "21"
           gradle-version: "8.5"
           cache: true
         
@@ -354,9 +354,30 @@ jobs:
           collection-path: "${{ steps.prepare-auth.outputs.COLLECTION_PATH }}"
           environment-file: '../../postman/test_environment.json' # Path relative to the action's working-directory
           working-directory: './backend/autotrader-backend'      # Action's working-directory
-          results-directory: '../../results'                     # Path relative to the action's working-directory for output
+          results-directory: './results'                         # Path relative to the action's working-directory for output
           auto-detect-collection: 'true'
-          extra-options: '--bail --export-environment ../../results/updated_environment.json' # Path relative to action's working-directory
+          extra-options: '--bail --export-environment ./results/updated_environment.json --reporters cli,htmlextra,junit' # Path relative to action's working-directory
+
+      - name: Store test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: postman-test-results
+          path: backend/autotrader-backend/results/
+          retention-days: 14
+          
+      - name: Display test summary
+        if: always()
+        working-directory: ./backend/autotrader-backend
+        run: |
+          echo "Postman Test Summary:"
+          if [ -f "results/junit-report.xml" ]; then
+            echo "Total Tests: $(grep -c "<testcase" results/junit-report.xml || echo "0")"
+            echo "Failed Tests: $(grep -c "<failure" results/junit-report.xml || echo "0")"
+            echo "Skipped Tests: $(grep -c "<skipped" results/junit-report.xml || echo "0")"
+          else
+            echo "No test results found"
+          fi
 
       - name: Run diagnostic scripts if tests fail
         if: steps.postman-tests.outputs.test-status == 'failure'
@@ -380,3 +401,8 @@ jobs:
           echo "Testing non-authenticated endpoints..."
           echo "Health endpoint: $(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health)"
           echo "Public endpoint: $(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/public || echo 'not found')"
+          
+          # Archive the full test results and logs for debugging
+          mkdir -p ./results/diagnostics
+          cp spring-boot.log ./results/diagnostics/ || echo "Could not copy log file"
+          echo "Test results and logs have been archived for review."

@@ -31,7 +31,7 @@ jobs:
       uses: ./.github/actions/gradle-setup
       with:
         working-directory: "./backend/autotrader-backend"
-        java-version: "17"
+        java-version: "21"
         cache: true
         
     # Ensure Gradle Wrapper exists
@@ -99,12 +99,12 @@ jobs:
       with:
         docker-compose-file: "./backend/autotrader-backend/docker-compose.dev.yml"
         services: "db minio createbuckets redis"
-        wait-time: '120'  # Increased wait time
+        wait-time: '5'  # Minimize static wait, rely on health checks
         db-container-name: "autotrader-backend-db-1"
         db-user: "autotrader"
         minio-container-name: "autotrader-backend-minio-1"
         createbuckets-container-name: "autotrader-backend-createbuckets-1"
-        post-minio-ready-wait-seconds: '20'  # Increased post-ready wait time
+        post-minio-ready-wait-seconds: '5'  # Minimize post-ready wait
         minio-root-user: "newuser"  # Custom MinIO user
         minio-root-password: "newpassword"  # Custom MinIO password
 
@@ -112,36 +112,44 @@ jobs:
     - name: Run Integration Tests
       working-directory: ./backend/autotrader-backend
       run: |
-        # Check available tasks
-        echo "Checking available Gradle tasks..."
-        ./gradlew tasks --all | grep -E "test|Test" || true
-        
-        # Run ONLY integration tests - don't fall back to running all tests
         echo "Running integration tests..."
         if ./gradlew tasks --all | grep -q "integrationTest"; then
           echo "integrationTest task found, running integration tests only"
           ./gradlew integrationTest --info
-        else
-          echo "Integration test task not found, looking for alternative integration test tasks..."
-          # Try to find other common integration test task names
-          if ./gradlew tasks --all | grep -q "intTest"; then
-            echo "intTest task found, running it instead"
-            ./gradlew intTest --info
-          else
-            echo "ERROR: No integration test tasks found. Please configure an integration test task."
-            echo "Skipping integration tests, but marking as successful to prevent CI failure."
+          
+          # Check exit code
+          if [ $? -ne 0 ]; then
+            echo "Integration tests failed. Check the logs for details."
+            exit 1
           fi
+          
+          # Display test summary
+          echo "Integration Test Summary:"
+          find build/test-results/integrationTest -name "TEST-*.xml" 2>/dev/null | wc -l | xargs -I{} echo "Total Test Classes: {}"
+          grep -r "tests=" build/test-results/integrationTest --include="TEST-*.xml" 2>/dev/null | head -1 | sed 's/.*tests="\([0-9]*\)".*/Total Tests: \1/'
+          grep -r "failures=" build/test-results/integrationTest --include="TEST-*.xml" 2>/dev/null | head -1 | sed 's/.*failures="\([0-9]*\)".*/Failures: \1/'
+        else
+          echo "integrationTest task not found, falling back to pattern matching"
+          ./gradlew test --tests "*IntegrationTest" --info
+          
+          # Check exit code
+          if [ $? -ne 0 ]; then
+            echo "Integration tests failed. Check the logs for details."
+            exit 1
+          fi
+          
+          # Display test summary for pattern-matched tests
+          echo "Integration Test Summary (pattern-matched):"
+          find build/test-results/test -name "TEST-*IntegrationTest.xml" 2>/dev/null | wc -l | xargs -I{} echo "Total Test Classes: {}"
         fi
 
         # Check if JaCoCo report tasks exist and run them
-        if ./gradlew tasks --all | grep -q "jacocoTestReport"; then
-          echo "jacocoTestReport task found, generating reports"
-          ./gradlew jacocoTestReport --info
-        fi
-
         if ./gradlew tasks --all | grep -q "jacocoIntegrationTestReport"; then
           echo "jacocoIntegrationTestReport task found, generating reports"
           ./gradlew jacocoIntegrationTestReport --info
+        elif ./gradlew tasks --all | grep -q "jacocoTestReport"; then
+          echo "jacocoTestReport task found, generating reports"
+          ./gradlew jacocoTestReport --info
         fi
 
     - name: Verify JaCoCo report exists

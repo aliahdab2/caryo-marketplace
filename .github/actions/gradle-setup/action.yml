@@ -48,7 +48,15 @@ runs:
       with:
         distribution: ${{ inputs.distribution }}
         java-version: ${{ inputs.java-version }}
-        cache: 'gradle'
+        
+    - name: Configure Gradle to use specific Java version
+      shell: bash
+      run: |
+        echo "Setting JAVA_HOME environment variable for Gradle..."
+        echo "org.gradle.java.home=$(echo $JAVA_HOME)" > ${{ inputs.working-directory }}/gradle.properties
+        echo "org.gradle.jvmargs=-XX:MaxMetaspaceSize=512m -Xmx1024m" >> ${{ inputs.working-directory }}/gradle.properties
+        echo "org.gradle.daemon=true" >> ${{ inputs.working-directory }}/gradle.properties
+        echo "Applied Java home: $(echo $JAVA_HOME)"
 
     - name: Verify Gradle wrapper
       shell: bash

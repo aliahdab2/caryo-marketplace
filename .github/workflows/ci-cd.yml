@@ -34,10 +34,9 @@ jobs:
       uses: ./.github/actions/gradle-setup
       with:
         working-directory: "./backend/autotrader-backend"
-        java-version: "17"
+        java-version: "21"
         cache: true
 
-    # Ensure Gradle Wrapper exists
     - name: Ensure Gradle Wrapper
       working-directory: ./backend/autotrader-backend
       run: |
@@ -86,18 +85,38 @@ jobs:
           echo "ERROR: ./gradle/wrapper/gradle-wrapper.jar is MISSING before build command!"
           exit 1
         fi
+        
+        # Run the build
         ./gradlew build --info
 
     - name: Run Unit Tests (excluding integration tests)
       working-directory: ./backend/autotrader-backend
       run: |
-        # Check if integrationTest task exists
-        if ./gradlew tasks | grep -q "integrationTest"; then
-          echo "integrationTest task found, excluding it from test run"
-          ./gradlew test --tests "com.autotrader.autotraderbackend.*Test" --exclude-task integrationTest
+        echo "Running unit tests (excluding integration tests)..."
+        export SPRING_PROFILES_ACTIVE=unit,h2
+        
+        # Run tests with specific options
+        ./gradlew test --info
+        
+        # Generate JaCoCo test coverage report
+        ./gradlew jacocoTestReport --info
+        
+        # Display test summary
+        echo "Test Summary:"
+        if [ -d "build/test-results/test" ]; then
+          TEST_CLASSES=$(find build/test-results/test -name "TEST-*.xml" | wc -l)
+          echo "Total Test Classes: $TEST_CLASSES"
+          
+          # Use XML parsing fallback for test count
+          echo "Using XML parsing fallback for test count:"
+          find build/test-results/test -name "TEST-*.xml" | wc -l | xargs -I{} echo "Total Test Classes: {}"
+          TEST_COUNT=$(grep -r "tests=" build/test-results/test --include="TEST-*.xml" | awk -F'tests="' '{sum += $2+0} END {print sum}')
+          echo "Total Tests: $TEST_COUNT"
+          
+          FAILURES=$(grep -r "failures=" build/test-results/test --include="TEST-*.xml" | awk -F'failures="' '{sum += $2+0} END {print sum}')
+          echo "Failures: $FAILURES"
         else
-          echo "integrationTest task not found, running regular tests"
-          ./gradlew test --tests "com.autotrader.autotraderbackend.*Test"
+          echo "No test results found in build/test-results/test"
         fi
 
     - name: Upload test results
@@ -139,7 +158,7 @@ jobs:
       uses: ./.github/actions/gradle-setup
       with:
         working-directory: "./backend/autotrader-backend"
-        java-version: "17"
+        java-version: "21"
         cache: true
     
     # Run basic backend sanity check
