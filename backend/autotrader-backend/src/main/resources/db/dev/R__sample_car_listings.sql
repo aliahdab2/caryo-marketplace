@@ -13,7 +13,7 @@ BEGIN
         INSERT INTO users (username, email, password) VALUES
         ('john_dev', 'john@dev.example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG'), -- password: password123
         ('alice_dev', 'alice@dev.example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG') -- password: password123
-        ON CONFLICT (username) DO NOTHING;
+        ON CONFLICT DO NOTHING;
 
         -- Assign roles to users
         INSERT INTO user_roles (user_id, role_id)
