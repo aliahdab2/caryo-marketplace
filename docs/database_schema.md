@@ -50,7 +50,6 @@ This document outlines the database schema for the AutoTrader Marketplace backen
 - **vin**: VARCHAR(17)
 - **stock_number**: VARCHAR(50)
 - **exterior_color**: VARCHAR(50)
-- **interior_color**: VARCHAR(50)
 - **doors**: INTEGER
 - **cylinders**: INTEGER
 - **seller_id**: BIGINT NOT NULL (Foreign Key to users.id)

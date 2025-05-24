@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "car_models")
+@Table(name = "models")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,7 +19,7 @@ public class CarModel {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "brand_id", nullable = false)
+    @JoinColumn(name = "make_id", nullable = false)
     private CarBrand brand;
 
     @Column(nullable = false, length = 50)

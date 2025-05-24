@@ -137,7 +137,7 @@ CREATE TABLE car_listings (
     vin VARCHAR(17),
     stock_number VARCHAR(50),
     exterior_color VARCHAR(50),
-    interior_color VARCHAR(50),
+    -- interior_color removed
     doors INT,
     cylinders INT,
     seller_id BIGINT NOT NULL,

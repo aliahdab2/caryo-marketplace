@@ -90,7 +90,7 @@ LIMIT 1;
 -- Arabic Car Listings
 INSERT INTO car_listings (
   id, title, description, price, mileage, model_year,
-  brand, model, vin, stock_number, exterior_color, interior_color,
+  brand, model, vin, stock_number, exterior_color,
   doors, cylinders, seller_id, location_id, approved, sold,
   archived, expiration_date, created_at, updated_at
 ) VALUES

@@ -21,7 +21,6 @@ import lombok.NoArgsConstructor;
 @Setter
 @NoArgsConstructor
 public class CarListing {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -65,9 +64,6 @@ public class CarListing {
     @Column(name = "exterior_color", length = 50)
     private String exteriorColor;
 
-    @Size(max = 50)
-    @Column(name = "interior_color", length = 50)
-    private String interiorColor;
 
     @Column(name = "doors")
     private Integer doors;
