@@ -55,6 +55,18 @@
       "value": "admin@autotrader.com",
       "type": "default",
       "enabled": true
+    },
+    {
+      "key": "governorateSlug",
+      "value": "damascus",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "countryCode",
+      "value": "SY",
+      "type": "default",
+      "enabled": true
     }
   ]
 }

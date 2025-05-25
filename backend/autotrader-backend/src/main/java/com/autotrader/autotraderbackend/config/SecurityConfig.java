@@ -65,6 +65,7 @@ public class SecurityConfig {
                 .requestMatchers("/webjars/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/files/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/governorates/**").permitAll() // Added this line
                 .anyRequest().authenticated()
             )
             // Handle access denied exceptions properly

@@ -16,15 +16,18 @@ public class CarListingSpecification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // Always filter by approved status unless explicitly overridden (e.g., for admin views)
-            // predicates.add(criteriaBuilder.isTrue(root.get("approved")));
-            // Note: We apply the approved filter in the service layer for clarity
-
+            // Using denormalized fields for brand and model filtering
             if (StringUtils.hasText(filter.getBrand())) {
-                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("brandNameEn")), "%" + filter.getBrand().toLowerCase() + "%"));
+                predicates.add(criteriaBuilder.like(
+                    criteriaBuilder.lower(root.get("brandNameEn")),
+                    "%" + filter.getBrand().toLowerCase() + "%"
+                ));
             }
             if (StringUtils.hasText(filter.getModel())) {
-                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("modelNameEn")), "%" + filter.getModel().toLowerCase() + "%"));
+                predicates.add(criteriaBuilder.like(
+                    criteriaBuilder.lower(root.get("modelNameEn")),
+                    "%" + filter.getModel().toLowerCase() + "%"
+                ));
             }
             if (filter.getMinYear() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("modelYear"), filter.getMinYear()));

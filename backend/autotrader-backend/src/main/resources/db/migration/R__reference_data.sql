@@ -135,17 +135,18 @@ CREATE TABLE IF NOT EXISTS seller_types (
     id SERIAL PRIMARY KEY,
     name VARCHAR(20) UNIQUE NOT NULL,
     display_name_en VARCHAR(50) NOT NULL,
-    display_name_ar VARCHAR(50) NOT NULL
+    display_name_ar VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) NOT NULL
 );
 
-MERGE INTO seller_types AS t USING (VALUES ('private', 'Private Seller', 'بائع خاص')) AS s(name, display_name_en, display_name_ar) ON t.name = s.name
-WHEN MATCHED THEN UPDATE SET display_name_en = s.display_name_en, display_name_ar = s.display_name_ar
-WHEN NOT MATCHED THEN INSERT (name, display_name_en, display_name_ar) VALUES (s.name, s.display_name_en, s.display_name_ar);
+MERGE INTO seller_types AS t USING (VALUES ('private', 'Private Seller', 'بائع خاص', 'private')) AS s(name, display_name_en, display_name_ar, slug) ON t.name = s.name
+WHEN MATCHED THEN UPDATE SET display_name_en = s.display_name_en, display_name_ar = s.display_name_ar, slug = s.slug
+WHEN NOT MATCHED THEN INSERT (name, display_name_en, display_name_ar, slug) VALUES (s.name, s.display_name_en, s.display_name_ar, s.slug);
 
-MERGE INTO seller_types AS t USING (VALUES ('dealer', 'Dealer', 'معرض سيارات')) AS s(name, display_name_en, display_name_ar) ON t.name = s.name
-WHEN MATCHED THEN UPDATE SET display_name_en = s.display_name_en, display_name_ar = s.display_name_ar
-WHEN NOT MATCHED THEN INSERT (name, display_name_en, display_name_ar) VALUES (s.name, s.display_name_en, s.display_name_ar);
+MERGE INTO seller_types AS t USING (VALUES ('dealer', 'Dealer', 'معرض سيارات', 'dealer')) AS s(name, display_name_en, display_name_ar, slug) ON t.name = s.name
+WHEN MATCHED THEN UPDATE SET display_name_en = s.display_name_en, display_name_ar = s.display_name_ar, slug = s.slug
+WHEN NOT MATCHED THEN INSERT (name, display_name_en, display_name_ar, slug) VALUES (s.name, s.display_name_en, s.display_name_ar, s.slug);
 
-MERGE INTO seller_types AS t USING (VALUES ('certified', 'Certified Dealer', 'معرض معتمد')) AS s(name, display_name_en, display_name_ar) ON t.name = s.name
-WHEN MATCHED THEN UPDATE SET display_name_en = s.display_name_en, display_name_ar = s.display_name_ar
-WHEN NOT MATCHED THEN INSERT (name, display_name_en, display_name_ar) VALUES (s.name, s.display_name_en, s.display_name_ar);
+MERGE INTO seller_types AS t USING (VALUES ('certified', 'Certified Dealer', 'معرض معتمد', 'certified')) AS s(name, display_name_en, display_name_ar, slug) ON t.name = s.name
+WHEN MATCHED THEN UPDATE SET display_name_en = s.display_name_en, display_name_ar = s.display_name_ar, slug = s.slug
+WHEN NOT MATCHED THEN INSERT (name, display_name_en, display_name_ar, slug) VALUES (s.name, s.display_name_en, s.display_name_ar, s.slug);
