@@ -19,6 +19,7 @@ import com.autotrader.autotraderbackend.repository.specification.CarListingSpeci
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -26,10 +27,10 @@ import java.util.Collections;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -50,6 +51,10 @@ public class CarListingService {
      */
     @Transactional
     public CarListingResponse createListing(CreateListingRequest request, MultipartFile image, String username) {
+        Objects.requireNonNull(request, "CreateListingRequest cannot be null");
+        if (StringUtils.isBlank(username)) {
+            throw new IllegalArgumentException("Username cannot be blank");
+        }
         log.info("Attempting to create new listing for user: {}", username);
         User user = findUserByUsername(username);
 
@@ -59,25 +64,30 @@ public class CarListingService {
         CarListing savedListing = carListingRepository.save(carListing);
 
         // Handle image upload if provided
-        if (image != null && !image.isEmpty()) {
+        if (Objects.nonNull(image) && !image.isEmpty()) { // Changed from image != null
             try {
-                String imageKey = generateImageKey(savedListing.getId(), image.getOriginalFilename());
-                storageService.store(image, imageKey);
-                
-                // Create and add ListingMedia for this image
-                ListingMedia media = new ListingMedia();
-                media.setCarListing(savedListing);
-                media.setFileKey(imageKey);
-                media.setFileName(image.getOriginalFilename());
-                media.setContentType(image.getContentType());
-                media.setSize(image.getSize());
-                media.setSortOrder(0);
-                media.setIsPrimary(true);
-                media.setMediaType("image");
-                savedListing.addMedia(media);
-                
-                savedListing = carListingRepository.save(savedListing); // Save again to update with media
-                log.info("Successfully uploaded image for new listing ID: {}", savedListing.getId());
+                String originalFilename = image.getOriginalFilename();
+                if (StringUtils.isBlank(originalFilename)) {
+                    log.warn("Image for listing ID {} has a blank original filename. Skipping image processing.", savedListing.getId());
+                } else {
+                    String imageKey = generateImageKey(savedListing.getId(), originalFilename);
+                    storageService.store(image, imageKey);
+                    
+                    // Create and add ListingMedia for this image
+                    ListingMedia media = new ListingMedia();
+                    media.setCarListing(savedListing);
+                    media.setFileKey(imageKey);
+                    media.setFileName(originalFilename);
+                    media.setContentType(image.getContentType());
+                    media.setSize(image.getSize());
+                    media.setSortOrder(0);
+                    media.setIsPrimary(true);
+                    media.setMediaType("image");
+                    savedListing.addMedia(media);
+                    
+                    savedListing = carListingRepository.save(savedListing); // Save again to update with media
+                    log.info("Successfully uploaded image for new listing ID: {}", savedListing.getId());
+                }
             } catch (StorageException e) {
                 // If image upload/update fails, log it but proceed with listing creation response
                 log.error("Failed to upload image or update listing with image key for listing ID {}: {}. Error: {}", savedListing.getId(), e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "N/A", e);
@@ -96,6 +106,11 @@ public class CarListingService {
      */
     @Transactional
     public String uploadListingImage(Long listingId, MultipartFile file, String username) {
+        Objects.requireNonNull(listingId, "Listing ID cannot be null");
+        Objects.requireNonNull(file, "File cannot be null");
+        if (StringUtils.isBlank(username)) {
+            throw new IllegalArgumentException("Username cannot be blank");
+        }
         log.info("Attempting to upload image for listing ID: {} by user: {}", listingId, username);
         User user = findUserByUsername(username);
 
@@ -216,7 +231,7 @@ public class CarListingService {
                 log.warn("Location ID {} provided in filter but not found. No listings will match this location criterion.", filterRequest.getLocationId());
                 // locationToFilterBy remains null, spec will be set to disjunction
             }
-        } else if (StringUtils.hasText(filterRequest.getLocation())) {
+        } else if (StringUtils.isNotBlank(filterRequest.getLocation())) { // Changed from StringUtils.hasText
             locationFilterAttempted = true;
             locationFilterType = "slug: '" + filterRequest.getLocation() + "'";
             Optional<Location> locationOpt = locationRepository.findBySlug(filterRequest.getLocation());

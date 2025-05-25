@@ -17,17 +17,21 @@ class CarListingResponseTest {
         
         assertNull(response.getId());
         assertNull(response.getTitle());
-        // Check denormalized fields instead of direct brand/model
         assertNull(response.getBrandNameEn());
         assertNull(response.getBrandNameAr());
         assertNull(response.getModelNameEn());
         assertNull(response.getModelNameAr());
+        assertNull(response.getGovernorateNameEn()); // Added assertion
+        assertNull(response.getGovernorateNameAr()); // Added assertion
         assertNull(response.getModelYear());
         assertNull(response.getMileage());
         assertNull(response.getPrice());
+        assertNull(response.getTransmission()); // Added assertion
+        assertNull(response.getFuelType()); // Added assertion
         assertNull(response.getLocationDetails());
+        assertNull(response.getGovernorateDetails()); // Added assertion
         assertNull(response.getDescription());
-        assertNotNull(response.getMedia()); // Should be initialized as empty list
+        assertNotNull(response.getMedia());
         assertTrue(response.getMedia().isEmpty());
         assertNull(response.getApproved());
         assertNull(response.getSellerId());
@@ -35,7 +39,8 @@ class CarListingResponseTest {
         assertNull(response.getCreatedAt());
         assertNull(response.getIsSold());
         assertNull(response.getIsArchived());
-        assertNull(response.getIsUserActive()); // Added assertion
+        assertNull(response.getIsUserActive());
+        assertNull(response.getIsExpired());
     }
 
     @Test
@@ -43,15 +48,19 @@ class CarListingResponseTest {
         // Setup test data
         Long id = 1L;
         String title = "Test Car";
-        // Replaced brand and model with denormalized fields
         Integer modelYear = 2022;
         Integer mileage = 5000;
         BigDecimal price = new BigDecimal("25000.00");
+        String transmission = "Automatic"; // Added field
+        String fuelType = "Petrol"; // Added field
         String brandNameEn = "Toyota";
         String brandNameAr = "تويوتا";
         String modelNameEn = "Camry";
         String modelNameAr = "كامري";
+        String governorateNameEn = "Capital"; // Added field
+        String governorateNameAr = "العاصمة"; // Added field
         LocationResponse locationDetails = new LocationResponse();
+        GovernorateResponse governorateDetails = new GovernorateResponse();
         String description = "Test Description";
         List<ListingMediaResponse> media = new ArrayList<>();
         Boolean approved = true;
@@ -63,26 +72,34 @@ class CarListingResponseTest {
         Boolean isUserActive = true;
         Boolean isExpired = false;
 
-        // Create response with all args constructor - adjusted for new fields
+        // Create response with all args constructor - adjusted for all fields
         CarListingResponse response = new CarListingResponse(
                 id, title, modelYear, mileage, price,
+                transmission, fuelType,
                 brandNameEn, brandNameAr, modelNameEn, modelNameAr,
-                locationDetails, description, media, approved, sellerId,
-                sellerUsername, createdAt, isSold, isArchived, isUserActive,
-                isExpired
+                governorateNameEn, governorateNameAr,
+                locationDetails, governorateDetails,
+                description, media, approved, sellerId,
+                sellerUsername, createdAt, isSold, isArchived,
+                isUserActive, isExpired
         );
 
         // Verify all fields
         assertEquals(id, response.getId());
         assertEquals(title, response.getTitle());
+        assertEquals(modelYear, response.getModelYear());
+        assertEquals(mileage, response.getMileage());
+        assertEquals(price, response.getPrice());
+        assertEquals(transmission, response.getTransmission());
+        assertEquals(fuelType, response.getFuelType());
         assertEquals(brandNameEn, response.getBrandNameEn());
         assertEquals(brandNameAr, response.getBrandNameAr());
         assertEquals(modelNameEn, response.getModelNameEn());
         assertEquals(modelNameAr, response.getModelNameAr());
-        assertEquals(modelYear, response.getModelYear());
-        assertEquals(mileage, response.getMileage());
-        assertEquals(price, response.getPrice());
+        assertEquals(governorateNameEn, response.getGovernorateNameEn());
+        assertEquals(governorateNameAr, response.getGovernorateNameAr());
         assertEquals(locationDetails, response.getLocationDetails());
+        assertEquals(governorateDetails, response.getGovernorateDetails());
         assertEquals(description, response.getDescription());
         assertEquals(media, response.getMedia());
         assertEquals(approved, response.getApproved());
@@ -103,11 +120,12 @@ class CarListingResponseTest {
         // Set properties
         response.setId(1L);
         response.setTitle("Test Car");
-        // Use denormalized fields instead of direct brand/model
         response.setBrandNameEn("Toyota");
         response.setBrandNameAr("تويوتا");
         response.setModelNameEn("Camry");
         response.setModelNameAr("كامري");
+        response.setGovernorateNameEn("Capital"); // Added field
+        response.setGovernorateNameAr("العاصمة"); // Added field
         response.setModelYear(2022);
         response.setMileage(5000);
         response.setPrice(new BigDecimal("25000.00"));
@@ -145,6 +163,8 @@ class CarListingResponseTest {
         assertEquals("تويوتا", response.getBrandNameAr());
         assertEquals("Camry", response.getModelNameEn());
         assertEquals("كامري", response.getModelNameAr());
+        assertEquals("Capital", response.getGovernorateNameEn()); // Added assertion
+        assertEquals("العاصمة", response.getGovernorateNameAr()); // Added assertion
         assertEquals(Integer.valueOf(2022), response.getModelYear());
         assertEquals(Integer.valueOf(5000), response.getMileage());
         assertEquals(new BigDecimal("25000.00"), response.getPrice());

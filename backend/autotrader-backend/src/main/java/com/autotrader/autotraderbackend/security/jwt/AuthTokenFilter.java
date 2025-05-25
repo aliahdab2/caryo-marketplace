@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,10 +15,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -29,8 +30,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     // Constructor injection to allow proper mocking in tests
     @Autowired
     public AuthTokenFilter(JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService) {
-        this.jwtUtils = jwtUtils;
-        this.userDetailsService = userDetailsService;
+        this.jwtUtils = Objects.requireNonNull(jwtUtils, "jwtUtils cannot be null");
+        this.userDetailsService = Objects.requireNonNull(userDetailsService, "userDetailsService cannot be null");
     }
     
     // Default constructor for Spring
@@ -44,7 +45,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             String jwt = parseJwt(request);
-            if (jwt != null) {
+            if (Objects.nonNull(jwt)) {
                 try {
                     // jwtUtils.validateJwtToken now throws CustomJwtException or its subclasses on failure
                     jwtUtils.validateJwtToken(jwt); 
@@ -64,13 +65,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                     } catch (Exception userException) {
                         // Log errors related to user loading or setting authentication context
-                        log.error("AuthTokenFilter: Error loading user details or setting authentication for username '{}': {}", username, userException.getMessage());
+                        log.error("AuthTokenFilter: Error loading user details or setting authentication for username \'{}\': {}", username, userException.getMessage());
                         // Authentication not set, AuthEntryPointJwt will handle it
                     }
                 } catch (CustomJwtException e) {
                     // Log specific JWT validation errors
                     String tokenPrefix = jwt.length() > 10 ? jwt.substring(0, 10) + "..." : jwt;
-                    log.error("AuthTokenFilter: JWT validation failed for token starting with '{}': {}. Type: {}", 
+                    log.error("AuthTokenFilter: JWT validation failed for token starting with \'{}\': {}. Type: {}", 
                               tokenPrefix,
                               e.getMessage(), 
                               e.getClass().getSimpleName());
@@ -87,12 +88,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     }
 
     private String parseJwt(HttpServletRequest request) {
+        Objects.requireNonNull(request, "HttpServletRequest cannot be null");
         String headerAuth = request.getHeader("Authorization");
 
-        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
+        if (StringUtils.isNotBlank(headerAuth) && headerAuth.startsWith("Bearer ")) {
             String token = headerAuth.substring(7);
             // Return null for empty tokens to avoid validation attempts on empty strings
-            return StringUtils.hasText(token) ? token : null;
+            return StringUtils.isNotBlank(token) ? token : null;
         }
 
         return null;

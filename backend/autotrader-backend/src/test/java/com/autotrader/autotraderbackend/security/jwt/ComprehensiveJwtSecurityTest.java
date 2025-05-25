@@ -36,7 +36,6 @@ public class ComprehensiveJwtSecurityTest {
     @InjectMocks
     private JwtUtils jwtUtils;
 
-    @InjectMocks
     private AuthTokenFilter authTokenFilter;
 
     @Mock
@@ -57,7 +56,7 @@ public class ComprehensiveJwtSecurityTest {
         
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
-        filterChain = mock(MockFilterChain.class); // Changed this line
+        filterChain = mock(MockFilterChain.class);
         
         // Create user details
         userDetails = org.springframework.security.core.userdetails.User.builder()
@@ -70,8 +69,8 @@ public class ComprehensiveJwtSecurityTest {
         ReflectionTestUtils.setField(jwtUtils, "jwtSecret", testSecret);
         ReflectionTestUtils.setField(jwtUtils, "jwtExpirationMs", jwtExpirationMs);
         
-        // Configure AuthTokenFilter to use our JwtUtils
-        ReflectionTestUtils.setField(authTokenFilter, "jwtUtils", jwtUtils);
+        // Create AuthTokenFilter with proper dependencies
+        authTokenFilter = new AuthTokenFilter(jwtUtils, userDetailsService);
     }
 
     @Test

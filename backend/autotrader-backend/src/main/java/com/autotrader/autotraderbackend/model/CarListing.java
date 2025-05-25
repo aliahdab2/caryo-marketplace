@@ -69,6 +69,18 @@ public class CarListing {
     @JoinColumn(name = "location_id")
     private Location location;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "governorate_id")
+    private Governorate governorate;
+    
+    @Size(max = 100)
+    @Column(name = "governorate_name_en", length = 100)
+    private String governorateNameEn;
+    
+    @Size(max = 100)
+    @Column(name = "governorate_name_ar", length = 100)
+    private String governorateNameAr;
+    
     @Size(max = 100)
     @Column(name = "brand_name_en", length = 100)
     private String brandNameEn;

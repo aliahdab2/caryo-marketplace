@@ -2,16 +2,19 @@ package com.autotrader.autotraderbackend.mapper;
 
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
+import com.autotrader.autotraderbackend.payload.response.GovernorateResponse;
 import com.autotrader.autotraderbackend.payload.response.ListingMediaResponse;
 import com.autotrader.autotraderbackend.payload.response.LocationResponse;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -31,7 +34,7 @@ public class CarListingMapper {
      * @return The corresponding CarListingResponse DTO.
      */
     public CarListingResponse toCarListingResponse(CarListing carListing) {
-        if (carListing == null) {
+        if (Objects.isNull(carListing)) {
             log.warn("Attempted to map a null CarListing entity.");
             return null;
         }
@@ -51,22 +54,29 @@ public class CarListingMapper {
             response.setModelNameEn(carListing.getModelNameEn());
             response.setModelNameAr(carListing.getModelNameAr());
             
+            // Set denormalized governorate name fields
+            response.setGovernorateNameEn(carListing.getGovernorateNameEn());
+            response.setGovernorateNameAr(carListing.getGovernorateNameAr());
+            
             // Use location
-            if (carListing.getLocation() != null) {
+            if (Objects.nonNull(carListing.getLocation())) {
                 response.setLocationDetails(LocationResponse.fromEntity(carListing.getLocation()));
             }
-            // If location is null, locationDetails will be null (handled by fromEntity)
-            // and the legacy response.setLocation() is not set.
             
+            // Use governorate
+            if (Objects.nonNull(carListing.getGovernorate())) {
+                response.setGovernorateDetails(GovernorateResponse.fromEntity(carListing.getGovernorate()));
+            }
+
             response.setCreatedAt(carListing.getCreatedAt());
             // Ensure approved is properly set (never null)
-            response.setApproved(carListing.getApproved() != null ? carListing.getApproved() : false);
+            response.setApproved(Objects.nonNull(carListing.getApproved()) ? carListing.getApproved() : false);
 
             response.setIsSold(carListing.getSold());
             response.setIsArchived(carListing.getArchived());
             response.setIsExpired(carListing.getExpired());
 
-            if (carListing.getSeller() != null) {
+            if (Objects.nonNull(carListing.getSeller())) {
                 response.setSellerId(carListing.getSeller().getId());
                 response.setSellerUsername(carListing.getSeller().getUsername());
             } else {
@@ -92,7 +102,7 @@ public class CarListingMapper {
             fallbackResponse.setIsArchived(carListing.getArchived());
             fallbackResponse.setIsExpired(carListing.getExpired());
             // Ensure approved is properly set in fallback response
-            fallbackResponse.setApproved(carListing.getApproved() != null ? carListing.getApproved() : false);
+            fallbackResponse.setApproved(Objects.nonNull(carListing.getApproved()) ? carListing.getApproved() : false);
             fallbackResponse.setMedia(new ArrayList<>());
             return fallbackResponse;
         }
@@ -107,7 +117,7 @@ public class CarListingMapper {
      * @return The corresponding CarListingResponse DTO.
      */
     public CarListingResponse toCarListingResponseForAdmin(CarListing carListing) {
-        if (carListing == null) {
+        if (Objects.isNull(carListing)) {
             log.warn("Attempted to map a null CarListing entity for admin operation.");
             return null;
         }
@@ -143,7 +153,7 @@ public class CarListingMapper {
             
             // Set location safely
             try {
-                if (carListing.getLocation() != null) {
+                if (Objects.nonNull(carListing.getLocation())) {
                     response.setLocationDetails(LocationResponse.fromEntity(carListing.getLocation()));
                 }
             } catch (Exception e) {
@@ -180,7 +190,7 @@ public class CarListingMapper {
 
             // Set seller info safely
             try {
-                if (carListing.getSeller() != null) {
+                if (Objects.nonNull(carListing.getSeller())) {
                     response.setSellerId(carListing.getSeller().getId());
                     response.setSellerUsername(carListing.getSeller().getUsername());
                 }
@@ -190,7 +200,7 @@ public class CarListingMapper {
 
             // Set media with empty list on error
             try {
-                if (carListing.getMedia() != null && !carListing.getMedia().isEmpty()) {
+                if (Objects.nonNull(carListing.getMedia()) && !carListing.getMedia().isEmpty()) {
                     response.setMedia(mapListingMediaSafely(carListing));
                 } else {
                     response.setMedia(new ArrayList<>());
@@ -229,7 +239,7 @@ public class CarListingMapper {
             
             // Ensure approved is properly set in fallback response
             try {
-                fallback.setApproved(carListing.getApproved() != null ? carListing.getApproved() : false);
+                fallback.setApproved(Objects.nonNull(carListing.getApproved()) ? carListing.getApproved() : false);
             } catch (Exception ex) {
                 fallback.setApproved(false);
                 log.warn("Error setting approved for listing ID {} in fallback, defaulting to false", carListing.getId());
@@ -248,7 +258,7 @@ public class CarListingMapper {
      * @return List of ListingMediaResponse DTOs, sorted by sortOrder.
      */
     private List<ListingMediaResponse> mapListingMedia(CarListing carListing) {
-        if (carListing == null || carListing.getMedia() == null || carListing.getMedia().isEmpty()) {
+        if (Objects.isNull(carListing) || Objects.isNull(carListing.getMedia()) || carListing.getMedia().isEmpty()) {
             return new ArrayList<>();
         }
         
@@ -292,20 +302,20 @@ public class CarListingMapper {
      * @return The signed URL, or null if generation fails or no key is provided.
      */
     private String generateSignedUrl(Long listingId, String imageKey) {
-        if (imageKey == null || imageKey.isBlank()) {
+        if (StringUtils.isBlank(imageKey)) {
              log.debug("No image key provided for listing ID {}. Skipping signed URL generation.", listingId);
             return null;
         }
 
         try {
             String signedUrl = storageService.getSignedUrl(imageKey, SIGNED_URL_EXPIRATION_SECONDS);
-            log.debug("Generated signed URL for listing ID {}: {}", listingId, signedUrl != null ? "[URL Present]" : "[URL Null]"); // Avoid logging the full URL potentially
+            log.debug("Generated signed URL for listing ID {}: {}", listingId, Objects.nonNull(signedUrl) ? "[URL Present]" : "[URL Null]"); // Avoid logging the full URL potentially
             return signedUrl;
         } catch (UnsupportedOperationException e) {
             log.warn("Storage service does not support signed URLs. Cannot generate for listing ID {}.", listingId);
             return null; // Return null if not supported
         } catch (Exception e) {
-            log.error("Error generating signed URL for listing ID {} with key '{}': {}", listingId, imageKey, e.getMessage(), e);
+            log.error("Error generating signed URL for listing ID {} with key \'{}\': {}", listingId, imageKey, e.getMessage(), e);
             return null; // Return null on other errors
         }
     }
@@ -319,7 +329,7 @@ public class CarListingMapper {
      * @return List of ListingMediaResponse DTOs, or empty list if mapping fails.
      */
     private List<ListingMediaResponse> mapListingMediaSafely(CarListing carListing) {
-        if (carListing == null || carListing.getMedia() == null) {
+        if (Objects.isNull(carListing) || Objects.isNull(carListing.getMedia())) {
             return new ArrayList<>();
         }
         

@@ -5,7 +5,6 @@ import com.autotrader.autotraderbackend.exception.jwt.MalformedJwtTokenException
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
@@ -24,7 +23,6 @@ public class JwtUtilsTest {
     @Mock
     private Authentication authentication;
 
-    @InjectMocks
     private JwtUtils jwtUtils;
 
     private UserDetails userDetails;
@@ -32,6 +30,13 @@ public class JwtUtilsTest {
 
     @BeforeEach
     void setUp() {
+        // Create JwtUtils instance
+        jwtUtils = new JwtUtils();
+        
+        // Set up the required fields using ReflectionTestUtils
+        ReflectionTestUtils.setField(jwtUtils, "jwtSecret", testSecret);
+        ReflectionTestUtils.setField(jwtUtils, "jwtExpirationMs", 60000); // 1 minute
+        
         // Set up the UserDetails
         userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username("testuser")
@@ -40,9 +45,6 @@ public class JwtUtilsTest {
                 .build();
         
         lenient().when(authentication.getPrincipal()).thenReturn(userDetails);
-        
-        ReflectionTestUtils.setField(jwtUtils, "jwtSecret", testSecret);
-        ReflectionTestUtils.setField(jwtUtils, "jwtExpirationMs", 60000); // 1 minute
     }
 
     @Test

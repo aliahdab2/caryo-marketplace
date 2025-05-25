@@ -25,6 +25,8 @@ public class CarListingResponse {
     private Integer modelYear;
     private Integer mileage;
     private BigDecimal price;
+    private String transmission; // Added field
+    private String fuelType; // Added field
     
     /**
      * Denormalized brand name in English for efficient search
@@ -44,9 +46,24 @@ public class CarListingResponse {
     private String modelNameAr;
     
     /**
+     * Denormalized governorate name in English for efficient search
+     */
+    private String governorateNameEn;
+    
+    /**
+     * Denormalized governorate name in Arabic for efficient search
+     */
+    private String governorateNameAr;
+    
+    /**
      * Location details object
      */
     private LocationResponse locationDetails;
+    
+    /**
+     * Governorate details object
+     */
+    private GovernorateResponse governorateDetails;
     
     private String description;
     /**
@@ -72,11 +89,16 @@ public class CarListingResponse {
     public String getBrandNameAr() { return brandNameAr; }
     public String getModelNameEn() { return modelNameEn; }
     public String getModelNameAr() { return modelNameAr; }
+    public String getGovernorateNameEn() { return governorateNameEn; }
+    public String getGovernorateNameAr() { return governorateNameAr; }
     public Integer getModelYear() { return modelYear; }
     public Integer getMileage() { return mileage; }
     public BigDecimal getPrice() { return price; }
+    public String getTransmission() { return transmission; } // Added getter
+    public String getFuelType() { return fuelType; } // Added getter
     
     public LocationResponse getLocationDetails() { return locationDetails; }
+    public GovernorateResponse getGovernorateDetails() { return governorateDetails; }
     
     public String getDescription() { return description; }
     public List<ListingMediaResponse> getMedia() { return media; }
@@ -97,11 +119,16 @@ public class CarListingResponse {
     public void setBrandNameAr(String brandNameAr) { this.brandNameAr = brandNameAr; }
     public void setModelNameEn(String modelNameEn) { this.modelNameEn = modelNameEn; }
     public void setModelNameAr(String modelNameAr) { this.modelNameAr = modelNameAr; }
+    public void setGovernorateNameEn(String governorateNameEn) { this.governorateNameEn = governorateNameEn; }
+    public void setGovernorateNameAr(String governorateNameAr) { this.governorateNameAr = governorateNameAr; }
     public void setModelYear(Integer modelYear) { this.modelYear = modelYear; }
     public void setMileage(Integer mileage) { this.mileage = mileage; }
     public void setPrice(BigDecimal price) { this.price = price; }
+    public void setTransmission(String transmission) { this.transmission = transmission; } // Added setter
+    public void setFuelType(String fuelType) { this.fuelType = fuelType; } // Added setter
     
     public void setLocationDetails(LocationResponse locationDetails) { this.locationDetails = locationDetails; }
+    public void setGovernorateDetails(GovernorateResponse governorateDetails) { this.governorateDetails = governorateDetails; }
     
     public void setDescription(String description) { this.description = description; }
     public void setMedia(List<ListingMediaResponse> media) { this.media = media != null ? media : new ArrayList<>(); }

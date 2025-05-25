@@ -10,6 +10,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -29,7 +31,10 @@ public class JwtUtils {
     private int jwtExpirationMs;
 
     public String generateJwtToken(Authentication authentication) {
+        Objects.requireNonNull(authentication, "Authentication cannot be null");
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
+        Objects.requireNonNull(userPrincipal, "UserPrincipal cannot be null");
+        Objects.requireNonNull(userPrincipal.getUsername(), "Username cannot be null");
 
         return Jwts.builder()
                 .setSubject(userPrincipal.getUsername())
@@ -40,6 +45,8 @@ public class JwtUtils {
     }
     
     public String generateJwtTokenForUser(com.autotrader.autotraderbackend.model.User user) {
+        Objects.requireNonNull(user, "User cannot be null");
+        Objects.requireNonNull(user.getUsername(), "Username cannot be null");
         return Jwts.builder()
                 .setSubject(user.getUsername())
                 .setIssuedAt(new Date())
@@ -49,16 +56,22 @@ public class JwtUtils {
     }
 
     private Key key() {
+        if (StringUtils.isBlank(jwtSecret)) {
+            throw new CustomJwtException("JWT secret is not configured");
+        }
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
     public String getUserNameFromJwtToken(String token) {
+        if (StringUtils.isBlank(token)) {
+            throw new MalformedJwtTokenException("JWT token is null or empty");
+        }
         return Jwts.parserBuilder().setSigningKey(key()).build()
                 .parseClaimsJws(token).getBody().getSubject();
     }
 
     public boolean validateJwtToken(String authToken) {
-        if (authToken == null || authToken.trim().isEmpty()) {
+        if (StringUtils.isBlank(authToken)) {
             log.error("JWT token is null or empty");
             throw new MalformedJwtTokenException("JWT token is null or empty");
         }
