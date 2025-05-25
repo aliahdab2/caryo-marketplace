@@ -4,11 +4,15 @@ import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.model.CarBrand; // Added import
+import com.autotrader.autotraderbackend.model.CarModel; // Added import
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.repository.CarBrandRepository; // Added import
+import com.autotrader.autotraderbackend.repository.CarModelRepository; // Added import
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
@@ -62,12 +66,20 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
     private RoleRepository roleRepository;
 
     @Autowired
+    private CarBrandRepository carBrandRepository; // Added
+
+    @Autowired
+    private CarModelRepository carModelRepository; // Added
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private CarListing testListing;
     private User testUser;
     private User adminUser;
     private Location testLocation;
+    private CarBrand testCarBrand; // Added
+    private CarModel testCarModel; // Added
     private String userToken;
     private String adminToken;
     private Long listingId;
@@ -83,6 +95,10 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         // Clean up before test
         carListingRepository.deleteAll();
         userRepository.deleteAll();
+        locationRepository.deleteAll();
+        carModelRepository.deleteAll(); // Added
+        carBrandRepository.deleteAll(); // Added
+
 
         // Create test user
         testUser = new User();
@@ -130,11 +146,31 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         testLocation.setCountryCode("SY");
         testLocation = locationRepository.save(testLocation);
 
+        // Create test CarBrand
+        testCarBrand = new CarBrand();
+        testCarBrand.setName("TestBrand");
+        testCarBrand.setDisplayNameEn("Test Brand");
+        testCarBrand.setDisplayNameAr("علامة تجارية اختبار");
+        testCarBrand.setSlug("test-brand"); // Added slug as it's a required field
+        testCarBrand = carBrandRepository.save(testCarBrand);
+
+        // Create test CarModel
+        testCarModel = new CarModel();
+        testCarModel.setName("TestModel");
+        testCarModel.setDisplayNameEn("Test Model");
+        testCarModel.setDisplayNameAr("نموذج اختبار");
+        testCarModel.setBrand(testCarBrand); // Corrected field name to 'brand'
+        testCarModel.setSlug("test-model"); // Added slug as it's a required field
+        testCarModel = carModelRepository.save(testCarModel);
+
         // Create test listing
         testListing = new CarListing();
         testListing.setTitle("Test Car");
-        testListing.setBrand("Test Brand");
-        testListing.setModel("Test Model");
+        testListing.setModel(testCarModel); // Use CarModel object
+        testListing.setBrandNameEn(testCarBrand.getDisplayNameEn()); // Denormalized
+        testListing.setBrandNameAr(testCarBrand.getDisplayNameAr()); // Denormalized
+        testListing.setModelNameEn(testCarModel.getDisplayNameEn()); // Denormalized
+        testListing.setModelNameAr(testCarModel.getDisplayNameAr()); // Denormalized
         testListing.setModelYear(2020);
         testListing.setMileage(10000);
         testListing.setPrice(new BigDecimal("15000.00"));
@@ -158,6 +194,8 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         carListingRepository.deleteAll();
         userRepository.deleteAll();
         locationRepository.deleteAll(); // Add this line
+        carModelRepository.deleteAll(); // Added
+        carBrandRepository.deleteAll(); // Added
     }
     
     /**
@@ -179,6 +217,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         updateRequest.setTitle("Updated Title");
         updateRequest.setPrice(new BigDecimal("16000.00"));
         updateRequest.setDescription("Updated Description");
+        // updateRequest.setModelId(testCarModel.getId()); // Assuming model is not changed in this test, but if it were, this is how
 
         // Act
         ResultActions result = mockMvc.perform(put("/api/listings/" + listingId)
@@ -199,7 +238,8 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         assertEquals("Updated Title", updatedListing.get().getTitle());
         assertEquals(0, new BigDecimal("16000.00").compareTo(updatedListing.get().getPrice()));
         assertEquals("Updated Description", updatedListing.get().getDescription());
-        assertEquals("Test Model", updatedListing.get().getModel()); // Unchanged field
+        assertEquals(testCarModel.getId(), updatedListing.get().getModel().getId()); // Check model ID
+        assertEquals("Test Model", updatedListing.get().getModelNameEn()); // Check denormalized field
     }
 
     @Test

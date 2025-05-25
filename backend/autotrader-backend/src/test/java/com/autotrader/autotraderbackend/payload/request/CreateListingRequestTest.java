@@ -28,8 +28,7 @@ class CreateListingRequestTest {
     private CreateListingRequest createValidRequest() {
         CreateListingRequest request = new CreateListingRequest();
         request.setTitle("Valid Title");
-        request.setBrand("Valid Brand");
-        request.setModel("Valid Model");
+        request.setModelId(1L); // Use modelId instead of brand and model
         request.setModelYear(LocalDate.now().getYear()); // Use current year for default valid
         request.setPrice(new BigDecimal("20000.00"));
         request.setMileage(10000);
@@ -65,24 +64,10 @@ class CreateListingRequestTest {
     }
     
     @Test
-    void whenBrandIsBlank_thenViolationOccurs() {
+    void whenModelIdIsNull_thenViolationOccurs() {
         // Arrange
         CreateListingRequest request = createValidRequest();
-        request.setBrand(""); // Blank brand
-        
-        // Act
-        Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
-        
-        // Assert
-        assertEquals(1, violations.size());
-        assertEquals("Brand is required", violations.iterator().next().getMessage());
-    }
-    
-    @Test
-    void whenModelIsBlank_thenViolationOccurs() {
-        // Arrange
-        CreateListingRequest request = createValidRequest();
-        request.setModel(""); // Blank model
+        request.setModelId(null); // Null modelId
         
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
@@ -202,8 +187,7 @@ class CreateListingRequestTest {
         // Arrange
         CreateListingRequest request = new CreateListingRequest();
         String title = "Test Car";
-        String brand = "Toyota";
-        String model = "Camry";
+        Long modelId = 1L; // Use Long for modelId
         Integer modelYear = 2020;
         Integer mileage = 50000;
         BigDecimal price = new BigDecimal("15000.00");
@@ -212,8 +196,7 @@ class CreateListingRequestTest {
         
         // Act - Set values
         request.setTitle(title);
-        request.setBrand(brand);
-        request.setModel(model);
+        request.setModelId(modelId); // Use setModelId
         request.setModelYear(modelYear);
         request.setMileage(mileage);
         request.setPrice(price);
@@ -222,8 +205,7 @@ class CreateListingRequestTest {
         
         // Assert - Get values
         assertEquals(title, request.getTitle());
-        assertEquals(brand, request.getBrand());
-        assertEquals(model, request.getModel());
+        assertEquals(modelId, request.getModelId()); // Use getModelId
         assertEquals(modelYear, request.getModelYear());
         assertEquals(mileage, request.getMileage());
         assertEquals(price, request.getPrice());
@@ -240,12 +222,11 @@ class CreateListingRequestTest {
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
         
         // Assert
-        assertTrue(violations.size() >= 7); // At least 7 required fields
+        assertEquals(6, violations.size()); // Check for exactly 6 violations for the required fields
         
         // Check for specific violations
         boolean hasTitleViolation = false;
-        boolean hasBrandViolation = false;
-        boolean hasModelViolation = false;
+        boolean hasModelIdViolation = false;
         boolean hasYearViolation = false;
         boolean hasMileageViolation = false;
         boolean hasPriceViolation = false;
@@ -255,8 +236,7 @@ class CreateListingRequestTest {
             String path = violation.getPropertyPath().toString();
             switch (path) {
                 case "title": hasTitleViolation = true; break;
-                case "brand": hasBrandViolation = true; break;
-                case "model": hasModelViolation = true; break;
+                case "modelId": hasModelIdViolation = true; break;
                 case "modelYear": hasYearViolation = true; break;
                 case "mileage": hasMileageViolation = true; break;
                 case "price": hasPriceViolation = true; break;
@@ -265,8 +245,7 @@ class CreateListingRequestTest {
         }
         
         assertTrue(hasTitleViolation, "Missing title violation");
-        assertTrue(hasBrandViolation, "Missing brand violation");
-        assertTrue(hasModelViolation, "Missing model violation");
+        assertTrue(hasModelIdViolation, "Missing modelId violation");
         assertTrue(hasYearViolation, "Missing modelYear violation");
         assertTrue(hasMileageViolation, "Missing mileage violation");
         assertTrue(hasPriceViolation, "Missing price violation");

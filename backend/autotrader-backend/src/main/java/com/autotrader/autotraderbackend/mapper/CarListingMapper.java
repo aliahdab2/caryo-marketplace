@@ -40,12 +40,16 @@ public class CarListingMapper {
             CarListingResponse response = new CarListingResponse();
             response.setId(carListing.getId());
             response.setTitle(carListing.getTitle());
-            response.setBrand(carListing.getBrand());
-            response.setModel(carListing.getModel());
             response.setModelYear(carListing.getModelYear());
             response.setPrice(carListing.getPrice());
             response.setMileage(carListing.getMileage());
             response.setDescription(carListing.getDescription());
+            
+            // Set denormalized brand and model name fields
+            response.setBrandNameEn(carListing.getBrandNameEn());
+            response.setBrandNameAr(carListing.getBrandNameAr());
+            response.setModelNameEn(carListing.getModelNameEn());
+            response.setModelNameAr(carListing.getModelNameAr());
             
             // Use location
             if (carListing.getLocation() != null) {
@@ -116,11 +120,14 @@ public class CarListingMapper {
             try { response.setTitle(carListing.getTitle()); } 
             catch (Exception e) { log.warn("Error setting title for listing ID {}", carListing.getId()); }
             
-            try { response.setBrand(carListing.getBrand()); } 
-            catch (Exception e) { log.warn("Error setting brand for listing ID {}", carListing.getId()); }
-            
-            try { response.setModel(carListing.getModel()); } 
-            catch (Exception e) { log.warn("Error setting model for listing ID {}", carListing.getId()); }
+            try { 
+                // Use denormalized brand and model name fields
+                response.setBrandNameEn(carListing.getBrandNameEn());
+                response.setBrandNameAr(carListing.getBrandNameAr());
+                response.setModelNameEn(carListing.getModelNameEn());
+                response.setModelNameAr(carListing.getModelNameAr());
+            } 
+            catch (Exception e) { log.warn("Error setting brand/model names for listing ID {}", carListing.getId()); }
             
             try { response.setModelYear(carListing.getModelYear()); } 
             catch (Exception e) { log.warn("Error setting modelYear for listing ID {}", carListing.getId()); }

@@ -1,10 +1,14 @@
 package com.autotrader.autotraderbackend.controller;
 
+import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
+import com.autotrader.autotraderbackend.repository.CarBrandRepository;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
+import com.autotrader.autotraderbackend.repository.CarModelRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
@@ -53,6 +57,12 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private CarBrandRepository carBrandRepository;
+
+    @Autowired
+    private CarModelRepository carModelRepository;
+
     private static final String ADMIN_USERNAME = "admin_test";
     private static final String ADMIN_PASSWORD = "admin123";
     private static final String USER_USERNAME = "user_test";
@@ -64,9 +74,10 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
 
     @BeforeEach
     public void setUp() throws Exception {
-        // Clear repositories
+        // Clear repositories in correct order to avoid constraint violations
         carListingRepository.deleteAll();
-        // Use specific deleteByUsername for cleaner test setup
+        carModelRepository.deleteAll();
+        carBrandRepository.deleteAll();
         userRepository.deleteByUsername(ADMIN_USERNAME);
         userRepository.deleteByUsername(USER_USERNAME);
 
@@ -92,9 +103,17 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         userRepository.save(normalUser);
         userToken = getAuthToken(USER_USERNAME, USER_PASSWORD);
 
+        // Create test car brand
+        CarBrand testBrand = TestDataGenerator.createTestCarBrand();
+        CarBrand savedBrand = carBrandRepository.save(testBrand);
+
+        // Create test car model
+        CarModel testModel = TestDataGenerator.createTestCarModel(savedBrand);
+        CarModel savedModel = carModelRepository.save(testModel);
+
         // Create a test listing
-        CarListing listing = TestDataGenerator.createTestListing(normalUser);
-        listing.setApproved(true); // Already approved
+        CarListing listing = TestDataGenerator.createTestListing(normalUser, savedModel);
+        listing.setApproved(true);
         listing.setSold(false);
         listing.setArchived(false);
         CarListing savedListing = carListingRepository.save(listing);

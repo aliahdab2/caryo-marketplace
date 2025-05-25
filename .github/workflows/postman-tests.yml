@@ -55,7 +55,7 @@ jobs:
         with:
           docker-compose-file: "./backend/autotrader-backend/docker-compose.dev.yml"
           services: "db minio createbuckets redis"
-          wait-time: '60'
+          wait-time: '15' # Reduced from 60
           db-container-name: "autotrader-backend-db-1"
           db-user: "autotrader"
           minio-container-name: "autotrader-backend-minio-1"
@@ -75,7 +75,7 @@ jobs:
           chmod +x mc
           
           # Configure MinIO client with default minioadmin credentials
-          ./mc config host add myminio http://localhost:9000 minioadmin minioadmin
+          ./mc alias set myminio http://localhost:9000 minioadmin minioadmin
           
           # List buckets to check if our bucket exists
           if ./mc ls myminio | grep -q "autotrader-assets"; then

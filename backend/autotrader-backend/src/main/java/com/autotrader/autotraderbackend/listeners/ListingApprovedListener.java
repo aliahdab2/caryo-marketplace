@@ -63,8 +63,8 @@ public class ListingApprovedListener {
                     listing.getId(),
                     sellerUsername,
                     sellerId,
-                    listing.getBrand(),
-                    listing.getModel(),
+                    listing.getBrandNameEn(),
+                    listing.getModelNameEn(),
                     listing.getModelYear(),
                     listing.getPrice()
             );

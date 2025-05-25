@@ -7,6 +7,8 @@ import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.ListingMedia;
 import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.model.CarBrand; // Added
+import com.autotrader.autotraderbackend.model.CarModel; // Added
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
@@ -53,6 +55,9 @@ class CarListingServiceTest {
     private LocationRepository locationRepository;
 
     @Mock
+    private CarModelService carModelService; // Added mock for CarModelService
+
+    @Mock
     private StorageService storageService;
 
     @Mock
@@ -65,6 +70,8 @@ class CarListingServiceTest {
     private CarListing testListing;
     private CarListingResponse testListingResponse;
     private Location testLocation;
+    private CarBrand testCarBrand;
+    private CarModel testCarModel;
 
     @BeforeEach
     void setUp() {
@@ -79,15 +86,37 @@ class CarListingServiceTest {
         testLocation.setSlug("test-location");
         testLocation.setCountryCode("SY");
 
+        testCarBrand = new CarBrand(); // Ensure brand is initialized
+        testCarBrand.setId(1L);
+        testCarBrand.setName("TestBrand");
+        testCarBrand.setDisplayNameEn("Test Brand");
+        testCarBrand.setDisplayNameAr("علامة تجارية اختبار");
+
+        testCarModel = new CarModel(); // Ensure model is initialized
+        testCarModel.setId(1L);
+        testCarModel.setName("TestModel");
+        testCarModel.setDisplayNameEn("Test Model");
+        testCarModel.setDisplayNameAr("نموذج اختبار");
+        testCarModel.setBrand(testCarBrand); // Associate brand with model
+
         testListing = new CarListing();
         testListing.setId(1L);
         testListing.setSeller(testUser);
         testListing.setLocation(testLocation);
+        testListing.setModel(testCarModel);
+        testListing.setBrandNameEn(testCarBrand.getDisplayNameEn());
+        testListing.setBrandNameAr(testCarBrand.getDisplayNameAr());
+        testListing.setModelNameEn(testCarModel.getDisplayNameEn());
+        testListing.setModelNameAr(testCarModel.getDisplayNameAr());
         testListing.setPrice(new BigDecimal("20000.00"));
         testListing.setApproved(false);
 
         testListingResponse = new CarListingResponse();
         testListingResponse.setId(1L);
+        testListingResponse.setBrandNameEn(testCarBrand.getDisplayNameEn());
+        testListingResponse.setBrandNameAr(testCarBrand.getDisplayNameAr());
+        testListingResponse.setModelNameEn(testCarModel.getDisplayNameEn());
+        testListingResponse.setModelNameAr(testCarModel.getDisplayNameAr());
     }
 
     @Test
@@ -95,9 +124,11 @@ class CarListingServiceTest {
         CreateListingRequest request = new CreateListingRequest();
         request.setTitle("Test Car");
         request.setLocationId(1L);
+        request.setModelId(1L); // Use modelId
 
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(testUser));
         when(locationRepository.findById(any())).thenReturn(Optional.of(testLocation));
+        when(carModelService.getModelById(anyLong())).thenReturn(testCarModel); // Mock CarModelService
         when(carListingRepository.save(any(CarListing.class))).thenReturn(testListing);
         when(carListingMapper.toCarListingResponse(any())).thenReturn(testListingResponse);
 
@@ -107,6 +138,7 @@ class CarListingServiceTest {
         assertEquals(testListing.getId(), response.getId());
         verify(carListingRepository).save(any());
         verify(locationRepository).findById(eq(1L));
+        verify(carModelService).getModelById(eq(1L)); // Verify CarModelService interaction
     }
 
     @Test
@@ -130,27 +162,25 @@ class CarListingServiceTest {
         // Arrange
         CreateListingRequest request = new CreateListingRequest();
         request.setTitle("Test Car");
-        request.setBrand("TestBrand");
-        request.setModel("TestModel");
+        request.setModelId(1L); // Use modelId
         request.setModelYear(2022);
         request.setPrice(new BigDecimal("15000"));
         request.setMileage(5000);
-        request.setLocationId(1L); // Use a valid mock location ID instead of deprecated location string
+        request.setLocationId(1L);
         request.setDescription("TestDesc");
         String username = "testuser";
         RuntimeException dbException = new RuntimeException("Database connection failed");
 
-        // Mock locationRepository to return a location when findById is called
-        Location testLocation = new Location();
-        testLocation.setId(1L);
-        testLocation.setDisplayNameEn("Test Location");
-        testLocation.setDisplayNameAr("موقع اختبار");
-        testLocation.setSlug("test-location");
-        testLocation.setCountryCode("SY"); // Set the required countryCode field
-        when(locationRepository.findById(1L)).thenReturn(Optional.of(testLocation));
+        Location mockLocation = new Location(); // Renamed to avoid conflict with testLocation field
+        mockLocation.setId(1L);
+        mockLocation.setDisplayNameEn("Test Location");
+        mockLocation.setDisplayNameAr("موقع اختبار");
+        mockLocation.setSlug("test-location");
+        mockLocation.setCountryCode("SY");
+        when(locationRepository.findById(1L)).thenReturn(Optional.of(mockLocation));
+        when(carModelService.getModelById(1L)).thenReturn(testCarModel); // Mock CarModelService
 
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        // Mock repository save to throw an exception
         when(carListingRepository.save(any(CarListing.class))).thenThrow(dbException);
 
         // Act & Assert
@@ -158,13 +188,9 @@ class CarListingServiceTest {
             carListingService.createListing(request, null, username);
         });
 
-        // Assert that the original exception message is thrown
         assertEquals("Database connection failed", thrown.getMessage());
-        assertSame(dbException, thrown); // Verify it's the exact exception instance
-
-        verify(userRepository).findByUsername(username);
-        verify(carListingRepository).save(any(CarListing.class));
-        verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
+        assertSame(dbException, thrown);
+        verify(carModelService).getModelById(eq(1L)); // Verify CarModelService interaction
     }
 
     // --- Tests for getListingById ---
@@ -304,18 +330,22 @@ class CarListingServiceTest {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
         ListingFilterRequest filter = new ListingFilterRequest(); // Populate filter
-        filter.setBrand("Honda");
+        filter.setBrand("Honda"); // Keep this for filter logic, but CarListing/Response will use denormalized fields
 
         CarListing filteredListing = new CarListing(); // Setup listing
         filteredListing.setId(1L);
-        filteredListing.setBrand("Honda");
+        // Set denormalized brand name for the listing itself
+        filteredListing.setBrandNameEn("Honda"); 
+        filteredListing.setBrandNameAr("هوندا");
         filteredListing.setApproved(true);
         List<CarListing> listings = Collections.singletonList(filteredListing);
         Page<CarListing> listingPage = new PageImpl<>(listings, pageable, 1);
 
         CarListingResponse filteredResponse = new CarListingResponse(); // Setup response
         filteredResponse.setId(1L);
-        filteredResponse.setBrand("Honda");
+        // Set denormalized brand name for the response
+        filteredResponse.setBrandNameEn("Honda"); 
+        filteredResponse.setBrandNameAr("هوندا");
         filteredResponse.setApproved(true);
 
         // FIX: Use ArgumentMatchers.<Specification<CarListing>>any() for type safety

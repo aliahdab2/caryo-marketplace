@@ -76,7 +76,7 @@ setup_minio_client() {
   
   # Configure MinIO client
   echo "Configuring MinIO client..."
-  mc config host add myminio "http://$MINIO_HOST:$MINIO_PORT" "$MINIO_USER" "$MINIO_PASSWORD" || {
+  mc alias set myminio "http://$MINIO_HOST:$MINIO_PORT" "$MINIO_USER" "$MINIO_PASSWORD" || {
     echo "❌ Failed to configure MinIO client. Check your credentials and MinIO availability."
     return 1
   }

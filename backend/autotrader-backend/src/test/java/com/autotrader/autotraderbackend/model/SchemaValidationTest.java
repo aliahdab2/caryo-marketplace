@@ -4,8 +4,10 @@ import com.autotrader.autotraderbackend.repository.ListingMediaRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
-import com.autotrader.autotraderbackend.repository.FavoriteRepository; // Added import
-import com.autotrader.autotraderbackend.repository.CarListingRepository; // Added import
+import com.autotrader.autotraderbackend.repository.FavoriteRepository;
+import com.autotrader.autotraderbackend.repository.CarListingRepository;
+import com.autotrader.autotraderbackend.repository.CarBrandRepository; // Added
+import com.autotrader.autotraderbackend.repository.CarModelRepository; // Added
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -57,10 +59,16 @@ public class SchemaValidationTest {
     private LocationRepository locationRepository;
 
     @Autowired
-    private FavoriteRepository favoriteRepository; // Injected FavoriteRepository
+    private FavoriteRepository favoriteRepository;
 
     @Autowired
-    private CarListingRepository carListingRepository; // Injected CarListingRepository
+    private CarListingRepository carListingRepository;
+
+    @Autowired
+    private CarBrandRepository carBrandRepository; // Added
+
+    @Autowired
+    private CarModelRepository carModelRepository; // Added
 
     // Repositories for the relevant entities
     @Autowired 
@@ -154,8 +162,7 @@ public class SchemaValidationTest {
         assertTrue(hasAttribute(roleEntity, "name"));
         
         // Verify role record creation and retrieval
-        Role role = findOrCreateRole("ROLE_ADMIN"); // Use helper method
-        // Role savedRole = roleRepository.save(role); // No need to save again if findOrCreateRole handles it
+        findOrCreateRole("ROLE_ADMIN"); // Use helper method, no need to assign to unused variable
         
         testEntityManager.flush();
         testEntityManager.clear();
@@ -219,7 +226,7 @@ public class SchemaValidationTest {
         assertTrue(hasAttribute(locationEntity, "isActive"));
         
         // Verify Location record creation and retrieval using findOrCreateLocation
-        Location location = findOrCreateLocation("damascus", "Damascus", "دمشق", "SY", "Central Syria", 33.5138, 36.2765, true);
+        findOrCreateLocation("damascus", "Damascus", "دمشق", "SY", "Central Syria", 33.5138, 36.2765, true);
         
         testEntityManager.flush();
         testEntityManager.clear();
@@ -257,8 +264,11 @@ public class SchemaValidationTest {
         assertTrue(hasAttribute(carListingEntity, "price"));
         assertTrue(hasAttribute(carListingEntity, "mileage"));
         assertTrue(hasAttribute(carListingEntity, "modelYear"));
-        assertTrue(hasAttribute(carListingEntity, "brand"));
-        assertTrue(hasAttribute(carListingEntity, "model"));
+        assertTrue(hasAttribute(carListingEntity, "model")); // Updated: now refers to CarModel entity
+        assertTrue(hasAttribute(carListingEntity, "brandNameEn")); // Added: denormalized field
+        assertTrue(hasAttribute(carListingEntity, "brandNameAr")); // Added: denormalized field
+        assertTrue(hasAttribute(carListingEntity, "modelNameEn")); // Added: denormalized field
+        assertTrue(hasAttribute(carListingEntity, "modelNameAr")); // Added: denormalized field
         assertTrue(hasAttribute(carListingEntity, "seller"));
         assertTrue(hasAttribute(carListingEntity, "approved"));
         assertTrue(hasAttribute(carListingEntity, "sold"));
@@ -314,13 +324,32 @@ public class SchemaValidationTest {
         // Create a user as the seller
         User seller = new User("mediaseller", "mediaseller@example.com", "password123");
         userRepository.save(seller);
+
+        // Create CarBrand and CarModel
+        CarBrand testBrand = new CarBrand();
+        testBrand.setName("Toyota");
+        testBrand.setDisplayNameEn("Toyota");
+        testBrand.setDisplayNameAr("تويوتا");
+        testBrand.setSlug("toyota-media-test");
+        carBrandRepository.save(testBrand);
+
+        CarModel testModel = new CarModel();
+        testModel.setName("Camry");
+        testModel.setDisplayNameEn("Camry");
+        testModel.setDisplayNameAr("كامري");
+        testModel.setBrand(testBrand);
+        testModel.setSlug("camry-media-test");
+        carModelRepository.save(testModel);
         
         // Create a car listing
         CarListing carListing = new CarListing();
         carListing.setTitle("Test Car with Media");
         carListing.setDescription("A car listing to test media relationship");
-        carListing.setBrand("Toyota");
-        carListing.setModel("Camry");
+        carListing.setModel(testModel);
+        carListing.setBrandNameEn(testBrand.getDisplayNameEn());
+        carListing.setBrandNameAr(testBrand.getDisplayNameAr());
+        carListing.setModelNameEn(testModel.getDisplayNameEn());
+        carListing.setModelNameAr(testModel.getDisplayNameAr());
         carListing.setModelYear(2020);
         carListing.setMileage(15000);
         carListing.setPrice(new java.math.BigDecimal("25000.00"));
@@ -397,7 +426,7 @@ public class SchemaValidationTest {
     @Test
     public void testLocationRepository() {
         // Use findOrCreateLocation to ensure no duplicates
-        Location location = findOrCreateLocation("test-city", "Test City", "مدينة اختبار", "SY", "Test Region", 33.5138, 36.2765, true);
+        findOrCreateLocation("test-city", "Test City", "مدينة اختبار", "SY", "Test Region", 33.5138, 36.2765, true);
 
         Optional<Location> foundOptional = locationRepository.findBySlug("test-city");
         assertThat(foundOptional).isPresent();
@@ -426,11 +455,30 @@ public class SchemaValidationTest {
         User user = new User("favuser", "favuser@example.com", "password");
         userRepository.save(user); // Ensure user is persisted
 
+        // Create CarBrand and CarModel for the CarListing
+        CarBrand favTestBrand = new CarBrand();
+        favTestBrand.setName("TestBrandFav");
+        favTestBrand.setDisplayNameEn("Test Brand Fav");
+        favTestBrand.setDisplayNameAr("العلامة التجارية المفضلة للاختبار");
+        favTestBrand.setSlug("test-brand-fav");
+        carBrandRepository.save(favTestBrand);
+
+        CarModel favTestModel = new CarModel();
+        favTestModel.setName("TestModelFav");
+        favTestModel.setDisplayNameEn("Test Model Fav");
+        favTestModel.setDisplayNameAr("نموذج الاختبار المفضل");
+        favTestModel.setBrand(favTestBrand);
+        favTestModel.setSlug("test-model-fav");
+        carModelRepository.save(favTestModel);
+
         // Create a CarListing
         CarListing carListing = new CarListing();
         carListing.setTitle("Favorite Test Car");
-        carListing.setBrand("TestBrand");
-        carListing.setModel("TestModel");
+        carListing.setModel(favTestModel);
+        carListing.setBrandNameEn(favTestBrand.getDisplayNameEn());
+        carListing.setBrandNameAr(favTestBrand.getDisplayNameAr());
+        carListing.setModelNameEn(favTestModel.getDisplayNameEn());
+        carListing.setModelNameAr(favTestModel.getDisplayNameAr());
         carListing.setModelYear(2023);
         carListing.setPrice(new java.math.BigDecimal("10000"));
         carListing.setDescription("A test description for the favorite car listing."); // Added description

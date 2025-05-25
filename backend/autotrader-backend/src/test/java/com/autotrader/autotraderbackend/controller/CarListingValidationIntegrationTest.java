@@ -5,6 +5,12 @@ import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.repository.CarBrandRepository; // Added
+import com.autotrader.autotraderbackend.repository.CarModelRepository; // Added
+import com.autotrader.autotraderbackend.repository.LocationRepository; // Added
+import com.autotrader.autotraderbackend.model.CarBrand; // Added
+import com.autotrader.autotraderbackend.model.CarModel; // Added
+import com.autotrader.autotraderbackend.model.Location; // Added
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3; // Extend the base class
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,8 +48,19 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
     @Autowired
     private com.autotrader.autotraderbackend.repository.CarListingRepository carListingRepository;
 
+    @Autowired
+    private CarBrandRepository carBrandRepository; // Added
+
+    @Autowired
+    private CarModelRepository carModelRepository; // Added
+
+    @Autowired
+    private LocationRepository locationRepository; // Added
+
     private String baseUrl;
     private String jwtToken;
+    private CarModel testCarModel; // Added
+    private Location testLocation; // Added
 
     @BeforeEach
     public void setUp() {
@@ -51,8 +68,42 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
         // Clear listings and user data before each test (child table first)
         carListingRepository.deleteAll();
         userRepository.deleteAll();
+        carModelRepository.deleteAll(); // Added
+        carBrandRepository.deleteAll(); // Added
+        locationRepository.deleteAll(); // Added
+
+        // Setup necessary entities
+        setupTestData();
+
         // Register and login a user to get JWT token for authenticated requests
         registerAndLoginUser();
+    }
+
+    private void setupTestData() {
+        // Create test Location
+        testLocation = new Location();
+        testLocation.setDisplayNameEn("Test Location Validation");
+        testLocation.setDisplayNameAr("موقع اختبار التحقق");
+        testLocation.setSlug("test-location-validation");
+        testLocation.setCountryCode("SY");
+        testLocation = locationRepository.save(testLocation);
+
+        // Create test CarBrand
+        CarBrand testCarBrand = new CarBrand();
+        testCarBrand.setName("ValidBrand");
+        testCarBrand.setDisplayNameEn("Valid Brand");
+        testCarBrand.setDisplayNameAr("علامة تجارية صالحة");
+        testCarBrand.setSlug("valid-brand");
+        testCarBrand = carBrandRepository.save(testCarBrand);
+
+        // Create test CarModel
+        testCarModel = new CarModel();
+        testCarModel.setName("ValidModel");
+        testCarModel.setDisplayNameEn("Valid Model");
+        testCarModel.setDisplayNameAr("نموذج صالح");
+        testCarModel.setBrand(testCarBrand);
+        testCarModel.setSlug("valid-model");
+        testCarModel = carModelRepository.save(testCarModel);
     }
     
     private void registerAndLoginUser() {
@@ -90,12 +141,11 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
     private CreateListingRequest createValidListingRequest() {
         CreateListingRequest request = new CreateListingRequest();
         request.setTitle("Valid Title");
-        request.setBrand("ValidBrand");
-        request.setModel("ValidModel");
+        request.setModelId(testCarModel.getId()); // Use modelId
         request.setModelYear(2020);
         request.setMileage(10000);
         request.setPrice(new BigDecimal("20000.00"));
-        request.setLocationId(1L); // Use setLocationId instead of setLocation
+        request.setLocationId(testLocation.getId()); // Use locationId from created location
         request.setDescription("Valid description.");
         return request;
     }
@@ -110,11 +160,11 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
         
         HttpEntity<CreateListingRequest> entity = new HttpEntity<>(request, headers);
         
-        ResponseEntity<Map> response = restTemplate.exchange(
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 baseUrl + "/api/listings",
                 HttpMethod.POST,
                 entity,
-                Map.class // Expecting error response body
+                new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {} // Expecting error response body
         );
         
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value(), "Should return 400 Bad Request for missing title");
@@ -133,11 +183,11 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
         
         HttpEntity<CreateListingRequest> entity = new HttpEntity<>(request, headers);
         
-        ResponseEntity<Map> response = restTemplate.exchange(
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 baseUrl + "/api/listings",
                 HttpMethod.POST,
                 entity,
-                Map.class // Expecting error response body
+                new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {} // Expecting error response body
         );
         
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value(), "Should return 400 Bad Request for negative price");

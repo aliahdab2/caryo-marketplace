@@ -30,15 +30,9 @@ public class CarListing {
     @Column(name = "title", nullable = false, length = 100)
     private String title;
 
-    @NotBlank
-    @Size(max = 50)
-    @Column(name = "brand", nullable = false, length = 50)
-    private String brand;
-
-    @NotBlank
-    @Size(max = 50)
-    @Column(name = "model", nullable = false, length = 50)
-    private String model;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "model_id", nullable = false)
+    private CarModel model;
 
     @Column(name = "model_year", nullable = false)
     @Min(value = 1920, message = "Year must be 1920 or later")
@@ -74,6 +68,22 @@ public class CarListing {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
     private Location location;
+    
+    @Size(max = 100)
+    @Column(name = "brand_name_en", length = 100)
+    private String brandNameEn;
+    
+    @Size(max = 100)
+    @Column(name = "brand_name_ar", length = 100)
+    private String brandNameAr;
+    
+    @Size(max = 100)
+    @Column(name = "model_name_en", length = 100)
+    private String modelNameEn;
+    
+    @Size(max = 100)
+    @Column(name = "model_name_ar", length = 100)
+    private String modelNameAr;
     
     @NotBlank
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)

@@ -2,7 +2,9 @@ package com.autotrader.autotraderbackend.config;
 
 import com.autotrader.autotraderbackend.events.ListingApprovedEvent;
 import com.autotrader.autotraderbackend.listeners.ListingEventUtils;
+import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.service.AsyncTransactionService;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
@@ -66,11 +68,25 @@ public class AsyncEventTransactionIntegrationTest extends IntegrationTestWithS3 
         User seller = new User();
         seller.setId(1L);
         seller.setUsername("testuser");
+
+        CarBrand testBrand = new CarBrand();
+        testBrand.setId(1L); // Assuming IDs are set for test data
+        testBrand.setDisplayNameEn("BMW");
+        testBrand.setDisplayNameAr("بي ام دبليو");
+
+        CarModel testModel = new CarModel();
+        testModel.setId(1L); // Assuming IDs are set for test data
+        testModel.setDisplayNameEn("X5");
+        testModel.setDisplayNameAr("اكس 5");
+        testModel.setBrand(testBrand);
         
         CarListing listing = new CarListing();
         listing.setId(1L);
-        listing.setBrand("BMW");
-        listing.setModel("X5");
+        listing.setModel(testModel); // Set the CarModel relationship
+        listing.setBrandNameEn(testBrand.getDisplayNameEn());
+        listing.setBrandNameAr(testBrand.getDisplayNameAr());
+        listing.setModelNameEn(testModel.getDisplayNameEn());
+        listing.setModelNameAr(testModel.getDisplayNameAr());
         listing.setModelYear(2023);
         listing.setPrice(BigDecimal.valueOf(50000));
         listing.setSeller(seller);

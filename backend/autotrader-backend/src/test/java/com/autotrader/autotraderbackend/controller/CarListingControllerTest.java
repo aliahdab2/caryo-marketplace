@@ -1,6 +1,8 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
+import com.autotrader.autotraderbackend.model.CarBrand;
+import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
@@ -66,8 +68,7 @@ public class CarListingControllerTest {
         // Setup test data
         createRequest = new CreateListingRequest();
         createRequest.setTitle("Test Car");
-        createRequest.setBrand("Toyota");
-        createRequest.setModel("Camry");
+        createRequest.setModelId(1L); // Use modelId instead of brand and model
         createRequest.setModelYear(2022);
         createRequest.setMileage(5000);
         createRequest.setPrice(new BigDecimal("25000.00"));
@@ -83,17 +84,20 @@ public class CarListingControllerTest {
         carListingResponse = new CarListingResponse();
         carListingResponse.setId(1L);
         carListingResponse.setTitle("Test Car");
-        carListingResponse.setBrand("Toyota");
-        carListingResponse.setModel("Camry");
+        // Set denormalized brand and model name fields instead of direct brand and model
+        carListingResponse.setBrandNameEn("Toyota");
+        carListingResponse.setBrandNameAr("تويوتا");
+        carListingResponse.setModelNameEn("Camry");
+        carListingResponse.setModelNameAr("كامري");
         carListingResponse.setModelYear(2022);
         carListingResponse.setMileage(5000);
         carListingResponse.setPrice(new BigDecimal("25000.00"));
-        carListingResponse.setLocationDetails(locationResponse); // Use setLocationDetails instead of setLocation
+        carListingResponse.setLocationDetails(locationResponse);
         carListingResponse.setDescription("Test Description");
         carListingResponse.setSellerId(1L);
         carListingResponse.setSellerUsername("testuser");
         carListingResponse.setApproved(false);
-        carListingResponse.setIsUserActive(true); // Initialize isUserActive
+        carListingResponse.setIsUserActive(true);
 
         mockImage = new MockMultipartFile(
             "image",

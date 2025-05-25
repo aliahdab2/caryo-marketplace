@@ -182,14 +182,14 @@ runs:
         
         # Configure the client with explicit credentials
         echo "Configuring MinIO client with provided credentials (${{ inputs.minio-root-user }})..."
-        docker exec ${{ inputs.minio-container-name }} mc config host add local http://localhost:9000 ${{ inputs.minio-root-user }} ${{ inputs.minio-root-password }} || echo "Failed to add local host"
+        docker exec ${{ inputs.minio-container-name }} mc alias set local http://localhost:9000 ${{ inputs.minio-root-user }} ${{ inputs.minio-root-password }} || echo "Failed to add local host"
         
         # Also configure for internal container networking
         echo "Configuring MinIO client with internal network access..."
-        docker exec ${{ inputs.minio-container-name }} mc config host add myminio http://minio:9000 ${{ inputs.minio-root-user }} ${{ inputs.minio-root-password }} || echo "Failed to add myminio host"
+        docker exec ${{ inputs.minio-container-name }} mc alias set myminio http://minio:9000 ${{ inputs.minio-root-user }} ${{ inputs.minio-root-password }} || echo "Failed to add myminio host"
         
         # Fall back to default credentials if needed
-        docker exec ${{ inputs.minio-container-name }} mc config host add default http://localhost:9000 minioadmin minioadmin || echo "Failed to add default host"
+        docker exec ${{ inputs.minio-container-name }} mc alias set default http://localhost:9000 minioadmin minioadmin || echo "Failed to add default host"
        
         echo "=== MinIO Readiness Check ==="
         until [ "$is_ready" == true ] || [ $retries -eq $max_retries ]

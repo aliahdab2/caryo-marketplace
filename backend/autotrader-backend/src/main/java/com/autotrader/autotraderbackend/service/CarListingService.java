@@ -4,6 +4,7 @@ import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.mapper.CarListingMapper;
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.model.ListingMedia;
 import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
@@ -42,6 +43,7 @@ public class CarListingService {
     private final LocationRepository locationRepository;
     private final StorageService storageService;
     private final CarListingMapper carListingMapper;
+    private final CarModelService carModelService;
 
     /**
      * Create a new car listing.
@@ -318,11 +320,16 @@ public class CarListingService {
         if (request.getTitle() != null) {
             existingListing.setTitle(request.getTitle());
         }
-        if (request.getBrand() != null) {
-            existingListing.setBrand(request.getBrand());
-        }
-        if (request.getModel() != null) {
-            existingListing.setModel(request.getModel());
+        if (request.getModelId() != null) {
+            // Get the model from the repository
+            CarModel carModel = carModelService.getModelById(request.getModelId());
+            existingListing.setModel(carModel); // Set the CarModel entity
+            
+            // Update denormalized fields from the CarModel and CarBrand entities
+            existingListing.setBrandNameEn(carModel.getBrand().getDisplayNameEn());
+            existingListing.setBrandNameAr(carModel.getBrand().getDisplayNameAr());
+            existingListing.setModelNameEn(carModel.getDisplayNameEn());
+            existingListing.setModelNameAr(carModel.getDisplayNameAr());
         }
         if (request.getModelYear() != null) {
             existingListing.setModelYear(request.getModelYear());
@@ -481,12 +488,21 @@ public class CarListingService {
     private CarListing buildCarListingFromRequest(CreateListingRequest request, User user) {
         CarListing carListing = new CarListing();
         carListing.setTitle(request.getTitle());
-        carListing.setBrand(request.getBrand());
-        carListing.setModel(request.getModel());
+        
+        // Get the model from the repository
+        CarModel carModel = carModelService.getModelById(request.getModelId());
+        carListing.setModel(carModel); // Set the CarModel entity
+        
         carListing.setModelYear(request.getModelYear());
         carListing.setPrice(request.getPrice());
         carListing.setMileage(request.getMileage());
         carListing.setDescription(request.getDescription());
+        
+        // Set denormalized fields from the CarModel and CarBrand entities
+        carListing.setBrandNameEn(carModel.getBrand().getDisplayNameEn());
+        carListing.setBrandNameAr(carModel.getBrand().getDisplayNameAr());
+        carListing.setModelNameEn(carModel.getDisplayNameEn());
+        carListing.setModelNameAr(carModel.getDisplayNameAr());
         
         // Handle location - only use locationId
         if (request.getLocationId() != null) {

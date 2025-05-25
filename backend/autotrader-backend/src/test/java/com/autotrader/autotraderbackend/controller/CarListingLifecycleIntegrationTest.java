@@ -3,6 +3,8 @@ package com.autotrader.autotraderbackend.controller;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.model.CarBrand; // Added
+import com.autotrader.autotraderbackend.model.CarModel; // Added
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
@@ -10,6 +12,8 @@ import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.repository.CarBrandRepository; // Added
+import com.autotrader.autotraderbackend.repository.CarModelRepository; // Added
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,10 +57,18 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
     @Autowired
     private LocationRepository locationRepository;
 
+    @Autowired
+    private CarBrandRepository carBrandRepository; // Added
+
+    @Autowired
+    private CarModelRepository carModelRepository; // Added
+
     private String baseUrl;
     private String jwtToken;
     private Long testLocationId;
     private User testUser; // Added to store the test user
+    private CarBrand testCarBrand; // Added
+    private CarModel testCarModel; // Added
 
     @BeforeEach
     public void setUp() {
@@ -65,6 +77,8 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         carListingRepository.deleteAll(); // Order matters: delete listings before locations/users due to FKs
         userRepository.deleteAll();
         locationRepository.deleteAll();
+        carModelRepository.deleteAll(); // Added
+        carBrandRepository.deleteAll(); // Added
 
         // Create and save a test location
         Location testLocation = new Location(); 
@@ -73,7 +87,10 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         testLocation.setCountryCode("TC"); 
         testLocation.setSlug("test-city-lifecycle"); 
         Location savedLocation = locationRepository.save(testLocation); 
-        testLocationId = savedLocation.getId(); 
+        testLocationId = savedLocation.getId();
+
+        // Create test car brand and model
+        setupCarBrandAndModel();
         
         // Register and login a user to get JWT token
         registerAndLoginUser();
@@ -81,6 +98,25 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         // Fetch the created user for associating with listings
         testUser = userRepository.findByUsername("carowner")
                 .orElseThrow(() -> new IllegalStateException("Test user 'carowner' not found after registration"));
+    }
+
+    private void setupCarBrandAndModel() {
+        // Create test CarBrand
+        testCarBrand = new CarBrand();
+        testCarBrand.setName("Toyota");
+        testCarBrand.setDisplayNameEn("Toyota");
+        testCarBrand.setDisplayNameAr("تويوتا");
+        testCarBrand.setSlug("toyota");
+        testCarBrand = carBrandRepository.save(testCarBrand);
+
+        // Create test CarModel
+        testCarModel = new CarModel();
+        testCarModel.setName("Camry");
+        testCarModel.setDisplayNameEn("Camry");
+        testCarModel.setDisplayNameAr("كامري");
+        testCarModel.setBrand(testCarBrand);
+        testCarModel.setSlug("camry");
+        testCarModel = carModelRepository.save(testCarModel);
     }
     
     private void registerAndLoginUser() {
@@ -115,11 +151,42 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         assertNotNull(jwtToken, "JWT token should not be null");
     }
 
-    private CarListing createAndSaveApprovedListing(String title, String brand, String model, int year, BigDecimal price, Location location) {
+    private CarListing createAndSaveApprovedListing(String title, String brandName, String modelName, int year, BigDecimal price, Location location) {
+        // Create CarBrand if it doesn't exist yet
+        String brandSlug = brandName.toLowerCase().replace(' ', '-');
+        CarBrand brand = carBrandRepository.findBySlug(brandSlug)
+                .orElseGet(() -> {
+                    CarBrand newBrand = new CarBrand();
+                    newBrand.setName(brandName);
+                    newBrand.setDisplayNameEn(brandName);
+                    newBrand.setDisplayNameAr(brandName); // Simple Arabic name for test
+                    newBrand.setSlug(brandSlug);
+                    return carBrandRepository.save(newBrand);
+                });
+
+        // Create CarModel if it doesn't exist yet
+        String modelSlug = modelName.toLowerCase().replace(' ', '-');
+        List<CarModel> models = carModelRepository.findByBrand(brand);
+        CarModel model = models.stream()
+                .filter(m -> m.getName().equalsIgnoreCase(modelName))
+                .findFirst()
+                .orElseGet(() -> {
+                    CarModel newModel = new CarModel();
+                    newModel.setName(modelName);
+                    newModel.setDisplayNameEn(modelName);
+                    newModel.setDisplayNameAr(modelName); // Simple Arabic name for test
+                    newModel.setBrand(brand);
+                    newModel.setSlug(modelSlug);
+                    return carModelRepository.save(newModel);
+                });
+
         CarListing listing = new CarListing();
         listing.setTitle(title);
-        listing.setBrand(brand);
-        listing.setModel(model);
+        listing.setModel(model); // Set CarModel object
+        listing.setBrandNameEn(brand.getDisplayNameEn()); // Set denormalized fields
+        listing.setBrandNameAr(brand.getDisplayNameAr());
+        listing.setModelNameEn(model.getDisplayNameEn());
+        listing.setModelNameAr(model.getDisplayNameAr());
         listing.setModelYear(year);
         listing.setPrice(price);
         listing.setSeller(testUser);
@@ -140,8 +207,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         // 1. Create a car listing
         CreateListingRequest createRequest = new CreateListingRequest();
         createRequest.setTitle("2022 Toyota Camry");
-        createRequest.setBrand("Toyota");
-        createRequest.setModel("Camry");
+        createRequest.setModelId(testCarModel.getId()); // Use modelId
         createRequest.setModelYear(2022);
         createRequest.setMileage(15000);
         createRequest.setPrice(new BigDecimal("25000.00"));

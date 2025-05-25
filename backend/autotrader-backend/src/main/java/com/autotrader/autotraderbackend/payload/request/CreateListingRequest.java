@@ -23,16 +23,10 @@ public class CreateListingRequest {
     private String title;
 
     /**
-     * The brand/manufacturer of the car. Required and must not be blank.
+     * The model ID of the car. Required.
      */
-    @NotBlank(message = "Brand is required")
-    private String brand;
-
-    /**
-     * The model of the car. Required and must not be blank.
-     */
-    @NotBlank(message = "Model is required")
-    private String model;
+    @NotNull(message = "Model is required")
+    private Long modelId;
 
     /**
      * The model year of the car. Required. Must be a 4-digit integer, not earlier than 1920,
@@ -81,8 +75,7 @@ public class CreateListingRequest {
 
     // Explicit Getters
     public String getTitle() { return title; }
-    public String getBrand() { return brand; }
-    public String getModel() { return model; }
+    public Long getModelId() { return modelId; }
     public Integer getModelYear() { return modelYear; }
     public Integer getMileage() { return mileage; }
     public BigDecimal getPrice() { return price; }
@@ -93,8 +86,7 @@ public class CreateListingRequest {
 
     // Explicit Setters
     public void setTitle(String title) { this.title = title; }
-    public void setBrand(String brand) { this.brand = brand; }
-    public void setModel(String model) { this.model = model; }
+    public void setModelId(Long modelId) { this.modelId = modelId; }
     public void setModelYear(Integer modelYear) { this.modelYear = modelYear; }
     public void setMileage(Integer mileage) { this.mileage = mileage; }
     public void setPrice(BigDecimal price) { this.price = price; }

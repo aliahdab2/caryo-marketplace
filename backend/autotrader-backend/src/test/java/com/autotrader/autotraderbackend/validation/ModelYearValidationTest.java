@@ -119,12 +119,11 @@ class ModelYearValidationTest {
     private CreateListingRequest createValidRequest() {
         CreateListingRequest request = new CreateListingRequest();
         request.setTitle("Test Car");
-        request.setBrand("Test Brand");
-        request.setModel("Test Model");
+        request.setModelId(1L); // Use modelId instead of brand and model
         request.setModelYear(2023);
         request.setPrice(new BigDecimal("15000.00"));
         request.setMileage(5000);
-        request.setLocationId(1L); // Use setLocationId instead of setLocation
+        request.setLocationId(1L);
         return request;
     }
 }

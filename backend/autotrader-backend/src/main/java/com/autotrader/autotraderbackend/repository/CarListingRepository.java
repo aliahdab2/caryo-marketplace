@@ -22,7 +22,7 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
     Optional<CarListing> findByIdAndApprovedTrue(Long id);
     
     // Find by various criteria with pagination
-    Page<CarListing> findByBrandAndApprovedTrue(String brand, Pageable pageable);
+    Page<CarListing> findByBrandNameEnAndApprovedTrue(String brandNameEn, Pageable pageable);
     
     Page<CarListing> findByModelAndApprovedTrue(String model, Pageable pageable);
     

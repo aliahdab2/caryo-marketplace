@@ -21,10 +21,10 @@ public class CarListingSpecification {
             // Note: We apply the approved filter in the service layer for clarity
 
             if (StringUtils.hasText(filter.getBrand())) {
-                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("brand")), "%" + filter.getBrand().toLowerCase() + "%"));
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("brandNameEn")), "%" + filter.getBrand().toLowerCase() + "%"));
             }
             if (StringUtils.hasText(filter.getModel())) {
-                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("model")), "%" + filter.getModel().toLowerCase() + "%"));
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("modelNameEn")), "%" + filter.getModel().toLowerCase() + "%"));
             }
             if (filter.getMinYear() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("modelYear"), filter.getMinYear()));

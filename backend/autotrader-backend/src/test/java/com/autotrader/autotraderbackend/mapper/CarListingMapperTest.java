@@ -1,6 +1,8 @@
 package com.autotrader.autotraderbackend.mapper;
 
+import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.model.ListingMedia;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.model.Location; // Ensure this import is present
@@ -49,11 +51,35 @@ class CarListingMapperTest {
         testLocation.setSlug("test-city");
         testLocation.setCountryCode("SY"); // Set the required countryCode field
 
+        // Create brand and model for car listing
+        CarBrand testBrand = new CarBrand();
+        testBrand.setId(1L);
+        testBrand.setDisplayNameEn("Toyota");
+        testBrand.setDisplayNameAr("تويوتا");
+        testBrand.setName("Toyota");
+        testBrand.setSlug("toyota");
+        testBrand.setIsActive(true);
+
+        CarModel testModel = new CarModel();
+        testModel.setId(1L);
+        testModel.setDisplayNameEn("Camry");
+        testModel.setDisplayNameAr("كامري");
+        testModel.setName("Camry");
+        testModel.setSlug("camry");
+        testModel.setBrand(testBrand);
+        testModel.setIsActive(true);
+
         testCarListing = new CarListing();
         testCarListing.setId(10L);
         testCarListing.setTitle("Test Toyota");
-        testCarListing.setBrand("Toyota");
-        testCarListing.setModel("Camry");
+        
+        // Set model and denormalized fields
+        testCarListing.setModel(testModel);
+        testCarListing.setBrandNameEn(testModel.getBrand().getDisplayNameEn());
+        testCarListing.setBrandNameAr(testModel.getBrand().getDisplayNameAr());
+        testCarListing.setModelNameEn(testModel.getDisplayNameEn());
+        testCarListing.setModelNameAr(testModel.getDisplayNameAr());
+        
         testCarListing.setModelYear(2021);
         testCarListing.setPrice(new BigDecimal("25000.00"));
         testCarListing.setMileage(15000);
@@ -89,8 +115,13 @@ class CarListingMapperTest {
         assertNotNull(response);
         assertEquals(testCarListing.getId(), response.getId());
         assertEquals(testCarListing.getTitle(), response.getTitle());
-        assertEquals(testCarListing.getBrand(), response.getBrand());
-        assertEquals(testCarListing.getModel(), response.getModel());
+        
+        // Test denormalized brand and model name fields
+        assertEquals(testCarListing.getBrandNameEn(), response.getBrandNameEn());
+        assertEquals(testCarListing.getBrandNameAr(), response.getBrandNameAr());
+        assertEquals(testCarListing.getModelNameEn(), response.getModelNameEn());
+        assertEquals(testCarListing.getModelNameAr(), response.getModelNameAr());
+        
         assertEquals(testCarListing.getModelYear(), response.getModelYear());
         assertEquals(0, testCarListing.getPrice().compareTo(response.getPrice()));
         assertEquals(testCarListing.getMileage(), response.getMileage());
