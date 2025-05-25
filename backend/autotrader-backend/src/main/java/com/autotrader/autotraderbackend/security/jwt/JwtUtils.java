@@ -35,6 +35,9 @@ public class JwtUtils {
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
         Objects.requireNonNull(userPrincipal, "UserPrincipal cannot be null");
         Objects.requireNonNull(userPrincipal.getUsername(), "Username cannot be null");
+        if (StringUtils.isBlank(userPrincipal.getUsername())) {
+            throw new IllegalArgumentException("Username cannot be blank");
+        }
 
         return Jwts.builder()
                 .setSubject(userPrincipal.getUsername())
@@ -47,6 +50,9 @@ public class JwtUtils {
     public String generateJwtTokenForUser(com.autotrader.autotraderbackend.model.User user) {
         Objects.requireNonNull(user, "User cannot be null");
         Objects.requireNonNull(user.getUsername(), "Username cannot be null");
+        if (StringUtils.isBlank(user.getUsername())) {
+            throw new IllegalArgumentException("Username cannot be blank");
+        }
         return Jwts.builder()
                 .setSubject(user.getUsername())
                 .setIssuedAt(new Date())
@@ -71,9 +77,16 @@ public class JwtUtils {
     }
 
     public boolean validateJwtToken(String authToken) {
+        // Check for null, empty, or whitespace tokens
         if (StringUtils.isBlank(authToken)) {
             log.error("JWT token is null or empty");
             throw new MalformedJwtTokenException("JWT token is null or empty");
+        }
+        
+        // Additional check for null characters which StringUtils.isBlank doesn't catch
+        if (authToken.indexOf('\u0000') >= 0) {
+            log.error("JWT token contains null characters");
+            throw new MalformedJwtTokenException("JWT token contains null characters");
         }
 
         try {
