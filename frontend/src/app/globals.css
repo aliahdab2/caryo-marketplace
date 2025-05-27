@@ -387,3 +387,37 @@ body {
     font-size: 0.875rem !important;
   }
 }
+
+/* Enhanced select element styles */
+select {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+select option {
+  padding: 0.75rem;
+  min-height: 2.5rem;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* Search bar specific improvements */
+.search-select {
+  min-width: 0; /* Allow flex items to shrink */
+  text-overflow: ellipsis;
+  font-size: 1rem; /* Ensure consistent text size */
+}
+
+/* Responsive text sizing for better fit */
+@media (min-width: 640px) and (max-width: 768px) {
+  .search-select {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .search-select {
+    font-size: 0.9rem;
+  }
+}

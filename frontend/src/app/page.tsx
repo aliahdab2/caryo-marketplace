@@ -65,7 +65,7 @@ export default function Home() {
           </div>
 
           {/* Use HomeSearchBar component instead of the form */}
-          <div className="w-full max-w-3xl">
+          <div className="w-full max-w-5xl">
             <HomeSearchBar />
           </div>
         </div>

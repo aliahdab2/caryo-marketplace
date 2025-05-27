@@ -330,14 +330,14 @@
     "selectBrand": "Brand",
     "selectModel": "Model",
     "governorate": "Governorate",
-    "selectGovernorate": "Select Governorate",
+    "selectGovernorate": "Governorate",
     "loadingBrands": "Loading brands...",
     "loadingModels": "Loading models...",
     "loadingGovernorates": "Loading governorates...",
     "errorLoadingBrands": "Error loading brands. Please try again.",
     "errorLoadingModels": "Error loading models. Please try again.",
     "errorLoadingGovernorates": "Error loading governorates. Please try again.",
-    "searchButton": "Search Cars",
+    "searchButton": "Search",
     "tryAgain": "Try Again"
   }
 }
