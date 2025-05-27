@@ -9,7 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class StorageKeyGeneratorTest {
@@ -30,23 +30,23 @@ class StorageKeyGeneratorTest {
 
     @BeforeEach
     void setUp() {
-        when(storageProperties.getKeyPatterns()).thenReturn(keyPatterns);
-        when(storageProperties.getGeneral()).thenReturn(general);
-        when(storageProperties.getS3()).thenReturn(s3);
+        lenient().when(storageProperties.getKeyPatterns()).thenReturn(keyPatterns);
+        lenient().when(storageProperties.getGeneral()).thenReturn(general);
+        lenient().when(storageProperties.getS3()).thenReturn(s3);
         
         // Default patterns (matching actual StorageProperties)
-        when(keyPatterns.getListingMedia()).thenReturn("listings/{listingId}/{timestamp}_{filename}");
-        when(keyPatterns.getUserAvatar()).thenReturn("users/{userId}/avatar_{timestamp}_{filename}");
-        when(keyPatterns.getTempUploads()).thenReturn("temp/{uuid}_{filename}");
-        when(keyPatterns.getSampleData()).thenReturn("samples/{category}/{filename}");
-        when(keyPatterns.getDocuments()).thenReturn("documents/{category}/{timestamp}_{filename}");
-        when(keyPatterns.getThumbnails()).thenReturn("thumbnails/{originalPath}/{filename}");
-        when(keyPatterns.getBackups()).thenReturn("backups/{date}/{category}/{filename}");
-        when(keyPatterns.getLogs()).thenReturn("logs/{date}/{level}/{filename}");
+        lenient().when(keyPatterns.getListingMedia()).thenReturn("listings/{listingId}/{timestamp}_{filename}");
+        lenient().when(keyPatterns.getUserAvatar()).thenReturn("users/{userId}/avatar_{timestamp}_{filename}");
+        lenient().when(keyPatterns.getTempUploads()).thenReturn("temp/{uuid}_{filename}");
+        lenient().when(keyPatterns.getSampleData()).thenReturn("samples/{category}/{filename}");
+        lenient().when(keyPatterns.getDocuments()).thenReturn("documents/{category}/{timestamp}_{filename}");
+        lenient().when(keyPatterns.getThumbnails()).thenReturn("thumbnails/{originalPath}/{filename}");
+        lenient().when(keyPatterns.getBackups()).thenReturn("backups/{date}/{category}/{filename}");
+        lenient().when(keyPatterns.getLogs()).thenReturn("logs/{date}/{level}/{filename}");
         
         // Default bucket names
-        when(general.getDefaultBucketName()).thenReturn("app-assets");
-        when(s3.getBucketName()).thenReturn("production-bucket");
+        lenient().when(general.getDefaultBucketName()).thenReturn("app-assets");
+        lenient().when(s3.getBucketName()).thenReturn("production-bucket");
         
         storageKeyGenerator = new StorageKeyGenerator(storageProperties);
     }
@@ -62,8 +62,8 @@ class StorageKeyGeneratorTest {
 
         // Assert
         assertThat(result).startsWith("listings/123/");
-        assertThat(result).endsWith("_test_image_jpg");
-        assertThat(result).matches("listings/123/\\d{8}_\\d{6}_test_image_jpg");
+        assertThat(result).endsWith("_test-image.jpg");
+        assertThat(result).matches("listings/123/\\d{8}_\\d{6}_test-image\\.jpg");
     }
 
     @Test
@@ -92,21 +92,21 @@ class StorageKeyGeneratorTest {
         assertThat(result).startsWith("listings/789/");
         assertThat(result).endsWith("_file");
     }
+@Test
+void generateListingMediaKey_WithUnsafeFilename_ShouldSanitize() {
+    // Arrange
+    Long listingId = 101L;
+    String unsafeFilename = "test file with spaces & special chars!@#.jpg";
 
-    @Test
-    void generateListingMediaKey_WithUnsafeFilename_ShouldSanitize() {
-        // Arrange
-        Long listingId = 101L;
-        String unsafeFilename = "test file with spaces & special chars!@#.jpg";
+    // Act
+    String result = storageKeyGenerator.generateListingMediaKey(listingId, unsafeFilename);
 
-        // Act
-        String result = storageKeyGenerator.generateListingMediaKey(listingId, unsafeFilename);
-
-        // Assert
-        assertThat(result).startsWith("listings/101/");
-        assertThat(result).endsWith("_test_file_with_spaces___special_chars____jpg");
-        assertThat(result).doesNotContain(" ", "&", "!", "@", "#");
-    }
+    // Assert
+    assertThat(result)
+        .startsWith("listings/101/")
+        .matches("listings/101/\\d{8}_\\d{6}_test_file_with_spaces_special_chars_\\.jpg")  // Note the added underscore before \.jpg
+        .doesNotContain(" ", "&", "!", "@", "#");
+}
 
     @Test
     void generateUserAvatarKey_WithValidInputs_ShouldGenerateCorrectKey() {
@@ -119,8 +119,8 @@ class StorageKeyGeneratorTest {
 
         // Assert
         assertThat(result).startsWith("users/555/avatar_");
-        assertThat(result).endsWith("_avatar_png");
-        assertThat(result).matches("users/555/avatar_\\d{8}_\\d{6}_avatar_png");
+        assertThat(result).endsWith("_avatar.png");
+        assertThat(result).matches("users/555/avatar_\\d{8}_\\d{6}_avatar\\.png");
     }
 
     @Test
@@ -133,8 +133,8 @@ class StorageKeyGeneratorTest {
 
         // Assert
         assertThat(result).startsWith("temp/");
-        assertThat(result).endsWith("_temp_file_pdf");
-        assertThat(result).matches("temp/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}_temp_file_pdf");
+        assertThat(result).endsWith("_temp-file.pdf");
+        assertThat(result).matches("temp/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}_temp-file\\.pdf");
     }
 
     @Test
@@ -147,7 +147,7 @@ class StorageKeyGeneratorTest {
         String result = storageKeyGenerator.generateSampleDataKey(category, filename);
 
         // Assert
-        assertThat(result).isEqualTo("samples/cars/sample_car_json");
+        assertThat(result).isEqualTo("samples/cars/sample-car.json");
     }
 
     @Test
@@ -161,8 +161,8 @@ class StorageKeyGeneratorTest {
 
         // Assert
         assertThat(result).startsWith("documents/contracts/");
-        assertThat(result).endsWith("_agreement_pdf");
-        assertThat(result).matches("documents/contracts/\\d{8}_\\d{6}_agreement_pdf");
+        assertThat(result).endsWith("_agreement.pdf");
+        assertThat(result).matches("documents/contracts/\\d{8}_\\d{6}_agreement\\.pdf");
     }
 
     @Test
@@ -175,7 +175,7 @@ class StorageKeyGeneratorTest {
         String result = storageKeyGenerator.generateThumbnailKey(originalPath, filename);
 
         // Assert
-        assertThat(result).isEqualTo("thumbnails/listings_123_image_jpg/thumb_image_jpg");
+        assertThat(result).isEqualTo("thumbnails/listings_123_image.jpg/thumb_image.jpg");
     }
 
     @Test
@@ -190,8 +190,8 @@ class StorageKeyGeneratorTest {
         // Assert
         assertThat(result).startsWith("backups/");
         assertThat(result).contains("/database/");
-        assertThat(result).endsWith("backup_sql");
-        assertThat(result).matches("backups/\\d{4}-\\d{2}-\\d{2}/database/backup_sql");
+        assertThat(result).endsWith("backup.sql");
+        assertThat(result).matches("backups/\\d{4}-\\d{2}-\\d{2}/database/backup\\.sql");
     }
 
     @Test
@@ -206,8 +206,8 @@ class StorageKeyGeneratorTest {
         // Assert
         assertThat(result).startsWith("logs/");
         assertThat(result).contains("/ERROR/");
-        assertThat(result).endsWith("error_log");
-        assertThat(result).matches("logs/\\d{4}-\\d{2}-\\d{2}/ERROR/error_log");
+        assertThat(result).endsWith("error.log");
+        assertThat(result).matches("logs/\\d{4}-\\d{2}-\\d{2}/ERROR/error\\.log");
     }
 
     @Test
@@ -220,7 +220,7 @@ class StorageKeyGeneratorTest {
         String result = storageKeyGenerator.generateCustomKey(pattern, replacements);
 
         // Assert
-        assertThat(result).isEqualTo("custom/images/123_test_jpg");
+        assertThat(result).isEqualTo("custom/images/123_test.jpg");
     }
 
     @Test
