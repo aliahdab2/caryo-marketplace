@@ -24,6 +24,9 @@ const HomeSearchBar: React.FC = () => {
   const [selectedModel, setSelectedModel] = useFormSelection<number | null>(null, [selectedMake]);
   const [selectedGovernorate, setSelectedGovernorate] = useState<string>('');
   
+  // Track if models are being fetched to prevent shaking during transitions
+  const [isTransitioningModels, setIsTransitioningModels] = useState(false);
+  
   // Use API data hooks for fetching data with loading, error handling
   const {
     data: carMakes = [],
@@ -58,6 +61,19 @@ const HomeSearchBar: React.FC = () => {
     [selectedMake, t],
     selectedMake ? { makeId: selectedMake } : undefined
   );
+  
+  // Handle model loading transition to prevent shaking
+  useEffect(() => {
+    if (selectedMake && isLoadingModels) {
+      setIsTransitioningModels(true);
+    } else if (!isLoadingModels) {
+      // Add a small delay to prevent rapid layout shifts
+      const timeout = setTimeout(() => {
+        setIsTransitioningModels(false);
+      }, 100);
+      return () => clearTimeout(timeout);
+    }
+  }, [selectedMake, isLoadingModels]);
   
   // Get display name based on current language
   const getDisplayName = useCallback((item: { displayNameEn: string; displayNameAr: string }) => {
@@ -174,19 +190,20 @@ const HomeSearchBar: React.FC = () => {
                   value={selectedModel ?? ''}
                   onChange={(e) => setSelectedModel(e.target.value ? Number(e.target.value) : null)}
                   className="block w-full h-10 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:cursor-not-allowed"
-                  disabled={!selectedMake || isLoadingModels}
+                  disabled={!selectedMake || isLoadingModels || isTransitioningModels}
                   aria-label={t('search.selectModel', 'Select model')}
                 >
-                  <option value="">{t('search.selectModel', 'Select Model')}</option>
-                  {availableModels?.map((model) => (
+                  <option value="">
+                    {isLoadingModels || isTransitioningModels 
+                      ? t('search.loadingModels', 'Loading models...')
+                      : t('search.selectModel', 'Select Model')
+                    }
+                  </option>
+                  {!isLoadingModels && !isTransitioningModels && availableModels?.map((model) => (
                     <option key={model.id} value={model.id}>{getDisplayName(model)}</option>
                   ))}
                 </select>
-                {isLoadingModels && (
-                  <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {t('search.loadingModels', 'Loading models...')}
-                  </div>
-                )}
+                {/* Removed the loading message div to prevent layout shifts */}
               </div>
             </div>
 
