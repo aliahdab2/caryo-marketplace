@@ -34,7 +34,7 @@ echo "Ensured MinIO bucket '$BUCKET_NAME' exists."
 
 # Upload images to MinIO
 echo "Uploading images to MinIO..."
-mc cp "$TEMP_DIR/car1.jpg" "$MINIO_ALIAS/$BUCKET_NAME/listings/1/main.jpg"
+mc cp "$TEMP_DIR/car1.jpg" "$MINIO_ALIAS/$BUCKET_NAME/1/main.jpg"
 mc cp "$TEMP_DIR/car2.jpg" "$MINIO_ALIAS/$BUCKET_NAME/listings/2/main.jpg"
 mc cp "$TEMP_DIR/car3.jpg" "$MINIO_ALIAS/$BUCKET_NAME/listings/3/main.jpg"
 echo "Images uploaded to MinIO."
