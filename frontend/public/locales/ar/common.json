@@ -346,14 +346,14 @@
     "selectBrand": "الماركة",
     "selectModel": "الموديل",
     "governorate": "المحافظة",
-    "selectGovernorate": "اختر المحافظة",
+    "selectGovernorate": "المحافظة",
     "loadingBrands": "جارٍ تحميل ماركات السيارات...",
     "loadingModels": "جارٍ تحميل الموديلات...",
     "loadingGovernorates": "جارٍ تحميل المحافظات...",
     "errorLoadingBrands": "خطأ في تحميل الماركات. يرجى المحاولة مرة أخرى.",
     "errorLoadingModels": "خطأ في تحميل الموديلات. يرجى المحاولة مرة أخرى.",
     "errorLoadingGovernorates": "خطأ في تحميل المحافظات. يرجى المحاولة مرة أخرى.",
-    "searchButton": "بحث عن سيارات",
+    "searchButton": "بحث",
     "tryAgain": "حاول مرة أخرى"
   }
 }

@@ -407,17 +407,20 @@ select option {
   min-width: 0; /* Allow flex items to shrink */
   text-overflow: ellipsis;
   font-size: 1rem; /* Ensure consistent text size */
+  overflow: hidden; /* Prevent text overflow */
 }
 
 /* Responsive text sizing for better fit */
-@media (min-width: 640px) and (max-width: 768px) {
+@media (max-width: 640px) {
   .search-select {
-    font-size: 0.95rem;
+    font-size: 0.875rem; /* Smaller text on mobile */
+    padding-left: 0.75rem;
+    padding-right: 2rem;
   }
 }
 
-@media (max-width: 640px) {
+@media (min-width: 640px) and (max-width: 768px) {
   .search-select {
-    font-size: 0.9rem;
+    font-size: 0.9rem; /* Slightly smaller on small tablets */
   }
 }

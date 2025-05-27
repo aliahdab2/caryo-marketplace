@@ -148,8 +148,8 @@ const HomeSearchBar: React.FC = () => {
   return (
     <form onSubmit={handleSearch} className="w-full">
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md rounded-lg">
-        <div className="p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-x-6 gap-y-6">
+        <div className="p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-4 sm:gap-y-6">
             {/* Brand Select */}
             <div>
               {/* Label hidden as requested */}
@@ -222,7 +222,7 @@ const HomeSearchBar: React.FC = () => {
                   disabled={isLoadingGovernorates}
                   aria-label={t('search.selectGovernorate', 'Select governorate')}
                 >
-                  <option value="">{t('search.selectGovernorate', 'Select Governorate')}</option>
+                  <option value="">{t('search.selectGovernorate', 'Governorate')}</option>
                   {sortedGovernorates.map((gov) => (
                     <option key={gov.id} value={gov.displayNameEn}>
                       {getDisplayName(gov)}
@@ -238,7 +238,7 @@ const HomeSearchBar: React.FC = () => {
             </div>
 
             {/* Search Button */}
-            <div className="flex items-end sm:col-span-2 md:col-span-1">
+            <div className="flex items-end md:col-span-2 lg:col-span-1">
               <button
                 type="submit"
                 className="w-full h-12 px-6 bg-blue-600 text-white text-base font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors whitespace-nowrap"
