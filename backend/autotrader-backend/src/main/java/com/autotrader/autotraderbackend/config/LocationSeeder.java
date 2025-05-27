@@ -1,133 +1,243 @@
 package com.autotrader.autotraderbackend.config;
 
+import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.model.Location;
+import com.autotrader.autotraderbackend.repository.GovernorateRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.util.SlugUtils;
+import lombok.Builder;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Initializes the system with default location data on startup.
- * Only runs in development and test profiles.
+ * Initializes location data for development and test environments.
+ * Depends on GovernorateDataInitializer to ensure the hierarchical integrity
+ * of the Country > Governorate > Location structure.
  */
-@Component
-@Order(2) // Run after DataInitializer which has Order(1)
-@Profile({"dev", "test"})
+@Configuration
 @RequiredArgsConstructor
 @Slf4j
-public class LocationSeeder implements ApplicationRunner {
+public class LocationSeeder {
 
     private final LocationRepository locationRepository;
+    private final GovernorateRepository governorateRepository;
 
-    @Override
-    @Transactional
-    public void run(ApplicationArguments args) {
-        // Check if we already have locations in the database
-        long locationCount = locationRepository.count();
-        if (locationCount > 0) {
-            log.info("{} locations already exist, performing targeted seeding if needed", locationCount);
-        } else {
-            log.info("No locations found, starting initial data seeding");
-        }
+    @Bean
+    @Profile({"dev", "test"})
+    @DependsOn("initializeGovernorates") // Make sure governorates are initialized first
+    public CommandLineRunner seedLocations() {
+        return args -> {
+            if (locationRepository.count() > 0) {
+                log.info("Locations already exist. Skipping seeding.");
+                return;
+            }
 
-        // Each seed method will do its own checks to avoid duplicates
-        log.info("Starting location data seeding...");
-        seedSyrianCities();
-        // Add more seeding methods here in the future (each with their own existence checks)
-        // seedJordanianCities();
-        // seedLebaneseLocations();
-        log.info("Location data seeding completed");
-    }
-
-    /**
-     * Seeds Syrian cities data
-     */
-    private void seedSyrianCities() {
-        // Check for existing data to prevent duplicate seeding
-        if (locationRepository.existsByDisplayNameEnOrDisplayNameAr("Damascus", "دمشق")) {
-            log.info("Syrian cities already exist in database, skipping seed");
-            return;
-        }
-        
-        List<LocationSeedData> locationDataList = Arrays.asList(
-            // Major cities with their regions
-            new LocationSeedData("Damascus", "دمشق", "SY", "Central Syria", 33.5138, 36.2765),
-            new LocationSeedData("Aleppo", "حلب", "SY", "Northern Syria", 36.2021, 37.1343),
-            new LocationSeedData("Homs", "حمص", "SY", "Central Syria", 34.7324, 36.7137),
-            new LocationSeedData("Latakia", "اللاذقية", "SY", "Coastal Syria", 35.5152, 35.7658),
-            new LocationSeedData("Hama", "حماة", "SY", "Central Syria", 35.1318, 36.7518),
-            new LocationSeedData("Deir ez-Zor", "دير الزور", "SY", "Eastern Syria", 35.3369, 40.1361),
-            new LocationSeedData("Idlib", "إدلب", "SY", "Northern Syria", 35.9306, 36.6339),
-            new LocationSeedData("Tartus", "طرطوس", "SY", "Coastal Syria", 34.8885, 35.8866),
-            new LocationSeedData("Al-Hasakah", "الحسكة", "SY", "Northeastern Syria", 36.5024, 40.7563),
-            new LocationSeedData("Raqqa", "الرقة", "SY", "Northern Syria", 35.9528, 39.0079),
-            new LocationSeedData("Daraa", "درعا", "SY", "Southern Syria", 32.6189, 36.1055),
-            new LocationSeedData("As-Suwayda", "السويداء", "SY", "Southern Syria", 32.7007, 36.5662),
+            log.info("Seeding location data...");
             
-            // Other significant locations
-            new LocationSeedData("Qamishli", "القامشلي", "SY", "Northeastern Syria", 37.0750, 41.2182),
-            new LocationSeedData("Manbij", "منبج", "SY", "Northern Syria", 36.5281, 37.9549),
-            new LocationSeedData("Al-Bab", "الباب", "SY", "Northern Syria", 36.3705, 37.5176),
-            new LocationSeedData("Douma", "دوما", "SY", "Damascus Countryside", 33.5718, 36.4032),
-            new LocationSeedData("Palmyra", "تدمر", "SY", "Central Syria", 34.5646, 38.2670),
-            new LocationSeedData("Kobani", "كوباني", "SY", "Northern Syria", 36.8909, 38.3564),
-            new LocationSeedData("Afrin", "عفرين", "SY", "Northern Syria", 36.5122, 36.8699),
-            new LocationSeedData("Safita", "صافيتا", "SY", "Coastal Syria", 34.8192, 36.1198),
-            new LocationSeedData("Yabroud", "يبرود", "SY", "Damascus Countryside", 33.9693, 36.6572),
-            new LocationSeedData("Al-Qutayfah", "القطيفة", "SY", "Damascus Countryside", 33.7382, 36.5985)
-        );
+            // Get Syrian governorates for reference
+            List<Governorate> syrianGovernorates = governorateRepository.findByCountry_CountryCodeOrderByDisplayNameEnAsc("SY");
+            
+            if (syrianGovernorates.isEmpty()) {
+                log.error("No Syrian governorates found. Cannot seed locations. Make sure governorates are initialized first.");
+                return;
+            }
+            
+            // Create a map of governorate name -> governorate for easy lookup
+            Map<String, Governorate> governorateMap = syrianGovernorates.stream()
+                    .collect(Collectors.toMap(Governorate::getDisplayNameEn, Function.identity()));
+            
+            // Default to Damascus governorate if specific governorate not found
+            Governorate defaultGovernorate = governorateMap.getOrDefault("Damascus", syrianGovernorates.get(0));
 
-        log.info("Seeding {} Syrian cities", locationDataList.size());
+            // Create list of location data using the builder pattern
+            List<LocationData> locationDataList = createLocationDataList();
+
+            log.info("Seeding {} Syrian cities", locationDataList.size());
+            
+            // Use streaming with batch saving for better performance
+            List<Location> locations = locationDataList.stream()
+                .map(data -> createLocation(data, governorateMap, defaultGovernorate))
+                .collect(Collectors.toList());
+
+            // Save all locations in a batch operation
+            locationRepository.saveAll(locations);
+            log.info("Successfully created {} locations", locations.size());
+        };
+    }
+    
+    /**
+     * Creates a Location entity from the provided data
+     */
+    private Location createLocation(LocationData data, Map<String, Governorate> governorateMap, Governorate defaultGovernorate) {
+        Objects.requireNonNull(data, "Location data cannot be null");
         
-        // Use streaming with batch saving for better performance
-        List<Location> locations = locationDataList.stream()
-            .map(data -> {
-                Location location = new Location();
-                location.setDisplayNameEn(data.nameEn);
-                location.setDisplayNameAr(data.nameAr);
-                location.setSlug(SlugUtils.slugify(data.nameEn));
-                location.setCountryCode(data.countryCode);
-                location.setRegion(data.region);
-                location.setLatitude(data.latitude);
-                location.setLongitude(data.longitude);
-                location.setIsActive(true);
-                return location;
-            })
-            .collect(Collectors.toList());
-
-        // Save all locations in a batch operation
-        locationRepository.saveAll(locations);
-        log.info("Successfully created {} locations", locations.size());
+        if (StringUtils.isBlank(data.getNameEn())) {
+            throw new IllegalArgumentException("English name cannot be blank");
+        }
+        if (StringUtils.isBlank(data.getNameAr())) {
+            throw new IllegalArgumentException("Arabic name cannot be blank");
+        }
+        
+        Location location = new Location();
+        location.setDisplayNameEn(data.getNameEn());
+        location.setDisplayNameAr(data.getNameAr());
+        location.setSlug(SlugUtils.slugify(data.getNameEn()));
+        
+        // Find the appropriate governorate or use default
+        Governorate governorate = governorateMap.getOrDefault(
+            StringUtils.trimToEmpty(data.getGovernorateNameEn()), 
+            defaultGovernorate
+        );
+        location.setGovernorate(governorate);
+        
+        location.setRegion(StringUtils.trimToNull(data.getRegion()));
+        location.setLatitude(data.getLatitude());
+        location.setLongitude(data.getLongitude());
+        location.setIsActive(true);
+        
+        return location;
+    }
+    
+    /**
+     * Creates a list of location data for seeding
+     */
+    private List<LocationData> createLocationDataList() {
+        return Arrays.asList(
+            LocationData.builder()
+                .nameEn("Damascus")
+                .nameAr("دمشق")
+                .governorateNameEn("Damascus")
+                .region("Damascus")
+                .latitude(33.5138)
+                .longitude(36.2765)
+                .build(),
+                
+            LocationData.builder()
+                .nameEn("Aleppo")
+                .nameAr("حلب")
+                .governorateNameEn("Aleppo")
+                .region("Northern Syria")
+                .latitude(36.2021)
+                .longitude(37.1343)
+                .build(),
+                
+            LocationData.builder()
+                .nameEn("Homs")
+                .nameAr("حمص")
+                .governorateNameEn("Homs")
+                .region("Central Syria")
+                .latitude(34.7324)
+                .longitude(36.7137)
+                .build(),
+                
+            LocationData.builder()
+                .nameEn("Latakia")
+                .nameAr("اللاذقية")
+                .governorateNameEn("Latakia")
+                .region("Coastal Syria")
+                .latitude(35.5317)
+                .longitude(35.7915)
+                .build(),
+                
+            LocationData.builder()
+                .nameEn("Hama")
+                .nameAr("حماة")
+                .governorateNameEn("Hama")
+                .region("Central Syria")
+                .latitude(35.1353)
+                .longitude(36.7520)
+                .build(),
+                
+            LocationData.builder()
+                .nameEn("Deir ez-Zor")
+                .nameAr("دير الزور")
+                .governorateNameEn("Damascus") // Default
+                .region("Eastern Syria")
+                .latitude(35.3359)
+                .longitude(40.1408)
+                .build(),
+                
+            LocationData.builder()
+                .nameEn("Al-Hasakah")
+                .nameAr("الحسكة")
+                .governorateNameEn("Damascus") // Default
+                .region("Northeastern Syria")
+                .latitude(36.5024)
+                .longitude(40.7477)
+                .build(),
+                
+            LocationData.builder()
+                .nameEn("Raqqa")
+                .nameAr("الرقة")
+                .governorateNameEn("Damascus") // Default
+                .region("Northern Syria")
+                .latitude(35.9528)
+                .longitude(39.0100)
+                .build(),
+                
+            LocationData.builder()
+                .nameEn("Daraa")
+                .nameAr("درعا")
+                .governorateNameEn("Damascus") // Default
+                .region("Southern Syria")
+                .latitude(32.6189)
+                .longitude(36.1060)
+                .build(),
+                
+            LocationData.builder()
+                .nameEn("Idlib")
+                .nameAr("إدلب")
+                .governorateNameEn("Damascus") // Default
+                .region("Northwestern Syria")
+                .latitude(35.9306)
+                .longitude(36.6339)
+                .build(),
+                
+            LocationData.builder()
+                .nameEn("Al-Bab")
+                .nameAr("الباب")
+                .governorateNameEn("Aleppo")
+                .region("Northern Syria")
+                .latitude(36.3705)
+                .longitude(37.5176)
+                .build(),
+                
+            LocationData.builder()
+                .nameEn("Douma")
+                .nameAr("دوما")
+                .governorateNameEn("Damascus")
+                .region("Damascus Countryside")
+                .latitude(33.5718)
+                .longitude(36.4032)
+                .build()
+        );
     }
 
     /**
-     * Helper class for location seed data
+     * Data class for holding location information using Lombok
      */
-    private static class LocationSeedData {
-        final String nameEn;
-        final String nameAr;
-        final String countryCode;
-        final String region;
-        final Double latitude;
-        final Double longitude;
-
-        public LocationSeedData(String nameEn, String nameAr, String countryCode, String region, Double latitude, Double longitude) {
-            this.nameEn = nameEn;
-            this.nameAr = nameAr;
-            this.countryCode = countryCode;
-            this.region = region;
-            this.latitude = latitude;
-            this.longitude = longitude;
-        }
+    @Data
+    @Builder
+    private static class LocationData {
+        private String nameEn;
+        private String nameAr;
+        private String governorateNameEn;
+        private String region;
+        private Double latitude;
+        private Double longitude;
     }
 }

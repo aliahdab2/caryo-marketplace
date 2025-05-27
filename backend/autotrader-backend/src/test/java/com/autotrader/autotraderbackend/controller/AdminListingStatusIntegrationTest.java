@@ -4,6 +4,8 @@ import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.model.Governorate;
+import com.autotrader.autotraderbackend.model.Role; // Import Role
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.repository.CarBrandRepository;
@@ -11,6 +13,8 @@ import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.CarModelRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
+import com.autotrader.autotraderbackend.repository.GovernorateRepository;
+import com.autotrader.autotraderbackend.repository.CountryRepository;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import com.autotrader.autotraderbackend.util.TestDataGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,6 +67,12 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     @Autowired
     private CarModelRepository carModelRepository;
 
+    @Autowired
+    private GovernorateRepository governorateRepository;
+
+    @Autowired
+    private CountryRepository countryRepository;
+
     private static final String ADMIN_USERNAME = "admin_test";
     private static final String ADMIN_PASSWORD = "admin123";
     private static final String USER_USERNAME = "user_test";
@@ -78,12 +88,14 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         carListingRepository.deleteAll();
         carModelRepository.deleteAll();
         carBrandRepository.deleteAll();
+        governorateRepository.deleteAll();
+        countryRepository.deleteAll(); // Add this line to clean up countries
         userRepository.deleteByUsername(ADMIN_USERNAME);
         userRepository.deleteByUsername(USER_USERNAME);
 
         // Fetch persisted roles
-        var adminRole = roleRepository.findByName("ROLE_ADMIN").orElseThrow(() -> new RuntimeException("ROLE_ADMIN not found"));
-        var userRole = roleRepository.findByName("ROLE_USER").orElseThrow(() -> new RuntimeException("ROLE_USER not found"));
+        Role adminRole = roleRepository.findByName("ROLE_ADMIN").orElseThrow(() -> new RuntimeException("ROLE_ADMIN not found"));
+        Role userRole = roleRepository.findByName("ROLE_USER").orElseThrow(() -> new RuntimeException("ROLE_USER not found"));
 
         // Create admin user with only the persisted admin role
         User adminUser = new User();
@@ -111,8 +123,14 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         CarModel testModel = TestDataGenerator.createTestCarModel(savedBrand);
         CarModel savedModel = carModelRepository.save(testModel);
 
-        // Create a test listing
-        CarListing listing = TestDataGenerator.createTestListing(normalUser, savedModel);
+        // Find or create country and governorate using helper methods
+        com.autotrader.autotraderbackend.model.Country savedCountry = TestDataGenerator.createOrFindTestCountry("SY", countryRepository);
+        Governorate testGovernorate = TestDataGenerator.createTestGovernorateWithCountry("Test Governorate", "محافظة الاختبار", savedCountry);
+        testGovernorate.setCountry(savedCountry); // Use the saved country
+        Governorate savedGovernorate = governorateRepository.save(testGovernorate);
+
+        // Create a test listing with governorate
+        CarListing listing = TestDataGenerator.createTestListing(normalUser, savedModel, savedGovernorate);
         listing.setApproved(true);
         listing.setSold(false);
         listing.setArchived(false);

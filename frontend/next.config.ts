@@ -10,7 +10,8 @@ const nextConfig: NextConfig = { // Add NextConfig type
   env: {
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || "AdJ8m5EpqN6qPwEtH7XsKfRzV2yG9LcZ",
     NEXTAUTH_URL: process.env.NEXTAUTH_URL || "http://localhost:3000",
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
+    NEXT_PUBLIC_MINIO_URL: process.env.NEXT_PUBLIC_MINIO_URL || "http://localhost:9000" // Add MINIO URL
   },
   // App Router handles i18n differently - configuration is done through LanguageProvider
   
@@ -29,6 +30,18 @@ const nextConfig: NextConfig = { // Add NextConfig type
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9000',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '9000',
         pathname: '/**',
       },
     ],

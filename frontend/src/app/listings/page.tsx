@@ -233,7 +233,7 @@ const ListingsPage = () => {
                   <p className="truncate">
                     {i18n.language === 'ar' && listing.location?.cityAr 
                       ? listing.location.cityAr 
-                      : listing.location?.city || t('listings.unknownLocation')}
+                      : listing.location?.city || listing.brand || t('listings.unknownLocation')}
                     {listing.location?.country ? `, ${listing.location.country}` : ''}
                   </p>
                   <p>{t('listings.postedOn')}: {listing.createdAt ? (

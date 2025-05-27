@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(com.autotrader.autotraderbackend.config.TestSecurityConfig.class)
 class GovernorateControllerTest {
 
-    private static final String BASE_URL = "/api/governorates";
+    private static final String BASE_URL = "/api/reference-data/governorates";
     private static final String COUNTRY_CODE_SY = "SY";
     private static final String DAMASCUS_SLUG = "damascus";
     private static final String ALEPPO_SLUG = "aleppo";

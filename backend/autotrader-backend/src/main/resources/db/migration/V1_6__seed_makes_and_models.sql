@@ -72,6 +72,19 @@ INSERT INTO models (make_id, name, display_name_en, display_name_ar, slug, year_
 SELECT m.id, 'sonata', 'Sonata', 'سوناتا', 'hyundai-sonata', 2020, NULL, TRUE, NOW(), NOW()
 FROM makes m WHERE m.name = 'hyundai' AND NOT EXISTS (SELECT 1 FROM models WHERE slug = 'hyundai-sonata');
 
+-- Nissan
+INSERT INTO makes (name, display_name_en, display_name_ar, slug, country_of_origin, logo_url, is_active, created_at, updated_at)
+SELECT 'nissan', 'Nissan', 'نيسان', 'nissan', 'Japan', NULL, TRUE, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM makes WHERE name = 'nissan');
+
+INSERT INTO models (make_id, name, display_name_en, display_name_ar, slug, year_start, year_end, is_active, created_at, updated_at)
+SELECT m.id, 'altima', 'Altima', 'ألتيما', 'nissan-altima', 2019, NULL, TRUE, NOW(), NOW()
+FROM makes m WHERE m.name = 'nissan' AND NOT EXISTS (SELECT 1 FROM models WHERE slug = 'nissan-altima');
+
+INSERT INTO models (make_id, name, display_name_en, display_name_ar, slug, year_start, year_end, is_active, created_at, updated_at)
+SELECT m.id, 'sentra', 'Sentra', 'سينترا', 'nissan-sentra', 2020, NULL, TRUE, NOW(), NOW()
+FROM makes m WHERE m.name = 'nissan' AND NOT EXISTS (SELECT 1 FROM models WHERE slug = 'nissan-sentra');
+
 -- Kia
 INSERT INTO makes (name, display_name_en, display_name_ar, slug, country_of_origin, logo_url, is_active, created_at, updated_at)
 SELECT 'kia', 'Kia', 'كيا', 'kia', 'South Korea', NULL, TRUE, NOW(), NOW()

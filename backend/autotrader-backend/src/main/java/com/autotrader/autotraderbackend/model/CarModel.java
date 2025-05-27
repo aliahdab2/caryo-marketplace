@@ -1,10 +1,11 @@
-
 package com.autotrader.autotraderbackend.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +19,7 @@ public class CarModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "make_id", nullable = false)
     private CarBrand brand;
@@ -37,6 +39,7 @@ public class CarModel {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "model", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CarTrim> trims = new ArrayList<>();
 }

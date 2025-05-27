@@ -78,6 +78,17 @@
     "page": "Page",
     "showingResults": "Showing {{count}} results",
     "searchPlaceholder": "Search by make, model, or keywords",
+    "filterBy": "Filter by",
+    "search": "Search",
+    "clearFilters": "Clear Filters",
+    "noResults": "No results found for your search criteria.",
+    "tryAdjustingFilters": "Try adjusting your filters or searching for something else.",
+    "location": "Location",
+    "selectLocation": "Select Location",
+    "allLocations": "All Locations",
+    "governorate": "Governorate",
+    "selectGovernorate": "Select Governorate",
+    "allGovernorates": "All Governorates",
     "views": "Views",
     "exteriorColor": "Exterior Color",
     "interiorColor": "Interior Color",
@@ -314,5 +325,19 @@
   "learnMore": "Learn More",
   "allRightsReserved": "All rights reserved",
   "all": "All",
-  "date": "Date"
+  "date": "Date",
+  "search": {
+    "selectBrand": "Brand",
+    "selectModel": "Model",
+    "governorate": "Governorate",
+    "selectGovernorate": "Select Governorate",
+    "loadingBrands": "Loading brands...",
+    "loadingModels": "Loading models...",
+    "loadingGovernorates": "Loading governorates...",
+    "errorLoadingBrands": "Error loading brands. Please try again.",
+    "errorLoadingModels": "Error loading models. Please try again.",
+    "errorLoadingGovernorates": "Error loading governorates. Please try again.",
+    "searchButton": "Search Cars",
+    "tryAgain": "Try Again"
+  }
 }

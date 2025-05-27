@@ -2,17 +2,36 @@
  * Interface for car make/brand
  */
 export interface CarMake {
-  id: string;
+  id: number;
   name: string;
+  slug: string;
+  displayNameEn: string;
+  displayNameAr: string;
+  isActive: boolean;
+  models?: CarModel[];
 }
 
 /**
  * Interface for car model
  */
 export interface CarModel {
-  id: string;
+  id: number;
   name: string;
-  makeId: string;
+  slug: string;
+  displayNameEn: string;
+  displayNameAr: string;
+  isActive: boolean;
+  brand?: CarMake;
+  trims?: CarTrim[];
+}
+
+/**
+ * Interface for car trim
+ */
+export interface CarTrim {
+  id: number;
+  name: string;
+  model?: CarModel;
 }
 
 /**

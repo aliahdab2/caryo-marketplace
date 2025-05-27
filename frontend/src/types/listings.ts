@@ -22,6 +22,10 @@ export interface Listing {
     countryCode?: string;
     address?: string;
   };
+  governorate?: {
+    nameEn: string;
+    nameAr: string;
+  };
   media?: { 
     url: string; 
     type?: string; 
@@ -58,21 +62,27 @@ export interface ListingFormData {
   id?: string;
   title: string;
   description: string;
-  make: string;
-  model: string;
-  year: string;
-  price: string;
-  currency: string;
-  condition: string;
-  mileage: string;
-  exteriorColor: string;
-  interiorColor: string;
-  transmission: string;
-  fuelType: string;
-  features: string[];
-  location: string;
-  city: string;
-  contactPreference: string;
+  make: string; // Assuming this is for a generic listing, might need to be part of attributes
+  model: string; // Assuming this is for a generic listing, might need to be part of attributes
+  year: string; // Assuming this is for a generic listing, might need to be part of attributes
+  price: string; // Price is a string as per existing definition
+  currency: string; // Assuming this is for a generic listing, might need to be part of attributes
+  condition: string; // Assuming this is for a generic listing, might need to be part of attributes
+  mileage: string; // Assuming this is for a generic listing, might need to be part of attributes
+  exteriorColor: string; // Assuming this is for a generic listing, might need to be part of attributes
+  interiorColor: string; // Assuming this is for a generic listing, might need to be part of attributes
+  transmission: string; // Assuming this is for a generic listing, might need to be part of attributes
+  fuelType: string; // Assuming this is for a generic listing, might need to be part of attributes
+  features: string[]; // Assuming this is for a generic listing, might need to be part of attributes
+  categoryId?: string; // Added categoryId, make it optional or required based on your logic
+  attributes?: Record<string, unknown>; // For dynamic attributes based on category
+  location?: string; 
+  governorateId: string; 
+  city: string; // This was in the original form state, ensure it's needed
+  contactName: string; // Added
+  contactPhone: string; // Added
+  contactEmail?: string; // Added, optional
+  contactPreference: string; // This was in the original form state, ensure it's needed
   images: File[];
   status: 'active' | 'expired' | 'pending' | '';
   created?: string;
@@ -97,5 +107,16 @@ export interface ListingApiResponse {
 export interface ListingExpiryProps {
   expires: string;
   status: string;
-  className?: string;
+}
+
+/**
+ * Interface for Governorate
+ */
+export interface Governorate {
+  id: string;
+  nameEn: string;
+  nameAr: string;
+  displayNameEn: string; // Added for direct use in dropdowns
+  displayNameAr: string; // Added for direct use in dropdowns
+  countryCode?: string;
 }

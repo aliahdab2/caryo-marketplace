@@ -8,9 +8,14 @@ import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.CarBrandRepository; // Added
 import com.autotrader.autotraderbackend.repository.CarModelRepository; // Added
 import com.autotrader.autotraderbackend.repository.LocationRepository; // Added
+import com.autotrader.autotraderbackend.repository.CountryRepository; // Added
+import com.autotrader.autotraderbackend.repository.GovernorateRepository; // Added
 import com.autotrader.autotraderbackend.model.CarBrand; // Added
 import com.autotrader.autotraderbackend.model.CarModel; // Added
 import com.autotrader.autotraderbackend.model.Location; // Added
+import com.autotrader.autotraderbackend.model.Country; // Added
+import com.autotrader.autotraderbackend.model.Governorate; // Added
+import com.autotrader.autotraderbackend.util.TestGeographyUtils; // Added
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3; // Extend the base class
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +62,12 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
     @Autowired
     private LocationRepository locationRepository; // Added
 
+    @Autowired
+    private CountryRepository countryRepository; // Added
+
+    @Autowired
+    private GovernorateRepository governorateRepository; // Added
+
     private String baseUrl;
     private String jwtToken;
     private CarModel testCarModel; // Added
@@ -71,6 +82,8 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
         carModelRepository.deleteAll(); // Added
         carBrandRepository.deleteAll(); // Added
         locationRepository.deleteAll(); // Added
+        governorateRepository.deleteAll(); // Added
+        countryRepository.deleteAll(); // Added
 
         // Setup necessary entities
         setupTestData();
@@ -80,12 +93,14 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
     }
 
     private void setupTestData() {
-        // Create test Location
-        testLocation = new Location();
-        testLocation.setDisplayNameEn("Test Location Validation");
-        testLocation.setDisplayNameAr("موقع اختبار التحقق");
-        testLocation.setSlug("test-location-validation");
-        testLocation.setCountryCode("SY");
+        // Create test Location with country and governorate
+        Country testCountry = TestGeographyUtils.createTestCountry("SY");
+        testCountry = countryRepository.save(testCountry);
+
+        Governorate testGovernorate = TestGeographyUtils.createTestGovernorate("Test Governorate", "محافظة الاختبار", testCountry);
+        testGovernorate = governorateRepository.save(testGovernorate);
+        
+        testLocation = TestGeographyUtils.createTestLocation("Test Location", "موقع الاختبار", testGovernorate);
         testLocation = locationRepository.save(testLocation);
 
         // Create test CarBrand

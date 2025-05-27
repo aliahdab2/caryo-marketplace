@@ -15,7 +15,10 @@ public class GovernorateResponse {
     private String displayNameEn;
     private String displayNameAr;
     private String slug;
-    private String countryCode;
+    private Long countryId; // Changed from countryCode
+    private String countryCode; // Added to maintain backward compatibility
+    private String countryNameEn; // Added
+    private String countryNameAr; // Added
     private String region;
     private Double latitude;
     private Double longitude;
@@ -31,15 +34,23 @@ public class GovernorateResponse {
             return null;
         }
         
-        return GovernorateResponse.builder()
-                .id(governorate.getId())
-                .displayNameEn(governorate.getDisplayNameEn())
-                .displayNameAr(governorate.getDisplayNameAr())
-                .slug(governorate.getSlug())
-                .countryCode(governorate.getCountryCode())
-                .region(governorate.getRegion())
-                .latitude(governorate.getLatitude())
-                .longitude(governorate.getLongitude())
-                .build();
+        GovernorateResponse response = new GovernorateResponse();
+        response.setId(governorate.getId());
+        response.setDisplayNameEn(governorate.getDisplayNameEn());
+        response.setDisplayNameAr(governorate.getDisplayNameAr());
+        response.setSlug(governorate.getSlug());
+        response.setRegion(governorate.getRegion());
+        response.setLatitude(governorate.getLatitude());
+        response.setLongitude(governorate.getLongitude());
+        
+        // Set country information
+        if (governorate.getCountry() != null) {
+            response.setCountryId(governorate.getCountry().getId());
+            response.setCountryCode(governorate.getCountry().getCountryCode());
+            response.setCountryNameEn(governorate.getCountry().getDisplayNameEn());
+            response.setCountryNameAr(governorate.getCountry().getDisplayNameAr());
+        }
+        
+        return response;
     }
 }

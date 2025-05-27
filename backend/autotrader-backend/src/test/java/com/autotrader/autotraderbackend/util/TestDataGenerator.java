@@ -3,12 +3,18 @@ package com.autotrader.autotraderbackend.util;
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.CarModel;
+import com.autotrader.autotraderbackend.model.Country;
+import com.autotrader.autotraderbackend.model.Governorate;
+import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.repository.CarBrandRepository;
+import com.autotrader.autotraderbackend.repository.CountryRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -88,9 +94,10 @@ public class TestDataGenerator {
      * Creates a test car listing
      * @param seller The user who is selling the car
      * @param carModel The CarModel for this listing
+     * @param governorate The Governorate for this listing
      * @return CarListing entity
      */
-    public static CarListing createTestListing(User seller, CarModel carModel) {
+    public static CarListing createTestListing(User seller, CarModel carModel, Governorate governorate) {
         CarListing listing = new CarListing();
         listing.setTitle("Test Car Listing");
         
@@ -100,12 +107,13 @@ public class TestDataGenerator {
             listing.setBrandNameAr(carModel.getBrand().getDisplayNameAr());
             listing.setModelNameEn(carModel.getDisplayNameEn());
             listing.setModelNameAr(carModel.getDisplayNameAr());
-        } else {
-            // Fallback or default names if carModel or its brand is null
-            listing.setBrandNameEn("DefaultBrandEn");
-            listing.setBrandNameAr("DefaultBrandAr");
-            listing.setModelNameEn("DefaultModelEn");
-            listing.setModelNameAr("DefaultModelAr");
+        }
+        
+        // Set the governorate relationship and names
+        listing.setGovernorate(governorate);
+        if (governorate != null) {
+            listing.setGovernorateNameEn(governorate.getDisplayNameEn());
+            listing.setGovernorateNameAr(governorate.getDisplayNameAr());
         }
         
         listing.setModelYear(2022);
@@ -119,5 +127,113 @@ public class TestDataGenerator {
         listing.setCreatedAt(LocalDateTime.now());
         listing.setUpdatedAt(LocalDateTime.now());
         return listing;
+    }
+    
+    /**
+     * Creates a test governorate associated with the specified country
+     * @param countryCode The country code to use
+     * @return Governorate entity
+     */
+    public static Governorate createTestGovernorate(String countryCode) {
+        Country country = TestGeographyUtils.createTestCountry(countryCode);
+        return TestGeographyUtils.createTestGovernorate("Test Governorate", "محافظة الاختبار", country);
+    }
+    
+    /**
+     * Creates a test location associated with the specified governorate
+     * @param governorate The governorate for this location
+     * @return Location entity
+     */
+    public static Location createTestLocation(Governorate governorate) {
+        return TestGeographyUtils.createTestLocation("Test Location", "موقع الاختبار", governorate);
+    }
+    
+    /**
+     * Creates a complete hierarchy of test location data (Country > Governorate > Location)
+     * @param countryCode The country code to use
+     * @return Location entity with associated governorate and country
+     */
+    public static Location createTestLocationWithHierarchy(String countryCode) {
+        Country country = TestGeographyUtils.createTestCountry(countryCode);
+        Governorate governorate = TestGeographyUtils.createTestGovernorate("Test Governorate", "محافظة الاختبار", country);
+        return TestGeographyUtils.createTestLocation("Test Location", "موقع الاختبار", governorate);
+    }
+    
+    /**
+     * Creates a test country entity
+     * @param countryCode ISO country code
+     * @return Country entity
+     */
+    public static Country createTestCountry(String countryCode) {
+        return TestGeographyUtils.createTestCountry(countryCode);
+    }
+    
+    /**
+     * Creates a test country for the given country code, checking if one already exists in the repository
+     * @param countryCode ISO country code (e.g., "SY" for Syria)
+     * @param countryRepository Repository to check for existing country
+     * @return The existing or newly created country
+     */
+    public static Country createOrFindTestCountry(String countryCode, CountryRepository countryRepository) {
+        Optional<Country> existingCountry = countryRepository.findByCountryCode(countryCode);
+        if (existingCountry.isPresent()) {
+            return existingCountry.get();
+        } else {
+            Country testCountry = TestGeographyUtils.createTestCountry(countryCode);
+            return countryRepository.save(testCountry);
+        }
+    }
+    
+    /**
+     * Creates a test governorate with the given country
+     * @param nameEn English name of the governorate
+     * @param nameAr Arabic name of the governorate 
+     * @param country The country the governorate belongs to
+     * @return A test governorate entity
+     */
+    public static Governorate createTestGovernorateWithCountry(String nameEn, String nameAr, Country country) {
+        return TestGeographyUtils.createTestGovernorate(nameEn, nameAr, country);
+    }
+
+    /**
+     * Creates or finds a test CarBrand with the given name and slug.
+     * @param name The name of the CarBrand.
+     * @param slug The slug of the CarBrand.
+     * @return CarBrand entity.
+     */
+    public static CarBrand createOrFindTestCarBrand(String name, String slug, CarBrandRepository carBrandRepository) {
+        Optional<CarBrand> existingBrand = carBrandRepository.findBySlug(slug);
+        if (existingBrand.isPresent()) {
+            return existingBrand.get();
+        } else {
+            CarBrand newBrand = new CarBrand();
+            newBrand.setName(name);
+            newBrand.setSlug(slug);
+            newBrand.setDisplayNameEn(name);
+            newBrand.setDisplayNameAr(name);
+            newBrand.setIsActive(true);
+            return carBrandRepository.save(newBrand);
+        }
+    }
+    
+    /**
+     * Creates a test car brand for the given slug, checking if one already exists in the repository
+     * @param slug The slug for the car brand (e.g., "test-brand")
+     * @param carBrandRepository Repository to check for existing car brand
+     * @return The existing or newly created car brand
+     */
+    public static CarBrand createOrFindTestCarBrand(String slug, CarBrandRepository carBrandRepository) {
+        Optional<CarBrand> existingBrand = carBrandRepository.findBySlug(slug);
+        if (existingBrand.isPresent()) {
+            return existingBrand.get();
+        } else {
+            CarBrand testBrand = new CarBrand();
+            testBrand.setName(slug);
+            testBrand.setSlug(slug);
+            testBrand.setDisplayNameEn(slug.substring(0, 1).toUpperCase() + slug.substring(1).replace("-", " "));
+            testBrand.setDisplayNameAr("علامة تجارية اختبار");
+            testBrand.setIsActive(true);
+            return carBrandRepository.save(testBrand);
+        }
     }
 }

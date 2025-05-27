@@ -6,10 +6,14 @@ import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.model.ListingMedia;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.model.Location; // Ensure this import is present
+import com.autotrader.autotraderbackend.model.Country;
+import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.ListingMediaResponse;
 // Ensure com.autotrader.autotraderbackend.payload.response.LocationResponse is NOT imported here
 import com.autotrader.autotraderbackend.service.storage.StorageService;
+import com.autotrader.autotraderbackend.util.TestDataGenerator;
+import com.autotrader.autotraderbackend.util.TestGeographyUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,12 +48,8 @@ class CarListingMapperTest {
         testSeller.setId(1L);
         testSeller.setUsername("testseller");
 
-        Location testLocation = new Location(); // Create Location object
-        testLocation.setId(1L);
-        testLocation.setDisplayNameEn("Test City");
-        testLocation.setDisplayNameAr("مدينة اختبار");
-        testLocation.setSlug("test-city");
-        testLocation.setCountryCode("SY"); // Set the required countryCode field
+        // Create location with full hierarchy (Country > Governorate > Location)
+        Location testLocation = TestDataGenerator.createTestLocationWithHierarchy("SY");
 
         // Create brand and model for car listing
         CarBrand testBrand = new CarBrand();

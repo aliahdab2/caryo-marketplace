@@ -14,7 +14,9 @@ public interface GovernorateRepository extends JpaRepository<Governorate, Long> 
     
     List<Governorate> findByIsActiveTrue();
     
-    List<Governorate> findByCountryCodeOrderByDisplayNameEnAsc(String countryCode);
+    List<Governorate> findByCountry_CountryCodeOrderByDisplayNameEnAsc(String countryCode);
+    
+    List<Governorate> findByCountry_IdOrderByDisplayNameEnAsc(Long countryId);
     
     boolean existsBySlug(String slug);
 }

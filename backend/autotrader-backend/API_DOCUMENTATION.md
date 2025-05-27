@@ -752,29 +752,147 @@ To run all API tests automatically:
 
 ### Reference Data Endpoints
 
+#### Get Governorates
+
+- **Endpoint**: `GET /api/reference-data/governorates`
+- **Access**: Public
+- **Description**: Retrieves a list of all active governorates with translated display names.
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "displayNameEn": "Damascus",
+      "displayNameAr": "دمشق",
+      "slug": "damascus",
+      "countryCode": "SY"
+    },
+    {
+      "id": 2,
+      "displayNameEn": "Aleppo",
+      "displayNameAr": "حلب",
+      "slug": "aleppo",
+      "countryCode": "SY"
+    }
+    // ... more governorates
+  ]
+  ```
+
 #### Car Conditions
-- **Endpoint**: `GET /api/car-conditions`
+- **Endpoint**: `GET /api/reference-data/car-conditions`
 - **Access**: Public
 - **Description**: Returns all car condition options
-- **Response**: List of car conditions
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "displayNameEn": "New",
+      "displayNameAr": "جديد",
+      "slug": "new"
+    },
+    {
+      "id": 2,
+      "displayNameEn": "Used - Excellent",
+      "displayNameAr": "مستعمل - ممتاز",
+      "slug": "used-excellent"
+    },
+    {
+      "id": 3,
+      "displayNameEn": "Used - Good",
+      "displayNameAr": "مستعمل - جيد",
+      "slug": "used-good"
+    }
+    // ... more conditions
+  ]
+  ```
 
 #### Drive Types
-- **Endpoint**: `GET /api/drive-types`
+- **Endpoint**: `GET /api/reference-data/drive-types`
 - **Access**: Public
 - **Description**: Returns all drive type options
-- **Response**: List of drive types
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "displayNameEn": "Front-Wheel Drive",
+      "displayNameAr": "دفع أمامي",
+      "slug": "fwd"
+    },
+    {
+      "id": 2,
+      "displayNameEn": "Rear-Wheel Drive",
+      "displayNameAr": "دفع خلفي",
+      "slug": "rwd"
+    },
+    {
+      "id": 3,
+      "displayNameEn": "All-Wheel Drive",
+      "displayNameAr": "دفع رباعي",
+      "slug": "awd"
+    }
+    // ... more drive types
+  ]
+  ```
 
 #### Body Styles
-- **Endpoint**: `GET /api/body-styles`
+- **Endpoint**: `GET /api/reference-data/body-styles`
 - **Access**: Public
 - **Description**: Returns all body style options
-- **Response**: List of body styles
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "displayNameEn": "Sedan",
+      "displayNameAr": "سيدان",
+      "slug": "sedan"
+    },
+    {
+      "id": 2,
+      "displayNameEn": "SUV",
+      "displayNameAr": "دفع رباعي",
+      "slug": "suv"
+    },
+    {
+      "id": 3,
+      "displayNameEn": "Hatchback",
+      "displayNameAr": "هاتشباك",
+      "slug": "hatchback"
+    }
+    // ... more body styles
+  ]
+  ```
 
 #### Transmissions
-- **Endpoint**: `GET /api/transmissions`
+- **Endpoint**: `GET /api/reference-data/transmissions`
 - **Access**: Public
 - **Description**: Returns all transmission options
-- **Response**: List of transmissions
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "displayNameEn": "Automatic",
+      "displayNameAr": "أوتوماتيك",
+      "slug": "automatic"
+    },
+    {
+      "id": 2,
+      "displayNameEn": "Manual",
+      "displayNameAr": "يدوي",
+      "slug": "manual"
+    },
+    {
+      "id": 3,
+      "displayNameEn": "CVT",
+      "displayNameAr": "CVT",
+      "slug": "cvt"
+    }
+    // ... more transmissions
+  ]
+  ```
 
 #### Commonly Used Values
 
@@ -788,18 +906,22 @@ To run all API tests automatically:
 
 - **Endpoint**: `GET /api/reference-data/brands`
 - **Access**: Public
-- **Description**: Retrieves a list of all active car brands.
+- **Description**: Retrieves a list of all active car brands/makes.
 - **Response (200 OK)**:
   ```json
   [
     {
       "id": 1,
-      "name": "Toyota",
+      "displayNameEn": "Toyota",
+      "displayNameAr": "تويوتا",
+      "slug": "toyota",
       "active": true
     },
     {
       "id": 2,
-      "name": "Ford",
+      "displayNameEn": "Ford",
+      "displayNameAr": "فورد",
+      "slug": "ford",
       "active": true
     }
     // ... more brands
@@ -818,13 +940,17 @@ To run all API tests automatically:
   [
     {
       "id": 101,
-      "name": "Camry",
+      "displayNameEn": "Camry", 
+      "displayNameAr": "كامري",
+      "slug": "camry",
       "active": true,
       "brandId": 1 
     },
     {
       "id": 102,
-      "name": "Corolla",
+      "displayNameEn": "Corolla",
+      "displayNameAr": "كورولا",
+      "slug": "corolla",
       "active": true,
       "brandId": 1
     }
@@ -839,6 +965,47 @@ To run all API tests automatically:
     "error": "Not Found",
     "message": "CarBrand not found with id: 999",
     "path": "/api/reference-data/brands/999/models"
+  }
+  ```
+
+#### Get Trims for a Specific Model
+
+- **Endpoint**: `GET /api/reference-data/brands/{brandId}/models/{modelId}/trims`
+- **Access**: Public
+- **Description**: Retrieves a list of active car trims for a given model ID.
+- **Parameters**:
+  - `brandId` (path parameter): The ID of the car brand.
+  - `modelId` (path parameter): The ID of the car model.
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1001,
+      "displayNameEn": "SE",
+      "displayNameAr": "إس إي",
+      "slug": "se",
+      "active": true,
+      "modelId": 101
+    },
+    {
+      "id": 1002,
+      "displayNameEn": "XLE",
+      "displayNameAr": "إكس إل إي",
+      "slug": "xle",
+      "active": true,
+      "modelId": 101
+    }
+    // ... more trims for the model
+  ]
+  ```
+- **Response (404 Not Found)** - Model not found:
+  ```json
+  {
+    "timestamp": "2025-05-01T10:00:00Z",
+    "status": 404,
+    "error": "Not Found",
+    "message": "CarModel not found with id: 999",
+    "path": "/api/reference-data/brands/1/models/999/trims"
   }
   ```
 

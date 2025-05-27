@@ -65,14 +65,14 @@ public class CarListing {
     @Column(name = "cylinders")
     private Integer cylinders;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_id")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "location_id") // Made nullable
     private Location location;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "governorate_id")
+    @JoinColumn(name = "governorate_id", nullable = false) // Enforce that a listing must have a governorate
     private Governorate governorate;
-    
+
     @Size(max = 100)
     @Column(name = "governorate_name_en", length = 100)
     private String governorateNameEn;
@@ -80,7 +80,7 @@ public class CarListing {
     @Size(max = 100)
     @Column(name = "governorate_name_ar", length = 100)
     private String governorateNameAr;
-    
+
     @Size(max = 100)
     @Column(name = "brand_name_en", length = 100)
     private String brandNameEn;

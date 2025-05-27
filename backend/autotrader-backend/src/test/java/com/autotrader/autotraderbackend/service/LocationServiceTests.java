@@ -2,10 +2,16 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.Location;
+import com.autotrader.autotraderbackend.model.Country;
+import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.LocationRequest;
 import com.autotrader.autotraderbackend.payload.response.LocationResponse;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
+import com.autotrader.autotraderbackend.repository.GovernorateRepository;
+import com.autotrader.autotraderbackend.repository.CountryRepository;
 import com.autotrader.autotraderbackend.util.SlugUtils;
+import com.autotrader.autotraderbackend.util.TestDataGenerator;
+import com.autotrader.autotraderbackend.util.TestGeographyUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +37,12 @@ class LocationServiceTests {
 
     @Mock
     private LocationRepository locationRepository;
+    
+    @Mock
+    private GovernorateRepository governorateRepository;
+    
+    @Mock
+    private CountryRepository countryRepository;
 
     @InjectMocks
     private LocationService locationService;
@@ -41,12 +53,38 @@ class LocationServiceTests {
 
     @BeforeEach
     void setUp() {
+        // Create a test country
+        Country country = new Country();
+        country.setId(1L);
+        country.setCountryCode("SY");
+        country.setDisplayNameEn("Syria");
+        country.setDisplayNameAr("سوريا");
+        country.setIsActive(true);
+        
+        // Create test governorates
+        Governorate governorate1 = new Governorate();
+        governorate1.setId(1L);
+        governorate1.setDisplayNameEn("Damascus");
+        governorate1.setDisplayNameAr("دمشق");
+        governorate1.setSlug("damascus");
+        governorate1.setCountry(country);
+        governorate1.setIsActive(true);
+        
+        Governorate governorate2 = new Governorate();
+        governorate2.setId(2L);
+        governorate2.setDisplayNameEn("Aleppo");
+        governorate2.setDisplayNameAr("حلب");
+        governorate2.setSlug("aleppo");
+        governorate2.setCountry(country);
+        governorate2.setIsActive(true);
+        
+        // Create test locations
         location1 = new Location();
         location1.setId(1L);
         location1.setDisplayNameEn("City A");
         location1.setDisplayNameAr("المدينة أ");
         location1.setSlug("city-a");
-        location1.setCountryCode("SY");
+        location1.setGovernorate(governorate1);
         location1.setIsActive(true);
 
         location2 = new Location();
@@ -54,13 +92,13 @@ class LocationServiceTests {
         location2.setDisplayNameEn("City B");
         location2.setDisplayNameAr("المدينة ب");
         location2.setSlug("city-b");
-        location2.setCountryCode("SY");
+        location2.setGovernorate(governorate2);
         location2.setIsActive(false);
 
         locationRequest = new LocationRequest();
         locationRequest.setNameEn("New City");
         locationRequest.setNameAr("مدينة جديدة");
-        locationRequest.setCountryCode("SY");
+        locationRequest.setGovernorateId(1L); // Use governorateId instead of countryCode
         locationRequest.setRegion("Region");
         locationRequest.setLatitude(10.0);
         locationRequest.setLongitude(20.0);
@@ -80,7 +118,9 @@ class LocationServiceTests {
 
     @Test
     void getLocationsByCountry_shouldReturnActiveLocationsForCountry() {
-        when(locationRepository.findByCountryCodeAndIsActiveTrueOrIsActiveIsNull("SY")).thenReturn(List.of(location1));
+        // Mock the findByCountryCodeAndIsActiveTrueOrIsActiveIsNull method
+        when(locationRepository.findByCountryCodeAndIsActiveTrueOrIsActiveIsNull("SY"))
+            .thenReturn(List.of(location1));
 
         List<LocationResponse> responses = locationService.getLocationsByCountry("SY");
 

@@ -16,8 +16,12 @@ import java.util.Optional;
  */
 @Repository
 public interface LocationRepository extends JpaRepository<Location, Long> {
-    // Find active locations by country code (using isActive field)
-    List<Location> findByCountryCodeAndIsActiveTrueOrIsActiveIsNull(String countryCode);
+    // Find active locations by country code (now using the relationship path)
+    @Query("SELECT l FROM Location l WHERE l.governorate.country.countryCode = :countryCode AND (l.isActive = true OR l.isActive IS NULL)")
+    List<Location> findByCountryCodeAndIsActiveTrueOrIsActiveIsNull(@Param("countryCode") String countryCode);
+    
+    // Find by governorate
+    List<Location> findByGovernorateIdAndIsActiveTrue(Long governorateId);
 
     /**
      * Find a location by its slug
@@ -26,14 +30,16 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
      */
     Optional<Location> findBySlug(String slug);
     
-    
     /**
      * Find locations by country code and region
      * @param countryCode The ISO country code
      * @param region The region name
      * @return List of locations for the specified country and region
      */
-    List<Location> findByCountryCodeAndRegionAndIsActiveTrueOrIsActiveIsNull(String countryCode, String region);
+    @Query("SELECT l FROM Location l WHERE l.governorate.country.countryCode = :countryCode AND l.region = :region AND (l.isActive = true OR l.isActive IS NULL)")
+    List<Location> findByCountryCodeAndRegionAndIsActiveTrueOrIsActiveIsNull(
+            @Param("countryCode") String countryCode, 
+            @Param("region") String region);
     
     /**
      * Search for locations by name in English or Arabic

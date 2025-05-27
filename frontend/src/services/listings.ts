@@ -1,8 +1,11 @@
 // Listings API service
 import { Listing } from '@/types/listings';
 import { api } from './api';
+import { ApiError } from '@/utils/apiErrorHandler';
+import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
 
-export type ListingFilters = {
+// API Types
+export interface ListingFilters {
   minPrice?: string;
   maxPrice?: string;
   minYear?: string;
@@ -13,42 +16,56 @@ export type ListingFilters = {
   searchTerm?: string;
   page?: number;
   limit?: number;
-};
+}
+
+interface LocationDetails {
+  id: number;
+  name: string;
+  displayNameEn: string;
+  displayNameAr: string;
+  slug: string;
+  region: string;
+  countryCode: string;
+}
+
+interface GovernorateDetails {
+  displayNameEn: string;
+  displayNameAr: string;
+}
+
+interface ListingMedia {
+  id: number;
+  url: string;
+  contentType: string;
+  isPrimary: boolean;
+}
+
+interface ApiListingItem {
+  id: number;
+  title: string;
+  brand: string;
+  model: string;
+  modelYear: number;
+  mileage: number;
+  price: number;
+  locationDetails: LocationDetails | null;
+  governorateDetails?: GovernorateDetails;
+  governorateNameEn?: string;
+  governorateNameAr?: string;
+  description: string;
+  media: ListingMedia[];
+  approved: boolean;
+  sellerId: number;
+  sellerUsername: string;
+  createdAt: string;
+  isSold: boolean;
+  isArchived: boolean;
+  isUserActive: boolean;
+  isExpired: boolean;
+}
 
 interface ListingApiResponse {
-  content: Array<{
-    id: number;
-    title: string;
-    brand: string;
-    model: string;
-    modelYear: number;
-    mileage: number;
-    price: number;
-    locationDetails: {
-      id: number;
-      name: string;
-      displayNameEn: string;
-      displayNameAr: string;
-      slug: string;
-      region: string;
-      countryCode: string;
-    };
-    description: string;
-    media: Array<{
-      id: number;
-      url: string;
-      contentType: string;
-      isPrimary: boolean;
-    }>;
-    approved: boolean;
-    sellerId: number;
-    sellerUsername: string;
-    createdAt: string;
-    isSold: boolean;
-    isArchived: boolean;
-    isUserActive: boolean;
-    isExpired: boolean;
-  }>;
+  content: ApiListingItem[];
   pageNumber: number;
   pageSize: number;
   totalElements: number;
@@ -56,95 +73,210 @@ interface ListingApiResponse {
   last: boolean;
 }
 
-// Helper function to convert API response to our Listing type
-function mapApiResponseToListings(apiResponse: ListingApiResponse): { listings: Listing[], total: number } {
+// Utility functions for data transformation
+function determineListingStatus(item: ApiListingItem): 'active' | 'pending' | 'sold' | 'expired' {
+  if (item.isSold) return 'sold';
+  if (item.isExpired) return 'expired';
+  return item.approved ? 'active' : 'pending';
+}
+
+function getMediaUrls(media: ListingMedia[]): { mainImageUrl: string; mediaItems: { url: string; type: string; isPrimary: boolean }[] } {
+  const primaryMedia = media.find(m => m.isPrimary);
+  const firstMedia = media.length > 0 ? media[0] : null;
+  const mainImageUrl = transformMinioUrl(primaryMedia?.url || firstMedia?.url || '') || getDefaultImageUrl();
+  
+  const mediaItems = media.map(m => ({
+    url: transformMinioUrl(m.url),
+    type: m.contentType,
+    isPrimary: m.isPrimary
+  }));
+
+  return { mainImageUrl, mediaItems };
+}
+
+function extractLocationInfo(locationDetails: LocationDetails | null): {
+  city: string;
+  cityAr: string;
+  country: string;
+  countryCode: string;
+} {
+  return {
+    city: locationDetails?.displayNameEn || locationDetails?.name || '',
+    cityAr: locationDetails?.displayNameAr || locationDetails?.name || '',
+    country: 'Syria',
+    countryCode: locationDetails?.countryCode || 'SY'
+  };
+}
+
+function extractGovernorateInfo(
+  details: GovernorateDetails | undefined,
+  nameEn?: string,
+  nameAr?: string
+): { nameEn: string; nameAr: string } | undefined {
+  if (details && (details.displayNameEn || details.displayNameAr)) {
+    return {
+      nameEn: details.displayNameEn,
+      nameAr: details.displayNameAr
+    };
+  }
+  
+  if (nameEn || nameAr) {
+    return {
+      nameEn: nameEn || '',
+      nameAr: nameAr || ''
+    };
+  }
+  
+  return undefined;
+}
+
+// Map API response to our Listing type
+function mapApiResponseToListings(apiResponse: ListingApiResponse): { listings: Listing[]; total: number } {
   const listings = apiResponse.content.map(item => {
-    // Default seller type to 'private' if not available
-    const sellerType: 'private' | 'dealer' = 'private';
-    
-    // Determine the status based on the item properties
-    let status: 'active' | 'pending' | 'sold' | 'expired' | undefined;
-    if (item.isSold) {
-      status = 'sold';
-    } else if (item.isExpired) {
-      status = 'expired';
-    } else if (item.approved) {
-      status = 'active';
-    } else {
-      status = 'pending';
-    }
-    
-    // Get primary image or first image if available
-    const primaryMedia = item.media?.find(m => m.isPrimary);
-    const firstMedia = item.media && item.media.length > 0 ? item.media[0] : null;
-    const mainImageUrl = primaryMedia?.url || firstMedia?.url || '/images/vehicles/car-default.svg';
-    
-    // Prepare all media URLs
-    const mediaItems = item.media?.map(m => ({ 
-      url: m.url, 
-      type: m.contentType,
-      isPrimary: m.isPrimary || false
-    })) || [];
-    
+    const { mainImageUrl, mediaItems } = getMediaUrls(item.media);
+    const location = extractLocationInfo(item.locationDetails);
+    const governorate = extractGovernorateInfo(
+      item.governorateDetails,
+      item.governorateNameEn,
+      item.governorateNameAr
+    );
+
     return {
       id: item.id.toString(),
-      title: `${item.brand} ${item.model} ${item.modelYear}`,
+      title: item.title,
       price: item.price,
       year: item.modelYear,
       mileage: item.mileage,
       brand: item.brand,
       model: item.model,
-      location: {
-        city: item.locationDetails?.displayNameEn || '',
-        cityAr: item.locationDetails?.displayNameAr || '',
-        country: 'Syria',
-        countryCode: item.locationDetails?.countryCode || 'SY'
-      },
+      location,
+      governorate,
       image: mainImageUrl,
       media: mediaItems,
-      fuelType: '', // This could be added to the response if available
-      transmission: '', // This could be added to the response if available
+      fuelType: '',
+      transmission: '',
       createdAt: item.createdAt,
       description: item.description,
-      status,
+      status: determineListingStatus(item),
       approved: item.approved,
       expired: item.isExpired,
       seller: {
         id: item.sellerId.toString(),
         name: item.sellerUsername,
-        type: sellerType,
+        type: 'private' as const
       }
     };
   });
-  
+
   return {
     listings,
     total: apiResponse.totalElements
   };
 }
 
-export async function getListings(filters: ListingFilters = {}): Promise<{ listings: Listing[], total: number }> {
+export async function getListings(filters: ListingFilters = {}): Promise<{ listings: Listing[]; total: number }> {
   try {
-    // Build query parameters
-    const params = new URLSearchParams();
-    
-    if (filters.minPrice) params.append('minPrice', filters.minPrice);
-    if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
-    if (filters.minYear) params.append('minYear', filters.minYear);
-    if (filters.maxYear) params.append('maxYear', filters.maxYear);
-    if (filters.location) params.append('location', filters.location);
-    if (filters.brand) params.append('brand', filters.brand);
-    if (filters.model) params.append('model', filters.model);
-    if (filters.searchTerm) params.append('search', filters.searchTerm);
-    if (filters.page) params.append('page', String(filters.page - 1)); // API uses 0-based indexing
-    if (filters.limit) params.append('size', String(filters.limit));
-    
-    // Call the real API
+    const params = new URLSearchParams(
+      Object.entries(filters)
+        .filter(([_, value]) => value !== undefined && value !== '')
+        .map(([key, value]) => [
+          key === 'page' ? 'page' : key,
+          // Convert page number to 0-based indexing for the API
+          key === 'page' ? String(Number(value) - 1) : String(value)
+        ])
+    );
+
     const response = await api.get<ListingApiResponse>(`/api/listings/filter?${params.toString()}`);
     return mapApiResponseToListings(response);
   } catch (error) {
-    console.error('Error fetching listings:', error);
-    // Fallback to empty results
-    return { listings: [], total: 0 };
+    if (error instanceof ApiError) {
+      const errorContext = {
+        status: error.status,
+        message: error.message,
+        data: error.data,
+        filters
+      };
+      
+      console.error('[Listings] API Error:', errorContext);
+
+      switch (error.status) {
+        case 404:
+          throw new Error('Listing service is currently unavailable');
+        case 401:
+        case 403:
+          throw new Error('You do not have permission to access listings');
+        default:
+          throw new Error('Failed to fetch listings. Please try again later.');
+      }
+    }
+
+    console.error('[Listings] Unexpected error:', error instanceof Error ? error.message : 'Unknown error');
+    throw new Error('An unexpected error occurred while fetching listings');
+  }
+}
+
+export async function getListingById(id: string | number): Promise<Listing> {
+  try {
+    const response = await api.get<ApiListingItem>(`/api/listings/${id}`);
+    
+    // Transform the single API listing item to our frontend Listing type
+    const { mainImageUrl, mediaItems } = getMediaUrls(response.media || []);
+    const location = extractLocationInfo(response.locationDetails);
+    const governorate = extractGovernorateInfo(
+      response.governorateDetails,
+      response.governorateNameEn,
+      response.governorateNameAr
+    );
+
+    return {
+      id: response.id.toString(),
+      title: response.title,
+      price: response.price,
+      year: response.modelYear,
+      mileage: response.mileage,
+      brand: response.brand,
+      model: response.model,
+      location,
+      governorate,
+      image: mainImageUrl,
+      media: mediaItems,
+      fuelType: '',
+      transmission: '',
+      createdAt: response.createdAt,
+      description: response.description,
+      status: determineListingStatus(response),
+      approved: response.approved,
+      expired: response.isExpired,
+      seller: {
+        id: response.sellerId.toString(),
+        name: response.sellerUsername,
+        type: 'private' as const
+      },
+      currency: 'SAR' // Default currency
+    };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      const errorContext = {
+        status: error.status,
+        message: error.message,
+        data: error.data,
+        id
+      };
+      
+      console.error('[Listing] API Error:', errorContext);
+
+      switch (error.status) {
+        case 404:
+          throw new Error('Listing not found');
+        case 401:
+        case 403:
+          throw new Error('You do not have permission to access this listing');
+        default:
+          throw new Error('Failed to fetch listing. Please try again later.');
+      }
+    }
+
+    console.error('[Listing] Unexpected error:', error instanceof Error ? error.message : 'Unknown error');
+    throw new Error('An unexpected error occurred while fetching the listing');
   }
 }

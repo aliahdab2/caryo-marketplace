@@ -8,6 +8,9 @@ import com.autotrader.autotraderbackend.repository.FavoriteRepository;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.CarBrandRepository; // Added
 import com.autotrader.autotraderbackend.repository.CarModelRepository; // Added
+import com.autotrader.autotraderbackend.repository.GovernorateRepository; // Added
+import com.autotrader.autotraderbackend.repository.CountryRepository; // Added
+import com.autotrader.autotraderbackend.util.TestDataGenerator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -70,6 +73,9 @@ public class SchemaValidationTest {
     @Autowired
     private CarModelRepository carModelRepository; // Added
 
+    @Autowired
+    private GovernorateRepository governorateRepository; // Added
+
     // Repositories for the relevant entities
     @Autowired 
     private ListingMediaRepository listingMediaRepository;
@@ -84,6 +90,9 @@ public class SchemaValidationTest {
         }
     }
 
+    @Autowired
+    private CountryRepository countryRepository;
+    
     // Helper method to find or create a role
     private Role findOrCreateRole(String roleName) {
         return roleRepository.findByName(roleName)
@@ -94,16 +103,49 @@ public class SchemaValidationTest {
     private Location findOrCreateLocation(String slug, String displayNameEn, String displayNameAr, String countryCode, String region, double latitude, double longitude, boolean isActive) {
         return locationRepository.findBySlug(slug)
                 .orElseGet(() -> {
+                    // Create country, governorate, and location hierarchy
+                    Country country = findOrCreateCountry(countryCode);
+                    Governorate governorate = findOrCreateGovernorate("test-governorate-" + countryCode.toLowerCase(), 
+                            "Test Governorate " + countryCode, "محافظة اختبار " + countryCode, country);
+                    
                     Location newLocation = new Location();
                     newLocation.setSlug(slug);
                     newLocation.setDisplayNameEn(displayNameEn);
                     newLocation.setDisplayNameAr(displayNameAr);
-                    newLocation.setCountryCode(countryCode);
+                    newLocation.setGovernorate(governorate); // Set governorate instead of country code
                     newLocation.setRegion(region);
                     newLocation.setLatitude(latitude);
                     newLocation.setLongitude(longitude);
                     newLocation.setIsActive(isActive);
                     return locationRepository.save(newLocation);
+                });
+    }
+
+    // Helper method to find or create a governorate
+    private Governorate findOrCreateGovernorate(String slug, String displayNameEn, String displayNameAr, Country country) {
+        return governorateRepository.findBySlug(slug)
+                .orElseGet(() -> {
+                    Governorate newGovernorate = new Governorate();
+                    newGovernorate.setSlug(slug);
+                    newGovernorate.setDisplayNameEn(displayNameEn);
+                    newGovernorate.setDisplayNameAr(displayNameAr);
+                    newGovernorate.setCountry(country); // Set country object instead of country code
+                    return governorateRepository.save(newGovernorate);
+                });
+    }
+    
+    // Helper method to find or create a country
+    private Country findOrCreateCountry(String countryCode) {
+        // For now, always use Syria
+        final String syriaCountryCode = "SY";
+        return countryRepository.findByCountryCode(syriaCountryCode)
+                .orElseGet(() -> {
+                    Country newCountry = new Country();
+                    newCountry.setCountryCode(syriaCountryCode);
+                    newCountry.setDisplayNameEn("Syria"); // Standardized name
+                    newCountry.setDisplayNameAr("سوريا");    // Standardized name
+                    newCountry.setIsActive(true);
+                    return countryRepository.save(newCountry);
                 });
     }
 
@@ -219,7 +261,7 @@ public class SchemaValidationTest {
         assertTrue(hasAttribute(locationEntity, "displayNameEn"));
         assertTrue(hasAttribute(locationEntity, "displayNameAr"));
         assertTrue(hasAttribute(locationEntity, "slug"));
-        assertTrue(hasAttribute(locationEntity, "countryCode"));
+        assertTrue(hasAttribute(locationEntity, "governorate")); // Updated to governorate instead of countryCode
         assertTrue(hasAttribute(locationEntity, "region"));
         assertTrue(hasAttribute(locationEntity, "latitude"));
         assertTrue(hasAttribute(locationEntity, "longitude"));
@@ -341,6 +383,10 @@ public class SchemaValidationTest {
         testModel.setSlug("camry-media-test");
         carModelRepository.save(testModel);
         
+        // Create a governorate
+        Country syriaCountry = findOrCreateCountry("SY");
+        Governorate testGovernorate = findOrCreateGovernorate("damascus-gov", "Damascus Governorate", "محافظة دمشق", syriaCountry);
+
         // Create a car listing
         CarListing carListing = new CarListing();
         carListing.setTitle("Test Car with Media");
@@ -354,6 +400,7 @@ public class SchemaValidationTest {
         carListing.setMileage(15000);
         carListing.setPrice(new java.math.BigDecimal("25000.00"));
         carListing.setSeller(seller);
+        carListing.setGovernorate(testGovernorate); // Set governorate
         
         // Save the car listing
         testEntityManager.persist(carListing);
@@ -471,6 +518,10 @@ public class SchemaValidationTest {
         favTestModel.setSlug("test-model-fav");
         carModelRepository.save(favTestModel);
 
+        // Create a governorate
+        Country syriaCountry = findOrCreateCountry("SY");
+        Governorate favTestGovernorate = findOrCreateGovernorate("aleppo-gov", "Aleppo Governorate", "محافظة حلب", syriaCountry);
+
         // Create a CarListing
         CarListing carListing = new CarListing();
         carListing.setTitle("Favorite Test Car");
@@ -484,6 +535,7 @@ public class SchemaValidationTest {
         carListing.setDescription("A test description for the favorite car listing."); // Added description
         carListing.setMileage(10000); // Added mileage
         carListing.setSeller(user); // Assuming seller is the same user for simplicity
+        carListing.setGovernorate(favTestGovernorate); // Set governorate
         carListingRepository.save(carListing); // Ensure carListing is persisted
 
         // Create a Favorite
@@ -503,6 +555,81 @@ public class SchemaValidationTest {
         assertNotNull(retrievedFavorite.getCarListing());
         assertEquals(carListing.getId(), retrievedFavorite.getCarListing().getId());
         assertNotNull(retrievedFavorite.getCreatedAt());
+    }
+
+    @Test
+    public void testCarListing_RequiresGovernorate() {
+        User seller = userRepository.save(new User("sellergvn", "sellergvn@example.com", "password"));
+        CarBrand brand = carBrandRepository.save(TestDataGenerator.createTestCarBrand());
+        CarModel model = carModelRepository.save(TestDataGenerator.createTestCarModel(brand));
+        // Location is nullable on CarListing, so not strictly needed for this specific constraint test
+        // Location location = locationRepository.save(TestDataGenerator.createTestLocation(governorate));
+
+
+        CarListing listing = TestDataGenerator.createTestListing(seller, model, null); // Governorate is null
+        listing.setGovernorate(null); // Explicitly set to null
+
+        // Expect a ConstraintViolationException (from JPA validation) or DataIntegrityViolationException (from DB)
+        // Depending on when validation occurs (before or during flush)
+        assertThrows(Exception.class, () -> {
+            carListingRepository.saveAndFlush(listing);
+        }, "Saving CarListing with null governorate should fail");
+    }
+
+    @Test
+    public void testLocation_RequiresGovernorate() {
+        // Country country = findOrCreateCountry("LX"); // LX for Location eXample
+        // Governorate is null
+        Location location = new Location();
+        location.setDisplayNameEn("Test City No Gov");
+        location.setDisplayNameAr("مدينة اختبار بلا محافظة");
+        location.setSlug("test-city-no-gov");
+        location.setGovernorate(null); // Explicitly set to null
+
+        assertThrows(Exception.class, () -> {
+            locationRepository.saveAndFlush(location);
+        }, "Saving Location with null governorate should fail");
+    }
+
+    @Test
+    public void testGovernorate_RequiresCountry() {
+        Governorate governorate = new Governorate();
+        governorate.setDisplayNameEn("Test Gov No Country");
+        governorate.setDisplayNameAr("محافظة اختبار بلا دولة");
+        governorate.setSlug("test-gov-no-country");
+        governorate.setCountry(null); // Explicitly set to null
+
+        assertThrows(Exception.class, () -> {
+            governorateRepository.saveAndFlush(governorate);
+        }, "Saving Governorate with null country should fail");
+    }
+
+    @Test
+    public void testCarListing_DenormalizedGovernorateNamesPopulation() {
+        User seller = userRepository.save(new User("sellerdenorm", "sellerdenorm@example.com", "password"));
+        Country country = findOrCreateCountry("SY"); // Country is Syria
+        Governorate governorate = findOrCreateGovernorate("denorm-gov-sy", "Denorm Governorate EN (SY)", "محافظة دنورم العربية (SY)", country);
+        // Location is nullable on CarListing, but let's create one for completeness if TestDataGenerator needs it
+        Location location = TestDataGenerator.createTestLocation(governorate);
+        location = locationRepository.save(location);
+
+
+        CarBrand brand = carBrandRepository.save(TestDataGenerator.createTestCarBrand());
+        CarModel model = carModelRepository.save(TestDataGenerator.createTestCarModel(brand));
+        
+        // Create listing using TestDataGenerator which should handle denormalization
+        CarListing listing = TestDataGenerator.createTestListing(seller, model, governorate);
+        // If TestDataGenerator doesn't set location, and it's needed for some reason:
+        // listing.setLocation(location); 
+
+        CarListing savedListing = carListingRepository.saveAndFlush(listing);
+        testEntityManager.clear(); // Ensure we fetch a fresh copy
+
+        CarListing retrievedListing = carListingRepository.findById(savedListing.getId()).orElseThrow();
+
+        assertNotNull(retrievedListing.getGovernorate(), "Governorate should be set on retrieved listing");
+        assertEquals(governorate.getDisplayNameEn(), retrievedListing.getGovernorateNameEn(), "Denormalized English governorate name mismatch");
+        assertEquals(governorate.getDisplayNameAr(), retrievedListing.getGovernorateNameAr(), "Denormalized Arabic governorate name mismatch");
     }
 
     // Add more tests for other entities if needed

@@ -2,86 +2,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { useState, useEffect } from "react";
-import { FaSearch, FaChevronDown } from "react-icons/fa";
-import { getLocations } from "@/services/locations";
-import { getListings } from "@/services/listings";
+import HomeSearchBar from "@/components/search/HomeSearchBar";
 
 export default function Home() {
   const { t } = useTranslation('common');
   
-  // State for search form
-  const [make, setMake] = useState("");
-  const [model, setModel] = useState("");
-  const [city, setCity] = useState("");
-  
-  // State for API data
-  const [models, setModels] = useState<string[]>([]);
-  const [makes, setMakes] = useState<string[]>([]);
-  const [cities, setCities] = useState<string[]>([]);
-  
-  // Fetch reference data on component mount
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        // Fetch locations
-        const locationsData = await getLocations();
-        
-        // Extract city names from locations
-        const cityNames = locationsData.map(loc => loc.displayNameEn);
-        setCities(cityNames);
-        
-        // Fetch car makes (using the first result for demo)
-        const listingsData = await getListings({ limit: 10 });
-        if (listingsData.listings.length > 0) {
-          // Extract unique makes from the listings
-          const uniqueMakes = Array.from(
-            new Set(
-              listingsData.listings.map(listing => 
-                listing.title.split(' ')[0] // Assuming format is "Make Model Year"
-              )
-            )
-          );
-          setMakes(uniqueMakes.length > 0 ? uniqueMakes : ["Toyota", "Honda", "BMW"]); // Fallback
-        } else {
-          // Fallback if no listings available
-          setMakes(["Toyota", "Honda", "Ford", "BMW", "Mercedes-Benz"]);
-        }
-      } catch (error) {
-        console.error("Error fetching reference data:", error);
-        // Fallback data
-        setMakes(["Toyota", "Honda", "Ford", "BMW", "Mercedes-Benz"]);
-        setCities(["Damascus", "Aleppo", "Homs", "Latakia", "Hama"]);
-      }
-    }
-    
-    fetchData();
-  }, []);
-
-  // Update available models when make changes
-  useEffect(() => {
-    if (!make) {
-      setModels([]);
-      return;
-    }
-    
-    // In a real implementation, this would fetch models from the API based on the selected make
-    // For now, we'll use a simple mapping
-    if (make === "Toyota") {
-      setModels(["Camry", "Corolla", "RAV4", "Highlander"]);
-    } else if (make === "Honda") {
-      setModels(["Civic", "Accord", "CR-V", "Pilot"]);
-    } else if (make === "Ford") {
-      setModels(["F-150", "Escape", "Explorer", "Mustang"]);
-    } else if (make === "BMW") {
-      setModels(["3 Series", "5 Series", "X3", "X5"]);
-    } else if (make === "Mercedes-Benz") {
-      setModels(["C-Class", "E-Class", "GLC", "GLE"]);
-    } else {
-      setModels([]);
-    }
-    setModel("");
-  }, [make]);
   // Example featured car data (this would come from an API in a real app)
   const featuredCars = [
     {
@@ -116,16 +41,6 @@ export default function Home() {
     },
   ];
 
-  // Vehicle categories.
-  const categories = [
-    { name: t("carsFeatures.sedan"), icon: "🚗", count: 128 },
-    { name: t("carsFeatures.suv"), icon: "🚙", count: 96 },
-    { name: t("carsFeatures.luxury"), icon: "✨", count: 64 },
-    { name: t("carsFeatures.sports"), icon: "🏎️", count: 42 },
-    { name: t("carsFeatures.electric"), icon: "⚡", count: 38 },
-    { name: t("carsFeatures.convertible"), icon: "🚘", count: 27 },
-  ];
-
   return (
     <div className="w-full">
       {/* Hero Section with full-width banner image */}
@@ -149,251 +64,202 @@ export default function Home() {
             </p>
           </div>
 
-          <form className="w-full max-w-3xl bg-white/90 backdrop-blur-sm p-6 md:p-8 rounded-lg shadow-2xl" onSubmit={(e) => {
-            e.preventDefault();
-            // Build the search URL with parameters
-            const params = new URLSearchParams();
-            if (make) params.append('brand', make);
-            if (model) params.append('model', model);
-            if (city) params.append('location', city);
-            
-            // Navigate to the listings page with the search parameters
-            window.location.href = `/listings?${params.toString()}`;
-          }}>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-              <div>
-                <label htmlFor="make" className="block text-sm font-medium text-gray-700 mb-1">{t('searchOptions.make', 'Make')}</label>
-                <div className="relative">
-                  <select 
-                    id="make" 
-                    value={make} 
-                    onChange={(e) => setMake(e.target.value)} 
-                    className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 appearance-none pr-8"
-                  >
-                    <option value="" className="font-semibold">{t('searchOptions.anyMake', 'Any Make')}</option>
-                    {makes.map((m) => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                    <FaChevronDown className="h-4 w-4" />
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-1">{t('search.model', 'Model')}</label>
-                <div className="relative">
-                  <select 
-                    id="model" 
-                    value={model} 
-                    onChange={(e) => setModel(e.target.value)} 
-                    disabled={!make || models.length === 0}
-                    className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 appearance-none pr-8 disabled:bg-gray-100"
-                  >
-                    <option value="" className="font-semibold">{t('search.anyModel', 'Any Model')}</option>
-                    {models.map((m) => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                    <FaChevronDown className="h-4 w-4" />
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">{t('search.city', 'City')}</label>
-                <div className="relative">
-                  <select 
-                    id="city" 
-                    value={city} 
-                    onChange={(e) => setCity(e.target.value)} 
-                    className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 appearance-none pr-8"
-                  >
-                    <option value="" className="font-semibold">{t('search.anyCity', 'Any City')}</option>
-                    {cities.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                    <FaChevronDown className="h-4 w-4" />
-                  </div>
-                </div>
-              </div>
-              <div>
-                <button 
-                  type="submit" 
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-md shadow-md transition duration-150 ease-in-out flex items-center justify-center h-[46px]"
-                >
-                  <FaSearch className="mr-2 h-5 w-5" />
-                  {t('search.searchCars', 'Search Cars')}
-                </button>
-              </div>
-            </div>
-          </form>
+          {/* Use HomeSearchBar component instead of the form */}
+          <div className="w-full max-w-3xl">
+            <HomeSearchBar />
+          </div>
         </div>
       </div>
 
-      {/* Original content starts here */}
-      <div className="bg-gradient-to-r from-blue-700 to-blue-500 text-white py-16 px-4 hidden">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="md:w-1/2 mb-8 md:mb-0">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                {t('home.hero.title')}
-              </h1>
-              <p className="text-xl mb-6">
-                {t('home.hero.subtitle')}
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/listings"
-                  className="bg-white text-blue-700 font-bold py-3 px-6 rounded-lg hover:bg-gray-100 transition duration-300 text-center"
-                >
-                  {t('home.hero.browseCars')}
-                </Link>
-                <Link
-                  href="/sell"
-                  className="bg-transparent border-2 border-white text-white font-bold py-3 px-6 rounded-lg hover:bg-white hover:text-blue-700 transition duration-300 text-center"
-                >
-                  {t('home.hero.sellYourCar')}
-                </Link>
-              </div>
-            </div>
-            <div className="md:w-1/2 flex justify-center">
-              <div className="relative w-full max-w-md h-64 md:h-80">
+      {/* Featured Listings Section */}
+      <section className="py-16 container mx-auto px-4">
+        <div className="flex justify-between items-center mb-10">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+            {t('home.featuredListings')}
+          </h2>
+          <Link
+            href="/listings"
+            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center"
+          >
+            {t('home.viewAll')}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 ml-1"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {featuredCars.map((car) => (
+            <div
+              key={car.id}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+            >
+              <div className="relative h-48">
                 <Image
-                  src="/images/logo.svg"
-                  alt="Caryo marketplace logo showing a stylized car"
+                  src={car.image}
+                  alt={car.title}
                   fill
-                  style={{ objectFit: "contain" }}
-                  className="drop-shadow-xl"
-                  priority
+                  className="object-cover"
                 />
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Featured Cars Section */}
-      <div className="py-16 px-4 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold mb-2">{t('home.featured')}</h2>
-          <p className="text-gray-600 mb-8">
-            {t('home.subtitle', 'Discover our handpicked selection of premium vehicles')}
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredCars.map((car) => (
-              <Link key={car.id} href={`/listings/${car.id}`} className="group">
-                <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
-                  <div className="relative h-48 w-full overflow-hidden">
-                    <Image
-                      src={car.image}
-                      alt={car.title}
-                      fill
-                      style={{ objectFit: "cover" }}
-                      className="group-hover:scale-105 transition-transform duration-300"
-                    />
+              <div className="p-5">
+                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
+                  {car.title}
+                </h3>
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4">
+                  {car.price}
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-300">
+                  <div className="flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    {car.location}
                   </div>
-                  <div className="p-4">
-                    <h3 className="text-xl font-bold mb-2 group-hover:text-blue-600 transition duration-300">
-                      {car.title}
-                    </h3>
-                    <h4 className="text-2xl font-bold text-blue-600 mb-3">
-                      {car.price}
-                    </h4>
-                    <div className="flex flex-wrap gap-2 text-sm text-gray-700">
-                      <span className="flex items-center gap-1">
-                        📍{car.location}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        🛣️{car.mileage}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        ⛽{car.fuelType}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        🔄{car.transmission}
-                      </span>
-                    </div>
+                  <div className="flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                    {car.mileage}
+                  </div>
+                  <div className="flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    {car.fuelType}
+                  </div>
+                  <div className="flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    {car.transmission}
                   </div>
                 </div>
-              </Link>
-            ))}
-          </div>
-
-          <div className="text-center mt-10">
-            <Link
-              href="/listings"
-              className="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition duration-300 inline-block"
-            >
-              {t('home.viewAllListings')}
-            </Link>
-          </div>
+                <div className="mt-4">
+                  <Link
+                    href={`/listings/${car.id}`}
+                    className="w-full block text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-300"
+                  >
+                    {t('common.viewDetails')}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* Categories Section */}
-      <div className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold mb-2">{t('home.categories')}</h2>
-          <p className="text-gray-600 mb-8">{t('home.categorySubtitle', 'Find vehicles that match your needs')}</p>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((category) => (
-              <Link
-                key={category.name}
-                href={`/listings?category=${category.name.toLowerCase()}`}
-                className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition duration-300 text-center"
-                aria-label={`${category.name} category with ${category.count} listings`}
-              >
-                <div className="text-4xl mb-2" aria-hidden="true">{category.icon}</div>
-                <h3 className="font-bold mb-1">{category.name}</h3>
-                <p className="text-sm text-gray-600">{category.count} listings</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Why Choose Us Section */}
-      <div className="py-16 px-4 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold mb-2 text-center">
-            {t('home.whyChooseUs.title')}
+      {/* How It Works Section */}
+      <section className="py-16 bg-gray-100 dark:bg-gray-800">
+        <div className="container mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 text-gray-900 dark:text-white">
+            {t('home.howItWorks')}
           </h2>
-          <p className="text-gray-600 mb-12 text-center">
-            {t('home.whyChooseUs.subtitle')}
-          </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6">
-              <div className="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
-                🔍
-              </div>
-              <h3 className="text-xl font-bold mb-2">{t('home.whyChooseUs.wideSelection.title')}</h3>
-              <p className="text-gray-600">
-                {t('home.whyChooseUs.wideSelection.description')}
-              </p>
+            {/* Step 1 */}
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center bg-blue-600 rounded-full w-16 h-16 mb-6 text-white text-2xl font-bold">1</div>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{t('home.step1Title')}</h3>
+              <p className="text-gray-600 dark:text-gray-300">{t('home.step1Description')}</p>
             </div>
 
-            <div className="text-center p-6">
-              <div className="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
-                🛡️
-              </div>
-              <h3 className="text-xl font-bold mb-2">{t('home.whyChooseUs.secureTransactions.title')}</h3>
-              <p className="text-gray-600">
-                {t('home.whyChooseUs.secureTransactions.description')}
-              </p>
+            {/* Step 2 */}
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center bg-blue-600 rounded-full w-16 h-16 mb-6 text-white text-2xl font-bold">2</div>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{t('home.step2Title')}</h3>
+              <p className="text-gray-600 dark:text-gray-300">{t('home.step2Description')}</p>
             </div>
 
-            <div className="text-center p-6">
-              <div className="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
-                💬
-              </div>
-              <h3 className="text-xl font-bold mb-2">{t('home.whyChooseUs.expertSupport.title')}</h3>
-              <p className="text-gray-600">
-                {t('home.whyChooseUs.expertSupport.description')}
-              </p>
+            {/* Step 3 */}
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center bg-blue-600 rounded-full w-16 h-16 mb-6 text-white text-2xl font-bold">3</div>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{t('home.step3Title')}</h3>
+              <p className="text-gray-600 dark:text-gray-300">{t('home.step3Description')}</p>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Newsletter Section */}
+      <section className="py-16 container mx-auto px-4">
+        <div className="bg-blue-600 rounded-xl p-8 md:p-12 text-white text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">{t('home.stayUpdated')}</h2>
+          <p className="max-w-2xl mx-auto mb-8">{t('home.newsletterDescription')}</p>
+          <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
+            <input
+              type="email"
+              placeholder={t('home.emailPlaceholder')}
+              className="flex-grow px-4 py-3 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+            <button
+              type="submit"
+              className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-md hover:bg-gray-100 transition-colors duration-300"
+            >
+              {t('home.subscribe')}
+            </button>
+          </form>
+        </div>
+      </section>
     </div>
   );
 }

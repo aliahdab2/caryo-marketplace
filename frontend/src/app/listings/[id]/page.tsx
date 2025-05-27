@@ -3,28 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import Image from 'next/image';
 import { formatDate, formatNumber } from '../../../utils/localization';
-
-interface SellerInfo {
-  name: string;
-  phone: string;
-  email: string;
-}
-
-interface ListingData {
-  id: string | string[] | undefined;
-  title: string;
-  description: string;
-  price: number;
-  currency: string;
-  year: number;
-  mileage: number;
-  location: string;
-  createdAt: string;
-  features: string[];
-  sellerInfo: SellerInfo;
-  images: string[];
-}
+import { getListingById } from '@/services/listings';
+import { Listing } from '@/types/listings';
 
 export default function ListingDetailPage() {
   const { t, i18n } = useTranslation('common');
@@ -33,43 +15,30 @@ export default function ListingDetailPage() {
   const { id } = params;
   
   const [loading, setLoading] = useState(true);
-  const [listing, setListing] = useState<ListingData | null>(null);
+  const [listing, setListing] = useState<Listing | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
-  // Simulating data fetch - this will be replaced with actual API call
+  // Fetch listing data from API
   useEffect(() => {
-    // Simulate API loading delay
-    const timer = setTimeout(() => {
-      // Mock data for demonstration
-      const mockListing = {
-        id: id,
-        title: `Car Model ${id}`,
-        description: 'This is a detailed description of the vehicle. It includes information about the condition, features, and history of the car.',
-        price: Math.floor(10000 + Math.random() * 90000),
-        currency: 'SAR',
-        year: Math.floor(2010 + Math.random() * 13),
-        mileage: Math.floor(10000 + Math.random() * 100000),
-        location: 'Dubai',
-        createdAt: new Date(Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000).toISOString(),
-        features: [
-          'Bluetooth Connectivity',
-          'Backup Camera',
-          'Sunroof',
-          'Navigation System',
-          'Leather Seats'
-        ],
-        sellerInfo: {
-          name: 'Car Dealership LLC',
-          phone: '+971 50 123 4567',
-          email: 'contact@dealership.com'
-        },
-        images: Array(5).fill('/images/vehicles/car1.jpg')
-      };
-      
-      setListing(mockListing);
-      setLoading(false);
-    }, 1000);
+    async function fetchListing() {
+      try {
+        setLoading(true);
+        if (!id) {
+          throw new Error('Listing ID is required');
+        }
+        
+        const listingData = await getListingById(id.toString());
+        setListing(listingData);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching listing:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load listing details');
+      } finally {
+        setLoading(false);
+      }
+    }
     
-    return () => clearTimeout(timer);
+    fetchListing();
   }, [id]);
 
   if (loading) {
@@ -88,7 +57,7 @@ export default function ListingDetailPage() {
     );
   }
 
-  if (!listing) {
+  if (error) {
     return (
       <div className="container mx-auto px-3 xs:px-4 py-6 sm:py-8 max-w-3xl">
         <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-4 sm:p-6 rounded-lg shadow-sm mb-6 sm:mb-8 border border-red-200 dark:border-red-800">
@@ -96,9 +65,9 @@ export default function ListingDetailPage() {
             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-red-500 mr-2 rtl:ml-2 rtl:mr-0 sm:mr-3 sm:rtl:ml-3 sm:rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h2 className="text-lg sm:text-xl font-bold">{t('listings.notFound')}</h2>
+            <h2 className="text-lg sm:text-xl font-bold">{t('listings.error')}</h2>
           </div>
-          <p className="mb-4 text-center text-sm sm:text-base">{t('listings.notFoundDescription')}</p>
+          <p className="mb-4 text-center text-sm sm:text-base">{error}</p>
           <div className="flex justify-center">
             <button
               onClick={() => router.push('/listings')}
@@ -130,33 +99,45 @@ export default function ListingDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
         <div className="lg:col-span-2">
           <div className="bg-gray-200 dark:bg-gray-700 h-64 sm:h-80 md:h-96 rounded-lg mb-3 sm:mb-4 relative overflow-hidden shadow-md">
-            {/* This would be an actual image in production */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <svg className="w-16 h-16 sm:w-24 sm:h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
+            {listing?.image ? (
+              <Image 
+                src={listing.image} 
+                alt={listing.title} 
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg className="w-16 h-16 sm:w-24 sm:h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            )}
           </div>
           
           <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-6 sm:mb-8">
-            {listing.images.map((imgSrc: string, i: number) => (
+            {listing?.media?.map((mediaItem, i) => (
               <div key={i} className="bg-gray-200 dark:bg-gray-700 h-14 sm:h-20 rounded-md cursor-pointer hover:opacity-80 transition-opacity shadow-sm">
                 {/* Placeholder for image thumbnail */}
               </div>
-            ))}
+            )) || (
+              <div className="bg-gray-200 dark:bg-gray-700 h-14 sm:h-20 rounded-md cursor-pointer hover:opacity-80 transition-opacity shadow-sm">
+                {/* Placeholder for image thumbnail */}
+              </div>
+            )}
           </div>
           
           <div className="mb-6 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-4 sm:pb-6">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{listing.title}</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{listing?.title}</h1>
             <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between mt-2 sm:mt-3 gap-2">
               <h2 className="text-xl sm:text-2xl text-blue-600 dark:text-blue-400 font-bold">
-                {formatNumber(listing.price, i18n.language, { currency: listing.currency, style: 'currency' })}
+                {listing?.price && formatNumber(listing.price, i18n.language, { currency: listing?.currency || 'USD', style: 'currency' })}
               </h2>
               <div className="flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium self-start xs:self-auto">
                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 rtl:mr-0 rtl:ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {listing.createdAt ? (
+                {listing?.createdAt ? (
                   formatDate(listing.createdAt, i18n.language, { dateStyle: 'medium' }) || t('listings.addedRecently')
                 ) : t('listings.addedRecently')}
               </div>
@@ -171,7 +152,7 @@ export default function ListingDetailPage() {
               {t('listings.description')}
             </h2>
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-              <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base leading-relaxed">{listing.description}</p>
+              <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base leading-relaxed">{listing?.description}</p>
             </div>
           </div>
           
@@ -183,16 +164,20 @@ export default function ListingDetailPage() {
               {t('listings.features')}
             </h2>
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 sm:gap-y-3">
-                {listing.features.map((feature: string, index: number) => (
-                  <li key={index} className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mr-2 rtl:ml-2 rtl:mr-0 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-gray-700 dark:text-gray-300 text-sm sm:text-base">{feature}</span>
-                  </li>
-                ))}
-              </ul>
+              {listing?.features && listing.features.length > 0 ? (
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 sm:gap-y-3">
+                  {listing.features.map((feature: string, index: number) => (
+                    <li key={index} className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mr-2 rtl:ml-2 rtl:mr-0 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-gray-700 dark:text-gray-300 text-sm sm:text-base">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400 text-sm">{t('listings.noFeaturesListed')}</p>
+              )}
             </div>
           </div>
         </div>
@@ -215,7 +200,7 @@ export default function ListingDetailPage() {
                     </svg>
                     <span className="text-sm text-gray-600 dark:text-gray-300">{t('year')}:</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">{listing.year}</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">{listing?.year}</span>
                 </div>
                 <div className="flex justify-between items-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="flex items-center">
@@ -225,7 +210,7 @@ export default function ListingDetailPage() {
                     <span className="text-sm text-gray-600 dark:text-gray-300">{t('mileage')}:</span>
                   </div>
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formatNumber(listing.mileage, i18n.language)} {t('km')}
+                    {listing?.mileage ? `${formatNumber(listing.mileage, i18n.language)} ${t('km')}` : '-'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -236,7 +221,9 @@ export default function ListingDetailPage() {
                     </svg>
                     <span className="text-sm text-gray-600 dark:text-gray-300">{t('location')}:</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">{listing.location}</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                    {listing?.governorate?.nameEn || listing?.location?.city || t('listings.locationNotSpecified')}
+                  </span>
                 </div>
               </div>
             </div>
@@ -251,27 +238,15 @@ export default function ListingDetailPage() {
               
               <div className="space-y-3 mb-5">
                 <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <p className="font-medium text-gray-900 dark:text-white mb-1 text-sm">{listing.sellerInfo.name}</p>
+                  <p className="font-medium text-gray-900 dark:text-white mb-1 text-sm">
+                    {listing?.seller?.name || t('listings.sellerNotSpecified')}
+                  </p>
                   <div className="flex items-center text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 rtl:ml-1 rtl:mr-0 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                     {t('listings.respondsFast')}
                   </div>
-                </div>
-                
-                <div className="flex items-center gap-2 p-2.5 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 flex-shrink-0 rtl:ml-1 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  <span className="text-sm text-gray-900 dark:text-white">{listing.sellerInfo.phone}</span>
-                </div>
-                
-                <div className="flex items-center gap-2 p-2.5 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  <span className="text-sm text-gray-900 dark:text-white truncate">{listing.sellerInfo.email}</span>
                 </div>
               </div>
               

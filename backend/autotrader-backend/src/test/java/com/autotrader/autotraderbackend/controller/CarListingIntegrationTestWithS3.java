@@ -1,12 +1,16 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.model.Location;
+import com.autotrader.autotraderbackend.model.Country;
+import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.util.TestDataGenerator;
+import com.autotrader.autotraderbackend.util.TestGeographyUtils;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,11 +61,8 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         userRepository.deleteAll();
         locationRepository.deleteAll(); 
 
-        Location location = new Location();
-        location.setDisplayNameEn("Test City Location");
-        location.setDisplayNameAr("مدينة اختبار");
-        location.setSlug("test-city-location-s3-integration"); // Ensure unique slug
-        location.setCountryCode("XX");
+        // Create a test location with country and governorate hierarchy
+        Location location = TestDataGenerator.createTestLocationWithHierarchy("XX");
         Location savedLocation = locationRepository.save(location);
         testLocationId = savedLocation.getId();
 

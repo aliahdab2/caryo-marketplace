@@ -1,7 +1,7 @@
 package com.autotrader.autotraderbackend.payload.request;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -19,9 +19,9 @@ public class LocationRequest {
     @Size(min = 2, max = 100, message = "Arabic name must be between 2 and 100 characters")
     private String nameAr;
     
-    @NotBlank(message = "Country code is required")
-    @Pattern(regexp = "^[A-Z]{2}$", message = "Country code must be 2 uppercase letters (ISO 3166-1 alpha-2)")
-    private String countryCode;
+    // Replace countryCode with governorateId
+    @NotNull(message = "Governorate ID is required")
+    private Long governorateId;
     
     @Size(max = 100, message = "Region must be less than 100 characters")
     private String region;

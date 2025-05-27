@@ -3,7 +3,6 @@ package com.autotrader.autotraderbackend.controller;
 import com.autotrader.autotraderbackend.payload.response.GovernorateResponse;
 import com.autotrader.autotraderbackend.service.GovernorateService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger; // Added for logging
 import org.slf4j.LoggerFactory; // Added for logging
@@ -11,7 +10,7 @@ import org.slf4j.LoggerFactory; // Added for logging
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/governorates")
+@RequestMapping("/api/reference-data/governorates")
 public class GovernorateController {
 
     private final GovernorateService governorateService;

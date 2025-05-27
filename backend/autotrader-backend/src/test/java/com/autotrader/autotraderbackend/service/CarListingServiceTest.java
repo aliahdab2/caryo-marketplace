@@ -9,6 +9,8 @@ import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.model.CarBrand; // Added
 import com.autotrader.autotraderbackend.model.CarModel; // Added
+import com.autotrader.autotraderbackend.model.Country;
+import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
@@ -29,6 +31,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import com.autotrader.autotraderbackend.util.TestDataGenerator;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -79,12 +82,26 @@ class CarListingServiceTest {
         testUser.setId(1L);
         testUser.setUsername("testuser");
 
+        // Create test location with country and governorate
+        Country country = new Country();
+        country.setId(1L);
+        country.setCountryCode("SY");
+        country.setDisplayNameEn("Syria");
+        country.setDisplayNameAr("سوريا");
+        
+        Governorate governorate = new Governorate();
+        governorate.setId(1L);
+        governorate.setDisplayNameEn("Damascus");
+        governorate.setDisplayNameAr("دمشق");
+        governorate.setSlug("damascus");
+        governorate.setCountry(country);
+        
         testLocation = new Location();
         testLocation.setId(1L);
         testLocation.setDisplayNameEn("Test Location");
         testLocation.setDisplayNameAr("موقع اختبار");
         testLocation.setSlug("test-location");
-        testLocation.setCountryCode("SY");
+        testLocation.setGovernorate(governorate);
 
         testCarBrand = new CarBrand(); // Ensure brand is initialized
         testCarBrand.setId(1L);
@@ -171,12 +188,27 @@ class CarListingServiceTest {
         String username = "testuser";
         RuntimeException dbException = new RuntimeException("Database connection failed");
 
-        Location mockLocation = new Location(); // Renamed to avoid conflict with testLocation field
+        // Create test location with proper hierarchy
+        Country mockCountry = new Country();
+        mockCountry.setId(1L);
+        mockCountry.setCountryCode("SY");
+        mockCountry.setDisplayNameEn("Syria");
+        mockCountry.setDisplayNameAr("سوريا");
+        
+        Governorate mockGovernorate = new Governorate();
+        mockGovernorate.setId(1L);
+        mockGovernorate.setDisplayNameEn("Damascus");
+        mockGovernorate.setDisplayNameAr("دمشق");
+        mockGovernorate.setSlug("damascus");
+        mockGovernorate.setCountry(mockCountry);
+        
+        Location mockLocation = new Location();
         mockLocation.setId(1L);
         mockLocation.setDisplayNameEn("Test Location");
         mockLocation.setDisplayNameAr("موقع اختبار");
         mockLocation.setSlug("test-location");
-        mockLocation.setCountryCode("SY");
+        mockLocation.setGovernorate(mockGovernorate);
+        
         when(locationRepository.findById(1L)).thenReturn(Optional.of(mockLocation));
         when(carModelService.getModelById(1L)).thenReturn(testCarModel); // Mock CarModelService
 

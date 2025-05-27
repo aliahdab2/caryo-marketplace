@@ -8,6 +8,8 @@ import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarModel;
+import com.autotrader.autotraderbackend.model.Country;
+import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
@@ -73,13 +75,26 @@ public class CarListingCrudOperationsTest {
         testUser.setId(1L);
         testUser.setUsername(TEST_USERNAME);
 
-        // Set up test location
+        // Set up test location with country and governorate
+        Country testCountry = new Country();
+        testCountry.setId(1L);
+        testCountry.setCountryCode("SY");
+        testCountry.setDisplayNameEn("Syria");
+        testCountry.setDisplayNameAr("سوريا");
+        
+        Governorate testGovernorate = new Governorate();
+        testGovernorate.setId(1L);
+        testGovernorate.setDisplayNameEn("Damascus");
+        testGovernorate.setDisplayNameAr("دمشق");
+        testGovernorate.setSlug("damascus");
+        testGovernorate.setCountry(testCountry);
+        
         testLocation = new Location();
         testLocation.setId(TEST_LOCATION_ID);
         testLocation.setDisplayNameEn("Test Location");
         testLocation.setDisplayNameAr("موقع اختبار");
         testLocation.setSlug("test-location");
-        testLocation.setCountryCode("SY");
+        testLocation.setGovernorate(testGovernorate);
 
         // Set up test car brand
         testCarBrand = new CarBrand();

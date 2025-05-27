@@ -23,6 +23,35 @@ This document outlines the database schema for the AutoTrader Marketplace backen
 
 ## Location Tables
 
+**Geographic Hierarchy: Country > Governorate > Location**
+
+The location system follows a three-tier hierarchy:
+1. **Countries** - Top level (e.g., Syria, Lebanon)
+2. **Governorates** - Administrative divisions within countries (e.g., Damascus, Aleppo)
+3. **Locations** - Specific cities/areas within governorates (e.g., Old Damascus, New Aleppo)
+
+### Table: countries
+- **id**: BIGINT PRIMARY KEY
+- **country_code**: VARCHAR(2) UNIQUE NOT NULL COMMENT 'ISO 3166-1 alpha-2 country code'
+- **display_name_en**: VARCHAR(100) NOT NULL
+- **display_name_ar**: VARCHAR(100) NOT NULL
+- **is_active**: BOOLEAN DEFAULT TRUE
+- **created_at**: TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+- **updated_at**: TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+
+### Table: governorates
+- **id**: BIGINT PRIMARY KEY 
+- **display_name_en**: VARCHAR(100) NOT NULL
+- **display_name_ar**: VARCHAR(100) NOT NULL
+- **slug**: VARCHAR(100) UNIQUE NOT NULL
+- **country_id**: BIGINT NOT NULL (Foreign Key to countries.id)
+- **region**: VARCHAR(100)
+- **latitude**: DOUBLE PRECISION
+- **longitude**: DOUBLE PRECISION
+- **is_active**: BOOLEAN DEFAULT TRUE
+- **created_at**: TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+- **updated_at**: TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+
 ### Table: locations
 - **id**: BIGINT PRIMARY KEY 
 - **display_name_en**: VARCHAR(100) NOT NULL
@@ -33,21 +62,9 @@ This document outlines the database schema for the AutoTrader Marketplace backen
 - **latitude**: DECIMAL(10, 8)
 - **longitude**: DECIMAL(11, 8)
 - **is_active**: BOOLEAN DEFAULT TRUE
+- **governorate_id**: BIGINT NOT NULL (Foreign Key to governorates.id)
 - **created_at**: TIMESTAMP NOT NULL
 - **updated_at**: TIMESTAMP NOT NULL
-
-### Table: governorates
-- **id**: BIGINT PRIMARY KEY 
-- **display_name_en**: VARCHAR(100) NOT NULL
-- **display_name_ar**: VARCHAR(100) NOT NULL
-- **slug**: VARCHAR(100) UNIQUE NOT NULL
-- **country_code**: VARCHAR(2) NOT NULL
-- **region**: VARCHAR(100)
-- **latitude**: DOUBLE PRECISION
-- **longitude**: DOUBLE PRECISION
-- **is_active**: BOOLEAN DEFAULT TRUE
-- **created_at**: TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-- **updated_at**: TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 
 ## Listing Tables
 
@@ -219,6 +236,13 @@ This document outlines the database schema for the AutoTrader Marketplace backen
 
 ## Relationships
 
+**Geographic Hierarchy:**
+- **countries** has many **governorates**
+- **governorates** belongs to **countries**
+- **governorates** has many **locations**
+- **locations** belongs to **governorates**
+
+**Other Relationships:**
 - **users** has many **car_listings**
 - **users** has many **roles** through **user_roles**
 - **car_listings** belongs to **users** (seller)
@@ -236,6 +260,7 @@ This document outlines the database schema for the AutoTrader Marketplace backen
 - **car_brands** has many **car_models**
 - **car_models** has many **car_trims**
 - **car_models** belongs to **car_brands**
+- **locations** belongs to **governorates**
 - **car_trims** belongs to **car_models**
 
 ## Entity Relationship Diagram (ERD)

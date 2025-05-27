@@ -1,19 +1,24 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.model.CarListing;
-import com.autotrader.autotraderbackend.model.Location;
+import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
-import com.autotrader.autotraderbackend.model.CarBrand; // Added import
-import com.autotrader.autotraderbackend.model.CarModel; // Added import
+import com.autotrader.autotraderbackend.model.CarBrand;
+import com.autotrader.autotraderbackend.model.Country;
+import com.autotrader.autotraderbackend.model.Governorate;
+import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
+import com.autotrader.autotraderbackend.repository.CarModelRepository;
+import com.autotrader.autotraderbackend.repository.GovernorateRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
+import com.autotrader.autotraderbackend.repository.CountryRepository;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
-import com.autotrader.autotraderbackend.repository.CarBrandRepository; // Added import
-import com.autotrader.autotraderbackend.repository.CarModelRepository; // Added import
+import com.autotrader.autotraderbackend.repository.CarBrandRepository;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
+import com.autotrader.autotraderbackend.util.TestDataGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -31,6 +36,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Transactional; // Keep this import
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -45,6 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Transactional // Added @Transactional annotation at class level
 public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
 
     @Autowired
@@ -60,26 +70,34 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
     private UserRepository userRepository;
     
     @Autowired
-    private LocationRepository locationRepository;
-    
-    @Autowired
     private RoleRepository roleRepository;
 
     @Autowired
-    private CarBrandRepository carBrandRepository; // Added
+    private CarBrandRepository carBrandRepository;
 
     @Autowired
-    private CarModelRepository carModelRepository; // Added
+    private CarModelRepository carModelRepository;
+
+    @Autowired
+    private GovernorateRepository governorateRepository;
+
+    @Autowired
+    private LocationRepository locationRepository;
+
+    @Autowired
+    private CountryRepository countryRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     private CarListing testListing;
     private User testUser;
     private User adminUser;
-    private Location testLocation;
-    private CarBrand testCarBrand; // Added
-    private CarModel testCarModel; // Added
+    private CarBrand testCarBrand;
+    private CarModel testCarModel;
     private String userToken;
     private String adminToken;
     private Long listingId;
@@ -94,11 +112,25 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
     void setUp() {
         // Clean up before test
         carListingRepository.deleteAll();
+        carModelRepository.deleteAll();
+        carBrandRepository.deleteAll();
         userRepository.deleteAll();
+        roleRepository.deleteAll();
         locationRepository.deleteAll();
-        carModelRepository.deleteAll(); // Added
-        carBrandRepository.deleteAll(); // Added
+        governorateRepository.deleteAll();
+        countryRepository.deleteAll();
+        
+        // Ensure all changes are flushed to the database
+        entityManager.flush();
+        entityManager.clear();
 
+        // Create geographic hierarchy (Country > Governorate > Location)
+        Country country = TestDataGenerator.createOrFindTestCountry("SY", countryRepository);
+        Governorate governorate = TestDataGenerator.createTestGovernorateWithCountry("Damascus", "دمشق", country);
+        governorate = governorateRepository.save(governorate);
+        
+        Location location = TestDataGenerator.createTestLocation(governorate);
+        location = locationRepository.save(location);
 
         // Create test user
         testUser = new User();
@@ -137,22 +169,9 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         adminRoles.add(userRole);
         adminUser.setRoles(adminRoles);
         adminUser = userRepository.save(adminUser);
-        
-        // Create test location
-        testLocation = new Location();
-        testLocation.setDisplayNameEn("Test Location");
-        testLocation.setDisplayNameAr("موقع اختبار");
-        testLocation.setSlug("test-location");
-        testLocation.setCountryCode("SY");
-        testLocation = locationRepository.save(testLocation);
 
-        // Create test CarBrand
-        testCarBrand = new CarBrand();
-        testCarBrand.setName("TestBrand");
-        testCarBrand.setDisplayNameEn("Test Brand");
-        testCarBrand.setDisplayNameAr("علامة تجارية اختبار");
-        testCarBrand.setSlug("test-brand"); // Added slug as it's a required field
-        testCarBrand = carBrandRepository.save(testCarBrand);
+        // Create test CarBrand using the find-or-create utility method
+        testCarBrand = TestDataGenerator.createOrFindTestCarBrand("test-brand", carBrandRepository);
 
         // Create test CarModel
         testCarModel = new CarModel();
@@ -174,12 +193,18 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         testListing.setModelYear(2020);
         testListing.setMileage(10000);
         testListing.setPrice(new BigDecimal("15000.00"));
-        testListing.setLocation(testLocation);
         testListing.setDescription("Test Description");
         testListing.setTransmission("Manual");
         testListing.setApproved(true);
         testListing.setSeller(testUser);
         testListing.setCreatedAt(LocalDateTime.now());
+        
+        // Set geographic data
+        testListing.setGovernorate(governorate);
+        testListing.setGovernorateNameEn(governorate.getDisplayNameEn());
+        testListing.setGovernorateNameAr(governorate.getDisplayNameAr());
+        testListing.setLocation(location);
+        
         testListing = carListingRepository.save(testListing);
         listingId = testListing.getId();
 
@@ -193,9 +218,11 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         // Clean up resources manually
         carListingRepository.deleteAll();
         userRepository.deleteAll();
-        locationRepository.deleteAll(); // Add this line
-        carModelRepository.deleteAll(); // Added
-        carBrandRepository.deleteAll(); // Added
+        roleRepository.deleteAll();
+        carModelRepository.deleteAll();
+        governorateRepository.deleteAll();
+        locationRepository.deleteAll();
+        countryRepository.deleteAll();
     }
     
     /**

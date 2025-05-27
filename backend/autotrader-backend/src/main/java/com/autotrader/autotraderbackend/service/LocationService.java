@@ -1,9 +1,11 @@
 package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
+import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.payload.request.LocationRequest;
 import com.autotrader.autotraderbackend.payload.response.LocationResponse;
+import com.autotrader.autotraderbackend.repository.GovernorateRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.util.SlugUtils;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 public class LocationService {
 
     private final LocationRepository locationRepository;
+    private final GovernorateRepository governorateRepository;
 
     /**
      * Get all active locations
@@ -50,6 +53,19 @@ public class LocationService {
     public List<LocationResponse> getLocationsByCountry(String countryCode) {
         log.debug("Fetching locations for country: {}", countryCode);
         return locationRepository.findByCountryCodeAndIsActiveTrueOrIsActiveIsNull(countryCode).stream()
+                .map(LocationResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Get active locations by governorate
+     * @param governorateId The governorate ID
+     * @return List of active locations for the given governorate
+     */
+    @Cacheable(value = "locationsByGovernorate", key = "#governorateId")
+    public List<LocationResponse> getLocationsByGovernorate(Long governorateId) {
+        log.debug("Fetching locations for governorate ID: {}", governorateId);
+        return locationRepository.findByGovernorateIdAndIsActiveTrue(governorateId).stream()
                 .map(LocationResponse::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -198,7 +214,14 @@ public class LocationService {
     private void updateLocationFromRequest(Location location, LocationRequest request) {
         location.setDisplayNameEn(request.getNameEn());
         location.setDisplayNameAr(request.getNameAr());
-        location.setCountryCode(request.getCountryCode());
+        
+        // Update to use governorateId instead of countryCode
+        if (request.getGovernorateId() != null) {
+            Governorate governorate = governorateRepository.findById(request.getGovernorateId())
+                .orElseThrow(() -> new ResourceNotFoundException("Governorate", "id", request.getGovernorateId()));
+            location.setGovernorate(governorate);
+        }
+        
         location.setRegion(request.getRegion());
         location.setLatitude(request.getLatitude());
         location.setLongitude(request.getLongitude());

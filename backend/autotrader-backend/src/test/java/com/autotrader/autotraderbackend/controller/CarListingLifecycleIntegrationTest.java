@@ -5,6 +5,8 @@ import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.model.CarBrand; // Added
 import com.autotrader.autotraderbackend.model.CarModel; // Added
+import com.autotrader.autotraderbackend.model.Country;
+import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
@@ -14,7 +16,13 @@ import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.CarBrandRepository; // Added
 import com.autotrader.autotraderbackend.repository.CarModelRepository; // Added
+import com.autotrader.autotraderbackend.repository.CountryRepository;
+import com.autotrader.autotraderbackend.repository.GovernorateRepository;
+import com.autotrader.autotraderbackend.repository.CountryRepository;
+import com.autotrader.autotraderbackend.repository.GovernorateRepository;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
+import com.autotrader.autotraderbackend.util.TestGeographyUtils;
+import com.autotrader.autotraderbackend.util.TestDataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,12 +71,20 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
     @Autowired
     private CarModelRepository carModelRepository; // Added
 
+    @Autowired
+    private CountryRepository countryRepository; // Added
+
+    @Autowired
+    private GovernorateRepository governorateRepository; // Added
+
     private String baseUrl;
     private String jwtToken;
     private Long testLocationId;
     private User testUser; // Added to store the test user
     private CarBrand testCarBrand; // Added
     private CarModel testCarModel; // Added
+    private Country testCountry; // Added
+    private Governorate testGovernorate; // Added
 
     @BeforeEach
     public void setUp() {
@@ -77,16 +93,23 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         carListingRepository.deleteAll(); // Order matters: delete listings before locations/users due to FKs
         userRepository.deleteAll();
         locationRepository.deleteAll();
-        carModelRepository.deleteAll(); // Added
-        carBrandRepository.deleteAll(); // Added
+        governorateRepository.deleteAll(); // Added
+        countryRepository.deleteAll(); // Added
+        carModelRepository.deleteAll();
+        carBrandRepository.deleteAll();
 
-        // Create and save a test location
-        Location testLocation = new Location(); 
-        testLocation.setDisplayNameEn("Test City Lifecycle");
-        testLocation.setDisplayNameAr("مدينة اختبار دورة الحياة"); // Added: Set mandatory Arabic display name
-        testLocation.setCountryCode("TC"); 
-        testLocation.setSlug("test-city-lifecycle"); 
-        Location savedLocation = locationRepository.save(testLocation); 
+        // Create and save a test location hierarchy (Country > Governorate > Location)
+        // Create test country
+        testCountry = TestGeographyUtils.createTestCountry("TC");
+        testCountry = countryRepository.save(testCountry);
+
+        // Create test governorate
+        testGovernorate = TestGeographyUtils.createTestGovernorate("Test Governorate", "محافظة اختبار", testCountry);
+        testGovernorate = governorateRepository.save(testGovernorate);
+
+        // Create test location
+        Location testLocation = TestGeographyUtils.createTestLocation("Test City Lifecycle", "مدينة اختبار دورة الحياة", testGovernorate);
+        Location savedLocation = locationRepository.save(testLocation);
         testLocationId = savedLocation.getId();
 
         // Create test car brand and model
@@ -191,6 +214,22 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         listing.setPrice(price);
         listing.setSeller(testUser);
         listing.setLocation(location);
+
+        // Ensure Governorate is set on the listing
+        if (location != null && location.getGovernorate() != null) {
+            // Fetch the Governorate to ensure it's initialized
+            Governorate initializedGovernorate = governorateRepository.findById(location.getGovernorate().getId())
+                .orElseThrow(() -> new IllegalStateException("Governorate not found for ID: " + location.getGovernorate().getId()));
+            
+            listing.setGovernorate(initializedGovernorate);
+            listing.setGovernorateNameEn(initializedGovernorate.getDisplayNameEn());
+            listing.setGovernorateNameAr(initializedGovernorate.getDisplayNameAr());
+        } else {
+            // This should not happen in a well-configured test environment
+            // where location always has a valid, persisted governorate.
+            throw new IllegalStateException("Location and its associated Governorate must not be null when creating a listing.");
+        }
+
         listing.setApproved(true); // Ensure listing is approved
         listing.setDescription("Test description for " + title);
         listing.setMileage(10000); // Default mileage
@@ -271,12 +310,15 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         Location mainTestLocation = locationRepository.findById(testLocationId).orElseThrow();
         createAndSaveApprovedListing("Camry in Test City", "Toyota", "Camry", 2021, new BigDecimal("22000"), mainTestLocation);
 
-        Location anotherLocation = new Location();
-        anotherLocation.setDisplayNameEn("Another Test City");
-        anotherLocation.setDisplayNameAr("مدينة اختبار أخرى");
-        anotherLocation.setCountryCode("AC");
-        anotherLocation.setSlug("another-city-slug");
-        locationRepository.save(anotherLocation);
+        // Create and persist hierarchy for anotherLocation
+        Country acCountry = TestGeographyUtils.createTestCountry("AC");
+        acCountry = countryRepository.save(acCountry);
+
+        Governorate acGovernorate = TestGeographyUtils.createTestGovernorate("AC Governorate", "محافظة أس", acCountry);
+        acGovernorate = governorateRepository.save(acGovernorate);
+
+        Location anotherLocation = TestGeographyUtils.createTestLocation("Another City AC", "مدينة أخرى أس", acGovernorate);
+        anotherLocation = locationRepository.save(anotherLocation); // Now this should work
         createAndSaveApprovedListing("Accord in Another City", "Honda", "Accord", 2022, new BigDecimal("25000"), anotherLocation);
 
         HttpHeaders headers = new HttpHeaders();
@@ -335,12 +377,16 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         Location mainTestLocation = locationRepository.findById(testLocationId).orElseThrow();
         createAndSaveApprovedListing("Corolla in Test City", "Toyota", "Corolla", 2019, new BigDecimal("16000"), mainTestLocation);
 
-        Location anotherLocation = new Location();
-        anotherLocation.setDisplayNameEn("Second Test City");
-        anotherLocation.setDisplayNameAr("مدينة اختبار ثانية");
-        anotherLocation.setCountryCode("SC");
-        anotherLocation.setSlug("second-city-slug");
-        locationRepository.save(anotherLocation);
+        // Create and persist hierarchy for anotherLocation
+        Country anotherCountry = TestGeographyUtils.createTestCountry("SC");
+        anotherCountry = countryRepository.save(anotherCountry);
+
+        Governorate anotherGovernorate = TestGeographyUtils.createTestGovernorate("Second Governorate", "محافظة ثانية", anotherCountry);
+        anotherGovernorate = governorateRepository.save(anotherGovernorate);
+        
+        Location anotherLocation = TestGeographyUtils.createTestLocation("Second City", "مدينة ثانية", anotherGovernorate);
+        anotherLocation = locationRepository.save(anotherLocation); // Now this should work
+
         createAndSaveApprovedListing("Elantra in Second City", "Hyundai", "Elantra", 2021, new BigDecimal("20000"), anotherLocation);
         
         HttpHeaders headers = new HttpHeaders();
@@ -369,12 +415,15 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         Location mainTestLocation = locationRepository.findById(testLocationId).orElseThrow();
         createAndSaveApprovedListing("Fusion in Test City", "Ford", "Fusion", 2020, new BigDecimal("21000"), mainTestLocation);
 
-        Location anotherLocation = new Location();
-        anotherLocation.setDisplayNameEn("Location For ID Test");
-        anotherLocation.setDisplayNameAr("موقع لاختبار المعرف");
-        anotherLocation.setCountryCode("LI");
-        anotherLocation.setSlug("location-for-id-test");
-        Location savedAnotherLocation = locationRepository.save(anotherLocation);
+        // Create and persist hierarchy for anotherLocation
+        Country liCountry = TestGeographyUtils.createTestCountry("LI");
+        liCountry = countryRepository.save(liCountry);
+
+        Governorate liGovernorate = TestGeographyUtils.createTestGovernorate("LI Governorate", "محافظة لي", liCountry);
+        liGovernorate = governorateRepository.save(liGovernorate);
+
+        Location anotherLocation = TestGeographyUtils.createTestLocation("Another City LI", "مدينة أخرى لي", liGovernorate);
+        Location savedAnotherLocation = locationRepository.save(anotherLocation); // Now this should work
         createAndSaveApprovedListing("Malibu in Another City", "Chevrolet", "Malibu", 2022, new BigDecimal("24000"), savedAnotherLocation);
 
         HttpHeaders headers = new HttpHeaders();
@@ -436,12 +485,15 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         Location mainTestLocation = locationRepository.findById(testLocationId).orElseThrow(); // Slug: "test-city-lifecycle"
         createAndSaveApprovedListing("Altima in Main Test City", "Nissan", "Altima", 2021, new BigDecimal("23000"), mainTestLocation);
 
-        Location anotherLocation = new Location();
-        anotherLocation.setDisplayNameEn("Another Location For Precedence Test");
-        anotherLocation.setDisplayNameAr("موقع آخر لاختبار الأسبقية");
-        anotherLocation.setCountryCode("AL");
-        anotherLocation.setSlug("another-location-slug-precedence"); // Different slug
-        Location savedAnotherLocation = locationRepository.save(anotherLocation);
+        // Create and persist hierarchy for anotherLocation
+        Country alCountry = TestGeographyUtils.createTestCountry("AL");
+        alCountry = countryRepository.save(alCountry);
+
+        Governorate alGovernorate = TestGeographyUtils.createTestGovernorate("AL Governorate", "محافظة أل", alCountry);
+        alGovernorate = governorateRepository.save(alGovernorate);
+        
+        Location anotherLocation = TestGeographyUtils.createTestLocation("Another Location AL", "موقع آخر أل", alGovernorate);
+        Location savedAnotherLocation = locationRepository.save(anotherLocation); // Now this should work
         // Listing in 'anotherLocation'
         createAndSaveApprovedListing("Sentra in Another Location", "Nissan", "Sentra", 2022, new BigDecimal("22000"), savedAnotherLocation);
 

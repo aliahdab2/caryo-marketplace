@@ -1,8 +1,10 @@
 package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.model.Governorate;
+import com.autotrader.autotraderbackend.model.Country;
 import com.autotrader.autotraderbackend.payload.response.GovernorateResponse;
 import com.autotrader.autotraderbackend.repository.GovernorateRepository;
+import com.autotrader.autotraderbackend.repository.CountryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +24,9 @@ class GovernorateServiceTest {
 
     @Mock
     private GovernorateRepository governorateRepository;
+    
+    @Mock
+    private CountryRepository countryRepository;
 
     @InjectMocks
     private GovernorateService governorateService;
@@ -32,36 +37,47 @@ class GovernorateServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Create test country with lombok builder pattern (if available) or direct setting
+        Country syria = new Country();
+        syria.setId(1L);
+        syria.setCountryCode("SY");
+        syria.setDisplayNameEn("Syria");
+        syria.setDisplayNameAr("سوريا");
+        syria.setIsActive(true);
+        
+        // Create first governorate using builder pattern if available, otherwise direct setters
         Long id1 = 1L;
         governorate1 = new Governorate();
         governorate1.setId(id1);
         governorate1.setDisplayNameEn("Test Governorate 1");
         governorate1.setDisplayNameAr("Test Governorate AR 1");
         governorate1.setSlug("test-governorate-1");
-        governorate1.setCountryCode("SY");
+        governorate1.setCountry(syria); // Using country relationship
         governorate1.setRegion("Region1");
         governorate1.setLatitude(33.5138);
         governorate1.setLongitude(36.2765);
         governorate1.setIsActive(true);
 
+        // Use response builder for clean code
         governorateResponse1 = GovernorateResponse.builder()
                 .id(id1)
                 .displayNameEn("Test Governorate 1")
                 .displayNameAr("Test Governorate AR 1")
                 .slug("test-governorate-1")
-                .countryCode("SY")
+                .countryCode("SY") // Country code from the Country object
                 .region("Region1")
                 .latitude(33.5138)
                 .longitude(36.2765)
                 .build();
         
+        // Create second governorate (inactive)
         Long id2 = 2L;
         governorate2 = new Governorate();
         governorate2.setId(id2);
         governorate2.setDisplayNameEn("Test Governorate 2");
         governorate2.setDisplayNameAr("Test Governorate AR 2");
         governorate2.setSlug("test-governorate-2");
-        governorate2.setCountryCode("SY");
+        governorate2.setCountry(syria); // Using country relationship
         governorate2.setIsActive(false); // This one is not active
     }
 
@@ -90,7 +106,7 @@ class GovernorateServiceTest {
 
     @Test
     void getGovernoratesByCountry_shouldReturnGovernoratesForCountryCode() {
-        when(governorateRepository.findByCountryCodeOrderByDisplayNameEnAsc("SY")).thenReturn(List.of(governorate1, governorate2));
+        when(governorateRepository.findByCountry_CountryCodeOrderByDisplayNameEnAsc("SY")).thenReturn(List.of(governorate1, governorate2));
 
         List<GovernorateResponse> result = governorateService.getGovernoratesByCountry("SY");
 
@@ -98,18 +114,18 @@ class GovernorateServiceTest {
         assertEquals(2, result.size());
         assertEquals("test-governorate-1", result.get(0).getSlug());
         assertEquals("test-governorate-2", result.get(1).getSlug());
-        verify(governorateRepository, times(1)).findByCountryCodeOrderByDisplayNameEnAsc("SY");
+        verify(governorateRepository, times(1)).findByCountry_CountryCodeOrderByDisplayNameEnAsc("SY");
     }
 
     @Test
     void getGovernoratesByCountry_shouldReturnEmptyListForUnknownCountryCode() {
-        when(governorateRepository.findByCountryCodeOrderByDisplayNameEnAsc("XX")).thenReturn(Collections.emptyList());
+        when(governorateRepository.findByCountry_CountryCodeOrderByDisplayNameEnAsc("XX")).thenReturn(Collections.emptyList());
 
         List<GovernorateResponse> result = governorateService.getGovernoratesByCountry("XX");
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(governorateRepository, times(1)).findByCountryCodeOrderByDisplayNameEnAsc("XX");
+        verify(governorateRepository, times(1)).findByCountry_CountryCodeOrderByDisplayNameEnAsc("XX");
     }
     
     @Test

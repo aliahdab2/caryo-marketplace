@@ -12,50 +12,38 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
 import java.util.List;
 
+/**
+ * Entity representing a country in the geographic hierarchy.
+ * Countries contain governorates which contain locations.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "governorates", indexes = {
-    @Index(name = "idx_governorate_slug", columnList = "slug", unique = true),
-    @Index(name = "idx_governorate_country_id", columnList = "country_id"),
-    @Index(name = "idx_governorate_is_active", columnList = "is_active")
+@Table(name = "countries", indexes = {
+    @Index(name = "idx_country_code", columnList = "country_code", unique = true),
+    @Index(name = "idx_country_is_active", columnList = "is_active")
 })
-public class Governorate {
+public class Country {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
+    @Size(min = 2, max = 2)
+    @Column(name = "country_code", nullable = false, unique = true, length = 2)
+    private String countryCode = "SY"; // ISO 3166-1 alpha-2 country code (e.g., "SY" for Syria)
+
+    @NotNull
     @Size(max = 100)
     @Column(name = "display_name_en", nullable = false, length = 100)
-    private String displayNameEn;
+    private String displayNameEn = "Syria";
 
     @NotNull
     @Size(max = 100)
     @Column(name = "display_name_ar", nullable = false, length = 100)
-    private String displayNameAr;
-
-    @NotNull
-    @Size(max = 100)
-    @Column(name = "slug", nullable = false, unique = true, length = 100)
-    private String slug;
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "country_id", nullable = false)
-    private Country country;
-
-    @Size(max = 100)
-    @Column(name = "region", length = 100)
-    private String region;
-
-    @Column(name = "latitude")
-    private Double latitude;
-
-    @Column(name = "longitude")
-    private Double longitude;
+    private String displayNameAr = "سوريا";
 
     @NotNull
     @Column(name = "is_active", nullable = false)
@@ -69,9 +57,9 @@ public class Governorate {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    // Bidirectional relationship with locations
-    @OneToMany(mappedBy = "governorate", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Location> locations;
+    // Bidirectional relationship with governorates
+    @OneToMany(mappedBy = "country", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Governorate> governorates;
 
     /**
      * Returns the display name based on the locale

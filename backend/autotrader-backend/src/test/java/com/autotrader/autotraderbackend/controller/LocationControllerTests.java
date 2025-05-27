@@ -2,10 +2,14 @@ package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.Location;
+import com.autotrader.autotraderbackend.model.Country;
+import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.LocationRequest;
 import com.autotrader.autotraderbackend.payload.response.LocationResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.LocationService;
+import com.autotrader.autotraderbackend.util.TestDataGenerator;
+import com.autotrader.autotraderbackend.util.TestGeographyUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,13 +72,39 @@ class LocationControllerTests {
 
     @BeforeEach
     void setUp() {
-        locationResponse1 = new LocationResponse(1L, "City A", "المدينة أ", "city-a", "SY", "Region A", 10.0, 20.0, true);
-        locationResponse2 = new LocationResponse(2L, "City B", "المدينة ب", "city-b", "JO", "Region B", 30.0, 40.0, true);
+        // Create test location responses with the new constructor signature
+        locationResponse1 = new LocationResponse();
+        locationResponse1.setId(1L);
+        locationResponse1.setDisplayNameEn("City A");
+        locationResponse1.setDisplayNameAr("المدينة أ");
+        locationResponse1.setSlug("city-a");
+        locationResponse1.setCountryCode("SY");
+        locationResponse1.setGovernorateId(1L);
+        locationResponse1.setGovernorateNameEn("Governorate A");
+        locationResponse1.setGovernorateNameAr("المحافظة أ");
+        locationResponse1.setRegion("Region A");
+        locationResponse1.setLatitude(10.0);
+        locationResponse1.setLongitude(20.0);
+        locationResponse1.setActive(true);
+        
+        locationResponse2 = new LocationResponse();
+        locationResponse2.setId(2L);
+        locationResponse2.setDisplayNameEn("City B");
+        locationResponse2.setDisplayNameAr("المدينة ب");
+        locationResponse2.setSlug("city-b");
+        locationResponse2.setCountryCode("JO");
+        locationResponse2.setGovernorateId(2L);
+        locationResponse2.setGovernorateNameEn("Governorate B");
+        locationResponse2.setGovernorateNameAr("المحافظة ب");
+        locationResponse2.setRegion("Region B");
+        locationResponse2.setLatitude(30.0);
+        locationResponse2.setLongitude(40.0);
+        locationResponse2.setActive(true);
 
         locationRequest = new LocationRequest();
         locationRequest.setNameEn("New City");
         locationRequest.setNameAr("مدينة جديدة");
-        locationRequest.setCountryCode("SY");
+        locationRequest.setGovernorateId(1L); // Updated to use governorateId instead of countryCode
         locationRequest.setRegion("New Region");
         locationRequest.setLatitude(50.0);
         locationRequest.setLongitude(60.0);
@@ -249,7 +279,21 @@ class LocationControllerTests {
     @Test
     @WithMockUser(roles = "ADMIN")
     void updateLocationStatus_asAdmin_shouldUpdateStatus() throws Exception {
-        LocationResponse updatedLocationResponse = new LocationResponse(1L, "City A", "المدينة أ", "city-a", "SY", "Region A", 10.0, 20.0, false); // Status changed
+        // Create updated location response with status=false
+        LocationResponse updatedLocationResponse = new LocationResponse();
+        updatedLocationResponse.setId(1L);
+        updatedLocationResponse.setDisplayNameEn("City A");
+        updatedLocationResponse.setDisplayNameAr("المدينة أ");
+        updatedLocationResponse.setSlug("city-a");
+        updatedLocationResponse.setCountryCode("SY");
+        updatedLocationResponse.setGovernorateId(1L);
+        updatedLocationResponse.setGovernorateNameEn("Governorate A");
+        updatedLocationResponse.setGovernorateNameAr("المحافظة أ");
+        updatedLocationResponse.setRegion("Region A");
+        updatedLocationResponse.setLatitude(10.0);
+        updatedLocationResponse.setLongitude(20.0);
+        updatedLocationResponse.setActive(false); // Status changed to false
+        
         given(locationService.setLocationActive(1L, false)).willReturn(updatedLocationResponse);
 
         Map<String, Boolean> statusUpdate = Map.of("active", false);

@@ -1,5 +1,5 @@
 // jest.config.mjs
-export default {
+const config = {
   testEnvironment: 'jsdom',
   testPathIgnorePatterns: ['/node_modules/', '/.next/'],
   collectCoverage: true,
@@ -29,3 +29,5 @@ export default {
     '^.+\\.module\\.(css|sass|scss)$',
   ],
 };
+
+export default config;

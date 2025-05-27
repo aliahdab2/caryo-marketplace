@@ -5,6 +5,7 @@ import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.mapper.CarListingMapper;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.CarModel;
+import com.autotrader.autotraderbackend.model.Governorate; // Added
 import com.autotrader.autotraderbackend.model.ListingMedia;
 import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
@@ -364,6 +365,17 @@ public class CarListingService {
                     return new ResourceNotFoundException("Location", "id", request.getLocationId());
                 });
             existingListing.setLocation(location);
+
+            Governorate governorate = location.getGovernorate();
+            if (governorate != null) {
+                existingListing.setGovernorate(governorate);
+                existingListing.setGovernorateNameEn(governorate.getDisplayNameEn());
+                existingListing.setGovernorateNameAr(governorate.getDisplayNameAr());
+                // Country information is now derived via governorate.getCountry()
+            } else {
+                log.error("Location {} has no associated governorate during update.", location.getId());
+                 throw new IllegalStateException("Location must have an associated governorate for listing update.");
+            }
         }
         
         if (request.getDescription() != null) {
@@ -519,7 +531,7 @@ public class CarListingService {
         carListing.setModelNameEn(carModel.getDisplayNameEn());
         carListing.setModelNameAr(carModel.getDisplayNameAr());
         
-        // Handle location - only use locationId
+        // Handle location and governorate
         if (request.getLocationId() != null) {
             Location location = locationRepository.findById(request.getLocationId())
                 .orElseThrow(() -> {
@@ -527,8 +539,21 @@ public class CarListingService {
                     return new ResourceNotFoundException("Location", "id", request.getLocationId());
                 });
             carListing.setLocation(location);
+            
+            Governorate governorate = location.getGovernorate();
+            if (governorate != null) {
+                carListing.setGovernorate(governorate);
+                carListing.setGovernorateNameEn(governorate.getDisplayNameEn());
+                carListing.setGovernorateNameAr(governorate.getDisplayNameAr());
+                // Country information is now derived via governorate.getCountry()
+            } else {
+                log.error("Location {} has no associated governorate", location.getId());
+                throw new IllegalStateException("Location must have an associated governorate");
+            }
+        } else {
+            log.error("LocationId is required to create a car listing");
+            throw new IllegalArgumentException("LocationId is required");
         }
-        // If request.getLocationId() is null, carListing.location will remain null.
         
         carListing.setSeller(user);
         carListing.setApproved(false); // Default to not approved

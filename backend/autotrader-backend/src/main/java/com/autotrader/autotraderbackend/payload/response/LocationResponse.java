@@ -16,7 +16,10 @@ public class LocationResponse {
     private String displayNameEn; // Changed from nameEn to match controller expectations
     private String displayNameAr; // Changed from nameAr to match controller expectations
     private String slug;
-    private String countryCode;
+    private String countryCode; // Derived from governorate.country.countryCode
+    private Long governorateId; // Added
+    private String governorateNameEn; // Added 
+    private String governorateNameAr; // Added
     private String region;
     private Double latitude;
     private Double longitude;
@@ -32,16 +35,27 @@ public class LocationResponse {
             return null;
         }
         
-        return new LocationResponse(
-                location.getId(),
-                location.getDisplayNameEn(),
-                location.getDisplayNameAr(),
-                location.getSlug(),
-                location.getCountryCode(),
-                location.getRegion(),
-                location.getLatitude(),
-                location.getLongitude(),
-                location.getIsActive() != null ? location.getIsActive() : true // Using getIsActive() with null check
-        );
+        LocationResponse response = new LocationResponse();
+        response.setId(location.getId());
+        response.setDisplayNameEn(location.getDisplayNameEn());
+        response.setDisplayNameAr(location.getDisplayNameAr());
+        response.setSlug(location.getSlug());
+        response.setRegion(location.getRegion());
+        response.setLatitude(location.getLatitude());
+        response.setLongitude(location.getLongitude());
+        response.setActive(location.getIsActive() != null ? location.getIsActive() : true);
+        
+        // Set governorate and country information
+        if (location.getGovernorate() != null) {
+            response.setGovernorateId(location.getGovernorate().getId());
+            response.setGovernorateNameEn(location.getGovernorate().getDisplayNameEn());
+            response.setGovernorateNameAr(location.getGovernorate().getDisplayNameAr());
+            
+            if (location.getGovernorate().getCountry() != null) {
+                response.setCountryCode(location.getGovernorate().getCountry().getCountryCode());
+            }
+        }
+        
+        return response;
     }
 }
