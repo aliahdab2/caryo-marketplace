@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import HomeSearchBar from "@/components/search/HomeSearchBar";
 import { getFeaturedListings } from "@/services/listings";
 import { Listing } from "@/types/listings";
+import { transformMinioUrl } from "@/utils/mediaUtils";
 
 export default function Home() {
   const { t } = useTranslation('common');
@@ -113,10 +114,11 @@ export default function Home() {
               >
                 <div className="relative h-48">
                   <Image
-                    src={car.image || car.media?.[0]?.url || "/images/logo.png"}
+                    src={transformMinioUrl(car.image || car.media?.[0]?.url || '') || "/images/logo.png"}
                     alt={car.title}
                     fill
                     className="object-cover"
+                    unoptimized // Add this prop to bypass Next.js image optimization for these images
                   />
                 </div>
                 <div className="p-5">

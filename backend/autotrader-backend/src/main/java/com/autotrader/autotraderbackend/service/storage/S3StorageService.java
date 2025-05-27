@@ -13,12 +13,9 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,7 +24,7 @@ import java.util.stream.Stream;
 public class S3StorageService implements StorageService {
 
     private final S3Client s3Client;
-    private final S3Presigner s3Presigner;
+    private final S3Presigner s3Presigner; // Keep for future use with presigned URLs
     private final String bucketName;
     private final long defaultExpirationSeconds;
 
@@ -36,7 +33,7 @@ public class S3StorageService implements StorageService {
         this.bucketName = properties.getS3().getBucketName();
         this.defaultExpirationSeconds = properties.getS3().getSignedUrlExpirationSeconds();
         this.s3Client = s3Client;
-        this.s3Presigner = s3Presigner;
+        this.s3Presigner = s3Presigner; // Keep for future use
 
         log.info("Configured S3StorageService. Bucket: {}, Expiration: {}s",
                 bucketName, defaultExpirationSeconds);
@@ -171,6 +168,14 @@ public class S3StorageService implements StorageService {
     @Override
     public String getSignedUrl(String key, long expirationSeconds) {
         try {
+            // For development with public bucket access, return direct URL to avoid signature issues
+            // when transforming Docker internal hostnames to localhost
+            String directUrl = "http://localhost:9000/" + bucketName + "/" + key;
+            log.info("S3StorageService: Returning direct URL for development: {}", directUrl);
+            return directUrl;
+            
+            /* 
+            // Original presigned URL implementation - commented out for development
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket(bucketName)
                     .key(key)
@@ -182,10 +187,54 @@ public class S3StorageService implements StorageService {
                     .build();
 
             PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
-            return presignedRequest.url().toString();
+            URL generatedUrl = presignedRequest.url();
+            String originalUrlString = generatedUrl.toString();
+            
+            log.info("S3StorageService: Original presigned URL: {}", originalUrlString);
+            log.info("S3StorageService: Host: {}, Path: {}, Port: {}", 
+                    generatedUrl.getHost(), generatedUrl.getPath(), generatedUrl.getPort());
 
-        } catch (S3Exception e) {
-            throw new StorageException("Failed to generate pre-signed URL for: " + key, e);
+            // Apply workaround for MinIO URLs to fix both hostname and bucket path
+            String host = generatedUrl.getHost();
+            String path = generatedUrl.getPath();
+            
+            // Check if this is a MinIO URL (localhost, 127.0.0.1, or Docker internal hostname)
+            boolean isMinioUrl = "localhost".equals(host) || "127.0.0.1".equals(host) || 
+                               host.contains("minio") || host.endsWith(".minio");
+            
+            if (isMinioUrl) {
+                boolean needsHostFix = !("localhost".equals(host) || "127.0.0.1".equals(host));
+                boolean needsPathFix = !path.startsWith("/" + bucketName + "/");
+                
+                if (needsHostFix || needsPathFix) {
+                    log.warn("S3StorageService: Fixing MinIO URL - Host fix needed: {}, Path fix needed: {}", 
+                            needsHostFix, needsPathFix);
+                    
+                    // Fix hostname to localhost for external access
+                    String newHost = needsHostFix ? "localhost" : host;
+                    
+                    // Fix path to include bucket name
+                    String newPath = needsPathFix ? "/" + bucketName + path : path;
+                    
+                    String query = generatedUrl.getQuery();
+                    
+                    String fixedUrlString = generatedUrl.getProtocol() + "://" + newHost + 
+                                (generatedUrl.getPort() != -1 ? ":" + generatedUrl.getPort() : "") +
+                                newPath + 
+                                (query != null ? "?" + query : "");
+                    
+                    log.info("S3StorageService: Fixed presigned URL: {}", fixedUrlString);
+                    return fixedUrlString;
+                } else {
+                    log.info("S3StorageService: MinIO URL is already correct, no fix needed");
+                }
+            }
+
+            return originalUrlString;
+            */
+
+        } catch (Exception e) {
+            throw new StorageException("Failed to generate URL for: " + key, e);
         }
     }
 }

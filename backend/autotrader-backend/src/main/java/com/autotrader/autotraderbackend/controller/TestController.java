@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -102,13 +103,35 @@ public class TestController {
     )
     public ResponseEntity<String> updateSampleImages() {
         try {
-            // Update the first 3 media entries to use our uploaded sample images
-            // Note: H2 table names might be case-sensitive
-            int count1 = jdbcTemplate.update("UPDATE media SET file_key = 'listings/1/main.jpg' WHERE id = 4");
-            int count2 = jdbcTemplate.update("UPDATE media SET file_key = 'listings/2/main.jpg' WHERE id = 5");
-            int count3 = jdbcTemplate.update("UPDATE media SET file_key = 'listings/3/main.jpg' WHERE id = 6");
+            // First, let's get the listing IDs for the first 3 sample listings
+            String getListingsQuery = "SELECT id FROM car_listings WHERE title LIKE '%Test Listing%' ORDER BY id LIMIT 3";
+            List<Long> listingIds = jdbcTemplate.queryForList(getListingsQuery, Long.class);
             
-            return ResponseEntity.ok(String.format("Sample image URLs updated successfully. Updated %d, %d, %d rows.", count1, count2, count3));
+            if (listingIds.size() < 3) {
+                return ResponseEntity.status(400).body("Not enough sample listings found. Expected 3, found " + listingIds.size());
+            }
+            
+            // Update the media for these listings to point to our uploaded images
+            String[] fileKeys = {
+                "listings/1/main.jpg",
+                "listings/2/main.jpg", 
+                "listings/3/main.jpg"
+            };
+            
+            int totalUpdated = 0;
+            for (int i = 0; i < 3; i++) {
+                String updateQuery = "UPDATE listing_media SET file_key = ? WHERE listing_id = ? AND is_primary = true";
+                int rowsUpdated = jdbcTemplate.update(updateQuery, fileKeys[i], listingIds.get(i));
+                
+                if (rowsUpdated == 0) {
+                    // If no primary media exists, update any media for this listing
+                    String fallbackQuery = "UPDATE listing_media SET file_key = ? WHERE listing_id = ?";
+                    rowsUpdated = jdbcTemplate.update(fallbackQuery, fileKeys[i], listingIds.get(i));
+                }
+                totalUpdated += rowsUpdated;
+            }
+            
+            return ResponseEntity.ok(String.format("Sample images updated successfully for listings: %s. Total rows updated: %d", listingIds, totalUpdated));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error updating sample images: " + e.getMessage());
         }
