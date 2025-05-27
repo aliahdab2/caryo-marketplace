@@ -1,6 +1,5 @@
 package com.autotrader.autotraderbackend.service.storage;
 
-import com.autotrader.autotraderbackend.config.StorageProperties;
 import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.exception.StorageFileNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,15 +11,10 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
 import java.util.Collections;
 import java.util.stream.Stream;
 
@@ -32,27 +26,32 @@ class S3StorageServiceTest {
     private S3StorageService s3StorageService;
 
     @Mock
-    private StorageProperties properties;
-
-    @Mock
     private S3Client s3Client;
 
     @Mock
-    private S3Presigner s3Presigner;
+    private StorageConfigurationManager configManager;
+
+    @Mock
+    private StorageUrlGenerator urlGenerator;
 
     @BeforeEach
     void setUp() {
-        properties = mock(StorageProperties.class, RETURNS_DEEP_STUBS);
         s3Client = mock(S3Client.class);
-        s3Presigner = mock(S3Presigner.class);
+        configManager = mock(StorageConfigurationManager.class);
+        urlGenerator = mock(StorageUrlGenerator.class);
         
-        // Setup S3 properties
-        StorageProperties.S3 s3Props = mock(StorageProperties.S3.class);
-        when(properties.getS3()).thenReturn(s3Props);
-        when(s3Props.getBucketName()).thenReturn("test-bucket");
-        when(s3Props.getSignedUrlExpirationSeconds()).thenReturn(3600L);
+        // Setup configuration manager defaults
+        when(configManager.getDefaultBucketName()).thenReturn("test-bucket");
+        when(configManager.getBucketName(anyString())).thenReturn("test-bucket");
+        when(configManager.getFileTypeFromKey(anyString())).thenReturn("listing-media");
+        when(configManager.getStorageBaseUrl()).thenReturn("http://localhost:9000");
+        when(configManager.isPublicAccessEnabled()).thenReturn(false);
         
-        s3StorageService = new S3StorageService(properties, s3Client, s3Presigner);
+        // Setup URL generator defaults
+        when(urlGenerator.generateUrl(anyString(), any(StorageUrlGenerator.UrlType.class), anyLong()))
+                .thenReturn("http://localhost:9000/test-bucket/test-key");
+        
+        s3StorageService = new S3StorageService(s3Client, configManager, urlGenerator);
         
         // Mock the init call for headBucket
         HeadBucketResponse headBucketResponse = HeadBucketResponse.builder().build();
@@ -187,26 +186,22 @@ class S3StorageServiceTest {
     }
     
     @Test
-    void testGetSignedUrl() throws MalformedURLException { // Add throws declaration
+    void testGetSignedUrl() throws MalformedURLException {
         String key = "test_key";
         long expirationSeconds = 3600;
+        String expectedUrl = "http://localhost:9000/test-bucket/test_key?X-Amz-Expires=3600";
         
-        // Create mock presigned URL 
-        PresignedGetObjectRequest presignedRequest = mock(PresignedGetObjectRequest.class);
-        // Mock url() to return a URL object using URI.create().toURL()
-        URL mockUrl = URI.create("https://test-bucket.s3.amazonaws.com/" + key).toURL();
-        when(presignedRequest.url()).thenReturn(mockUrl);
-        
-        // Mock S3Presigner behavior
-        when(s3Presigner.presignGetObject(any(GetObjectPresignRequest.class)))
-            .thenReturn(presignedRequest);
+        // Mock URL generator behavior
+        when(urlGenerator.generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.SIGNED), eq(expirationSeconds)))
+                .thenReturn(expectedUrl);
+        when(configManager.isPublicAccessEnabled()).thenReturn(false); // Force signed URL
             
         // Execute method
         String url = s3StorageService.getSignedUrl(key, expirationSeconds);
         
         // Verify
-        assertEquals("https://test-bucket.s3.amazonaws.com/test_key", url);
-        verify(s3Presigner, times(1)).presignGetObject(any(GetObjectPresignRequest.class));
+        assertEquals(expectedUrl, url);
+        verify(urlGenerator, times(1)).generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.SIGNED), eq(expirationSeconds));
     }
     
     @Test
@@ -243,5 +238,88 @@ class S3StorageServiceTest {
         Stream<java.nio.file.Path> stream = s3StorageService.loadAll(); // Use java.nio.file.Path
         assertNotNull(stream);
         assertEquals(0, stream.count());
+    }
+    
+    @Test
+    void testGetPublicUrl() {
+        String key = "test_key";
+        String expectedUrl = "http://localhost:9000/test-bucket/test_key";
+        
+        // Mock URL generator behavior
+        when(urlGenerator.generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.PUBLIC), eq(0L)))
+                .thenReturn(expectedUrl);
+            
+        // Execute method
+        String url = s3StorageService.getPublicUrl(key);
+        
+        // Verify
+        assertEquals(expectedUrl, url);
+        verify(urlGenerator, times(1)).generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.PUBLIC), eq(0L));
+    }
+    
+    @Test
+    void testGetCdnUrl() {
+        String key = "test_key";
+        String expectedUrl = "https://cdn.example.com/test-bucket/test_key";
+        
+        // Mock URL generator behavior
+        when(urlGenerator.generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.CDN), eq(0L)))
+                .thenReturn(expectedUrl);
+            
+        // Execute method
+        String url = s3StorageService.getCdnUrl(key);
+        
+        // Verify
+        assertEquals(expectedUrl, url);
+        verify(urlGenerator, times(1)).generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.CDN), eq(0L));
+    }
+    
+    @Test
+    void testGetSignedUrlWithPublicAccess() {
+        String key = "test_key";
+        long expirationSeconds = 3600;
+        String expectedUrl = "http://localhost:9000/test-bucket/test_key";
+        
+        // Mock URL generator behavior for public access
+        when(configManager.isPublicAccessEnabled()).thenReturn(true); // Force public URL
+        when(urlGenerator.generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.PUBLIC), eq(expirationSeconds)))
+                .thenReturn(expectedUrl);
+            
+        // Execute method
+        String url = s3StorageService.getSignedUrl(key, expirationSeconds);
+        
+        // Verify
+        assertEquals(expectedUrl, url);
+        verify(urlGenerator, times(1)).generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.PUBLIC), eq(expirationSeconds));
+    }
+    
+    @Test
+    void testGetSignedUrlWithNullKey() {
+        // Test validation
+        StorageException exception = assertThrows(StorageException.class, () -> {
+            s3StorageService.getSignedUrl(null, 3600);
+        });
+        
+        assertTrue(exception.getMessage().contains("Storage key cannot be null or empty"));
+    }
+    
+    @Test
+    void testGetSignedUrlWithEmptyKey() {
+        // Test validation
+        StorageException exception = assertThrows(StorageException.class, () -> {
+            s3StorageService.getSignedUrl("", 3600);
+        });
+        
+        assertTrue(exception.getMessage().contains("Storage key cannot be null or empty"));
+    }
+    
+    @Test
+    void testGetSignedUrlWithNegativeExpiration() {
+        // Test validation
+        StorageException exception = assertThrows(StorageException.class, () -> {
+            s3StorageService.getSignedUrl("test_key", -1);
+        });
+        
+        assertTrue(exception.getMessage().contains("Expiration seconds cannot be negative"));
     }
 }

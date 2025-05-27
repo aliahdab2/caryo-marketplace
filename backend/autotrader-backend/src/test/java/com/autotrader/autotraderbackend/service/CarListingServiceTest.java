@@ -18,6 +18,7 @@ import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
+import com.autotrader.autotraderbackend.service.storage.StorageKeyGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +32,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import com.autotrader.autotraderbackend.util.TestDataGenerator;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -62,6 +62,9 @@ class CarListingServiceTest {
 
     @Mock
     private StorageService storageService;
+
+    @Mock
+    private StorageKeyGenerator storageKeyGenerator;
 
     @Mock
     private CarListingMapper carListingMapper;
@@ -134,6 +137,18 @@ class CarListingServiceTest {
         testListingResponse.setBrandNameAr(testCarBrand.getDisplayNameAr());
         testListingResponse.setModelNameEn(testCarModel.getDisplayNameEn());
         testListingResponse.setModelNameAr(testCarModel.getDisplayNameAr());
+        
+        // Setup StorageKeyGenerator mock (lenient to avoid unnecessary stubbing exceptions)
+        lenient().when(storageKeyGenerator.generateListingMediaKey(anyLong(), anyString()))
+                .thenAnswer(invocation -> {
+                    Long listingId = invocation.getArgument(0);
+                    String filename = invocation.getArgument(1);
+                    if (filename == null || filename.trim().isEmpty()) {
+                        return "listings/" + listingId + "/123456_";
+                    } else {
+                        return "listing-media/" + listingId + "/" + filename;
+                    }
+                });
     }
 
     @Test
@@ -560,11 +575,11 @@ class CarListingServiceTest {
         String username = testUser.getUsername();
         // File with null original filename
         MockMultipartFile file = new MockMultipartFile("file", null, "image/png", "content".getBytes());
-        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
+        String expectedKey = "listings/" + listingId + "/123456_";
 
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
         when(carListingRepository.findById(listingId)).thenReturn(Optional.of(testListing));
-        when(storageService.store(eq(file), keyCaptor.capture())).thenAnswer(inv -> keyCaptor.getValue());
+        when(storageService.store(eq(file), anyString())).thenReturn(expectedKey);
         when(carListingRepository.save(any(CarListing.class))).thenAnswer(inv -> inv.getArgument(0));
 
         // Act
@@ -572,24 +587,21 @@ class CarListingServiceTest {
 
         // Assert
         assertNotNull(returnedKey);
+        assertEquals(expectedKey, returnedKey);
 
-        // Verify store was called and capture the key
-        verify(storageService).store(eq(file), keyCaptor.capture());
-        String capturedKey = keyCaptor.getValue();
+        // Verify store was called with the expected key
+        verify(storageService).store(eq(file), eq(expectedKey));
 
-        // Assert that the returned key matches the captured key
-        assertEquals(returnedKey, capturedKey);
-
-        // Assert the format of the captured/returned key
-        assertTrue(capturedKey.startsWith("listings/" + listingId + "/"));
-        assertTrue(capturedKey.matches("listings/" + listingId + "/\\d+_"),
-                   "Generated key '" + capturedKey + "' did not match expected pattern.");
+        // Assert the format of the returned key
+        assertTrue(returnedKey.startsWith("listings/" + listingId + "/"));
+        assertTrue(returnedKey.matches("listings/" + listingId + "/\\d+_"),
+                   "Generated key '" + returnedKey + "' did not match expected pattern.");
 
         // Verify save was called with the correct key
         verify(carListingRepository).save(argThat(l -> {
             if (!l.getMedia().isEmpty()) {
                 ListingMedia media = l.getMedia().get(0);
-                return capturedKey.equals(media.getFileKey());
+                return expectedKey.equals(media.getFileKey());
             }
             return false;
         }));

@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.controller;
 
+import com.autotrader.autotraderbackend.service.storage.StorageKeyGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;

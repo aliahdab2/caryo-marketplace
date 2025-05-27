@@ -1,6 +1,8 @@
 package com.autotrader.autotraderbackend.config;
 
 import com.autotrader.autotraderbackend.service.storage.S3StorageService;
+import com.autotrader.autotraderbackend.service.storage.StorageConfigurationManager;
+import com.autotrader.autotraderbackend.service.storage.StorageUrlGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -9,7 +11,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner; 
 
 import java.net.URI;
 
@@ -25,10 +27,10 @@ public class FileStorageConfig {
      * Create an S3 storage service.
      */
     @Bean
-    public S3StorageService s3StorageService(StorageProperties properties, S3Client s3Client, S3Presigner s3Presigner) {
-        log.info("Creating S3StorageService bean. Bucket: {}, Region: {}", properties.getS3().getBucketName(), properties.getS3().getRegion());
+    public S3StorageService s3StorageService(S3Client s3Client, StorageConfigurationManager configManager, StorageUrlGenerator urlGenerator) {
+        log.info("Creating S3StorageService bean with configuration manager and URL generator");
         // The init() method will be called by @PostConstruct in S3StorageService
-        return new S3StorageService(properties, s3Client, s3Presigner);
+        return new S3StorageService(s3Client, configManager, urlGenerator);
     }
 
     /**

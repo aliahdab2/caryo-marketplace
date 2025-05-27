@@ -17,6 +17,7 @@ import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.specification.CarListingSpecification;
+import com.autotrader.autotraderbackend.service.storage.StorageKeyGenerator;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,7 @@ public class CarListingService {
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
     private final StorageService storageService;
+    private final StorageKeyGenerator storageKeyGenerator;
     private final CarListingMapper carListingMapper;
     private final CarModelService carModelService;
 
@@ -507,9 +509,7 @@ public class CarListingService {
     }
 
     private String generateImageKey(Long listingId, String originalFilename) {
-        // Clean the original filename to prevent path traversal or invalid characters
-        String safeFilename = originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "image";
-        return String.format("listings/%d/%d_%s", listingId, System.currentTimeMillis(), safeFilename);
+        return storageKeyGenerator.generateListingMediaKey(listingId, originalFilename);
     }
 
     private CarListing buildCarListingFromRequest(CreateListingRequest request, User user) {

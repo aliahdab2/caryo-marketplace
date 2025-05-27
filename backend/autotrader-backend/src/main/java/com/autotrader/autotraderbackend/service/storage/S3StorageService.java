@@ -1,47 +1,51 @@
 package com.autotrader.autotraderbackend.service.storage;
 
-import com.autotrader.autotraderbackend.config.StorageProperties;
 import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.exception.StorageFileNotFoundException;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
+@RequiredArgsConstructor
 public class S3StorageService implements StorageService {
 
     private final S3Client s3Client;
-    private final S3Presigner s3Presigner; // Keep for future use with presigned URLs
-    private final String bucketName;
-    private final long defaultExpirationSeconds;
-
-    // Constructor: Dependency Injection for S3Client and S3Presigner
-    public S3StorageService(StorageProperties properties, S3Client s3Client, S3Presigner s3Presigner) {
-        this.bucketName = properties.getS3().getBucketName();
-        this.defaultExpirationSeconds = properties.getS3().getSignedUrlExpirationSeconds();
-        this.s3Client = s3Client;
-        this.s3Presigner = s3Presigner; // Keep for future use
-
-        log.info("Configured S3StorageService. Bucket: {}, Expiration: {}s",
-                bucketName, defaultExpirationSeconds);
-    }
+    private final StorageConfigurationManager configManager;
+    private final StorageUrlGenerator urlGenerator;
 
     @Override
     @PostConstruct
     public void init() {
+        Objects.requireNonNull(s3Client, "S3Client cannot be null");
+        Objects.requireNonNull(configManager, "StorageConfigurationManager cannot be null");
+        Objects.requireNonNull(urlGenerator, "StorageUrlGenerator cannot be null");
+        
+        final String bucketName = configManager.getDefaultBucketName();
+        if (!StringUtils.hasText(bucketName)) {
+            throw new StorageException("Default bucket name cannot be null or empty");
+        }
+        
+        log.info("Initializing S3StorageService with configuration manager and URL generator. Default bucket: {}, Base URL: {}",
+                bucketName, configManager.getStorageBaseUrl());
+        
         try {
             // Verifying if the S3 bucket exists and is accessible
             s3Client.headBucket(HeadBucketRequest.builder().bucket(bucketName).build());
@@ -50,25 +54,38 @@ public class S3StorageService implements StorageService {
             log.error("S3 bucket '{}' does not exist! Please create it.", bucketName);
             throw new StorageException("S3 bucket not found: " + bucketName, e);
         } catch (S3Exception e) {
-            log.error("Error accessing S3 bucket '{}': {}", bucketName, e.awsErrorDetails().errorMessage(), e);
+            log.error("Error accessing S3 bucket '{}': {}", bucketName, 
+                    Optional.ofNullable(e.awsErrorDetails())
+                            .map(AwsErrorDetails::errorMessage)
+                            .orElse("Unknown error"), e);
             throw new StorageException("Could not verify S3 bucket access", e);
         }
     }
 
     @Override
     public String store(MultipartFile file, String key) {
+        Objects.requireNonNull(file, "File cannot be null");
+        if (!StringUtils.hasText(key)) {
+            throw new StorageException("Storage key cannot be null or empty");
+        }
         if (file.isEmpty()) {
-            throw new StorageException("Cannot store empty file.");
+            throw new StorageException("Cannot store empty file");
         }
 
         try {
-            PutObjectRequest request = PutObjectRequest.builder()
+            final String bucketName = configManager.getBucketName(configManager.getFileTypeFromKey(key));
+            log.debug("Storing file with key '{}' to bucket '{}'", key, bucketName);
+            
+            final PutObjectRequest request = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(key)
-                    .contentType(file.getContentType())
+                    .contentType(Optional.ofNullable(file.getContentType())
+                            .filter(StringUtils::hasText)
+                            .orElse("application/octet-stream"))
                     .build();
 
             s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+            log.info("Successfully stored file with key: {} in bucket: {}", key, bucketName);
             return key;
 
         } catch (IOException | S3Exception e) {
@@ -78,13 +95,20 @@ public class S3StorageService implements StorageService {
 
     @Override
     public Resource loadAsResource(String key) {
+        if (!StringUtils.hasText(key)) {
+            throw new StorageException("Storage key cannot be null or empty");
+        }
+        
         try {
-            GetObjectRequest request = GetObjectRequest.builder()
+            final String bucketName = configManager.getBucketName(configManager.getFileTypeFromKey(key));
+            log.debug("Loading file with key '{}' from bucket '{}'", key, bucketName);
+            
+            final GetObjectRequest request = GetObjectRequest.builder()
                     .bucket(bucketName)
                     .key(key)
                     .build();
 
-            ResponseInputStream<GetObjectResponse> object = s3Client.getObject(request);
+            final ResponseInputStream<GetObjectResponse> object = s3Client.getObject(request);
             return new InputStreamResource(object) {
                 @Override
                 public String getFilename() {
@@ -93,7 +117,7 @@ public class S3StorageService implements StorageService {
 
                 @Override
                 public long contentLength() throws IOException {
-                    return object.response().contentLength();
+                    return Objects.requireNonNullElse(object.response().contentLength(), -1L);
                 }
             };
 
@@ -106,13 +130,22 @@ public class S3StorageService implements StorageService {
 
     @Override
     public boolean delete(String key) {
+        if (!StringUtils.hasText(key)) {
+            log.warn("Cannot delete file with null or empty key");
+            return false;
+        }
+        
         try {
-            DeleteObjectRequest request = DeleteObjectRequest.builder()
+            final String bucketName = configManager.getBucketName(configManager.getFileTypeFromKey(key));
+            log.debug("Deleting file with key '{}' from bucket '{}'", key, bucketName);
+            
+            final DeleteObjectRequest request = DeleteObjectRequest.builder()
                     .bucket(bucketName)
                     .key(key)
                     .build();
 
             s3Client.deleteObject(request);
+            log.info("Successfully deleted file with key: {} from bucket: {}", key, bucketName);
             return true;
 
         } catch (S3Exception e) {
@@ -124,23 +157,33 @@ public class S3StorageService implements StorageService {
     @Override
     public void deleteAll() {
         try {
-            ListObjectsV2Request listRequest = ListObjectsV2Request.builder().bucket(bucketName).build();
+            final String bucketName = configManager.getDefaultBucketName();
+            log.warn("Deleting all objects from bucket: {}", bucketName);
+            
+            ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
+                    .bucket(bucketName)
+                    .build();
+            
             ListObjectsV2Response listResponse;
 
             do {
                 listResponse = s3Client.listObjectsV2(listRequest);
 
-                if (!listResponse.contents().isEmpty()) {
-                    List<ObjectIdentifier> toDelete = listResponse.contents().stream()
+                if (Objects.nonNull(listResponse.contents()) && !listResponse.contents().isEmpty()) {
+                    final List<ObjectIdentifier> toDelete = listResponse.contents().stream()
+                            .filter(Objects::nonNull)
                             .map(obj -> ObjectIdentifier.builder().key(obj.key()).build())
                             .collect(Collectors.toList());
 
-                    DeleteObjectsRequest deleteRequest = DeleteObjectsRequest.builder()
-                            .bucket(bucketName)
-                            .delete(Delete.builder().objects(toDelete).build())
-                            .build();
+                    if (!toDelete.isEmpty()) {
+                        final DeleteObjectsRequest deleteRequest = DeleteObjectsRequest.builder()
+                                .bucket(bucketName)
+                                .delete(Delete.builder().objects(toDelete).build())
+                                .build();
 
-                    s3Client.deleteObjects(deleteRequest);
+                        s3Client.deleteObjects(deleteRequest);
+                        log.debug("Deleted {} objects from bucket: {}", toDelete.size(), bucketName);
+                    }
                 }
 
                 listRequest = listRequest.toBuilder()
@@ -148,6 +191,8 @@ public class S3StorageService implements StorageService {
                         .build();
 
             } while (Boolean.TRUE.equals(listResponse.isTruncated()));
+
+            log.info("Successfully deleted all objects from bucket: {}", bucketName);
 
         } catch (S3Exception e) {
             throw new StorageException("Could not delete all files from bucket", e);
@@ -167,74 +212,69 @@ public class S3StorageService implements StorageService {
 
     @Override
     public String getSignedUrl(String key, long expirationSeconds) {
+        if (!StringUtils.hasText(key)) {
+            throw new StorageException("Storage key cannot be null or empty");
+        }
+        if (expirationSeconds < 0) {
+            throw new StorageException("Expiration seconds cannot be negative");
+        }
+        
+        log.debug("Generating URL for key: {} with expiration: {}", key, expirationSeconds);
+        
         try {
-            // For development with public bucket access, return direct URL to avoid signature issues
-            // when transforming Docker internal hostnames to localhost
-            String directUrl = "http://localhost:9000/" + bucketName + "/" + key;
-            log.info("S3StorageService: Returning direct URL for development: {}", directUrl);
-            return directUrl;
+            // Use the sophisticated URL generator that handles multiple providers
+            final StorageUrlGenerator.UrlType urlType = configManager.isPublicAccessEnabled() 
+                    ? StorageUrlGenerator.UrlType.PUBLIC 
+                    : StorageUrlGenerator.UrlType.SIGNED;
             
-            /* 
-            // Original presigned URL implementation - commented out for development
-            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(key)
-                    .build();
-
-            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                    .getObjectRequest(getObjectRequest)
-                    .signatureDuration(Duration.ofSeconds(expirationSeconds > 0 ? expirationSeconds : defaultExpirationSeconds))
-                    .build();
-
-            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
-            URL generatedUrl = presignedRequest.url();
-            String originalUrlString = generatedUrl.toString();
+            final String url = urlGenerator.generateUrl(key, urlType, expirationSeconds);
+            log.info("Generated {} URL: {}", urlType.name().toLowerCase(), url);
+            return url;
             
-            log.info("S3StorageService: Original presigned URL: {}", originalUrlString);
-            log.info("S3StorageService: Host: {}, Path: {}, Port: {}", 
-                    generatedUrl.getHost(), generatedUrl.getPath(), generatedUrl.getPort());
-
-            // Apply workaround for MinIO URLs to fix both hostname and bucket path
-            String host = generatedUrl.getHost();
-            String path = generatedUrl.getPath();
-            
-            // Check if this is a MinIO URL (localhost, 127.0.0.1, or Docker internal hostname)
-            boolean isMinioUrl = "localhost".equals(host) || "127.0.0.1".equals(host) || 
-                               host.contains("minio") || host.endsWith(".minio");
-            
-            if (isMinioUrl) {
-                boolean needsHostFix = !("localhost".equals(host) || "127.0.0.1".equals(host));
-                boolean needsPathFix = !path.startsWith("/" + bucketName + "/");
-                
-                if (needsHostFix || needsPathFix) {
-                    log.warn("S3StorageService: Fixing MinIO URL - Host fix needed: {}, Path fix needed: {}", 
-                            needsHostFix, needsPathFix);
-                    
-                    // Fix hostname to localhost for external access
-                    String newHost = needsHostFix ? "localhost" : host;
-                    
-                    // Fix path to include bucket name
-                    String newPath = needsPathFix ? "/" + bucketName + path : path;
-                    
-                    String query = generatedUrl.getQuery();
-                    
-                    String fixedUrlString = generatedUrl.getProtocol() + "://" + newHost + 
-                                (generatedUrl.getPort() != -1 ? ":" + generatedUrl.getPort() : "") +
-                                newPath + 
-                                (query != null ? "?" + query : "");
-                    
-                    log.info("S3StorageService: Fixed presigned URL: {}", fixedUrlString);
-                    return fixedUrlString;
-                } else {
-                    log.info("S3StorageService: MinIO URL is already correct, no fix needed");
-                }
-            }
-
-            return originalUrlString;
-            */
-
         } catch (Exception e) {
-            throw new StorageException("Failed to generate URL for: " + key, e);
+            throw new StorageException("Failed to generate URL for key: " + key, e);
+        }
+    }
+
+    /**
+     * Generate a CDN URL for the file if CDN is configured.
+     * 
+     * @param key The storage key (must not be null or empty)
+     * @return CDN URL or fallback to public URL
+     * @throws StorageException if key is invalid or URL generation fails
+     */
+    public String getCdnUrl(String key) {
+        if (!StringUtils.hasText(key)) {
+            throw new StorageException("Storage key cannot be null or empty");
+        }
+        
+        try {
+            final String url = urlGenerator.generateUrl(key, StorageUrlGenerator.UrlType.CDN, 0);
+            log.debug("Generated CDN URL for key: {} -> {}", key, url);
+            return url;
+        } catch (Exception e) {
+            throw new StorageException("Failed to generate CDN URL for key: " + key, e);
+        }
+    }
+
+    /**
+     * Generate a public URL for direct access (no expiration).
+     * 
+     * @param key The storage key (must not be null or empty)
+     * @return Public URL
+     * @throws StorageException if key is invalid or URL generation fails
+     */
+    public String getPublicUrl(String key) {
+        if (!StringUtils.hasText(key)) {
+            throw new StorageException("Storage key cannot be null or empty");
+        }
+        
+        try {
+            final String url = urlGenerator.generateUrl(key, StorageUrlGenerator.UrlType.PUBLIC, 0);
+            log.debug("Generated public URL for key: {} -> {}", key, url);
+            return url;
+        } catch (Exception e) {
+            throw new StorageException("Failed to generate public URL for key: " + key, e);
         }
     }
 }
