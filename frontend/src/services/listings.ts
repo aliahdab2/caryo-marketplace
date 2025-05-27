@@ -215,6 +215,19 @@ export async function getListings(filters: ListingFilters = {}): Promise<{ listi
   }
 }
 
+// Get featured listings for homepage (first 3 listings)
+export async function getFeaturedListings(): Promise<Listing[]> {
+  try {
+    // Use the simple listings endpoint directly
+    const response = await api.get<ListingApiResponse>(`/api/listings?size=3&page=0`);
+    const { listings } = mapApiResponseToListings(response);
+    return listings;
+  } catch (error) {
+    console.error('[Featured Listings] Error fetching featured listings:', error);
+    return [];
+  }
+}
+
 export async function getListingById(id: string | number): Promise<Listing> {
   try {
     const response = await api.get<ApiListingItem>(`/api/listings/${id}`);

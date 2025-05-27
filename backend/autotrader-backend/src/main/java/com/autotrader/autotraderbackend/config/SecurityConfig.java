@@ -44,6 +44,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/test/admin").hasRole("ADMIN")
                 .requestMatchers("/api/test/user").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/api/test/public").permitAll()
+                .requestMatchers("/api/test/update-sample-images").permitAll() // For testing sample images
                 // Publicly accessible GET requests
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/locations/**").permitAll()
                 // Allow authentication endpoints without authentication

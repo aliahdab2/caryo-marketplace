@@ -2,44 +2,31 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
 import HomeSearchBar from "@/components/search/HomeSearchBar";
+import { getFeaturedListings } from "@/services/listings";
+import { Listing } from "@/types/listings";
 
 export default function Home() {
   const { t } = useTranslation('common');
-  
-  // Example featured car data (this would come from an API in a real app)
-  const featuredCars = [
-    {
-      id: 1,
-      title: "2023 Mercedes-Benz C-Class",
-      price: "$59,900",
-      image: "/images/logo.png", // Using logo as placeholder, would be actual car image
-      location: "Dubai",
-      mileage: "5,000 km",
-      fuelType: "Petrol",
-      transmission: "Automatic",
-    },
-    {
-      id: 2,
-      title: "2022 BMW 5 Series",
-      price: "$48,500",
-      image: "/images/logo.png", // Using logo as placeholder, would be actual car image
-      location: "Abu Dhabi",
-      mileage: "12,000 km",
-      fuelType: "Petrol",
-      transmission: "Automatic",
-    },
-    {
-      id: 3,
-      title: "2023 Audi Q7",
-      price: "$62,000",
-      image: "/images/logo.png", // Using logo as placeholder, would be actual car image
-      location: "Sharjah",
-      mileage: "3,500 km",
-      fuelType: "Petrol",
-      transmission: "Automatic",
-    },
-  ];
+  const [featuredCars, setFeaturedCars] = useState<Listing[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadFeaturedCars = async () => {
+      try {
+        const listings = await getFeaturedListings();
+        setFeaturedCars(listings);
+      } catch (error) {
+        console.error('Error loading featured cars:', error);
+        // Keep empty array as fallback
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadFeaturedCars();
+  }, []);
 
   return (
     <div className="w-full">
@@ -98,113 +85,142 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredCars.map((car) => (
-            <div
-              key={car.id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-            >
-              <div className="relative h-48">
-                <Image
-                  src={car.image}
-                  alt={car.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="p-5">
-                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
-                  {car.title}
-                </h3>
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4">
-                  {car.price}
-                </p>
-                <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-300">
-                  <div className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                    {car.location}
-                  </div>
-                  <div className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                      />
-                    </svg>
-                    {car.mileage}
-                  </div>
-                  <div className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    {car.fuelType}
-                  </div>
-                  <div className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                    {car.transmission}
+          {isLoading ? (
+            // Loading skeleton
+            Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={index}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden animate-pulse"
+              >
+                <div className="h-48 bg-gray-300 dark:bg-gray-600"></div>
+                <div className="p-5">
+                  <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded mb-2"></div>
+                  <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded mb-4"></div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
                   </div>
                 </div>
-                <div className="mt-4">
-                  <Link
-                    href={`/listings/${car.id}`}
-                    className="w-full block text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-300"
-                  >
-                    {t('common.viewDetails')}
-                  </Link>
+              </div>
+            ))
+          ) : featuredCars.length > 0 ? (
+            featuredCars.map((car) => (
+              <div
+                key={car.id}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+              >
+                <div className="relative h-48">
+                  <Image
+                    src={car.image || car.media?.[0]?.url || "/images/logo.png"}
+                    alt={car.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="p-5">
+                  <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
+                    {car.title}
+                  </h3>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4">
+                    ${car.price.toLocaleString()}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-300">
+                    <div className="flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                      {car.location?.city || car.governorate?.nameEn || "Unknown"}
+                    </div>
+                    <div className="flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                      </svg>
+                      {car.mileage.toLocaleString()} km
+                    </div>
+                    <div className="flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      {car.fuelType || "N/A"}
+                    </div>
+                    <div className="flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                      {car.transmission || "N/A"}
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <Link
+                      href={`/listings/${car.id}`}
+                      className="w-full block text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-300"
+                    >
+                      {t('common.viewDetails')}
+                    </Link>
+                  </div>
                 </div>
               </div>
+            ))
+          ) : (
+            // No data state
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-500 dark:text-gray-400">
+                No featured cars available at the moment.
+              </p>
             </div>
-          ))}
+          )}
         </div>
       </section>
 
