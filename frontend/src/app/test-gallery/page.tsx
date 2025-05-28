@@ -58,16 +58,44 @@ const TestGalleryPage: React.FC = () => {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Car Media Gallery Test Page</h1>
-      <div className="max-w-2xl mx-auto">
-        <CarMediaGallery media={sampleMedia} />
+      
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Gallery with Images and Videos</h2>
+          <div className="max-w-2xl mx-auto">
+            <CarMediaGallery media={sampleMedia} />
+          </div>
+        </div>
+        
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Gallery with Only Images (No Video Section)</h2>
+          <div className="max-w-2xl mx-auto">
+            <CarMediaGallery 
+              media={sampleMedia.filter(item => item.type === 'image')} 
+              initialIndex={0} 
+            />
+          </div>
+        </div>
+        
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Gallery with Only Videos (No Main Slider)</h2>
+          <div className="max-w-2xl mx-auto">
+            <CarMediaGallery 
+              media={sampleMedia.filter(item => item.type === 'video')} 
+              initialIndex={0} 
+            />
+          </div>
+        </div>
       </div>
+      
       <div className="mt-8 p-4 border rounded bg-gray-50">
         <h2 className="text-lg font-semibold mb-2">Notes:</h2>
-        <ul className="list-disc list-inside">
-          <li>This page is for testing the <code>CarMediaGallery</code> component.</li>
-          <li>Make sure you have sample images in your <code>public/images/stock/</code> directory.</li>
-          <li>The images used here are placeholders (e.g., <code>/images/stock/car-1.jpg</code>). You might need to add your own images to this path or update the URLs.</li>
-          <li>The gallery supports images and YouTube videos.</li>
+        <ul className="list-disc list-inside space-y-1">
+          <li>This page demonstrates different scenarios of the <code>CarMediaGallery</code> component.</li>
+          <li>The first gallery shows the normal use case with both images and videos.</li>
+          <li>The second gallery shows only images (video section should not appear).</li>
+          <li>The third gallery shows only videos (main slider should show &quot;No images available&quot;).</li>
+          <li>Videos open in a separate modal when clicked, images open in a swipeable lightbox.</li>
         </ul>
       </div>
     </div>

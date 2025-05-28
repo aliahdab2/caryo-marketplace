@@ -10,10 +10,10 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...compat.config({ extends: ["next/core-web-vitals", "next/typescript"] }),
 
   {
-    ignores: [".next/**"], // Ignore the .next directory
+    ignores: [".next/**", "__mocks__/**"], // Ignore the .next and __mocks__ directories
     rules: {
       "@typescript-eslint/no-explicit-any": "error",             // ❌ Prevent using `any`
       "@typescript-eslint/no-unused-vars": ["error", {           // ❌ No unused vars unless start with _

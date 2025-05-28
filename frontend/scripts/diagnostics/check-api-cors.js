@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-/* eslint-disable no-console */
+ 
 
 /**
  * CORS and API Check Script

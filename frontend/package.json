@@ -16,8 +16,10 @@
   "dependencies": {
     "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",
+    "@rushstack/eslint-patch": "^1.11.0",
     "axios": "^1.9.0",
     "cookies-next": "^5.1.0",
+    "eslint-config-next": "^15.3.2",
     "i18next": "^25.1.2",
     "i18next-browser-languagedetector": "^8.1.0",
     "keen-slider": "^6.8.6",
@@ -45,7 +47,6 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^9",
-    "eslint-config-next": "15.3.2",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.0",
     "husky": "^9.1.7",

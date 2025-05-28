@@ -7,7 +7,6 @@ import { CarMedia } from '../types';
 // Mock Next.js Image component
 jest.mock('next/image', () => {
   // Mock component has to use an img element, which is ok for tests
-  // @ts-expect-error - this is a mock
   return function MockNextImage({
     _src,
     alt,
@@ -52,7 +51,7 @@ jest.mock('next/image', () => {
 
 // Mock keen-slider hooks
 jest.mock('keen-slider/react', () => ({
-  useKeenSlider: () => {
+  useKeenSlider: (config?: { created?: (instance: unknown) => void }) => {
     const mockSliderRef = jest.fn();
     const mockInstanceRef = {
       current: {
@@ -62,6 +61,12 @@ jest.mock('keen-slider/react', () => ({
         track: { details: { rel: 0 } },
       },
     };
+    
+    // Simulate the created callback being called
+    if (config && config.created) {
+      setTimeout(() => config.created && config.created(mockInstanceRef.current), 0);
+    }
+    
     return [
       mockSliderRef, // ref callback
       mockInstanceRef, // instanceRef
@@ -193,14 +198,16 @@ describe('CarMediaGallery', () => {
     const sliderContainer = screen.getByText('Car front view').closest('.keen-slider');
     expect(sliderContainer).toBeInTheDocument();
     
-    // Verify all media items are rendered
+    // Verify only image items are rendered in the main slider (not videos)
     expect(screen.getByText('Car front view')).toBeInTheDocument();
     expect(screen.getByText('Car interior')).toBeInTheDocument();
+    // Video should be in separate section, not in main slider
     expect(screen.getByText('Car video tour')).toBeInTheDocument();
     
-    // Navigation is handled by keen-slider, so we just verify the slides exist
+    // Navigation is handled by keen-slider, so we just verify the image slides exist
     const slides = sliderContainer?.querySelectorAll('.keen-slider__slide');
-    expect(slides?.length).toBe(sampleMedia.length);
+    // Should only have 2 slides (images only), not 3 (since video is separate)
+    expect(slides?.length).toBe(2);
   });
 
   it('opens the modal when clicking on the main image', () => {
@@ -219,13 +226,13 @@ describe('CarMediaGallery', () => {
     fireEvent.click(closeButton);
   });
 
-  it('displays photo counter when there are multiple media items', () => {
+  it('displays photo counter when there are multiple media items', async () => {
     render(<CarMediaGallery media={sampleMedia} />);
     
-    // Verify the photo counter is displayed
-    const photoCounter = screen.getByText('1 of 3');
+    // Wait for the photo counter to appear (after the created callback is called)
+    const photoCounter = await screen.findByText('1 of 2');
     expect(photoCounter).toBeInTheDocument();
-    expect(photoCounter).toHaveClass('absolute', 'top-3', 'right-3');
+    expect(photoCounter).toHaveClass('absolute', 'bottom-2', 'right-2');
   });
 
   it('does not display photo counter when there is only one media item', () => {
