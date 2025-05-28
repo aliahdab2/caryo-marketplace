@@ -14,10 +14,13 @@
     "diagnose": "node ./scripts/diagnostics/simple-diagnostics.js"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.4",
+    "@heroicons/react": "^2.2.0",
     "axios": "^1.9.0",
     "cookies-next": "^5.1.0",
     "i18next": "^25.1.2",
     "i18next-browser-languagedetector": "^8.1.0",
+    "keen-slider": "^6.8.6",
     "next": "15.3.2",
     "next-auth": "^4.24.11",
     "next-i18next": "^15.4.2",

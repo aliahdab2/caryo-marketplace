@@ -259,7 +259,7 @@ export default function DashboardLayout({
           <ul className="space-y-2">
             {/* Main Navigation */}
             {sidebarItems.map((item) => {
-              const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+              const isActive = !!(pathname && (pathname === item.href || pathname.startsWith(item.href + '/')));
               return (
                 <SidebarItem 
                   key={item.href}
@@ -277,9 +277,9 @@ export default function DashboardLayout({
               </h2>
               <ul className="space-y-1">
                 {quickActionItems.map(item => {
-                  const isActive = pathname === item.href;
+                  const isActive = !!(pathname && pathname === item.href);
                   return (
-                    <SidebarItem
+                    <SidebarItem 
                       key={item.href}
                       item={item}
                       isActive={isActive}
@@ -330,7 +330,7 @@ export default function DashboardLayout({
             aria-label={t('dashboard.mainNavigation')}>
           <ul className="space-y-1.5">
             {sidebarItems.map((item) => {
-              const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+              const isActive = !!(pathname && (pathname === item.href || pathname.startsWith(item.href + '/')));
               return (
                 <SidebarItem 
                   key={item.href}

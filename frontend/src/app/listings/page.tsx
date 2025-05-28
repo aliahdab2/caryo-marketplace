@@ -34,26 +34,26 @@ const ListingsPage = () => {
   const { t, i18n } = useTranslation(['common']);
   const searchParams = useSearchParams();
   const router = useRouter();
-  const categoryQuery = searchParams.get('category');
+  const categoryQuery = searchParams?.get('category') ?? null;
 
   const initialFilters: Filters = {
-    page: parseInt(searchParams.get('page') || '1', 10),
-    limit: parseInt(searchParams.get('limit') || '12', 10),
-    search: searchParams.get('search') || undefined,
-    category: searchParams.get('category') || undefined,
-    minPrice: searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : undefined,
-    maxPrice: searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined,
-    condition: searchParams.get('condition') || undefined,
-    sortBy: searchParams.get('sortBy') || 'createdAt', // Default sortBy
-    sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc', // Default sortOrder
-    minYear: searchParams.get('minYear') ? parseInt(searchParams.get('minYear')!, 10) : undefined,
-    maxYear: searchParams.get('maxYear') ? parseInt(searchParams.get('maxYear')!, 10) : undefined,
-    location: searchParams.get('location') || undefined,
+    page: parseInt(searchParams?.get('page') || '1', 10),
+    limit: parseInt(searchParams?.get('limit') || '12', 10),
+    search: searchParams?.get('search') || undefined,
+    category: searchParams?.get('category') || undefined,
+    minPrice: searchParams?.get('minPrice') ? parseFloat(searchParams?.get('minPrice') || '') : undefined,
+    maxPrice: searchParams?.get('maxPrice') ? parseFloat(searchParams?.get('maxPrice') || '') : undefined,
+    condition: searchParams?.get('condition') || undefined,
+    sortBy: searchParams?.get('sortBy') || 'createdAt', // Default sortBy
+    sortOrder: (searchParams?.get('sortOrder') as 'asc' | 'desc') || 'desc', // Default sortOrder
+    minYear: searchParams?.get('minYear') ? parseInt(searchParams?.get('minYear') || '', 10) : undefined,
+    maxYear: searchParams?.get('maxYear') ? parseInt(searchParams?.get('maxYear') || '', 10) : undefined,
+    location: searchParams?.get('location') || undefined,
   };
 
   // Add these for the API
-  const make = searchParams.get('brand') || undefined;
-  const model = searchParams.get('model') || undefined;
+  const make = searchParams?.get('brand') || undefined;
+  const model = searchParams?.get('model') || undefined;
   if (make) initialFilters.brand = make;
   if (model) initialFilters.model = model;
 

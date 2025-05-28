@@ -12,7 +12,8 @@ export default function ListingDetailPage() {
   const { t, i18n } = useTranslation('common');
   const params = useParams();
   const router = useRouter();
-  const { id } = params;
+  // Safely extract id from params
+  const id = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params?.id[0] : undefined;
   
   const [loading, setLoading] = useState(true);
   const [listing, setListing] = useState<Listing | null>(null);

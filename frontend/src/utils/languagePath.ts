@@ -122,6 +122,6 @@ export function useLanguagePath(config: Partial<LanguagePathConfig> = {}) {
   
   return {
     getLocalizedUrl,
-    currentLanguagePath: getPathWithLanguage(pathname, locale),
+    currentLanguagePath: getPathWithLanguage(pathname ?? '', locale ?? ''),
   };
 }
