@@ -15,6 +15,8 @@ import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, PlayIcon } from '@heroico
 /**
  * A Blocket-inspired responsive gallery for displaying car images and videos
  * with swipe navigation in both main view and modal
+ *
+ * Test link: http://localhost:3001/test-gallery
  */
 const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
   media,
