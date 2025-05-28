@@ -19,18 +19,29 @@ import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, PlayIcon } from '@heroico
 const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
   media,
   initialIndex = 0,
-  showThumbnails = true,
   className = '',
 }) => {
   // State management
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(initialIndex);
+  const [modalSlide, setModalSlide] = useState(initialIndex);
   const [loaded, setLoaded] = useState(false);
   
   // Initialize the gallery slider with keen-slider
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
     initial: initialIndex,
     loop: true,
+    slides: {
+      perView: 1,
+      spacing: 0,
+    },
+    drag: true,
+    dragSpeed: 0.8,
+    mode: "snap",
+    rubberband: true,
+    defaultAnimation: {
+      duration: 0, // No animation duration for instant transitions
+    },
     slideChanged(slider) {
       setCurrentSlide(slider.track.details.rel);
     },
@@ -41,18 +52,34 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
 
   // Initialize the modal slider with keen-slider
   const [modalSliderRef, modalInstanceRef] = useKeenSlider<HTMLDivElement>({
-    initial: currentSlide,
+    initial: 0, // Always start at 0
     loop: true,
+    defaultAnimation: {
+      duration: 0, // No animation duration for instant transitions
+    },
     slideChanged(slider) {
-      setCurrentSlide(slider.track.details.rel);
+      setModalSlide(slider.track.details.rel);
     },
     drag: true,
+    created(slider) {
+      // When modal slider is created and modal is open, move to current slide
+      if (isModalOpen) {
+        slider.moveToIdx(currentSlide, true);
+        setModalSlide(currentSlide);
+      }
+    },
   });
 
-  // Synchronize the modal slider with the main slider
+  // Synchronize the modal slider when modal opens
   useEffect(() => {
     if (isModalOpen && modalInstanceRef.current) {
-      modalInstanceRef.current.moveToIdx(currentSlide);
+      // Use requestAnimationFrame to ensure the slider is fully initialized
+      requestAnimationFrame(() => {
+        if (modalInstanceRef.current) {
+          modalInstanceRef.current.moveToIdx(currentSlide, true);
+          setModalSlide(currentSlide);
+        }
+      });
     }
   }, [isModalOpen, currentSlide, modalInstanceRef]);
 
@@ -113,8 +140,9 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
             alt={item.alt}
             width={item.width || 800}
             height={item.height || 600}
-            className="w-full h-full object-contain"
+            className="w-full h-full object-contain select-none"
             priority={!inModal && media.indexOf(item) === 0}
+            draggable={false}
           />
         </div>
       );
@@ -145,15 +173,16 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
       } else {
         // Video thumbnail in the main gallery
         return (
-          <div className={`${containerClass} relative group`}>
+          <div className={`${containerClass} relative group select-none`}>
             <Image
               src={item.thumbnailUrl || ''}
               alt={item.alt}
               width={item.width || 800}
               height={item.height || 600}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover select-none"
+              draggable={false}
             />
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="bg-black bg-opacity-50 rounded-full p-3 text-white group-hover:bg-opacity-70 transition-opacity">
                 <PlayIcon className="w-10 h-10" />
               </div>
@@ -166,40 +195,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
     return null;
   };
 
-  // Render thumbnail items
-  const renderThumbnails = () => {
-    if (!showThumbnails || !media || media.length <= 1) return null;
 
-    return (
-      <div className="flex space-x-2 mt-2 overflow-x-auto pb-2">
-        {media.map((item, index) => (
-          <button
-            key={`thumb-${index}`}
-            onClick={() => {
-              instanceRef.current?.moveToIdx(index);
-            }}
-            className={`relative flex-shrink-0 w-16 h-16 rounded-md overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              currentSlide === index ? 'ring-2 ring-blue-500' : ''
-            }`}
-            aria-label={`View ${item.alt}`}
-          >
-            <Image
-              src={item.type === 'video' ? (item.thumbnailUrl || '') : item.url}
-              alt={`Thumbnail for ${item.alt}`}
-              width={64}
-              height={64}
-              className="w-full h-full object-cover"
-            />
-            {item.type === 'video' && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <PlayIcon className="w-6 h-6 text-white" />
-              </div>
-            )}
-          </button>
-        ))}
-      </div>
-    );
-  };
 
   // Check if media is available
   if (!media || media.length === 0) {
@@ -215,9 +211,14 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
     <div className={`car-media-gallery ${className}`}>
       {/* Main gallery slider */}
       <div className="relative h-80 md:h-96 lg:h-[500px] bg-gray-100 rounded-lg overflow-hidden">
-        <div ref={sliderRef} className="keen-slider h-full cursor-pointer" onClick={() => setIsModalOpen(true)}>
+        <div 
+          ref={sliderRef} 
+          className="keen-slider h-full cursor-pointer" 
+          onClick={() => setIsModalOpen(true)}
+          style={{ touchAction: 'pan-x' }}
+        >
           {media.map((item, idx) => (
-            <div key={`slide-${idx}`} className="keen-slider__slide">
+            <div key={`slide-${idx}`} className="keen-slider__slide" style={{ userSelect: 'none' }}>
               {renderMediaContent(item)}
             </div>
           ))}
@@ -231,7 +232,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                 e.stopPropagation();
                 instanceRef.current?.prev();
               }}
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 p-1.5 bg-black bg-opacity-40 rounded-full text-white hover:bg-opacity-60 transition-opacity"
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 p-1.5 bg-black bg-opacity-20 rounded-full text-white hover:bg-opacity-40 transition-opacity"
               aria-label="Previous image"
             >
               <ChevronLeftIcon className="w-5 h-5" />
@@ -242,7 +243,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                 e.stopPropagation();
                 instanceRef.current?.next();
               }}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 p-1.5 bg-black bg-opacity-40 rounded-full text-white hover:bg-opacity-60 transition-opacity"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 p-1.5 bg-black bg-opacity-20 rounded-full text-white hover:bg-opacity-40 transition-opacity"
               aria-label="Next image"
             >
               <ChevronRightIcon className="w-5 h-5" />
@@ -250,30 +251,13 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
           </>
         )}
         
-        {/* Position indicators (dots) - shown when thumbnails are disabled */}
-        {!showThumbnails && loaded && instanceRef.current && media.length > 1 && (
-          <div className="absolute bottom-3 left-0 right-0 flex justify-center">
-            <div className="flex space-x-2">
-              {[...Array(media.length)].map((_, idx) => (
-                <button
-                  key={`dot-${idx}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    instanceRef.current?.moveToIdx(idx);
-                  }}
-                  className={`w-2 h-2 rounded-full ${
-                    idx === currentSlide ? 'bg-white' : 'bg-white bg-opacity-50'
-                  }`}
-                  aria-label={`Go to image ${idx + 1}`}
-                />
-              ))}
-            </div>
+        {/* Photo counter overlay */}
+        {loaded && media.length > 1 && (
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10 px-2 py-1 bg-black bg-opacity-20 rounded-md text-white text-sm font-medium">
+            {currentSlide + 1} of {media.length}
           </div>
         )}
       </div>
-
-      {/* Thumbnails */}
-      {renderThumbnails()}
 
       {/* Modal/Lightbox with keen-slider */}
       {isModalOpen && (
@@ -284,7 +268,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
         >
           <div className="fixed inset-0 bg-black bg-opacity-95" aria-hidden="true" />
           
-          <div className="fixed inset-0 flex items-center justify-center p-4">
+          <div className="fixed inset-0 flex items-center justify-center">
             <div className="relative w-full h-full max-w-none bg-black">
               {/* Close button */}
               <button
@@ -294,6 +278,13 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
               >
                 <XMarkIcon className="w-7 h-7" />
               </button>
+
+              {/* Photo counter in modal */}
+              {media.length > 1 && (
+                <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-30 px-3 py-2 bg-black bg-opacity-20 rounded-md text-white text-lg font-medium">
+                  {modalSlide + 1} of {media.length}
+                </div>
+              )}
 
               {/* Media content with keen-slider */}
               <div className="h-full">
@@ -310,7 +301,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                   <>
                     <button
                       onClick={() => modalInstanceRef.current?.prev()}
-                      className="absolute left-6 top-1/2 transform -translate-y-1/2 z-30 p-3 bg-black bg-opacity-60 rounded-full text-white hover:bg-opacity-80 transition-all duration-200"
+                      className="absolute left-6 top-1/2 transform -translate-y-1/2 z-30 p-3 bg-black bg-opacity-20 rounded-full text-white hover:bg-opacity-40 transition-all duration-200"
                       aria-label="Previous image"
                     >
                       <ChevronLeftIcon className="w-7 h-7" />
@@ -318,7 +309,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
 
                     <button
                       onClick={() => modalInstanceRef.current?.next()}
-                      className="absolute right-6 top-1/2 transform -translate-y-1/2 z-30 p-3 bg-black bg-opacity-60 rounded-full text-white hover:bg-opacity-80 transition-all duration-200"
+                      className="absolute right-6 top-1/2 transform -translate-y-1/2 z-30 p-3 bg-black bg-opacity-20 rounded-full text-white hover:bg-opacity-40 transition-all duration-200"
                       aria-label="Next image"
                     >
                       <ChevronRightIcon className="w-7 h-7" />
@@ -326,55 +317,6 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                   </>
                 )}
               </div>
-
-              {/* Thumbnails in modal */}
-              {showThumbnails && media.length > 1 && (
-                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30">
-                  <div className="flex space-x-2 bg-black bg-opacity-60 rounded-lg p-3">
-                    {media.map((item, index) => (
-                      <button
-                        key={`modal-thumb-${index}`}
-                        onClick={() => modalInstanceRef.current?.moveToIdx(index)}
-                        className={`relative w-16 h-12 rounded-md overflow-hidden focus:outline-none transition-all duration-200 ${
-                          currentSlide === index ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'
-                        }`}
-                        aria-label={`View ${item.alt}`}
-                      >
-                        <Image
-                          src={item.type === 'video' ? (item.thumbnailUrl || '') : item.url}
-                          alt={`Thumbnail for ${item.alt}`}
-                          width={64}
-                          height={48}
-                          className="w-full h-full object-cover"
-                        />
-                        {item.type === 'video' && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <PlayIcon className="w-4 h-4 text-white drop-shadow-lg" />
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Position indicators in modal (dots) - shown when thumbnails are disabled */}
-              {!showThumbnails && media.length > 1 && (
-                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30">
-                  <div className="flex space-x-3 bg-black bg-opacity-60 rounded-lg p-3">
-                    {[...Array(media.length)].map((_, idx) => (
-                      <button
-                        key={`modal-dot-${idx}`}
-                        onClick={() => modalInstanceRef.current?.moveToIdx(idx)}
-                        className={`w-3 h-3 rounded-full ${
-                          idx === currentSlide ? 'bg-white' : 'bg-white bg-opacity-50'
-                        }`}
-                        aria-label={`Go to image ${idx + 1}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </Dialog>

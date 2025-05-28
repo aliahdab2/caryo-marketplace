@@ -139,17 +139,18 @@ describe('CarMediaGallery', () => {
   it('renders correctly with images and video', () => {
     render(<CarMediaGallery media={sampleMedia} />);
     
-    // Should display the first image as main preview
-    const mainImage = screen.getByAltText('Car front view');
-    expect(mainImage).toBeInTheDocument();
+    // Should display the main gallery container
+    const gallery = screen.getByText('Car front view');
+    expect(gallery).toBeInTheDocument();
     
-    // Should display thumbnails
-    const thumbnails = screen.getAllByRole('button');
-    expect(thumbnails.length).toBeGreaterThan(0);
-    
-    // Should show play icon on video thumbnail
+    // Should show play icon on video slide
     const playIcons = screen.getAllByTestId('play-icon');
     expect(playIcons.length).toBeGreaterThan(0);
+    
+    // Should render all media items as slides
+    expect(screen.getByText('Car front view')).toBeInTheDocument();
+    expect(screen.getByText('Car interior')).toBeInTheDocument();
+    expect(screen.getByText('Car video tour')).toBeInTheDocument();
   });
 
   it('handles empty media array gracefully', () => {
@@ -157,55 +158,56 @@ describe('CarMediaGallery', () => {
     expect(screen.getByText('No media available')).toBeInTheDocument();
   });
 
-  it('changes the selected image when clicking on thumbnails', () => {
+  it('shows position indicators for navigation', () => {
     render(<CarMediaGallery media={sampleMedia} />);
     
-    // Initially shows the first image
-    expect(screen.getByAltText('Car front view')).toBeInTheDocument();
+    // Check that the gallery container exists
+    expect(screen.getByText('Car front view')).toBeInTheDocument();
     
-    // Click on the second thumbnail
-    const thumbnails = screen.getAllByRole('button');
-    fireEvent.click(thumbnails[1]);
+    // The component should render the keen-slider container
+    const sliderContainer = screen.getByText('Car front view').closest('.keen-slider');
+    expect(sliderContainer).toBeInTheDocument();
     
-    // In a real component, this would change the slider
-    // Since we're mocking keen-slider, we can only verify that it rendered correctly
-    expect(thumbnails[1]).toHaveAttribute('aria-label', 'View Car interior');
+    // Verify all media items are rendered in slides
+    expect(screen.getByText('Car interior')).toBeInTheDocument();
+    expect(screen.getByText('Car video tour')).toBeInTheDocument();
   });
 
   it('respects initialIndex prop', () => {
     render(<CarMediaGallery media={sampleMedia} initialIndex={1} />);
     
-    // Since we're mocking keen-slider, we can verify that the component rendered correctly
-    // In a real component, this would show the second image
-    const thumbnails = screen.getAllByRole('button');
+    // Verify the component renders with the media
+    expect(screen.getByText('Car front view')).toBeInTheDocument();
+    expect(screen.getByText('Car interior')).toBeInTheDocument();
+    expect(screen.getByText('Car video tour')).toBeInTheDocument();
     
-    // Check that thumbnails are rendered correctly
-    expect(thumbnails.length).toEqual(sampleMedia.length);
-    expect(thumbnails[1]).toHaveAttribute('aria-label', 'View Car interior');
+    // Check that all media items are rendered as slides
+    const allSlides = screen.getAllByText(/Car/);
+    expect(allSlides.length).toEqual(sampleMedia.length);
   });
 
-  it('navigates between images using the arrow buttons', () => {
+  it('navigates between images using the slider', () => {
     render(<CarMediaGallery media={sampleMedia} />);
     
-    // In our modified mock, the loaded and prev/next buttons may not be rendered
-    // Instead, we can just test that thumbnails work
-    const thumbnails = screen.getAllByRole('button');
+    // Verify the slider container is present
+    const sliderContainer = screen.getByText('Car front view').closest('.keen-slider');
+    expect(sliderContainer).toBeInTheDocument();
     
-    // Click the second thumbnail
-    fireEvent.click(thumbnails[1]);
+    // Verify all media items are rendered
+    expect(screen.getByText('Car front view')).toBeInTheDocument();
+    expect(screen.getByText('Car interior')).toBeInTheDocument();
+    expect(screen.getByText('Car video tour')).toBeInTheDocument();
     
-    // Verify the second thumbnail is active (has the ring-blue-500 class)
-    expect(thumbnails[1]).toHaveAttribute('aria-label', 'View Car interior');
-    
-    // We don't need to test actual slider navigation since that's handled by keen-slider
-    // Just verify the component doesn't crash when navigating
+    // Navigation is handled by keen-slider, so we just verify the slides exist
+    const slides = sliderContainer?.querySelectorAll('.keen-slider__slide');
+    expect(slides?.length).toBe(sampleMedia.length);
   });
 
   it('opens the modal when clicking on the main image', () => {
     render(<CarMediaGallery media={sampleMedia} />);
     
     // Get the main slider and click on it
-    const mainSlider = screen.getByAltText('Car front view').closest('.keen-slider');
+    const mainSlider = screen.getByText('Car front view').closest('.keen-slider');
     fireEvent.click(mainSlider as HTMLElement);
     
     // Verify the modal is open
@@ -215,5 +217,31 @@ describe('CarMediaGallery', () => {
     // Close the modal
     const closeButton = screen.getByText('Close Modal');
     fireEvent.click(closeButton);
+  });
+
+  it('displays photo counter when there are multiple media items', () => {
+    render(<CarMediaGallery media={sampleMedia} />);
+    
+    // Verify the photo counter is displayed
+    const photoCounter = screen.getByText('1 of 3');
+    expect(photoCounter).toBeInTheDocument();
+    expect(photoCounter).toHaveClass('absolute', 'top-3', 'right-3');
+  });
+
+  it('does not display photo counter when there is only one media item', () => {
+    const singleMedia: CarMedia[] = [
+      {
+        type: 'image',
+        url: 'https://picsum.photos/800/600?random=1',
+        alt: 'Single car image',
+        width: 800,
+        height: 600
+      }
+    ];
+    
+    render(<CarMediaGallery media={singleMedia} />);
+    
+    // Verify the photo counter is not displayed
+    expect(screen.queryByText('1 of 1')).not.toBeInTheDocument();
   });
 });

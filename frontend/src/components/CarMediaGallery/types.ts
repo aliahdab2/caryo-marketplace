@@ -47,9 +47,6 @@ export interface CarMediaGalleryProps {
   /** Index of the media item to show initially (default: 0) */
   initialIndex?: number;
   
-  /** Whether to show thumbnail navigation (default: true) */
-  showThumbnails?: boolean;
-  
   /** Enable swipe gestures on touch devices (default: true) */
   enableSwipe?: boolean;
   
