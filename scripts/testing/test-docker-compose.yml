@@ -6,7 +6,7 @@ version: '3.9'
 services:
   # Mock database service
   db:
-    image: postgres:14-alpine
+    image: postgres:16-alpine
     environment:
       POSTGRES_USER: autotrader
       POSTGRES_PASSWORD: autotrader

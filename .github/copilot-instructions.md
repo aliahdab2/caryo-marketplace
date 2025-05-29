@@ -3,7 +3,7 @@
 ## Project Overview
 Caryo Marketplace is a bilingual (English/Arabic) car marketplace application built with:
 - Backend: Spring Boot 3.2.3 (Java 21)
-- Database: PostgreSQL 14 (dev/prod), H2 (test)
+- Database: PostgreSQL 16 (dev/prod), H2 (test)
 - Frontend: Next.js
 
 ## Key Architectural Decisions
@@ -14,7 +14,7 @@ Caryo Marketplace is a bilingual (English/Arabic) car marketplace application bu
    - Example: `name_en`, `name_ar` for display names
 
 2. **Database Environments**
-   - Development/Production: PostgreSQL 14
+   - Development/Production: PostgreSQL 16
    - Testing: H2 in-memory database
    - Migrations must be compatible with both
 
@@ -28,14 +28,14 @@ Caryo Marketplace is a bilingual (English/Arabic) car marketplace application bu
 
 #### SQL
 ```sql
--- Prefer PostgreSQL 14 compatible syntax
+-- Prefer PostgreSQL 16 compatible syntax
 INSERT INTO table_name (column1, column2) 
 VALUES ('value1', 'value2')
 ON CONFLICT (unique_column) DO UPDATE 
 SET column1 = EXCLUDED.column1,
     column2 = EXCLUDED.column2;
 
--- Not: MERGE statements (PostgreSQL 15+ only)
+-- Prefer: MERGE statements for upserts (PostgreSQL 16 fully supports)
 ```
 
 #### Java/Spring Boot

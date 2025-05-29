@@ -1,11 +1,19 @@
 # Production overrides for docker-compose.yml
 services:
   db:
+    image: postgres:16-alpine
     restart: always
     volumes:
       - postgres_prod_data:/var/lib/postgresql/data
     environment:
+      POSTGRES_DB: autotrader
+      POSTGRES_USER: autotrader
       POSTGRES_PASSWORD: ${DB_PASSWORD:-autotrader}  # Use environment variable or fall back to default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autotrader"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     deploy:
       resources:
         limits:

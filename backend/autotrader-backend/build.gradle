@@ -156,8 +156,8 @@ jacocoTestReport {
 // Configure Flyway
 flyway {
     url = System.getenv("FLYWAY_URL") ?: 'jdbc:postgresql://localhost:5432/autotrader'
-    user = System.getenv("FLYWAY_USER") ?: 'postgres'
-    password = System.getenv("FLYWAY_PASSWORD") ?: 'postgres' // Use environment variable
+    user = System.getenv("FLYWAY_USER") ?: 'autotrader'
+    password = System.getenv("FLYWAY_PASSWORD") ?: 'autotrader' // Use environment variable
     locations = ['filesystem:src/main/resources/db/migration']
     baselineOnMigrate = true
     validateOnMigrate = true
@@ -171,8 +171,8 @@ tasks.register('flywayMigrateDev') {
     doFirst {
         flyway {
             url = System.getenv("FLYWAY_DEV_URL") ?: System.getenv("FLYWAY_URL") ?: 'jdbc:postgresql://localhost:5432/autotrader'
-            user = System.getenv("FLYWAY_DEV_USER") ?: System.getenv("FLYWAY_USER") ?: 'postgres'
-            password = System.getenv("FLYWAY_DEV_PASSWORD") ?: System.getenv("FLYWAY_PASSWORD") ?: 'postgres'
+            user = System.getenv("FLYWAY_DEV_USER") ?: System.getenv("FLYWAY_USER") ?: 'autotrader'
+            password = System.getenv("FLYWAY_DEV_PASSWORD") ?: System.getenv("FLYWAY_PASSWORD") ?: 'autotrader'
             locations = ['filesystem:src/main/resources/db/migration', 'filesystem:src/main/resources/db/dev']
             placeholders = [
                 'environment': 'development'
@@ -188,8 +188,8 @@ tasks.register('flywayMigrateTest') {
     doFirst {
         flyway {
             url = System.getenv("FLYWAY_TEST_URL") ?: 'jdbc:postgresql://localhost:5432/autotrader_test'
-            user = System.getenv("FLYWAY_TEST_USER") ?: System.getenv("FLYWAY_USER") ?: 'postgres'
-            password = System.getenv("FLYWAY_TEST_PASSWORD") ?: System.getenv("FLYWAY_PASSWORD") ?: 'postgres' // Use environment variable
+            user = System.getenv("FLYWAY_TEST_USER") ?: System.getenv("FLYWAY_USER") ?: 'autotrader'
+            password = System.getenv("FLYWAY_TEST_PASSWORD") ?: System.getenv("FLYWAY_PASSWORD") ?: 'autotrader' // Use environment variable
             locations = ['filesystem:src/main/resources/db/migration', 'filesystem:src/main/resources/db/test']
             placeholders = [
                 'environment': 'test'
