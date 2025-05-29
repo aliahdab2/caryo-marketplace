@@ -17,17 +17,28 @@ public class CarListingSpecification {
             List<Predicate> predicates = new ArrayList<>();
 
             // Using denormalized fields for brand and model filtering
+            // Search in both English and Arabic fields for better bilingual support
             if (StringUtils.hasText(filter.getBrand())) {
-                predicates.add(criteriaBuilder.like(
+                Predicate brandEnPredicate = criteriaBuilder.like(
                     criteriaBuilder.lower(root.get("brandNameEn")),
                     "%" + filter.getBrand().toLowerCase() + "%"
-                ));
+                );
+                Predicate brandArPredicate = criteriaBuilder.like(
+                    criteriaBuilder.lower(root.get("brandNameAr")),
+                    "%" + filter.getBrand().toLowerCase() + "%"
+                );
+                predicates.add(criteriaBuilder.or(brandEnPredicate, brandArPredicate));
             }
             if (StringUtils.hasText(filter.getModel())) {
-                predicates.add(criteriaBuilder.like(
+                Predicate modelEnPredicate = criteriaBuilder.like(
                     criteriaBuilder.lower(root.get("modelNameEn")),
                     "%" + filter.getModel().toLowerCase() + "%"
-                ));
+                );
+                Predicate modelArPredicate = criteriaBuilder.like(
+                    criteriaBuilder.lower(root.get("modelNameAr")),
+                    "%" + filter.getModel().toLowerCase() + "%"
+                );
+                predicates.add(criteriaBuilder.or(modelEnPredicate, modelArPredicate));
             }
             if (filter.getMinYear() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("modelYear"), filter.getMinYear()));

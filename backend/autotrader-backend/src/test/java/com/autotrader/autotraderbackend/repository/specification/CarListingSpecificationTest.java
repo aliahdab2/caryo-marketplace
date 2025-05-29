@@ -58,6 +58,7 @@ class CarListingSpecificationTest {
         // Specific interactions will be verified in tests
         lenient().when(criteriaBuilder.like(any(), anyString())).thenReturn(mockPredicate);
         lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(mockPredicate);
+        lenient().when(criteriaBuilder.or(any(Predicate.class), any(Predicate.class))).thenReturn(mockPredicate);
         // These lines cause the warnings, suppressed by annotation on method
         lenient().when(criteriaBuilder.greaterThanOrEqualTo(any(), any(Comparable.class))).thenReturn(mockPredicate);
         lenient().when(criteriaBuilder.lessThanOrEqualTo(any(), any(Comparable.class))).thenReturn(mockPredicate);
@@ -86,8 +87,10 @@ class CarListingSpecificationTest {
 
         spec.toPredicate(root, query, criteriaBuilder);
 
-        verify(criteriaBuilder).lower(eq(root.get("brand"))); // Use eq() for Path
-        verify(criteriaBuilder).like(any(), eq("%toyota%"));
+        // Verify bilingual brand search - should search in both English and Arabic fields
+        verify(criteriaBuilder, times(2)).lower(any()); // Called twice: once for brandNameEn, once for brandNameAr
+        verify(criteriaBuilder, times(2)).like(any(), eq("%toyota%"));
+        verify(criteriaBuilder).or(any(Predicate.class), any(Predicate.class));
 
         // Use ArgumentCaptor for 'and'
         ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
@@ -103,8 +106,10 @@ class CarListingSpecificationTest {
 
         spec.toPredicate(root, query, criteriaBuilder);
 
-        verify(criteriaBuilder).lower(eq(root.get("model"))); // Use eq() for Path
-        verify(criteriaBuilder).like(any(), eq("%camry%"));
+        // Verify bilingual model search - should search in both English and Arabic fields
+        verify(criteriaBuilder, times(2)).lower(any()); // Called twice: once for modelNameEn, once for modelNameAr
+        verify(criteriaBuilder, times(2)).like(any(), eq("%camry%"));
+        verify(criteriaBuilder).or(any(Predicate.class), any(Predicate.class));
 
         // Use ArgumentCaptor for 'and'
         ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
@@ -208,8 +213,10 @@ class CarListingSpecificationTest {
         spec.toPredicate(root, query, criteriaBuilder);
 
         // Verify individual predicates using eq() for Path arguments where applicable
-        verify(criteriaBuilder).like(any(), eq("%honda%"));
-        verify(criteriaBuilder).like(any(), eq("%civic%"));
+        verify(criteriaBuilder, times(4)).lower(any()); // Called 4 times: 2 for brand (EN + AR), 2 for model (EN + AR)
+        verify(criteriaBuilder, times(2)).like(any(), eq("%honda%")); // 2 times for brand (EN + AR)
+        verify(criteriaBuilder, times(2)).like(any(), eq("%civic%")); // 2 times for model (EN + AR)
+        verify(criteriaBuilder, times(2)).or(any(Predicate.class), any(Predicate.class)); // For brand and model OR conditions
         verify(criteriaBuilder).greaterThanOrEqualTo(eq(root.get("modelYear")), eq(2018));
         verify(criteriaBuilder).lessThanOrEqualTo(eq(root.get("modelYear")), eq(2021));
         verify(criteriaBuilder).greaterThanOrEqualTo(eq(root.get("price")), eq(minPrice));
