@@ -5,12 +5,13 @@
 DELETE FROM listing_media WHERE listing_id IN (SELECT id FROM car_listings WHERE title LIKE '%Test Listing%' OR title LIKE '%Sample%');
 DELETE FROM car_listings WHERE title LIKE '%Test Listing%' OR title LIKE '%Sample%';
 
--- Insert sample car listings with simple VALUES approach
+-- Insert sample car listings with simple VALUES approach including denormalized fields
 INSERT INTO car_listings (
     title, description, price, mileage, model_year, brand, model, model_id,
     exterior_color, doors, cylinders, seller_id, governorate_id, city,
     condition_id, body_style_id, transmission_id, fuel_type_id, drive_type_id,
-    transmission, approved, sold, archived, created_at, updated_at
+    transmission, approved, sold, archived, created_at, updated_at,
+    brand_name_en, brand_name_ar, model_name_en, model_name_ar
 ) VALUES 
 -- Sample listing 1
 ('Toyota Camry 2020 - Test Listing 1',
@@ -23,7 +24,8 @@ INSERT INTO car_listings (
  (SELECT id FROM transmissions WHERE name = 'automatic' LIMIT 1),
  (SELECT id FROM fuel_types WHERE name = 'gasoline' LIMIT 1),
  (SELECT id FROM drive_types WHERE name = 'fwd' LIMIT 1),
- 'Automatic', true, false, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+ 'Automatic', true, false, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+ 'Toyota', 'تويوتا', 'Camry', 'كامري'),
 
 -- Sample listing 2
 ('Toyota Corolla 2019 - Test Listing 2',
@@ -36,7 +38,8 @@ INSERT INTO car_listings (
  (SELECT id FROM transmissions WHERE name = 'automatic' LIMIT 1),
  (SELECT id FROM fuel_types WHERE name = 'gasoline' LIMIT 1),
  (SELECT id FROM drive_types WHERE name = 'fwd' LIMIT 1),
- 'Automatic', true, false, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+ 'Automatic', true, false, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+ 'Toyota', 'تويوتا', 'Corolla', 'كورولا'),
 
 -- Sample listing 3
 ('Honda Civic 2021 - Test Listing 3',
@@ -49,7 +52,8 @@ INSERT INTO car_listings (
  (SELECT id FROM transmissions WHERE name = 'automatic' LIMIT 1),
  (SELECT id FROM fuel_types WHERE name = 'gasoline' LIMIT 1),
  (SELECT id FROM drive_types WHERE name = 'fwd' LIMIT 1),
- 'Automatic', true, false, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+ 'Automatic', true, false, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+ 'Honda', 'هوندا', 'Civic', 'سيفيك'),
 
 -- Sample listing 4
 ('Nissan Altima 2018 - Test Listing 4',
@@ -62,7 +66,8 @@ INSERT INTO car_listings (
  (SELECT id FROM transmissions WHERE name = 'automatic' LIMIT 1),
  (SELECT id FROM fuel_types WHERE name = 'gasoline' LIMIT 1),
  (SELECT id FROM drive_types WHERE name = 'fwd' LIMIT 1),
- 'Automatic', true, false, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+ 'Automatic', true, false, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+ 'Nissan', 'نيسان', 'Altima', 'التيما'),
 
 -- Sample listing 5
 ('Hyundai Elantra 2020 - Test Listing 5',
@@ -75,7 +80,8 @@ INSERT INTO car_listings (
  (SELECT id FROM transmissions WHERE name = 'automatic' LIMIT 1),
  (SELECT id FROM fuel_types WHERE name = 'gasoline' LIMIT 1),
  (SELECT id FROM drive_types WHERE name = 'fwd' LIMIT 1),
- 'Automatic', true, false, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+ 'Automatic', true, false, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+ 'Hyundai', 'هيونداي', 'Elantra', 'إلانترا');
 
 -- Insert sample media for the listings (simplified)
 INSERT INTO listing_media (
