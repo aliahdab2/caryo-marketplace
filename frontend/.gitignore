@@ -2,41 +2,39 @@
 
 # dependencies
 /node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+package-lock.json
 
-# testing
-/coverage
+# environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# next.js
+# Next.js
 /.next/
 /out/
-
-# production
 /build
+.next/
 
-# misc
-.DS_Store
-*.pem
+# Testing
+/coverage
+coverage/
+.nyc_output
+*.lcov
 
-# debug
+# TypeScript
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# Debug
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# IDE
+.idea/
+.vscode/
 
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-src/__tests__/auth_backup/
+# OS
+.DS_Store
+*.pem

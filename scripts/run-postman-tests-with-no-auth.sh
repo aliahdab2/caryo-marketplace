@@ -1,0 +1,1 @@
+testing/run-postman-tests-with-no-auth.sh

@@ -64,6 +64,26 @@ private ListingStatus listingStatus;
    - Include both English and Arabic messages
    - Use proper HTTP status codes
 
+## Development Environment
+
+### Docker Development Environment
+```bash
+# Start all services
+./autotrader.sh dev start
+
+# Rebuild and start
+./autotrader.sh dev rebuild
+
+# Stop all services
+./autotrader.sh dev stop
+
+# View logs
+./autotrader.sh dev logs
+
+# Access specific service logs
+./autotrader.sh dev logs <service-name>
+```
+
 ## Common Tasks
 
 ### Creating New Migrations

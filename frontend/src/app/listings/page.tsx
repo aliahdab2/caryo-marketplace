@@ -211,6 +211,7 @@ const ListingsPage = () => {
                     className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
+                    unoptimized
                   />
                 )}
                 {listing.media && listing.media.length > 1 && (

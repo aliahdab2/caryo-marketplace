@@ -3,24 +3,25 @@
  */
 
 /**
- * Transforms MinIO URLs to use the correct hostname for browser access
- * Replaces 'autotrader-assets.minio:9000' with the configured MINIO_URL
+ * Transforms internal Docker MinIO URLs to browser-accessible URLs
  * 
- * @param url The original URL from the API
- * @returns The transformed URL that can be resolved by the browser
+ * @param url The URL from the API
+ * @returns The corrected URL that can be accessed by the browser
  */
 export function transformMinioUrl(url: string): string {
   if (!url) return '';
   
-  // If the URL includes the MinIO hostname that can't be resolved
-  if (url.includes('autotrader-assets.minio:9000')) {
-    const minioBaseUrl = process.env.NEXT_PUBLIC_MINIO_URL || 'http://localhost:9000';
-    
-    // Replace the problematic hostname with the configured one
-    return url.replace('http://autotrader-assets.minio:9000', minioBaseUrl);
+  // For debugging
+  console.log('Original URL:', url);
+  
+  // Replace Docker hostname with localhost
+  let transformedUrl = url;
+  if (url.includes('minio:9000')) {
+    transformedUrl = url.replace('minio:9000', 'localhost:9000');
+    console.log('Transformed URL:', transformedUrl);
   }
   
-  return url;
+  return transformedUrl;
 }
 
 /**

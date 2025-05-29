@@ -45,18 +45,30 @@ services:
   # Development-specific MinIO setup script
   createbuckets:
     image: minio/mc
+    container_name: ${COMPOSE_PROJECT_NAME}_dev-createbuckets-1 
     depends_on:
       - minio
-    restart: on-failure
-    entrypoint: >
-      /bin/sh -c "
-      /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin;
-      /usr/bin/mc mb --ignore-existing myminio/autotrader-assets;
-      /usr/bin/mc policy set download myminio/autotrader-assets;
-      exit 0;
-      "
     networks:
       - backend-network
+    volumes:
+      - ./config/dev/sample-images:/sample-images
+    entrypoint: /bin/sh -c "
+      echo '>>> Waiting for MinIO to be ready...' &&
+      sleep 10 &&
+      echo '>>> Setting up MinIO alias (myminio -> http://minio:9000)...' &&
+      mc alias set myminio http://minio:9000 minioadmin minioadmin &&
+      echo '>>> Creating bucket myminio/autotrader-assets if not exists...' &&
+      mc mb --ignore-existing myminio/autotrader-assets &&
+      echo '>>> Setting bucket policy to public for myminio/autotrader-assets...' &&
+      mc policy set public myminio/autotrader-assets &&
+      echo '>>> Listing source /sample-images/ directory contents:' &&
+      ls -R /sample-images/ &&
+      echo '>>> Attempting to copy files from /sample-images/listings/ to myminio/autotrader-assets/listings/ ...' &&
+      mc cp --recursive /sample-images/listings/ myminio/autotrader-assets/listings/ &&
+      echo '>>> Listing MinIO bucket myminio/autotrader-assets/ contents after copy:' &&
+      mc ls --recursive myminio/autotrader-assets/ &&
+      echo '>>> Createbuckets script finished successfully.' || (echo '>>> Createbuckets script FAILED.' && exit 1)"
+    restart: "no"
 
   # In development mode, we use the Gradle bootRun task with the development Dockerfile
   backend:
@@ -137,6 +149,8 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local
   minio_data:
+    driver: local
   pgadmin_data:
   redis_data:

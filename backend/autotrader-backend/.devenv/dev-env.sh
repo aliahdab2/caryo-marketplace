@@ -75,36 +75,60 @@ stop_dev_env() {
 
 rebuild_dev_env() {
     echo -e "${YELLOW}Rebuilding (with tests)...${NC}"
-    docker-compose -f .devenv/docker-compose.dev.yml down -v
+    docker compose -f .devenv/docker-compose.dev.yml down -v
     docker pull gradle:8.5-jdk21 postgres:15-alpine minio/minio minio/mc adminer
     ./gradlew clean build || error_exit "Gradle build failed"
-    docker-compose -f .devenv/docker-compose.dev.yml up --build -d || error_exit "Failed to start services"
+    docker compose -f .devenv/docker-compose.dev.yml up --build -d || error_exit "Failed to start services"
     start_dev_env
+
+    # Go to workspace root (two levels up from backend/autotrader-backend)
+    cd "${PROJECT_ROOT}/../../"
+    echo -e "${YELLOW}Restoring car images...${NC}"
+    if [ -f "./scripts/post_rebuild.sh" ]; then
+        ./scripts/post_rebuild.sh || echo -e "${YELLOW}Warning: Image restoration failed. You can run './scripts/post_rebuild.sh' manually.${NC}"
+    else
+        echo -e "${RED}Error: Could not find post_rebuild.sh script${NC}"
+        echo -e "${YELLOW}The script should be at: ./scripts/post_rebuild.sh${NC}"
+        echo -e "${YELLOW}Current location: $(pwd)${NC}"
+    fi
+    cd "${PROJECT_ROOT}"
 }
 
 rebuild_dev_env_notest() {
     echo -e "${YELLOW}Rebuilding (without tests)...${NC}"
-    docker-compose -f .devenv/docker-compose.dev.yml down -v
+    docker compose -f .devenv/docker-compose.dev.yml down -v
     docker pull gradle:8.5-jdk21 postgres:15-alpine minio/minio minio/mc adminer
     ./gradlew clean build -x test || error_exit "Gradle build failed"
-    docker-compose -f .devenv/docker-compose.dev.yml up --build -d || error_exit "Failed to start services"
+    docker compose -f .devenv/docker-compose.dev.yml up --build -d || error_exit "Failed to start services"
     start_dev_env
+
+    # Go to workspace root (two levels up from backend/autotrader-backend)
+    cd "${PROJECT_ROOT}/../../"
+    echo -e "${YELLOW}Restoring car images...${NC}"
+    if [ -f "./scripts/post_rebuild.sh" ]; then
+        ./scripts/post_rebuild.sh || echo -e "${YELLOW}Warning: Image restoration failed. You can run './scripts/post_rebuild.sh' manually.${NC}"
+    else
+        echo -e "${RED}Error: Could not find post_rebuild.sh script${NC}"
+        echo -e "${YELLOW}The script should be at: ./scripts/post_rebuild.sh${NC}"
+        echo -e "${YELLOW}Current location: $(pwd)${NC}"
+    fi
+    cd "${PROJECT_ROOT}"
 }
 
 check_status() {
-    docker-compose -f .devenv/docker-compose.dev.yml ps
+    docker compose -f .devenv/docker-compose.dev.yml ps
 }
 
 show_logs() {
-    docker-compose -f .devenv/docker-compose.dev.yml logs -f
+    docker compose -f .devenv/docker-compose.dev.yml logs -f
 }
 
 run_tests() {
-    docker-compose -f .devenv/docker-compose.dev.yml exec app gradle test || error_exit "Tests failed"
+    docker compose -f .devenv/docker-compose.dev.yml exec app gradle test || error_exit "Tests failed"
 }
 
 show_api_endpoints() {
-    docker-compose -f .devenv/docker-compose.dev.yml exec app curl -s http://localhost:8080/actuator/mappings | \
+    docker compose -f .devenv/docker-compose.dev.yml exec app curl -s http://localhost:8080/actuator/mappings | \
     grep -o '"patterns":\[[^]]*\]' | sed 's/.*\["//;s/"\]//;s/","/\n/g' | grep -vE 'actuator|error|swagger|v3' | sort | while read ep; do
         echo -e "${GREEN}$ep${NC}"
     done
@@ -121,12 +145,12 @@ health_check() {
         echo -e "${GREEN}✓ MinIO running${NC}" || \
         echo -e "${RED}✗ MinIO not running${NC}"
 
-    command -v pg_isready >/dev/null && pg_isready -h localhost -p 5432 >/dev/null && \
+    docker compose -f .devenv/docker-compose.dev.yml exec -T postgres pg_isready 2>/dev/null && \
         echo -e "${GREEN}✓ PostgreSQL running${NC}" || \
         echo -e "${RED}✗ PostgreSQL not available${NC}"
 
     if [ "${REDIS_ENABLED:-true}" = "true" ]; then
-        command -v redis-cli >/dev/null && redis-cli -h localhost -p ${REDIS_PORT:-6379} ping | grep -q PONG && \
+        docker compose -f .devenv/docker-compose.dev.yml exec -T redis redis-cli ping 2>/dev/null | grep -q PONG && \
             echo -e "${GREEN}✓ Redis running${NC}" || \
             echo -e "${RED}✗ Redis not available${NC}"
     fi

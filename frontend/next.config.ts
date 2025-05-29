@@ -1,19 +1,26 @@
 import withBundleAnalyzer from '@next/bundle-analyzer';
-import type { NextConfig } from 'next'; // Import NextConfig
+import type { NextConfig } from 'next';
 
 const analyzeBundles = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
-const nextConfig: NextConfig = { // Add NextConfig type
-  /* config options here */
+// Get MinIO URL from environment
+const minioUrl = process.env.NEXT_PUBLIC_MINIO_URL 
+  ? new URL(process.env.NEXT_PUBLIC_MINIO_URL)
+  : null;
+
+if (!minioUrl) {
+  console.error('NEXT_PUBLIC_MINIO_URL environment variable is not set');
+}
+
+const nextConfig: NextConfig = {
   env: {
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || "AdJ8m5EpqN6qPwEtH7XsKfRzV2yG9LcZ",
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL || "http://localhost:3000",
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
-    NEXT_PUBLIC_MINIO_URL: process.env.NEXT_PUBLIC_MINIO_URL || "http://localhost:9000" // Add MINIO URL
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_MINIO_URL: process.env.NEXT_PUBLIC_MINIO_URL
   },
-  // App Router handles i18n differently - configuration is done through LanguageProvider
   
   images: {
     remotePatterns: [
@@ -32,15 +39,17 @@ const nextConfig: NextConfig = { // Add NextConfig type
         hostname: 'images.unsplash.com',
         pathname: '/**',
       },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '9000',
+      // MinIO configuration based on environment
+      ...(minioUrl ? [{
+        protocol: minioUrl.protocol.replace(':', '') as 'http' | 'https',
+        hostname: minioUrl.hostname,
+        port: minioUrl.port || undefined,
         pathname: '/**',
-      },
+      }] : []),
+      // Allow Docker container hostname
       {
         protocol: 'http',
-        hostname: '127.0.0.1',
+        hostname: 'minio',
         port: '9000',
         pathname: '/**',
       },
