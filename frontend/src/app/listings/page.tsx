@@ -49,24 +49,60 @@ const ListingsPage = () => {
     minYear: searchParams?.get('minYear') ? parseInt(searchParams?.get('minYear') || '', 10) : undefined,
     maxYear: searchParams?.get('maxYear') ? parseInt(searchParams?.get('maxYear') || '', 10) : undefined,
     location: searchParams?.get('location') || undefined,
+    brand: searchParams?.get('brand') || undefined, // Directly include brand
+    model: searchParams?.get('model') || undefined, // Directly include model
   };
-
-  // Add these for the API
-  const make = searchParams?.get('brand') || undefined;
-  const model = searchParams?.get('model') || undefined;
-  if (make) initialFilters.brand = make;
-  if (model) initialFilters.model = model;
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [currentPage, setCurrentPage] = useState<number>(initialFilters.page || 1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalListings, setTotalListings] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  // Initialize with loading=false to prevent immediate loading state on mount
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Track whether this is the first load to handle transitions differently
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
+
+  // Add a new effect to update filters from URL when searchParams change
+  useEffect(() => {
+    // Update filters when URL changes
+    const updatedFilters: Filters = {
+      page: parseInt(searchParams?.get('page') || '1', 10),
+      limit: parseInt(searchParams?.get('limit') || '12', 10),
+      search: searchParams?.get('search') || undefined,
+      category: searchParams?.get('category') || undefined,
+      minPrice: searchParams?.get('minPrice') ? parseFloat(searchParams?.get('minPrice') || '') : undefined,
+      maxPrice: searchParams?.get('maxPrice') ? parseFloat(searchParams?.get('maxPrice') || '') : undefined,
+      condition: searchParams?.get('condition') || undefined,
+      sortBy: searchParams?.get('sortBy') || 'createdAt',
+      sortOrder: (searchParams?.get('sortOrder') as 'asc' | 'desc') || 'desc',
+      minYear: searchParams?.get('minYear') ? parseInt(searchParams?.get('minYear') || '', 10) : undefined,
+      maxYear: searchParams?.get('maxYear') ? parseInt(searchParams?.get('maxYear') || '', 10) : undefined,
+      location: searchParams?.get('location') || undefined,
+      brand: searchParams?.get('brand') || undefined,
+      model: searchParams?.get('model') || undefined,
+    };
+    
+    setFilters(updatedFilters);
+    setCurrentPage(updatedFilters.page);
+  }, [searchParams]);
 
   useEffect(() => {
-    setIsLoading(true);
+    // Set loading state but delay it slightly to prevent quick flashes
+    // Only delay if not the first load (coming from another page)
+    let loadingTimeout: NodeJS.Timeout;
+    
+    if (!isFirstLoad) {
+      loadingTimeout = setTimeout(() => {
+        setIsLoading(true);
+      }, 100); // Small delay to prevent flash if data loads quickly
+    } else {
+      // On first load, set loading immediately
+      setIsLoading(true);
+    }
+    
     setError(null);
 
     const apiFilters: ListingFilters = {
@@ -78,51 +114,48 @@ const ListingsPage = () => {
       minYear: filters.minYear?.toString(),
       maxYear: filters.maxYear?.toString(),
       location: filters.location,
-      brand: filters.brand,
-      model: filters.model
+      brand: filters.brand, // Ensure brand is passed to the API
+      model: filters.model  // Ensure model is passed to the API
     };
 
     getListings(apiFilters)
       .then(data => {
-        // Apply additional client-side filtering for brand and model if specified
-        let filteredListings = [...data.listings];
-        
-        // Double check that brand filter is applied correctly (for extra reliability)
-        if (filters.brand) {
-          const brandLower = filters.brand.toLowerCase();
-          filteredListings = filteredListings.filter(listing => 
-            listing.brand?.toLowerCase() === brandLower ||
-            listing.title.toLowerCase().startsWith(brandLower)
-          );
-        }
-        
-        // Double check that model filter is applied correctly
-        if (filters.model) {
-          const modelLower = filters.model.toLowerCase();
-          filteredListings = filteredListings.filter(listing => 
-            listing.model?.toLowerCase() === modelLower ||
-            listing.title.toLowerCase().includes(modelLower)
-          );
-        }
-        
-        setListings(filteredListings);
-        // Keep the total and pages the same as what came from the API
+        // API should return correctly filtered data. No need for client-side re-filtering.
+        setListings(data.listings); 
         setTotalListings(data.total);
         setTotalPages(Math.ceil(data.total / (filters.limit || 12)));
         setIsLoading(false);
+        if (isFirstLoad) {
+          setIsFirstLoad(false);
+        }
+        if (loadingTimeout) clearTimeout(loadingTimeout);
       })
       .catch(err => {
         console.error("Error fetching listings:", err);
         setError(t('error.loadingListings'));
         setIsLoading(false);
+        if (isFirstLoad) {
+          setIsFirstLoad(false);
+        }
+        if (loadingTimeout) clearTimeout(loadingTimeout);
       });
-  }, [filters, currentPage, t]);
+      
+    return () => {
+      if (loadingTimeout) clearTimeout(loadingTimeout);
+    };
+  }, [filters, currentPage, t, isFirstLoad]);
 
   // Track the previous URL to avoid unnecessary updates
   const prevUrlRef = React.useRef<string | null>(null);
   
   useEffect(() => {
+    // Skip URL updates on first render
+    if (isFirstLoad) {
+      return;
+    }
+    
     const queryParams = new URLSearchParams();
+    
     // Use currentPage for the 'page' query parameter
     queryParams.set('page', String(currentPage));
     if (filters.limit) queryParams.set('limit', String(filters.limit));
@@ -146,7 +179,7 @@ const ListingsPage = () => {
       prevUrlRef.current = newUrl;
       router.replace(newUrl, { scroll: false });
     }
-  }, [filters, currentPage, router]);
+  }, [filters, currentPage, router, isFirstLoad]);
 
   const handleFilterChange = (key: keyof Filters, value: string | number | undefined) => {
     setFilters(prev => {
@@ -166,18 +199,28 @@ const ListingsPage = () => {
   };
 
   const ListingsGrid = ({ listingsToDisplay }: { listingsToDisplay: Listing[] }) => {
+    // Create a container with a consistent minimum height to prevent layout shifts
+    const minGridHeight = "min-h-[50vh]";
+    
     if (isLoading) {
-      return <div className="text-center py-10">{t('listings.loadingListings')}</div>;
+      return <div className={`text-center py-10 ${minGridHeight} flex items-center justify-center`}>
+        <div>
+          <div className="animate-spin h-10 w-10 mb-4 border-4 border-blue-500 rounded-full border-t-transparent mx-auto"></div>
+          <p>{t('listings.loadingListings')}</p>
+        </div>
+      </div>;
     }
+    
     if (error) {
-      return <div className="text-center py-10 text-red-500">{error}</div>;
+      return <div className={`text-center py-10 text-red-500 ${minGridHeight} flex items-center justify-center`}>{error}</div>;
     }
+    
     if (listingsToDisplay.length === 0) {
-      return <div className="text-center py-10">{t('listings.noListingsFound')}</div>;
+      return <div className={`text-center py-10 ${minGridHeight} flex items-center justify-center`}>{t('listings.noListingsFound')}</div>;
     }
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ${minGridHeight}`}>
         {listingsToDisplay.map((listing) => (
           <div key={listing.id} className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out">
             <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
@@ -188,8 +231,8 @@ const ListingsPage = () => {
                 className="shadow-md hover:shadow-lg"
                 mockMode={true} 
                 initialFavorite={false}
-                onToggle={(isFavorite) => {
-                  console.log(`Listing ${listing.id} favorite status: ${isFavorite}`);
+                onToggle={() => {
+                  // Handle favorite toggle if needed
                 }}
               />
             </div>

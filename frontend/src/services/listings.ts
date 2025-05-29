@@ -176,18 +176,33 @@ function mapApiResponseToListings(apiResponse: ListingApiResponse): { listings: 
 
 export async function getListings(filters: ListingFilters = {}): Promise<{ listings: Listing[]; total: number }> {
   try {
-    const params = new URLSearchParams(
-      Object.entries(filters)
-        .filter(([_, value]) => value !== undefined && value !== '')
-        .map(([key, value]) => [
-          key === 'page' ? 'page' : key,
-          // Convert page number to 0-based indexing for the API
-          key === 'page' ? String(Number(value) - 1) : String(value)
-        ])
-    );
+    // Create the params object
+    const params = new URLSearchParams();
+    
+    // Add page and limit first (always required)
+    params.set('page', filters.page !== undefined ? String(Number(filters.page) - 1) : '0'); // 0-based for API
+    params.set('limit', filters.limit !== undefined ? String(filters.limit) : '12');
+    
+    // Add other filters
+    if (filters.searchTerm) params.set('searchTerm', filters.searchTerm);
+    if (filters.minPrice) params.set('minPrice', filters.minPrice);
+    if (filters.maxPrice) params.set('maxPrice', filters.maxPrice);
+    if (filters.minYear) params.set('minYear', filters.minYear);
+    if (filters.maxYear) params.set('maxYear', filters.maxYear);
+    if (filters.location) params.set('location', filters.location);
+    
+    // Ensure brand and model are explicitly added
+    if (filters.brand) {
+      params.set('brand', filters.brand);
+    }
+    if (filters.model) {
+      params.set('model', filters.model);
+    }
 
-    const response = await api.get<ListingApiResponse>(`/api/listings/filter?${params.toString()}`);
-    return mapApiResponseToListings(response);
+    const url = `/api/listings/filter?${params.toString()}`;
+    const response = await api.get<ListingApiResponse>(url);
+    const result = mapApiResponseToListings(response);
+    return result;
   } catch (error) {
     if (error instanceof ApiError) {
       const errorContext = {

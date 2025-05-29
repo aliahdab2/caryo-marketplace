@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import Image from 'next/image';
 
 interface ImageGalleryProps {
   media?: { url: string; type?: string; isPrimary?: boolean }[];
@@ -13,11 +14,9 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ media, fallbackImage, altTe
   const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
-    // Combine media array and fallback image into a single array of image URLs
     const imageUrls: string[] = [];
     
     if (media && media.length > 0) {
-      // Sort media to ensure primary image is first
       const sortedMedia = [...media].sort((a, b) => {
         if (a.isPrimary && !b.isPrimary) return -1;
         if (!a.isPrimary && b.isPrimary) return 1;
@@ -60,10 +59,14 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ media, fallbackImage, altTe
     <div className="relative h-full w-full">
       {/* Main image */}
       <div className="h-full w-full relative">
-        <img 
+        <Image 
           src={images[currentImageIndex]} 
           alt={`${altText} - ${currentImageIndex + 1}`} 
-          className="object-cover h-full w-full"
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          priority={currentImageIndex === 0}
+          className="object-cover"
+          unoptimized={images[currentImageIndex].startsWith('data:')}
         />
       </div>
       
@@ -104,11 +107,16 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ media, fallbackImage, altTe
                   : 'border-transparent opacity-70 hover:opacity-100'
               }`}
             >
-              <img 
-                src={image} 
-                alt={`Thumbnail ${index + 1}`} 
-                className="h-full w-full object-cover"
-              />
+              <div className="relative h-full w-full">
+                <Image 
+                  src={image} 
+                  alt={`Thumbnail ${index + 1}`} 
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                  unoptimized={image.startsWith('data:')}
+                />
+              </div>
             </button>
           ))}
         </div>
