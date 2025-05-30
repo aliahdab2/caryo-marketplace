@@ -11,7 +11,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 const SignInPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('auth');
   const router = useRouter();
   const { getErrorMessage } = useApiErrorHandler();
   const [username, setUsername] = useState("");
@@ -65,13 +65,13 @@ const SignInPage: React.FC = () => {
     setShowSuccess(false);
 
     if (!username || !password) {
-      setError(t('auth.fieldRequired'));
+      setError(t('fieldRequired'));
       setLoading(false);
       return;
     }
 
     if (!isVerified) {
-      setError(t('auth.verificationRequired', "Verification required before login"));
+      setError(t('verificationRequired', "Verification required before login"));
       setLoading(false);
       return;
     }
@@ -181,18 +181,18 @@ const SignInPage: React.FC = () => {
           <div className="flex items-center mb-6">
             <Image 
               src="/images/logo.svg" 
-              alt={t('auth.logo')} 
+              alt={t('logo')} 
               width={40} 
               height={40} 
               className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert" 
             />
             <h1 className="text-lg md:text-xl font-bold">{t('appName')}</h1>
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('auth.welcome_back')}</h2>
-          <p className="text-sm md:text-base opacity-80">{t('auth.sign_in_description')}</p>
+          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('welcome_back')}</h2>
+          <p className="text-sm md:text-base opacity-80">{t('sign_in_description')}</p>
         </div>          <div className="z-10 p-6 md:p-8 lg:p-10 text-sm">
           <p className="mb-2 opacity-80">&copy; {new Date().getFullYear()} {t('appName')}</p>
-          <p className="opacity-60">{t('auth.privacy_policy')} • {t('auth.terms_of_service')}</p>
+          <p className="opacity-60">{t('privacy_policy')} • {t('terms_of_service')}</p>
         </div>
       </div>
       
@@ -202,15 +202,15 @@ const SignInPage: React.FC = () => {
           {/* Mobile logo (shown only on mobile) */}
           <div className="flex md:hidden items-center justify-center mb-6 sm:mb-8">
             <div className="flex items-center responsive-fade-in">
-              <Image src="/images/logo.svg" alt={t('auth.logo')} width={40} height={40} className="mr-2.5 sm:mr-3 w-8 h-8 sm:w-10 sm:h-10" />
+              <Image src="/images/logo.svg" alt={t('logo')} width={40} height={40} className="mr-2.5 sm:mr-3 w-8 h-8 sm:w-10 sm:h-10" />
               <h1 className="text-lg sm:text-xl font-bold">{t('appName')}</h1>
             </div>
           </div>
 
           <div className="bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 md:p-8 lg:p-10 auth-form">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-1 auth-heading">{t('auth.sign_in')}</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">{t('auth.sign_in_to_continue')}</p>
+              <h2 className="text-2xl font-bold mb-1 auth-heading">{t('sign_in')}</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">{t('sign_in_to_continue')}</p>
             </div>
             
             {error && (
@@ -229,14 +229,14 @@ const SignInPage: React.FC = () => {
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
-                {t('auth.loginSuccess', 'Login successful!')} {t('auth.redirecting', 'Redirecting...')}
+                {t('loginSuccess', 'Login successful!')} {t('redirecting', 'Redirecting...')}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className={`responsive-fade-in ${redirecting ? 'opacity-70 transition-opacity' : ''}`}>
               <div className="mb-5">
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  {t('auth.username')}
+                  {t('username')}
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
@@ -251,13 +251,13 @@ const SignInPage: React.FC = () => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    data-error={t('auth.fieldRequired')}
+                    data-error={t('fieldRequired')}
                     className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-                    placeholder={t('auth.usernamePlaceholder', 'Enter your username')}
+                    placeholder={t('usernamePlaceholder', 'Enter your username')}
                     onInvalid={(e) => {
                       e.preventDefault();
                       const target = e.target as HTMLInputElement;
-                      const errorMsg = target.getAttribute('data-error') || t('auth.fieldRequired');
+                      const errorMsg = target.getAttribute('data-error') || t('fieldRequired');
                       target.setCustomValidity(errorMsg);
                     }}
                     onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
@@ -268,10 +268,10 @@ const SignInPage: React.FC = () => {
               <div className="mb-5">
                 <div className="flex items-center justify-between mb-1.5">
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {t('auth.password')}
+                    {t('password')}
                   </label>
                   <Link href="/auth/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
-                    {t('auth.forgotPassword', 'Forgot password?')}
+                    {t('forgotPassword', 'Forgot password?')}
                   </Link>
                 </div>
                 <div className="relative group">
@@ -287,13 +287,13 @@ const SignInPage: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    data-error={t('auth.fieldRequired')}
+                    data-error={t('fieldRequired')}
                     className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-                    placeholder={t('auth.passwordPlaceholder', '••••••••')}
+                    placeholder={t('passwordPlaceholder', '••••••••')}
                     onInvalid={(e) => {
                       e.preventDefault();
                       const target = e.target as HTMLInputElement;
-                      const errorMsg = target.getAttribute('data-error') || t('auth.fieldRequired');
+                      const errorMsg = target.getAttribute('data-error') || t('fieldRequired');
                       target.setCustomValidity(errorMsg);
                     }}
                     onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
@@ -307,7 +307,7 @@ const SignInPage: React.FC = () => {
                     if (verified !== isVerified) { 
                       setIsVerified(verified);
                       if (verified) {
-                        if (error === t('auth.verificationRequired')) {
+                        if (error === t('verificationRequired')) {
                           setError(''); 
                         }
                       }
@@ -333,7 +333,7 @@ const SignInPage: React.FC = () => {
                       </svg>
                       {t('loading')}
                     </div>
-                  ) : t('auth.signin')}
+                  ) : t('sign_in')}
                 </button>
               </div>
             </form>
@@ -344,7 +344,7 @@ const SignInPage: React.FC = () => {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
-                  {t('auth.or')}
+                  {t('or')}
                 </span>
               </div>
             </div>
@@ -355,7 +355,7 @@ const SignInPage: React.FC = () => {
 
             <div className="text-center mt-6">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {t('auth.dont_have_account')} <Link href="/auth/signup" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">{t('auth.sign_up')}</Link>
+                {t('dont_have_account')} <Link href="/auth/signup" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">{t('sign_up')}</Link>
               </p>
             </div>
           </div>

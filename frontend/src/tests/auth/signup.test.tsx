@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import SignUpPage from '@/app/auth/signup/page';
+// Import our i18n mock
+import '../mocks/i18n-mock';
 
 // Mock next-auth/react
 jest.mock('next-auth/react', () => ({
@@ -16,27 +18,6 @@ const mockRouter = {
 
 jest.mock('next/navigation', () => ({
   useRouter: () => mockRouter,
-}));
-
-// Mock translations for i18n
-const mockTranslations: Record<string, string> = {
-  'auth.signup': 'Sign Up',
-  'auth.username': 'Username',
-  'auth.email': 'Email',
-  'auth.password': 'Password',
-  'auth.verificationRequired': 'Verification required before signup',
-  'auth.pleaseVerifyFirst': 'Please verify your device before signing up',
-  'auth.alreadyHaveAccount': 'Already have an account?',
-  'auth.signin': 'Sign In',
-  'error': 'Please fill in all required fields',
-  'loading': 'Loading...',
-  'auth.signupSuccess': 'Registration successful!',
-};
-
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => mockTranslations[key] || key,
-  }),
 }));
 
 // Mock the SuccessAlert component
@@ -73,13 +54,13 @@ describe('SignUpPage Component', () => {
 
   test('renders the sign-up form correctly', () => {
     render(<SignUpPage />);
-    expect(screen.getByRole('heading', { name: /sign up/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /sign_up/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     // Use data-testid for password fields
     expect(screen.getByTestId('password-input')).toBeInTheDocument();
     expect(screen.getByTestId('confirm-password-input')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /sign_up/i })).toBeInTheDocument();
     expect(screen.getByTestId('verification-component')).toBeInTheDocument();
   });
 

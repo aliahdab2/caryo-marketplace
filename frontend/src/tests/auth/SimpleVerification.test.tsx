@@ -9,10 +9,10 @@ jest.mock('react-i18next', () => ({
   useTranslation: jest.fn(() => ({
     t: jest.fn((key: string) => {
       const translations: Record<string, string> = {
-        'auth.clickToVerify': 'Click to verify',
-        'auth.verifying': 'Verifying...',
-        'auth.verified': 'Verified',
-        'auth.verificationControl': 'Verification control'
+        'clickToVerify': 'Click to verify',
+        'verifying': 'Verifying...',
+        'verified': 'Verified',
+        'verificationControl': 'Verification control'
       };
       return translations[key] || key;
     })

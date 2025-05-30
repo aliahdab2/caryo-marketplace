@@ -3,6 +3,7 @@
     "listings": "Listings"
   },
   "listings": {
+    "allCars": "All cars",
     "pageDescription": "Browse our listings to find your perfect vehicle",
     "categoryHeading": "Listings in category: {{category}}",
     "searchPlaceholder": "Search listings...",

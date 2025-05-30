@@ -21,11 +21,14 @@ const HomeSearchBar: React.FC = () => {
   
   // Form selections with reset capabilities
   const [selectedMake, setSelectedMake] = useFormSelection<number | null>(null, []);
-  const [selectedModel, setSelectedModel] = useFormSelection<number | null>(null, [selectedMake]);
+  const [selectedModel, setSelectedModel] = useState<number | null>(null);
   const [selectedGovernorate, setSelectedGovernorate] = useState<string>('');
   
-  // Track if models are being fetched to prevent shaking during transitions
-  const [isTransitioningModels, setIsTransitioningModels] = useState(false);
+  // Reset model when make changes
+  useEffect(() => {
+    setSelectedModel(null);
+  }, [selectedMake]);
+  
   
   // Use API data hooks for fetching data with loading, error handling
   const {
@@ -62,18 +65,6 @@ const HomeSearchBar: React.FC = () => {
     selectedMake ? { makeId: selectedMake } : undefined
   );
   
-  // Handle model loading transition to prevent shaking
-  useEffect(() => {
-    if (selectedMake && isLoadingModels) {
-      setIsTransitioningModels(true);
-    } else if (!isLoadingModels) {
-      // Add a small delay to prevent rapid layout shifts
-      const timeout = setTimeout(() => {
-        setIsTransitioningModels(false);
-      }, 100);
-      return () => clearTimeout(timeout);
-    }
-  }, [selectedMake, isLoadingModels]);
   
   // Get display name based on current language
   const getDisplayName = useCallback((item: { displayNameEn: string; displayNameAr: string }) => {
@@ -94,9 +85,6 @@ const HomeSearchBar: React.FC = () => {
   // Handle search form submission
   const handleSearch = useCallback((e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    
-    // Show a transition state before navigation
-    setIsTransitioningModels(true);
     
     const params = new URLSearchParams();
     
@@ -135,7 +123,7 @@ const HomeSearchBar: React.FC = () => {
 
     // Use replace instead of push to avoid history stacking on quick searches
     router.push(`/listings?${params.toString()}`, { scroll: false });
-  }, [selectedMake, selectedModel, selectedGovernorate, carMakes, availableModels, governorates, getDisplayName, router, setIsTransitioningModels]);
+  }, [selectedMake, selectedModel, selectedGovernorate, carMakes, availableModels, governorates, getDisplayName, router]);
 
   // Create a debounced search function
   const debouncedSearch = useMemo(() => debounce(handleSearch, 500), [handleSearch]);
@@ -148,124 +136,118 @@ const HomeSearchBar: React.FC = () => {
   }, [debouncedSearch]);
 
   return (
-    <form onSubmit={handleSearch} className="w-full">
+    <div className="w-full" data-testid="search-container">
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md rounded-lg">
         <div className="p-4 sm:p-6">
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-4 sm:gap-y-6">
             {/* Brand Select */}
-            <div>
+            <div className="h-12 flex items-center">
               {/* Label hidden as requested */}
               <label htmlFor="brand" className="sr-only">
                 {t('search.selectBrand', 'Brand')}
               </label>
-              <div className="relative">
+              <div className="relative w-full h-12">
                 <select
                   id="brand"
                   value={selectedMake ?? ''}
                   onChange={(e) => setSelectedMake(e.target.value ? Number(e.target.value) : null)}
-                  className={`search-select block w-full h-12 pl-4 pr-10 py-3 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md ${
-                    isLoadingBrands ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-700'
-                  } text-gray-900 dark:text-white disabled:cursor-not-allowed`}
+                  className="appearance-none block w-full h-12 pl-4 pr-10 py-3 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap"
                   disabled={isLoadingBrands}
                   aria-label={t('search.selectBrand', 'Select brand')}
                 >
-                  <option value="">{
-                    isLoadingBrands 
-                      ? t('search.loadingBrands', 'Loading brands...') 
-                      : t('search.selectBrand', 'Select Brand')
-                  }</option>
+                  <option value="">{t('search.selectBrand', 'Any Brand')}</option>
                   {!isLoadingBrands && carMakes?.map((make) => (
                     <option key={make.id} value={make.id}>{getDisplayName(make)}</option>
                   ))}
                 </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
                 {isLoadingBrands && (
-                  <div className="absolute right-3 top-3">
-                    <div className="animate-spin h-5 w-5 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+                  <div className="absolute inset-y-0 right-8 flex items-center pr-1 pointer-events-none" data-testid="brand-loading-spinner">
+                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Model Select */}
-            <div>
+            <div className="h-12 flex items-center">
               {/* Label hidden as requested */}
               <label htmlFor="model" className="sr-only">
                 {t('search.selectModel', 'Model')}
               </label>
-              <div className="relative">
+              <div className="relative w-full h-12">
                 <select
                   id="model"
                   value={selectedModel ?? ''}
                   onChange={(e) => setSelectedModel(e.target.value ? Number(e.target.value) : null)}
-                  className={`search-select block w-full h-12 pl-4 pr-10 py-3 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md ${
-                    !selectedMake || isLoadingModels || isTransitioningModels 
-                      ? 'bg-gray-50 dark:bg-gray-800' 
-                      : 'bg-white dark:bg-gray-700'
-                  } text-gray-900 dark:text-white disabled:cursor-not-allowed`}
-                  disabled={!selectedMake || isLoadingModels || isTransitioningModels}
+                  className="appearance-none block w-full h-12 pl-4 pr-10 py-3 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap"
+                  disabled={!selectedMake || isLoadingModels}
                   aria-label={t('search.selectModel', 'Select model')}
                 >
                   <option value="">
-                    {!selectedMake
-                      ? t('search.selectBrandFirst', 'Select brand first')
-                      : isLoadingModels || isTransitioningModels 
-                        ? t('search.loadingModels', 'Loading models...') 
-                        : t('search.selectModel', 'Select Model')}
+                    {t('search.selectModel', 'Any Model')}
                   </option>
-                  {selectedMake && !isLoadingModels && !isTransitioningModels && availableModels?.map((model) => (
+                  {selectedMake && !isLoadingModels && availableModels?.map((model) => (
                     <option key={model.id} value={model.id}>{getDisplayName(model)}</option>
                   ))}
                 </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
                 {isLoadingModels && (
-                  <div className="absolute right-3 top-3">
-                    <div className="animate-spin h-5 w-5 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+                  <div className="absolute inset-y-0 right-8 flex items-center pr-1 pointer-events-none" data-testid="model-loading-spinner">
+                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Governorate Select */}
-            <div>
+            <div className="h-12 flex items-center">
               {/* Label hidden as requested */}
               <label htmlFor="governorate" className="sr-only">
                 {t('search.governorate', 'Governorate')}
               </label>
-              <div className="relative">
+              <div className="relative w-full h-12">
                 <select
                   id="governorate"
                   value={selectedGovernorate}
                   onChange={(e) => setSelectedGovernorate(e.target.value)}
-                  className={`search-select block w-full h-12 pl-4 pr-10 py-3 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md ${
-                    isLoadingGovernorates 
-                      ? 'bg-gray-50 dark:bg-gray-800' 
-                      : 'bg-white dark:bg-gray-700'
-                  } text-gray-900 dark:text-white disabled:cursor-not-allowed`}
+                  className="appearance-none block w-full h-12 pl-4 pr-10 py-3 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap"
                   disabled={isLoadingGovernorates}
                   aria-label={t('search.selectGovernorate', 'Select governorate')}
                 >
-                  <option value="">{
-                    isLoadingGovernorates
-                      ? t('search.loadingGovernorates', 'Loading...')
-                      : t('search.selectGovernorate', 'Governorate')
-                  }</option>
+                  <option value="">{t('search.selectGovernorate', 'Any Governorate')}</option>
                   {!isLoadingGovernorates && sortedGovernorates.map((gov) => (
                     <option key={gov.id} value={gov.displayNameEn}>
                       {getDisplayName(gov)}
                     </option>
                   ))}
                 </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
                 {isLoadingGovernorates && (
-                  <div className="absolute right-3 top-3">
-                    <div className="animate-spin h-5 w-5 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+                  <div className="absolute inset-y-0 right-8 flex items-center pr-1 pointer-events-none">
+                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Search Button */}
-            <div className="flex items-end md:col-span-2 lg:col-span-1">
+            <div className="h-12 flex items-center md:col-span-2 lg:col-span-1">
               <button
                 type="submit"
+                onClick={handleSearch}
                 className="w-full h-12 px-6 bg-blue-600 text-white text-base font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors whitespace-nowrap flex items-center justify-center"
                 aria-label={t('search.searchButton', 'Search Cars')}
               >
@@ -333,7 +315,7 @@ const HomeSearchBar: React.FC = () => {
           )}
         </div>
       </div>
-    </form>
+    </div>
   );
 };
 

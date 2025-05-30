@@ -14,7 +14,7 @@ export const formatDate = (
   try {
     // Handle null, undefined or invalid dates
     if (!date) {
-      return ''; // or return a default value like 'N/A'
+      return '';
     }
 
     // Convert string dates to Date objects
@@ -22,46 +22,73 @@ export const formatDate = (
 
     // Check if date is valid
     if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
-      return ''; // or return a default value like 'N/A'
+      return '';
     }
 
-    // Handle dateStyle option separately, as it might cause issues in some environments
-    if (options && options.dateStyle) {
-      const dateStyleOptions: Intl.DateTimeFormatOptions = { ...options };
-      const dateStyle = dateStyleOptions.dateStyle;
-      delete dateStyleOptions.dateStyle;
-      
-      // Convert dateStyle to standard options
-      if (dateStyle === 'full' || dateStyle === 'long') {
-        dateStyleOptions.year = 'numeric';
-        dateStyleOptions.month = 'long';
-        dateStyleOptions.day = 'numeric';
-        dateStyleOptions.weekday = 'long';
-      } else if (dateStyle === 'medium') {
-        dateStyleOptions.year = 'numeric';
-        dateStyleOptions.month = 'short';
-        dateStyleOptions.day = 'numeric';
-      } else if (dateStyle === 'short') {
-        dateStyleOptions.year = 'numeric';
-        dateStyleOptions.month = 'numeric';
-        dateStyleOptions.day = 'numeric';
-      }
-      
-      return new Intl.DateTimeFormat(locale, dateStyleOptions).format(dateObj);
-    }
-    
-    // Default options
-    const defaultDateOptions: Intl.DateTimeFormatOptions = {
+    // Use only safe, basic options to avoid any compatibility issues
+    let formatOptions: Intl.DateTimeFormatOptions = {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      ...(options || {}),
     };
+
+    // Handle specific cases based on options passed
+    if (options) {
+      if ('dateStyle' in options) {
+        const dateStyle = options.dateStyle;
+        if (dateStyle === 'medium') {
+          formatOptions = {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          };
+        } else if (dateStyle === 'short') {
+          formatOptions = {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric',
+          };
+        } else {
+          // full or long
+          formatOptions = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          };
+        }
+      } else {
+        // Manually set only the basic options we know are safe
+        formatOptions = {};
+        if (options.year) formatOptions.year = options.year;
+        if (options.month) formatOptions.month = options.month;
+        if (options.day) formatOptions.day = options.day;
+        
+        // If no basic options were set, use defaults
+        if (!formatOptions.year && !formatOptions.month && !formatOptions.day) {
+          formatOptions = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          };
+        }
+      }
+    }
     
-    return new Intl.DateTimeFormat(locale, defaultDateOptions).format(dateObj);
+    return new Intl.DateTimeFormat(locale, formatOptions).format(dateObj);
   } catch (error) {
-    console.error('Error formatting date:', error);
-    return ''; // or return a default value like 'N/A'
+    console.error('Error formatting date:', error, 'with options:', options);
+    // Fallback to basic formatting
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date as Date;
+      return new Intl.DateTimeFormat(locale, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }).format(dateObj);
+    } catch (fallbackError) {
+      console.error('Fallback date formatting also failed:', fallbackError);
+      return '';
+    }
   }
 };
 

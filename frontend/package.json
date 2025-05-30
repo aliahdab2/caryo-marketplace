@@ -11,7 +11,8 @@
     "prepare": "husky",
     "test": "node --no-deprecation ./node_modules/.bin/jest",
     "restart": "sh ./scripts/restart-dev.sh",
-    "diagnose": "node ./scripts/diagnostics/simple-diagnostics.js"
+    "diagnose": "node ./scripts/diagnostics/simple-diagnostics.js",
+    "find-unused-translations": "node --experimental-modules ./scripts/diagnostics/find-unused-translations.js"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
@@ -22,6 +23,7 @@
     "eslint-config-next": "^15.3.2",
     "i18next": "^25.1.2",
     "i18next-browser-languagedetector": "^8.1.0",
+    "i18next-http-backend": "^3.0.2",
     "keen-slider": "^6.8.6",
     "next": "15.3.2",
     "next-auth": "^4.24.11",

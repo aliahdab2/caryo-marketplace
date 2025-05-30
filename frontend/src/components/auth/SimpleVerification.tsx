@@ -20,7 +20,7 @@ export default function SimpleVerification({
   onVerified, 
   autoStart = false 
 }: SimpleVerificationProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('auth');
   const [state, setState] = useState<VerificationState>(autoStart ? 'verifying' : 'idle');
   
   const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -111,18 +111,18 @@ export default function SimpleVerification({
       style={{ cursor: state === 'idle' ? 'pointer' : 'default' }}
       role="button"
       tabIndex={state === 'idle' ? 0 : -1}
-      aria-label={t('auth.verificationControl')}
+      aria-label={t('verificationControl')}
     >
       {state === 'idle' && (
         <div className={styles['idle-container'] + ' ' + styles.active}>
-          <div className={styles['idle-text']}>{t('auth.clickToVerify')}</div>
+          <div className={styles['idle-text']}>{t('clickToVerify')}</div>
         </div>
       )}
       
       {state === 'verifying' && (
         <div className={styles['verifying-container'] + ' ' + styles.active}>
           <div className={styles.spinner}></div>
-          <div className={styles['verifying-text']}>{t('auth.verifying')}</div>
+          <div className={styles['verifying-text']}>{t('verifying')}</div>
         </div>
       )}
       
@@ -131,7 +131,7 @@ export default function SimpleVerification({
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#3b82f6" strokeWidth="2">
             <path d="M20 6L9 17l-5-5" />
           </svg>
-          <div className={styles['success-text']}>{t('auth.verified')}</div>
+          <div className={styles['success-text']}>{t('verified')}</div>
         </div>
       )}
     </div>

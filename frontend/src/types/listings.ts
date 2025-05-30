@@ -15,6 +15,15 @@ export interface Listing {
   image?: string;  // Backward compatibility
   exteriorColor?: string;
   interiorColor?: string;
+  
+  // Backend fields from CarListingResponse
+  modelYear?: number;
+  brandNameEn?: string;
+  brandNameAr?: string;
+  modelNameEn?: string;
+  modelNameAr?: string;
+  governorateNameEn?: string;
+  governorateNameAr?: string;
   location?: {
     city?: string;
     cityAr?: string;

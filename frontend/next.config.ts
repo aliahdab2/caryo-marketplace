@@ -53,6 +53,13 @@ const nextConfig: NextConfig = {
         port: '9000',
         pathname: '/**',
       },
+      // Allow localhost MinIO for development
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9000',
+        pathname: '/**',
+      },
     ],
   },
 

@@ -43,8 +43,10 @@ interface ListingMedia {
 interface ApiListingItem {
   id: number;
   title: string;
-  brand: string;
-  model: string;
+  brandNameEn: string;
+  brandNameAr: string;
+  modelNameEn: string;
+  modelNameAr: string;
   modelYear: number;
   mileage: number;
   price: number;
@@ -147,8 +149,8 @@ function mapApiResponseToListings(apiResponse: ListingApiResponse): { listings: 
       price: item.price,
       year: item.modelYear,
       mileage: item.mileage,
-      brand: item.brand,
-      model: item.model,
+      brand: item.brandNameEn,
+      model: item.modelNameEn,
       location,
       governorate,
       image: mainImageUrl,
@@ -262,8 +264,12 @@ export async function getListingById(id: string | number): Promise<Listing> {
       price: response.price,
       year: response.modelYear,
       mileage: response.mileage,
-      brand: response.brand,
-      model: response.model,
+      brand: response.brandNameEn,
+      model: response.modelNameEn,
+      brandNameEn: response.brandNameEn,
+      brandNameAr: response.brandNameAr,
+      modelNameEn: response.modelNameEn,
+      modelNameAr: response.modelNameAr,
       location,
       governorate,
       image: mainImageUrl,

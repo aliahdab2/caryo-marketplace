@@ -3,6 +3,7 @@
     "listings": "المركبات"
   },
   "listings": {
+    "allCars": "جميع السيارات",
     "pageDescription": "تصفح قائمة مركباتنا للعثور على السيارة المثالية",
     "categoryHeading": "المركبات في فئة: {{category}}",
     "searchPlaceholder": "البحث في المركبات...",

@@ -3,6 +3,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
+import HttpApi from "i18next-http-backend";
 
 /**
  * DEVELOPER NOTE:
@@ -14,14 +15,12 @@ import LanguageDetector from "i18next-browser-languagedetector";
  * 
  * The namespace ('common') is already specified in useTranslation('common'),
  * so keys should be accessed directly without the namespace prefix.
+ * 
+ * HTTP Backend: Using i18next-http-backend for dynamic loading of translation files
+ * from /public/locales/ directory structure. This is the recommended approach for
+ * production applications as it allows for lazy loading and better performance.
  * -----------------------------------------------------------------------------
  */
-
-// Import translation resources
-import enCommon from "../../public/locales/en/common.json";
-import arCommon from "../../public/locales/ar/common.json";
-import enErrors from "../../public/locales/en/errors.json";
-import arErrors from "../../public/locales/ar/errors.json";
 
 // Define supported languages
 export const LANGUAGES = {
@@ -30,15 +29,6 @@ export const LANGUAGES = {
 } as const;
 
 export type SupportedLanguage = typeof LANGUAGES[keyof typeof LANGUAGES];
-
-// Define resource type for better type checking
-type TranslationResources = {
-  [key in SupportedLanguage]: {
-    common: Record<string, unknown>;
-    translation: Record<string, unknown>;
-    errors: Record<string, unknown>;
-  };
-};
 
 /**
  * Gets the current language from various sources
@@ -100,41 +90,55 @@ function isValidLanguage(lang: string): lang is SupportedLanguage {
   return Object.values(LANGUAGES).includes(lang as SupportedLanguage);
 }
 
-// Create resources object with type safety
-const resources: TranslationResources = {
-  [LANGUAGES.EN]: {
-    common: enCommon,
-    translation: enCommon, // Add translation namespace as an alias to common
-    errors: enErrors,
-  },
-  [LANGUAGES.AR]: {
-    common: arCommon,
-    translation: arCommon, // Add translation namespace as an alias to common
-    errors: arErrors,
-  },
-};
-
-// Initialize i18next with better configuration
+// Initialize i18next with HTTP backend for dynamic loading
 i18n
+  .use(HttpApi) // Use HTTP backend for loading translation files
   .use(LanguageDetector) // Detect user language
   .use(initReactI18next) // Pass i18n to react-i18next
   .init({
-    resources,
-    ns: ['common', 'translation', 'errors'],
+    ns: ['common', 'translation', 'errors', 'listings', 'auth'], // Available namespaces
     defaultNS: 'common',
     lng: getCurrentLanguage(),
     fallbackLng: LANGUAGES.AR, // Default to Arabic if language detection fails
+    
+    // HTTP backend configuration
+    backend: {
+      loadPath: '/locales/{{lng}}/{{ns}}.json',
+      addPath: '/locales/add/{{lng}}/{{ns}}',
+      allowMultiLoading: false,
+      crossDomain: false,
+      withCredentials: false,
+      requestOptions: {
+        cache: 'default',
+        credentials: 'same-origin',
+        mode: 'cors',
+      }
+    },
+    
     interpolation: {
       escapeValue: false, // Not needed for React
     },
+    
     detection: {
       order: ["cookie", "localStorage", "navigator", "htmlTag"],
       caches: ["cookie", "localStorage"],
       lookupCookie: "NEXT_LOCALE",
       lookupLocalStorage: "NEXT_LOCALE",
     },
+    
     react: {
       useSuspense: false, // Prevent issues with SSR
+    },
+    
+    // Load all namespaces on init for better performance
+    preload: [LANGUAGES.EN, LANGUAGES.AR],
+    load: 'languageOnly', // Load only language part, not region
+    
+    // Error handling
+    saveMissing: false, // Don't save missing keys automatically
+    debug: process.env.NODE_ENV === 'development', // Enable debug logging in development
+    missingKeyHandler: (lng, ns, key) => {
+      console.warn(`Missing translation key: ${ns}:${key} for language: ${lng}`);
     },
   });
 

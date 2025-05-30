@@ -20,7 +20,7 @@ export default function GoogleSignInButton({
 }: GoogleSignInButtonProps) {
   const [isLoading, setIsLoading] = useState(false); // Renamed for clarity from 'loading'
   const [error, setError] = useState<string | null>(null);
-  const { t } = useTranslation();
+  const { t } = useTranslation('auth');
 
   const handleSignIn = useCallback(async () => {
     setIsLoading(true);
@@ -80,8 +80,8 @@ export default function GoogleSignInButton({
         aria-busy={isLoading}
         aria-label={
           isLoading
-            ? t("auth.signingIn", "Signing in...")
-            : t("auth.continueWithGoogle", "Continue with Google")
+            ? t("signingIn", "Signing in...")
+            : t("continueWithGoogle", "Continue with Google")
         }
         className={`w-full flex items-center justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 whitespace-nowrap ${
           isLoading ? "opacity-70 cursor-not-allowed" : ""
@@ -112,7 +112,7 @@ export default function GoogleSignInButton({
               ></path>
             </svg>
             <span className="ml-2 rtl:ml-0 rtl:mr-2">
-              {t("auth.signingIn", "Signing in...")}
+              {t("signingIn", "Signing in...")}
             </span>
           </div>
         ) : (
@@ -121,7 +121,7 @@ export default function GoogleSignInButton({
               className="mr-2 h-5 w-5 rtl:mr-0 rtl:ml-2"
               aria-hidden="true"
             />
-            <span>{t("auth.continueWithGoogle", "Continue with Google")}</span>
+            <span>{t("continueWithGoogle", "Continue with Google")}</span>
           </div>
         )}
       </button>

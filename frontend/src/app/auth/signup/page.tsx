@@ -21,31 +21,31 @@ export default function SignUpPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [isVerified, setIsVerified] = useState(false);
   const router = useRouter();
-  const { t } = useTranslation(['common', 'errors']);
+  const { t } = useTranslation('auth');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccessMessage("");      // Basic validation
     if (!username || !email || !password || !confirmPassword) { // Added confirmPassword to validation
-      setError(t('auth.fieldRequired'));
+      setError(t('fieldRequired'));
       return;
     }
 
     if (password.length < 6) {
-      setError(t('auth.passwordTooShort'));
+      setError(t('passwordTooShort'));
       return;
     }
 
     if (password !== confirmPassword) { // Added password match validation
-      setError(t('auth.passwordsDoNotMatch'));
+      setError(t('passwordsDoNotMatch'));
       setLoading(false);
       return;
     }
     
     // Check verification status
     if (!isVerified) {
-      setError(t('auth.verificationRequired', "Verification required before signup"));
+      setError(t('verificationRequired', "Verification required before signup"));
       return;
     }
 
@@ -60,7 +60,7 @@ export default function SignUpPage() {
         confirmPassword, // Added confirmPassword to service call
       });
 
-      setSuccessMessage(result.message || t('auth.signupSuccess'));
+      setSuccessMessage(result.message || t('signupSuccess'));
       
       // Short delay to show the success message before signing in
       setTimeout(async () => {
@@ -79,13 +79,13 @@ export default function SignUpPage() {
             router.push("/dashboard"); // Redirect to dashboard after successful registration and sign-in
           }
         } catch {
-          setError(t('auth.errorOccurred'));
+          setError(t('errorOccurred'));
           setLoading(false);
         }
       }, 1500);
     } catch (err) {
       // Display the error message from the server if available
-      let message = t('errors:registrationFailed', "Registration failed. Please try again.");
+      let message = t('registrationFailed', "Registration failed. Please try again.");
       if (typeof err === "object" && err !== null) {
         if (
           "data" in err &&
@@ -129,7 +129,7 @@ export default function SignUpPage() {
             <div className="h-10 w-10 relative flex-shrink-0">
               <Image 
                 src="/images/logo.svg" 
-                alt={t('auth.logo')} 
+                alt={t('logo')} 
                 width={40} 
                 height={40} 
                 className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert" 
@@ -137,8 +137,8 @@ export default function SignUpPage() {
             </div>
             <h1 className="text-lg md:text-xl font-bold">{t('appName')}</h1>
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('auth.joinUs')}</h2>
-          <p className="text-sm md:text-base opacity-80">{t('auth.createAccountDescription')}</p>
+          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('joinUs')}</h2>
+          <p className="text-sm md:text-base opacity-80">{t('createAccountDescription')}</p>
           
           <div className="mt-6 bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5">
             <div className="flex items-start mb-3">
@@ -149,7 +149,7 @@ export default function SignUpPage() {
                 </svg>
               </div>
               <p className="text-xs leading-relaxed">
-                {t('auth.benefitSafety')}
+                {t('benefitSafety')}
               </p>
             </div>
             <div className="flex items-start">
@@ -160,7 +160,7 @@ export default function SignUpPage() {
                 </svg>
               </div>
               <p className="text-xs leading-relaxed">
-                {t('auth.benefitExperience')}
+                {t('benefitExperience')}
               </p>
             </div>
           </div>
@@ -168,7 +168,7 @@ export default function SignUpPage() {
         
         <div className="z-10 p-6 md:p-8 lg:p-10 text-sm">
           <p className="mb-2 opacity-80">&copy; {new Date().getFullYear()} {t('appName')}</p>
-          <p className="opacity-60">{t('auth.privacy_policy')} • {t('auth.terms_of_service')}</p>
+          <p className="opacity-60">{t('privacy_policy')} • {t('terms_of_service')}</p>
         </div>
       </div>
       
@@ -180,7 +180,7 @@ export default function SignUpPage() {
             <div className="flex items-center responsive-fade-in">
               <Image 
                 src="/images/logo.svg" 
-                alt={t('auth.logo', 'Caryo Logo')} 
+                alt={t('logo', 'Caryo Logo')} 
                 width={40} 
                 height={40} 
                 className="mr-2.5 sm:mr-3 w-8 h-8 sm:w-10 sm:h-10 object-contain" 
@@ -191,8 +191,8 @@ export default function SignUpPage() {
           
           <div className="bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 md:p-8 lg:p-10 auth-form">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-1 auth-heading">{t('auth.signup')}</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">{t('auth.createAccountDescription')}</p>
+              <h2 className="text-2xl font-bold mb-1 auth-heading">{t('sign_up')}</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">{t('createAccountDescription')}</p>
             </div>
             
             <form onSubmit={handleSubmit} className={`responsive-fade-in ${loading ? 'opacity-70 transition-opacity' : ''}`} data-testid="signup-form">
@@ -219,7 +219,7 @@ export default function SignUpPage() {
               
               <div className="mb-5">
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  {t('auth.username')}
+                  {t('username')}
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
@@ -236,14 +236,14 @@ export default function SignUpPage() {
                     required
                     disabled={loading}
                     className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-                    placeholder={t('auth.signupUsernamePlaceholder')}
+                    placeholder={t('signupUsernamePlaceholder')}
                   />
                 </div>
               </div>
               
               <div className="mb-5">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  {t('auth.email')}
+                  {t('email')}
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
@@ -260,14 +260,14 @@ export default function SignUpPage() {
                     required
                     disabled={loading}
                     className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-                    placeholder={t('auth.emailPlaceholder')}
+                    placeholder={t('emailPlaceholder')}
                   />
                 </div>
               </div>
               
               <div className="mb-5">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  {t('auth.password')}
+                  {t('password')}
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
@@ -290,14 +290,14 @@ export default function SignUpPage() {
                   />
                 </div>
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {t('auth.passwordRequirement')}
+                  {t('passwordRequirement')}
                 </p>
               </div>
               
               {/* Added Confirm Password Field */}
               <div className="mb-5">
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  {t('auth.confirmPassword')}
+                  {t('confirmPassword')}
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
@@ -316,7 +316,7 @@ export default function SignUpPage() {
                     minLength={6}
                     disabled={loading}
                     className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-                    placeholder={t('auth.confirmPasswordPlaceholder', "Confirm your password")}
+                    placeholder={t('confirmPasswordPlaceholder', "Confirm your password")}
                   />
                 </div>
               </div>
@@ -347,7 +347,7 @@ export default function SignUpPage() {
                   className={`w-full flex justify-center py-2.5 sm:py-3 px-4 border border-transparent rounded-lg shadow-md text-sm sm:text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-all duration-200 ${
                     loading || !isVerified ? 'opacity-70 cursor-not-allowed' : 'hover-lift'
                   } transform active:translate-y-0`}
-                  title={!isVerified ? t('auth.verificationRequired') : ""}
+                  title={!isVerified ? t('verificationRequired') : ""}
                 >
                   {loading ? (
                     <div className="flex items-center">
@@ -358,14 +358,14 @@ export default function SignUpPage() {
                       {t('loading')}
                     </div>
                   ) : (
-                    t('auth.signup')
+                    t('sign_up')
                   )}
                 </button>
                 
                 {/* Add hint text under the button */}
                 {!isVerified && (
                   <div className="mt-2 text-center text-xs text-amber-600 dark:text-amber-400">
-                    {t('auth.pleaseVerifyFirst')}
+                    {t('pleaseVerifyFirst')}
                   </div>
                 )}
               </div>
@@ -377,7 +377,7 @@ export default function SignUpPage() {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
-                  {t('auth.or')}
+                  {t('or')}
                 </span>
               </div>
             </div>
@@ -388,12 +388,12 @@ export default function SignUpPage() {
 
             <div className="text-center mt-6">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {t('auth.alreadyHaveAccount')}{" "}
+                {t('alreadyHaveAccount')}{" "}
                 <Link
                   href="/auth/signin"
                   className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                 >
-                  {t('auth.signin')}
+                  {t('signin')}
                 </Link>
               </p>
             </div>
