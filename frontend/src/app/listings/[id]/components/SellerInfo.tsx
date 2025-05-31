@@ -10,7 +10,7 @@ interface SellerInfoProps {
 }
 
 const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
-  const { t, i18n } = useTranslation('common');
+  const { t, i18n } = useTranslation('listings');
 
   const isDealer = listing.seller?.type === 'dealer';
 
@@ -21,7 +21,7 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
           <svg className="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
-          {isDealer ? t('listings.dealer') : t('listings.privateSeller')}
+          {isDealer ? t('dealer') : t('privateSeller')}
         </h3>
         
         <div className="flex items-start space-x-4 rtl:space-x-reverse mb-4">
@@ -42,7 +42,7 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
 
           <div className="flex-grow">
             <h4 className="font-semibold text-gray-900 dark:text-white text-lg">
-              {listing.seller?.name || t('listings.sellerNotSpecified')}
+              {listing.seller?.name || t('sellerNotSpecified')}
             </h4>
             
             {isDealer && (
@@ -51,7 +51,7 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 <span className="text-sm text-green-600 dark:text-green-400 font-medium">
-                  {t('listings.verifiedDealer')}
+                  {t('verifiedDealer')}
                 </span>
               </div>
             )}
@@ -61,7 +61,7 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>
-                {t('listings.memberSince')} {listing.createdAt ? formatDate(listing.createdAt, i18n.language, { year: 'numeric', month: 'long' }) : t('listings.recently')}
+                {t('memberSince')} {listing.createdAt ? formatDate(listing.createdAt, i18n.language, { year: 'numeric', month: 'long' }) : t('recently')}
               </span>
             </div>
 
@@ -71,7 +71,7 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               <span>
-                {listing.governorate?.nameEn || listing.location?.city || t('listings.locationNotSpecified')}
+                {listing.governorate?.nameEn || listing.location?.city || t('locationNotSpecified')}
               </span>
             </div>
           </div>
@@ -84,7 +84,7 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
             <span className="text-sm text-green-700 dark:text-green-400 font-medium">
-              {t('listings.typicallyRespondsIn')} {isDealer ? t('listings.within1Hour') : t('listings.within24Hours')}
+              {t('typicallyRespondsIn')} {isDealer ? t('within1Hour') : t('within24Hours')}
             </span>
           </div>
         </div>
@@ -95,14 +95,14 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
             <svg className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
-            {t('listings.sendMessage')}
+            {t('sendMessage')}
           </button>
 
           <button className="w-full bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center">
             <svg className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
             </svg>
-            {t('listings.callNow')}
+            {t('callNow')}
           </button>
 
           {isDealer && (
@@ -110,7 +110,7 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
               <svg className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              {t('listings.scheduleTestDrive')}
+              {t('scheduleTestDrive')}
             </button>
           )}
         </div>
@@ -119,26 +119,26 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
         {isDealer && (
           <div className="mt-4 pt-4 border-t dark:border-gray-600">
             <h5 className="font-medium text-gray-900 dark:text-white mb-2">
-              {t('listings.aboutThisDealer')}
+              {t('aboutThisDealer')}
             </h5>
             <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
               <div className="flex items-center">
                 <svg className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>{t('listings.licensedDealer')}</span>
+                <span>{t('licensedDealer')}</span>
               </div>
               <div className="flex items-center">
                 <svg className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>{t('listings.warrantyAvailable')}</span>
+                <span>{t('warrantyAvailable')}</span>
               </div>
               <div className="flex items-center">
                 <svg className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>{t('listings.financingOptions')}</span>
+                <span>{t('financingOptions')}</span>
               </div>
             </div>
           </div>

@@ -7,9 +7,9 @@ This guide provides a brief overview of how to implement the CarMediaGallery com
 1. Install the required dependencies:
 
 ```bash
-npm install @headlessui/react @heroicons/react keen-slider
+npm install @headlessui/react lucide-react keen-slider
 # or
-yarn add @headlessui/react @heroicons/react keen-slider
+yarn add @headlessui/react lucide-react keen-slider
 ```
 
 2. Import the keen-slider styles in your component or global CSS:
@@ -30,7 +30,7 @@ import Image from 'next/image';
 import { Dialog } from '@headlessui/react';
 import { useKeenSlider } from 'keen-slider/react';
 import { CarMediaGalleryProps, CarMedia } from './types';
-import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, PlayIcon } from '@heroicons/react/24/outline';
+import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 
 export const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
   media,
@@ -140,7 +140,7 @@ export const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
               className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-70 transition-opacity"
               aria-label="Previous image"
             >
-              <ChevronLeftIcon className="w-6 h-6" />
+              <ChevronLeft className="w-6 h-6" />
             </button>
 
             <button
@@ -148,7 +148,7 @@ export const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
               className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-70 transition-opacity"
               aria-label="Next image"
             >
-              <ChevronRightIcon className="w-6 h-6" />
+              <ChevronRight className="w-6 h-6" />
             </button>
           </>
         )}
@@ -173,7 +173,7 @@ export const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
               className="absolute top-4 right-4 z-20 p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-70 transition-opacity"
               aria-label="Close modal"
             >
-              <XMarkIcon className="w-6 h-6" />
+              <X className="w-6 h-6" />
             </button>
 
             {/* Modal slider */}
@@ -198,7 +198,7 @@ export const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                   className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-70 transition-opacity"
                   aria-label="Previous image"
                 >
-                  <ChevronLeftIcon className="w-6 h-6" />
+                  <ChevronLeft className="w-6 h-6" />
                 </button>
 
                 <button
@@ -206,7 +206,7 @@ export const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-70 transition-opacity"
                   aria-label="Next image"
                 >
-                  <ChevronRightIcon className="w-6 h-6" />
+                  <ChevronRight className="w-6 h-6" />
                 </button>
               </>
             )}

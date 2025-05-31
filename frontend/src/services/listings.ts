@@ -284,7 +284,8 @@ export async function getListingById(id: string | number): Promise<Listing> {
       seller: {
         id: response.sellerId.toString(),
         name: response.sellerUsername,
-        type: 'private' as const
+        type: 'private' as const,
+        phone: '+966 50 123 4567' // Placeholder - this should come from API in the future
       },
       currency: 'SAR' // Default currency
     };

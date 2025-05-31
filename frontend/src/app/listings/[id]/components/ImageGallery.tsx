@@ -10,7 +10,7 @@ interface ImageGalleryProps {
 }
 
 const ImageGallery: React.FC<ImageGalleryProps> = ({ listing }) => {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('listings');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -41,7 +41,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ listing }) => {
             <svg className="w-16 h-16 sm:w-24 sm:h-24 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <p className="text-gray-500 dark:text-gray-400">{t('listings.noImages')}</p>
+            <p className="text-gray-500 dark:text-gray-400">{t('noImages')}</p>
           </div>
         </div>
       </div>

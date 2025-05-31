@@ -113,12 +113,12 @@ jest.mock('@headlessui/react', () => {
   };
 });
 
-// Mock heroicons
-jest.mock('@heroicons/react/24/outline', () => ({
-  XMarkIcon: function XMarkIcon() { return <div data-testid="close-icon" />; },
-  ChevronLeftIcon: function ChevronLeftIcon() { return <div data-testid="prev-icon" />; },
-  ChevronRightIcon: function ChevronRightIcon() { return <div data-testid="next-icon" />; },
-  PlayIcon: function PlayIcon() { return <div data-testid="play-icon" />; },
+// Mock Lucide icons
+jest.mock('lucide-react', () => ({
+  X: function X() { return <div data-testid="close-icon" />; },
+  ChevronLeft: function ChevronLeft() { return <div data-testid="prev-icon" />; },
+  ChevronRight: function ChevronRight() { return <div data-testid="next-icon" />; },
+  Play: function Play() { return <div data-testid="play-icon" />; },
 }));
 
 describe('CarMediaGallery', () => {

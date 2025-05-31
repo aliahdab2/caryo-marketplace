@@ -9,7 +9,7 @@ interface CarFeaturesProps {
 }
 
 const CarFeatures: React.FC<CarFeaturesProps> = ({ listing }) => {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('listings');
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   
   const features = listing.features || [];
@@ -112,14 +112,14 @@ const CarFeatures: React.FC<CarFeaturesProps> = ({ listing }) => {
           <svg className="w-5 h-5 sm:w-6 sm:h-6 mr-2 rtl:ml-2 rtl:mr-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
-          {t('listings.features')}
+          {t('features')}
         </h2>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="text-center text-gray-500 dark:text-gray-400">
             <svg className="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <p>{t('listings.noFeaturesListed')}</p>
+            <p>{t('noFeaturesListed')}</p>
           </div>
         </div>
       </div>
@@ -142,11 +142,11 @@ const CarFeatures: React.FC<CarFeaturesProps> = ({ listing }) => {
         {showAllFeatures ? (
           // Categorized view when showing all features
           <div className="space-y-6">
-            {renderFeatureSection(t('listings.safetyFeatures'), categorizedFeatures.safety, 'safety')}
-            {renderFeatureSection(t('listings.comfortFeatures'), categorizedFeatures.comfort, 'comfort')}
-            {renderFeatureSection(t('listings.technologyFeatures'), categorizedFeatures.technology, 'technology')}
-            {renderFeatureSection(t('listings.performanceFeatures'), categorizedFeatures.performance, 'performance')}
-            {renderFeatureSection(t('listings.otherFeatures'), categorizedFeatures.other, 'other')}
+            {renderFeatureSection(t('safetyFeatures'), categorizedFeatures.safety, 'safety')}
+            {renderFeatureSection(t('comfortFeatures'), categorizedFeatures.comfort, 'comfort')}
+            {renderFeatureSection(t('technologyFeatures'), categorizedFeatures.technology, 'technology')}
+            {renderFeatureSection(t('performanceFeatures'), categorizedFeatures.performance, 'performance')}
+            {renderFeatureSection(t('otherFeatures'), categorizedFeatures.other, 'other')}
           </div>
         ) : (
           // Simple grid view for initial display
@@ -173,14 +173,14 @@ const CarFeatures: React.FC<CarFeaturesProps> = ({ listing }) => {
                   <svg className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                   </svg>
-                  {t('listings.showLess')}
+                  {t('showLess')}
                 </>
               ) : (
                 <>
                   <svg className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                  {t('listings.showMore')} ({features.length - 6} {t('more')})
+                  {t('showMore')} ({features.length - 6} {t('more')})
                 </>
               )}
             </button>

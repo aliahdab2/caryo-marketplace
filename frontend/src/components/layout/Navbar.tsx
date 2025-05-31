@@ -45,24 +45,24 @@ export default function Navbar({ className }: ComponentProps) {
   };
 
   return (
-    <nav className={`bg-white shadow-md dark:bg-gray-900 ${className || ''}`}>
-      <div className="w-full max-w-[94%] xs:max-w-[92%] sm:max-w-[90%] md:max-w-[88%] lg:max-w-6xl xl:max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6">
-        <div className="flex justify-between h-12 xs:h-13 sm:h-14 md:h-16">
-          <div className="flex items-center">
+    <nav className={`bg-white shadow-md dark:bg-gray-900 mobile-prevent-scroll ${className || ''}`}>
+      <div className="w-full max-w-[94%] xs:max-w-[92%] sm:max-w-[90%] md:max-w-[88%] lg:max-w-6xl xl:max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6 tablet-nav-improvements">
+        <div className="flex justify-between items-center h-14 xs:h-15 sm:h-16 md:h-16 landscape-mobile-nav">
+          <div className="flex items-center min-w-0 flex-1 sm:flex-initial">
             <Link 
               href="/" 
-              className="flex-shrink-0 flex items-center"
+              className="flex-shrink-0 flex items-center min-w-0 nav-focus-visible"
               aria-label={t('header.home')}
             >
               <Image 
-                className="h-6 w-auto xs:h-7 sm:h-8" 
+                className="h-7 w-auto xs:h-8 sm:h-8" 
                 src={logoSrc} 
                 alt="" 
                 width={32} 
                 height={32}
                 onError={handleLogoError}
               />
-              <span className="ml-1.5 xs:ml-2 rtl:mr-1.5 rtl:xs:mr-2 rtl:ml-0 text-base xs:text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">
+              <span className="ml-2 xs:ml-2 rtl:mr-2 rtl:xs:mr-2 rtl:ml-0 text-lg xs:text-xl sm:text-xl font-bold text-gray-900 dark:text-white truncate logo-text">
                 Caryo
               </span>
             </Link>
@@ -89,8 +89,10 @@ export default function Navbar({ className }: ComponentProps) {
               </Link>
             </div>
           </div>
-          <div className="hidden sm:ml-3 md:ml-4 lg:ml-6 sm:flex sm:items-center">
-            {/* Language Switcher in desktop view with SAS-style */}
+          
+          {/* Desktop menu - hidden on mobile */}
+          <div className="hidden sm:flex sm:items-center sm:space-x-2 md:space-x-3 lg:space-x-4 rtl:space-x-reverse">
+            {/* Language Switcher in desktop view */}
             <div className="mr-2 xs:mr-3 sm:mr-4 rtl:mr-0 rtl:ml-2 rtl:xs:ml-3 rtl:sm:ml-4">
               <LanguageSwitcher />
             </div>
@@ -201,10 +203,12 @@ export default function Navbar({ className }: ComponentProps) {
               </div>
             )}
           </div>
-          <div className="-mr-1 rtl:-ml-1 rtl:mr-0 flex items-center sm:hidden">
+          
+          {/* Mobile menu button */}
+          <div className="flex items-center sm:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="inline-flex items-center justify-center p-1 xs:p-1.5 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors mobile-touch-target nav-focus-visible"
               aria-expanded={mobileMenuOpen ? "true" : "false"}
               aria-controls="mobile-menu"
               aria-label={mobileMenuOpen ? t('header.closeMenu') : t('header.openMenu')}
@@ -212,7 +216,7 @@ export default function Navbar({ className }: ComponentProps) {
               <span className="sr-only">{mobileMenuOpen ? t('header.closeMenu') : t('header.openMenu')}</span>
               {mobileMenuOpen ? (
                 <svg
-                  className="block h-5 w-5 xs:h-6 xs:w-6"
+                  className="block h-6 w-6"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -228,7 +232,7 @@ export default function Navbar({ className }: ComponentProps) {
                 </svg>
               ) : (
                 <svg
-                  className="block h-5 w-5 xs:h-6 xs:w-6"
+                  className="block h-6 w-6"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -248,103 +252,115 @@ export default function Navbar({ className }: ComponentProps) {
         </div>
       </div>
 
-      {/* Mobile menu with smooth transition */}
+      {/* Mobile menu with improved animations and structure */}
       <div 
         id="mobile-menu"
-        className={`sm:hidden transition-all duration-300 ease-in-out overflow-hidden transform ${mobileMenuOpen ? 'max-h-screen opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2'}`}
+        className={`sm:hidden mobile-menu-transition transition-all duration-300 ease-in-out overflow-hidden ${
+          mobileMenuOpen 
+            ? 'max-h-screen opacity-100 visible mobile-menu-enter-active' 
+            : 'max-h-0 opacity-0 invisible mobile-menu-enter'
+        }`}
         aria-hidden={!mobileMenuOpen}
       >
-        <div className="pt-1 xs:pt-2 pb-2 xs:pb-3 space-y-0.5 xs:space-y-1">
-          {/* Home link removed from mobile menu to prevent redundancy with logo link */}
+        <div className="px-2 pt-2 pb-3 space-y-1 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+          {/* Navigation Links */}
           <Link 
             href="/listings"
-            className="block pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 border-transparent text-xs xs:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
+            className="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors nav-focus-visible"
             onClick={() => setMobileMenuOpen(false)}
           >
             {t('header.listings')}
           </Link>
           <Link 
             href="/about"
-            className="block pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 border-transparent text-xs xs:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
+            className="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors nav-focus-visible"
             onClick={() => setMobileMenuOpen(false)}
           >
             {t('header.about')}
           </Link>
           <Link 
             href="/contact"
-            className="block pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 border-transparent text-xs xs:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
+            className="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors nav-focus-visible"
             onClick={() => setMobileMenuOpen(false)}
           >
             {t('header.contact')}
           </Link>
           
           {/* Language Switcher in mobile menu */}
-          <div className="px-3 xs:px-4 py-2 xs:py-3">
+          <div className="px-3 py-2">
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+              {t('header.language')}
+            </div>
             <LanguageSwitcher />
           </div>
-          <div className="pt-3 xs:pt-4 pb-2 xs:pb-3 border-t border-gray-200 dark:border-gray-700">
+          
+          {/* User Section */}
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             {session ? (
-              <div className="space-y-2 xs:space-y-3">
-                <div className="px-3 xs:px-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center mb-2">
-                    <div className="flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-full h-8 w-8 xs:h-9 xs:w-9 shadow-sm ring-2 ring-white dark:ring-gray-800">
-                      {session.user?.image ? (
-                        <Image 
-                          src={session.user.image} 
-                          alt={session.user?.name || "User"}
-                          width={36}
-                          height={36}
-                          className="rounded-full h-full w-full object-cover"
-                        />
-                      ) : (
-                        <MdPerson className="h-5 w-5 xs:h-6 xs:w-6" />
-                      )}
+              <div className="space-y-1">
+                {/* User Info */}
+                <div className="px-3 py-3 bg-white dark:bg-gray-900 rounded-md mx-3 mb-2">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className="flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-full h-10 w-10 shadow-sm">
+                        {session.user?.image ? (
+                          <Image 
+                            src={session.user.image} 
+                            alt={session.user?.name || "User"}
+                            width={40}
+                            height={40}
+                            className="rounded-full h-full w-full object-cover"
+                          />
+                        ) : (
+                          <MdPerson className="h-5 w-5" />
+                        )}
+                      </div>
                     </div>
-                    <div className="ml-3 rtl:mr-3 rtl:ml-0">
-                      <p className="text-sm xs:text-base font-medium text-gray-800 dark:text-white">
+                    <div className="ml-3 min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white mobile-text-truncate">
                         {session.user?.name || session.user?.email?.split('@')[0] || "User"}
                       </p>
-                      <p className="text-xs xs:text-sm font-medium text-gray-500 dark:text-gray-400 truncate max-w-[95%] xs:max-w-[280px]">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mobile-text-truncate">
                         {session.user?.email}
                       </p>
                     </div>
                   </div>
                 </div>
-                <div className="space-y-0.5 xs:space-y-1">
-                  <Link 
-                    href="/dashboard"
-                    className="flex items-center pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 rtl:pr-2 rtl:xs:pr-3 rtl:pl-3 rtl:xs:pl-4 border-transparent text-xs xs:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <MdDashboard className="mr-2 rtl:ml-2 rtl:mr-0 h-4 w-4 xs:h-5 xs:w-5" />
-                    {t('header.dashboard')}
-                  </Link>
-                  <Link 
-                    href="/dashboard/settings"
-                    className="flex items-center pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 rtl:pr-2 rtl:xs:pr-3 rtl:pl-3 rtl:xs:pl-4 border-transparent text-xs xs:text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <MdSettings className="mr-2 rtl:ml-2 rtl:mr-0 h-4 w-4 xs:h-5 xs:w-5" />
-                    {"Account Settings"}
-                  </Link>
-                  <button
-                    onClick={async () => {
-                      await signOut({ redirect: false });
-                      setMobileMenuOpen(false);
-                      window.location.href = '/';
-                    }}
-                    className="block w-full text-left pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 rtl:pr-2 rtl:xs:pr-3 rtl:pl-3 rtl:xs:pl-4 border-transparent text-xs xs:text-sm font-medium text-red-600 hover:bg-gray-50 hover:border-red-300 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors flex items-center"
-                  >
-                    <MdLogout className="mr-2 rtl:ml-2 rtl:mr-0 h-4 w-4 xs:h-5 xs:w-5" />
-                    {t('header.logout')}
-                  </button>
-                </div>
+                
+                {/* User Menu Items */}
+                <Link 
+                  href="/dashboard"
+                  className="mobile-nav-link flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors nav-focus-visible"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <MdDashboard className="mr-3 h-5 w-5" />
+                  {t('header.dashboard')}
+                </Link>
+                <Link 
+                  href="/dashboard/settings"
+                  className="mobile-nav-link flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors nav-focus-visible"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <MdSettings className="mr-3 h-5 w-5" />
+                  {t("dashboard.accountSettings")}
+                </Link>
+                <button
+                  onClick={async () => {
+                    await signOut({ redirect: false });
+                    setMobileMenuOpen(false);
+                    window.location.href = '/';
+                  }}
+                  className="mobile-nav-link w-full flex items-center px-3 py-2 rounded-md text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 transition-colors nav-focus-visible"
+                >
+                  <MdLogout className="mr-3 h-5 w-5" />
+                  {t('header.logout')}
+                </button>
               </div>
             ) : (
-              <div className="space-y-1.5 xs:space-y-2 px-3 xs:px-4">
+              <div className="px-3 py-2">
                 <SignInButton 
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full justify-center py-1.5 xs:py-2 text-xs xs:text-sm"
+                  className="w-full justify-center py-2 text-base mobile-touch-target"
                 />
               </div>
             )}

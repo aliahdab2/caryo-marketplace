@@ -32,7 +32,7 @@ export default function Home() {
   return (
     <div className="w-full">
       {/* Hero Section with full-width banner image */}
-      <div className="relative h-[550px] w-full">
+      <div className="relative h-[450px] xs:h-[500px] sm:h-[550px] w-full overflow-hidden">
         <Image
           src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=2070"
           alt="Car in motion on a scenic road"
@@ -42,18 +42,18 @@ export default function Home() {
           sizes="100vw"
         />
         
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
-          <div className="text-center mb-6">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 hero-absolute-content">
+          <div className="text-center mb-4 xs:mb-6">
+            <h1 className="text-3xl xs:text-4xl md:text-5xl font-bold text-white mb-2 xs:mb-3">
               {t('home.hero.usedCarsNearYou', 'Used Cars for Sale Near You')}
             </h1>
-            <p className="text-lg md:text-xl text-white">
+            <p className="text-base xs:text-lg md:text-xl text-white">
               {t('home.hero.findPerfectCar', 'Find your next car with Caryo')}
             </p>
           </div>
 
-          {/* Use HomeSearchBar component instead of the form */}
-          <div className="w-full max-w-5xl">
+          {/* Use HomeSearchBar component with better mobile positioning */}
+          <div className="w-full max-w-5xl hero-search-container mobile-dropdown-container">
             <HomeSearchBar />
           </div>
         </div>

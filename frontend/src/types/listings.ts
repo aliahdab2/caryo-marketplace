@@ -53,6 +53,8 @@ export interface Listing {
     id: string;
     name: string;
     type: 'dealer' | 'private';
+    phone?: string;
+    email?: string;
   };
   condition?: 'new' | 'used' | 'certified';
   features?: string[];

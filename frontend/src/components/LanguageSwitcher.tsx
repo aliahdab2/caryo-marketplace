@@ -119,7 +119,7 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
       {isOpen && (
         <div 
           id="language-menu"
-          className="absolute mt-2 right-0 rtl:right-auto rtl:left-0 w-36 origin-top-right bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 focus:outline-none z-50 transform transition-all duration-200 ease-out"
+          className="absolute mt-2 right-0 rtl:right-auto rtl:left-0 w-36 origin-top-right bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 focus:outline-none z-50 transform transition-all duration-200 ease-out sm:relative sm:mt-2 sm:w-36 mobile-dropdown"
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="language-button"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import debounce from 'lodash/debounce';
@@ -14,10 +14,97 @@ import {
 } from '@/services/api';
 import { useApiData, useFormSelection } from '@/hooks/useApiData';
 
+// Custom hook to handle select dropdown positioning for mobile
+const useSelectDropdownFix = (selectRefs: React.RefObject<HTMLSelectElement>[]) => {
+  useEffect(() => {
+    if (window.innerWidth >= 640) return; // Only apply on mobile
+    
+    // Create a list to store cleanup functions
+    const cleanupFunctions: (() => void)[] = [];
+    
+    // Apply focus handlers to all selects
+    selectRefs.forEach(ref => {
+      const select = ref.current;
+      if (!select) return;
+      
+      // Focus handler to improve dropdown positioning
+      const handleFocus = () => {
+        // Detect iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        
+        // Get element positioning
+        const rect = select.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const spaceBelow = viewportHeight - rect.bottom;
+        
+        // If there's not enough space below for dropdown options
+        if (spaceBelow < 200) {
+          const scrollAmount = Math.min(rect.top - 20, 200 - spaceBelow + 20);
+          if (scrollAmount > 0) {
+            window.scrollBy({
+              top: -scrollAmount,
+              behavior: 'smooth'
+            });
+          }
+        }
+        
+        // Give the browser a moment to update
+        setTimeout(() => {
+          // Find the closest container
+          const parentContainer = select.closest('.hero-search-container');
+          if (parentContainer) {
+            // Position the parent container optimally
+            parentContainer.scrollIntoView({ 
+              block: 'center',
+              behavior: 'smooth' 
+            });
+          }
+          
+          // Final positioning for optimal dropdown display
+          setTimeout(() => {
+            const updatedRect = select.getBoundingClientRect();
+            const targetPosition = isIOS ? 120 : 150; // pixels from top
+            const currentPosition = updatedRect.top;
+            const adjustment = currentPosition - targetPosition;
+            
+            if (Math.abs(adjustment) > 20) {
+              window.scrollBy({
+                top: adjustment,
+                behavior: 'smooth'
+              });
+            }
+          }, 50);
+        }, 50);
+      };
+      
+      // Attach event listener
+      select.addEventListener('focus', handleFocus);
+      
+      // Store cleanup function
+      cleanupFunctions.push(() => {
+        select.removeEventListener('focus', handleFocus);
+      });
+    });
+    
+    // Return cleanup function
+    return () => {
+      cleanupFunctions.forEach(cleanup => cleanup());
+    };
+  }, [selectRefs]);
+};
+
 const HomeSearchBar: React.FC = () => {
   const { t, i18n } = useTranslation('common');
   const router = useRouter();
   const currentLanguage = i18n.language;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const brandSelectRef = useRef<HTMLSelectElement>(null);
+  const modelSelectRef = useRef<HTMLSelectElement>(null);
+  const govSelectRef = useRef<HTMLSelectElement>(null);
+  
+  // Apply the dropdown positioning fix
+  useSelectDropdownFix([brandSelectRef, modelSelectRef, govSelectRef]);
   
   // Form selections with reset capabilities
   const [selectedMake, setSelectedMake] = useFormSelection<number | null>(null, []);
@@ -136,10 +223,10 @@ const HomeSearchBar: React.FC = () => {
   }, [debouncedSearch]);
 
   return (
-    <div className="w-full" data-testid="search-container">
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md rounded-lg">
-        <div className="p-4 sm:p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-4 sm:gap-y-6">
+    <div className="w-full" data-testid="search-container" ref={containerRef}>
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md rounded-lg overflow-visible">
+        <div className="p-3 xs:p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-3 xs:gap-x-4 sm:gap-x-6 gap-y-3 xs:gap-y-4 sm:gap-y-6">
             {/* Brand Select */}
             <div className="h-12 flex items-center">
               {/* Label hidden as requested */}
@@ -149,9 +236,10 @@ const HomeSearchBar: React.FC = () => {
               <div className="relative w-full h-12">
                 <select
                   id="brand"
+                  ref={brandSelectRef}
                   value={selectedMake ?? ''}
                   onChange={(e) => setSelectedMake(e.target.value ? Number(e.target.value) : null)}
-                  className="appearance-none block w-full h-12 pl-4 pr-10 py-3 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap"
+                  className="appearance-none block w-full h-12 pl-3 xs:pl-4 pr-8 xs:pr-10 py-2 xs:py-3 text-sm xs:text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap mobile-select-dropdown select-fix"
                   disabled={isLoadingBrands}
                   aria-label={t('search.selectBrand', 'Select brand')}
                 >
@@ -160,14 +248,14 @@ const HomeSearchBar: React.FC = () => {
                     <option key={make.id} value={make.id}>{getDisplayName(make)}</option>
                   ))}
                 </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="absolute inset-y-0 right-0 flex items-center pr-1.5 xs:pr-2 pointer-events-none">
+                  <svg className="w-4 xs:w-5 h-4 xs:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
                 {isLoadingBrands && (
-                  <div className="absolute inset-y-0 right-8 flex items-center pr-1 pointer-events-none" data-testid="brand-loading-spinner">
-                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+                  <div className="absolute inset-y-0 right-6 xs:right-8 flex items-center pr-1 pointer-events-none" data-testid="brand-loading-spinner">
+                    <div className="animate-spin h-3 xs:h-4 w-3 xs:w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
                   </div>
                 )}
               </div>
@@ -182,9 +270,10 @@ const HomeSearchBar: React.FC = () => {
               <div className="relative w-full h-12">
                 <select
                   id="model"
+                  ref={modelSelectRef}
                   value={selectedModel ?? ''}
                   onChange={(e) => setSelectedModel(e.target.value ? Number(e.target.value) : null)}
-                  className="appearance-none block w-full h-12 pl-4 pr-10 py-3 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap"
+                  className="appearance-none block w-full h-12 pl-3 xs:pl-4 pr-8 xs:pr-10 py-2 xs:py-3 text-sm xs:text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap mobile-select-dropdown select-fix"
                   disabled={!selectedMake || isLoadingModels}
                   aria-label={t('search.selectModel', 'Select model')}
                 >
@@ -195,14 +284,14 @@ const HomeSearchBar: React.FC = () => {
                     <option key={model.id} value={model.id}>{getDisplayName(model)}</option>
                   ))}
                 </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="absolute inset-y-0 right-0 flex items-center pr-1.5 xs:pr-2 pointer-events-none">
+                  <svg className="w-4 xs:w-5 h-4 xs:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
                 {isLoadingModels && (
-                  <div className="absolute inset-y-0 right-8 flex items-center pr-1 pointer-events-none" data-testid="model-loading-spinner">
-                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+                  <div className="absolute inset-y-0 right-6 xs:right-8 flex items-center pr-1 pointer-events-none" data-testid="model-loading-spinner">
+                    <div className="animate-spin h-3 xs:h-4 w-3 xs:w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
                   </div>
                 )}
               </div>
@@ -217,9 +306,10 @@ const HomeSearchBar: React.FC = () => {
               <div className="relative w-full h-12">
                 <select
                   id="governorate"
+                  ref={govSelectRef}
                   value={selectedGovernorate}
                   onChange={(e) => setSelectedGovernorate(e.target.value)}
-                  className="appearance-none block w-full h-12 pl-4 pr-10 py-3 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap"
+                  className="appearance-none block w-full h-12 pl-3 xs:pl-4 pr-8 xs:pr-10 py-2 xs:py-3 text-sm xs:text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap mobile-select-dropdown select-fix"
                   disabled={isLoadingGovernorates}
                   aria-label={t('search.selectGovernorate', 'Select governorate')}
                 >
@@ -230,14 +320,14 @@ const HomeSearchBar: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="absolute inset-y-0 right-0 flex items-center pr-1.5 xs:pr-2 pointer-events-none">
+                  <svg className="w-4 xs:w-5 h-4 xs:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
                 {isLoadingGovernorates && (
-                  <div className="absolute inset-y-0 right-8 flex items-center pr-1 pointer-events-none">
-                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+                  <div className="absolute inset-y-0 right-6 xs:right-8 flex items-center pr-1 pointer-events-none">
+                    <div className="animate-spin h-3 xs:h-4 w-3 xs:w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
                   </div>
                 )}
               </div>
@@ -248,11 +338,11 @@ const HomeSearchBar: React.FC = () => {
               <button
                 type="submit"
                 onClick={handleSearch}
-                className="w-full h-12 px-6 bg-blue-600 text-white text-base font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors whitespace-nowrap flex items-center justify-center"
+                className="w-full h-12 px-4 xs:px-6 bg-blue-600 text-white text-sm xs:text-base font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors whitespace-nowrap flex items-center justify-center"
                 aria-label={t('search.searchButton', 'Search Cars')}
               >
                 <svg 
-                  className="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0" 
+                  className="w-4 xs:w-5 h-4 xs:h-5 mr-1.5 xs:mr-2 rtl:ml-1.5 rtl:xs:ml-2 rtl:mr-0" 
                   fill="none" 
                   stroke="currentColor" 
                   viewBox="0 0 24 24" 
@@ -265,7 +355,8 @@ const HomeSearchBar: React.FC = () => {
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
                   />
                 </svg>
-                {t('search.searchButton', 'Search Cars')}
+                <span className="hidden xs:inline">{t('search.searchButton', 'Search Cars')}</span>
+                <span className="xs:hidden">{t('search.search', 'Search')}</span>
               </button>
             </div>
           </div>

@@ -6,11 +6,9 @@ import { CarMediaGalleryProps, CarMedia } from './types';
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 
-// Import icons 
-// Note: You may need to install these packages:
-// npm install @headlessui/react @heroicons/react keen-slider
+// Import components and icons
 import { Dialog } from '@headlessui/react';
-import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, PlayIcon } from '@heroicons/react/24/outline';
+import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 
 /**
  * A Blocket-inspired responsive gallery for displaying car images and videos
@@ -168,12 +166,12 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
           />
         ) : (
           <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-            <PlayIcon className="w-12 h-12 text-gray-400" />
+            <Play className="w-12 h-12 text-gray-400" />
           </div>
         )}
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 group-hover:bg-opacity-40 transition-opacity">
           <div className="bg-black bg-opacity-60 rounded-full p-3 text-white">
-            <PlayIcon className="w-8 h-8" />
+            <Play className="w-8 h-8" />
           </div>
         </div>
         <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 rounded px-2 py-1 text-white text-xs">
@@ -269,13 +267,13 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-40 transition-opacity">
                         <div className="bg-black bg-opacity-60 rounded-full p-5 text-white">
-                          <PlayIcon className="w-12 h-12" />
+                          <Play className="w-12 h-12" />
                         </div>
                       </div>
                     </div>
                   ) : (
                     <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                      <PlayIcon className="w-24 h-24 text-gray-400" />
+                      <Play className="w-24 h-24 text-gray-400" />
                     </div>
                   )}
                 </div>
@@ -291,7 +289,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                       className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 p-1.5 bg-black bg-opacity-20 rounded-full text-white hover:bg-opacity-40 transition-opacity"
                       aria-label="Previous video"
                     >
-                      <ChevronLeftIcon className="w-5 h-5" />
+                      <ChevronLeft className="w-5 h-5" />
                     </button>
 
                     <button
@@ -302,7 +300,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                       className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 p-1.5 bg-black bg-opacity-20 rounded-full text-white hover:bg-opacity-40 transition-opacity"
                       aria-label="Next video"
                     >
-                      <ChevronRightIcon className="w-5 h-5" />
+                      <ChevronRight className="w-5 h-5" />
                     </button>
                   </>
                 )}
@@ -326,7 +324,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                 className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 p-1.5 bg-black bg-opacity-20 rounded-full text-white hover:bg-opacity-40 transition-opacity"
                 aria-label="Previous image"
               >
-                <ChevronLeftIcon className="w-5 h-5" />
+                <ChevronLeft className="w-5 h-5" />
               </button>
 
               <button
@@ -337,7 +335,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 p-1.5 bg-black bg-opacity-20 rounded-full text-white hover:bg-opacity-40 transition-opacity"
                 aria-label="Next image"
               >
-                <ChevronRightIcon className="w-5 h-5" />
+                <ChevronRight className="w-5 h-5" />
               </button>
             </>
           )}
@@ -381,7 +379,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                 className="absolute top-4 right-4 z-30 p-3 bg-black bg-opacity-60 rounded-full text-white hover:bg-opacity-80 transition-all duration-200"
                 aria-label="Close modal"
               >
-                <XMarkIcon className="w-7 h-7" />
+                <X className="w-7 h-7" />
               </button>
 
               {/* Photo counter in modal */}
@@ -417,7 +415,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                       className="absolute left-6 top-1/2 transform -translate-y-1/2 z-30 p-3 bg-black bg-opacity-20 rounded-full text-white hover:bg-opacity-40 transition-all duration-200"
                       aria-label="Previous image"
                     >
-                      <ChevronLeftIcon className="w-7 h-7" />
+                      <ChevronLeft className="w-7 h-7" />
                     </button>
 
                     <button
@@ -425,7 +423,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                       className="absolute right-6 top-1/2 transform -translate-y-1/2 z-30 p-3 bg-black bg-opacity-20 rounded-full text-white hover:bg-opacity-40 transition-all duration-200"
                       aria-label="Next image"
                     >
-                      <ChevronRightIcon className="w-7 h-7" />
+                      <ChevronRight className="w-7 h-7" />
                     </button>
                   </>
                 )}
@@ -452,7 +450,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                 className="absolute top-4 right-4 z-30 p-3 bg-black bg-opacity-60 rounded-full text-white hover:bg-opacity-80 transition-all duration-200"
                 aria-label="Close video"
               >
-                <XMarkIcon className="w-7 h-7" />
+                <X className="w-7 h-7" />
               </button>
 
               {/* Video content */}
@@ -480,7 +478,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                     className="absolute left-6 top-1/2 transform -translate-y-1/2 z-30 p-3 bg-black bg-opacity-20 rounded-full text-white hover:bg-opacity-40 transition-all duration-200"
                     aria-label="Previous video"
                   >
-                    <ChevronLeftIcon className="w-7 h-7" />
+                    <ChevronLeft className="w-7 h-7" />
                   </button>
 
                   <button
@@ -500,7 +498,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                     className="absolute right-6 top-1/2 transform -translate-y-1/2 z-30 p-3 bg-black bg-opacity-20 rounded-full text-white hover:bg-opacity-40 transition-all duration-200"
                     aria-label="Next video"
                   >
-                    <ChevronRightIcon className="w-7 h-7" />
+                    <ChevronRight className="w-7 h-7" />
                   </button>
                   
                   {/* Video counter in modal */}
