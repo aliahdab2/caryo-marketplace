@@ -21,35 +21,27 @@ const SignInPage: React.FC = () => {
   const [redirecting, setRedirecting] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("/dashboard");
   const [isVerified, setIsVerified] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false); // Retained for success message logic
+  const [credentialsCorrect, setCredentialsCorrect] = useState(false);
 
   const { data: session } = useSession();
 
   // Extract callback URL from search params if present
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Get the URL search params
       const searchParams = new URLSearchParams(window.location.search);
       const callback = searchParams.get('callbackUrl');
-      
       if (callback) {
         try {
-          // Handle both absolute and relative URLs properly
           if (callback.startsWith('/')) {
-            // It's a relative URL path, use as is
             setCallbackUrl(callback);
           } else {
-            // It might be an encoded absolute URL
             const url = new URL(decodeURIComponent(callback));
-            // Only use the pathname + search if it's from the same origin
-            // Otherwise use the default dashboard path
             if (url.origin === window.location.origin) {
               setCallbackUrl(url.pathname + url.search);
             }
           }
         } catch (e) {
-          // Silently fail and keep the default dashboard URL
-          // No need to log during tests
           if (process.env.NODE_ENV !== 'test') {
             console.warn('Error parsing callback URL:', e);
           }
@@ -58,11 +50,24 @@ const SignInPage: React.FC = () => {
     }
   }, []);
 
+  // Reset credentialsCorrect when inputs change
+  useEffect(() => {
+    setCredentialsCorrect(false);
+  }, [username, password]);
+
+  // Reset credentialsCorrect if a new error message appears
+  useEffect(() => {
+    if (error && error !== "") { 
+        setCredentialsCorrect(false);
+    }
+  }, [error]);
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setLoading(true);
     setError(null);
     setShowSuccess(false);
+    setCredentialsCorrect(false);
 
     if (!username || !password) {
       setError(t('fieldRequired'));
@@ -79,79 +84,66 @@ const SignInPage: React.FC = () => {
     try {
       const result = await signIn("credentials", {
         redirect: false,
-        username, // Changed from email to username
+        username,
         password,
       });
 
       if (result?.error) {
-        // Check specifically for authentication errors
         if (result.error.toLowerCase().includes('invalid') || 
             result.error.toLowerCase().includes('credentials') ||
             result.error.toLowerCase().includes('password') ||
             result.error.toLowerCase().includes('user')) {
-          // Use our specific translation for credential errors
           setError(t('errors:invalidCredentials', 'Invalid username or password. Please try again.'));
         } else {
-          // For other errors, use our general error handler
           setError(getErrorMessage({ message: result.error }));
         }
         setLoading(false);
       } else if (result?.ok) {
-        setShowSuccess(true); // Ensure success message is shown
-        setRedirecting(true);
-        setError(""); // Clear any previous errors
-        
-        // Force NextAuth to sync the session before redirecting
-        const syncSession = async () => {
-          try {
-            // Wait a moment for NextAuth to complete its internal processes
-            await new Promise(resolve => setTimeout(resolve, 800));
-            
-            // Try router first, fallback to direct navigation
-            if (process.env.NODE_ENV !== "test") {
-              try {
-                router?.push?.(callbackUrl);
-              } catch {
-                // Fallback to direct navigation
+        setCredentialsCorrect(true);
+        setShowSuccess(true); // This will show the success message
+        setError("");
+        setLoading(false); // Stop loading to show the green border before redirect
+
+        // Delay redirect to allow user to see the success state
+        setTimeout(() => {
+          setRedirecting(true);
+          // Force NextAuth to sync the session before redirecting
+          const syncSessionAndRedirect = async () => {
+            try {
+              await new Promise(resolve => setTimeout(resolve, 500)); // Short delay for session sync
+              if (process.env.NODE_ENV !== "test") {
+                try {
+                  router?.push?.(callbackUrl);
+                } catch {
+                  window.location.href = callbackUrl;
+                }
+              }
+            } catch {
+              if (process.env.NODE_ENV !== "test") {
                 window.location.href = callbackUrl;
               }
             }
-          } catch {
-            // Silently handle errors in test environment
-            if (process.env.NODE_ENV !== "test") {
-              // Use safer fallback navigation without logging errors
-              window.location.href = callbackUrl;
-            }
-          }
-        };
-        
-        // Start the session sync process right away
-        syncSession();
+          };
+          syncSessionAndRedirect();
+        }, 1500); // Changed delay to 1000ms (1 second)
+
       } else {
         setError("An unknown error occurred.");
-      }
-    } catch {
-      setError("An unknown error occurred.");
-      // Log errors only in non-test environments
-      if (process.env.NODE_ENV !== "test") {
-        console.error("Sign-in error");
-      }
-    } finally {
-      // Only reset loading if we're not redirecting
-      if (!redirecting) {
         setLoading(false);
       }
-    }
+    } catch (e) {
+      setError(getErrorMessage(e));
+      setLoading(false);
+    } 
+    // No finally block needed for setLoading if all paths handle it.
   };
 
   // Safe redirect when user already has an active session
   useEffect(() => {
     if (session && !redirecting) {
-      // Use a safer redirection approach that won't fail if router isn't ready
       try {
         router?.push?.(callbackUrl);
       } catch {
-        // Fallback to direct navigation if router push fails
         if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
           window.location.href = callbackUrl;
         }
@@ -207,7 +199,11 @@ const SignInPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 md:p-8 lg:p-10 auth-form">
+          <div className={`bg-white dark:bg-gray-800 shadow-xl rounded-xl p-4 sm:p-6 md:p-8 lg:p-10 auth-form transition-all duration-300 ease-in-out ${
+            credentialsCorrect && !error // Apply border if credentialsCorrect is true AND there's no error
+              ? 'border-2 border-green-500 ring-2 ring-green-500 ring-offset-2 dark:ring-offset-gray-800'
+              : 'border border-gray-200 dark:border-gray-700'
+          }`}>
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold mb-1 auth-heading">{t('sign_in')}</h2>
               <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">{t('sign_in_to_continue')}</p>

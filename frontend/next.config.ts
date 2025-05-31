@@ -5,13 +5,29 @@ const analyzeBundles = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
-// Get MinIO URL from environment
-const minioUrl = process.env.NEXT_PUBLIC_MINIO_URL 
-  ? new URL(process.env.NEXT_PUBLIC_MINIO_URL)
-  : null;
+// Function to create development configurations with sensible defaults
+const getConfigForEnvironment = () => {
+  // In development mode, we'll use predefined values
+  if (process.env.NODE_ENV === 'development') {
+    return {
+      minioUrl: new URL('http://localhost:9000'),
+      showWarnings: false,
+    };
+  }
+  
+  // In production, we require proper configuration
+  return {
+    minioUrl: process.env.NEXT_PUBLIC_MINIO_URL ? new URL(process.env.NEXT_PUBLIC_MINIO_URL) : null,
+    showWarnings: true,
+  };
+};
 
-if (!minioUrl) {
-  console.error('NEXT_PUBLIC_MINIO_URL environment variable is not set');
+const { minioUrl, showWarnings } = getConfigForEnvironment();
+
+// Only show warnings in production
+if (!minioUrl && showWarnings) {
+  console.error('⚠️ NEXT_PUBLIC_MINIO_URL environment variable is not set in production');
+  console.error('→ Media storage functionality may not work correctly');
 }
 
 const nextConfig: NextConfig = {
@@ -19,7 +35,10 @@ const nextConfig: NextConfig = {
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-    NEXT_PUBLIC_MINIO_URL: process.env.NEXT_PUBLIC_MINIO_URL
+    // For development simplicity, we provide a default MinIO URL if not set
+    // This prevents unnecessary warnings and errors during development
+    // In production, proper configuration should be provided via environment variables
+    NEXT_PUBLIC_MINIO_URL: process.env.NEXT_PUBLIC_MINIO_URL || 'http://localhost:9000'
   },
   
   images: {

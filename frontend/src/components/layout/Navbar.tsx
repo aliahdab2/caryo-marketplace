@@ -180,7 +180,11 @@ export default function Navbar({ className }: ComponentProps) {
                     
                     <div className="py-1 border-t dark:border-gray-700">
                       <button
-                        onClick={() => { signOut(); setUserMenuOpen(false); }}
+                        onClick={async () => { 
+                          await signOut({ redirect: false }); 
+                          setUserMenuOpen(false); 
+                          window.location.href = '/'; 
+                        }}
                         className="w-full flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 text-left transition-colors whitespace-nowrap"
                         role="menuitem"
                       >
@@ -324,9 +328,10 @@ export default function Navbar({ className }: ComponentProps) {
                     {"Account Settings"}
                   </Link>
                   <button
-                    onClick={() => {
-                      signOut();
+                    onClick={async () => {
+                      await signOut({ redirect: false });
                       setMobileMenuOpen(false);
+                      window.location.href = '/';
                     }}
                     className="block w-full text-left pl-2 xs:pl-3 pr-3 xs:pr-4 py-1.5 xs:py-2 border-l-3 xs:border-l-4 rtl:border-l-0 rtl:border-r-3 rtl:xs:border-r-4 rtl:pr-2 rtl:xs:pr-3 rtl:pl-3 rtl:xs:pl-4 border-transparent text-xs xs:text-sm font-medium text-red-600 hover:bg-gray-50 hover:border-red-300 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors flex items-center"
                   >
