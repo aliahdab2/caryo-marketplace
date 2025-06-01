@@ -38,7 +38,7 @@ jest.mock('react-icons/fc', () => ({
   FcGoogle: () => <div data-testid="google-icon">Google Icon</div>,
 }));
 
-// Mock i18n
+// Mock translations
 const mockTranslations: Record<string, string> = {
   'auth.continueWithGoogle': 'Continue with Google',
   'auth.signingIn': 'Signing in...',
@@ -47,21 +47,27 @@ const mockTranslations: Record<string, string> = {
   'auth.signin': 'Sign In',
 };
 
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string, options?: { defaultValue?: string } | string) => {
-      const defaultValue = typeof options === 'string'
-        ? options
-        : (typeof options === 'object' && options !== null ? options.defaultValue : undefined);
-      return mockTranslations[key] || defaultValue || key;
-    },
-    i18n: {
-      changeLanguage: jest.fn().mockResolvedValue(undefined),
-      language: 'en',
-      isInitialized: true,
-      resolvedLanguage: 'en',
-      dir: () => 'ltr',
-    },
+// Mock useLazyTranslation hook
+jest.mock('@/hooks/useLazyTranslation', () => ({
+  __esModule: true,
+  default: jest.fn((_namespaces: string | string[]) => {
+    return {
+      t: (key: string, options?: { defaultValue?: string } | string) => {
+        const defaultValue = typeof options === 'string'
+          ? options
+          : (typeof options === 'object' && options !== null ? options.defaultValue : undefined);
+        return mockTranslations[key] || defaultValue || key;
+      },
+      ready: true,
+      i18n: {
+        language: 'en',
+        isInitialized: true,
+        resolvedLanguage: 'en',
+        dir: () => 'ltr',
+        loadNamespaces: jest.fn().mockResolvedValue(undefined),
+      },
+      namespacesLoaded: true,
+    };
   }),
 }));
 

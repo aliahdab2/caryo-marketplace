@@ -4,7 +4,7 @@ import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useTranslation } from 'react-i18next';
+import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { Listing } from '@/types/listings';
 import { getListings, ListingFilters } from '@/services/listings';
 import { formatDate, formatNumber } from '@/utils/localization';
@@ -29,7 +29,7 @@ interface Filters {
 }
 
 const ListingsPage = () => {
-  const { t, i18n } = useTranslation(['common']);
+  const { t, i18n } = useLazyTranslation(['listings', 'errors']);
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialFilters: Filters = {
@@ -123,7 +123,7 @@ const ListingsPage = () => {
       })
       .catch(err => {
         console.error("Error fetching listings:", err);
-        setError(t('error.loadingListings'));
+        setError(t('loadingListings'));
         setIsLoading(false);
         if (isFirstLoad) {
           setIsFirstLoad(false);
@@ -172,7 +172,7 @@ const ListingsPage = () => {
     }
   }, [filters, currentPage, router, isFirstLoad]);
 
-
+  // Show loading state
 
   // Show loading state
   if (isLoading) {
@@ -246,7 +246,7 @@ const ListingsPage = () => {
               d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" 
             />
           </svg>
-          <p className="text-lg">{t('listings.noListingsFound')}</p>
+          <p className="text-lg">{t('noListingsFound')}</p>
         </div>
       </div>
     );

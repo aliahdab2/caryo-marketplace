@@ -54,46 +54,44 @@ Use flat key structure with consistent naming conventions:
 
 ✅ DO:
 
-json
-Copy
-Edit
+```json
 {
-  "auth.signIn": "Sign In",
-  "auth.username": "Username",
-  "auth.password": "Password"
+  "signIn": "Sign In",
+  "username": "Username",
+  "password": "Password"
 }
+```
+
 ❌ DON'T:
 
-json
-Copy
-Edit
+```json
 {
   "auth": {
     "signIn": "Sign In",
     "username": "Username"
   }
 }
+```
 Naming Conventions
 Use consistent camelCase keys:
 
 ✅ DO:
 
-json
-Copy
-Edit
+```json
 {
-  "auth.signIn": "Sign In",
-  "auth.passwordRequirements": "Password must be..."
+  "signIn": "Sign In",
+  "passwordRequirements": "Password must be..."
 }
+```
+
 ❌ DON'T mix styles:
 
-json
-Copy
-Edit
+```json
 {
-  "auth.sign_in": "Sign In",
-  "auth.passwordRequirements": "Password must be..."
+  "sign_in": "Sign In",
+  "passwordRequirements": "Password must be..."
 }
+```
 2. Translation File Management
 Directory Structure
 Use a single source of truth in the public/locales folder for all translations.

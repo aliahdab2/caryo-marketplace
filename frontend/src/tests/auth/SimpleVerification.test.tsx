@@ -4,19 +4,30 @@ import '@testing-library/jest-dom';
 // Import the actual component
 import SimpleVerification from '@/components/auth/SimpleVerification';
 
-// Mock the i18n hook
-jest.mock('react-i18next', () => ({
-  useTranslation: jest.fn(() => ({
-    t: jest.fn((key: string) => {
+// Mock the useLazyTranslation hook directly
+jest.mock('@/hooks/useLazyTranslation', () => ({
+  __esModule: true, // This is important for ES6 modules
+  default: jest.fn(() => ({
+    t: jest.fn((key: string, defaultValue?: string) => { // Added defaultValue
       const translations: Record<string, string> = {
-        'clickToVerify': 'Click to verify',
-        'verifying': 'Verifying...',
-        'verified': 'Verified',
-        'verificationControl': 'Verification control'
+        // Updated translations to match component usage
+        'verificationControl': 'Verification Control', // Used as a heading
+        'startVerification': 'Start Verification',     // Button text when idle
+        'verificationPending': 'Verification pending. Click start or wait for auto-verification.', // Text when idle
+        'verifying': 'Verifying...',                 // Text when verifying
+        'verified': 'Verified Successfully!',        // Text when success
+        'loading': 'Loading...',
       };
-      return translations[key] || key;
-    })
-  }))
+      return translations[key] || defaultValue || key; // Return defaultValue if provided
+    }),
+    i18n: {
+      isInitialized: true,
+      language: 'en',
+      loadNamespaces: jest.fn().mockResolvedValue(undefined),
+      // Add other i18n properties if needed by the hook
+    },
+    ready: true, // Set ready to true so the component doesn't show loading indefinitely
+  })),
 }));
 
 describe('SimpleVerification Component', () => {
@@ -32,10 +43,13 @@ describe('SimpleVerification Component', () => {
     jest.clearAllMocks();
   });
 
-  test('renders with "Click to verify" when autoStart is false', () => {
+  test('renders with "Start Verification" button and pending text when autoStart is false', () => {
     const mockOnVerified = jest.fn();
     render(<SimpleVerification onVerified={mockOnVerified} autoStart={false} />);
-    expect(screen.getByText('Click to verify')).toBeInTheDocument();
+    // Expect the button used to initiate verification
+    expect(screen.getByRole('button', { name: 'Start Verification' })).toBeInTheDocument();
+    // Expect the pending text
+    expect(screen.getByText('Verification pending. Click start or wait for auto-verification.')).toBeInTheDocument();
     expect(mockOnVerified).not.toHaveBeenCalled();
   });
 
@@ -43,6 +57,7 @@ describe('SimpleVerification Component', () => {
     const mockOnVerified = jest.fn();
     render(<SimpleVerification onVerified={mockOnVerified} autoStart={true} />);
     
+    // Expect "Verifying..." text
     expect(screen.getByText('Verifying...')).toBeInTheDocument();
     
     act(() => {
@@ -54,19 +69,23 @@ describe('SimpleVerification Component', () => {
     });
     // Ensure the DOM updates after onVerified is called
     await waitFor(() => {
-      expect(screen.getByText('Verified')).toBeInTheDocument();
+      // Expect "Verified Successfully!" text
+      expect(screen.getByText('Verified Successfully!')).toBeInTheDocument();
     });
   });
 
-  test('calls onVerified and shows success when clicked (autoStart is false)', async () => {
+  test('calls onVerified and shows success when "Start Verification" is clicked (autoStart is false)', async () => {
     const mockOnVerified = jest.fn();
     render(<SimpleVerification onVerified={mockOnVerified} autoStart={false} />);
     
-    expect(screen.getByText('Click to verify')).toBeInTheDocument();
+    // Expect the button and click it
+    const startButton = screen.getByRole('button', { name: 'Start Verification' });
+    expect(startButton).toBeInTheDocument();
     act(() => {
-      fireEvent.click(screen.getByText('Click to verify'));
+      fireEvent.click(startButton);
     });
     
+    // Expect "Verifying..." text
     expect(screen.getByText('Verifying...')).toBeInTheDocument();
     
     act(() => {
@@ -77,7 +96,8 @@ describe('SimpleVerification Component', () => {
       expect(mockOnVerified).toHaveBeenCalledWith(true);
     });
     await waitFor(() => {
-        expect(screen.getByText('Verified')).toBeInTheDocument();
+      // Expect "Verified Successfully!" text
+      expect(screen.getByText('Verified Successfully!')).toBeInTheDocument();
     });
   });
 
@@ -85,7 +105,8 @@ describe('SimpleVerification Component', () => {
     const mockOnVerified = jest.fn();
     render(<SimpleVerification onVerified={mockOnVerified} autoStart={false} />);
 
-    expect(screen.getByText('Click to verify')).toBeInTheDocument();
+    // Expect initial idle state text
+    expect(screen.getByText('Verification pending. Click start or wait for auto-verification.')).toBeInTheDocument();
     expect(mockOnVerified).not.toHaveBeenCalled();
 
     act(() => {
@@ -93,7 +114,7 @@ describe('SimpleVerification Component', () => {
     });
     expect(mockOnVerified).not.toHaveBeenCalled();
     // Check state before the 3-second auto-verify triggers
-    await waitFor(() => expect(screen.getByText('Click to verify')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Verification pending. Click start or wait for auto-verification.')).toBeInTheDocument());
 
     act(() => {
       jest.advanceTimersByTime(200); // Total 3100ms, should trigger auto-verify
@@ -109,17 +130,20 @@ describe('SimpleVerification Component', () => {
     await waitFor(() => {
       expect(mockOnVerified).toHaveBeenCalledWith(true);
     });
-    await waitFor(() => expect(screen.getByText('Verified')).toBeInTheDocument());
+    // Expect "Verified Successfully!" text
+    await waitFor(() => expect(screen.getByText('Verified Successfully!')).toBeInTheDocument());
   });
 
   test('does not auto-verify if clicked before 3-second timeout (autoStart false)', async () => {
     const mockOnVerified = jest.fn();
     render(<SimpleVerification onVerified={mockOnVerified} autoStart={false} />);
 
-    expect(screen.getByText('Click to verify')).toBeInTheDocument();
+    // Expect the button and click it
+    const startButton = screen.getByRole('button', { name: 'Start Verification' });
+    expect(startButton).toBeInTheDocument();
     
     act(() => {
-      fireEvent.click(screen.getByText('Click to verify'));
+      fireEvent.click(startButton);
     });
     await waitFor(() => expect(screen.getByText('Verifying...')).toBeInTheDocument());
 
@@ -128,13 +152,10 @@ describe('SimpleVerification Component', () => {
         jest.advanceTimersByTime(3100); 
     });
 
-    // Still verifying due to click, onVerified not called yet by auto-timer
-    // The click handler sets state to 'verifying' synchronously.
-    // The onVerified callback is inside a setTimeout(1500) in handleVerify.
-    // So, after 3100ms, the 1500ms timer from handleVerify has already fired.
     await waitFor(() => expect(mockOnVerified).toHaveBeenCalledWith(true));
     expect(mockOnVerified).toHaveBeenCalledTimes(1); 
-    await waitFor(() => expect(screen.getByText('Verified')).toBeInTheDocument());
+    // Expect "Verified Successfully!" text
+    await waitFor(() => expect(screen.getByText('Verified Successfully!')).toBeInTheDocument());
 
     // Let's ensure no other timers are pending that could call onVerified again
     act(() => {
