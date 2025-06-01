@@ -1,6 +1,5 @@
 // Type declaration file for next-auth
 import { DefaultSession } from "next-auth";
-import { JWT } from "next-auth/jwt"; // Import JWT
 
 declare module "next-auth" {
   /**
@@ -16,14 +15,14 @@ declare module "next-auth" {
   }
 }
 
-// Add JWT module declaration if it's not already there or needs modification
 declare module "next-auth/jwt" {
+  // The JWT interface from "next-auth/jwt" is augmented here.
+  // No separate import of JWT is typically needed for this augmentation.
   interface JWT {
     accessToken?: string;
     accessTokenExpires?: number;
     refreshToken?: string;
     error?: string; // For errors during token refresh
     id?: string; // Example: if you store user ID in JWT
-    // Add other custom properties from your JWT callback if any
   }
 }

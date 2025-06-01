@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { getFavorites } from '@/services/favorites';
-import { ListingWithLanguage, LocalizedField } from '@/types/listings'; // Adjusted import
-import { Lang, CURRENCY_CONFIG } from '@/types/i18n'; // Adjusted import
+import { Listing, ListingWithLanguage, LocalizedField } from '@/types/listings'; // Ensure Listing is imported
+import { Lang, CURRENCY_CONFIG } from '@/types/i18n';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Session } from 'next-auth';
@@ -55,20 +55,29 @@ const FavoritesPage: React.FC = () => {
   ): string => {
     const currentLang = language as Lang;
     if (currentLang === 'en' || currentLang === 'ar') {
-      const key = `${field}_${currentLang}` as const;
+      const key = `${field}_${currentLang}` as keyof ListingWithLanguage;
       const localizedValue = item[key];
       if (typeof localizedValue === 'string') return localizedValue;
     }
     
-    // Fallback to English
-    const englishKey = `${field}_en` as const;
+    const englishKey = `${field}_en` as keyof ListingWithLanguage;
     const englishValue = item[englishKey];
     if (typeof englishValue === 'string') return englishValue;
     
-    // Final fallback to default field (e.g., item.title)
-    const defaultKey = field as keyof Listing; // Ensure field is a key of base Listing for fallback
+    // Fallback to the direct field on the base Listing type if it exists (e.g., item.title)
+    // This assumes LocalizedField (e.g., 'title') is also a valid key on the base Listing.
+    const defaultKey = field as keyof Listing; 
     const defaultValue = item[defaultKey];
-    return typeof defaultValue === 'string' ? defaultValue : '';
+
+    // Ensure the fallback value is a string.
+    if (typeof defaultValue === 'string') return defaultValue;
+    
+    // If the field is 'title', and item.title (from base Listing) is a string, use it.
+    // This is a more explicit fallback if the dynamic key access fails.
+    if (field === 'title' && typeof item.title === 'string') return item.title;
+    // Add similar explicit fallbacks for other LocalizedFields if necessary.
+
+    return ''; // Final fallback to an empty string if no suitable value is found
   };
 
   // Format price according to current language
