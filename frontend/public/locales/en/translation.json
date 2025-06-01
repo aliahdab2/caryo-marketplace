@@ -1,44 +1,14 @@
 {
-  "header": {
-    "logout": "Logout",
-    "dashboard": "Dashboard",
-    "home": "Home",
-    "about": "About",
-    "contact": "Contact",
-    "listings": "Listings"
-  },
-  "auth": {
-    "signin": "Sign In",
-    "signup": "Sign Up",
-    "username": "Username",
-    "email": "Email",
-    "userId": "User ID",
-    "password": "Password",
-    "dontHaveAccount": "Don't have an account?",
-    "alreadyHaveAccount": "Already have an account?",
-    "signupSuccess": "Registration successful!",
-    "loginToAccess": "Please log in to access this page"
-  },
-  "dashboard": {
-    "welcome": "Welcome to your dashboard",
-    "myListings": "My Listings",
-    "createListing": "Create New Listing",
-    "accountInfo": "Account Information",
-    "role": "Role",
-    "noRoles": "No roles assigned"
-  },
-  "home": {
-    "hero": {
-      "title": "Find Your Perfect Car",
-      "subtitle": "Browse thousands of cars from trusted sellers",
-      "browseCars": "Browse Cars",
-      "sellYourCar": "Sell Your Car"
-    },
-    "featured": "Featured Cars",
-    "subtitle": "Discover our handpicked selection of premium vehicles",
-    "categories": "Browse By Category",
-    "categorySubtitle": "Find vehicles that match your needs",
-    "viewAllListings": "View All Listings",
-    "whyChooseUs": "Why Choose Us"
-  }
+  "dashboard.accountInfo": "Account Information",
+  "dashboard.createListing": "Create New Listing",
+  "dashboard.myListings": "My Listings",
+  "dashboard.noRoles": "No roles assigned",
+  "dashboard.role": "Role",
+  "dashboard.welcome": "Welcome to your dashboard",
+  "header.about": "About",
+  "header.contact": "Contact",
+  "header.dashboard": "Dashboard",
+  "header.home": "Home",
+  "header.listings": "Listings",
+  "header.logout": "Logout"
 }

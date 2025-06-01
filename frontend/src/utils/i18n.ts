@@ -148,7 +148,7 @@ i18n
     initAsync: true,
     
     // Supported namespaces
-    ns: ['common', 'translation', 'errors', 'listings', 'auth'],
+    ns: ['common', 'translation', 'errors', 'listings', 'auth', 'home'],
     defaultNS: 'common',
     
     // Supported languages

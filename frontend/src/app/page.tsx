@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslation } from "react-i18next";
+import { useLazyTranslation } from "@/hooks/useLazyTranslation";
 import { useEffect, useState } from "react";
 import HomeSearchBar from "@/components/search/HomeSearchBar";
 import { getFeaturedListings } from "@/services/listings";
@@ -9,9 +9,9 @@ import { Listing } from "@/types/listings";
 import { transformMinioUrl } from "@/utils/mediaUtils";
 
 export default function Home() {
-  const { t } = useTranslation('common');
+  const { t, ready } = useLazyTranslation(['home', 'common']); // Removed i18n as it's unused
   const [featuredCars, setFeaturedCars] = useState<Listing[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingListings, setIsLoadingListings] = useState(true);
 
   useEffect(() => {
     const loadFeaturedCars = async () => {
@@ -20,14 +20,23 @@ export default function Home() {
         setFeaturedCars(listings);
       } catch (error) {
         console.error('Error loading featured cars:', error);
-        // Keep empty array as fallback
       } finally {
-        setIsLoading(false);
+        setIsLoadingListings(false);
       }
     };
 
     loadFeaturedCars();
   }, []);
+
+  const isLoadingTranslations = !ready;
+
+  if (isLoadingTranslations) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading translations...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -45,10 +54,10 @@ export default function Home() {
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4 hero-absolute-content">
           <div className="text-center mb-4 xs:mb-6">
             <h1 className="text-3xl xs:text-4xl md:text-5xl font-bold text-white mb-2 xs:mb-3">
-              {t('home.hero.usedCarsNearYou', 'Used Cars for Sale Near You')}
+              {t('heroTitle', { ns: 'home'})}
             </h1>
             <p className="text-base xs:text-lg md:text-xl text-white">
-              {t('home.hero.findPerfectCar', 'Find your next car with Caryo')}
+              {t('heroSubtitle', { ns: 'home'})}
             </p>
           </div>
 
@@ -63,13 +72,13 @@ export default function Home() {
       <section className="py-16 container mx-auto px-4">
         <div className="flex justify-between items-center mb-10">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-            {t('home.featuredListings')}
+            {t('featuredTitle', { ns: 'home'})}
           </h2>
           <Link
             href="/listings"
             className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center"
           >
-            {t('home.viewAll')}
+            {t('viewAllListings', { ns: 'home'})}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5 ml-1"
@@ -86,7 +95,7 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {isLoading ? (
+          {isLoadingListings ? (
             // Loading skeleton
             Array.from({ length: 3 }).map((_, index) => (
               <div
@@ -118,7 +127,7 @@ export default function Home() {
                     alt={car.title}
                     fill
                     className="object-cover"
-                    unoptimized // Add this prop to bypass Next.js image optimization for these images
+                    unoptimized
                   />
                 </div>
                 <div className="p-5">
@@ -209,7 +218,7 @@ export default function Home() {
                       href={`/listings/${car.id}`}
                       className="w-full block text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-300"
                     >
-                      {t('common.viewDetails')}
+                      {t('listings.viewDetails', { ns: 'common'})}
                     </Link>
                   </div>
                 </div>
@@ -230,29 +239,29 @@ export default function Home() {
       <section className="py-16 bg-gray-100 dark:bg-gray-800">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 text-gray-900 dark:text-white">
-            {t('home.howItWorks')}
+            {t('whyChooseUsTitle', { ns: 'home'})}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Step 1 */}
             <div className="text-center">
               <div className="inline-flex items-center justify-center bg-blue-600 rounded-full w-16 h-16 mb-6 text-white text-2xl font-bold">1</div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{t('home.step1Title')}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{t('home.step1Description')}</p>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{t('whyChooseUsWideSelectionTitle', { ns: 'home'})}</h3>
+              <p className="text-gray-600 dark:text-gray-300">{t('whyChooseUsWideSelectionDescription', { ns: 'home'})}</p>
             </div>
 
             {/* Step 2 */}
             <div className="text-center">
               <div className="inline-flex items-center justify-center bg-blue-600 rounded-full w-16 h-16 mb-6 text-white text-2xl font-bold">2</div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{t('home.step2Title')}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{t('home.step2Description')}</p>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{t('whyChooseUsSecureTransactionsTitle', { ns: 'home'})}</h3>
+              <p className="text-gray-600 dark:text-gray-300">{t('whyChooseUsSecureTransactionsDescription', { ns: 'home'})}</p>
             </div>
 
             {/* Step 3 */}
             <div className="text-center">
               <div className="inline-flex items-center justify-center bg-blue-600 rounded-full w-16 h-16 mb-6 text-white text-2xl font-bold">3</div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{t('home.step3Title')}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{t('home.step3Description')}</p>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{t('whyChooseUsExpertSupportTitle', { ns: 'home'})}</h3>
+              <p className="text-gray-600 dark:text-gray-300">{t('whyChooseUsExpertSupportDescription', { ns: 'home'})}</p>
             </div>
           </div>
         </div>
@@ -261,19 +270,19 @@ export default function Home() {
       {/* Newsletter Section */}
       <section className="py-16 container mx-auto px-4">
         <div className="bg-blue-600 rounded-xl p-8 md:p-12 text-white text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">{t('home.stayUpdated')}</h2>
-          <p className="max-w-2xl mx-auto mb-8">{t('home.newsletterDescription')}</p>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">{t('stayUpdated', { ns: 'home', defaultValue: 'Stay Updated on the Latest Deals'})}</h2> 
+          <p className="max-w-2xl mx-auto mb-8">{t('newsletterDescription', { ns: 'home', defaultValue: 'Subscribe to our newsletter to receive the latest news, updates, and special offers directly in your inbox.'})}</p> 
           <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
             <input
               type="email"
-              placeholder={t('home.emailPlaceholder')}
+              placeholder={t('emailPlaceholder', { ns: 'home', defaultValue: 'Enter your email address'})}
               className="flex-grow px-4 py-3 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
             />
             <button
               type="submit"
               className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-md hover:bg-gray-100 transition-colors duration-300"
             >
-              {t('home.subscribe')}
+              {t('subscribe', { ns: 'home', defaultValue: 'Subscribe'})}
             </button>
           </form>
         </div>

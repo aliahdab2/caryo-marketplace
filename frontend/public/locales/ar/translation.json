@@ -1,44 +1,14 @@
 {
-  "header": {
-    "logout": "تسجيل الخروج",
-    "dashboard": "لوحة التحكم",
-    "home": "الرئيسية",
-    "about": "عن الموقع",
-    "contact": "اتصل بنا",
-    "listings": "السيارات"
-  },
-  "auth": {
-    "signin": "تسجيل الدخول",
-    "signup": "إنشاء حساب",
-    "username": "اسم المستخدم",
-    "email": "البريد الإلكتروني",
-    "userId": "رقم المستخدم",
-    "password": "كلمة المرور",
-    "dontHaveAccount": "ليس لديك حساب؟",
-    "alreadyHaveAccount": "لديك حساب بالفعل؟",
-    "signupSuccess": "تم التسجيل بنجاح!",
-    "loginToAccess": "الرجاء تسجيل الدخول للوصول إلى هذه الصفحة"
-  },
-  "dashboard": {
-    "welcome": "مرحباً بك في لوحة التحكم",
-    "myListings": "سياراتي المعروضة",
-    "createListing": "إضافة سيارة جديدة",
-    "accountInfo": "معلومات الحساب",
-    "role": "الدور",
-    "noRoles": "لا توجد أدوار معينة"
-  },
-  "home": {
-    "hero": {
-      "title": "ابحث عن سيارتك المثالية",
-      "subtitle": "تصفح آلاف السيارات من البائعين الموثوقين",
-      "browseCars": "تصفح السيارات",
-      "sellYourCar": "بيع سيارتك"
-    },
-    "featured": "سيارات مميزة",
-    "subtitle": "اكتشف مجموعتنا المختارة من المركبات الفاخرة",
-    "categories": "تصفح حسب الفئة",
-    "categorySubtitle": "اعثر على السيارات التي تناسب احتياجاتك",
-    "viewAllListings": "عرض جميع السيارات",
-    "whyChooseUs": "لماذا تختارنا"
-  }
+  "dashboard.accountInfo": "معلومات الحساب",
+  "dashboard.createListing": "إضافة سيارة جديدة",
+  "dashboard.myListings": "سياراتي المعروضة",
+  "dashboard.noRoles": "لا توجد أدوار معينة",
+  "dashboard.role": "الدور",
+  "dashboard.welcome": "مرحباً بك في لوحة التحكم",
+  "header.about": "عن الموقع",
+  "header.contact": "اتصل بنا",
+  "header.dashboard": "لوحة التحكم",
+  "header.home": "الرئيسية",
+  "header.listings": "السيارات",
+  "header.logout": "تسجيل الخروج"
 }
