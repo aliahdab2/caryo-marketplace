@@ -14,18 +14,19 @@ import { SimpleVerificationProps } from "@/types/components";
 import styles from './simpleVerification.module.css';
 import useLazyTranslation from '@/hooks/useLazyTranslation';
 
-type VerificationState = 'idle' | 'verifying' | 'success';
+type VerificationState = 'idle' | 'verifying' | 'success' | 'verified_hidden';
 
 export default function SimpleVerification({ 
   onVerified, 
   autoStart = false 
 }: SimpleVerificationProps) {
   // Use improved useLazyTranslation hook
-  const { t, ready } = useLazyTranslation('auth');
+  const { ready } = useLazyTranslation('auth');
   const [state, setState] = useState<VerificationState>(autoStart ? 'verifying' : 'idle');
   
   const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const autoVerifyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const successTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Added for success state duration
   const isMounted = useRef<boolean>(true);
   const hasAutoVerified = useRef<boolean>(false);
 
@@ -46,8 +47,29 @@ export default function SimpleVerification({
         clearTimeout(autoVerifyTimeoutRef.current);
         autoVerifyTimeoutRef.current = null;
       }
+      if (successTimeoutRef.current) { // Cleanup for success timeout
+        clearTimeout(successTimeoutRef.current);
+        successTimeoutRef.current = null;
+      }
     };
   }, []);
+
+  // Callback to handle successful verification and schedule hiding the icon
+  const markAsVerifiedAndScheduleHide = useCallback(() => {
+    if (!isMounted.current) return;
+
+    setState('success');
+    onVerified(true);
+
+    if (successTimeoutRef.current) {
+      clearTimeout(successTimeoutRef.current);
+    }
+    successTimeoutRef.current = setTimeout(() => {
+      if (isMounted.current) {
+        setState('verified_hidden');
+      }
+    }, 2000); // Checkmark disappears after 2 seconds
+  }, [onVerified]);
 
   // Handle verification process
   const handleVerify = useCallback(() => {
@@ -64,25 +86,29 @@ export default function SimpleVerification({
     
     // Start new verification timer
     verificationTimeoutRef.current = setTimeout(() => {
-      if (isMounted.current) {
-        setState('success');
-        onVerified(true);
-      }
+      markAsVerifiedAndScheduleHide();
     }, 1500);
-  }, [state, onVerified]);
+  }, [state, markAsVerifiedAndScheduleHide]);
 
   // Handle auto-start if specified
   useEffect(() => {
     // If autoStart is true, begin verification immediately
     if (autoStart && state === 'verifying') {
+      // Clear any existing verification timer to avoid multiple triggers
+      if (verificationTimeoutRef.current) {
+        clearTimeout(verificationTimeoutRef.current);
+      }
       verificationTimeoutRef.current = setTimeout(() => {
-        if (isMounted.current) {
-          setState('success');
-          onVerified(true);
-        }
+        markAsVerifiedAndScheduleHide();
       }, 1500);
     }
-  }, [autoStart, onVerified, state]);
+    // Cleanup this specific timeout if component unmounts or dependencies change while verifying
+    return () => {
+      if (verificationTimeoutRef.current && state === 'verifying') { // Only clear if it was set by this effect instance
+        clearTimeout(verificationTimeoutRef.current);
+      }
+    };
+  }, [autoStart, state, markAsVerifiedAndScheduleHide]);
 
   // Auto-verify after 3 seconds if still idle and hasn't auto-verified yet
   useEffect(() => {
@@ -106,46 +132,35 @@ export default function SimpleVerification({
   }, [state, handleVerify, autoStart]);
   
   return (
-    <div className={`${styles.verificationContainer} p-4 rounded-lg shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700`}>
+    <div className="text-center"> {/* Simplified container, primarily for centering */}
       {!ready ? (
         // Loading state when translations aren't ready
         <div className="flex flex-col items-center justify-center p-4">
-          <div className={`animate-spin w-8 h-8 mb-2 border-4 border-blue-500 border-t-transparent rounded-full`}></div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Loading...</p>
+          <div data-testid="loading-spinner" className={`animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full`}></div>
+          {/* Removed Loading... text */}
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-              {t('verificationControl', 'Verification Control')}
-            </h3>
-            {state === 'idle' && (
-              <button 
-                onClick={handleVerify}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-              >
-                {t('startVerification', 'Start Verification')}
-              </button>
-            )}
-          </div>
+          {/* Removed header with title and button */}
 
-          <div className="mt-4 text-center">
+          <div className="mt-4"> {/* Adjusted to remove text-center if the parent div handles it, but keeping mt-4 */}
             {state === 'verifying' && (
               <>
-                <div className={`${styles.spinner} animate-spin w-8 h-8 mx-auto mb-2 border-4 border-blue-500 border-t-transparent rounded-full`}></div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{t('verifying', 'Verifying...')}</p>
+                <div data-testid="verifying-spinner" className={`${styles.spinner} animate-spin w-8 h-8 mx-auto border-4 border-blue-500 border-t-transparent rounded-full`}></div>
+                {/* Removed Verifying... text */}
               </>
             )}
             {state === 'success' && (
               <>
-                <svg className="w-10 h-10 mx-auto mb-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg data-testid="success-icon" className="w-10 h-10 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                 </svg>
-                <p className="text-sm text-green-600 dark:text-green-400">{t('verified', 'Verified Successfully!')}</p>
+                {/* Removed Verified Successfully! text */}
               </>
             )}
-            {state === 'idle' && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('verificationPending', 'Verification pending. Click start or wait for auto-verification.')}</p>
+            {(state === 'idle' || state === 'verified_hidden') && (
+              // Idle or hidden state is now visually empty
+              <div data-testid="placeholder-div" className="w-8 h-8 mx-auto"></div> // Placeholder to maintain height similar to spinner/icon, or can be removed
             )}
           </div>
         </>
