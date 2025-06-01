@@ -18,21 +18,25 @@ type VerificationState = 'idle' | 'verifying' | 'success' | 'verified_hidden';
 
 export default function SimpleVerification({ 
   onVerified, 
-  autoStart = false 
+  autoStart = false,
+  autoHide = true
 }: SimpleVerificationProps) {
   // Use improved useLazyTranslation hook
   const { ready } = useLazyTranslation('auth');
   const [state, setState] = useState<VerificationState>(autoStart ? 'verifying' : 'idle');
   
+  // Refs to track component state
   const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const autoVerifyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Added for success state duration
   const isMounted = useRef<boolean>(true);
   const hasAutoVerified = useRef<boolean>(false);
+  const hasVerified = useRef<boolean>(false); // Track if verification has been done
 
-  // Clear all timeouts on unmount
+  // Clear all timeouts on unmount and reset state
   useEffect(() => {
     isMounted.current = true;
+    hasVerified.current = false; // Reset verification status on mount
     
     return () => {
       isMounted.current = false;
@@ -59,22 +63,29 @@ export default function SimpleVerification({
     if (!isMounted.current) return;
 
     setState('success');
-    onVerified(true);
-
-    if (successTimeoutRef.current) {
-      clearTimeout(successTimeoutRef.current);
+    
+    // Only call onVerified if we haven't verified yet
+    if (!hasVerified.current) {
+      hasVerified.current = true;
+      onVerified(true);
     }
-    successTimeoutRef.current = setTimeout(() => {
-      if (isMounted.current) {
-        setState('verified_hidden');
+
+    if (autoHide) {
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
       }
-    }, 2000); // Checkmark disappears after 2 seconds
-  }, [onVerified]);
+      successTimeoutRef.current = setTimeout(() => {
+        if (isMounted.current) {
+          setState('verified_hidden');
+        }
+      }, 2000); // Checkmark disappears after 2 seconds
+    }
+  }, [onVerified, autoHide]);
 
   // Handle verification process
   const handleVerify = useCallback(() => {
-    // Don't start verification if already past the idle state
-    if (state !== 'idle') return;
+    // Don't start verification if already past the idle state or already verified
+    if (state !== 'idle' || hasVerified.current) return;
     
     // Update UI state
     setState('verifying');
@@ -93,7 +104,7 @@ export default function SimpleVerification({
   // Handle auto-start if specified
   useEffect(() => {
     // If autoStart is true, begin verification immediately
-    if (autoStart && state === 'verifying') {
+    if (autoStart && state === 'verifying' && !hasVerified.current) {
       // Clear any existing verification timer to avoid multiple triggers
       if (verificationTimeoutRef.current) {
         clearTimeout(verificationTimeoutRef.current);
@@ -112,8 +123,8 @@ export default function SimpleVerification({
 
   // Auto-verify after 3 seconds if still idle and hasn't auto-verified yet
   useEffect(() => {
-    // Only for idle state and if we haven't auto-verified yet
-    if (state === 'idle' && !hasAutoVerified.current && !autoStart) {
+    // Only for idle state and if we haven't auto-verified yet and haven't verified already
+    if (state === 'idle' && !hasAutoVerified.current && !autoStart && !hasVerified.current) {
       autoVerifyTimeoutRef.current = setTimeout(() => {
         hasAutoVerified.current = true;
         if (isMounted.current && state === 'idle') {

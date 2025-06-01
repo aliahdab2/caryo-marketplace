@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import SimpleVerification from '@/components/auth/SimpleVerification';
+import useLazyTranslation from '@/hooks/useLazyTranslation';
 
 export default function ContactPage() {
-  const { t } = useTranslation('common');
+  const { t, ready: contactReady } = useLazyTranslation('contact');
+  const { t: tCommon, ready: commonReady } = useLazyTranslation('common');
   const router = useRouter();
   
   // Form state
@@ -45,33 +46,33 @@ export default function ContactPage() {
     
     // Name validation
     if (!formData.name.trim()) {
-      newErrors.name = t('contact.errors.nameRequired', 'Name is required');
+      newErrors.name = t('form.name.validation.required');
     } else if (formData.name.trim().length < 2) {
-      newErrors.name = t('contact.errors.nameLength', 'Name must be at least 2 characters');
+      newErrors.name = t('form.name.validation.minLength');
     }
     
     // Email validation with improved regex for better international domain support
     if (!formData.email.trim()) {
-      newErrors.email = t('contact.errors.emailRequired', 'Email address is required');
+      newErrors.email = t('form.email.validation.required');
     } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)) {
-      newErrors.email = t('contact.errors.emailInvalid', 'Please enter a valid email address');
+      newErrors.email = t('form.email.validation.invalid');
     }
     
     // Subject validation
     if (!formData.subject.trim()) {
-      newErrors.subject = t('contact.errors.subjectRequired', 'Please select a subject');
+      newErrors.subject = t('form.subject.validation.required');
     }
     
     // Message validation with improved length check
     if (!formData.message.trim()) {
-      newErrors.message = t('contact.errors.messageRequired', 'Please enter your message');
+      newErrors.message = t('form.message.validation.required');
     } else if (formData.message.trim().length < 20) {
-      newErrors.message = t('contact.errors.messageLength', 'Your message should be at least 20 characters long');
+      newErrors.message = t('form.message.validation.minLength');
     }
     
     // Verification check
     if (!isVerified) {
-      newErrors.form = t('contact.errors.verificationRequired', 'Please complete the verification before submitting');
+      newErrors.form = t('form.verification.required');
     }
     
     setErrors(newErrors);
@@ -91,7 +92,7 @@ export default function ContactPage() {
     // Check verification status
     if (!isVerified) {
       setErrors({
-        form: t('contact.errors.verificationRequired', 'Please complete the verification before submitting')
+        form: t('form.verification.required')
       });
       return;
     }
@@ -114,13 +115,16 @@ export default function ContactPage() {
         message: ''
       });
       
+      // Reset verification for next use
+      resetVerification();
+      
       // No immediate redirect - let user see the success message first
       // They can click the "Back to Home" button if they want to leave
       // This is better UX than auto-redirecting
     } catch (error) {
       console.error('Error submitting form:', error);
       setErrors({
-        form: t('contact.errors.submissionFailed', 'There was a problem sending your message. Please try again.')
+        form: t('error.submissionFailed')
       });
     } finally {
       setIsSubmitting(false);
@@ -128,15 +132,34 @@ export default function ContactPage() {
   };
   
   // Handle verification status update
-  const handleVerification = (verified: boolean) => {
+  const handleVerification = useCallback((verified: boolean) => {
     setIsVerified(verified);
-  };
+  }, []); // Empty dependency array as setIsVerified is stable
+
+  // Create a verificationKey to force remount of verification component only when needed
+  const [verificationKey, setVerificationKey] = useState<number>(1);
+
+  // Reset verification on form submit
+  const resetVerification = useCallback(() => {
+    setIsVerified(false);
+    setVerificationKey(prev => prev + 1);
+  }, []); // setIsVerified is stable
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Left section - Brand/imagery */}
-      <div className="hidden md:flex md:w-2/5 lg:w-1/3 xl:w-1/4 bg-gradient-to-r from-blue-600 to-blue-800 text-white flex-col justify-between relative overflow-hidden">
-        {/* Background pattern */}
+      {/* Show loading indicator while translations are being loaded */}
+      {(!contactReady || !commonReady) && (
+        <div className="flex items-center justify-center w-full min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      )}
+      
+      {/* Only render the page content when translations are ready */}
+      {contactReady && commonReady && (
+        <>
+          {/* Left section - Brand/imagery */}
+          <div className="hidden md:flex md:w-2/5 lg:w-1/3 xl:w-1/4 bg-gradient-to-r from-blue-600 to-blue-800 text-white flex-col justify-between relative overflow-hidden">
+            {/* Background pattern */}
         <div className="absolute inset-0 overflow-hidden">
           <svg className="absolute w-full h-full opacity-5" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -156,16 +179,16 @@ export default function ContactPage() {
             <div className="h-10 w-10 relative flex-shrink-0">
               <Image 
                 src="/images/logo.svg" 
-                alt={t('contact.logo', 'Caryo Logo')} 
+                alt={tCommon('logoAlt', 'Caryo Logo')} 
                 width={40} 
                 height={40} 
                 className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert" 
               />
             </div>
-            <h1 className="text-lg md:text-xl font-bold">{t('appName', 'Caryo Marketplace')}</h1>
+            <h1 className="text-lg md:text-xl font-bold">{tCommon('appName', 'Caryo Marketplace')}</h1>
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('contact.getInTouch', 'Get In Touch')}</h2>
-          <p className="text-sm md:text-base opacity-80">{t('contact.description', 'We\'d love to hear from you. Send us a message and we\'ll respond as soon as possible.')}</p>
+          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('form.title')}</h2>
+          <p className="text-sm md:text-base opacity-80">{t('form.description')}</p>
           
           <div className="mt-6 bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5">
             <div className="flex items-start mb-3">
@@ -176,7 +199,7 @@ export default function ContactPage() {
                 </svg>
               </div>
               <p className="text-xs leading-relaxed">
-                {t('contact.quickResponse', 'We aim to respond to all inquiries within 24 hours.')}
+                {t('sidebar.businessHours.title')} {/* Assuming this was a typo and should be a general quick response text or moved to sidebar section */}
               </p>
             </div>
             <div className="flex items-start">
@@ -187,264 +210,147 @@ export default function ContactPage() {
                 </svg>
               </div>
               <p className="text-xs leading-relaxed">
-                {t('contact.supportHours', 'Our support team is available Monday to Friday, 9:00 AM - 5:00 PM.')}
+                {t('sidebar.businessHours.weekdays')} {t('sidebar.businessHours.weekdaysTime')} {/* Assuming this was a typo and should be a general support hours text or moved to sidebar section */}
               </p>
             </div>
           </div>
         </div>
         
         <div className="z-10 p-6 md:p-8 lg:p-10 text-sm">
-          <p className="mb-2 opacity-80">&copy; {new Date().getFullYear()} {t('appName', 'Caryo Marketplace')}</p>
-          <p className="opacity-60">{t('contact.privacy_policy', 'Privacy Policy')} • {t('contact.terms_of_service', 'Terms of Service')}</p>
+          <p className="mb-2 opacity-80">&copy; {new Date().getFullYear()} {tCommon('appName', 'Caryo Marketplace')}</p>
+          <p className="opacity-60">{tCommon('privacyPolicy', 'Privacy Policy')} • {tCommon('termsOfService', 'Terms of Service')}</p>
         </div>
       </div>
-      
-      {/* Right section - Contact form */}
-      <div className="flex-1 flex justify-center items-center p-4 md:p-6 lg:p-8 xl:p-10 auth-container">
-        <div className="w-full max-w-md md:max-w-lg lg:max-w-xl my-auto">
-          {/* Mobile logo (shown only on mobile) */}
-          <div className="flex md:hidden items-center justify-center mb-6 sm:mb-8">
-            <div className="flex items-center responsive-fade-in">
-              <Image 
-                src="/images/logo.svg" 
-                alt={t('contact.logo', 'Caryo Logo')} 
-                width={40} 
-                height={40} 
-                className="mr-2.5 sm:mr-3 w-8 h-8 sm:w-10 sm:h-10 dark:filter dark:invert" 
+
+      {/* Right section - Form */}
+      <div className="w-full md:w-3/5 lg:w-2/3 xl:w-3/4 p-6 md:p-10 lg:p-16 overflow-y-auto">
+        {submitSuccess ? (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <div className="p-6 bg-green-100 dark:bg-green-700 rounded-full mb-6">
+              <svg className="w-16 h-16 text-green-500 dark:text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-3">{t('success.title')}</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-md">{t('success.message')}</p>
+            <button
+              onClick={() => router.push('/')}
+              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out"
+            >
+              {t('success.backToHome')}
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto" noValidate>
+            <div>
+              <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">{t('form.title')}</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-8">{t('form.description')}</p>
+            </div>
+
+            {/* Name Field */}
+            <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('form.name.label')}</label>
+                <input 
+                  type="text" 
+                  name="name" 
+                  id="name" 
+                  autoComplete="name" 
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder={t('form.name.placeholder')}
+                  className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+                  aria-invalid={errors.name ? 'true' : 'false'}
+                  aria-describedby={errors.name ? 'name-error' : undefined}
+                />
+                {errors.name && <p id="name-error" className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.name}</p>}
+              </div>
+
+              {/* Email Field */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('form.email.label')}</label>
+                <input 
+                  type="email" 
+                  name="email" 
+                  id="email" 
+                  autoComplete="email" 
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder={t('form.email.placeholder')}
+                  className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+                  aria-invalid={errors.email ? 'true' : 'false'}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
+                />
+                {errors.email && <p id="email-error" className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.email}</p>}
+              </div>
+            </div>
+
+            {/* Subject Field */}
+            <div>
+              <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('form.subject.label')}</label>
+              <select 
+                id="subject" 
+                name="subject" 
+                value={formData.subject}
+                onChange={handleChange}
+                className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.subject ? 'border-red-500' : 'border-gray-300'}`}
+                aria-invalid={errors.subject ? 'true' : 'false'}
+                aria-describedby={errors.subject ? 'subject-error' : undefined}
+              >
+                <option value="">{t('form.subject.selectPlaceholder')}</option>
+                <option value="general_inquiry">{t('form.subject.options.general')}</option>
+                <option value="technical_support">{t('form.subject.options.support')}</option>
+                <option value="billing_question">{t('form.subject.options.billing')}</option>
+                {/* <option value="feedback">{t('form.subject.options.feedback')}</option> */}
+                <option value="partnership">{t('form.subject.options.partnership')}</option>
+                <option value="other">{t('form.subject.options.other')}</option>
+              </select>
+              {errors.subject && <p id="subject-error" className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.subject}</p>}
+            </div>
+
+            {/* Message Field */}
+            <div>
+              <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('form.message.label')}</label>
+              <textarea 
+                id="message" 
+                name="message" 
+                rows={6} 
+                value={formData.message}
+                onChange={handleChange}
+                placeholder={t('form.message.placeholder')}
+                className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.message ? 'border-red-500' : 'border-gray-300'}`}
+                aria-invalid={errors.message ? 'true' : 'false'}
+                aria-describedby={errors.message ? 'message-error' : undefined}
               />
-              <h1 className="text-lg sm:text-xl font-bold">{t('appName', 'Caryo Marketplace')}</h1>
+              {errors.message && <p id="message-error" className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.message}</p>}
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t('form.message.hint')}</p>
             </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 md:p-8 lg:p-10 auth-form">
-            {submitSuccess ? (
-              <div className="text-center py-8">
-                <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  </div>
-                </div>
-                <h2 className="text-2xl font-bold mb-2 text-green-700 dark:text-green-400">{t('contact.successTitle', 'Message Sent!')}</h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">{t('contact.successMessage', 'Thank you for your message. We will get back to you shortly.')}</p>
-                <div className="text-center mt-6">
-                  <button 
-                    onClick={() => router.push('/')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200"
-                  >
-                    {t('contact.backToHome', 'Back to Home')}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold mb-1 auth-heading">{t('contact.title', 'Contact Us')}</h2>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">
-                    {t('contact.formDescription', 'Fill in the form below and we\'ll get back to you as soon as possible.')}
-                  </p>
-                </div>
-                
-                {errors.form && (
-                  <div role="alert" className="mb-6 p-3 sm:p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md dark:bg-red-900/30 dark:text-red-200 dark:border-red-700 flex items-center text-xs sm:text-sm">
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="8" x2="12" y2="12"></line>
-                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    </svg>
-                    {errors.form}
-                  </div>
-                )}
-                
-                <form onSubmit={handleSubmit} className={`responsive-fade-in ${isSubmitting ? 'opacity-70 transition-opacity' : ''}`}>
-                  <div className="mb-5">
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                      {t('contact.name', 'Your Name')} <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                        <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                      </div>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        disabled={isSubmitting}
-                        className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-                        placeholder={t('contact.namePlaceholder', 'Enter your full name')}
-                      />
-                    </div>
-                    {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
-                  </div>
-                  
-                  <div className="mb-5">
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                      {t('contact.email', 'Email Address')} <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                        <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                          <polyline points="22,6 12,13 2,6"></polyline>
-                        </svg>
-                      </div>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        disabled={isSubmitting}
-                        className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-                        placeholder={t('contact.emailPlaceholder', 'Enter your email address')}
-                      />
-                    </div>
-                    {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
-                  </div>
-                  
-                  <div className="mb-5">
-                    <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                      {t('contact.subject', 'Subject')} <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                        <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <line x1="12" y1="16" x2="12" y2="12"></line>
-                          <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                        </svg>
-                      </div>
-                      <select
-                        id="subject"
-                        name="subject"
-                        value={formData.subject}
-                        onChange={handleChange}
-                        required
-                        disabled={isSubmitting}
-                        className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 appearance-none"
-                      >
-                        <option value="">{t('contact.selectSubject', 'Select a subject')}</option>
-                        <option value="general">{t('contact.subjects.general', 'General Inquiry')}</option>
-                        <option value="support">{t('contact.subjects.support', 'Technical Support')}</option>
-                        <option value="billing">{t('contact.subjects.billing', 'Billing Question')}</option>
-                        <option value="partnership">{t('contact.subjects.partnership', 'Partnership')}</option>
-                        <option value="other">{t('contact.subjects.other', 'Other')}</option>
-                      </select>
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                        <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    </div>
-                    {errors.subject && <p className="mt-1 text-xs text-red-500">{errors.subject}</p>}
-                  </div>
-                  
-                  <div className="mb-5">
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                      {t('contact.message', 'Message')} <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative group">
-                      <textarea
-                        id="message"
-                        name="message"
-                        value={formData.message}
-                        onChange={handleChange}
-                        rows={5}
-                        required
-                        disabled={isSubmitting}
-                        className="block w-full px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-                        placeholder={t('contact.messagePlaceholder', 'Write your message here...')}
-                      ></textarea>
-                    </div>
-                    {errors.message && <p className="mt-1 text-xs text-red-500">{errors.message}</p>}
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      {t('contact.messageHint', 'Please provide as much detail as possible so we can better assist you.')}
-                    </p>
-                  </div>
-                  
-                  <div className="mb-5">
-                    <SimpleVerification
-                      onVerified={handleVerification}
-                      autoStart={true}
-                    />
-                  </div>
-                  
-                  <div className="mb-6">
-                    <button
-                      type="submit"
-                      disabled={isSubmitting || !isVerified}
-                      className={`w-full flex justify-center py-2.5 sm:py-3 px-4 border border-transparent rounded-lg shadow-md text-sm sm:text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-all duration-200 ${
-                        isSubmitting || !isVerified ? 'opacity-70 cursor-not-allowed' : 'hover-lift'
-                      } transform active:translate-y-0`}
-                      title={!isVerified ? t('contact.pleaseVerify', 'Please complete the verification first') : ""}
-                    >
-                      {isSubmitting ? (
-                        <div className="flex items-center">
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          {t('sending', 'Sending...')}
-                        </div>
-                      ) : (
-                        t('contact.send', 'Send Message')
-                      )}
-                    </button>
-                    
-                    {/* Add hint text under the button */}
-                    {!isVerified && (
-                      <div className="mt-2 text-center text-xs text-amber-600 dark:text-amber-400">
-                        {t('contact.pleaseVerifyFirst', 'Please verify your device first')}
-                      </div>
-                    )}
-                  </div>
-                </form>
-              </>
-            )}
-          </div>
-          
-          <div className="mt-8 grid md:grid-cols-2 gap-4">
-            <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
-              <div className="flex items-start">
-                <div className="mr-3 p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
-                  <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-1">{t('contact.visitUs', 'Visit Us')}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">123 Main Street</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Damascus, Syria</p>
-                </div>
-              </div>
+
+            {/* Verification Component */}
+            <div className="pt-2">
+              <SimpleVerification 
+                key={verificationKey}
+                onVerified={handleVerification} 
+                autoHide={true} 
+              />
+              {errors.form && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.form}</p>}
             </div>
-            
-            <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
-              <div className="flex items-start">
-                <div className="mr-3 p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
-                  <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-1">{t('contact.callUs', 'Call Us')}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">+963 11 123 4567</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">support@caryo-marketplace.com</p>
-                </div>
-              </div>
+
+            {/* Submit Button */}
+            <div>
+              <button 
+                type="submit" 
+                disabled={isSubmitting || !isVerified}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+              >
+                {isSubmitting ? t('form.button.sending') : t('form.button.send')}
+              </button>
             </div>
-          </div>
-        </div>
+          </form>
+        )}
       </div>
+        </>
+      )}
     </div>
   );
 }

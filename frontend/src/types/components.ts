@@ -163,6 +163,7 @@ export interface CaptchaVerificationProps extends ComponentProps {
 export interface SimpleVerificationProps extends ComponentProps {
   onVerified: (verified: boolean) => void;
   autoStart?: boolean;
+  autoHide?: boolean;
 }
 
 /**

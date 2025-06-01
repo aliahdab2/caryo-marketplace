@@ -1,4 +1,8 @@
 {
+  "appName": "Caryo Marketplace",
+  "logoAlt": "Caryo Logo",
+  "privacyPolicy": "Privacy Policy",
+  "termsOfService": "Terms of Service",
   "languages": {
     "english": "English",
     "arabic": "Arabic"
@@ -282,44 +286,7 @@
     "tip2": "Be accurate about the vehicle condition",
     "tip3": "Respond quickly to buyer inquiries"
   },
-  "contact": {
-    "title": "Contact Us",
-    "getInTouch": "Get In Touch",
-    "description": "Have a question or feedback about our services? Fill out the form below and we'll get back to you as soon as possible.",
-    "name": "Full Name",
-    "email": "Email Address",
-    "subject": "Subject",
-    "selectSubject": "Select a subject",
-    "message": "Your Message",
-    "messageHint": "Please provide detailed information to help us assist you better",
-    "send": "Send Message",
-    "successTitle": "Thank you for contacting us!",
-    "successMessage": "Your message has been received. We will get back to you shortly.",
-    "otherWays": "Other Ways to Reach Us",
-    "visitUs": "Visit Us",
-    "callUs": "Contact Information",
-    "phone": "Phone",
-    "businessHours": "Business Hours",
-    "weekdays": "Monday to Friday",
-    "weekend": "Saturday & Sunday",
-    "closed": "Closed",
-    "subjects": {
-      "general": "General Inquiry",
-      "support": "Technical Support",
-      "billing": "Billing Question",
-      "partnership": "Partnership Opportunity",
-      "other": "Other"
-    },
-    "errors": {
-      "nameRequired": "Please enter your name",
-      "emailRequired": "Please enter your email address",
-      "emailInvalid": "Please enter a valid email address",
-      "subjectRequired": "Please select a subject",
-      "messageRequired": "Please enter your message",
-      "messageLength": "Your message should be at least 20 characters",
-      "submissionFailed": "There was a problem sending your message. Please try again."
-    }
-  },"contactInformation": {
+  "contactInformation": {
     "phone": "Phone",
     "location": "Location",
     "memberSince": "Member Since",
