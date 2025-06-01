@@ -1,0 +1,27 @@
+{
+  "title": "مفضلتي",
+  "noFavorites": "لا توجد مركبات مفضلة",
+  "startBrowsing": "ابدأ بتصفح إعلاناتنا لإضافة مركبات إلى مفضلتك",
+  "browseCars": "تصفح المركبات",
+  "remove": "إزالة من المفضلة",
+  "itemCount": "مركبة",
+  "itemCount_zero": "لا توجد مركبات",
+  "itemCount_one": "مركبة واحدة",
+  "itemCount_two": "مركبتان",
+  "itemCount_few": "{{count}} مركبات",
+  "itemCount_many": "{{count}} مركبة",
+  "itemCount_other": "{{count}} مركبة",
+  "empty": {
+    "title": "لا توجد مفضلات حتى الآن",
+    "message": "لم تقم بإضافة أي مركبات إلى مفضلتك بعد",
+    "browseListings": "تصفح الإعلانات"
+  },
+  "sortBy": "ترتيب حسب",
+  "sortOptions": {
+    "date": "تاريخ الإضافة",
+    "price": "السعر",
+    "year": "السنة"
+  },
+  "loadingFavorites": "جاري تحميل المفضلات...",
+  "errorLoading": "خطأ في تحميل المفضلات"
+}

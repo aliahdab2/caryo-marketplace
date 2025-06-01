@@ -1,0 +1,21 @@
+{
+  "title": "My Favorites",
+  "noFavorites": "No Favorite Vehicles",
+  "startBrowsing": "Start browsing our listings to add vehicles to your favorites",
+  "browseCars": "Browse Vehicles",
+  "remove": "Remove from favorites",
+  "itemCount": "vehicles",
+  "empty": {
+    "title": "No favorites yet",
+    "message": "You haven't added any vehicles to your favorites yet",
+    "browseListings": "Browse Listings"
+  },
+  "sortBy": "Sort by",
+  "sortOptions": {
+    "date": "Date Added",
+    "price": "Price",
+    "year": "Year"
+  },
+  "loadingFavorites": "Loading your favorites...",
+  "errorLoading": "Error loading favorites"
+}

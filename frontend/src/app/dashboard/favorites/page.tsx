@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useTranslation } from 'next-i18next';
+import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { getFavorites, removeFromFavorites } from '@/services/favorites';
 import { Listing } from '@/types/listings';
 import Image from 'next/image';
@@ -11,7 +11,7 @@ import FavoriteButton from '@/components/common/FavoriteButton';
 import Spinner from '@/components/ui/Spinner';
 
 export default function FavoritesPage() {
-  const { t } = useTranslation('common');
+  const { t, ready } = useLazyTranslation(['favorites', 'listings', 'common']);
   const [favorites, setFavorites] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +39,7 @@ export default function FavoritesPage() {
       setFavorites(response.favorites);
       setError(null);
     } catch (err) {
-      setError(t('error.loadingFavorites'));
+      setError(t('errorLoading', { ns: 'favorites' }));
       console.error('Error loading favorites:', err);
     } finally {
       setIsLoading(false);
@@ -60,6 +60,15 @@ export default function FavoritesPage() {
     loadFavorites();
   }, [loadFavorites]);
 
+  if (!ready) {
+    return (
+      <div className="flex justify-center items-center min-h-[300px]">
+        <Spinner size="lg" />
+        <span className="ml-2">Loading translations...</span>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[300px]">
@@ -79,7 +88,7 @@ export default function FavoritesPage() {
   if (favorites.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-        {t('favorites.noFavorites')}
+        {t('noFavorites', { ns: 'favorites' })}
       </div>
     );
   }
@@ -88,20 +97,20 @@ export default function FavoritesPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {t('favorites.title')}
+          {t('title', { ns: 'favorites' })}
         </h1>
         <div className="flex items-center gap-2">
           <label className="text-sm text-gray-600 dark:text-gray-400">
-            {t('favorites.sortBy')}:
+            {t('sortBy', { ns: 'favorites' })}:
           </label>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as 'date' | 'price' | 'year')}
             className="text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2 py-1"
           >
-            <option value="date">{t('favorites.sortOptions.date')}</option>
-            <option value="price">{t('favorites.sortOptions.price')}</option>
-            <option value="year">{t('favorites.sortOptions.year')}</option>
+            <option value="date">{t('sortOptions.date', { ns: 'favorites' })}</option>
+            <option value="price">{t('sortOptions.price', { ns: 'favorites' })}</option>
+            <option value="year">{t('sortOptions.year', { ns: 'favorites' })}</option>
           </select>
         </div>
       </div>
@@ -150,14 +159,14 @@ export default function FavoritesPage() {
 
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="text-gray-600 dark:text-gray-400">
-                {t('listings.year')}: <span className="text-gray-900 dark:text-white">{listing.year}</span>
+                {t('year', { ns: 'listings' })}: <span className="text-gray-900 dark:text-white">{listing.year}</span>
               </div>
               <div className="text-gray-600 dark:text-gray-400">
-                {t('listings.mileage')}: <span className="text-gray-900 dark:text-white">{listing.mileage.toLocaleString()}</span>
+                {t('mileage', { ns: 'listings' })}: <span className="text-gray-900 dark:text-white">{listing.mileage.toLocaleString()}</span>
               </div>
               {listing.location && (
                 <div className="col-span-2 text-gray-600 dark:text-gray-400 truncate">
-                  {t('listings.location')}: <span className="text-gray-900 dark:text-white">
+                  {t('location', { ns: 'listings' })}: <span className="text-gray-900 dark:text-white">
                     {listing.location.city}
                     {listing.location.country ? `, ${listing.location.country}` : ''}
                   </span>
