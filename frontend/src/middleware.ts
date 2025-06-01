@@ -1,42 +1,85 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
-export default withAuth(
-  // `withAuth` augments your `Request` with the user's token.
-  function middleware(req) {
-    // Debugging to see token content (uncomment if needed)
-    // console.log('token: ', req.nextauth.token)
+// Set minimum token validation for middleware
+import { JWT } from 'next-auth/jwt';
 
-    if (req.nextUrl.pathname.startsWith("/dashboard") && !req.nextauth.token) {
-      // Include the original destination as a properly encoded callbackUrl
-      const callbackUrl = encodeURIComponent(req.nextUrl.pathname + req.nextUrl.search);
-      return NextResponse.redirect(
-        new URL(`/auth/signin?callbackUrl=${callbackUrl}`, req.url),
-      );
+const hasValidToken = (token: JWT | null | undefined): boolean => {
+  if (!token) return false;
+  return true; // More permissive check in middleware
+};
+
+export default withAuth(
+  function middleware(req) {
+    console.log('Middleware running for:', req.nextUrl.pathname);
+    
+    // Always allow signin page regardless of auth status
+    if (req.nextUrl.pathname.startsWith('/auth/signin')) {
+      console.log('Allowing access to signin page');
+      return NextResponse.next();
+    }
+    
+    // Check token - more permissive in middleware
+    const token = req.nextauth.token;
+    const hasToken = hasValidToken(token);
+    
+    console.log('Token check in middleware:', {
+      hasToken, 
+      path: req.nextUrl.pathname,
+      tokenExists: !!token
+    });
+    
+    // If no token and trying to access protected route
+    if (!hasToken) {
+      // Construct absolute callback URL properly
+      const fullUrl = new URL(req.url);
+      const callbackUrl = encodeURIComponent(fullUrl.pathname + fullUrl.search);
+      
+      // Create a proper redirect URL
+      const redirectUrl = new URL('/auth/signin', req.url);
+      redirectUrl.searchParams.set('callbackUrl', callbackUrl);
+      redirectUrl.searchParams.set('source', 'middleware');
+      
+      console.log(`Middleware redirecting unauthenticated user from ${req.nextUrl.pathname} to ${redirectUrl.pathname}`);
+      
+      return NextResponse.redirect(redirectUrl);
     }
 
-    // Allow the request to proceed if authenticated
+    // Allow access if authenticated
+    console.log('User authenticated in middleware, allowing access to:', req.nextUrl.pathname);
     return NextResponse.next();
   },
   {
     callbacks: {
-      // Return true if user is authenticated
-      authorized: ({ token }) => {
-        return !!token;
+      authorized: ({ token, req }) => {
+        // Always allow signin page regardless of auth status
+        if (req.nextUrl.pathname.startsWith('/auth/signin')) {
+          return true;
+        }
+        
+        // More permissive token check
+        const isAuthorized = hasValidToken(token);
+        
+        // Log token state
+        console.log('Auth check in middleware for:', req.nextUrl.pathname, {
+          hasToken: !!token,
+          isAuthorized
+        });
+        
+        return isAuthorized;
       },
     },
+    secret: process.env.NEXTAUTH_SECRET,
     pages: {
-      signIn: "/auth/signin", // The page to redirect to if authentication is required
-      // error: '/auth/error', // Optional: page to redirect to for errors
+      signIn: '/auth/signin',
     },
-  },
+  }
 );
 
-// See "Matching Paths" below to learn more
+// Protect all routes under /dashboard
 export const config = {
   matcher: [
-    "/dashboard/:path*", // Protect all routes under /dashboard
-    // Add other paths you want to protect here
-    // Example: '/admin/:path*'
+    "/dashboard/:path*",
+    "/auth/signin",
   ],
 };

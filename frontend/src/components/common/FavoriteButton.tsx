@@ -47,7 +47,12 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         return;
       }
 
-      if (!session?.user) {
+      // Check for valid session
+      if (!session?.user || !session?.accessToken) {
+        console.log('No valid session for favorite check:', {
+          hasUser: !!session?.user,
+          hasToken: !!session?.accessToken
+        });
         // If user is not logged in, always show as not a favorite
         setIsFavorite(false);
         return;
@@ -56,20 +61,23 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       try {
         setIsLoading(true);
         setError(null);
-        const result = await checkIsFavorite(listingId);
+        
+        console.log('Checking favorite status for listing:', listingId);
+        const result = await checkIsFavorite(listingId, undefined, session);
+        
+        console.log('Favorite status result:', result);
         setIsFavorite(result.isFavorite); // Correctly use the boolean from the response object
       } catch (err) {
         console.error('Error checking favorite status:', err);
         // Don't show error for checking status, just default to not favorite
         setIsFavorite(false);
-        // setError(t('error.checkFavorite'));
       } finally {
         setIsLoading(false);
       }
     };
 
     checkFavoriteStatus();
-  }, [listingId, session, t, mockMode, initialFavorite]);
+  }, [listingId, session, mockMode, initialFavorite]);
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault(); // Stop event propagation if button is inside a link/card
@@ -78,11 +86,18 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
     // Start animation regardless of auth state
     setIsAnimating(true);
     
-    if (!session?.user && !mockMode) {
+    // Check for valid session
+    if ((!session?.user || !session?.accessToken) && !mockMode) {
+      console.log('No valid session for favorite toggle:', {
+        hasUser: !!session?.user,
+        hasToken: !!session?.accessToken
+      });
+      
       // Redirect to login if user is not authenticated and not in mock mode
       setTimeout(() => {
         setIsAnimating(false);
-        router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.href));
+        const callbackUrl = encodeURIComponent(window.location.href);
+        router.push(`/auth/signin?callbackUrl=${callbackUrl}&from=favorite-button`);
       }, 300);
       return;
     }
@@ -105,17 +120,30 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         return;
       }
       
+      // Pass the session to the API calls
       if (isFavorite) {
-        await removeFromFavorites(listingId);
+        console.log('Removing from favorites:', listingId);
+        await removeFromFavorites(listingId, undefined, session);
         setIsFavorite(false);
         if (onToggle) onToggle(false);
       } else {
-        await addToFavorites(listingId);
+        console.log('Adding to favorites:', listingId);
+        await addToFavorites(listingId, undefined, session);
         setIsFavorite(true);
         if (onToggle) onToggle(true);
       }
     } catch (err) {
       console.error('Error toggling favorite:', err);
+      
+      // Check for auth errors
+      if (err instanceof Error && err.message === 'UNAUTHORIZED') {
+        // Handle auth errors by redirecting
+        setTimeout(() => {
+          const callbackUrl = encodeURIComponent(window.location.href);
+          router.push(`/auth/signin?callbackUrl=${callbackUrl}&from=favorite-error`);
+        }, 300);
+        return;
+      }
       
       // Only show error message briefly
       setError(isFavorite ? t('error.removeFavorite') : t('error.addFavorite'));

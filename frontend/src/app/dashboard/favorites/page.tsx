@@ -1,75 +1,244 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
-import { getFavorites, removeFromFavorites } from '@/services/favorites';
+import { getFavorites } from '@/services/favorites';
 import { Listing } from '@/types/listings';
-import Image from 'next/image';
-import { MdDirectionsCar } from 'react-icons/md';
-import { formatCurrency } from '@/utils/currency';
-import FavoriteButton from '@/components/common/FavoriteButton';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Session } from 'next-auth';
 import Spinner from '@/components/ui/Spinner';
 
-export default function FavoritesPage() {
-  const { t, ready } = useLazyTranslation(['favorites', 'listings', 'common']);
-  const [favorites, setFavorites] = useState<Listing[]>([]);
+// Extend the Listing type to include language-specific fields
+type Lang = 'en' | 'ar';
+
+interface ListingWithLanguage extends Listing {
+  title_en?: string;
+  title_ar?: string;
+  description_en?: string;
+  description_ar?: string;
+  [key: `${string}_${Lang}`]: string | undefined;
+}
+
+declare module 'next-auth' {
+  interface Session {
+    error?: string;
+    accessToken?: string;
+  }
+}
+
+const FavoritesPage: React.FC = () => {
+  // Explicitly type useSession hook with SessionContextValue for clarity if needed, though usually inferred
+  const { data: session, status, update: updateSession } = useSession({ required: false });
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [favorites, setFavorites] = useState<ListingWithLanguage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<'date' | 'price' | 'year'>('date');
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
-  // Sort favorites based on the selected criteria
-  const sortedFavorites = useMemo(() => {
-    const sorted = [...favorites];
-    
-    if (sortBy === 'price') {
-      sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
-    } else if (sortBy === 'year') {
-      sorted.sort((a, b) => (b.year || 0) - (a.year || 0));
-    } else {
-      sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const { t, i18n, ready: i18nReady } = useLazyTranslation(['favorites', 'listings', 'common', 'auth', 'errors']);
+  const currentLanguage = i18n.language;
+
+  console.log('FavoritesPage: Render. Status:', status, 'Session:', session ? { user: !!session.user, token: !!session.accessToken, error: session.error, expires: session.expires } : 'No session');
+
+  const loadFavorites = useCallback(async (currentSession: Session | null) => {
+    console.log('loadFavorites: Starting load attempt...', {
+      retryCount,
+      hasSession: !!currentSession,
+      sessionStatus: status,
+      hasToken: !!currentSession?.accessToken,
+      tokenLength: currentSession?.accessToken?.length,
+      tokenPrefix: currentSession?.accessToken ? currentSession.accessToken.substring(0, 10) : 'none',
+      tokenExpiry: currentSession?.expires
+    });
+
+    // First, check if the token has expired
+    if (currentSession?.expires) {
+      const expiryDate = new Date(currentSession.expires);
+      if (expiryDate.getTime() <= Date.now()) {
+        console.log('Token has expired, attempting refresh...');
+        try {
+          await updateSession();
+          // After update, if we still have an expired token, we need to sign out
+          if (new Date(currentSession.expires).getTime() <= Date.now()) {
+            console.error('Token refresh failed - token still expired');
+            setIsLoading(false);
+            setAuthError('Session expired. Please sign in again.');
+            signOut({ 
+              callbackUrl: '/auth/signin?source=tokenExpired',
+              redirect: true
+            });
+            return;
+          }
+        } catch (error) {
+          console.error('Error refreshing session:', error);
+          setIsLoading(false);
+          setAuthError('Failed to refresh session.');
+          return;
+        }
+      }
     }
-    
-    return sorted;
-  }, [favorites, sortBy]);
 
-  const loadFavorites = useCallback(async () => {
+    // Check if we need to request a new session
+    if (status === 'authenticated' && (!currentSession || !currentSession.accessToken)) {
+      if (retryCount < MAX_RETRIES) {
+        console.log(`loadFavorites: No token available, attempting session refresh... (Retry ${retryCount + 1}/${MAX_RETRIES})`);
+        setRetryCount(prev => prev + 1);
+        try {
+          await updateSession(); // Try to refresh the session
+          return; // Let the useEffect trigger another load attempt
+        } catch (error) {
+          console.error('Failed to update session:', error);
+          if (retryCount >= MAX_RETRIES - 1) {
+            setIsLoading(false);
+            setAuthError('Unable to refresh session. Please sign in again.');
+            signOut({ 
+              callbackUrl: '/auth/signin?source=refreshFailed',
+              redirect: true
+            });
+            return;
+          }
+        }
+      } else {
+        console.error('loadFavorites: Max retries reached, redirecting to sign in');
+        setIsLoading(false);
+        setAuthError('Session expired. Please sign in again.');
+        signOut({ 
+          callbackUrl: '/auth/signin?source=maxRetries',
+          redirect: true
+        });
+        return;
+      }
+    }
+
+    setIsLoading(true);
+    setAuthError(null);
+
     try {
-      setIsLoading(true);
-      const response = await getFavorites({ mockMode: true });
-      setFavorites(response.favorites);
-      setError(null);
-    } catch (err) {
-      setError(t('errorLoading', { ns: 'favorites' }));
-      console.error('Error loading favorites:', err);
+      // Safe access to currentSession properties
+      const sessionDebugInfo = {
+        userId: currentSession?.user?.id,
+        tokenExists: !!currentSession?.accessToken,
+        tokenPrefix: currentSession?.accessToken 
+          ? `${currentSession.accessToken.substring(0, 10)}...` 
+          : 'N/A'
+      };
+      
+      console.log('loadFavorites: Calling getFavorites with session:', sessionDebugInfo);
+      const response = await getFavorites({ mockMode: false }, currentSession);
+      console.log('loadFavorites: Favorites data received:', response);
+      if (response && response.favorites) {
+        setFavorites(response.favorites as ListingWithLanguage[]);
+        setAuthError(null);
+        setRetryCount(0);
+        console.log('loadFavorites: Favorites loaded successfully:', { count: response.favorites.length, total: response.total });
+      } else {
+        console.warn('loadFavorites: No favorites data in response or response is undefined', response);
+        setFavorites([]);
+      }
+    } catch (error: unknown) { // Changed from any to unknown
+      console.error('loadFavorites: Error loading favorites:', error);
+      if (error instanceof Error && error.message === 'UNAUTHORIZED') { // Type check for Error
+        console.warn('loadFavorites: Received UNAUTHORIZED. Setting empty favorites. User might need to re-login.');
+        setAuthError('errors:favorites.unauthorized');
+        setFavorites([]);
+      } else {
+        setAuthError('errors:favorites.loadingFailed');
+        setFavorites([]);
+      }
     } finally {
       setIsLoading(false);
+      console.log('loadFavorites: Finished loading attempt.');
     }
-  }, [t]);
+  }, [retryCount, status, updateSession]); // Removed updateSession and i18n.language if t is stable or its changes are handled by i18nReady in useEffect
 
-  const handleRemoveFromFavorites = async (listingId: string) => {
-    try {
-      await removeFromFavorites(listingId, { mockMode: true });
-      setFavorites(prev => prev.filter(fav => fav.id !== listingId));
-    } catch (err) {
-      console.error('Error removing from favorites:', err);
-      // Show error toast or message
+  useEffect(() => {
+    const source = searchParams ? searchParams.get('source') : null;
+    console.log('FavoritesPage useEffect: Running. Status:', status, 'IsRedirecting:', isRedirecting, 'Source:', source);
+    console.log('FavoritesPage useEffect: Session details:', session ? { user: !!session.user, token: !!session.accessToken, error: session.error, expires: session.expires, tokenLength: session.accessToken?.length } : 'No session data');
+
+    if (isRedirecting) {
+      console.log('FavoritesPage useEffect: Currently redirecting, skipping further processing.');
+      return;
+    }
+
+    if (status === 'loading' || !i18nReady) {
+      console.log('FavoritesPage useEffect: Session or i18n loading. Waiting...');
+      setIsLoading(true);
+      return;
+    }
+
+    if (status === 'unauthenticated') {
+      console.log('FavoritesPage useEffect: User is unauthenticated. Redirecting to signin.');
+      setAuthError(null);
+      setIsRedirecting(true);
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent('/dashboard/favorites')}&source=favoritesPageRedirect`);
+      return;
+    }
+
+    if (status === 'authenticated') {
+      console.log('FavoritesPage useEffect: User is authenticated.');
+      setAuthError(null);
+
+      if (session?.error === "RefreshAccessTokenError") {
+        console.error("FavoritesPage useEffect: RefreshAccessTokenError detected. User needs to re-authenticate.");
+        setAuthError("errors:session.refreshFailed");
+        setIsLoading(false);
+        return;
+      }
+
+      if (session?.expires) {
+        const expirationDate = new Date(session.expires);
+        if (expirationDate.getTime() < Date.now()) {
+          console.warn("FavoritesPage useEffect: Session token has expired based on client-side check. Needs refresh or re-login.");
+          setAuthError("errors:session.expired");
+          setIsLoading(false);
+          return;
+        }
+      }
+      
+      if (session?.accessToken) {
+        console.log('FavoritesPage useEffect: Access token IS available. Proceeding to load favorites.');
+        loadFavorites(session); // Pass the current session directly
+      } else {
+        console.warn('FavoritesPage useEffect: Authenticated, but access token is NOT available. Retry count:', retryCount);
+        if (retryCount < MAX_RETRIES) {
+          console.log(`FavoritesPage useEffect: Triggering retry ${retryCount + 1} for loading favorites.`);
+          setIsLoading(true); 
+          // updateSession(); // Consider calling updateSession here to try to refresh the token
+        } else {
+          console.error('FavoritesPage useEffect: Max retries reached for acquiring access token.');
+          setAuthError('errors:favorites.sessionTokenMissingMaxRetries');
+          setIsLoading(false);
+        }
+      }
+    }
+  }, [status, session, router, isRedirecting, searchParams, loadFavorites, retryCount, i18nReady, updateSession]); // Added updateSession to dependency array if it's called
+
+  const handleRetry = () => {
+    console.log('handleRetry: User clicked Try Again.');
+    setAuthError(null);
+    setIsLoading(true);
+    setRetryCount(0);
+    if (status === 'authenticated' && session) {
+      console.log('handleRetry: Attempting to load favorites again with current session.');
+      loadFavorites(session);
+    } else if (status === 'unauthenticated') {
+      console.log('handleRetry: User unauthenticated, redirecting to signin.');
+      setIsRedirecting(true);
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent('/dashboard/favorites')}&source=favoritesPageRetryRedirect`);
+    } else {
+      console.warn('handleRetry: Cannot retry, session status is:', status, 'or session is null.');
+      setAuthError('errors:favorites.retryFailedNoSession');
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadFavorites();
-  }, [loadFavorites]);
-
-  if (!ready) {
-    return (
-      <div className="flex justify-center items-center min-h-[300px]">
-        <Spinner size="lg" />
-        <span className="ml-2">Loading translations...</span>
-      </div>
-    );
-  }
-
-  if (isLoading) {
+  if (!i18nReady || (isLoading && !authError)) {
+    console.log('FavoritesPage: Displaying loading spinner (i18n not ready or isLoading true, no authError).');
     return (
       <div className="flex justify-center items-center min-h-[300px]">
         <Spinner size="lg" />
@@ -77,105 +246,127 @@ export default function FavoritesPage() {
     );
   }
 
-  if (error) {
+  if (authError) {
+    console.log('FavoritesPage: Displaying AuthError message:', authError);
+    // Log the current session state for debugging
+    console.log('Current session state:', {
+      status,
+      hasToken: !!session?.accessToken,
+      tokenLength: session?.accessToken?.length,
+      tokenPrefix: session?.accessToken ? session.accessToken.substring(0, 10) : 'none',
+      error: session?.error,
+      expires: session?.expires
+    });
+
     return (
-      <div className="text-center text-red-500 py-8">
-        {error}
+      <div className="container mx-auto px-4 py-8 text-center">
+        <h1 className="text-3xl font-bold mb-4 text-red-600">Authentication Error</h1>
+        <p className="mb-4">Your session appears to have expired or is invalid. Please try again or sign in.</p>
+        <p className="mb-4 text-sm text-gray-500">Error details: {authError}</p>
+        {session?.error && <p className="mb-4 text-sm text-yellow-500">Additional info: {session.error}</p>}
+        <div className="space-y-4">
+          <button 
+            onClick={handleRetry}
+            className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+          <button 
+            onClick={() => signOut({ 
+              callbackUrl: '/auth/signin?source=favoritesPageSignOut',
+              redirect: true 
+            })}
+            className="w-full sm:w-auto px-6 py-2 ml-0 sm:ml-2 mt-2 sm:mt-0 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+          >
+            Sign Out and Sign In Again
+          </button>
+        </div>
       </div>
     );
   }
 
-  if (favorites.length === 0) {
+  // Commenting out the section that uses undefined variables like totalFavorites, sortBy, etc.
+  /*
+  if (!isLoading && favorites.length === 0) {
+    console.log('FavoritesPage: Displaying NoFavorites message.');
     return (
-      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-        {t('noFavorites', { ns: 'favorites' })}
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-8 text-center">{t('favorites:title')}</h1>
+        <p className="text-center text-gray-600">{t('favorites:noFavorites')}</p>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {t('title', { ns: 'favorites' })}
-        </h1>
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600 dark:text-gray-400">
-            {t('sortBy', { ns: 'favorites' })}:
-          </label>
-          <select
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">{t('favorites:title')} ({totalFavorites})</h1>
+        <div>
+          <label htmlFor="sort-favorites" className="mr-2">{t('common:sortBy')}:</label>
+          <select 
+            id="sort-favorites" 
+            className="border rounded p-2"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as 'date' | 'price' | 'year')}
-            className="text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2 py-1"
           >
-            <option value="date">{t('sortOptions.date', { ns: 'favorites' })}</option>
-            <option value="price">{t('sortOptions.price', { ns: 'favorites' })}</option>
-            <option value="year">{t('sortOptions.year', { ns: 'favorites' })}</option>
+            <option value="date">{t('common:dateAdded')}</option>
+            <option value="price">{t('common:price')}</option>
+            <option value="year">{t('common:year')}</option>
           </select>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {sortedFavorites.map((listing) => (
-          <div
-            key={listing.id}
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 flex flex-col gap-2 relative group"
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-20 h-14 flex-shrink-0 rounded overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                {(listing.image || (listing.media && listing.media[0])) ? (
-                  <Image
-                    src={listing.image || listing.media![0].url}
-                    alt={listing.title || 'Car image'}
-                    width={80}
-                    height={56}
-                    className="object-cover w-full h-full"
-                  />
-                ) : (
-                  <MdDirectionsCar className="text-3xl text-gray-400" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 dark:text-white truncate">
-                  {listing.title}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {formatCurrency(listing.price, listing.currency || 'USD')}
-                </p>
-              </div>
-              <FavoriteButton
-                listingId={listing.id.toString()}
-                variant="filled"
-                size="sm"
-                initialFavorite={true}
-                mockMode={true}
-                onToggle={(isFavorite) => {
-                  if (!isFavorite) {
-                    handleRemoveFromFavorites(listing.id.toString());
-                  }
-                }}
-              />
-            </div>
+          <ListingCard 
+            key={listing.id} 
+            listing={listing} 
+            language={currentLanguage} 
+            isFavorite={true} // All listings on this page are favorites
+            onToggleFavorite={() => {}}
+            // onToggleFavorite={() => handleRemoveFromFavorites(listing.id.toString())} 
+          />
+        ))}
+      </div>
+    </div>
+  );
+  */
 
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="text-gray-600 dark:text-gray-400">
-                {t('year', { ns: 'listings' })}: <span className="text-gray-900 dark:text-white">{listing.year}</span>
-              </div>
-              <div className="text-gray-600 dark:text-gray-400">
-                {t('mileage', { ns: 'listings' })}: <span className="text-gray-900 dark:text-white">{listing.mileage.toLocaleString()}</span>
-              </div>
-              {listing.location && (
-                <div className="col-span-2 text-gray-600 dark:text-gray-400 truncate">
-                  {t('location', { ns: 'listings' })}: <span className="text-gray-900 dark:text-white">
-                    {listing.location.city}
-                    {listing.location.country ? `, ${listing.location.country}` : ''}
-                  </span>
-                </div>
-              )}
-            </div>
+  // Simplified return for now, focusing on auth flow
+  if (!isLoading && favorites.length === 0) {
+    console.log('FavoritesPage: Displaying NoFavorites message (simplified).');
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-8 text-center">{t('favorites:title')}</h1>
+        <p className="text-center text-gray-600">{t('favorites:noFavorites')}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8 text-center">{t('favorites:title')}</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {favorites.map((listing) => (
+          <div 
+            key={listing.id}
+            className="border rounded-lg p-4 shadow hover:shadow-md transition-shadow"
+          >
+            <h2 className="text-xl font-bold mb-2">
+              {(currentLanguage === 'en' || currentLanguage === 'ar' 
+                ? listing[`title_${currentLanguage}`] 
+                : listing.title_en) || listing.title}
+            </h2>
+            <p className="text-gray-600">
+              {listing.price ? new Intl.NumberFormat(currentLanguage, {
+                style: 'currency',
+                currency: 'USD'
+              }).format(listing.price) : t('common:priceNotAvailable')}
+            </p>
           </div>
         ))}
       </div>
     </div>
   );
-}
+};
+
+export default FavoritesPage;

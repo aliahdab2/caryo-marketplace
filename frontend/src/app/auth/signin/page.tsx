@@ -145,15 +145,26 @@ const SignInPage: React.FC = () => {
   // Safe redirect when user already has an active session
   useEffect(() => {
     if (session && !redirecting) {
-      try {
-        router?.push?.(callbackUrl);
-      } catch {
-        if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
+      // Add a slight delay to ensure session is fully processed
+      setRedirecting(true);
+      
+      // Log session state for debugging
+      console.log('Redirecting with session:', {
+        hasUser: !!session?.user,
+        hasToken: !!session?.accessToken,
+        callbackUrl
+      });
+      
+      setTimeout(() => {
+        try {
+          router?.push?.(callbackUrl);
+        } catch (e) {
+          console.error('Router push failed:', e);
           window.location.href = callbackUrl;
         }
-      }
+      }, 500);
     }
-  }, [session, callbackUrl, redirecting, router]);
+  }, [session, router, callbackUrl, redirecting]);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">

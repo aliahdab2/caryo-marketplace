@@ -17,5 +17,8 @@
     "year": "Year"
   },
   "loadingFavorites": "Loading your favorites...",
-  "errorLoading": "Error loading favorites"
+  "errorLoading": "Error loading favorites",
+  "errorRemoving": "Error removing vehicle from favorites",
+  "authRequired": "Authentication Required",
+  "signInToView": "Please sign in to view and manage your favorites"
 }
