@@ -1,3 +1,5 @@
+import { Lang } from './i18n';
+
 /**
  * Interface for a car listing
  */
@@ -131,3 +133,21 @@ export interface Governorate {
   displayNameAr: string; // Added for direct use in dropdowns
   countryCode?: string;
 }
+
+/**
+ * Extends the base Listing type to include language-specific fields 
+ * for titles and descriptions, and allows for dynamic language keys.
+ */
+export interface ListingWithLanguage extends Listing {
+  title_en?: string;
+  title_ar?: string;
+  description_en?: string;
+  description_ar?: string;
+  // Allow any string key ending with _en or _ar, covering various potential data types
+  [key: `${string}_${Lang}`]: string | number | boolean | string[] | Record<string, unknown> | Date | undefined;
+}
+
+/**
+ * Defines the fields that can be localized.
+ */
+export type LocalizedField = 'title' | 'description';

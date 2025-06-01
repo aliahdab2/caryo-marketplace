@@ -3,29 +3,32 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { getFavorites } from '@/services/favorites';
-import { Listing } from '@/types/listings';
+import { ListingWithLanguage, LocalizedField } from '@/types/listings'; // Adjusted import
+import { Lang, CURRENCY_CONFIG } from '@/types/i18n'; // Adjusted import
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Session } from 'next-auth';
 import Spinner from '@/components/ui/Spinner';
 
-// Extend the Listing type to include language-specific fields
-type Lang = 'en' | 'ar';
-
-interface ListingWithLanguage extends Listing {
-  title_en?: string;
-  title_ar?: string;
-  description_en?: string;
-  description_ar?: string;
-  [key: `${string}_${Lang}`]: string | undefined;
+// Component for displaying localized text with proper RTL support
+interface LocalizedTextProps {
+  content: string;
+  language: string;
+  className?: string;
 }
 
-declare module 'next-auth' {
-  interface Session {
-    error?: string;
-    accessToken?: string;
-  }
-}
+const LocalizedText: React.FC<LocalizedTextProps> = ({ content, language, className = '' }) => {
+  const isRTL = language === 'ar';
+  
+  return (
+    <div 
+      className={`${className} ${isRTL ? 'text-right' : 'text-left'}`} 
+      dir={isRTL ? 'rtl' : 'ltr'}
+    >
+      {content}
+    </div>
+  );
+};
 
 const FavoritesPage: React.FC = () => {
   // Explicitly type useSession hook with SessionContextValue for clarity if needed, though usually inferred
@@ -40,9 +43,48 @@ const FavoritesPage: React.FC = () => {
   const MAX_RETRIES = 3;
 
   const { t, i18n, ready: i18nReady } = useLazyTranslation(['favorites', 'listings', 'common', 'auth', 'errors']);
-  const currentLanguage = i18n.language;
+  const currentLanguage = i18n.language as Lang; // Ensure currentLanguage is of type Lang
 
   console.log('FavoritesPage: Render. Status:', status, 'Session:', session ? { user: !!session.user, token: !!session.accessToken, error: session.error, expires: session.expires } : 'No session');
+
+  // Helper function to get localized content
+  const getLocalizedContent = (
+    item: ListingWithLanguage,
+    field: LocalizedField,
+    language: string // Keep as string for flexibility, cast to Lang where needed
+  ): string => {
+    const currentLang = language as Lang;
+    if (currentLang === 'en' || currentLang === 'ar') {
+      const key = `${field}_${currentLang}` as const;
+      const localizedValue = item[key];
+      if (typeof localizedValue === 'string') return localizedValue;
+    }
+    
+    // Fallback to English
+    const englishKey = `${field}_en` as const;
+    const englishValue = item[englishKey];
+    if (typeof englishValue === 'string') return englishValue;
+    
+    // Final fallback to default field (e.g., item.title)
+    const defaultKey = field as keyof Listing; // Ensure field is a key of base Listing for fallback
+    const defaultValue = item[defaultKey];
+    return typeof defaultValue === 'string' ? defaultValue : '';
+  };
+
+  // Format price according to current language
+  const formatPrice = (price: number | undefined, language: string): string => {
+    if (price === undefined || price === null) {
+      return t('common:priceNotAvailable');
+    }
+    
+    const langKey = language as Lang;
+    const config = CURRENCY_CONFIG[langKey] || CURRENCY_CONFIG.en; // Default to English if langKey is not valid
+      
+    return new Intl.NumberFormat(config.locale, {
+      style: 'currency',
+      currency: config.currency
+    }).format(price);
+  };
 
   const loadFavorites = useCallback(async (currentSession: Session | null) => {
     console.log('loadFavorites: Starting load attempt...', {
@@ -240,8 +282,9 @@ const FavoritesPage: React.FC = () => {
   if (!i18nReady || (isLoading && !authError)) {
     console.log('FavoritesPage: Displaying loading spinner (i18n not ready or isLoading true, no authError).');
     return (
-      <div className="flex justify-center items-center min-h-[300px]">
+      <div className="flex flex-col justify-center items-center min-h-[300px]">
         <Spinner size="lg" />
+        {i18nReady && <p className="mt-4 text-gray-600">{t('common:loadingFavorites')}</p>}
       </div>
     );
   }
@@ -334,33 +377,38 @@ const FavoritesPage: React.FC = () => {
   // Simplified return for now, focusing on auth flow
   if (!isLoading && favorites.length === 0) {
     console.log('FavoritesPage: Displaying NoFavorites message (simplified).');
+    const isRTL = currentLanguage === 'ar';
+    
     return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8 text-center">{t('favorites:title')}</h1>
-        <p className="text-center text-gray-600">{t('favorites:noFavorites')}</p>
+      <div className="container mx-auto px-4 py-8" dir={isRTL ? 'rtl' : 'ltr'}>
+        <h1 className={`text-3xl font-bold mb-8 ${isRTL ? 'text-right' : 'text-center'}`}>
+          {t('favorites:title')}
+        </h1>
+        <p className={`${isRTL ? 'text-right' : 'text-center'} text-gray-600`}>
+          {t('favorites:noFavorites')}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">{t('favorites:title')}</h1>
+    <div className="container mx-auto px-4 py-8" dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}>
+      <h1 className={`text-3xl font-bold mb-8 ${currentLanguage === 'ar' ? 'text-right' : 'text-center'}`}>
+        {t('favorites:title')}
+      </h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {favorites.map((listing) => (
           <div 
             key={listing.id}
             className="border rounded-lg p-4 shadow hover:shadow-md transition-shadow"
           >
-            <h2 className="text-xl font-bold mb-2">
-              {(currentLanguage === 'en' || currentLanguage === 'ar' 
-                ? listing[`title_${currentLanguage}`] 
-                : listing.title_en) || listing.title}
-            </h2>
+            <LocalizedText
+              content={getLocalizedContent(listing, 'title', currentLanguage)}
+              language={currentLanguage}
+              className="text-xl font-bold mb-2"
+            />
             <p className="text-gray-600">
-              {listing.price ? new Intl.NumberFormat(currentLanguage, {
-                style: 'currency',
-                currency: 'USD'
-              }).format(listing.price) : t('common:priceNotAvailable')}
+              {formatPrice(listing.price, currentLanguage)}
             </p>
           </div>
         ))}
