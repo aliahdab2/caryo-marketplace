@@ -311,5 +311,16 @@
   "parkingSensors": "حساسات الركن",
   "equipmentComingSoon": "قريباً: سيتم عرض التجهيزات والإكسسوارات الفعلية للمركبة هنا",
   "back": "رجوع",
-  "continue": "متابعة"
+  "continue": "متابعة",
+  "notifications": "الإشعارات",
+  "openMenu": "فتح القائمة",
+  "viewDetails": "عرض التفاصيل",
+  "viewAll": "عرض الكل",
+  "image": "صورة",
+  "title": "العنوان",
+  "views": "المشاهدات",
+  "status": "الحالة",
+  "actions": "الإجراءات",
+  "edit": "تعديل",
+  "delete": "حذف"
 }

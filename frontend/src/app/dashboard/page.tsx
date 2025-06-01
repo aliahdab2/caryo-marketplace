@@ -3,7 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useTranslation } from "react-i18next";
+import { useLazyTranslation } from '../../hooks/useLazyTranslation';
 import { formatDate, formatNumber } from "../../utils/localization";
 import { 
   MdStarBorder, 
@@ -22,33 +22,37 @@ import {
 export default function Dashboard() {
   const { data: session } = useSession();
   const router = useRouter();
-  const { t, i18n } = useTranslation('common');
+  const { t, i18n, ready } = useLazyTranslation(['dashboard', 'common', 'listings']);
+
+  if (!ready) {
+    return <div>Loading translations...</div>; // Or a loading spinner
+  }
 
   // Dashboard overview stats with enhanced data structure
   const stats = [
     {
-      title: t('dashboard.activeListings'),
+      title: t('activeListings'),
       value: '3',
       icon: <MdDirectionsCar className="text-2xl md:text-3xl" />,
       color: 'blue',
       link: '/dashboard/listings'
     },
     {
-      title: t('dashboard.views'),
+      title: t('views'),
       value: formatNumber(245, i18n.language),
       icon: <MdVisibility className="text-2xl md:text-3xl" />,
       color: 'green',
       link: '/dashboard/analytics'
     },
     {
-      title: t('dashboard.messages'),
+      title: t('messages'),
       value: formatNumber(12, i18n.language),
       icon: <MdEmail className="text-2xl md:text-3xl" />,
       color: 'purple',
       link: '/dashboard/messages'
     },
     {
-      title: t('dashboard.favorites'),
+      title: t('favorites'),
       value: formatNumber(8, i18n.language),
       icon: <MdStarBorder className="text-2xl md:text-3xl" />,
       color: 'amber',
@@ -161,11 +165,11 @@ export default function Dashboard() {
       {/* Page Header with welcome message */}
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
-          {t('dashboard.welcome')}
+          {t('welcome')}
           {session?.user?.name ? `, ${session.user.name}` : ''}!
         </h1>
         <p className="text-gray-600 dark:text-gray-400 text-lg">
-          {t('dashboard.overviewSubtitle')}
+          {t('overviewSubtitle')}
         </p>
       </div>
       
@@ -213,7 +217,7 @@ export default function Dashboard() {
         <div className="flex flex-wrap justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
             <MdDirectionsCar className="mr-2 text-primary" />
-            {t('dashboard.recentListings')}
+            {t('recentListings')}
           </h2>
           <Link 
             href="/dashboard/listings"
@@ -275,7 +279,7 @@ export default function Dashboard() {
                     <td className="py-4 px-5">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotColor} mr-1.5`}></span>
-                        {t(`listings.${listing.status}`)}
+                        {t(listing.status, { ns: 'listings' })}
                       </span>
                     </td>
                     <td className="py-4 px-5">
@@ -308,7 +312,7 @@ export default function Dashboard() {
       {/* Quick Actions - Modern action cards */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-5">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">
-          {t('dashboard.quickActions')}
+          {t('quickActions')}
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -322,10 +326,10 @@ export default function Dashboard() {
               <MdAddCircleOutline className="text-blue-600 dark:text-blue-400 text-2xl" />
             </div>
             <h3 className="font-medium text-lg text-blue-700 dark:text-blue-400">
-              {t('dashboard.createListing')}
+              {t('createListing')}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              {t('dashboard.createListingDesc')}
+              {t('createListingDesc')}
             </p>
           </Link>
           
@@ -339,10 +343,10 @@ export default function Dashboard() {
               <MdEditNote className="text-purple-600 dark:text-purple-400 text-2xl" />
             </div>
             <h3 className="font-medium text-lg text-purple-700 dark:text-purple-400">
-              {t('dashboard.editProfile')}
+              {t('editProfile')}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              {t('dashboard.editProfileDesc')}
+              {t('editProfileDesc')}
             </p>
           </Link>
           
@@ -356,10 +360,10 @@ export default function Dashboard() {
               <MdLogout className="text-red-600 dark:text-red-400 text-2xl" />
             </div>
             <h3 className="font-medium text-lg text-red-700 dark:text-red-400">
-              {t('header.logout')}
+              {t('header.logout', { ns: 'common' })}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              {t('dashboard.logoutDesc')}
+              {t('logoutDesc')}
             </p>
           </button>
         </div>

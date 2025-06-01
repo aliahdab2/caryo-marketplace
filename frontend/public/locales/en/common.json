@@ -300,5 +300,16 @@
   "shareVehicle": "Share Vehicle",
   "compareVehicles": "Compare Vehicles",
   "back": "Back",
-  "continue": "Continue"
+  "continue": "Continue",
+  "notifications": "Notifications",
+  "openMenu": "Open Menu",
+  "viewDetails": "View Details",
+  "viewAll": "View All",
+  "image": "Image",
+  "title": "Title",
+  "views": "Views",
+  "status": "Status",
+  "actions": "Actions",
+  "edit": "Edit",
+  "delete": "Delete"
 }

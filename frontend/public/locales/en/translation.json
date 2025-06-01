@@ -1,10 +1,4 @@
 {
-  "dashboard.accountInfo": "Account Information",
-  "dashboard.createListing": "Create New Listing",
-  "dashboard.myListings": "My Listings",
-  "dashboard.noRoles": "No roles assigned",
-  "dashboard.role": "Role",
-  "dashboard.welcome": "Welcome to your dashboard",
   "header.about": "About",
   "header.contact": "Contact",
   "header.dashboard": "Dashboard",
