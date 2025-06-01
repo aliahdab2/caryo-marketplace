@@ -31,8 +31,11 @@
     "verified": "Verification Completed",
     "verifying": "Verifying...",
     "loginSuccess": "Login successful!",
-    "redirecting": "Redirecting..."
+    "redirecting": "Redirecting...",
+    "securityCheck": "Security check",
+    "verifyIdentity": "Verify your identity"
   },
+  "auth.securityCheckCompleted": "Security check completed successfully!",
   "listings": {
     "loadingListings": "Loading listings...",
     "noListingsFound": "No listings found",
@@ -382,5 +385,7 @@
   "equipmentComingSoon": "Equipment details will be available soon",
   "additionalActions": "Additional Actions",
   "shareVehicle": "Share Vehicle",
-  "compareVehicles": "Compare Vehicles"
+  "compareVehicles": "Compare Vehicles",
+  "back": "Back",
+  "continue": "Continue"
 }

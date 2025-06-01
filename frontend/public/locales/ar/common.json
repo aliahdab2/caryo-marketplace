@@ -34,6 +34,7 @@
     "loginSuccess": "تم تسجيل الدخول بنجاح!",
     "redirecting": "جارٍ إعادة التوجيه..."
   },
+  "auth.securityCheckCompleted": "اكتمل التحقق الأمني بنجاح!",
   "listings": {
     "loadingListings": "جارٍ تحميل الإعلانات...",
     "noListingsFound": "لم يتم العثور على إعلانات",
@@ -395,5 +396,7 @@
   "leatherSeats": "مقاعد جلدية",
   "adaptiveCruise": "نظام تحكم تكيفي بالسرعة",
   "parkingSensors": "حساسات الركن",
-  "equipmentComingSoon": "قريباً: سيتم عرض التجهيزات والإكسسوارات الفعلية للمركبة هنا"
+  "equipmentComingSoon": "قريباً: سيتم عرض التجهيزات والإكسسوارات الفعلية للمركبة هنا",
+  "back": "رجوع",
+  "continue": "متابعة"
 }
