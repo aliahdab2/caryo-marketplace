@@ -36,6 +36,11 @@
     "verifyIdentity": "Verify your identity"
   },
   "auth.securityCheckCompleted": "Security check completed successfully!",
+  "dev": {
+    "testingHub": "Development & Testing Hub",
+    "components": "Component Testing",
+    "utils": "Utility Testing"
+  },
   "listings": {
     "loadingListings": "Loading listings...",
     "noListingsFound": "No listings found",

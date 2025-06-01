@@ -20,6 +20,21 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Development Testing Hub
+
+The project includes a centralized testing hub accessible at [http://localhost:3000/dev-testing](http://localhost:3000/dev-testing) that provides:
+
+- Links to all component testing pages
+- Easy access to UI component previews and tests
+- Navigation to specific testing utilities
+
+Available test pages include:
+- Captcha verification testing
+- Success alert component testing
+- Image gallery testing
+
+This hub makes it easier to test individual components in isolation and verify translations are working correctly.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

@@ -32,9 +32,16 @@
     "verified": "تم التحقق بنجاح",
     "verifying": "جارٍ التحقق...",
     "loginSuccess": "تم تسجيل الدخول بنجاح!",
-    "redirecting": "جارٍ إعادة التوجيه..."
+    "redirecting": "جارٍ إعادة التوجيه...",
+    "securityCheck": "فحص الأمان",
+    "verifyIdentity": "تحقق من هويتك"
   },
   "auth.securityCheckCompleted": "اكتمل التحقق الأمني بنجاح!",
+  "dev": {
+    "testingHub": "مركز التطوير والاختبار",
+    "components": "اختبار المكونات",
+    "utils": "اختبار الأدوات"
+  },
   "listings": {
     "loadingListings": "جارٍ تحميل الإعلانات...",
     "noListingsFound": "لم يتم العثور على إعلانات",
