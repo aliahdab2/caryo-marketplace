@@ -10,7 +10,9 @@
     "home": "Home",
     "about": "About",
     "contact": "Contact",
-    "listings": "Listings"
+    "listings": "Listings",
+    "openMenu": "Open menu",
+    "language": "Language"
   },
   "auth": {
     "signin": "Sign In",

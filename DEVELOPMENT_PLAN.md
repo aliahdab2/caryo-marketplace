@@ -285,3 +285,4 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [Database Schema](docs/database_schema.md) - Complete database structure and relationships
 - [Testing Plan](docs/testing_plan.md) - Testing approach and coverage goals
 - [Frontend Development Plan](docs/frontend_development_plan.md) - Detailed frontend implementation roadmap
+- [Translation Guide for Developers](docs/translation_guide_for_developers.md) - Internationalization best practices for bilingual support

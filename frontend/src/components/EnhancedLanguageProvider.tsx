@@ -7,7 +7,7 @@ import i18n, {
   SupportedLanguage,
   LANGUAGES,
   changeLanguage as i18nChangeLanguage
-} from '@/utils/i18n';
+} from '@/utils/i18nExports';
 // No need to use translationLoader as we're importing translations statically
 
 // Helper function to check if a language is supported

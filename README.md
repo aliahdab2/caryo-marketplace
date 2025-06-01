@@ -28,6 +28,7 @@ For detailed information about this project, refer to these documents:
 - [Migrating to Vault](docs/migrating_to_vault.md) - Strategy for migrating secrets
 - [Redis Integration](backend/autotrader-backend/docs/redis-integration-guide.md) - Guide for Redis caching
 - [MailDev Integration](backend/autotrader-backend/docs/maildev-integration-guide.md) - Email testing setup
+- [Translation Guide](docs/translation_guide_for_developers.md) - Internationalization best practices
 
 ## Getting Started
 

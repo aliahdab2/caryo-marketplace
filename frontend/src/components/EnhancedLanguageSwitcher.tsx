@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from './EnhancedLanguageProvider';
-import { SupportedLanguage } from '@/utils/i18n';
+import { SupportedLanguage } from '@/utils/i18nExports';
 import { useTranslation } from '@/utils/useTranslation';
 import { ComponentProps } from "@/types/components";
 

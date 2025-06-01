@@ -9,9 +9,13 @@ import SimpleVerification from '@/components/auth/SimpleVerification';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import Link from 'next/link';
 import Image from 'next/image';
+import useLazyTranslation from "@/hooks/useLazyTranslation";
 
 const SignInPage: React.FC = () => {
-  const { t } = useTranslation('auth');
+  // Lazy load the auth and errors namespaces
+  useLazyTranslation(['auth', 'errors']);
+
+  const { t } = useTranslation(['auth', 'errors']);
   const router = useRouter();
   const { getErrorMessage } = useApiErrorHandler();
   const [username, setUsername] = useState("");
@@ -21,7 +25,7 @@ const SignInPage: React.FC = () => {
   const [redirecting, setRedirecting] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("/dashboard");
   const [isVerified, setIsVerified] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false); // Retained for success message logic
+  const [showSuccess, setShowSuccess] = useState(false);
   const [credentialsCorrect, setCredentialsCorrect] = useState(false);
 
   const { data: session } = useSession();
@@ -76,7 +80,7 @@ const SignInPage: React.FC = () => {
     }
 
     if (!isVerified) {
-      setError(t('verificationRequired', "Verification required before login"));
+      setError(t('verificationRequired'));
       setLoading(false);
       return;
     }
@@ -100,9 +104,9 @@ const SignInPage: React.FC = () => {
         setLoading(false);
       } else if (result?.ok) {
         setCredentialsCorrect(true);
-        setShowSuccess(true); // This will show the success message
+        setShowSuccess(true);
         setError("");
-        setLoading(false); // Stop loading to show the green border before redirect
+        setLoading(false);
 
         // Delay redirect to allow user to see the success state
         setTimeout(() => {
@@ -173,15 +177,15 @@ const SignInPage: React.FC = () => {
           <div className="flex items-center mb-6">
             <Image 
               src="/images/logo.svg" 
-              alt={t('logo')} 
+              alt={t('logo')}
               width={40} 
               height={40} 
               className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert" 
             />
             <h1 className="text-lg md:text-xl font-bold">{t('appName')}</h1>
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('welcome_back')}</h2>
-          <p className="text-sm md:text-base opacity-80">{t('sign_in_description')}</p>
+          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('welcomeBack')}</h2>
+          <p className="text-sm md:text-base opacity-80">{t('signInDescription')}</p>
         </div>          <div className="z-10 p-6 md:p-8 lg:p-10 text-sm">
           <p className="mb-2 opacity-80">&copy; {new Date().getFullYear()} {t('appName')}</p>
           <p className="opacity-60">{t('privacy_policy')} • {t('terms_of_service')}</p>
@@ -205,8 +209,8 @@ const SignInPage: React.FC = () => {
               : 'border border-gray-200 dark:border-gray-700'
           }`}>
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-1 auth-heading">{t('sign_in')}</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">{t('sign_in_to_continue')}</p>
+              <h2 className="text-2xl font-bold mb-1 auth-heading">{t('signIn')}</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">{t('signInDescription')}</p>
             </div>
             
             {error && (
@@ -225,7 +229,7 @@ const SignInPage: React.FC = () => {
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
-                {t('loginSuccess', 'Login successful!')} {t('redirecting', 'Redirecting...')}
+                {t('loginSuccess')} {t('redirecting')}
               </div>
             )}
 
@@ -249,7 +253,7 @@ const SignInPage: React.FC = () => {
                     required
                     data-error={t('fieldRequired')}
                     className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-                    placeholder={t('usernamePlaceholder', 'Enter your username')}
+                    placeholder={t('usernamePlaceholder')}
                     onInvalid={(e) => {
                       e.preventDefault();
                       const target = e.target as HTMLInputElement;
@@ -267,7 +271,7 @@ const SignInPage: React.FC = () => {
                     {t('password')}
                   </label>
                   <Link href="/auth/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
-                    {t('forgotPassword', 'Forgot password?')}
+                    {t('forgotPassword')}
                   </Link>
                 </div>
                 <div className="relative group">
@@ -285,7 +289,7 @@ const SignInPage: React.FC = () => {
                     required
                     data-error={t('fieldRequired')}
                     className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-                    placeholder={t('passwordPlaceholder', '••••••••')}
+                    placeholder={t('passwordPlaceholder')}
                     onInvalid={(e) => {
                       e.preventDefault();
                       const target = e.target as HTMLInputElement;
@@ -329,7 +333,7 @@ const SignInPage: React.FC = () => {
                       </svg>
                       {t('loading')}
                     </div>
-                  ) : t('sign_in')}
+                  ) : t('signIn')}
                 </button>
               </div>
             </form>
@@ -351,7 +355,7 @@ const SignInPage: React.FC = () => {
 
             <div className="text-center mt-6">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {t('dont_have_account')} <Link href="/auth/signup" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">{t('sign_up')}</Link>
+                {t('dontHaveAccount')} <Link href="/auth/signup" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">{t('signUp')}</Link>
               </p>
             </div>
           </div>

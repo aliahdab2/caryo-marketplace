@@ -146,6 +146,7 @@ backend/
 - Always update relevant documentation when making changes
 - Include bilingual descriptions where applicable
 - Document environment-specific configurations
+- Follow the [Translation Guide for Developers](docs/translation_guide_for_developers.md) for i18n implementation
 
 ### Testing
 - Write tests for both H2 and PostgreSQL environments

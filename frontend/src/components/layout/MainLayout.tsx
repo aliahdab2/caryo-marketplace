@@ -4,6 +4,13 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useSession } from "next-auth/react";
 import type { MainLayoutProps } from "@/types/components";
+// Import DevTools component conditionally
+import dynamic from "next/dynamic";
+
+// Dynamically import DevTools to ensure it only runs on the client side
+const DevTools = dynamic(() => import("@/components/debug/DevTools"), {
+  ssr: false,
+});
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const { status } = useSession();
@@ -25,6 +32,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
       </main>
       
       <Footer />
+      
+      {/* DevTools will only render in development mode */}
+      <DevTools />
     </div>
   );
 }

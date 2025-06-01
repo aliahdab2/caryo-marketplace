@@ -3,7 +3,7 @@
 import { useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLanguage } from '@/components/EnhancedLanguageProvider';
-import { SupportedLanguage } from '@/utils/i18n';
+import { SupportedLanguage } from '@/utils/i18nExports';
 
 /**
  * Interface for language path management options

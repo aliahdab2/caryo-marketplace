@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from 'react';
-import i18n from '@/utils/i18n';
+import i18n from '@/utils/i18nExports';
 import { I18nextProvider } from 'react-i18next';
 
 interface I18nProviderProps {

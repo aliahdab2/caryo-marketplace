@@ -4,7 +4,7 @@ import { ComponentProps } from "@/types/components";
 import { useLanguage } from '@/components/EnhancedLanguageProvider';
 import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
-import { SupportedLanguage } from '@/utils/i18n';
+import { SupportedLanguage } from '@/utils/i18nExports';
 
 type LanguageSwitcherProps = ComponentProps;
 
