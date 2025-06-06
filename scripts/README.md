@@ -76,6 +76,32 @@ Scripts for maintaining the repository.
 | `cleanup.sh` | General cleanup script for removing temporary files and containers. |
 | `cleanup_image_scripts.sh` | Specifically cleans up redundant image management scripts. |
 
+## Frontend Environment Scripts
+
+These scripts help with frontend environment setup and validation.
+
+| Script | Description |
+|--------|-------------|
+| `check_frontend_env.sh` | Validates frontend environment variables and files, checks MinIO connectivity, and offers to create missing files. |
+
+### Checking Frontend Environment
+
+Before starting development on the frontend, validate your environment setup:
+
+```bash
+# Run from the project root
+./scripts/check_frontend_env.sh
+
+# To automatically fix any issues
+./scripts/check_frontend_env.sh --fix
+```
+
+This script will:
+- Check for required environment files (.env, .env.production)
+- Verify required environment variables are set
+- Test MinIO connection
+- Offer to create missing environment files
+
 ## Usage Examples
 
 ### Image Management

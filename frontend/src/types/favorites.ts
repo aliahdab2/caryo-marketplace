@@ -5,16 +5,14 @@ import { Listing } from './listings';
  */
 export interface FavoriteHandlers {
   onToggle?: (isFavorite: boolean) => void;
-  mockMode?: boolean;
   initialFavorite?: boolean;
 }
 
 /**
- * Interface for favorites service options
+ * Type for favorites service options
+ * @deprecated This type is no longer used as we're using real API calls now
  */
-export interface FavoriteServiceOptions {
-  mockMode?: boolean;
-}
+export type FavoriteServiceOptions = Record<string, never>;
 
 /**
  * Interface for favorite status response

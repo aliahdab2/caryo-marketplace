@@ -16,12 +16,12 @@ cd backend/autotrader-backend
 ### Testing Authentication Flow
 ```bash
 # 1. Register a new user
-curl -X POST http://localhost:8080/auth/signup \
+curl -X POST http://localhost:8080/api/auth/signup \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser1","email":"testuser1@example.com","password":"password123"}'
 
 # 2. Login to get a JWT token
-curl -X POST http://localhost:8080/auth/signin \
+curl -X POST http://localhost:8080/api/auth/signin \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser1","password":"password123"}'
 
@@ -68,7 +68,7 @@ Authorization: Bearer <your_jwt_token>
 
 #### Register a User
 
-- **Endpoint**: `POST /auth/signup`
+- **Endpoint**: `POST /api/auth/signup`
 - **Access**: Public
 - **Description**: Creates a new user account
 - **Request Body**:
@@ -94,7 +94,7 @@ Authorization: Bearer <your_jwt_token>
 
 #### Login User
 
-- **Endpoint**: `POST /auth/signin`
+- **Endpoint**: `POST /api/auth/signin`
 - **Access**: Public
 - **Description**: Authenticates a user and returns a JWT token
 - **Request Body**:

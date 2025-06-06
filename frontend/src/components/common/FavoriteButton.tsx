@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { addToFavorites, removeFromFavorites, checkIsFavorite } from '@/services/favorites';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { addToFavorites, removeFromFavorites, isFavorited } from '@/services/favorites';
 import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -13,7 +13,6 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   size = 'md',
   variant = 'filled',
   onToggle,
-  mockMode = false,
   initialFavorite = false
 }) => {
   const { t } = useTranslation('common');
@@ -23,6 +22,25 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   const [isAnimating, setIsAnimating] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
+  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Validate the listing ID
+  useEffect(() => {
+    if (!listingId) {
+      console.error('[FAVORITE] Missing listing ID');
+    } else {
+      console.log(`[FAVORITE] FavoriteButton initialized for listing ID: ${listingId}`);
+    }
+  }, [listingId]);
+
+  // Clean up animation timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const sizeClasses = {
     sm: 'w-8 h-8',
@@ -39,124 +57,121 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       : 'border-2 border-gray-300 text-gray-500 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300 dark:hover:border-gray-500',
   };
 
+  // Log session information whenever it changes
   useEffect(() => {
-    const checkFavoriteStatus = async () => {
-      // If in mock mode, just use the initialFavorite value
-      if (mockMode) {
-        setIsFavorite(initialFavorite);
-        return;
-      }
+    console.log('[FAVORITE] Session information:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      hasToken: !!session?.accessToken,
+      expires: session?.expires ? new Date(session.expires).toISOString() : 'N/A',
+      tokenLength: session?.accessToken ? session.accessToken.length : 0
+    });
+  }, [session]);
 
-      // Check for valid session
-      if (!session?.user || !session?.accessToken) {
-        console.log('No valid session for favorite check:', {
-          hasUser: !!session?.user,
-          hasToken: !!session?.accessToken
-        });
-        // If user is not logged in, always show as not a favorite
-        setIsFavorite(false);
-        return;
-      }
-      
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        console.log('Checking favorite status for listing:', listingId);
-        const result = await checkIsFavorite(listingId, undefined, session);
-        
-        console.log('Favorite status result:', result);
-        setIsFavorite(result.isFavorite); // Correctly use the boolean from the response object
-      } catch (err) {
-        console.error('Error checking favorite status:', err);
-        // Don't show error for checking status, just default to not favorite
-        setIsFavorite(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkFavoriteStatus();
-  }, [listingId, session, mockMode, initialFavorite]);
-
-  const handleToggleFavorite = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Stop event propagation if button is inside a link/card
-    e.stopPropagation();
-    
-    // Start animation regardless of auth state
-    setIsAnimating(true);
-    
-    // Check for valid session
-    if ((!session?.user || !session?.accessToken) && !mockMode) {
-      console.log('No valid session for favorite toggle:', {
-        hasUser: !!session?.user,
-        hasToken: !!session?.accessToken
-      });
-      
-      // Redirect to login if user is not authenticated and not in mock mode
-      setTimeout(() => {
-        setIsAnimating(false);
-        const callbackUrl = encodeURIComponent(window.location.href);
-        router.push(`/auth/signin?callbackUrl=${callbackUrl}&from=favorite-button`);
-      }, 300);
+  // Memoize the checkFavoriteStatus function
+  const checkFavoriteStatus = useCallback(async () => {
+    if (!listingId || !session?.user || !session?.accessToken) {
       return;
     }
     
     try {
-      if (!mockMode) {
-        setIsLoading(true);
+      setIsLoading(true);
+      const result = await isFavorited(listingId, undefined, session);
+      console.log(`[FAVORITE] Status check result: ${JSON.stringify(result)}`);
+      setIsFavorite(result.isFavorite);
+    } catch (err) {
+      console.error('[FAVORITE] Error checking favorite status:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [listingId, session]);
+
+  // Check favorite status when component mounts or when session/listingId changes
+  useEffect(() => {
+    if (!listingId || !session?.user || !session?.accessToken) {
+      return;
+    }
+    
+    checkFavoriteStatus();
+    
+    // Refresh every 30 seconds
+    const refreshInterval = setInterval(() => {
+      if (session?.user) {
+        checkFavoriteStatus();
       }
+    }, 30000);
+    
+    return () => {
+      clearInterval(refreshInterval);
+    };
+  }, [listingId, session, checkFavoriteStatus]);
+
+  const startAnimation = () => {
+    // Clear any existing animation timeout
+    if (animationTimeoutRef.current) {
+      clearTimeout(animationTimeoutRef.current);
+      animationTimeoutRef.current = null;
+    }
+    
+    // Start new animation
+    setIsAnimating(true);
+    
+    // Set timeout to end animation
+    animationTimeoutRef.current = setTimeout(() => {
+      setIsAnimating(false);
+      animationTimeoutRef.current = null;
+    }, 300);
+  };
+
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Prevent clicking if already loading
+    if (isLoading) {
+      return;
+    }
+    
+    // Check for valid session
+    if (!session?.user || !session?.accessToken) {
+      const callbackUrl = encodeURIComponent(window.location.href);
+      router.push(`/auth/signin?callbackUrl=${callbackUrl}&from=favorite-button`);
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
       setError(null);
+      startAnimation();
       
-      const newFavoriteState = !isFavorite;
+      const wasAlreadyFavorite = isFavorite;
       
-      if (mockMode) {
-        // In mock mode, just toggle the state without API calls
-        setTimeout(() => {
-          setIsFavorite(newFavoriteState);
-          if (onToggle) onToggle(newFavoriteState);
-          setIsAnimating(false);
-        }, 300);
-        return;
-      }
-      
-      // Pass the session to the API calls
-      if (isFavorite) {
-        console.log('Removing from favorites:', listingId);
+      if (wasAlreadyFavorite) {
+        // Remove from favorites
+        console.log('[FAVORITE] Removing from favorites:', listingId);
         await removeFromFavorites(listingId, undefined, session);
         setIsFavorite(false);
         if (onToggle) onToggle(false);
       } else {
-        console.log('Adding to favorites:', listingId);
+        // Add to favorites
+        console.log('[FAVORITE] Adding to favorites:', listingId);
         await addToFavorites(listingId, undefined, session);
         setIsFavorite(true);
         if (onToggle) onToggle(true);
       }
-    } catch (err) {
-      console.error('Error toggling favorite:', err);
+    } catch (error) {
+      console.error('[FAVORITE] Error toggling favorite:', error);
       
-      // Check for auth errors
-      if (err instanceof Error && err.message === 'UNAUTHORIZED') {
-        // Handle auth errors by redirecting
-        setTimeout(() => {
-          const callbackUrl = encodeURIComponent(window.location.href);
-          router.push(`/auth/signin?callbackUrl=${callbackUrl}&from=favorite-error`);
-        }, 300);
-        return;
+      // Don't show error to user - silently recover
+      // Just verify the actual state
+      try {
+        const actualState = await isFavorited(listingId, undefined, session);
+        setIsFavorite(actualState.isFavorite);
+      } catch {
+        // If we can't verify, don't change the state
       }
-      
-      // Only show error message briefly
-      setError(isFavorite ? t('error.removeFavorite') : t('error.addFavorite'));
-      
-      // Auto-hide error after 3 seconds
-      setTimeout(() => {
-        setError(null);
-      }, 3000);
     } finally {
       setIsLoading(false);
-      setTimeout(() => {
-        setIsAnimating(false);
-      }, 300);
     }
   };
 
@@ -165,10 +180,10 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       type="button"
       onClick={handleToggleFavorite}
       disabled={isLoading}
-      className={`rounded-full flex items-center justify-center shadow-sm transition-all duration-200 
-        ${isAnimating ? 'scale-110 transform' : 'transform-none'} 
+      className={`rounded-full flex items-center justify-center shadow-sm 
         ${sizeClasses[size]} ${variantClasses[variant]} ${className}
-        ${isAnimating && isFavorite ? 'animate-heartbeat' : ''}
+        ${isAnimating ? 'scale-110' : 'scale-100'} 
+        transition-all duration-200 ease-in-out
         hover:scale-105 active:scale-95`}
       aria-label={isFavorite ? t('listings.removeFromFavorites') : t('listings.addToFavorites')}
       title={isFavorite ? t('listings.removeFromFavorites') : t('listings.addToFavorites')}
@@ -181,8 +196,10 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       ) : (
         <svg 
           xmlns="http://www.w3.org/2000/svg" 
-          className={`h-5 w-5 transition-all duration-300 ${isAnimating ? 'scale-110' : ''} ${isFavorite ? 'fill-current' : 'stroke-current fill-none'}`}
+          className="h-5 w-5 transition-colors duration-200"
           viewBox="0 0 24 24"
+          fill={isFavorite ? "currentColor" : "none"}
+          stroke="currentColor"
           strokeWidth={isFavorite ? "0" : "2"}
         >
           <path 

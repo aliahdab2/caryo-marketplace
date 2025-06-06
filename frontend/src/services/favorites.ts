@@ -1,9 +1,10 @@
-
 import { FavoriteServiceOptions, FavoriteStatusResponse, UserFavoritesResponse } from '@/types/favorites';
 import { getSession } from 'next-auth/react';
 import { Session } from 'next-auth';
 
+// Log the API URL to make sure it's correct
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+console.log('[FAVORITES] Using API URL:', API_URL);
 
 /**
  * Validates if a token exists and is potentially valid
@@ -29,34 +30,16 @@ function validateToken(token?: string | null): boolean {
 }
 
 /**
- * Make authenticated API request with fallback to mock data if specified
+ * Make authenticated API request
  */
 async function apiRequest<T>(
   endpoint: string, 
   method: string = 'GET', 
-  currentSession?: Session | null, 
-  options?: FavoriteServiceOptions
+  currentSession?: Session | null
 ): Promise<T> {
-  console.log(`Making API request to: ${endpoint}`, {
-    method,
-    mockMode: options?.mockMode
+  console.log(`[FAVORITES] Making API request to: ${endpoint}`, {
+    method
   });
-  
-  // If in mock mode, return empty data for demonstration
-  if (options?.mockMode) {
-    console.log('Using mock mode for request');
-    
-    // Generate appropriate mock responses based on the endpoint and method
-    if (endpoint === '/api/favorites') {
-      return { favorites: [], total: 0 } as unknown as T;
-    } else if (endpoint.includes('/status')) {
-      const listingId = endpoint.split('/')[2];
-      return { isFavorite: false, listingId } as unknown as T;
-    }
-    
-    // Default empty response
-    return {} as T;
-  }
   
   // Use provided session or get current session
   const session = currentSession || await getSession();
@@ -108,18 +91,23 @@ async function apiRequest<T>(
   });
 
   try {
+    // Special handling for /check endpoint to prevent parse errors
+    const isCheckEndpoint = endpoint.includes('/check');
+    const requestOptions = {
+      method,
+      headers,
+      mode: 'cors' as RequestMode,
+      cache: 'no-store' as RequestCache,
+      credentials: 'include' as RequestCredentials // Include credentials for cross-origin requests
+    };
+
     console.log('Making request to:', url, {
       method,
       headersPresent: Object.keys(headers),
-      mode: 'cors' // Explicitly set CORS mode for clearer error messages
+      isCheckEndpoint
     });
 
-    const response = await fetch(url, {
-      method,
-      headers,
-      mode: 'cors',
-      cache: 'no-store'
-    });
+    const response = await fetch(url, requestOptions);
 
     console.log('Response details:', {
       status: response.status,
@@ -183,6 +171,38 @@ async function apiRequest<T>(
 
     // Parse the successful response
     try {
+      // Handle boolean responses
+      const contentType = response.headers.get('content-type');
+      
+      // Special handling for the check endpoint which returns a raw boolean
+      if (endpoint.includes('/check') && contentType) {
+        // Read the response as text first to examine it
+        const rawText = await response.text();
+        console.log('[FAVORITES] Raw response from check endpoint:', rawText, 'content-type:', contentType);
+        
+        // For json response, try to parse it
+        if (contentType.includes('application/json')) {
+          try {
+            // The API is expected to return a raw boolean
+            if (rawText === 'true') return true as unknown as T;
+            if (rawText === 'false') return false as unknown as T;
+            
+            // If it's not a raw boolean, try to parse it as JSON
+            return JSON.parse(rawText) as T;
+          } catch (e) {
+            console.error('[FAVORITES] Error parsing JSON response:', e);
+            // Default to false for failed parsing
+            return false as unknown as T;
+          }
+        } else {
+          // For non-JSON response, interpret the content directly
+          if (rawText === 'true') return true as unknown as T;
+          if (rawText === 'false') return false as unknown as T;
+          return false as unknown as T;
+        }
+      }
+      
+      // For other endpoints, parse as JSON normally
       const data = await response.json();
       
       // For GET /api/favorites endpoint, validate the response format
@@ -234,9 +254,9 @@ async function apiRequest<T>(
       if (endpoint === '/api/favorites') {
         console.warn('Returning empty favorites list due to error');
         return { favorites: [], total: 0 } as unknown as T;
-      } else if (endpoint.includes('/status')) {
-        const listingId = endpoint.split('/')[2];
-        return { isFavorite: false, listingId } as unknown as T;
+      } else if (endpoint.includes('/check')) {
+        // For check endpoint, return false as the backend would in case of error
+        return false as unknown as T;
       }
     }
     
@@ -252,16 +272,139 @@ async function apiRequest<T>(
  */
 export async function addToFavorites(
   listingId: string, 
-  options?: FavoriteServiceOptions,
+  options?: FavoriteServiceOptions | undefined,
   session?: Session | null
 ): Promise<void> {
-  console.log('Adding to favorites:', listingId);
-  if (options?.mockMode) {
-    console.log('Mock mode: Simulating add to favorites');
-    return Promise.resolve();
-  }
+  console.log('[FAVORITES] Adding to favorites:', listingId);
 
-  await apiRequest(`/api/favorites/${listingId}`, 'POST', session, options);
+  try {
+    // Ensure listingId is a valid number
+    const numericId = parseInt(listingId, 10);
+    if (isNaN(numericId)) {
+      console.error('[FAVORITES] Invalid listing ID (not a number):', listingId);
+      throw new Error('Invalid listing ID');
+    }
+    
+    // Direct debugging - log the exact URL and auth token being used
+    const api_url = API_URL;
+    const endpoint = `/api/favorites/${numericId}`;
+    const url = `${api_url}${endpoint}`;
+    
+    console.log('[FAVORITES] Direct API call to:', url);
+    
+    // Use provided session or get current session
+    const currentSession = session || await getSession();
+    
+    if (!currentSession?.accessToken) {
+      console.error('[FAVORITES] No valid token for API request');
+      throw new Error('UNAUTHORIZED: No valid token');
+    }
+    
+    // Log token information (safe format)
+    const token = currentSession.accessToken;
+    console.log('[FAVORITES] Using token:', token.substring(0, 10) + '...' + token.substring(token.length - 10));
+    
+    // Make direct fetch call with retry mechanism
+    const MAX_RETRIES = 2;
+    let retryCount = 0;
+    let lastError: unknown;
+    
+    while (retryCount <= MAX_RETRIES) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include'
+        });
+        
+        // Log detailed response
+        console.log('[FAVORITES] Add response:', {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+        });
+        
+        // Check if the request was successful
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`[FAVORITES] Error adding favorite (attempt ${retryCount + 1}):`, errorText);
+          
+          // If this is a server error that might be related to Hibernate, check if operation succeeded
+          if (response.status === 500) {
+            const { isHibernateSerializationError } = await import('./error-handlers');
+            if (isHibernateSerializationError(errorText)) {
+              // Verify actual state before throwing
+              const actualState = await isFavorited(listingId, options, currentSession);
+              if (actualState.isFavorite === true) {
+                console.log('[FAVORITES] Despite 500 error, favorite was actually added successfully');
+                return; // Exit successfully
+              }
+            }
+          }
+          
+          throw new Error(`Error adding favorite: ${response.status} ${response.statusText}\n${errorText}`);
+        }
+        
+        console.log('[FAVORITES] Successfully added to favorites');
+        return; // Success - exit function
+        
+      } catch (apiError) {
+        lastError = apiError;
+        retryCount++;
+        
+        if (retryCount <= MAX_RETRIES) {
+          // Exponential backoff: 500ms, 1000ms, etc.
+          const backoffMs = 500 * retryCount;
+          console.log(`[FAVORITES] Retrying in ${backoffMs}ms (attempt ${retryCount} of ${MAX_RETRIES})`);
+          await new Promise(resolve => setTimeout(resolve, backoffMs));
+        }
+      }
+    }
+    
+    // If we got here, we've exhausted our retries. Try to handle the error.
+    const { handleFavoriteApiError } = await import('./error-handlers');
+    
+    // Try to handle the error with our utility function
+    const errorHandled = await handleFavoriteApiError(
+      lastError, 
+      listingId, 
+      true, // We expect the item to be favorited after adding
+      options,
+      currentSession
+    );
+    
+    // If the error was handled and the operation actually succeeded, we can continue
+    if (errorHandled) {
+      console.log('[FAVORITES] Error was handled, operation succeeded despite error');
+      return;
+    }
+    
+    // Otherwise, rethrow the error
+    throw lastError;
+    
+  } catch (error) {
+    console.error('[FAVORITES] Error adding to favorites:', error);
+    
+    // One final check to verify actual state
+    try {
+      const currentSession = session || await getSession();
+      const actualState = await isFavorited(listingId, options, currentSession);
+      
+      // If the state is already what we wanted, suppress the error
+      if (actualState.isFavorite === true) {
+        console.log('[FAVORITES] Despite error, favorite status is correct. Suppressing error.');
+        return;
+      }
+    } catch (verifyError) {
+      console.error('[FAVORITES] Failed to verify final state:', verifyError);
+    }
+    
+    // Re-throw the original error
+    throw error;
+  }
 }
 
 /**
@@ -269,28 +412,151 @@ export async function addToFavorites(
  */
 export async function removeFromFavorites(
   listingId: string,
-  options?: FavoriteServiceOptions,
+  options?: FavoriteServiceOptions | undefined,
   session?: Session | null
 ): Promise<void> {
-  console.log('Removing from favorites:', listingId);
-  if (options?.mockMode) {
-    console.log('Mock mode: Simulating remove from favorites');
-    return Promise.resolve();
-  }
+  console.log('[FAVORITES] Removing from favorites:', listingId);
 
-  await apiRequest(`/api/favorites/${listingId}`, 'DELETE', session, options);
+  try {
+    // Ensure listingId is a valid number
+    const numericId = parseInt(listingId, 10);
+    if (isNaN(numericId)) {
+      console.error('[FAVORITES] Invalid listing ID (not a number):', listingId);
+      throw new Error('Invalid listing ID');
+    }
+    
+    // Direct debugging - log the exact URL and auth token being used
+    const api_url = API_URL;
+    const endpoint = `/api/favorites/${numericId}`;
+    const url = `${api_url}${endpoint}`;
+    
+    console.log('[FAVORITES] Direct API call to:', url);
+    
+    // Use provided session or get current session
+    const currentSession = session || await getSession();
+    
+    if (!currentSession?.accessToken) {
+      console.error('[FAVORITES] No valid token for API request');
+      throw new Error('UNAUTHORIZED: No valid token');
+    }
+    
+    // Log token information (safe format)
+    const token = currentSession.accessToken;
+    console.log('[FAVORITES] Using token:', token.substring(0, 10) + '...' + token.substring(token.length - 10));
+    
+    // Make direct fetch call with retry mechanism
+    const MAX_RETRIES = 2;
+    let retryCount = 0;
+    let lastError: unknown;
+    
+    while (retryCount <= MAX_RETRIES) {
+      try {
+        const response = await fetch(url, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include'
+        });
+        
+        // Log detailed response
+        console.log('[FAVORITES] Remove response:', {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+        });
+        
+        // Check if the request was successful
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`[FAVORITES] Error removing favorite (attempt ${retryCount + 1}):`, errorText);
+          
+          // If this is a server error that might be related to Hibernate, check if operation succeeded
+          if (response.status === 500) {
+            const { isHibernateSerializationError } = await import('./error-handlers');
+            if (isHibernateSerializationError(errorText)) {
+              // Verify actual state before throwing
+              const actualState = await isFavorited(listingId, options, currentSession);
+              if (actualState.isFavorite === false) {
+                console.log('[FAVORITES] Despite 500 error, favorite was actually removed successfully');
+                return; // Exit successfully
+              }
+            }
+          }
+          
+          throw new Error(`Error removing favorite: ${response.status} ${response.statusText}\n${errorText}`);
+        }
+        
+        console.log('[FAVORITES] Successfully removed from favorites');
+        return; // Success - exit function
+        
+      } catch (apiError) {
+        lastError = apiError;
+        retryCount++;
+        
+        if (retryCount <= MAX_RETRIES) {
+          // Exponential backoff: 500ms, 1000ms, etc.
+          const backoffMs = 500 * retryCount;
+          console.log(`[FAVORITES] Retrying in ${backoffMs}ms (attempt ${retryCount} of ${MAX_RETRIES})`);
+          await new Promise(resolve => setTimeout(resolve, backoffMs));
+        }
+      }
+    }
+    
+    // If we got here, we've exhausted our retries. Try to handle the error.
+    const { handleFavoriteApiError } = await import('./error-handlers');
+    
+    // Try to handle the error with our utility function
+    const errorHandled = await handleFavoriteApiError(
+      lastError, 
+      listingId, 
+      false, // We expect the item to NOT be favorited after removing
+      options,
+      currentSession
+    );
+    
+    // If the error was handled and the operation actually succeeded, we can continue
+    if (errorHandled) {
+      console.log('[FAVORITES] Error was handled, operation succeeded despite error');
+      return;
+    }
+    
+    // Otherwise, rethrow the error
+    throw lastError;
+    
+  } catch (error) {
+    console.error('[FAVORITES] Error removing from favorites:', error);
+    
+    // One final check to verify actual state
+    try {
+      const currentSession = session || await getSession();
+      const actualState = await isFavorited(listingId, options, currentSession);
+      
+      // If the state is already what we wanted, suppress the error
+      if (actualState.isFavorite === false) {
+        console.log('[FAVORITES] Despite error, favorite status is correct. Suppressing error.');
+        return;
+      }
+    } catch (verifyError) {
+      console.error('[FAVORITES] Failed to verify final state:', verifyError);
+    }
+    
+    // Re-throw the original error
+    throw error;
+  }
 }
 
 /**
  * Get user's favorites
  */
 export async function getFavorites(
-  options?: FavoriteServiceOptions,
+  options?: FavoriteServiceOptions | undefined,
   session?: Session | null
 ): Promise<UserFavoritesResponse> {
-  console.log('Getting favorites', { mockMode: options?.mockMode });
+  console.log('Getting favorites');
   
-  return await apiRequest<UserFavoritesResponse>('/api/favorites', 'GET', session, options);
+  return await apiRequest<UserFavoritesResponse>('/api/favorites', 'GET', session);
 }
 
 /**
@@ -298,17 +564,94 @@ export async function getFavorites(
  */
 export async function isFavorited(
   listingId: string,
-  options?: FavoriteServiceOptions,
+  options?: FavoriteServiceOptions | undefined,
   session?: Session | null
 ): Promise<FavoriteStatusResponse> {
-  console.log('Checking favorite status:', listingId, { mockMode: options?.mockMode });
+  console.log('[FAVORITES] Checking favorite status:', listingId);
   
-  return await apiRequest<FavoriteStatusResponse>(
-    `/api/favorites/${listingId}/status`, 
-    'GET', 
-    session,
-    options
-  );
+  try {
+    // Ensure listingId is a valid number
+    const numericId = parseInt(listingId, 10);
+    if (isNaN(numericId)) {
+      console.error('[FAVORITES] Invalid listing ID (not a number):', listingId);
+      return { isFavorite: false, listingId };
+    }
+    
+    // Direct debugging - log the exact URL and auth token being used
+    const api_url = API_URL;
+    const endpoint = `/api/favorites/${numericId}/check`;
+    const url = `${api_url}${endpoint}`;
+    
+    console.log('[FAVORITES] Direct API call to:', url);
+    
+    // Use provided session or get current session
+    const currentSession = session || await getSession();
+    
+    if (!currentSession?.accessToken) {
+      console.error('[FAVORITES] No valid token for API request');
+      return { isFavorite: false, listingId };
+    }
+    
+    // Log token information (safe format)
+    const token = currentSession.accessToken;
+    console.log('[FAVORITES] Using token:', token.substring(0, 10) + '...' + token.substring(token.length - 10));
+    
+    // Make direct fetch call for debugging
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include'
+    });
+    
+    // Log detailed response
+    console.log('[FAVORITES] Check response:', {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
+    });
+    
+    // Check if the request was successful
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[FAVORITES] Error checking favorite status:', errorText);
+      return { isFavorite: false, listingId };
+    }
+    
+    // Read response text
+    const rawText = await response.text();
+    console.log('[FAVORITES] Raw response text:', rawText);
+    
+    // Parse response
+    let isFavorite = false;
+    
+    if (rawText === 'true') {
+      isFavorite = true;
+    } else if (rawText === 'false') {
+      isFavorite = false;
+    } else {
+      try {
+        // Try to parse as JSON if it's not a plain "true" or "false"
+        const parsedResponse = JSON.parse(rawText);
+        isFavorite = Boolean(parsedResponse);
+      } catch (e) {
+        console.error('[FAVORITES] Error parsing response:', e);
+        isFavorite = false;
+      }
+    }
+    
+    console.log('[FAVORITES] Parsed favorite status:', isFavorite);
+    
+    return {
+      isFavorite,
+      listingId
+    };
+  } catch (error) {
+    console.error('[FAVORITES] Error checking favorite status:', error);
+    return { isFavorite: false, listingId };
+  }
 }
 
 /**

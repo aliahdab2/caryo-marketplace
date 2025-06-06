@@ -20,6 +20,8 @@ For detailed information about this project, refer to these documents:
 
 - [Development Plan](DEVELOPMENT_PLAN.md) - Complete roadmap and current status
 - [System Design](docs/system_design.md) - Architecture and technology choices
+- [Frontend Environment](docs/frontend_environment_variables.md) - Environment setup guide
+- [Environment Checker](docs/environment_checker_script.md) - Script to verify configuration
 - [Testing Plan](docs/testing_plan.md) - Testing strategy and approach
 - [CI/CD Documentation](.github/workflows/README.md) - GitHub Actions workflows
 - [Secrets Management](docs/secrets_management.md) - HashiCorp Vault implementation

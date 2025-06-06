@@ -136,7 +136,6 @@ export default function FavoritesPage() {
                       size="sm"
                       className="shadow-md hover:shadow-lg z-10"
                       initialFavorite={true}
-                      mockMode={status !== 'authenticated'}
                       onToggle={(isFavorite) => handleFavoriteToggle(listing.id.toString(), isFavorite)}
                     />
                   </div>

@@ -179,7 +179,7 @@ const FavoritesPage: React.FC = () => {
       };
       
       console.log('loadFavorites: Calling getFavorites with session:', sessionDebugInfo);
-      const response = await getFavorites({ mockMode: false }, currentSession);
+      const response = await getFavorites(undefined, currentSession);
       console.log('loadFavorites: Favorites data received:', response);
       if (response && response.favorites) {
         setFavorites(response.favorites as ListingWithLanguage[]);

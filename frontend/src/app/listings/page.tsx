@@ -264,7 +264,6 @@ const ListingsPage = () => {
                 variant="filled"
                 size="sm"
                 className="shadow-md hover:shadow-lg"
-                mockMode={true} 
                 initialFavorite={false}
                 onToggle={() => {
                   // Handle favorite toggle if needed
