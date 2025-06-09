@@ -1,4 +1,5 @@
 import { Listing } from './listings';
+import { Session } from 'next-auth';
 
 /**
  * Interface for favorite action handlers
@@ -10,9 +11,10 @@ export interface FavoriteHandlers {
 
 /**
  * Type for favorites service options
- * @deprecated This type is no longer used as we're using real API calls now
  */
-export type FavoriteServiceOptions = Record<string, never>;
+export interface FavoriteServiceOptions {
+  session: Session;
+}
 
 /**
  * Interface for favorite status response
@@ -27,5 +29,28 @@ export interface FavoriteStatusResponse {
  */
 export interface UserFavoritesResponse {
   favorites: Listing[];
-  total: number;
+  total?: number; // Make total optional since we don't always need it
 }
+
+/**
+ * Interface for favorite response from backend
+ */
+export interface FavoriteResponse {
+  id: number;
+  userId: number;
+  carListingId: number;
+  createdAt: string;
+}
+
+/**
+ * Raw API response types
+ */
+export type RawFavoritesResponse = 
+  | Listing[] 
+  | { data: Listing[] }
+  | { favorites: Listing[]; total: number };
+
+export type RawFavoriteStatusResponse = 
+  | boolean 
+  | { isFavorite: boolean } 
+  | { status: boolean };

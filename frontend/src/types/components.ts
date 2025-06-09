@@ -120,15 +120,7 @@ export interface FavoriteButtonProps extends FavoriteHandlers {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   variant?: 'filled' | 'outline';
-}
-
-/**
- * Props for Favorite Button (Legacy - used in src/components/FavoriteButton.tsx)
- */
-export interface LegacyFavoriteButtonProps {
-  listingId: string;
-  className?: string;
-  size?: number;
+  // Added showText option from legacy component for compatibility
   showText?: boolean;
 }
 

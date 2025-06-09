@@ -29,8 +29,31 @@ export default function GoogleSignInButton({
     setIsLoading(true);
     setError(null);
     try {
+      // Get returnUrl from URL if present
+      let targetUrl = callbackUrl;
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const returnUrl = params.get('returnUrl');
+        if (returnUrl) {
+          // Validate the returnUrl
+          try {
+            if (returnUrl.startsWith('/')) {
+              targetUrl = returnUrl;
+            } else {
+              const url = new URL(decodeURIComponent(returnUrl));
+              if (url.origin === window.location.origin) {
+                // Include the full path and query string
+                targetUrl = url.pathname + url.search + url.hash;
+              }
+            }
+          } catch (e) {
+            console.warn('Invalid returnUrl:', e);
+          }
+        }
+      }
+
       const result = await signIn("google", {
-        callbackUrl,
+        callbackUrl: targetUrl,
         redirect,
       });
 

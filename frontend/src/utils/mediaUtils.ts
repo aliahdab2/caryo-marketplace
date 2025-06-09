@@ -9,19 +9,29 @@
  * @returns The corrected URL that can be accessed by the browser
  */
 export function transformMinioUrl(url: string): string {
+  // Handle empty, undefined, or already processed URLs
   if (!url) return '';
   
-  // For debugging
-  console.log('Original URL:', url);
-  
-  // Replace Docker hostname with localhost
-  let transformedUrl = url;
-  if (url.includes('minio:9000')) {
-    transformedUrl = url.replace('minio:9000', 'localhost:9000');
-    console.log('Transformed URL:', transformedUrl);
+  // Skip transformation if it's not a string or not a MinIO URL pattern
+  if (typeof url !== 'string' || (!url.includes('minio:') && !url.includes('localhost:9000'))) {
+    return url;
   }
   
-  return transformedUrl;
+  try {
+    // Replace Docker hostname with localhost
+    if (url.includes('minio:9000')) {
+      return url.replace('minio:9000', 'localhost:9000');
+    }
+    
+    // Support additional transformations if needed in the future
+    // For example: handle different environments or URL formats
+    
+    return url;
+  } catch {
+    // In case of any errors, return the original URL
+    // No logging here to avoid excessive console output
+    return url;
+  }
 }
 
 /**

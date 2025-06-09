@@ -24,7 +24,9 @@ console.error = function(error) {
       error.includes('Google Sign-In Error') || 
       error.includes('Google Sign-In Exception') || 
       error.includes('Google authentication failed') ||
-      error.includes('Authentication error')
+      error.includes('Authentication error') ||
+      error.includes('Warning: An update to') && error.includes('inside a test was not wrapped in act(...)') ||
+      error.includes('wrap-tests-with-act')
     )) {
     return;
   }

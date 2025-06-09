@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { formatDate, formatNumber } from '../../../utils/localization';
 import { getListingById } from '@/services/listings';
 import { Listing } from '@/types/listings';
+import { transformMinioUrl } from '@/utils/mediaUtils';
+import FavoriteButton from '@/components/common/FavoriteButton';
 
 // Component imports for the new enhanced layout
 import BreadcrumbNavigation from './components/BreadcrumbNavigation';
@@ -18,16 +20,6 @@ export default function ListingDetailPage() {
   const { t, i18n } = useTranslation('listings');
   const params = useParams();
   const router = useRouter();
-  
-  // Debug translations
-  console.log('Current i18n state:', {
-    language: i18n.language,
-    availableNamespaces: i18n.options.ns,
-    isInitialized: i18n.isInitialized,
-    loadedNamespaces: i18n.reportNamespaces?.getUsedNamespaces(),
-    hasListingsNS: i18n.hasResourceBundle(i18n.language, 'listings'),
-    currentNS: i18n.options.defaultNS
-  });
   // Safely extract id from params
   const id = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params?.id[0] : undefined;
   
@@ -36,7 +28,7 @@ export default function ListingDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [showPhoneNumber, setShowPhoneNumber] = useState(false);
   
-  // Fetch listing data from API
+  // Fetch listing data from API and transform URLs in a single effect
   useEffect(() => {
     async function fetchListing() {
       try {
@@ -46,7 +38,19 @@ export default function ListingDetailPage() {
         }
         
         const listingData = await getListingById(id.toString());
-        setListing(listingData);
+        
+        // Transform media URLs here, before setting state
+        const transformedListing = {
+          ...listingData,
+          media: listingData.media?.map(media => ({
+            ...media,
+            url: transformMinioUrl(media.url)
+          })) || [],
+          // Also transform the main image if it exists
+          image: listingData.image ? transformMinioUrl(listingData.image) : listingData.image
+        };
+        
+        setListing(transformedListing);
         setError(null);
       } catch (err) {
         console.error('Error fetching listing:', err);
@@ -57,7 +61,38 @@ export default function ListingDetailPage() {
     }
     
     fetchListing();
-  }, [id]);
+  }, [id]); // Only depends on the ID, not the listing itself
+  
+  // We've moved the convertedMedia useMemo before the loading/error checks
+  // to ensure it's only defined once in the component
+
+  // Convert listing media to CarMedia format using useMemo for performance
+  // IMPORTANT: This must be called unconditionally (before any early returns)
+  const convertedMedia = useMemo(() => {
+    // If no listing is available yet, return an empty array
+    if (!listing) return [];
+    
+    const media: CarMedia[] = listing.media?.map(item => ({
+      type: 'image', // Assuming all media are images for now
+      url: item.url, // URL is already transformed in the fetch effect
+      alt: listing.title || 'Car image',
+      width: 800,
+      height: 600,
+    })) || [];
+
+    // Add fallback image if available and not already in media
+    if (listing.image && !media.some(item => item.url === listing.image)) {
+      media.push({
+        type: 'image',
+        url: listing.image, // URL is already transformed in the fetch effect
+        alt: listing.title || 'Car image',
+        width: 800,
+        height: 600,
+      });
+    }
+    
+    return media;
+  }, [listing]);
 
   if (loading) {
     return (
@@ -101,7 +136,7 @@ export default function ListingDetailPage() {
       </div>
     );
   }
-
+  
   if (!listing) {
     return (
       <div className="container mx-auto px-3 xs:px-4 py-6 sm:py-8">
@@ -110,26 +145,6 @@ export default function ListingDetailPage() {
         </div>
       </div>
     );
-  }
-
-  // Convert listing media to CarMedia format
-  const convertedMedia: CarMedia[] = listing.media?.map(item => ({
-    type: 'image', // Assuming all media are images for now
-    url: item.url,
-    alt: listing.title || 'Car image',
-    width: 800,
-    height: 600,
-  })) || [];
-
-  // Add fallback image if available and not already in media
-  if (listing.image && !convertedMedia.some(item => item.url === listing.image)) {
-    convertedMedia.push({
-      type: 'image',
-      url: listing.image,
-      alt: listing.title || 'Car image',
-      width: 800,
-      height: 600,
-    });
   }
 
   return (
@@ -339,12 +354,17 @@ export default function ListingDetailPage() {
             <div className="sticky top-6 space-y-6">
               {/* Save Button */}
               <div className="flex justify-end">
-                <button className="flex items-center text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors">
-                  <svg className="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  {t('save')}
-                </button>
+                <FavoriteButton
+                  listingId={id?.toString() || ''}
+                  variant="outline"
+                  size="md"
+                  className="shadow-sm"
+                  initialFavorite={false}
+                  onToggle={(newState) => {
+                    // Optional: Handle favorite state change if needed
+                    console.log(`[LISTING] Favorite state changed to ${newState}`);
+                  }}
+                />
               </div>
 
               {/* Side Ad Section */}

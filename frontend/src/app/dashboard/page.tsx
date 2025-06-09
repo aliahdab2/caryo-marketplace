@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLazyTranslation } from '../../hooks/useLazyTranslation';
 import { formatDate, formatNumber } from "../../utils/localization";
+import { useEffect, useState } from "react";
 import { 
   MdStarBorder, 
   MdEmail, 
@@ -17,18 +18,91 @@ import {
   MdArrowForward,
   MdCalendarToday
 } from "react-icons/md";
-// import Image from "next/image";
 
 export default function Dashboard() {
   const { data: session } = useSession();
   const router = useRouter();
   const { t, i18n, ready } = useLazyTranslation(['dashboard', 'common', 'listings']);
+  const [favoritesCount, setFavoritesCount] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch favorites count when component mounts or session changes
+  useEffect(() => {
+    let mounted = true;
+
+    const loadFavoritesCount = async () => {
+      if (!session?.user) {
+        setFavoritesCount(0);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Import apiRequest to make authenticated requests
+        const { apiRequest } = await import('@/services/auth/session-manager');
+        const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/favorites`;
+        console.log('[DASHBOARD] Fetching favorites from:', url);
+
+        // apiRequest handles authentication, session validation, and token refresh automatically
+        const response = await apiRequest(url, { 
+          method: 'GET'
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch favorites: ${response.status}`);
+        }
+
+        const text = await response.text();
+        console.log('[DASHBOARD] Raw response:', text);
+
+        let data;
+        try {
+          data = text ? JSON.parse(text) : [];
+        } catch (e) {
+          console.error('[DASHBOARD] Error parsing JSON:', e);
+          data = [];
+        }
+
+        if (mounted) {
+          // Handle different response formats
+          if (Array.isArray(data)) {
+            console.log('[DASHBOARD] Found array of favorites:', data.length);
+            setFavoritesCount(data.length);
+          } else if (data && Array.isArray(data.favorites)) {
+            console.log('[DASHBOARD] Found favorites in object:', data.favorites.length);
+            setFavoritesCount(data.favorites.length);
+          } else if (data && Array.isArray(data.data)) {
+            console.log('[DASHBOARD] Found favorites in data property:', data.data.length);
+            setFavoritesCount(data.data.length);
+          } else {
+            console.log('[DASHBOARD] No valid favorites data found, setting to 0');
+            setFavoritesCount(0);
+          }
+        }
+      } catch (error) {
+        console.error('[DASHBOARD] Error fetching favorites:', error);
+        if (mounted) {
+          setFavoritesCount(0);
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadFavoritesCount();
+
+    return () => {
+      mounted = false;
+    };
+  }, [session]);
 
   if (!ready) {
-    return <div>Loading translations...</div>; // Or a loading spinner
+    return <div>Loading translations...</div>;
   }
 
-  // Dashboard overview stats with enhanced data structure
+  // Dashboard overview stats with real favorites count
   const stats = [
     {
       title: t('activeListings'),
@@ -53,7 +127,7 @@ export default function Dashboard() {
     },
     {
       title: t('favorites'),
-      value: formatNumber(8, i18n.language),
+      value: isLoading ? '...' : String(favoritesCount),
       icon: <MdStarBorder className="text-2xl md:text-3xl" />,
       color: 'amber',
       link: '/dashboard/favorites'

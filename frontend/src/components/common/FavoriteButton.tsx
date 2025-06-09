@@ -1,35 +1,31 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { addToFavorites, removeFromFavorites, isFavorited } from '@/services/favorites';
 import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { FavoriteButtonProps } from '@/types/components'; // Import shared props
 
-export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
+const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   listingId,
   className = '',
   size = 'md',
   variant = 'filled',
   onToggle,
-  initialFavorite = false
+  initialFavorite = false,
+  showText = false
 }) => {
   const { t } = useTranslation('common');
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const { data: session } = useSession();
-  const router = useRouter();
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const statusCheckedRef = useRef(false);
 
   // Validate the listing ID
   useEffect(() => {
     if (!listingId) {
       console.error('[FAVORITE] Missing listing ID');
-    } else {
-      console.log(`[FAVORITE] FavoriteButton initialized for listing ID: ${listingId}`);
     }
   }, [listingId]);
 
@@ -57,119 +53,265 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       : 'border-2 border-gray-300 text-gray-500 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300 dark:hover:border-gray-500',
   };
 
-  // Log session information whenever it changes
+  // Log session information whenever it changes (only errors and important info)
   useEffect(() => {
-    console.log('[FAVORITE] Session information:', {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      hasToken: !!session?.accessToken,
-      expires: session?.expires ? new Date(session.expires).toISOString() : 'N/A',
-      tokenLength: session?.accessToken ? session.accessToken.length : 0
-    });
+    if (!session?.user || !session?.accessToken) {
+      console.warn('[FAVORITE] No valid session found');
+    }
   }, [session]);
 
-  // Memoize the checkFavoriteStatus function
-  const checkFavoriteStatus = useCallback(async () => {
-    if (!listingId || !session?.user || !session?.accessToken) {
+  const checkFavoriteStatus = useCallback(async (force = false) => {
+    if (!listingId) {
+      setIsFavorite(false);
+      return;
+    }
+
+    // Skip if already checked, unless forced
+    if (statusCheckedRef.current && !force) {
       return;
     }
     
     try {
       setIsLoading(true);
-      const result = await isFavorited(listingId, undefined, session);
-      console.log(`[FAVORITE] Status check result: ${JSON.stringify(result)}`);
-      setIsFavorite(result.isFavorite);
+      
+      // Import and use apiRequest directly instead of the isFavorited function
+      // This ensures proper session validation before making the request
+      const { apiRequest } = await import('@/services/auth/session-manager');
+      
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const url = `${API_URL}/api/favorites/check/${listingId}`;
+      
+      try {
+        const response = await apiRequest(url, { method: 'GET' });
+        
+        if (response.ok) {
+          const text = await response.text();
+          
+          // Handle boolean string responses
+          if (text === 'true') {
+            setIsFavorite(true);
+          } else if (text === 'false') {
+            setIsFavorite(false);
+          } else {
+            // Try to parse as JSON
+            try {
+              const data = JSON.parse(text);
+              
+              // Handle boolean response
+              if (typeof data === 'boolean') {
+                setIsFavorite(data);
+              }
+              // Handle object with isFavorite property
+              else if (data && typeof data.isFavorite === 'boolean') {
+                setIsFavorite(data.isFavorite);
+              }
+              // Handle object with favorited property
+              else if (data && typeof data.favorited === 'boolean') {
+                setIsFavorite(data.favorited);
+              } else {
+                setIsFavorite(false);
+              }
+            } catch (parseError) {
+              console.error('[FAVORITE] Error parsing favorite status response:', parseError);
+              setIsFavorite(false);
+            }
+          }
+          
+          statusCheckedRef.current = true;
+        } else {
+          console.warn(`[FAVORITE] Server returned ${response.status} when checking favorite status`);
+          setIsFavorite(false);
+        }
+      } catch (apiError) {
+        console.warn('[FAVORITE] API request failed when checking favorite status:', apiError);
+        setIsFavorite(false);
+      }
     } catch (err) {
-      console.error('[FAVORITE] Error checking favorite status:', err);
+      console.error(`[FAVORITE] Error checking favorite status for ${listingId}:`, err);
+      setIsFavorite(false);
     } finally {
       setIsLoading(false);
     }
-  }, [listingId, session]);
+  }, [listingId]);
 
-  // Check favorite status when component mounts or when session/listingId changes
+  // Effect to initialize status and handle session changes
   useEffect(() => {
-    if (!listingId || !session?.user || !session?.accessToken) {
+    if (!listingId) {
+      setIsFavorite(false);
       return;
     }
-    
-    checkFavoriteStatus();
-    
-    // Refresh every 30 seconds
+
+    if (!session?.user || !session?.accessToken) {
+      setIsFavorite(false);
+      statusCheckedRef.current = false;
+      return;
+    }
+
+    // Check status immediately when session is available
+    checkFavoriteStatus(true);
+
+    // Set up periodic refresh
     const refreshInterval = setInterval(() => {
       if (session?.user) {
-        checkFavoriteStatus();
+        checkFavoriteStatus(true);
       }
-    }, 30000);
+    }, 30000); // Refresh every 30 seconds
     
     return () => {
       clearInterval(refreshInterval);
     };
   }, [listingId, session, checkFavoriteStatus]);
 
-  const startAnimation = () => {
-    // Clear any existing animation timeout
+  // Re-check status when the component becomes visible again
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          checkFavoriteStatus(true);
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      return () => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
+    }
+  }, [checkFavoriteStatus]);
+
+  const startAnimation = useCallback(() => {
     if (animationTimeoutRef.current) {
       clearTimeout(animationTimeoutRef.current);
       animationTimeoutRef.current = null;
     }
-    
-    // Start new animation
     setIsAnimating(true);
-    
-    // Set timeout to end animation
     animationTimeoutRef.current = setTimeout(() => {
       setIsAnimating(false);
       animationTimeoutRef.current = null;
     }, 300);
-  };
+  }, []); // No dependencies, so it's stable.
+
+  // Effect to process pending favorite action after login
+  useEffect(() => {
+    const processPendingFavorite = async () => {
+      if (session?.user && listingId) {
+        const pendingActionJSON = localStorage.getItem('pendingFavoriteAction');
+        if (pendingActionJSON) {
+          let pendingAction;
+          try {
+            pendingAction = JSON.parse(pendingActionJSON);
+          } catch (parseError) {
+            console.error('[FAVORITE] Error parsing pendingFavoriteAction:', parseError);
+            localStorage.removeItem('pendingFavoriteAction'); // Clear corrupted data
+            return;
+          }
+
+          if (pendingAction.listingId === listingId) {
+            localStorage.removeItem('pendingFavoriteAction'); // Remove immediately
+            setIsLoading(true);
+            startAnimation();
+
+            try {
+              // Import apiRequest for direct API calls
+              const { apiRequest } = await import('@/services/auth/session-manager');
+              const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+              const url = `${API_URL}/api/favorites/${listingId}`;
+              
+              if (pendingAction.action === 'add') {
+                setIsFavorite(true); // Optimistic update
+                if (onToggle) onToggle(true);
+                await apiRequest(url, { method: 'POST' });
+                console.log('[FAVORITE] Successfully processed pending add action');
+              } else if (pendingAction.action === 'remove') {
+                setIsFavorite(false); // Optimistic update
+                if (onToggle) onToggle(false);
+                await apiRequest(url, { method: 'DELETE' });
+                console.log('[FAVORITE] Successfully processed pending remove action');
+              } else {
+                console.warn('[FAVORITE] Unknown pending action type:', pendingAction.action);
+              }
+            } catch (err) {
+              console.error('[FAVORITE] Error executing pending favorite action:', err);
+              // Explicitly call checkFavoriteStatus to sync to actual state after failure
+              await checkFavoriteStatus(true);
+              
+              // Update UI based on the actual state
+              if (onToggle) onToggle(isFavorite);
+            } finally {
+              setIsLoading(false);
+            }
+          } else if (pendingAction.listingId !== listingId) {
+            // Action is for a different listing. Ignore it here.
+            // It will be processed if the user navigates to that listing's page.
+          } else {
+            // Invalid action type or already processed, remove it
+            console.warn('[FAVORITE] Invalid pending action found:', pendingAction);
+            localStorage.removeItem('pendingFavoriteAction');
+          }
+        }
+      }
+    };
+
+    processPendingFavorite();
+  }, [session, listingId, onToggle, startAnimation, checkFavoriteStatus, isFavorite]); // Dependencies
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Prevent clicking if already loading
-    if (isLoading) {
-      return;
-    }
-    
-    // Check for valid session
-    if (!session?.user || !session?.accessToken) {
-      const callbackUrl = encodeURIComponent(window.location.href);
-      router.push(`/auth/signin?callbackUrl=${callbackUrl}&from=favorite-button`);
-      return;
-    }
+    if (isLoading) return;
     
     try {
+      // Import apiRequest for direct API calls
+      const { apiRequest } = await import('@/services/auth/session-manager');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const url = `${API_URL}/api/favorites/${listingId}`;
+      
       setIsLoading(true);
-      setError(null);
       startAnimation();
       
       const wasAlreadyFavorite = isFavorite;
       
-      if (wasAlreadyFavorite) {
-        // Remove from favorites
-        console.log('[FAVORITE] Removing from favorites:', listingId);
-        await removeFromFavorites(listingId, undefined, session);
-        setIsFavorite(false);
-        if (onToggle) onToggle(false);
-      } else {
-        // Add to favorites
-        console.log('[FAVORITE] Adding to favorites:', listingId);
-        await addToFavorites(listingId, undefined, session);
-        setIsFavorite(true);
-        if (onToggle) onToggle(true);
+      try {
+        if (wasAlreadyFavorite) {
+          // Remove favorite
+          await apiRequest(url, { method: 'DELETE' });
+          setIsFavorite(false);
+          if (onToggle) onToggle(false);
+        } else {
+          // Add favorite
+          await apiRequest(url, { method: 'POST' });
+          setIsFavorite(true);
+          if (onToggle) onToggle(true);
+        }
+      } catch (apiError) {
+        console.warn('[FAVORITE] API request failed when toggling favorite:', apiError);
+        
+        // Check if it's an authentication error
+        const errorMessage = apiError instanceof Error ? apiError.message : String(apiError);
+        const isAuthError = errorMessage.toLowerCase().includes('auth') || 
+                           errorMessage.toLowerCase().includes('unauthorized') ||
+                           errorMessage.toLowerCase().includes('401');
+                           
+        if (isAuthError) {
+          // Store pending action for processing after login
+          localStorage.setItem('pendingFavoriteAction', JSON.stringify({ 
+            listingId: listingId, 
+            action: wasAlreadyFavorite ? 'remove' : 'add',
+            timestamp: Date.now()
+          }));
+          
+          // The apiRequest function will already handle redirection to login
+          return;
+        }
+        
+        // For non-auth errors, attempt to sync with actual state
+        await checkFavoriteStatus(true);
       }
     } catch (error) {
-      console.error('[FAVORITE] Error toggling favorite:', error);
+      console.error(`[FAVORITE] Error toggling favorite for ${listingId}:`, error);
       
-      // Don't show error to user - silently recover
-      // Just verify the actual state
-      try {
-        const actualState = await isFavorited(listingId, undefined, session);
-        setIsFavorite(actualState.isFavorite);
-      } catch {
-        // If we can't verify, don't change the state
-      }
+      // Attempt to sync with actual state
+      await checkFavoriteStatus(true);
     } finally {
       setIsLoading(false);
     }
@@ -179,9 +321,9 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
     <button
       type="button"
       onClick={handleToggleFavorite}
-      disabled={isLoading}
-      className={`rounded-full flex items-center justify-center shadow-sm 
-        ${sizeClasses[size]} ${variantClasses[variant]} ${className}
+      disabled={isLoading || !listingId} // Disable if no listingId
+      className={`${showText ? 'rounded-lg px-3' : 'rounded-full'} flex items-center justify-center shadow-sm 
+        ${showText ? '' : sizeClasses[size]} ${variantClasses[variant]} ${className}
         ${isAnimating ? 'scale-110' : 'scale-100'} 
         transition-all duration-200 ease-in-out
         hover:scale-105 active:scale-95`}
@@ -194,24 +336,27 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
       ) : (
-        <svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          className="h-5 w-5 transition-colors duration-200"
-          viewBox="0 0 24 24"
-          fill={isFavorite ? "currentColor" : "none"}
-          stroke="currentColor"
-          strokeWidth={isFavorite ? "0" : "2"}
-        >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
-          />
-        </svg>
-      )}
-      
-      {error && (
-        <span className="sr-only">{error}</span>
+        <>
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="h-5 w-5 transition-colors duration-200"
+            viewBox="0 0 24 24"
+            fill={isFavorite ? 'currentColor' : 'none'}
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+            />
+          </svg>
+          {showText && (
+            <span className="ml-2 text-sm">
+              {isFavorite ? t('listings.removeFromFavorites') : t('listings.addToFavorites')}
+            </span>
+          )}
+        </>
       )}
     </button>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -15,19 +15,50 @@ export default function SignUpPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState(""); // Added confirmPassword state
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [isVerified, setIsVerified] = useState(false);
+  const [callbackUrl, setCallbackUrl] = useState("/dashboard");
   const router = useRouter();
   const { t } = useTranslation('auth');
+
+  // Extract callback URL from search params if present
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const returnUrl = searchParams.get('returnUrl');
+      const callback = searchParams.get('callbackUrl');
+      
+      // Prefer returnUrl over callbackUrl for better compatibility
+      const redirectTarget = returnUrl || callback || '/dashboard';
+      
+      try {
+        if (redirectTarget.startsWith('/')) {
+          setCallbackUrl(redirectTarget);
+        } else {
+          const url = new URL(decodeURIComponent(redirectTarget));
+          if (url.origin === window.location.origin) {
+            // Include the full path and any query parameters
+            setCallbackUrl(url.pathname + url.search + url.hash);
+          }
+        }
+      } catch (e) {
+        if (process.env.NODE_ENV !== 'test') {
+          console.warn('Error parsing redirect URL:', e);
+          setCallbackUrl('/dashboard');
+        }
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setSuccessMessage("");      // Basic validation
-    if (!username || !email || !password || !confirmPassword) { // Added confirmPassword to validation
+    setSuccessMessage("");
+    
+    if (!username || !email || !password || !confirmPassword) {
       setError(t('fieldRequired'));
       return;
     }
@@ -37,13 +68,12 @@ export default function SignUpPage() {
       return;
     }
 
-    if (password !== confirmPassword) { // Added password match validation
+    if (password !== confirmPassword) {
       setError(t('passwordsDoNotMatch'));
       setLoading(false);
       return;
     }
     
-    // Check verification status
     if (!isVerified) {
       setError(t('verificationRequired', "Verification required before signup"));
       return;
@@ -52,31 +82,32 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      // Call our auth service to register the user
       const result = await authService.signup({
         username,
         email,
         password,
-        confirmPassword, // Added confirmPassword to service call
+        confirmPassword,
       });
 
       setSuccessMessage(result.message || t('signupSuccess'));
       
       // Short delay to show the success message before signing in
       setTimeout(async () => {
-        // If registration is successful, sign in the user
         try {
           const signInResult = await signIn("credentials", {
             redirect: false,
             username,
             password,
+            callbackUrl,
           });
 
           if (signInResult?.error) {
             setError(signInResult.error);
             setLoading(false);
           } else if (signInResult?.ok) {
-            router.push("/dashboard"); // Redirect to dashboard after successful registration and sign-in
+            // Use the URL from the sign-in result if available, otherwise fall back to callbackUrl
+            const redirectUrl = signInResult.url || callbackUrl;
+            router.push(redirectUrl);
           }
         } catch {
           setError(t('errorOccurred'));
@@ -84,7 +115,6 @@ export default function SignUpPage() {
         }
       }, 1500);
     } catch (err) {
-      // Display the error message from the server if available
       let message = t('registrationFailed', "Registration failed. Please try again.");
       if (typeof err === "object" && err !== null) {
         if (
@@ -294,7 +324,6 @@ export default function SignUpPage() {
                 </p>
               </div>
               
-              {/* Added Confirm Password Field */}
               <div className="mb-5">
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   {t('confirmPassword')}
@@ -321,15 +350,12 @@ export default function SignUpPage() {
                 </div>
               </div>
               
-              {/* Security verification component (simplified for signup) */}
               <div className="mb-5">
                 <SimpleVerification
                   onVerified={(verified: boolean) => {
-                    // Only update state if it's different to avoid unnecessary re-renders
                     if (verified !== isVerified) {
                       setIsVerified(verified);
                       if (verified) {
-                        // Clear any previous verification errors
                         if (error && error.includes("verification")) {
                           setError("");
                         }
@@ -362,7 +388,6 @@ export default function SignUpPage() {
                   )}
                 </button>
                 
-                {/* Add hint text under the button */}
                 {!isVerified && (
                   <div className="mt-2 text-center text-xs text-amber-600 dark:text-amber-400">
                     {t('pleaseVerifyFirst')}

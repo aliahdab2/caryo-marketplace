@@ -4,6 +4,7 @@ import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.Favorite;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.payload.response.FavoriteResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.FavoriteRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
@@ -14,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +42,7 @@ class FavoriteServiceTest {
     private User testUser;
     private CarListing testListing;
     private Favorite testFavorite;
+    private FavoriteResponse expectedResponse;
     private final String testUsername = "testUser";
     private final Long testListingId = 1L;
 
@@ -57,6 +60,13 @@ class FavoriteServiceTest {
         testFavorite.setId(1L);
         testFavorite.setUser(testUser);
         testFavorite.setCarListing(testListing);
+        testFavorite.setCreatedAt(LocalDateTime.now());
+
+        expectedResponse = new FavoriteResponse();
+        expectedResponse.setId(testFavorite.getId());
+        expectedResponse.setUserId(testUser.getId());
+        expectedResponse.setCarListingId(testListing.getId());
+        expectedResponse.setCreatedAt(testFavorite.getCreatedAt());
     }
 
     @Test
@@ -64,16 +74,17 @@ class FavoriteServiceTest {
         // Arrange
         when(userRepository.findByUsername(testUsername)).thenReturn(Optional.of(testUser));
         when(carListingRepository.findById(testListingId)).thenReturn(Optional.of(testListing));
-        when(favoriteRepository.existsByUserAndCarListing(testUser, testListing)).thenReturn(false);
+        when(favoriteRepository.findByUserAndCarListing(testUser, testListing)).thenReturn(Optional.empty());
         when(favoriteRepository.save(any(Favorite.class))).thenReturn(testFavorite);
 
         // Act
-        Favorite result = favoriteService.addToFavorites(testUsername, testListingId);
+        FavoriteResponse result = favoriteService.addToFavorites(testUsername, testListingId);
 
         // Assert
         assertNotNull(result);
-        assertEquals(testUser, result.getUser());
-        assertEquals(testListing, result.getCarListing());
+        assertEquals(expectedResponse.getId(), result.getId());
+        assertEquals(expectedResponse.getUserId(), result.getUserId());
+        assertEquals(expectedResponse.getCarListingId(), result.getCarListingId());
         verify(favoriteRepository).save(any(Favorite.class));
     }
 
@@ -82,15 +93,16 @@ class FavoriteServiceTest {
         // Arrange
         when(userRepository.findByUsername(testUsername)).thenReturn(Optional.of(testUser));
         when(carListingRepository.findById(testListingId)).thenReturn(Optional.of(testListing));
-        when(favoriteRepository.existsByUserAndCarListing(testUser, testListing)).thenReturn(true);
         when(favoriteRepository.findByUserAndCarListing(testUser, testListing)).thenReturn(Optional.of(testFavorite));
 
         // Act
-        Favorite result = favoriteService.addToFavorites(testUsername, testListingId);
+        FavoriteResponse result = favoriteService.addToFavorites(testUsername, testListingId);
 
         // Assert
         assertNotNull(result);
-        assertEquals(testFavorite, result);
+        assertEquals(expectedResponse.getId(), result.getId());
+        assertEquals(expectedResponse.getUserId(), result.getUserId());
+        assertEquals(expectedResponse.getCarListingId(), result.getCarListingId());
         verify(favoriteRepository, never()).save(any(Favorite.class));
     }
 
@@ -135,23 +147,24 @@ class FavoriteServiceTest {
         // Arrange
         List<Favorite> favorites = Arrays.asList(testFavorite);
         when(userRepository.findByUsername(testUsername)).thenReturn(Optional.of(testUser));
-        when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
+        when(favoriteRepository.findByUserOrderByCreatedAtDesc(testUser)).thenReturn(favorites);
 
         // Act
-        List<CarListing> result = favoriteService.getUserFavorites(testUsername);
+        List<FavoriteResponse> result = favoriteService.getUserFavorites(testUsername);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(testListing, result.get(0));
+        FavoriteResponse response = result.get(0);
+        assertEquals(expectedResponse.getId(), response.getId());
+        assertEquals(expectedResponse.getUserId(), response.getUserId());
+        assertEquals(expectedResponse.getCarListingId(), response.getCarListingId());
     }
 
     @Test
     void isFavorite_True() {
         // Arrange
-        when(userRepository.findByUsername(testUsername)).thenReturn(Optional.of(testUser));
-        when(carListingRepository.findById(testListingId)).thenReturn(Optional.of(testListing));
-        when(favoriteRepository.existsByUserAndCarListing(testUser, testListing)).thenReturn(true);
+        when(favoriteRepository.existsByUserUsernameAndCarListingId(testUsername, testListingId)).thenReturn(true);
 
         // Act
         boolean result = favoriteService.isFavorite(testUsername, testListingId);
@@ -163,9 +176,7 @@ class FavoriteServiceTest {
     @Test
     void isFavorite_False() {
         // Arrange
-        when(userRepository.findByUsername(testUsername)).thenReturn(Optional.of(testUser));
-        when(carListingRepository.findById(testListingId)).thenReturn(Optional.of(testListing));
-        when(favoriteRepository.existsByUserAndCarListing(testUser, testListing)).thenReturn(false);
+        when(favoriteRepository.existsByUserUsernameAndCarListingId(testUsername, testListingId)).thenReturn(false);
 
         // Act
         boolean result = favoriteService.isFavorite(testUsername, testListingId);
@@ -173,4 +184,28 @@ class FavoriteServiceTest {
         // Assert
         assertFalse(result);
     }
-} 
+
+    @Test
+    void isFavorite_UserNotFound() {
+        // Arrange
+        when(favoriteRepository.existsByUserUsernameAndCarListingId(testUsername, testListingId)).thenReturn(false);
+
+        // Act
+        boolean result = favoriteService.isFavorite(testUsername, testListingId);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    void isFavorite_ListingNotFound() {
+        // Arrange
+        when(favoriteRepository.existsByUserUsernameAndCarListingId(testUsername, testListingId)).thenReturn(false);
+
+        // Act
+        boolean result = favoriteService.isFavorite(testUsername, testListingId);
+
+        // Assert
+        assertFalse(result);
+    }
+}

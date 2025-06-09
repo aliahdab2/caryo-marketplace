@@ -5,6 +5,14 @@
   "browseCars": "Browse Vehicles",
   "remove": "Remove from favorites",
   "itemCount": "vehicles",
+  "savedCount": "{{count}} vehicles saved",
+  "compare": "Compare Vehicles",
+  "discoverCars": "Discover Vehicles",
+  "howItWorks": "How It Works",
+  "refreshList": "Refresh List",
+  "emptyStateTitle": "No Favorites Yet",
+  "emptyStateMessage": "Start exploring our listings and add vehicles to your favorites to keep track of what interests you.",
+  "loadMore": "Load More",
   "empty": {
     "title": "No favorites yet",
     "message": "You haven't added any vehicles to your favorites yet",
@@ -20,5 +28,8 @@
   "errorLoading": "Error loading favorites",
   "errorRemoving": "Error removing vehicle from favorites",
   "authRequired": "Authentication Required",
+  "quickTips": "Quick Tips",
+  "tip1": "Click the heart icon on any listing to add it to your favorites.",
+  "tip2": "Use the compare feature to see multiple vehicles side by side.",
   "signInToView": "Please sign in to view and manage your favorites"
 }

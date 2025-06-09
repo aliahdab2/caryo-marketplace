@@ -34,21 +34,26 @@ const SignInPage: React.FC = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
+      const returnUrl = searchParams.get('returnUrl');
       const callback = searchParams.get('callbackUrl');
-      if (callback) {
-        try {
-          if (callback.startsWith('/')) {
-            setCallbackUrl(callback);
-          } else {
-            const url = new URL(decodeURIComponent(callback));
-            if (url.origin === window.location.origin) {
-              setCallbackUrl(url.pathname + url.search);
-            }
+      
+      // Prefer returnUrl over callbackUrl for better compatibility
+      const redirectTarget = returnUrl || callback || '/dashboard';
+      
+      try {
+        if (redirectTarget.startsWith('/')) {
+          setCallbackUrl(redirectTarget);
+        } else {
+          const url = new URL(decodeURIComponent(redirectTarget));
+          if (url.origin === window.location.origin) {
+            // Include the full path and any query parameters or hash
+            setCallbackUrl(url.pathname + url.search + url.hash);
           }
-        } catch (e) {
-          if (process.env.NODE_ENV !== 'test') {
-            console.warn('Error parsing callback URL:', e);
-          }
+        }
+      } catch (e) {
+        if (process.env.NODE_ENV !== 'test') {
+          console.warn('Error parsing redirect URL:', e);
+          setCallbackUrl('/dashboard');
         }
       }
     }
@@ -90,6 +95,7 @@ const SignInPage: React.FC = () => {
         redirect: false,
         username,
         password,
+        callbackUrl: callbackUrl // Use the extracted callbackUrl here
       });
 
       if (result?.error) {
@@ -106,31 +112,19 @@ const SignInPage: React.FC = () => {
         setCredentialsCorrect(true);
         setShowSuccess(true);
         setError("");
-        setLoading(false);
 
-        // Delay redirect to allow user to see the success state
+        // Short delay to show success state, then redirect
         setTimeout(() => {
           setRedirecting(true);
-          // Force NextAuth to sync the session before redirecting
-          const syncSessionAndRedirect = async () => {
-            try {
-              await new Promise(resolve => setTimeout(resolve, 500)); // Short delay for session sync
-              if (process.env.NODE_ENV !== "test") {
-                try {
-                  router?.push?.(callbackUrl);
-                } catch {
-                  window.location.href = callbackUrl;
-                }
-              }
-            } catch {
-              if (process.env.NODE_ENV !== "test") {
-                window.location.href = callbackUrl;
-              }
-            }
-          };
-          syncSessionAndRedirect();
-        }, 1500); // Changed delay to 1000ms (1 second)
-
+          // Use the URL from the sign-in result if available, otherwise fall back to callbackUrl
+          const redirectUrl = result.url || callbackUrl;
+          try {
+            router?.push?.(redirectUrl);
+          } catch (e) {
+            console.error('Router push failed:', e);
+            window.location.href = redirectUrl;
+          }
+        }, 1000);
       } else {
         setError("An unknown error occurred.");
         setLoading(false);
@@ -366,7 +360,13 @@ const SignInPage: React.FC = () => {
 
             <div className="text-center mt-6">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {t('dontHaveAccount')} <Link href="/auth/signup" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">{t('signUp')}</Link>
+                {t('dontHaveAccount')}{' '}
+                <Link 
+                  href={`/auth/signup${window?.location?.search || ''}`} 
+                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                >
+                  {t('signUp')}
+                </Link>
               </p>
             </div>
           </div>

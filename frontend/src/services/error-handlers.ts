@@ -7,6 +7,32 @@ import { isFavorited } from './favorites';
 import { FavoriteServiceOptions } from '@/types/favorites';
 
 /**
+ * Check if an error is an authentication error (401 Unauthorized)
+ * This provides local implementation for backward compatibility
+ */
+export function isAuthenticationError(error: unknown): boolean {
+  if (!error) return false;
+  
+  // Check for error status code
+  if (typeof error === 'object' && error !== null) {
+    const errorObj = error as Record<string, unknown>;
+    
+    if (errorObj.status === 401) return true;
+    if (errorObj.statusCode === 401) return true;
+    
+    if (errorObj.message && typeof errorObj.message === 'string') {
+      const message = errorObj.message.toLowerCase();
+      return message.includes('unauthorized') || 
+             message.includes('unauthenticated') || 
+             message.includes('auth') && message.includes('required') ||
+             message.includes('token') && message.includes('expired');
+    }
+  }
+  
+  return false;
+}
+
+/**
  * Check if an error is related to Hibernate proxy serialization issues
  */
 export function isHibernateSerializationError(errorText: string): boolean {
@@ -64,49 +90,34 @@ export async function handleFavoriteApiError(
   session?: Session | null
 ): Promise<boolean> {
   // Extract error details
-  const errorObj = error as Error;
   const errorMessage = extractErrorMessage(error);
   
-  console.log('[API-ERROR-HANDLER] Analyzing error:', {
-    message: errorMessage,
-    type: errorObj?.constructor?.name || typeof error
-  });
-
   // Check if this is an error that might be related to Hibernate serialization
   const is500Error = errorMessage.includes('500');
   const isSerializationError = isHibernateSerializationError(errorMessage);
   
   if (is500Error || isSerializationError) {
-    console.log('[API-ERROR-HANDLER] Detected potential Hibernate serialization issue');
-    
     // Add retry with delay for more reliable state checking
     const checkState = async (retryCount = 3, delayMs = 300): Promise<boolean> => {
       try {
         // Verify the actual state to see if the operation succeeded despite the error
         const actualState = await isFavorited(listingId, options, session);
-        console.log(`[API-ERROR-HANDLER] Actual favorite state: ${actualState.isFavorite}, expected: ${expectedState}`);
         
         // If the state matches what we expected after the operation, consider it successful
         if (actualState.isFavorite === expectedState) {
-          console.log('[API-ERROR-HANDLER] Operation actually succeeded despite the error');
           return true;
         } else {
           // If we have retries left, wait and try again
           if (retryCount > 0) {
-            console.log(`[API-ERROR-HANDLER] State mismatch, retrying... (${retryCount} attempts left)`);
             await new Promise(resolve => setTimeout(resolve, delayMs));
             return checkState(retryCount - 1, delayMs);
           }
           
-          console.log('[API-ERROR-HANDLER] Operation did not produce the expected state after retries');
           return false;
         }
-      } catch (verifyError) {
-        console.error('[API-ERROR-HANDLER] Error verifying state after API error:', verifyError);
-        
+      } catch {
         // If we have retries left, wait and try again
         if (retryCount > 0) {
-          console.log(`[API-ERROR-HANDLER] Verification error, retrying... (${retryCount} attempts left)`);
           await new Promise(resolve => setTimeout(resolve, delayMs));
           return checkState(retryCount - 1, delayMs);
         }

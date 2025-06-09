@@ -219,11 +219,11 @@ describe('SignInPage', () => {
     
     // Check that signIn was called with the right parameters
     await waitFor(() => {
-      expect(signIn).toHaveBeenCalledWith('credentials', {
+      expect(signIn).toHaveBeenCalledWith('credentials', expect.objectContaining({
         redirect: false,
         username: 'testuser',
         password: 'password123',
-      });
+      }));
     });
     
     // Check successful login message

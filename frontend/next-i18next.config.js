@@ -8,4 +8,5 @@ module.exports = {
       caches: ["cookie"],
     },
   },
+  keySeparator: false, // Fix for flat JSON format warning
 };

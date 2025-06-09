@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getFavorites } from '@/services/favorites';
+import { getUserFavorites } from '@/services/favorites';
 import { formatDate, formatNumber } from '@/utils/localization';
 import FavoriteButton from '@/components/common/FavoriteButton';
 import { Listing } from '@/types/listings';
@@ -38,7 +38,7 @@ export default function FavoritesPage() {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await getFavorites();
+      const data = await getUserFavorites();
       
       // Ensure we have valid data
       if (Array.isArray(data)) {

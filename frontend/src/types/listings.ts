@@ -143,6 +143,7 @@ export interface ListingWithLanguage extends Listing {
   title_ar?: string;
   description_en?: string;
   description_ar?: string;
+  badge?: string; // Add badge property for special listings
   // Allow any string key ending with _en or _ar, covering various potential data types
   [key: `${string}_${Lang}`]: string | number | boolean | string[] | Record<string, unknown> | Date | undefined;
 }

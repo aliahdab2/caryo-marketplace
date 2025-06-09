@@ -113,9 +113,28 @@ const authOptions: NextAuthOptions = {
         resultToken.picture = typedUser.image ?? resultToken.picture ?? null;
 
         if (account?.provider === "google") {
-          resultToken.accessToken = account.access_token ?? "";
-          if (!account.access_token) {
-            resultToken.error = "OAuthTokenError";
+          // For Google OAuth, we need to exchange the token for our backend JWT
+          try {
+            const { serverAuth } = await import('@/services/server-auth');
+            const socialLoginData = {
+              provider: "google",
+              email: typedUser.email || "",
+              name: typedUser.name || "",
+              providerAccountId: (account.providerAccountId || account.id || "").toString(),
+              image: profile && typeof profile === "object" && "picture" in profile 
+                ? (profile as { picture: string }).picture 
+                : typedUser.image || ""
+            };
+            
+            const authResult = await serverAuth.socialLogin(socialLoginData);
+            resultToken.accessToken = authResult.accessToken || authResult.token || "";
+            
+            if (!resultToken.accessToken) {
+              resultToken.error = "BackendTokenExchangeError";
+            }
+          } catch (error) {
+            console.error("Failed to exchange Google token for backend JWT:", error);
+            resultToken.error = "BackendTokenExchangeError";
           }
 
           if (

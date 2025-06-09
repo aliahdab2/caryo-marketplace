@@ -1,1 +1,0 @@
-diagnostics/diagnose-postman-tests.sh

@@ -1,8 +1,8 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
-import com.autotrader.autotraderbackend.model.CarListing;
-import com.autotrader.autotraderbackend.model.Favorite;
+import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
+import com.autotrader.autotraderbackend.payload.response.FavoriteResponse;
 import com.autotrader.autotraderbackend.service.FavoriteService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -34,8 +36,8 @@ class FavoriteControllerTest {
     private FavoriteController favoriteController;
 
     private UserDetails mockUserDetails;
-    private Favorite testFavorite;
-    private CarListing testListing;
+    private FavoriteResponse testFavoriteResponse;
+    private CarListingResponse testListingResponse;
     private final String testUsername = "testUser";
     private final Long testListingId = 1L;
 
@@ -47,27 +49,34 @@ class FavoriteControllerTest {
                 .authorities(Collections.emptyList())
                 .build();
 
-        testListing = new CarListing();
-        testListing.setId(testListingId);
-        testListing.setTitle("Test Car");
+        testListingResponse = new CarListingResponse();
+        testListingResponse.setId(testListingId);
+        testListingResponse.setTitle("Test Car");
+        testListingResponse.setPrice(new BigDecimal("25000.00"));
+        testListingResponse.setModelYear(2020);
+        testListingResponse.setMileage(50000);
+        testListingResponse.setBrandNameEn("Toyota");
+        testListingResponse.setModelNameEn("Camry");
 
-        testFavorite = new Favorite();
-        testFavorite.setId(1L);
-        testFavorite.setCarListing(testListing);
+        testFavoriteResponse = new FavoriteResponse();
+        testFavoriteResponse.setId(1L);
+        testFavoriteResponse.setUserId(1L);
+        testFavoriteResponse.setCarListingId(testListingId);
+        testFavoriteResponse.setCreatedAt(LocalDateTime.now());
     }
 
     @Test
     void addToFavorites_Success() {
         // Arrange
-        when(favoriteService.addToFavorites(testUsername, testListingId)).thenReturn(testFavorite);
+        when(favoriteService.addToFavorites(testUsername, testListingId)).thenReturn(testFavoriteResponse);
 
         // Act
-        ResponseEntity<Favorite> response = favoriteController.addToFavorites(mockUserDetails, testListingId);
+        ResponseEntity<FavoriteResponse> response = favoriteController.addToFavorites(mockUserDetails, testListingId);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(testFavorite, response.getBody());
+        assertEquals(testFavoriteResponse, response.getBody());
         verify(favoriteService).addToFavorites(testUsername, testListingId);
     }
 
@@ -111,33 +120,33 @@ class FavoriteControllerTest {
     @Test
     void getUserFavorites_Success() {
         // Arrange
-        List<CarListing> favorites = Arrays.asList(testListing);
-        when(favoriteService.getUserFavorites(testUsername)).thenReturn(favorites);
+        List<CarListingResponse> favorites = Arrays.asList(testListingResponse);
+        when(favoriteService.getUserFavoriteListingResponses(testUsername)).thenReturn(favorites);
 
         // Act
-        ResponseEntity<List<CarListing>> response = favoriteController.getUserFavorites(mockUserDetails);
+        ResponseEntity<List<CarListingResponse>> response = favoriteController.getUserFavorites(mockUserDetails);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
-        assertEquals(testListing, response.getBody().get(0));
-        verify(favoriteService).getUserFavorites(testUsername);
+        assertEquals(testListingResponse, response.getBody().get(0));
+        verify(favoriteService).getUserFavoriteListingResponses(testUsername);
     }
 
     @Test
     void getUserFavorites_Empty() {
         // Arrange
-        when(favoriteService.getUserFavorites(testUsername)).thenReturn(Collections.emptyList());
+        when(favoriteService.getUserFavoriteListingResponses(testUsername)).thenReturn(Collections.emptyList());
 
         // Act
-        ResponseEntity<List<CarListing>> response = favoriteController.getUserFavorites(mockUserDetails);
+        ResponseEntity<List<CarListingResponse>> response = favoriteController.getUserFavorites(mockUserDetails);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isEmpty());
-        verify(favoriteService).getUserFavorites(testUsername);
+        verify(favoriteService).getUserFavoriteListingResponses(testUsername);
     }
 
     @Test
@@ -169,4 +178,19 @@ class FavoriteControllerTest {
         assertFalse(response.getBody());
         verify(favoriteService).isFavorite(testUsername, testListingId);
     }
-} 
+
+    @Test
+    void isFavorite_ListingNotFound() {
+        // Arrange
+        when(favoriteService.isFavorite(testUsername, testListingId)).thenReturn(false);
+
+        // Act
+        ResponseEntity<Boolean> response = favoriteController.isFavorite(mockUserDetails, testListingId);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody());
+        verify(favoriteService).isFavorite(testUsername, testListingId);
+    }
+}
