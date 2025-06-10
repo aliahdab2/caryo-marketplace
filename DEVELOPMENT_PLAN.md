@@ -105,10 +105,10 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - Update existing listings to use the new location system
   - Add location filtering to existing search/filter APIs
 
-- [ ] **Location-based UI Components**
-  - Create dropdown/autocomplete city selector in listing form
-  - Add location filter to search/listings page
-  - Display location name prominently on listing cards and details
+- [x] **Location-based UI Components** ✅
+  - [x] Create dropdown/autocomplete city selector in listing form (governorate selector with bilingual support)
+  - [x] Add location filter to search/listings page (HomeSearchBar component with governorate filtering)
+  - [x] Display location name prominently on listing cards and details (with location icons and proper formatting)
 
 ### Phase 3: Infrastructure & Optimizations (Partially Complete)
 
