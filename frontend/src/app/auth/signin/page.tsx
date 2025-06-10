@@ -24,6 +24,7 @@ const SignInPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("/dashboard");
+  const [callbackUrlLoaded, setCallbackUrlLoaded] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [credentialsCorrect, setCredentialsCorrect] = useState(false);
@@ -37,17 +38,31 @@ const SignInPage: React.FC = () => {
       const returnUrl = searchParams.get('returnUrl');
       const callback = searchParams.get('callbackUrl');
       
-      // Prefer returnUrl over callbackUrl for better compatibility
-      const redirectTarget = returnUrl || callback || '/dashboard';
+      // Check localStorage for redirect URL (from FavoriteButton or other sources) - fallback only
+      const storedRedirect = localStorage.getItem('redirectAfterAuth');
+      
+      console.log('Sign-in redirect setup:', { returnUrl, callback, storedRedirect });
+      
+      // Prefer URL parameters over localStorage, then default to /dashboard
+      const redirectTarget = returnUrl || callback || storedRedirect || '/dashboard';
+      
+      // Clear the stored redirect URL if we found one (cleanup)
+      if (storedRedirect) {
+        localStorage.removeItem('redirectAfterAuth');
+        console.log('Cleaned up stored redirect URL:', storedRedirect);
+      }
       
       try {
         if (redirectTarget.startsWith('/')) {
           setCallbackUrl(redirectTarget);
+          console.log('Set callbackUrl to:', redirectTarget);
         } else {
           const url = new URL(decodeURIComponent(redirectTarget));
           if (url.origin === window.location.origin) {
             // Include the full path and any query parameters or hash
-            setCallbackUrl(url.pathname + url.search + url.hash);
+            const finalUrl = url.pathname + url.search + url.hash;
+            setCallbackUrl(finalUrl);
+            console.log('Set callbackUrl to:', finalUrl);
           }
         }
       } catch (e) {
@@ -56,6 +71,9 @@ const SignInPage: React.FC = () => {
           setCallbackUrl('/dashboard');
         }
       }
+      
+      // Mark that callback URL has been loaded
+      setCallbackUrlLoaded(true);
     }
   }, []);
 
@@ -94,8 +112,8 @@ const SignInPage: React.FC = () => {
       const result = await signIn("credentials", {
         redirect: false,
         username,
-        password,
-        callbackUrl: callbackUrl // Use the extracted callbackUrl here
+        password
+        // Note: Not passing callbackUrl to signIn to prevent NextAuth from overriding our redirect logic
       });
 
       if (result?.error) {
@@ -116,8 +134,9 @@ const SignInPage: React.FC = () => {
         // Short delay to show success state, then redirect
         setTimeout(() => {
           setRedirecting(true);
-          // Use the URL from the sign-in result if available, otherwise fall back to callbackUrl
-          const redirectUrl = result.url || callbackUrl;
+          // Always prefer our callbackUrl over the result.url to ensure proper redirect
+          const redirectUrl = callbackUrl;
+          console.log('Redirecting after sign-in:', { callbackUrl, resultUrl: result.url, chosen: redirectUrl });
           try {
             router?.push?.(redirectUrl);
           } catch (e) {
@@ -137,8 +156,9 @@ const SignInPage: React.FC = () => {
   };
 
   // Safe redirect when user already has an active session
+  // Only redirect after callbackUrl has been properly loaded from localStorage
   useEffect(() => {
-    if (session && !redirecting) {
+    if (session && !redirecting && callbackUrlLoaded) {
       // Add a slight delay to ensure session is fully processed
       setRedirecting(true);
       
@@ -158,7 +178,7 @@ const SignInPage: React.FC = () => {
         }
       }, 500);
     }
-  }, [session, router, callbackUrl, redirecting]);
+  }, [session, router, callbackUrl, redirecting, callbackUrlLoaded]);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">

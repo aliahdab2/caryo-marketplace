@@ -353,7 +353,7 @@ export default function Dashboard() {
                     <td className="py-4 px-5">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotColor} mr-1.5`}></span>
-                        {t(listing.status, { ns: 'listings' })}
+                        {t(`listings:${listing.status}`) || listing.status}
                       </span>
                     </td>
                     <td className="py-4 px-5">

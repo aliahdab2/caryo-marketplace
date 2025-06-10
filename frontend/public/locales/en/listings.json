@@ -1,5 +1,6 @@
 {
   "aboutThisDealer": "About this Dealer",
+  "active": "Active",
   "adaptiveCruise": "Adaptive cruise control",
   "addedRecently": "Added recently",
   "additionalActions": "Additional Actions",
@@ -124,6 +125,7 @@
   "used": "Used",
   "certified": "Certified",
   "estimated60Months": "Estimated for 60 months",
+  "pending": "Pending",
   "safetyTips": "Safety Tips",
   "meetInPublicPlace": "Meet in a public place",
   "inspectCarThoroughly": "Inspect the car thoroughly",

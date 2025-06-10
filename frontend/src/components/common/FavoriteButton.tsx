@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { FavoriteButtonProps } from '@/types/components';
 
 const FavoriteButton: React.FC<FavoriteButtonProps> = ({
@@ -15,6 +16,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   showText = false
 }) => {
   const { t } = useTranslation('common');
+  const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isLoading, setIsLoading] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -229,7 +231,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
 
     if (isLoading) return;
 
-    // If not authenticated, store pending action and return
+    // If not authenticated, store pending action and redirect to sign-in
     if (!session?.user || !session?.accessToken) {
       const pendingActionData = {
         listingId: listingId,
@@ -238,10 +240,25 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         error: 'Unauthenticated'
       };
       try {
+        // Show brief loading state to indicate action is happening
+        setIsLoading(true);
+        
         localStorage.setItem('pendingFavoriteAction', JSON.stringify(pendingActionData));
         console.log('[FAVORITE] Stored pending action:', pendingActionData);
+        
+        // Store the current page URL to redirect back after sign-in
+        const currentUrl = window.location.pathname + window.location.search + window.location.hash;
+        console.log('[FAVORITE] Storing redirect URL:', currentUrl);
+        
+        // Small delay to show loading state, then redirect with returnUrl parameter
+        setTimeout(() => {
+          router.push(`/auth/signin?returnUrl=${encodeURIComponent(currentUrl)}`);
+        }, 200);
       } catch (storageError) {
         console.error('[FAVORITE] Failed to store pending action:', storageError);
+        // Still redirect to sign-in even if storage fails
+        setIsLoading(false);
+        router.push(`/auth/signin?returnUrl=${encodeURIComponent(window.location.pathname)}`);
       }
       return;
     }
