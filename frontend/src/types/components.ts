@@ -120,7 +120,6 @@ export interface FavoriteButtonProps extends FavoriteHandlers {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   variant?: 'filled' | 'outline';
-  // Added showText option from legacy component for compatibility
   showText?: boolean;
 }
 
@@ -139,14 +138,6 @@ export interface LanguageSwitcherProps {
 export interface ComponentProps {
   className?: string;
   style?: React.CSSProperties;
-}
-
-/**
- * Props for CaptchaVerification component (DEPRECATED)
- */
-export interface CaptchaVerificationProps extends ComponentProps {
-  onVerified: (isVerified: boolean) => void;
-  onRefresh?: () => void;
 }
 
 /**

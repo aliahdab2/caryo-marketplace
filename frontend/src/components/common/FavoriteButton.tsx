@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
-import { FavoriteButtonProps } from '@/types/components'; // Import shared props
+import { FavoriteButtonProps } from '@/types/components';
 
 const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   listingId,
@@ -22,14 +22,12 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const statusCheckedRef = useRef(false);
 
-  // Validate the listing ID
   useEffect(() => {
     if (!listingId) {
       console.error('[FAVORITE] Missing listing ID');
     }
   }, [listingId]);
 
-  // Clean up animation timeout on unmount
   useEffect(() => {
     return () => {
       if (animationTimeoutRef.current) {
@@ -53,113 +51,79 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       : 'border-2 border-gray-300 text-gray-500 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300 dark:hover:border-gray-500',
   };
 
-  // Log session information whenever it changes (only errors and important info)
   useEffect(() => {
     if (!session?.user || !session?.accessToken) {
       console.warn('[FAVORITE] No valid session found');
     }
   }, [session]);
 
+  // Parse API response for favorite status
+  const parse = async (response: Response) => {
+    try {
+      const text = await response.text();
+      if (!text || text.trim() === '') return { success: true };
+      if (text === 'true') return true;
+      if (text === 'false') return false;
+      try {
+        return JSON.parse(text);
+      } catch (parseError) {
+        console.error('[FAVORITE] Error parsing favorite status response:', parseError);
+        return { error: 'Invalid JSON', success: false };
+      }
+    } catch (error) {
+      console.error('[FAVORITE] Error processing response:', error);
+      return { error: 'Failed to process response', success: false };
+    }
+  };
+
+  // Check if the listing is favorited
   const checkFavoriteStatus = useCallback(async (force = false) => {
     if (!listingId) {
       setIsFavorite(false);
       return;
     }
-
-    // Skip if already checked, unless forced
-    if (statusCheckedRef.current && !force) {
-      return;
-    }
-    
+    if (statusCheckedRef.current && !force) return;
     try {
       setIsLoading(true);
-      
-      // Import and use apiRequest directly instead of the isFavorited function
-      // This ensures proper session validation before making the request
       const { apiRequest } = await import('@/services/auth/session-manager');
-      
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       const url = `${API_URL}/api/favorites/check/${listingId}`;
-      
-      try {
-        const response = await apiRequest(url, { method: 'GET' });
-        
-        if (response.ok) {
-          const text = await response.text();
-          
-          // Handle boolean string responses
-          if (text === 'true') {
-            setIsFavorite(true);
-          } else if (text === 'false') {
-            setIsFavorite(false);
-          } else {
-            // Try to parse as JSON
-            try {
-              const data = JSON.parse(text);
-              
-              // Handle boolean response
-              if (typeof data === 'boolean') {
-                setIsFavorite(data);
-              }
-              // Handle object with isFavorite property
-              else if (data && typeof data.isFavorite === 'boolean') {
-                setIsFavorite(data.isFavorite);
-              }
-              // Handle object with favorited property
-              else if (data && typeof data.favorited === 'boolean') {
-                setIsFavorite(data.favorited);
-              } else {
-                setIsFavorite(false);
-              }
-            } catch (parseError) {
-              console.error('[FAVORITE] Error parsing favorite status response:', parseError);
-              setIsFavorite(false);
-            }
-          }
-          
-          statusCheckedRef.current = true;
-        } else {
-          console.warn(`[FAVORITE] Server returned ${response.status} when checking favorite status`);
-          setIsFavorite(false);
-        }
-      } catch (apiError) {
-        console.warn('[FAVORITE] API request failed when checking favorite status:', apiError);
+      const response = await apiRequest(url, { method: 'GET' });
+      if (response.ok) {
+        const data = await parse(response);
+        if (typeof data === 'boolean') setIsFavorite(data);
+        else if (data && typeof data.isFavorite === 'boolean') setIsFavorite(data.isFavorite);
+        else if (data && typeof data.favorited === 'boolean') setIsFavorite(data.favorited);
+        else setIsFavorite(false);
+        statusCheckedRef.current = true;
+      } else {
+        console.warn(`[FAVORITE] Server returned ${response.status} when checking favorite status`);
         setIsFavorite(false);
       }
-    } catch (err) {
-      console.error(`[FAVORITE] Error checking favorite status for ${listingId}:`, err);
+    } catch (apiError) {
+      console.warn('[FAVORITE] API request failed when checking favorite status:', apiError);
       setIsFavorite(false);
     } finally {
       setIsLoading(false);
     }
   }, [listingId]);
 
-  // Effect to initialize status and handle session changes
+  // Initialize and refresh favorite status
   useEffect(() => {
     if (!listingId) {
       setIsFavorite(false);
       return;
     }
-
     if (!session?.user || !session?.accessToken) {
       setIsFavorite(false);
       statusCheckedRef.current = false;
       return;
     }
-
-    // Check status immediately when session is available
     checkFavoriteStatus(true);
-
-    // Set up periodic refresh
     const refreshInterval = setInterval(() => {
-      if (session?.user) {
-        checkFavoriteStatus(true);
-      }
-    }, 30000); // Refresh every 30 seconds
-    
-    return () => {
-      clearInterval(refreshInterval);
-    };
+      if (session?.user) checkFavoriteStatus(true);
+    }, 30000);
+    return () => clearInterval(refreshInterval);
   }, [listingId, session, checkFavoriteStatus]);
 
   // Re-check status when the component becomes visible again
@@ -198,6 +162,11 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         if (pendingActionJSON) {
           let pendingAction;
           try {
+            if (!pendingActionJSON || pendingActionJSON === 'null' || pendingActionJSON === '') {
+              console.warn('[FAVORITE] Empty pendingFavoriteAction found');
+              localStorage.removeItem('pendingFavoriteAction');
+              return;
+            }
             pendingAction = JSON.parse(pendingActionJSON);
           } catch (parseError) {
             console.error('[FAVORITE] Error parsing pendingFavoriteAction:', parseError);
@@ -257,20 +226,37 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (isLoading) return;
-    
+
+    // If not authenticated, store pending action and return
+    if (!session?.user || !session?.accessToken) {
+      const pendingActionData = {
+        listingId: listingId,
+        action: isFavorite ? 'remove' : 'add',
+        timestamp: Date.now(),
+        error: 'Unauthenticated'
+      };
+      try {
+        localStorage.setItem('pendingFavoriteAction', JSON.stringify(pendingActionData));
+        console.log('[FAVORITE] Stored pending action:', pendingActionData);
+      } catch (storageError) {
+        console.error('[FAVORITE] Failed to store pending action:', storageError);
+      }
+      return;
+    }
+
     try {
       // Import apiRequest for direct API calls
       const { apiRequest } = await import('@/services/auth/session-manager');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       const url = `${API_URL}/api/favorites/${listingId}`;
-      
+
       setIsLoading(true);
       startAnimation();
-      
+
       const wasAlreadyFavorite = isFavorite;
-      
+
       try {
         if (wasAlreadyFavorite) {
           // Remove favorite
@@ -284,32 +270,42 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
           if (onToggle) onToggle(true);
         }
       } catch (apiError) {
+        // Ensure consistent warning log format for test detection
         console.warn('[FAVORITE] API request failed when toggling favorite:', apiError);
-        
+
         // Check if it's an authentication error
         const errorMessage = apiError instanceof Error ? apiError.message : String(apiError);
-        const isAuthError = errorMessage.toLowerCase().includes('auth') || 
-                           errorMessage.toLowerCase().includes('unauthorized') ||
-                           errorMessage.toLowerCase().includes('401');
-                           
+        const isAuthError = errorMessage.toLowerCase().includes('auth') ||
+          errorMessage.toLowerCase().includes('unauthorized') ||
+          errorMessage.toLowerCase().includes('401');
+
+        // Always store pending action, regardless of error type
+        const pendingActionData = {
+          listingId: listingId,
+          action: wasAlreadyFavorite ? 'remove' : 'add',
+          timestamp: Date.now(),
+          error: errorMessage
+        };
+
+        // Ensure localStorage is updated
+        try {
+          localStorage.setItem('pendingFavoriteAction', JSON.stringify(pendingActionData));
+          console.log('[FAVORITE] Stored pending action:', pendingActionData);
+        } catch (storageError) {
+          console.error('[FAVORITE] Failed to store pending action:', storageError);
+        }
+
         if (isAuthError) {
-          // Store pending action for processing after login
-          localStorage.setItem('pendingFavoriteAction', JSON.stringify({ 
-            listingId: listingId, 
-            action: wasAlreadyFavorite ? 'remove' : 'add',
-            timestamp: Date.now()
-          }));
-          
           // The apiRequest function will already handle redirection to login
           return;
         }
-        
+
         // For non-auth errors, attempt to sync with actual state
         await checkFavoriteStatus(true);
       }
     } catch (error) {
       console.error(`[FAVORITE] Error toggling favorite for ${listingId}:`, error);
-      
+
       // Attempt to sync with actual state
       await checkFavoriteStatus(true);
     } finally {

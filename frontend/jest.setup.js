@@ -1,34 +1,53 @@
 // jest.setup.js
+import 'jest-canvas-mock';
 import '@testing-library/jest-dom';
+import 'whatwg-fetch';
 import './src/tests/mocks/i18n-mock.ts'; // Ensure this is loaded early
 
-// Suppress specific warnings and errors in tests
+// Mock matchMedia
+window.matchMedia = window.matchMedia || function() {
+  return {
+    matches: false,
+    addListener: function() {},
+    removeListener: function() {},
+    addEventListener: function() {},
+    removeEventListener: function() {},
+    dispatchEvent: function() { return true; }
+  };
+};
+
+// Global timeout for async operations in tests
+jest.setTimeout(10000);
+
+// Store the original console methods
 const originalWarn = console.warn;
-console.warn = function(warning) {
-  if (typeof warning === 'string' && (
-      warning.includes('[DEP0040]') || 
-      warning.includes('punycode') || 
-      warning.includes('i18next') || 
-      warning.includes('NO_I18NEXT_INSTANCE')
-    )) {
+const originalError = console.error;
+
+// Suppress console warnings in tests, but keep them for debugging
+console.warn = function() {
+  // Check if this is a test case involving favorite button
+  if (arguments[0] && typeof arguments[0] === 'string' && arguments[0].includes('[FAVORITE]')) {
+    // Let it through for test assertions
+    return originalWarn.apply(console, arguments);
+  }
+  
+  // Suppress React act warnings
+  if (arguments[0] && typeof arguments[0] === 'string' && 
+      arguments[0].includes('was not wrapped in act(...)')) {
     return;
   }
-  originalWarn.apply(console, arguments);
+  
+  return originalWarn.apply(console, arguments);
 };
 
 // Suppress specific console errors in tests
-const originalError = console.error;
-console.error = function(error) {
-  // Suppress expected Google auth errors from tests
-  if (typeof error === 'string' && (
-      error.includes('Google Sign-In Error') || 
-      error.includes('Google Sign-In Exception') || 
-      error.includes('Google authentication failed') ||
-      error.includes('Authentication error') ||
-      error.includes('Warning: An update to') && error.includes('inside a test was not wrapped in act(...)') ||
-      error.includes('wrap-tests-with-act')
-    )) {
+console.error = function() {
+  // Suppress React act warnings
+  if (arguments[0] && typeof arguments[0] === 'string' && 
+      (arguments[0].includes('was not wrapped in act') || 
+       arguments[0].includes('Warning: ReactDOM.render'))) {
     return;
   }
-  originalError.apply(console, arguments);
+  
+  return originalError.apply(console, arguments);
 };

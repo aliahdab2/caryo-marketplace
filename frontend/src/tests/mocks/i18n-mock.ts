@@ -22,13 +22,31 @@ const mockTranslations: Record<string, string> = {
   'loading': 'Loading...',
   'or': 'Or',
   'continueWithGoogle': 'Continue with Google',
-  'dontHaveAccount': "Don\'t have an account?",
+  'dontHaveAccount': "Don't have an account?",
   'signUp': 'Sign Up',
   'auth.continueWithGoogle': 'Continue with Google', // For GoogleAuthButton
   'auth.signingIn': 'Signing in...', // For GoogleAuthButton
   'auth.signIn': 'Sign In', // For general use
   'auth.username': 'Username',
   'auth.password': 'Password',
+  
+  // Common translations
+  'common:loading': 'Loading...',
+  'common:authRequired': 'Authentication Required',
+  'common:addToFavorites': 'Add to favorites',
+  'common:removeFromFavorites': 'Remove from favorites',
+  'common:error': 'An error occurred',
+  
+  // Listings translations
+  'listings.addToFavorites': 'Add to favorites',
+  'listings.removeFromFavorites': 'Remove from favorites',
+  
+  // Favorites related translations
+  'favorites:loading': 'Loading your favorites...',
+  'favorites:title': 'My Favorites',
+  'favorites:noFavorites': 'No Favorite Vehicles',
+  'favorites:emptyState': 'No Favorites Yet',
+  'favorites:error': 'Error loading favorites',
 };
 
 const mockI18nInstance = {
