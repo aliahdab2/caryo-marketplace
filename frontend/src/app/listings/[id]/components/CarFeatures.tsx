@@ -87,14 +87,14 @@ const CarFeatures: React.FC<CarFeaturesProps> = ({ listing }) => {
 
     return (
       <div className="mb-4">
-        <h4 className="flex items-center text-lg font-medium text-gray-900 dark:text-white mb-3">
+        <h4 className="flex items-center text-base font-semibold text-gray-900 dark:text-white mb-3">
           {getCategoryIcon(category)}
           <span className="ml-2 rtl:mr-2 rtl:ml-0">{title}</span>
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {features.map((feature, index) => (
-            <div key={index} className="flex items-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <svg className="w-4 h-4 text-green-500 mr-2 rtl:ml-2 rtl:mr-0 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <div key={index} className="flex items-center py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+              <svg className="w-4 h-4 text-green-500 mr-3 rtl:ml-3 rtl:mr-0 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
@@ -107,86 +107,73 @@ const CarFeatures: React.FC<CarFeaturesProps> = ({ listing }) => {
 
   if (!hasFeatures) {
     return (
-      <div className="mb-6 sm:mb-8">
-        <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-gray-900 dark:text-white flex items-center">
-          <svg className="w-5 h-5 sm:w-6 sm:h-6 mr-2 rtl:ml-2 rtl:mr-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900 dark:text-white">
           {t('features')}
         </h2>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="text-center text-gray-500 dark:text-gray-400">
-            <svg className="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <p>{t('noFeaturesListed')}</p>
-          </div>
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <p className="text-base">{t('noFeaturesListed')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="mb-6 sm:mb-8">
-      <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-gray-900 dark:text-white flex items-center">
-        <svg className="w-5 h-5 sm:w-6 sm:h-6 mr-2 rtl:ml-2 rtl:mr-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-        {t('listings.features')}
-        <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+        {t('features')}
+        <span className="ml-2 text-base font-normal text-gray-500 dark:text-gray-400">
           ({features.length})
         </span>
       </h2>
       
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        {showAllFeatures ? (
-          // Categorized view when showing all features
-          <div className="space-y-6">
-            {renderFeatureSection(t('safetyFeatures'), categorizedFeatures.safety, 'safety')}
-            {renderFeatureSection(t('comfortFeatures'), categorizedFeatures.comfort, 'comfort')}
-            {renderFeatureSection(t('technologyFeatures'), categorizedFeatures.technology, 'technology')}
-            {renderFeatureSection(t('performanceFeatures'), categorizedFeatures.performance, 'performance')}
-            {renderFeatureSection(t('otherFeatures'), categorizedFeatures.other, 'other')}
-          </div>
-        ) : (
-          // Simple grid view for initial display
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {displayFeatures.map((feature, index) => (
-              <div key={index} className="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <svg className="w-4 h-4 text-green-500 mr-3 rtl:ml-3 rtl:mr-0 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span className="text-gray-700 dark:text-gray-300">{feature}</span>
-              </div>
-            ))}
-          </div>
-        )}
+      {showAllFeatures ? (
+        // Categorized view when showing all features
+        <div className="space-y-6">
+          {renderFeatureSection(t('safetyFeatures'), categorizedFeatures.safety, 'safety')}
+          {renderFeatureSection(t('comfortFeatures'), categorizedFeatures.comfort, 'comfort')}
+          {renderFeatureSection(t('technologyFeatures'), categorizedFeatures.technology, 'technology')}
+          {renderFeatureSection(t('performanceFeatures'), categorizedFeatures.performance, 'performance')}
+          {renderFeatureSection(t('otherFeatures'), categorizedFeatures.other, 'other')}
+        </div>
+      ) : (
+        // Simple list view for initial display
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          {displayFeatures.map((feature, index) => (
+            <div key={index} className="flex items-center py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+              <svg className="w-4 h-4 text-green-500 mr-3 rtl:ml-3 rtl:mr-0 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
-        {hasMoreFeatures && (
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => setShowAllFeatures(!showAllFeatures)}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-            >
-              {showAllFeatures ? (
-                <>
-                  <svg className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                  </svg>
-                  {t('showLess')}
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                  {t('showMore')} ({features.length - 6} {t('more')})
-                </>
-              )}
-            </button>
-          </div>
-        )}
-      </div>
+      {hasMoreFeatures && (
+        <div className="text-center border-t border-gray-200 dark:border-gray-700 pt-4">
+          <button
+            onClick={() => setShowAllFeatures(!showAllFeatures)}
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors font-medium text-sm"
+          >
+            {showAllFeatures ? (
+              <>
+                <svg className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                </svg>
+                {t('showLess')}
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+                {t('showMore')} ({features.length - 6} {t('more')})
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -12,6 +12,7 @@
   "calculatePayment": "حساب القسط",
   "callNow": "اتصل الآن",
   "carInsurance": "تأمين السيارة",
+  "carType": "نوع السيارة",
   "categoryHeading": "المركبات في فئة: {{category}}",
   "clearSelection": "مسح التحديد",
   "color": "اللون",
@@ -136,5 +137,17 @@
   "within1Hour": "خلال ساعة واحدة",
   "within24Hours": "خلال 24 ساعة",
   "year": "سنة",
-  "years": "سنوات"
+  "years": "سنوات",
+  "moreActions": "المزيد من الإجراءات",
+  "calculateFinancing": "حساب التمويل",
+  "condition": "الحالة",
+  "new": "جديد",
+  "used": "مستعمل",
+  "certified": "معتمد",
+  "estimated60Months": "مقدر لـ 60 شهر",
+  "safetyTips": "نصائح الأمان",
+  "meetInPublicPlace": "الاجتماع في مكان عام",
+  "inspectCarThoroughly": "فحص السيارة بدقة",
+  "verifyDocuments": "التحقق من جميع الوثائق",
+  "reportListing": "الإبلاغ عن هذا الإعلان"
 }

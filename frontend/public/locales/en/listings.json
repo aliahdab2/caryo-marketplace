@@ -12,6 +12,7 @@
   "calculatePayment": "Calculate Payment",
   "callNow": "Call Now",
   "carInsurance": "Car Insurance",
+  "carType": "Car Type",
   "categoryHeading": "Listings in category: {{category}}",
   "color": "Color",
   "comfortFeatures": "Comfort Features",
@@ -115,5 +116,17 @@
   "within24Hours": "within 24 hours",
   "year": "year",
   "years": "years",
-  "expired": "Expired"
+  "expired": "Expired",
+  "moreActions": "More Actions",
+  "calculateFinancing": "Calculate Financing",
+  "condition": "Condition",
+  "new": "New",
+  "used": "Used",
+  "certified": "Certified",
+  "estimated60Months": "Estimated for 60 months",
+  "safetyTips": "Safety Tips",
+  "meetInPublicPlace": "Meet in a public place",
+  "inspectCarThoroughly": "Inspect the car thoroughly",
+  "verifyDocuments": "Verify all documents",
+  "reportListing": "Report this listing"
 }
