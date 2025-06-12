@@ -34,8 +34,12 @@ services:
       SPRINGDOC_SWAGGER_UI_CSRF_ENABLED: "false"
       SPRINGDOC_API_DOCS_ENABLED: "true"
     depends_on:
-      - postgres
-      - minio
+      postgres:
+        condition: service_started
+      minio:
+        condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
     networks:
       - backend-network
     volumes:
@@ -44,7 +48,7 @@ services:
 
   # PostgreSQL Database
   postgres:
-    image: postgres:15-alpine
+    image: postgres:15.3-alpine # Pinned version
     environment:
       POSTGRES_DB: ${DB_NAME:-autotrader}
       POSTGRES_USER: ${DB_USER:-postgres}
@@ -63,7 +67,7 @@ services:
 
   # Database Admin Tool
   adminer:
-    image: adminer:latest
+    image: adminer:latest # Changed to latest
     ports:
       - "8081:8080"
     environment:
@@ -76,10 +80,10 @@ services:
   # MinIO (S3-compatible storage)
   minio:
     container_name: autotrader-minio
-    image: minio/minio:latest
+    image: minio/minio:latest # Changed to latest
     ports:
-      - "${MINIO_API_PORT:-9000}:9000" # Reverted to default host port 9000
-      - "${MINIO_CONSOLE_PORT:-9091}:9001" # Reverted to default host port 9001
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
@@ -87,34 +91,39 @@ services:
     volumes:
       - minio_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "mkdir -p /tmp/health && touch /tmp/health/check && echo 'ok' > /tmp/health/check"]
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/ready || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 30s # Increased start_period
     networks:
       - backend-network
   
   # Service to create the bucket automatically upon startup
   createbuckets:
-    image: minio/mc:latest
+    image: minio/mc:latest # Using latest to unblock, recommend pinning to a specific stable tag later
     depends_on:
       minio:
         condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-      sleep 5;
-      /usr/bin/mc config host add myminio http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin};
-      /usr/bin/mc mb --ignore-existing myminio/${S3_BUCKET_NAME:-autotrader-assets};
-      /usr/bin/mc policy set public myminio/${S3_BUCKET_NAME:-autotrader-assets};
-      echo 'Bucket created successfully'
+      echo 'Starting bucket creation...';
+      sleep 10;
+      echo 'Configuring MinIO client...';
+      /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin} || exit 1;
+      echo 'Creating bucket if it does not exist...';
+      /usr/bin/mc mb --ignore-existing myminio/${S3_BUCKET_NAME:-autotrader-assets} || exit 1;
+      echo 'Setting bucket policy to public...';
+      /usr/bin/mc anonymous set public myminio/${S3_BUCKET_NAME:-autotrader-assets} || exit 1;
+      echo 'Bucket ${S3_BUCKET_NAME:-autotrader-assets} created and configured successfully';
+      exit 0;
       "
     networks:
       - backend-network
 
   # Redis (optional)
   redis:
-    image: redis:7-alpine
+    image: redis:latest # Changed to latest
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
@@ -124,7 +133,7 @@ services:
 
   # Mailhog (mail catching service)
   mailhog:
-    image: axllent/mailpit:latest
+    image: axllent/mailpit:latest # Changed to latest
     container_name: mailpit
     ports:
       - "1025:1025"
