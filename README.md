@@ -147,14 +147,46 @@ See [backend/autotrader-backend/README.md](backend/autotrader-backend/README.md)
 - Running tests
 - Development notes
 
+## API Testing
+
+### Quick API Tests
+Run all API tests locally with a single command:
+
+```bash
+# Run Postman API tests
+./run-postman-tests.sh
+```
+
+This script will:
+- Check if Newman (Postman CLI) is installed and install it if needed
+- Verify the Spring Boot backend is running
+- Execute all API tests with authentication
+- Generate an HTML report at `results/html-report.html`
+
+### Manual API Testing
+You can also run tests manually:
+
+```bash
+# Install Newman if not already installed
+npm install -g newman newman-reporter-htmlextra
+
+# Run tests manually
+newman run "./backend/autotrader-backend/src/test/resources/postman/autotrader-api-collection.json" \
+  --environment "./postman/test_environment.json" \
+  --reporters cli,htmlextra \
+  --reporter-htmlextra-export results/html-report.html
+```
+
 ## API Documentation
 
 Detailed API documentation is available in [backend/autotrader-backend/API_DOCUMENTATION.md](backend/autotrader-backend/API_DOCUMENTATION.md), which includes:
 
 - Authentication endpoints
-- Car listing endpoints
+- Car listing endpoints  
+- Reference data endpoints (governorates, brands, models)
 - Request/response formats
 - Examples using cURL
+- Postman collection usage
 
 ## Getting Started
 

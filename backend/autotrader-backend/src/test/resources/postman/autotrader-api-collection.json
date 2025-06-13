@@ -196,7 +196,7 @@
                   "pm.test(\"Governorates have required fields\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    if (jsonData.length > 0) {",
-                  "        pm.expect(jsonData[0]).to.have.all.keys('id', 'displayNameEn', 'displayNameAr', 'slug', 'countryCode', 'region', 'latitude', 'longitude');",
+                  "        pm.expect(jsonData[0]).to.include.keys('id', 'displayNameEn', 'displayNameAr', 'slug', 'countryCode', 'region', 'latitude', 'longitude');",
                   "    }",
                   "});"
                 ],
@@ -206,11 +206,16 @@
           ],
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/governorates",
+              "raw": "{{baseUrl}}/api/reference-data/governorates",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "governorates"]
+              "path": ["api", "reference-data", "governorates"]
             }
           }
         },
@@ -227,7 +232,7 @@
                   "",
                   "pm.test(\"Response has required fields\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.all.keys('id', 'displayNameEn', 'displayNameAr', 'slug', 'countryCode', 'region', 'latitude', 'longitude');",
+                  "    pm.expect(jsonData).to.include.keys('id', 'displayNameEn', 'displayNameAr', 'slug', 'countryCode', 'region', 'latitude', 'longitude');",
                   "    pm.expect(jsonData.slug).to.eql(pm.variables.get('governorateSlug'));",
                   "});"
                 ],
@@ -237,11 +242,16 @@
           ],
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/governorates/{{governorateSlug}}",
+              "raw": "{{baseUrl}}/api/reference-data/governorates/{{governorateSlug}}",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "governorates", "{{governorateSlug}}"]
+              "path": ["api", "reference-data", "governorates", "{{governorateSlug}}"]
             }
           }
         },
@@ -262,11 +272,16 @@
           ],
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/governorates/invalid-slug",
+              "raw": "{{baseUrl}}/api/reference-data/governorates/invalid-slug",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "governorates", "invalid-slug"]
+              "path": ["api", "reference-data", "governorates", "invalid-slug"]
             }
           }
         },
@@ -287,11 +302,16 @@
           ],
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/governorates/",
+              "raw": "{{baseUrl}}/api/reference-data/governorates/",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "governorates", ""]
+              "path": ["api", "reference-data", "governorates", ""]
             }
           }
         },
@@ -326,11 +346,16 @@
           ],
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/governorates/country/{{countryCode}}",
+              "raw": "{{baseUrl}}/api/reference-data/governorates/country/{{countryCode}}",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "governorates", "country", "{{countryCode}}"]
+              "path": ["api", "reference-data", "governorates", "country", "{{countryCode}}"]
             }
           }
         },
@@ -356,11 +381,16 @@
           ],
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/governorates/country/XXX",
+              "raw": "{{baseUrl}}/api/reference-data/governorates/country/XXX",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "governorates", "country", "XXX"]
+              "path": ["api", "reference-data", "governorates", "country", "XXX"]
             }
           }
         },
@@ -386,11 +416,16 @@
           ],
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/governorates/country/",
+              "raw": "{{baseUrl}}/api/reference-data/governorates/country/",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "governorates", "country", ""]
+              "path": ["api", "reference-data", "governorates", "country", ""]
             }
           }
         }

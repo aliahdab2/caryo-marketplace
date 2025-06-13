@@ -33,21 +33,49 @@ curl -X GET http://localhost:8080/api/listings/my-listings \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-### Running Postman Tests
+### Running API Tests
 
 #### Automated Testing Script
 ```bash
-# Run all API tests automatically
-./src/test/scripts/run_postman_tests.sh
+# From the project root directory
+./run-postman-tests.sh
 ```
-This script will start the application, run all tests, and shut down when complete.
-The HTML report will be available at `build/test-reports/postman/report.html`.
+
+This script will:
+- Install Newman (Postman CLI) if not already installed
+- Check if the Spring Boot application is running
+- Execute all API tests with proper authentication
+- Generate detailed HTML and CLI reports
+- Provide diagnostics if tests fail
+
+The HTML report will be available at `results/html-report.html`.
+
+#### Test Coverage
+The automated API tests cover:
+- **Authentication**: User registration, login, and JWT token validation
+- **Reference Data**: Governorates, car brands, models, and other lookup data
+- **Car Listings**: CRUD operations and filtering (coming soon)
+- **Error Handling**: Invalid requests, authentication failures, and data validation
+
+All tests include proper authentication and validate both success and error scenarios.
+
+#### Manual Testing with Newman
+```bash
+# Install Newman CLI tool
+npm install -g newman newman-reporter-htmlextra
+
+# Run the test collection manually
+newman run "./src/test/resources/postman/autotrader-api-collection.json" \
+  --environment "../../postman/test_environment.json" \
+  --reporters cli,htmlextra \
+  --reporter-htmlextra-export results/report.html
+```
 
 #### Manual Testing with Postman
 1. Start the application with `./gradlew bootRun`
 2. Import the collection and environment into Postman:
-   - Collection: `src/test/resources/postman/autotrader-api-tests.json`
-   - Environment: `src/test/resources/postman/environment.json`
+   - Collection: `src/test/resources/postman/autotrader-api-collection.json`
+   - Environment: `../../postman/test_environment.json`
 3. Run the collection in Postman
 
 ## Base URL

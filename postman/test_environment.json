@@ -67,6 +67,12 @@
       "value": "SY",
       "type": "default",
       "enabled": true
+    },
+    {
+      "key": "dynamicBrandId",
+      "value": "1",
+      "type": "default",
+      "enabled": true
     }
   ]
 }
