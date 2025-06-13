@@ -3,6 +3,9 @@
 *.png filter=lfs diff=lfs merge=lfs -text
 *.jpg filter=lfs diff=lfs merge=lfs -text
 *.jar filter=lfs diff=lfs merge=lfs -text
+# Exception: gradle-wrapper.jar should NOT use LFS
+gradle/wrapper/gradle-wrapper.jar -filter -diff -merge text
+**/gradle/wrapper/gradle-wrapper.jar -filter -diff -merge text
 *.war filter=lfs diff=lfs merge=lfs -text
 *.zip filter=lfs diff=lfs merge=lfs -text
 *.tar.gz filter=lfs diff=lfs merge=lfs -text

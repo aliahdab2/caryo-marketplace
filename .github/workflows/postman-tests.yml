@@ -8,8 +8,8 @@ on:
     branches: [main]
     paths:
       - 'backend/autotrader-backend/**'
-  schedule:
-    - cron: '0 0 * * 1'
+  # schedule:
+  #   - cron: '0 0 * * 1'  # Disabled to save GitHub Actions minutes
 
 jobs:
   api-tests:
