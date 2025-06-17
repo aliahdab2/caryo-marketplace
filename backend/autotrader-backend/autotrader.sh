@@ -70,7 +70,7 @@ handle_dev_command() {
   # Parse all arguments
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      start|stop|restart|status|logs|rebuild|rebuild-notest)
+      start|stop|restart|status|logs|rebuild|rebuild-notest|health)
         command="$1"
         shift
         ;;
