@@ -16,5 +16,5 @@ export const SUPPORTED_LANGUAGES: Record<Lang, string> = {
  */
 export const CURRENCY_CONFIG: Record<Lang, { currency: string; locale: string }> = {
   en: { currency: 'USD', locale: 'en-US' },
-  ar: { currency: 'SAR', locale: 'ar-SA' },
+  ar: { currency: 'SAR', locale: 'ar-SY' },
 } as const;
