@@ -5,64 +5,32 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ListingFormData } from '@/types/listings';
 import { Governorate, fetchGovernorates } from '@/services/api';
+import { getListingById, updateListing, UpdateListingData } from '@/services/listings';
 import ListingExpiry from "../../components/ListingExpiry";
-
-// Mock data for a listing (in a real app, this would come from an API fetch)
-const MOCK_LISTING: ListingFormData = {
-  id: "1",
-  governorateId: "1", // String ID as expected by ListingFormData
-  title: "Toyota Camry 2020",
-  description: "Well maintained Toyota Camry with low mileage. One owner, service history available.",
-  make: "Toyota",
-  model: "Camry",
-  year: "2020",
-  price: "25000",
-  currency: "USD", 
-  condition: "used",
-  mileage: "45000",
-  exteriorColor: "Silver",
-  interiorColor: "Black",
-  transmission: "automatic",
-  fuelType: "gasoline",
-  features: ["airConditioning", "bluetoothConnectivity", "cruiseControl", "alloyWheels"],
-  location: "Dubai Marina",
-  city: "Dubai",
-  contactName: "John Doe", 
-  contactPhone: "+123456789",
-  contactEmail: "john@example.com",
-  contactPreference: "both",
-  images: [], 
-  status: "active",
-  created: "2023-05-15",
-  expires: "2023-08-15",
-  views: 120,
-  categoryId: "",
-  attributes: {}
-};
 
 // Client component
 export default function EditListingPageClient({ id }: { id: string }) {
   const router = useRouter();
-  const [formData, setFormData] = useState<ListingFormData>({
-    ...MOCK_LISTING,
-    governorateId: MOCK_LISTING.governorateId || "",
-  });
+  const [formData, setFormData] = useState<ListingFormData | null>(null);
   const [governorates, setGovernorates] = useState<Governorate[]>([]);
   const [isLoadingGovernorates, setIsLoadingGovernorates] = useState(true);
+  const [isLoadingListing, setIsLoadingListing] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
 
   // Store image object URLs for preview
   useEffect(() => {
-    const newUrls = formData.images.map(file => URL.createObjectURL(file));
-    setImagePreviewUrls(newUrls);
+    if (formData?.images) {
+      const newUrls = formData.images.map(file => URL.createObjectURL(file));
+      setImagePreviewUrls(newUrls);
 
-    // Cleanup function to revoke object URLs when component unmounts or images change
-    return () => {
-      newUrls.forEach(url => URL.revokeObjectURL(url));
-    };
-  }, [formData.images]);
+      // Cleanup function to revoke object URLs when component unmounts or images change
+      return () => {
+        newUrls.forEach(url => URL.revokeObjectURL(url));
+      };
+    }
+  }, [formData?.images]);
 
   // Available car features
   const carFeatures = [
@@ -72,35 +40,80 @@ export default function EditListingPageClient({ id }: { id: string }) {
   ];
 
   useEffect(() => {
-    // In a real app, fetch the listing data based on listingId
-    console.log("Fetching listing data for ID:", id);        const loadGovernorates = async () => {
+    // Load listing data and governorates
+    const loadData = async () => {
       try {
+        setIsLoadingListing(true);
         setIsLoadingGovernorates(true);
+        setError(null);
+
+        // Load listing data
+        const listing = await getListingById(id);
+        
+        // Convert listing data to form data format
+        const listingFormData: ListingFormData = {
+          id: listing.id,
+          title: listing.title,
+          description: listing.description || "",
+          make: listing.brandNameEn || listing.brand || "",
+          model: listing.modelNameEn || listing.model || "",
+          year: listing.year?.toString() || listing.modelYear?.toString() || "",
+          price: listing.price.toString(),
+          currency: listing.currency || "SAR",
+          condition: "used", // Default since backend doesn't seem to have this field
+          mileage: listing.mileage?.toString() || "",
+          exteriorColor: "",
+          interiorColor: "",
+          transmission: listing.transmission || "",
+          fuelType: listing.fuelType || "",
+          features: listing.features || [],
+          location: listing.location?.city || "",
+          governorateId: "1", // This needs to be mapped from the location data
+          city: listing.location?.city || "",
+          contactName: listing.seller?.name || "",
+          contactPhone: listing.seller?.phone || "",
+          contactEmail: listing.seller?.email || "",
+          contactPreference: "both",
+          images: [], // Images from API are URLs, not File objects
+          status: (listing.status === "sold" ? "active" : listing.status) || "active",
+          categoryId: "",
+          attributes: {}
+        };
+
+        setFormData(listingFormData);
+        setIsLoadingListing(false);
+
+        // Load governorates
         const fetchedGovernorates = await fetchGovernorates();
-        // Pass the governorates directly without trying to modify their structure
         setGovernorates(fetchedGovernorates);
+        setIsLoadingGovernorates(false);
       } catch (err) {
-        console.error("Failed to fetch governorates", err);
-        setError("Failed to load governorates. Please try again.");
-      } finally {
+        console.error("Failed to fetch listing data", err);
+        setError("Failed to load listing data. Please try again.");
+        setIsLoadingListing(false);
         setIsLoadingGovernorates(false);
       }
     };
-    loadGovernorates();
+
+    loadData();
   }, [id]);
 
   // Handle input change
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        [name]: value
+      };
+    });
   };
 
   // Handle checkbox change for features
   const handleFeatureChange = (feature: string) => {
     setFormData(prev => {
+      if (!prev) return prev;
       if (prev.features.includes(feature)) {
         return {
           ...prev,
@@ -119,39 +132,70 @@ export default function EditListingPageClient({ id }: { id: string }) {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newImages = Array.from(e.target.files);
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, ...newImages]
-      }));
+      setFormData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          images: [...prev.images, ...newImages]
+        };
+      });
     }
   };
 
   // Remove image
   const removeImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }));
+    setFormData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        images: prev.images.filter((_, i) => i !== index)
+      };
+    });
   };
 
   // Submit form
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    if (!formData) {
+      setError("Form data is not available");
+      return;
+    }
 
-    // In a real app, perform API call to update listing
-    console.log("Updating listing data:", formData);
+    setIsLoading(true);
+    setError(null);
 
     try {
-      setTimeout(() => {
-        setIsLoading(false);
-        // Redirect to listings page after successful update
-        router.push("/dashboard/listings");
-      }, 1500);
+      // Prepare the update data according to backend API requirements
+      const updateData: UpdateListingData = {
+        title: formData.title,
+        // modelId: // Need to map from make/model to modelId
+        modelYear: parseInt(formData.year) || undefined,
+        mileage: parseInt(formData.mileage) || undefined,
+        price: parseFloat(formData.price) || undefined,
+        // locationId: // Need to map from location to locationId
+        description: formData.description,
+        transmission: formData.transmission,
+      };
+
+      // Remove undefined values
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key as keyof UpdateListingData] === undefined) {
+          delete updateData[key as keyof UpdateListingData];
+        }
+      });
+
+      console.log("Updating listing with data:", updateData);
+      
+      await updateListing(id, updateData);
+      
+      // Redirect to listings page after successful update
+      router.push("/dashboard/listings");
     } catch (error) {
       console.error("Error updating listing:", error);
+      setError(error instanceof Error ? error.message : "Failed to update listing. Please try again.");
+    } finally {
       setIsLoading(false);
-      setError("Failed to update listing. Please try again.");
     }
   };
 
@@ -164,14 +208,44 @@ export default function EditListingPageClient({ id }: { id: string }) {
     const newExpiry = new Date();
     newExpiry.setDate(newExpiry.getDate() + duration);
 
-    setFormData(prev => ({
-      ...prev,
-      status: "active",
-      expires: newExpiry.toISOString().split('T')[0]
-    }));
+    setFormData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        status: "active",
+        expires: newExpiry.toISOString().split('T')[0]
+      };
+    });
   };
 
-  if (!formData.id) {
+  // Show loading state while fetching data
+  if (isLoadingListing || isLoadingGovernorates) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <span className="ml-3 text-gray-600 dark:text-gray-400">Loading listing data...</span>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center max-w-2xl mx-auto">
+        <div className="text-red-600 dark:text-red-400 text-lg mb-2">⚠️ Error</div>
+        <p className="text-red-700 dark:text-red-300 mb-4">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  // Show error if formData is null
+  if (!formData) {
     return <div>Loading listing data...</div>;
   }
 

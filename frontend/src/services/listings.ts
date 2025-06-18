@@ -315,3 +315,185 @@ export async function getListingById(id: string | number): Promise<Listing> {
     throw new Error('An unexpected error occurred while fetching the listing');
   }
 }
+
+// Interface for updating a listing
+export interface UpdateListingData {
+  title?: string;
+  modelId?: number;
+  modelYear?: number;
+  mileage?: number;
+  price?: number;
+  locationId?: number;
+  description?: string;
+  transmission?: string;
+  isSold?: boolean;
+  isArchived?: boolean;
+}
+
+// Update an existing listing
+export async function updateListing(id: string | number, data: UpdateListingData): Promise<Listing> {
+  try {
+    // Import getSession at runtime to avoid SSR issues
+    const { getSession } = await import('next-auth/react');
+    const session = await getSession();
+    
+    if (!session?.accessToken) {
+      throw new ApiError('You need to log in to update listings', 401);
+    }
+    
+    // Include the authentication token from NextAuth
+    const headers = {
+      'Authorization': `Bearer ${session.accessToken}`
+    };
+    
+    const response = await api.put<ApiListingItem>(
+      `/api/listings/${id}`, 
+      data as Record<string, unknown>,
+      headers
+    );
+    
+    // Transform the API response to our frontend Listing type
+    const { mainImageUrl, mediaItems } = getMediaUrls(response.media || []);
+    const location = extractLocationInfo(response.locationDetails);
+    const governorate = extractGovernorateInfo(
+      response.governorateDetails,
+      response.governorateNameEn,
+      response.governorateNameAr
+    );
+
+    return {
+      id: response.id.toString(),
+      title: response.title,
+      price: response.price,
+      year: response.modelYear,
+      mileage: response.mileage,
+      brand: response.brandNameEn,
+      model: response.modelNameEn,
+      brandNameEn: response.brandNameEn,
+      brandNameAr: response.brandNameAr,
+      modelNameEn: response.modelNameEn,
+      modelNameAr: response.modelNameAr,
+      location,
+      governorate,
+      image: mainImageUrl,
+      media: mediaItems,
+      fuelType: '',
+      transmission: response.description || '', // Backend doesn't seem to have transmission field in response
+      createdAt: response.createdAt,
+      description: response.description,
+      status: determineListingStatus(response),
+      approved: response.approved,
+      expired: response.isExpired,
+      seller: {
+        id: response.sellerId.toString(),
+        name: response.sellerUsername,
+        type: 'private' as const,
+        phone: '+966 50 123 4567' // Placeholder - this should come from API in the future
+      },
+      currency: 'SAR' // Default currency
+    };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      const errorContext = {
+        status: error.status,
+        message: error.message,
+        data: error.data,
+        id,
+        updateData: data
+      };
+      
+      console.error('[Update Listing] API Error:', errorContext);
+
+      switch (error.status) {
+        case 404:
+          throw new Error('Listing not found');
+        case 401:
+        case 403:
+          throw new Error('You do not have permission to update this listing');
+        case 400:
+          throw new Error('Invalid listing data provided');
+        default:
+          throw new Error('Failed to update listing. Please try again later.');
+      }
+    }
+
+    console.error('[Update Listing] Unexpected error:', error instanceof Error ? error.message : 'Unknown error');
+    throw new Error('An unexpected error occurred while updating the listing');
+  }
+}
+
+// Get current user's listings (for dashboard)
+export async function getMyListings(): Promise<Listing[]> {
+  try {
+    // Import getSession at runtime to avoid SSR issues
+    const { getSession } = await import('next-auth/react');
+    const session = await getSession();
+    
+    if (!session?.accessToken) {
+      throw new ApiError('You need to log in to view your listings', 401);
+    }
+    
+    // Include the authentication token from NextAuth
+    const headers = {
+      'Authorization': `Bearer ${session.accessToken}`
+    };
+    
+    const response = await api.get<ApiListingItem[]>('/api/listings/my-listings', headers);
+    
+    return response.map(item => {
+      const { mainImageUrl, mediaItems } = getMediaUrls(item.media || []);
+      const location = extractLocationInfo(item.locationDetails);
+      const governorate = extractGovernorateInfo(
+        item.governorateDetails,
+        item.governorateNameEn,
+        item.governorateNameAr
+      );
+
+      return {
+        id: item.id.toString(),
+        title: item.title,
+        price: item.price,
+        year: item.modelYear,
+        mileage: item.mileage,
+        brand: item.brandNameEn,
+        model: item.modelNameEn,
+        brandNameEn: item.brandNameEn,
+        brandNameAr: item.brandNameAr,
+        modelNameEn: item.modelNameEn,
+        modelNameAr: item.modelNameAr,
+        location,
+        governorate,
+        image: mainImageUrl,
+        media: mediaItems,
+        fuelType: '',
+        transmission: '',
+        createdAt: item.createdAt,
+        description: item.description,
+        status: determineListingStatus(item),
+        approved: item.approved,
+        expired: item.isExpired,
+        seller: {
+          id: item.sellerId.toString(),
+          name: item.sellerUsername,
+          type: 'private' as const,
+          phone: '+966 50 123 4567'
+        },
+        currency: 'SAR'
+      };
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      console.error('[My Listings] API Error:', error);
+      switch (error.status) {
+        case 401:
+        case 403:
+          throw new Error('You need to log in to view your listings');
+        default:
+          throw new Error('Failed to fetch your listings. Please try again later.');
+      }
+    }
+
+    console.error('[My Listings] Unexpected error:', error instanceof Error ? error.message : 'Unknown error');
+    throw new Error('An unexpected error occurred while fetching your listings');
+  }
+}

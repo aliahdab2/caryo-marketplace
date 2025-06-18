@@ -314,5 +314,13 @@
   "status": "Status",
   "actions": "Actions",
   "edit": "Edit",
-  "delete": "Delete"
+  "delete": "Delete",
+  "filtersAndSort": "Filters & Sort",
+  "search": "Search",
+  "clearFilters": "Clear Filters",
+  "selectAll": "Select All",
+  "error": "Error",
+  "listings.status": "Status",
+  "listings.noListings": "You don't have any listings yet",
+  "listings.noMatchingListings": "No matching listings found"
 }
