@@ -64,6 +64,8 @@ interface ApiListingItem {
   isArchived: boolean;
   isUserActive: boolean;
   isExpired: boolean;
+  transmission?: string; // Added transmission field
+  fuelType?: string; // Added fuelType field
 }
 
 interface ListingApiResponse {
@@ -155,8 +157,8 @@ function mapApiResponseToListings(apiResponse: ListingApiResponse): { listings: 
       governorate,
       image: mainImageUrl,
       media: mediaItems,
-      fuelType: '',
-      transmission: '',
+      fuelType: item.fuelType || '',
+      transmission: item.transmission || '',
       createdAt: item.createdAt,
       description: item.description,
       status: determineListingStatus(item),
@@ -274,8 +276,8 @@ export async function getListingById(id: string | number): Promise<Listing> {
       governorate,
       image: mainImageUrl,
       media: mediaItems,
-      fuelType: '',
-      transmission: '',
+      fuelType: response.fuelType || '',
+      transmission: response.transmission || '',
       createdAt: response.createdAt,
       description: response.description,
       status: determineListingStatus(response),
@@ -378,7 +380,7 @@ export async function updateListing(id: string | number, data: UpdateListingData
       image: mainImageUrl,
       media: mediaItems,
       fuelType: '',
-      transmission: response.description || '', // Backend doesn't seem to have transmission field in response
+      transmission: response.transmission || '', // Use the actual transmission field from backend
       createdAt: response.createdAt,
       description: response.description,
       status: determineListingStatus(response),
@@ -465,8 +467,8 @@ export async function getMyListings(): Promise<Listing[]> {
         governorate,
         image: mainImageUrl,
         media: mediaItems,
-        fuelType: '',
-        transmission: '',
+        fuelType: item.fuelType || '',
+        transmission: item.transmission || '',
         createdAt: item.createdAt,
         description: item.description,
         status: determineListingStatus(item),
