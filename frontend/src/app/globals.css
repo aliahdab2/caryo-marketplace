@@ -465,11 +465,32 @@ select option {
   /* Improve mobile dropdown positioning */
   .mobile-dropdown {
     position: fixed;
-    left: 8px;
-    right: 8px;
+    left: 0;
+    right: 0;
+    bottom: 0;
     top: auto;
-    max-width: none;
-    width: calc(100% - 16px);
+    width: 100%;
+    margin-top: 0;
+    margin-bottom: 0;
+    z-index: 1000;
+    border-radius: 20px 20px 0 0;
+    border-bottom: none;
+    transform: none !important;
+    animation: slideUp 0.3s ease-out;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+  
+  /* Animation for mobile dropdown */
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
   }
 }
 
@@ -487,6 +508,21 @@ select option {
   .extra-small-mobile .mobile-nav-link {
     padding: 10px 12px;
     font-size: 15px;
+  }
+  
+  /* Language switching indicator */
+  .language-switching {
+    cursor: progress;
+    opacity: 0.8;
+    pointer-events: none;
+    transition: opacity 0.3s ease-in-out;
+  }
+  
+  /* Improved touch targets for mobile */
+  .mobile-touch-friendly {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
   }
 }
 

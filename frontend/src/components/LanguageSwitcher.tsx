@@ -16,23 +16,35 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const languageButtonsRef = useRef<(HTMLButtonElement | null)[]>([]);
   
-  // Function to handle clicks outside the dropdown
+  // Function to handle clicks outside the dropdown with debounce
   const handleClickOutside = (event: MouseEvent) => {
+    // Check if click target is descendant of dropdown
     if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-      setIsOpen(false);
+      // Small timeout to prevent flickering and race conditions
+      setTimeout(() => {
+        setIsOpen(false);
+      }, 50);
     }
   };
   
   // Add event listener for clicks outside when dropdown is open
   useEffect(() => {
+    // Use a small delay to attach the listener to prevent immediate closing
+    let timeoutId: NodeJS.Timeout | null = null;
+    
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      timeoutId = setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+      }, 100);
     } else {
       document.removeEventListener('mousedown', handleClickOutside);
     }
     
-    // Cleanup on unmount
+    // Cleanup on unmount or when isOpen changes
     return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);
@@ -76,18 +88,41 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
     }
   };
   
-  // Function to handle language change
+  // Function to handle language change with improved stability
   const handleLanguageChange = (lang: SupportedLanguage) => {
-    setIsOpen(false); // Close dropdown first
+    // First close the dropdown and blur all elements to prevent focus issues
+    setIsOpen(false);
     
-    // Small delay before changing language to allow UI to update
-    setTimeout(() => {
-      if (lang !== locale) {
-        changeLanguage(lang);
-      }
-      // Return focus to the main button
+    // Only proceed if language is actually different to avoid unnecessary page refreshes
+    if (lang === locale) {
       buttonRef.current?.focus();
-    }, 10);
+      return;
+    }
+    
+    // Add a loading indicator class to the body to indicate language switching
+    if (typeof document !== 'undefined') {
+      document.body.classList.add('language-switching');
+    }
+    
+    // Use a longer delay to ensure UI elements have settled
+    setTimeout(() => {
+      try {
+        // Change the language
+        changeLanguage(lang);
+        
+        // Return focus to the main button
+        buttonRef.current?.focus();
+      } catch (error) {
+        console.error('Failed to switch language:', error);
+      } finally {
+        // Remove loading indicator
+        if (typeof document !== 'undefined') {
+          setTimeout(() => {
+            document.body.classList.remove('language-switching');
+          }, 500); // Additional delay to ensure loading state is visible
+        }
+      }
+    }, 150); // Longer delay for stability
   };
   
   return (
@@ -98,77 +133,157 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
       <button 
         id="language-button"
         ref={buttonRef}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent event bubbling
+          setIsOpen(!isOpen);
+        }}
         onKeyDown={handleKeyDown}
-        className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors duration-200"
+        className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors duration-200 mobile-touch-friendly"
         aria-label={t('selectLanguage', 'Select language')}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         aria-controls={isOpen ? "language-menu" : undefined}
       >
         <div className="relative">
-          <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-            <path d="M10 2a8 8 0 110 16 8 8 0 010-16zm2.544 12h-1.933v2.759l.078-.009c.203-.216.403-.463.613-.729.423-.536.776-1.106 1.072-1.678l.17-.343zm-3.076 0H7.464a10.86 10.86 0 001.889 2.743c.025.003.01.01.062.013l.053.003V14zm6 0h-1.68c-.325.8-.748 1.569-1.266 2.293a6.779 6.779 0 002.274-1.508c.184-.184.357-.373.517-.576l.156-.209zm-9.255 0H4.531c.203.286.427.54.673.785.66.66 1.432 1.17 2.274 1.508a11.194 11.194 0 01-1.094-1.896L6.214 14zm10.546-3.429h-2.202a10.059 10.059 0 01-.28 1.914l-.098.372h1.97c.294-.6.49-1.287.579-1.986l.031-.3zm-3.346 0H10.61v2.286h2.381a9.081 9.081 0 00.39-1.89l.03-.396zm-3.945 0h-2.88c.04.735.16 1.386.335 1.989l.092.297h2.453v-2.286zm-4.025 0H3.241c.058.7.224 1.4.49 2.024l.12.262h1.97a10.112 10.112 0 01-.35-1.89l-.028-.396zm7.535-3.428h-2.367v2.286h2.8a9.002 9.002 0 00-.341-1.986l-.092-.3zm3.177 0h-1.984c.175.619.294 1.238.354 1.89l.029.396h2.204a6.767 6.767 0 00-.469-1.977l-.134-.31zm-6.687 0H7.015a9.176 9.176 0 00-.394 1.89l-.031.396h2.878V7.143zm-3.64 0H3.845a6.727 6.727 0 00-.566 1.944l-.037.342h2.204c.036-.667.131-1.294.284-1.914l.098-.372zm4.783-3.902V6h1.916a10.725 10.725 0 00-1.867-2.753l-.049-.006zm1.873.444c.44.61.814 1.251 1.118 1.914l.173.401h1.704a6.895 6.895 0 00-.683-.796 6.767 6.767 0 00-2.312-1.519zM9.468 6V3.241l-.075.003c-.013.001-.002.002-.016.004-.211.224-.45.473-.668.751a10.578 10.578 0 00-1.073 1.657L7.466 6h2.002zM7.515 3.685a6.767 6.767 0 00-2.781 2.04L4.52 6h1.703c.33-.806.763-1.582 1.291-2.315z" fill="currentColor" fillRule="evenodd"></path>
+          {/* Simplified globe icon */}
+          <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="absolute -top-1 -right-1 flex items-center justify-center w-3.5 h-3.5 bg-white dark:bg-gray-700 rounded-full border border-gray-200 dark:border-gray-600 text-[8px] font-bold uppercase text-gray-700 dark:text-gray-300">
+          <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-white dark:bg-gray-700 rounded-full border border-gray-200 dark:border-gray-600 text-[8px] font-bold uppercase text-gray-700 dark:text-gray-300">
             {locale}
           </span>
         </div>
       </button>
       
       {isOpen && (
-        <div 
-          id="language-menu"
-          className="absolute mt-2 right-0 rtl:right-auto rtl:left-0 w-36 origin-top-right bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 focus:outline-none z-50 transform transition-all duration-200 ease-out sm:relative sm:mt-2 sm:w-36 mobile-dropdown"
-          role="menu"
-          aria-orientation="vertical"
-          aria-labelledby="language-button"
-        >
-          <div className="py-1" role="listbox">
-            <button
-              ref={(el) => { languageButtonsRef.current[0] = el; }}
-              onClick={() => handleLanguageChange('ar')}
-              onKeyDown={(e) => handleOptionKeyDown(e, 0, 'ar')}
-              className={`flex items-center w-full px-3 py-2 text-sm ${
-                locale === 'ar' 
-                ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-medium' 
-                : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
-              }`}
-              role="option"
-              aria-selected={locale === 'ar'}
-              tabIndex={0}
-            >
-              <span className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 text-xs font-medium mr-2 rtl:ml-2 rtl:mr-0">AR</span>
-              <span>{t('languages.arabic')}</span>
-              {locale === 'ar' && (
-                <svg className="ml-auto w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
-                </svg>
-              )}
-            </button>
-            <button
-              ref={(el) => { languageButtonsRef.current[1] = el; }}
-              onClick={() => handleLanguageChange('en')}
-              onKeyDown={(e) => handleOptionKeyDown(e, 1, 'en')}
-              className={`flex items-center w-full px-3 py-2 text-sm ${
-                locale === 'en' 
-                ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-medium' 
-                : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
-              }`}
-              role="option"
-              aria-selected={locale === 'en'}
-              tabIndex={0}
-            >
-              <span className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 text-xs font-medium mr-2 rtl:ml-2 rtl:mr-0">EN</span>
-              <span>{t('languages.english')}</span>
-              {locale === 'en' && (
-                <svg className="ml-auto w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
-                </svg>
-              )}
-            </button>
+        <>
+          {/* Backdrop overlay for mobile */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 sm:hidden" 
+            onClick={() => setIsOpen(false)}
+            aria-hidden="true"
+          />
+          
+          {/* Desktop dropdown */}
+          <div 
+            id="language-menu-desktop"
+            className="hidden sm:block absolute mt-2 right-0 rtl:right-auto rtl:left-0 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 focus:outline-none z-50"
+            role="menu"
+            aria-orientation="vertical"
+            aria-labelledby="language-button"
+            onClick={(e) => e.stopPropagation()} // Prevent clicks from bubbling
+          >
+            <div className="py-1" role="listbox">
+              <button
+                ref={(el) => { languageButtonsRef.current[0] = el; }}
+                onClick={() => handleLanguageChange('ar')}
+                onKeyDown={(e) => handleOptionKeyDown(e, 0, 'ar')}
+                className={`flex items-center w-full px-4 py-3 text-sm ${
+                  locale === 'ar' 
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-medium' 
+                  : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
+                }`}
+                role="option"
+                aria-selected={locale === 'ar'}
+                tabIndex={0}
+              >
+                <span className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-sm font-medium mr-3 rtl:ml-3 rtl:mr-0">العربية</span>
+                <span>{t('languages.arabic')}</span>
+                {locale === 'ar' && (
+                  <svg className="ml-auto w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                  </svg>
+                )}
+              </button>
+              <button
+                ref={(el) => { languageButtonsRef.current[1] = el; }}
+                onClick={() => handleLanguageChange('en')}
+                onKeyDown={(e) => handleOptionKeyDown(e, 1, 'en')}
+                className={`flex items-center w-full px-4 py-3 text-sm ${
+                  locale === 'en' 
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-medium' 
+                  : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
+                }`}
+                role="option"
+                aria-selected={locale === 'en'}
+                tabIndex={0}
+              >
+                <span className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-sm font-medium mr-3 rtl:ml-3 rtl:mr-0">EN</span>
+                <span>{t('languages.english')}</span>
+                {locale === 'en' && (
+                  <svg className="ml-auto w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
+          
+          {/* Mobile bottom sheet */}
+          <div 
+            id="language-menu-mobile"
+            className="sm:hidden mobile-dropdown bg-white dark:bg-gray-800 shadow-lg border-t border-gray-200 dark:border-gray-700 focus:outline-none"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="language-sheet-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-center pt-2 pb-1">
+              <div className="w-12 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+            </div>
+            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+              <h3 id="language-sheet-title" className="text-lg font-medium text-center text-gray-900 dark:text-white">
+                {t('selectLanguage', 'Select Language')}
+              </h3>
+            </div>
+            <div className="p-2" role="listbox">
+              <button
+                ref={(el) => { languageButtonsRef.current[0] = el; }}
+                onClick={() => handleLanguageChange('ar')}
+                onKeyDown={(e) => handleOptionKeyDown(e, 0, 'ar')}
+                className={`flex items-center w-full px-4 py-4 text-sm ${
+                  locale === 'ar' 
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-medium' 
+                  : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
+                }`}
+                role="option"
+                aria-selected={locale === 'ar'}
+                tabIndex={0}
+              >
+                <span className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 text-sm font-medium mr-4 rtl:ml-4 rtl:mr-0">العربية</span>
+                <span className="text-base">{t('languages.arabic')}</span>
+                {locale === 'ar' && (
+                  <svg className="ml-auto w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                  </svg>
+                )}
+              </button>
+              <button
+                ref={(el) => { languageButtonsRef.current[1] = el; }}
+                onClick={() => handleLanguageChange('en')}
+                onKeyDown={(e) => handleOptionKeyDown(e, 1, 'en')}
+                className={`flex items-center w-full px-4 py-4 text-sm ${
+                  locale === 'en' 
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-medium' 
+                  : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
+                }`}
+                role="option"
+                aria-selected={locale === 'en'}
+                tabIndex={0}
+              >
+                <span className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 text-sm font-medium mr-4 rtl:ml-4 rtl:mr-0">EN</span>
+                <span className="text-base">{t('languages.english')}</span>
+                {locale === 'en' && (
+                  <svg className="ml-auto w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                  </svg>
+                )}
+              </button>
+              {/* Add some padding to bottom for safe area */}
+              <div className="h-6"></div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
