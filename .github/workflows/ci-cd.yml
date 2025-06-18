@@ -177,44 +177,44 @@ jobs:
         cache-dependency-path: './frontend/package.json'
         run-tests: 'false'  # Skip tests, just build to ensure code compiles
         
-  docker-build:
-    runs-on: ubuntu-latest
-    needs: [main-quick-test]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  # docker-build:
+  #   runs-on: ubuntu-latest
+  #   needs: [main-quick-test]
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #     with:
+  #       fetch-depth: 0
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+  #   - name: Set up Docker Buildx
+  #     uses: docker/setup-buildx-action@v3
 
-    - name: Login to DockerHub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #   - name: Login to DockerHub
+  #     uses: docker/login-action@v3
+  #     with:
+  #       username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #       password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and push backend image
-      uses: docker/build-push-action@v5
-      with:
-        context: ./backend/autotrader-backend
-        file: ./backend/autotrader-backend/Dockerfile
-        push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/caryo-backend:latest,${{ secrets.DOCKERHUB_USERNAME }}/caryo-backend:${{ github.sha }}
+  #   - name: Build and push backend image
+  #     uses: docker/build-push-action@v5
+  #     with:
+  #       context: ./backend/autotrader-backend
+  #       file: ./backend/autotrader-backend/Dockerfile
+  #       push: true
+  #       tags: ${{ secrets.DOCKERHUB_USERNAME }}/caryo-backend:latest,${{ secrets.DOCKERHUB_USERNAME }}/caryo-backend:${{ github.sha }}
 
-    - name: Build and push frontend image
-      uses: docker/build-push-action@v5
-      with:
-        context: ./frontend
-        file: ./frontend/Dockerfile
-        push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/caryo-frontend:latest,${{ secrets.DOCKERHUB_USERNAME }}/caryo-frontend:${{ github.sha }}
+  #   - name: Build and push frontend image
+  #     uses: docker/build-push-action@v5
+  #     with:
+  #       context: ./frontend
+  #       file: ./frontend/Dockerfile
+  #       push: true
+  #       tags: ${{ secrets.DOCKERHUB_USERNAME }}/caryo-frontend:latest,${{ secrets.DOCKERHUB_USERNAME }}/caryo-frontend:${{ github.sha }}
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [docker-build]  # This is fine because docker-build will run for push events
+    needs: [main-quick-test]  # Changed from docker-build to main-quick-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
