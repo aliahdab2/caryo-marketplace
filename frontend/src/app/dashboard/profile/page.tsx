@@ -4,11 +4,27 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
+interface ExtendedSession {
+  user?: {
+    id?: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    provider?: string;
+    roles?: string[];
+  };
+}
+
 export default function ProfilePage() {
-  const { data: session } = useSession();
+  const { data: session } = useSession() as { data: ExtendedSession | null };
   const { t } = useTranslation('common');
   const [isEditing, setIsEditing] = useState(false);
   const [userRoles, setUserRoles] = useState<string>('');
+  
+  // Check if user logged in via OAuth (like Google)
+  const isOAuthUser = session?.user?.provider === 'google' || 
+                      session?.user?.image?.includes('googleusercontent.com') || 
+                      localStorage.getItem('authMethod') === 'oauth';
   
   // Form state (in a real app, this would be handled with React Hook Form)
   const [formData, setFormData] = useState({
@@ -271,15 +287,31 @@ export default function ProfilePage() {
         <h2 className="text-xl font-semibold mb-4">{t('dashboard.accountSecurity')}</h2>
         
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="font-medium text-gray-900 dark:text-white">{t('auth.password')}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.lastUpdated')}: 3 months ago</p>
+          {/* Only show password management for non-OAuth users */}
+          {!isOAuthUser && (
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white">{t('auth.password')}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.lastUpdated')}: 3 months ago</p>
+              </div>
+              <button className="text-primary hover:underline">{t('auth.changePassword')}</button>
             </div>
-            <button className="text-primary hover:underline">{t('auth.changePassword')}</button>
-          </div>
+          )}
           
-          <div className="flex justify-between items-center pt-4 border-t dark:border-gray-700">
+          {/* Show OAuth authentication info for OAuth users */}
+          {isOAuthUser && (
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white">Google Authentication</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">You&apos;re signed in with your Google account</p>
+              </div>
+              <span className="px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 rounded-full text-sm">
+                Active
+              </span>
+            </div>
+          )}
+          
+          <div className={`flex justify-between items-center ${!isOAuthUser ? 'pt-4 border-t dark:border-gray-700' : ''}`}>
             <div>
               <h3 className="font-medium text-gray-900 dark:text-white">{t('dashboard.twoFactorAuth')}</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.improveAccountSecurity')}</p>

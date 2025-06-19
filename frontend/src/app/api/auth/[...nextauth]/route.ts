@@ -15,6 +15,7 @@ import { serverAuth } from "@/services/server-auth";
 interface AugmentedUser {
   id: string;
   roles: string[];
+  provider?: string;
   name?: string | null;
   email?: string | null;
   image?: string | null;
@@ -25,6 +26,7 @@ interface AugmentedJWT extends NextAuthJWT {
   id: string;
   roles: string[];
   accessToken: string;
+  provider?: string;
   error?: string;
   name?: string | null;
   email?: string | null;
@@ -111,6 +113,7 @@ const authOptions: NextAuthOptions = {
         resultToken.name = typedUser.name ?? null;
         resultToken.email = typedUser.email ?? null;
         resultToken.picture = typedUser.image ?? resultToken.picture ?? null;
+        resultToken.provider = account?.provider;
 
         if (account?.provider === "google") {
           // For Google OAuth, we need to exchange the token for our backend JWT
@@ -167,6 +170,7 @@ const authOptions: NextAuthOptions = {
       extendedSession.user = {
         id: extendedToken.id,
         roles: extendedToken.roles,
+        provider: extendedToken.provider,
         name: extendedToken.name ?? null,
         email: extendedToken.email ?? null,
         image: extendedToken.picture ?? null,
