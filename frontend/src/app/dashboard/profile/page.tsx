@@ -310,16 +310,37 @@ export default function ProfilePage() {
               </span>
             </div>
           )}
-          
-          <div className={`flex justify-between items-center ${!isOAuthUser ? 'pt-4 border-t dark:border-gray-700' : ''}`}>
-            <div>
-              <h3 className="font-medium text-gray-900 dark:text-white">{t('dashboard.twoFactorAuth')}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.improveAccountSecurity')}</p>
+
+          {/* Show Google account security info for OAuth users */}
+          {isOAuthUser && (
+            <div className="flex justify-between items-center pt-4 border-t dark:border-gray-700">
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white">Account Security</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Security is managed by your Google account settings</p>
+              </div>
+              <a 
+                href="https://myaccount.google.com/security" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Manage on Google
+              </a>
             </div>
-            <button className="py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
-              {t('dashboard.setupTwoFactor')}
-            </button>
-          </div>
+          )}
+          
+          {/* Show 2FA setup for regular email/password users only */}
+          {!isOAuthUser && (
+            <div className="flex justify-between items-center pt-4 border-t dark:border-gray-700">
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white">{t('dashboard.twoFactorAuth')}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.improveAccountSecurity')}</p>
+              </div>
+              <button className="py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                {t('dashboard.setupTwoFactor')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
