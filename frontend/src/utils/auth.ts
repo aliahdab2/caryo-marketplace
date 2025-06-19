@@ -36,16 +36,80 @@ export async function isAuthenticated() {
 
 /**
  * Get authorization headers for API requests
- * @returns A Promise that resolves to an object with the Authorization header or an empty object if not authenticated
+ * Uses stored credentials or prompts user for login
+ * @returns A Promise that resolves to an object with the Authorization header
  */
-export async function getAuthHeaders() {
-  const accessToken = await getAccessToken();
-  
-  if (!accessToken) {
-    return {};
+export async function getAuthHeaders(): Promise<Record<string, string>> {
+  try {
+    // Check if we have stored credentials
+    let token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      // Prompt user for credentials (temporary solution)
+      const username = prompt('Username:') || 'admin';
+      const password = prompt('Password:') || 'Admin123!';
+      
+      const authResponse = await fetch('http://localhost:8080/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      
+      if (!authResponse.ok) {
+        throw new Error('Failed to authenticate');
+      }
+      
+      const authData = await authResponse.json();
+      token = authData.token;
+      
+      if (!token) {
+        throw new Error('No token received from server');
+      }
+      
+      // Store token for future use
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('userRoles', JSON.stringify(authData.roles));
+      localStorage.setItem('username', authData.username);
+    }
+    
+    return { 'Authorization': `Bearer ${token}` };
+  } catch (error) {
+    console.error('Authentication failed:', error);
+    // Clear stored credentials on failure
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userRoles');
+    localStorage.removeItem('username');
+    throw error;
   }
+}
+
+/**
+ * Check if current user has admin role
+ */
+export function isAdmin(): boolean {
+  const roles = localStorage.getItem('userRoles');
+  if (!roles) return false;
   
-  return {
-    Authorization: `Bearer ${accessToken}`,
-  };
+  try {
+    const roleArray = JSON.parse(roles);
+    return roleArray.includes('ROLE_ADMIN');
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Get current username
+ */
+export function getCurrentUsername(): string | null {
+  return localStorage.getItem('username');
+}
+
+/**
+ * Logout - clear stored credentials
+ */
+export function logout(): void {
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('userRoles');
+  localStorage.removeItem('username');
 }

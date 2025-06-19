@@ -1,6 +1,112 @@
 import { Lang } from './i18n';
 
 /**
+ * Interface for API filtering and querying
+ */
+export interface ListingFilters {
+  minPrice?: string;
+  maxPrice?: string;
+  minYear?: string;
+  maxYear?: string;
+  location?: string;
+  brand?: string;
+  model?: string;
+  searchTerm?: string;
+  page?: number;
+  limit?: number;
+}
+
+/**
+ * Interface for location details from the backend
+ */
+export interface LocationDetails {
+  id: number;
+  name: string;
+  displayNameEn: string;
+  displayNameAr: string;
+  slug: string;
+  region: string;
+  countryCode: string;
+}
+
+/**
+ * Interface for governorate details from the backend
+ */
+export interface GovernorateDetails {
+  displayNameEn: string;
+  displayNameAr: string;
+}
+
+/**
+ * Interface for listing media from the backend
+ */
+export interface ListingMedia {
+  id: number;
+  url: string;
+  contentType: string;
+  isPrimary: boolean;
+}
+
+/**
+ * Interface for API listing item response structure 
+ */
+export interface ApiListingItem {
+  id: number;
+  title: string;
+  brandNameEn: string;
+  brandNameAr: string;
+  modelNameEn: string;
+  modelNameAr: string;
+  modelYear: number;
+  mileage: number;
+  price: number;
+  locationDetails: LocationDetails | null;
+  governorateDetails?: GovernorateDetails;
+  governorateNameEn?: string;
+  governorateNameAr?: string;
+  description: string;
+  media: ListingMedia[];
+  approved: boolean;
+  sellerId: number;
+  sellerUsername: string;
+  createdAt: string;
+  isSold: boolean;
+  isArchived: boolean;
+  isUserActive: boolean;
+  isExpired: boolean;
+  transmission?: string;
+  fuelType?: string;
+}
+
+/**
+ * Interface for API response when fetching multiple listings
+ */
+export interface BackendListingApiResponse {
+  content: ApiListingItem[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}
+
+/**
+ * Interface for update listing request
+ */
+export interface UpdateListingData {
+  title?: string;
+  modelId?: number;
+  modelYear?: number;
+  mileage?: number;
+  price?: number;
+  locationId?: number;
+  description?: string;
+  transmission?: string;
+  isSold?: boolean;
+  isArchived?: boolean;
+}
+
+/**
  * Interface for a car listing
  */
 export interface Listing {
@@ -104,7 +210,7 @@ export interface ListingFormData {
 }
 
 /**
- * Interface for API response when fetching listings
+ * Interface for API response when fetching listings (frontend format)
  */
 export interface ListingApiResponse {
   data: Listing[];

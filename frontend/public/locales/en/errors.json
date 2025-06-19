@@ -22,5 +22,13 @@
     "sessionTokenMissingMaxRetries": "Unable to establish a valid session after multiple attempts. Please sign in again.",
     "retryFailedNoSession": "Cannot retry without a valid session. Please sign in.",
     "unauthorized": "Authentication required to view favorites."
-  }
+  },
+  "failedToLoadGovernorates": "Failed to load governorates. Please try again.",
+  "failedToLoadCarMakes": "Failed to load car makes. Please try again.",
+  "failedToLoadCarModels": "Failed to load car models. Please try again.",
+  "isRequired": "is required",
+  "invalidYear": "Please enter a valid year between 1920 and current year",
+  "invalidMileage": "Mileage cannot be negative",
+  "invalidPrice": "Price must be greater than zero",
+  "failedToSubmitListing": "Failed to create listing. Please try again."
 }

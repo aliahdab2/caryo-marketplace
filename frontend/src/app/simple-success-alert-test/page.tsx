@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import SimpleSuccessAlert from '@/components/ui/alerts/SimpleSuccessAlert';
+import SimpleSuccessAlert from '@/components/ui/SimpleSuccessAlert';
 
 export default function SimpleSuccessAlertTest() {
   const [showAlert, setShowAlert] = useState(false);

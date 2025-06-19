@@ -19,8 +19,11 @@ import {
   MdEmail,
   MdAnalytics,
   MdSupportAgent,
-  MdAdd
+  MdAdd,
+  MdAdminPanelSettings
 } from "react-icons/md";
+import { isAdmin } from '@/utils/auth';
+import { ToastProvider } from '@/components/ui/ToastProvider';
 
 // Navigation item type
 type NavItem = {
@@ -105,14 +108,14 @@ export default function DashboardLayout({
 }) {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
   // Handle authentication redirection with a consistent user experience
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push(`/auth/signin?message=${encodeURIComponent(t('auth.loginToAccess'))}`);
+      router.push(`/auth/signin?message=${encodeURIComponent('Please log in to access dashboard')}`);
     }
   }, [status, router, t]);
 
@@ -134,7 +137,7 @@ export default function DashboardLayout({
       <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
         <div className="flex flex-col items-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">{t('loading')}</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading...</p>
         </div>
       </div>
     );
@@ -167,6 +170,13 @@ export default function DashboardLayout({
       icon: <MdEmail className="text-xl" />,
       tooltip: t('dashboard.messagesTooltip') || 'Your messages'
     },
+    // Admin navigation - only show to admin users
+    ...(isAdmin() ? [{
+      name: t('dashboard.adminPanel', 'Admin Panel'),
+      href: "/dashboard/admin",
+      icon: <MdAdminPanelSettings className="text-xl" />,
+      tooltip: t('dashboard.adminPanelTooltip', 'Manage listings and users')
+    }] : []),
     { 
       name: t('dashboard.profile'), 
       href: "/dashboard/profile", 
@@ -204,7 +214,8 @@ export default function DashboardLayout({
   ];
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-100 dark:bg-gray-900">
+    <ToastProvider>
+      <div className="flex flex-col md:flex-row min-h-screen bg-gray-100 dark:bg-gray-900">
       {/* Mobile Nav Toggle - Enhanced with brand color and improved accessibility */}
       <header className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow sticky top-0 z-40">
         <h1 className="text-lg font-semibold flex items-center">
@@ -421,5 +432,6 @@ export default function DashboardLayout({
         </footer>
       </div>
     </div>
+    </ToastProvider>
   );
 }

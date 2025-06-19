@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { authService } from "@/services/auth";
-import SuccessAlert from "@/components/ui/alerts/SuccessAlert";
+import SuccessAlert from "@/components/ui/SuccessAlert";
 import SimpleVerification from '@/components/auth/SimpleVerification';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import Image from 'next/image';

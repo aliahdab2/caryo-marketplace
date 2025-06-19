@@ -3,9 +3,9 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ListingFormData } from '@/types/listings';
+import { ListingFormData, UpdateListingData } from '@/types/listings';
 import { Governorate, fetchGovernorates } from '@/services/api';
-import { getListingById, updateListing, UpdateListingData } from '@/services/listings';
+import { getListingById, updateListing } from '@/services/listings';
 import ListingExpiry from "../../components/ListingExpiry";
 
 // Client component
