@@ -1,13 +1,14 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 export default function ProfilePage() {
   const { data: session } = useSession();
   const { t } = useTranslation('common');
   const [isEditing, setIsEditing] = useState(false);
+  const [userRoles, setUserRoles] = useState<string>('');
   
   // Form state (in a real app, this would be handled with React Hook Form)
   const [formData, setFormData] = useState({
@@ -17,6 +18,80 @@ export default function ProfilePage() {
     location: '',
     bio: ''
   });
+
+  // Get user roles from localStorage
+  useEffect(() => {
+    const updateRoles = async () => {
+      const roles = localStorage.getItem('userRoles');
+      
+      if (roles) {
+        try {
+          const roleArray = JSON.parse(roles);
+          if (Array.isArray(roleArray)) {
+            if (roleArray.length > 0) {
+              setUserRoles(roleArray.join(", "));
+            } else {
+              setUserRoles('No roles assigned');
+              // Automatically try to refresh roles if empty and user is logged in
+              if (session?.user?.email) {
+                await fetchRolesFromBackend();
+              }
+            }
+          } else {
+            setUserRoles('Invalid roles format');
+          }
+        } catch {
+          setUserRoles('Error loading roles');
+        }
+      } else {
+        setUserRoles('No roles found');
+        // Automatically try to refresh roles if not found and user is logged in
+        if (session?.user?.email) {
+          await fetchRolesFromBackend();
+        }
+      }
+    };
+
+    const fetchRolesFromBackend = async () => {
+      if (!session?.user?.email) return;
+
+      try {
+        const response = await fetch('http://localhost:8080/api/auth/social-login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            provider: "google",
+            email: session.user.email,
+            name: session.user.name || "",
+            providerAccountId: "auto-refresh",
+            image: session.user.image || ""
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.roles && Array.isArray(result.roles)) {
+            localStorage.setItem('userRoles', JSON.stringify(result.roles));
+            setUserRoles(result.roles.join(", "));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to auto-refresh user roles:', error);
+      }
+    };
+
+    updateRoles();
+
+    // Listen for storage changes
+    const handleStorageChange = () => updateRoles();
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [session]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -36,11 +111,6 @@ export default function ProfilePage() {
       // Show success message
     }, 500);
   };
-
-  // Get user roles as string
-  const userRoles = session?.user && 'roles' in session.user && Array.isArray(session.user.roles)
-    ? session.user.roles.join(", ")
-    : t('dashboard.noRoles');
 
   return (
     <div>

@@ -85,16 +85,50 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
 
 /**
  * Check if current user has admin role
+ * @returns boolean indicating if user has ROLE_ADMIN
  */
 export function isAdmin(): boolean {
-  const roles = localStorage.getItem('userRoles');
-  if (!roles) return false;
-  
   try {
+    const roles = localStorage.getItem('userRoles');
+    if (!roles) return false;
+    
     const roleArray = JSON.parse(roles);
-    return roleArray.includes('ROLE_ADMIN');
+    return Array.isArray(roleArray) && roleArray.includes('ROLE_ADMIN');
   } catch {
     return false;
+  }
+}
+
+/**
+ * Check if user has a specific role
+ * @param role The role to check for
+ * @returns boolean indicating if user has the specified role
+ */
+export function hasRole(role: string): boolean {
+  try {
+    const roles = localStorage.getItem('userRoles');
+    if (!roles) return false;
+    
+    const roleArray = JSON.parse(roles);
+    return Array.isArray(roleArray) && roleArray.includes(role);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Get all user roles
+ * @returns array of user roles or empty array if none found
+ */
+export function getUserRoles(): string[] {
+  try {
+    const roles = localStorage.getItem('userRoles');
+    if (!roles) return [];
+    
+    const roleArray = JSON.parse(roles);
+    return Array.isArray(roleArray) ? roleArray : [];
+  } catch {
+    return [];
   }
 }
 
