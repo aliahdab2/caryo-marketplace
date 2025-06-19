@@ -163,12 +163,12 @@ export default function ProfilePage() {
     }
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordError('New passwords do not match');
+      setPasswordError(t('auth.passwordsDoNotMatch'));
       return;
     }
 
     if (passwordForm.newPassword.length < 8) {
-      setPasswordError('New password must be at least 8 characters long');
+      setPasswordError(t('auth.passwordTooShort'));
       return;
     }
 
@@ -188,7 +188,7 @@ export default function ProfilePage() {
       });
 
       if (response.ok) {
-        setPasswordSuccess('Password changed successfully');
+        setPasswordSuccess(t('auth.passwordChangeSuccess'));
         setPasswordForm({
           currentPassword: '',
           newPassword: '',
@@ -200,11 +200,11 @@ export default function ProfilePage() {
         }, 2000);
       } else {
         const error = await response.json();
-        setPasswordError(error.message || 'Failed to change password');
+        setPasswordError(error.message || t('auth.passwordChangeFailed'));
       }
     } catch (error) {
       console.error('Password change error:', error);
-      setPasswordError('Network error. Please try again.');
+      setPasswordError(t('auth.networkError'));
     } finally {
       setIsChangingPassword(false);
     }
@@ -473,7 +473,7 @@ export default function ProfilePage() {
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
               <div>
                 <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Current Password
+                  {t('auth.currentPassword')}
                 </label>
                 <div className="relative">
                   <input
@@ -506,7 +506,7 @@ export default function ProfilePage() {
 
               <div>
                 <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  New Password
+                  {t('auth.newPassword')}
                 </label>
                 <div className="relative">
                   <input
@@ -537,13 +537,13 @@ export default function ProfilePage() {
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Must be at least 8 characters long
+                  {t('auth.passwordMinLength')}
                 </p>
               </div>
 
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Confirm New Password
+                  {t('auth.confirmNewPassword')}
                 </label>
                 <div className="relative">
                   <input
@@ -590,7 +590,7 @@ export default function ProfilePage() {
                   className="py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                   disabled={isChangingPassword}
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   type="submit"
@@ -603,7 +603,7 @@ export default function ProfilePage() {
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                   )}
-                  {isChangingPassword ? 'Changing...' : 'Change Password'}
+                  {isChangingPassword ? t('auth.changing') : t('auth.changePassword')}
                 </button>
               </div>
             </form>
