@@ -4,6 +4,7 @@ import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
+import com.autotrader.autotraderbackend.payload.request.ChangePasswordRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.payload.response.MessageResponse;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
@@ -221,5 +222,43 @@ public class AuthController {
             user.getEmail(), 
             roles
         ));
+    }
+
+    @Operation(
+        summary = "Change Password",
+        description = "Change the current user's password"
+    )
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
+        // Get the current authenticated user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse("Error: User not authenticated!"));
+        }
+
+        String username = authentication.getName();
+        
+        // Find the user in the database
+        User user = userRepository.findByUsername(username)
+            .orElse(null);
+            
+        if (user == null) {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse("Error: User not found!"));
+        }
+
+        // Verify the current password
+        if (!encoder.matches(changePasswordRequest.getCurrentPassword(), user.getPassword())) {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse("Error: Current password is incorrect!"));
+        }
+
+        // Update the password
+        user.setPassword(encoder.encode(changePasswordRequest.getNewPassword()));
+        userRepository.save(user);
+
+        return ResponseEntity.ok(new MessageResponse("Password changed successfully!"));
     }
 }
