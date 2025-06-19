@@ -9,6 +9,16 @@ import '../mocks/i18n-mock';
 // Mock next-auth
 jest.mock('next-auth/react');
 
+// Extended user interface for testing OAuth users
+interface ExtendedUser {
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  provider?: string;
+  roles?: string[];
+}
+
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
@@ -48,7 +58,7 @@ describe('OAuth User Detection in Profile Page', () => {
           email: 'john@gmail.com',
           provider: 'google',
           roles: ['USER']
-        } as any,
+        } as ExtendedUser,
         accessToken: 'mock-token',
         expires: '2024-12-31T23:59:59.999Z'
       },
@@ -75,7 +85,7 @@ describe('OAuth User Detection in Profile Page', () => {
           email: 'john@gmail.com',
           image: 'https://lh3.googleusercontent.com/a/xyz',
           roles: ['USER']
-        } as any,
+        } as ExtendedUser,
         accessToken: 'mock-token',
         expires: '2024-12-31T23:59:59.999Z'
       },
@@ -101,7 +111,7 @@ describe('OAuth User Detection in Profile Page', () => {
           email: 'john@email.com',
           provider: 'credentials',
           roles: ['USER']
-        } as any,
+        } as ExtendedUser,
         accessToken: 'mock-token',
         expires: '2024-12-31T23:59:59.999Z'
       },
