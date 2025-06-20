@@ -73,12 +73,21 @@ const mockTranslations: Record<string, string> = {
   'dashboard.twoFactorAuth': 'Two-Factor Authentication',
   'dashboard.improveAccountSecurity': 'Improve your account security',
   'dashboard.setupTwoFactor': 'Setup Two-Factor',
+  'dashboard.manageProfile': 'Manage your profile information and preferences',
+  'dashboard.editProfile': 'Edit Profile',
+  'dashboard.updateInfo': 'Update your personal information',
+  'dashboard.manageSecuritySettings': 'Manage your security settings and authentication methods',
+  'dashboard.recommendPasswordUpdate': 'Recommended: Update your password regularly',
+  'dashboard.tellUsAboutYourself': 'Tell us about yourself...',
+  'dashboard.emailCannotBeChanged': 'Email address cannot be changed',
   
   // Contact information
   'contactInformation.memberSince': 'Member since',
   'contactInformation.phone': 'Phone',
   'contactInformation.location': 'Location',
   'contactInformation.notProvided': 'Not provided',
+  'contactInformation.enterPhone': 'Enter your phone number',
+  'contactInformation.enterLocation': 'Enter your location',
   
   // Auth related
   'auth.userId': 'User ID',

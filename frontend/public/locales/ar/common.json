@@ -336,5 +336,11 @@
   "status": "الحالة",
   "actions": "الإجراءات",
   "edit": "تعديل",
-  "delete": "حذف"
+  "delete": "حذف",
+  "dashboard.updateInfo": "تحديث معلوماتك الشخصية",
+  "dashboard.manageSecuritySettings": "إدارة إعدادات الأمان وطرق المصادقة",
+  "dashboard.recommendPasswordUpdate": "موصى به: قم بتحديث كلمة المرور بانتظام",
+  "dashboard.tellUsAboutYourself": "أخبرنا عن نفسك...",
+  "contactInformation.enterPhone": "أدخل رقم هاتفك",
+  "contactInformation.enterLocation": "أدخل موقعك"
 }

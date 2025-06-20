@@ -333,5 +333,11 @@
   "error": "Error",
   "listings.status": "Status",
   "listings.noListings": "You don't have any listings yet",
-  "listings.noMatchingListings": "No matching listings found"
+  "listings.noMatchingListings": "No matching listings found",
+  "dashboard.updateInfo": "Update your personal information",
+  "dashboard.manageSecuritySettings": "Manage your security settings and authentication methods",
+  "dashboard.recommendPasswordUpdate": "Recommended: Update your password regularly",
+  "dashboard.tellUsAboutYourself": "Tell us about yourself...",
+  "contactInformation.enterPhone": "Enter your phone number",
+  "contactInformation.enterLocation": "Enter your location"
 }
