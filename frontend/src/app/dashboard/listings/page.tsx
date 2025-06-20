@@ -4,7 +4,10 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
+import { getSession } from "next-auth/react";
 import { formatDate, formatNumber } from "../../../utils/localization";
+import { getMyListings } from "../../../services/listings";
+import { Listing } from "../../../types/listings";
 import { 
   MdSearch, 
   MdFilterListAlt, 
@@ -24,69 +27,45 @@ import {
   MdOutlineNotificationsActive
 } from "react-icons/md";
 
-// Mock data for listings (in a real app, this would come from an API)
-const MOCK_LISTINGS = [
-	{
-		id: "1",
-		title: "Toyota Camry 2020",
-		price: 25000,
-		currency: "SYP",
-		location: "Dubai",
-		created: "2023-05-15",
-		expires: "2025-07-20", // future date
-		status: "active",
-		views: 120,
-		image: "/images/vehicles/car-default.svg",
-	},
-	{
-		id: "2",
-		title: "Honda Civic 2019",
-		price: 18500,
-		currency: "SYP",
-		location: "Abu Dhabi",
-		created: "2023-04-20",
-		expires: "2025-05-22", // future date
-		status: "active",
-		views: 75,
-		image: "/images/vehicles/car-default.svg",
-	},
-	{
-		id: "3",
-		title: "BMW X5 2018",
-		price: 35000,
-		currency: "SYP",
-		location: "Sharjah",
-		created: "2023-03-10",
-		expires: "2023-06-10", // past date
-		status: "expired",
-		views: 210,
-		image: "/images/vehicles/car-default.svg",
-	},
-  {
-		id: "4",
-		title: "Mercedes E-Class 2019",
-		price: 32500,
-		currency: "SYP",
-		location: "Dubai",
-		created: "2023-05-10",
-		expires: "2023-07-05", // past date
-		status: "expired",
-		views: 180,
-		image: "/images/vehicles/car-default.svg",
-	},
-];
-
 export default function ListingsPage() {
 	const { t, i18n } = useTranslation("common");
 	const [search, setSearch] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
 	const [sortBy, setSortBy] = useState("newest");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-	const [listings, setListings] = useState(MOCK_LISTINGS);
+	const [listings, setListings] = useState<Listing[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
   const [tableRefreshed, setTableRefreshed] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
+  
+  // Load user's listings from API
+  useEffect(() => {
+    const loadListings = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const session = await getSession();
+        
+        if (session && session.accessToken) {
+          const userListings = await getMyListings();
+          setListings(userListings);
+        } else {
+          throw new Error('You need to log in to view your listings');
+        }
+      } catch (err) {
+        console.error('Failed to load listings:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load listings');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadListings();
+  }, []);
   
   // Hook for the sticky header effect
   useEffect(() => {
@@ -152,15 +131,17 @@ export default function ListingsPage() {
 				case "price":
 					return sortMultiplier * (a.price - b.price);
 				case "date":
-					return sortMultiplier * (new Date(a.created).getTime() - new Date(b.created).getTime());
+					return sortMultiplier * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 				case "views":
-					return sortMultiplier * (a.views - b.views);
+					return sortMultiplier * ((a.views || 0) - (b.views || 0));
 				case "expiry":
-					return sortMultiplier * (new Date(a.expires).getTime() - new Date(b.expires).getTime());
+					const aExpires = a.expires || a.createdAt;
+					const bExpires = b.expires || b.createdAt;
+					return sortMultiplier * (new Date(aExpires).getTime() - new Date(bExpires).getTime());
 				case "title":
           return sortMultiplier * a.title.localeCompare(b.title);
 				default:
-					return sortMultiplier * (new Date(b.created).getTime() - new Date(a.created).getTime());
+					return sortMultiplier * (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 			}
 		});
 
@@ -175,36 +156,36 @@ export default function ListingsPage() {
     setSortOrder("desc");
   };
 
-	// Function to handle listing delete
-	const handleDelete = (id: string) => {
-		if (window.confirm(t("listings.confirmDelete"))) {
-			setListings((prev) => prev.filter((listing) => listing.id !== id));
+  // Function to handle listing delete
+  const handleDelete = (id: string) => {
+    if (window.confirm(t("listings.confirmDelete"))) {
+      setListings((prev) => prev.filter((listing) => listing.id !== id));
       // Also remove from selected items if present
       if (selectedItems.includes(id)) {
         setSelectedItems(prev => prev.filter(itemId => itemId !== id));
       }
-		}
-	};
+    }
+  };
 
-	// Function to handle listing renewal
-	const handleRenew = (id: string) => {
-		setListings((prev) =>
-			prev.map((listing) => {
-				if (listing.id === id) {
-					// Calculate new expiry date (+ 3 months from now)
-					const newExpiry = new Date();
-					newExpiry.setMonth(newExpiry.getMonth() + 3);
+  // Function to handle listing renewal
+  const handleRenew = (id: string) => {
+    setListings((prev) =>
+      prev.map((listing) => {
+        if (listing.id === id) {
+          // Calculate new expiry date (+ 3 months from now)
+          const newExpiry = new Date();
+          newExpiry.setMonth(newExpiry.getMonth() + 3);
 
-					return {
-						...listing,
-						status: "active",
-						expires: newExpiry.toISOString().split("T")[0],
-					};
-				}
-				return listing;
-			})
-		);
-	};
+          return {
+            ...listing,
+            status: "active",
+            expires: newExpiry.toISOString().split("T")[0],
+          };
+        }
+        return listing;
+      })
+    );
+  };
 
   // Handle bulk operations
   const handleBulkAction = (action: 'delete' | 'renew') => {
@@ -285,22 +266,50 @@ export default function ListingsPage() {
     );
   };
 
-	return (
-		<div className={`transition-all duration-300 ${tableRefreshed ? 'opacity-70' : 'opacity-100'}`}>
-			<div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
-				<div>
-					<h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-1">
-						{t("dashboard.myListings")}
-					</h1>
-					<p className="text-sm text-gray-500 dark:text-gray-400">
-						{new Date().toLocaleDateString(i18n.language, { 
-							weekday: 'long', 
-							year: 'numeric', 
-							month: 'long', 
-							day: 'numeric' 
-						})}
-					</p>
-				</div>
+  // Loading State
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <div className="text-gray-600 dark:text-gray-400">{t('loading')}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center mb-6">
+            <div className="text-red-600 dark:text-red-400 text-lg mb-2">⚠️ {t('error')}</div>
+            <p className="text-red-700 dark:text-red-300 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors"
+            >
+              {t('tryAgain')}
+            </button>
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-1">{t("dashboard.myListings")}</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {new Date().toLocaleDateString(i18n.language, { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </p>
+          </div>
 				<div className="flex items-center gap-2">
 					<button
 						onClick={refreshTable}
@@ -550,7 +559,8 @@ export default function ListingsPage() {
 							{filteredListings.length > 0 ? (
 								filteredListings.map((listing) => {
                   // Calculate days until expiry
-                  const daysUntilExpiry = getDaysUntilExpiry(listing.expires);
+                  const expiryDate = listing.expires || listing.createdAt;
+                  const daysUntilExpiry = getDaysUntilExpiry(expiryDate);
                   
                   // Format expiry text with appropriate translation
                   const expiryText = daysUntilExpiry > 0 
@@ -613,12 +623,12 @@ export default function ListingsPage() {
 															<svg className="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
 																<path d="M12,2C8.13,2,5,5.13,5,9c0,5.25,7,13,7,13s7-7.75,7-13C19,5.13,15.87,2,12,2z M12,11.5c-1.38,0-2.5-1.12-2.5-2.5s1.12-2.5,2.5-2.5s2.5,1.12,2.5,2.5S13.38,11.5,12,11.5z"/>
 															</svg>
-															{listing.location}
+															{listing.location?.city || listing.location?.country || 'Location not specified'}
 														</span>
 													</div>
 													<div className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-														{listing.created ? (
-															formatDate(listing.created, i18n.language, { dateStyle: 'medium' }) || t('listings.addedRecently')
+														{listing.createdAt ? (
+															formatDate(listing.createdAt, i18n.language, { dateStyle: 'medium' }) || t('listings.addedRecently')
 														) : t('listings.addedRecently')}
 													</div>
 												</div>
@@ -653,9 +663,9 @@ export default function ListingsPage() {
                           {t(`listings.${listing.status}`)}
                         </span>
                         
-                        {listing.status === "active" && (
+                        {listing.status === "active" && expiryDate && (
                           <div className="text-xs text-green-600 dark:text-green-400 ml-1">
-                            {formatDate(new Date(listing.expires), i18n.language, { dateStyle: 'short' })}
+                            {formatDate(new Date(expiryDate), i18n.language, { dateStyle: 'short' })}
                           </div>
                         )}
                       </div>
@@ -663,7 +673,7 @@ export default function ListingsPage() {
 										<td className="py-4 px-4">
                       <div>
                         <div className="font-medium text-gray-800 dark:text-gray-200">
-                          {formatDate(new Date(listing.expires), i18n.language, { dateStyle: 'medium' })}
+                          {expiryDate ? formatDate(new Date(expiryDate), i18n.language, { dateStyle: 'medium' }) : 'No expiry date'}
                         </div>
                         
                         {/* Progress bar showing time until expiry */}
@@ -699,7 +709,7 @@ export default function ListingsPage() {
 										<td className="py-4 px-4">
                       <div className="group relative">
                         <div className="flex items-center">
-                          <span className="font-medium text-lg">{formatNumber(listing.views, i18n.language)}</span>
+                          <span className="font-medium text-lg">{formatNumber(listing.views || 0, i18n.language)}</span>
                           <div className="ml-1.5 bg-gray-100 dark:bg-gray-700 rounded-full p-1 cursor-help">
                             <MdInfoOutline className="text-gray-500 dark:text-gray-400" size={16} />
                           </div>
@@ -800,12 +810,13 @@ export default function ListingsPage() {
 					<Link
 						href="/help/listings"
 						className="text-primary hover:underline"
-					>
-						{t("learnMore")} →
-					</Link>
-				</div>
-			</div>
-		</div>
-	);
+          >
+            {t("learnMore")} →
+          </Link>
+        </div>
+      </div>
+      </div>
+    </div>
+  );
 }
 

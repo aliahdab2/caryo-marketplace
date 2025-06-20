@@ -16,8 +16,10 @@ export interface AlertProps extends ComponentProps {
  * Interface for success alert props
  */
 export interface SuccessAlertProps extends AlertProps {
-  message: string; // Override to make message required
-  visible: boolean; // Override to make visible required
+  message?: string; // Made optional with default value
+  visible?: boolean; // Made optional with default value
+  dismissible?: boolean; // Allow dismissing the alert manually
+  showIcon?: boolean; // Show/hide the success icon
   // onClose is inherited from AlertProps and can be used for manual close
   // onComplete and autoHideDuration are inherited from AlertProps for auto-hide behavior
 }

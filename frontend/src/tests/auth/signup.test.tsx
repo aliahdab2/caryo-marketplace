@@ -21,7 +21,7 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock the SuccessAlert component
-jest.mock('@/components/ui/alerts/SuccessAlert', () => {
+jest.mock('@/components/ui/SuccessAlert', () => {
   const SuccessAlert = ({ message, visible }: { message?: string, visible?: boolean }) => {
     return visible ? <div>{message}</div> : null;
   };

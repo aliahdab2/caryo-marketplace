@@ -1,79 +1,19 @@
 // Listings API service
-import { Listing } from '@/types/listings';
+import { 
+  ApiListingItem,
+  BackendListingApiResponse as ListingApiResponse,
+  GovernorateDetails,
+  Listing, 
+  ListingFilters,
+  ListingFormData,
+  ListingMedia,
+  LocationDetails,
+  UpdateListingData
+} from '@/types/listings';
 import { api } from './api';
 import { ApiError } from '@/utils/apiErrorHandler';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
-
-// API Types
-export interface ListingFilters {
-  minPrice?: string;
-  maxPrice?: string;
-  minYear?: string;
-  maxYear?: string;
-  location?: string;
-  brand?: string;
-  model?: string;
-  searchTerm?: string;
-  page?: number;
-  limit?: number;
-}
-
-interface LocationDetails {
-  id: number;
-  name: string;
-  displayNameEn: string;
-  displayNameAr: string;
-  slug: string;
-  region: string;
-  countryCode: string;
-}
-
-interface GovernorateDetails {
-  displayNameEn: string;
-  displayNameAr: string;
-}
-
-interface ListingMedia {
-  id: number;
-  url: string;
-  contentType: string;
-  isPrimary: boolean;
-}
-
-interface ApiListingItem {
-  id: number;
-  title: string;
-  brandNameEn: string;
-  brandNameAr: string;
-  modelNameEn: string;
-  modelNameAr: string;
-  modelYear: number;
-  mileage: number;
-  price: number;
-  locationDetails: LocationDetails | null;
-  governorateDetails?: GovernorateDetails;
-  governorateNameEn?: string;
-  governorateNameAr?: string;
-  description: string;
-  media: ListingMedia[];
-  approved: boolean;
-  sellerId: number;
-  sellerUsername: string;
-  createdAt: string;
-  isSold: boolean;
-  isArchived: boolean;
-  isUserActive: boolean;
-  isExpired: boolean;
-}
-
-interface ListingApiResponse {
-  content: ApiListingItem[];
-  pageNumber: number;
-  pageSize: number;
-  totalElements: number;
-  totalPages: number;
-  last: boolean;
-}
+import { getAuthHeaders } from '@/utils/auth';
 
 // Utility functions for data transformation
 function determineListingStatus(item: ApiListingItem): 'active' | 'pending' | 'sold' | 'expired' {
@@ -155,8 +95,8 @@ function mapApiResponseToListings(apiResponse: ListingApiResponse): { listings: 
       governorate,
       image: mainImageUrl,
       media: mediaItems,
-      fuelType: '',
-      transmission: '',
+      fuelType: item.fuelType || '',
+      transmission: item.transmission || '',
       createdAt: item.createdAt,
       description: item.description,
       status: determineListingStatus(item),
@@ -274,8 +214,8 @@ export async function getListingById(id: string | number): Promise<Listing> {
       governorate,
       image: mainImageUrl,
       media: mediaItems,
-      fuelType: '',
-      transmission: '',
+      fuelType: response.fuelType || '',
+      transmission: response.transmission || '',
       createdAt: response.createdAt,
       description: response.description,
       status: determineListingStatus(response),
@@ -313,5 +253,338 @@ export async function getListingById(id: string | number): Promise<Listing> {
 
     console.error('[Listing] Unexpected error:', error instanceof Error ? error.message : 'Unknown error');
     throw new Error('An unexpected error occurred while fetching the listing');
+  }
+}
+
+// UpdateListingData interface is now imported from '@/types/listings'
+
+// Update an existing listing
+export async function updateListing(id: string | number, data: UpdateListingData): Promise<Listing> {
+  try {
+    // Import getSession at runtime to avoid SSR issues
+    const { getSession } = await import('next-auth/react');
+    const session = await getSession();
+    
+    if (!session?.accessToken) {
+      throw new ApiError('You need to log in to update listings', 401);
+    }
+    
+    // Include the authentication token from NextAuth
+    const headers = {
+      'Authorization': `Bearer ${session.accessToken}`
+    };
+    
+    const response = await api.put<ApiListingItem>(
+      `/api/listings/${id}`, 
+      data as Record<string, unknown>,
+      headers
+    );
+    
+    // Transform the API response to our frontend Listing type
+    const { mainImageUrl, mediaItems } = getMediaUrls(response.media || []);
+    const location = extractLocationInfo(response.locationDetails);
+    const governorate = extractGovernorateInfo(
+      response.governorateDetails,
+      response.governorateNameEn,
+      response.governorateNameAr
+    );
+
+    return {
+      id: response.id.toString(),
+      title: response.title,
+      price: response.price,
+      year: response.modelYear,
+      mileage: response.mileage,
+      brand: response.brandNameEn,
+      model: response.modelNameEn,
+      brandNameEn: response.brandNameEn,
+      brandNameAr: response.brandNameAr,
+      modelNameEn: response.modelNameEn,
+      modelNameAr: response.modelNameAr,
+      location,
+      governorate,
+      image: mainImageUrl,
+      media: mediaItems,
+      fuelType: '',
+      transmission: response.transmission || '', // Use the actual transmission field from backend
+      createdAt: response.createdAt,
+      description: response.description,
+      status: determineListingStatus(response),
+      approved: response.approved,
+      expired: response.isExpired,
+      seller: {
+        id: response.sellerId.toString(),
+        name: response.sellerUsername,
+        type: 'private' as const,
+        phone: '+966 50 123 4567' // Placeholder - this should come from API in the future
+      },
+      currency: 'SAR' // Default currency
+    };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      const errorContext = {
+        status: error.status,
+        message: error.message,
+        data: error.data,
+        id,
+        updateData: data
+      };
+      
+      console.error('[Update Listing] API Error:', errorContext);
+
+      switch (error.status) {
+        case 404:
+          throw new Error('Listing not found');
+        case 401:
+        case 403:
+          throw new Error('You do not have permission to update this listing');
+        case 400:
+          throw new Error('Invalid listing data provided');
+        default:
+          throw new Error('Failed to update listing. Please try again later.');
+      }
+    }
+
+    console.error('[Update Listing] Unexpected error:', error instanceof Error ? error.message : 'Unknown error');
+    throw new Error('An unexpected error occurred while updating the listing');
+  }
+}
+
+// Get current user's listings (for dashboard)
+export async function getMyListings(): Promise<Listing[]> {
+  try {
+    const headers = await getAuthHeaders();
+    
+    const response = await api.get<ApiListingItem[]>('/api/listings/my-listings', headers);
+    
+    return response.map(item => {
+      const { mainImageUrl, mediaItems } = getMediaUrls(item.media || []);
+      const location = extractLocationInfo(item.locationDetails);
+      const governorate = extractGovernorateInfo(
+        item.governorateDetails,
+        item.governorateNameEn,
+        item.governorateNameAr
+      );
+
+      return {
+        id: item.id.toString(),
+        title: item.title,
+        price: item.price,
+        year: item.modelYear,
+        mileage: item.mileage,
+        brand: item.brandNameEn,
+        model: item.modelNameEn,
+        brandNameEn: item.brandNameEn,
+        brandNameAr: item.brandNameAr,
+        modelNameEn: item.modelNameEn,
+        modelNameAr: item.modelNameAr,
+        location,
+        governorate,
+        image: mainImageUrl,
+        media: mediaItems,
+        fuelType: item.fuelType || '',
+        transmission: item.transmission || '',
+        createdAt: item.createdAt,
+        description: item.description,
+        status: determineListingStatus(item),
+        approved: item.approved,
+        expired: item.isExpired,
+        seller: {
+          id: item.sellerId.toString(),
+          name: item.sellerUsername,
+          type: 'private' as const,
+          phone: '+966 50 123 4567'
+        },
+        currency: 'SAR'
+      };
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      console.error('[My Listings] API Error:', error);
+      switch (error.status) {
+        case 401:
+        case 403:
+          throw new Error('You need to log in to view your listings');
+        default:
+          throw new Error('Failed to fetch your listings. Please try again later.');
+      }
+    }
+
+    console.error('[My Listings] Unexpected error:', error instanceof Error ? error.message : 'Unknown error');
+    throw new Error('An unexpected error occurred while fetching your listings');
+  }
+}
+
+/**
+ * Create a new car listing
+ * @param formData Form data for the new listing
+ * @returns The created listing data
+ */
+export async function createListing(formData: ListingFormData): Promise<Listing> {
+  try {
+    const headers = await getAuthHeaders();
+    
+    // Convert form data to match the backend CreateListingRequest exactly
+    const apiData = {
+      title: formData.title,
+      description: formData.description || '',
+      modelId: parseInt(formData.categoryId || '0', 10), // Backend expects Long modelId
+      modelYear: parseInt(formData.year, 10),
+      mileage: parseInt(formData.mileage, 10),
+      price: parseFloat(formData.price),
+      locationId: parseInt(formData.governorateId, 10), // Backend expects Long locationId
+      isSold: false, // Optional field - default to false
+      isArchived: false // Optional field - default to false
+    };
+
+    console.log('[DEBUG] Frontend form data:', formData);
+    console.log('[DEBUG] API data being sent:', apiData);
+
+    // Validate the API data before sending
+    if (!apiData.modelId || apiData.modelId === 0) {
+      throw new ApiError('Model ID is required and must be valid', 400);
+    }
+    if (!apiData.locationId || apiData.locationId === 0) {
+      throw new ApiError('Location ID is required and must be valid', 400);
+    }
+    if (!apiData.title || apiData.title.trim() === '') {
+      throw new ApiError('Title is required', 400);
+    }
+    if (!apiData.modelYear || apiData.modelYear < 1920 || apiData.modelYear > new Date().getFullYear()) {
+      throw new ApiError('Valid model year is required', 400);
+    }
+    if (apiData.mileage < 0) {
+      throw new ApiError('Mileage cannot be negative', 400);
+    }
+    if (!apiData.price || apiData.price <= 0) {
+      throw new ApiError('Valid price is required', 400);
+    }
+    
+    // Using FormData for file uploads
+    const formDataObj = new FormData();
+    
+    // Add the JSON data as a string in a field called 'listing'
+    // Create a blob for the JSON data with the correct content type
+    const listingBlob = new Blob([JSON.stringify(apiData)], { type: 'application/json' });
+    formDataObj.append('listing', listingBlob);
+    
+    // Add images if available - backend expects 'image' as the field name for the primary image
+    const hasImages = formData.images && formData.images.length > 0;
+    if (hasImages) {
+      // Send first image as the primary image with field name 'image'
+      const imageFile = formData.images[0];
+      console.log('[DEBUG] Image file details:', {
+        name: imageFile.name,
+        size: imageFile.size,
+        type: imageFile.type,
+        lastModified: imageFile.lastModified
+      });
+      formDataObj.append('image', imageFile, imageFile.name);
+    }
+    
+    // Choose endpoint based on whether we have images
+    const endpoint = hasImages ? '/with-image' : '';
+    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings${endpoint}`;
+    
+    console.log('[DEBUG] Auth headers received:', headers);
+    console.log('[DEBUG] Has images:', hasImages);
+    
+    // Prepare request options
+    let requestOptions: RequestInit;
+    
+    if (hasImages) {
+      // For multipart/form-data with images
+      // DO NOT set Content-Type - let the browser set it with boundary
+      console.log('[DEBUG] FormData contents:');
+      for (const [key, value] of formDataObj.entries()) {
+        if (value instanceof File) {
+          console.log(`[DEBUG] FormData[${key}]: File(name="${value.name}", size=${value.size}, type="${value.type}")`);
+        } else {
+          console.log(`[DEBUG] FormData[${key}]: ${value}`);
+        }
+      }
+      
+      requestOptions = {
+        method: 'POST',
+        headers: {
+          ...headers  // Only Authorization header, no Content-Type
+        },
+        body: formDataObj,
+        credentials: 'include'
+      };
+      console.log('[DEBUG] Using FormData for request with images');
+    } else {
+      // For JSON data without images
+      requestOptions = {
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(apiData),
+        credentials: 'include'
+      };
+      console.log('[DEBUG] Using JSON for request without images');
+    }
+    
+    console.log('[DEBUG] Final request headers:', requestOptions.headers);
+    console.log('[DEBUG] Request URL:', url);
+    
+    // Using fetch directly since our api utility has type constraints
+    const fetchResponse = await fetch(url, requestOptions);
+    
+    if (!fetchResponse.ok) {
+      const errorText = await fetchResponse.text();
+      throw new ApiError(errorText, fetchResponse.status);
+    }
+    
+    const response = await fetchResponse.json() as ApiListingItem;
+    
+    // Transform the API response to our frontend Listing type
+    const { mainImageUrl, mediaItems } = getMediaUrls(response.media || []);
+    const location = extractLocationInfo(response.locationDetails);
+    const governorate = extractGovernorateInfo(
+      response.governorateDetails,
+      response.governorateNameEn,
+      response.governorateNameAr
+    );
+
+    return {
+      id: response.id.toString(),
+      title: response.title,
+      price: response.price,
+      year: response.modelYear,
+      mileage: response.mileage,
+      brand: response.brandNameEn,
+      model: response.modelNameEn,
+      brandNameEn: response.brandNameEn,
+      brandNameAr: response.brandNameAr,
+      modelNameEn: response.modelNameEn,
+      modelNameAr: response.modelNameAr,
+      location,
+      governorate,
+      image: mainImageUrl,
+      media: mediaItems,
+      fuelType: response.fuelType || '',
+      transmission: response.transmission || '',
+      createdAt: response.createdAt,
+      description: response.description,
+      status: determineListingStatus(response),
+      approved: response.approved,
+      expired: response.isExpired,
+      seller: {
+        id: response.sellerId.toString(),
+        name: response.sellerUsername,
+        type: 'private',
+        phone: '+966 50 123 4567'
+      },
+      currency: 'SAR'
+    };
+  } catch (error) {
+    console.error('[Create Listing] Error:', error);
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new Error('Failed to create listing');
   }
 }

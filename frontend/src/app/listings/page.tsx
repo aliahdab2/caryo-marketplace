@@ -5,8 +5,8 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
-import { Listing } from '@/types/listings';
-import { getListings, ListingFilters } from '@/services/listings';
+import { Listing, ListingFilters } from '@/types/listings';
+import { getListings } from '@/services/listings';
 import { formatDate, formatNumber } from '@/utils/localization';
 import FavoriteButton from '@/components/common/FavoriteButton';
 

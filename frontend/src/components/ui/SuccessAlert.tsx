@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { MdCheckCircle, MdClose } from 'react-icons/md';
 import type { SuccessAlertProps } from '@/types/ui';
 
 export default function SuccessAlert({
@@ -8,103 +9,77 @@ export default function SuccessAlert({
   visible = false,
   onComplete,
   autoHideDuration = 3000,
-  className
+  className = "",
+  dismissible = true,
+  showIcon = true
 }: SuccessAlertProps) {
   const [isVisible, setIsVisible] = useState(visible);
-  const [animationComplete, setAnimationComplete] = useState(false);
+
+  // Memoized close handler
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    if (onComplete) onComplete();
+  }, [onComplete]);
 
   // Handle visibility changes
   useEffect(() => {
     setIsVisible(visible);
     
-    if (visible) {
-      setAnimationComplete(false);
-      
-      // Animation happens for 800ms, then we show as completed
-      const animationTimer = setTimeout(() => {
-        setAnimationComplete(true);
-        
-        // Auto-hide after specified duration
-        if (autoHideDuration) {
-          const hideTimer = setTimeout(() => {
-            setIsVisible(false);
-            if (onComplete) onComplete();
-          }, autoHideDuration);
-          
-          return () => clearTimeout(hideTimer);
-        }
-      }, 800);
-      
-      return () => clearTimeout(animationTimer);
+    if (visible && autoHideDuration > 0) {
+      const timer = setTimeout(handleClose, autoHideDuration);
+      return () => clearTimeout(timer);
     }
-  }, [visible, autoHideDuration, onComplete]);
+  }, [visible, autoHideDuration, handleClose]);
+
+  // Handle keyboard events for accessibility
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && dismissible && isVisible) {
+        handleClose();
+      }
+    };
+
+    if (isVisible) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isVisible, dismissible, handleClose]);
 
   if (!isVisible) return null;
 
   return (
     <div
-      id="success"
-      className={`cb-container fixed top-5 right-5 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 flex items-center gap-3 transition-all duration-300 ease-in-out ${className}`}
+      className={`fixed top-5 right-5 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-green-200 dark:border-green-700 p-4 flex items-center gap-3 transition-all duration-300 ease-in-out transform ${
+        isVisible ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'
+      } ${className}`}
       role="alert"
-      style={{
-        display: 'grid',
-        visibility: 'visible',
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0)' : 'translateY(-20px)'
-      }}
+      aria-live="polite"
+      aria-atomic="true"
     >
-      {/* Animated checkmark */}
-      <div className="relative w-10 h-10">
-        {/* Loading spinner (visible during animation) */}
-        <svg
-          className={`absolute inset-0 w-10 h-10 text-blue-500 transition-opacity duration-300 ${
-            animationComplete ? 'opacity-0' : 'opacity-100 spinner-animation'
-          }`}
-          viewBox="0 0 30 30"
-          style={{ display: animationComplete ? 'none' : 'block' }}
-        >
-          <g stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <line x1="15" x2="15" y1="7.5" y2="0"></line>
-            <line x1="20.303" x2="23.787" y1="9.697" y2="5.303"></line>
-            <line x1="22.5" x2="30" y1="15" y2="15"></line>
-            <line x1="20.303" x2="23.787" y1="20.303" y2="24.697"></line>
-            <line x1="15" x2="15" y1="22.5" y2="30"></line>
-            <line x1="9.697" x2="5.303" y1="20.303" y2="23.787"></line>
-            <line x1="7.5" x2="0" y1="15" y2="15"></line>
-            <line x1="9.697" x2="5.303" y1="9.697" y2="5.303"></line>
-          </g>
-        </svg>
-
-        {/* Success checkmark (appears after animation) */}
-        <svg
-          className={`absolute inset-0 w-10 h-10 transition-opacity duration-500 ${
-            animationComplete ? 'opacity-100' : 'opacity-0'
-          }`}
-          viewBox="0 0 52 52"
-          aria-hidden="true"
-          style={{ display: animationComplete ? 'block' : 'none' }}
-        >
-          <circle 
-            className="success-circle stroke-green-500" 
-            cx="26" 
-            cy="26" 
-            r="25"
-            fill="rgb(34, 197, 94)"
+      {showIcon && (
+        <div className="flex-shrink-0">
+          <MdCheckCircle 
+            className="text-green-600 dark:text-green-400 text-xl" 
+            aria-hidden="true" 
           />
-          <path 
-            className="success-checkmark stroke-white" 
-            fill="none" 
-            d="m13,26l9.37,9l17.63,-18"
-          />
-        </svg>
+        </div>
+      )}
+      
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 break-words">
+          {message}
+        </p>
       </div>
-
-      {/* Success text */}
-      <span 
-        className="text-gray-900 dark:text-white font-medium text-sm"
-      >
-        {message}
-      </span>
+      
+      {dismissible && (
+        <button
+          onClick={handleClose}
+          className="flex-shrink-0 ml-2 p-1 rounded-full text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          aria-label="Close notification"
+        >
+          <MdClose className="text-lg" aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }

@@ -471,6 +471,49 @@ public class CarListingService {
         carListingRepository.delete(existingListing);
         log.info("Admin successfully deleted listing with ID: {}", id);
     }
+
+    /**
+     * Admin-only method to approve any car listing.
+     * @param id the ID of the listing to approve
+     * @return the approved listing response
+     * @throws ResourceNotFoundException if the listing is not found
+     */
+    public CarListingResponse approveListingAsAdmin(Long id) {
+        log.info("Admin attempting to approve listing with ID: {}", id);
+        
+        CarListing existingListing = carListingRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Admin approval failed - listing not found with ID: {}", id);
+                    return new ResourceNotFoundException("CarListing", "id", id);
+                });
+        
+        // Set the listing as approved
+        existingListing.setApproved(true);
+        
+        // Save the updated listing
+        CarListing approvedListing = carListingRepository.save(existingListing);
+        log.info("Admin successfully approved listing with ID: {}", id);
+        
+        // Return the updated listing response
+        return carListingMapper.toCarListingResponse(approvedListing);
+    }
+
+    /**
+     * Admin-only method to get all car listings regardless of approval status.
+     * @param pageable pagination information
+     * @return paginated list of all car listings
+     */
+    public Page<CarListingResponse> getAllListingsAsAdmin(Pageable pageable) {
+        log.info("Admin retrieving all listings with pagination: {}", pageable);
+        
+        // Get all listings regardless of approval status
+        Page<CarListing> listings = carListingRepository.findAll(pageable);
+        
+        log.info("Found {} total listings for admin", listings.getTotalElements());
+        
+        // Convert to response DTOs
+        return listings.map(carListingMapper::toCarListingResponse);
+    }
     
     // --- Helper Methods ---
     

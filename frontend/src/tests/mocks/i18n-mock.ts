@@ -47,6 +47,49 @@ const mockTranslations: Record<string, string> = {
   'favorites:noFavorites': 'No Favorite Vehicles',
   'favorites:emptyState': 'No Favorites Yet',
   'favorites:error': 'Error loading favorites',
+  
+  // Password change related translations
+  'auth.changePassword': 'Change Password',
+  'auth.currentPassword': 'Current Password',
+  'auth.newPassword': 'New Password',
+  'auth.confirmNewPassword': 'Confirm New Password',
+  'auth.passwordMinLength': 'Must be at least 8 characters long',
+  'auth.changing': 'Changing...',
+  'auth.passwordChanged': 'Password changed successfully',
+  'auth.passwordMismatch': 'Passwords do not match',
+  'auth.incorrectPassword': 'Current password is incorrect',
+  'cancel': 'Cancel',
+  
+  // Dashboard translations
+  'dashboard.profile': 'Profile',
+  'dashboard.edit': 'Edit',
+  'dashboard.role': 'Role',
+  'dashboard.accountInfo': 'Account Information',
+  'dashboard.contactInfo': 'Contact Information',
+  'dashboard.bio': 'Bio',
+  'dashboard.noBio': 'No bio available',
+  'dashboard.accountSecurity': 'Account Security',
+  'dashboard.lastUpdated': 'Last updated',
+  'dashboard.twoFactorAuth': 'Two-Factor Authentication',
+  'dashboard.improveAccountSecurity': 'Improve your account security',
+  'dashboard.setupTwoFactor': 'Setup Two-Factor',
+  
+  // Contact information
+  'contactInformation.memberSince': 'Member since',
+  'contactInformation.phone': 'Phone',
+  'contactInformation.location': 'Location',
+  'contactInformation.notProvided': 'Not provided',
+  
+  // Auth related
+  'auth.userId': 'User ID',
+  'auth.passwordsDoNotMatch': 'New passwords do not match',
+  'auth.passwordTooShort': 'New password must be at least 8 characters long',
+  'auth.passwordChangeSuccess': 'Password changed successfully',
+  'auth.passwordChangeFailed': 'Failed to change password',
+  'auth.networkError': 'Network error. Please try again.',
+  
+  // General
+  'notAvailable': 'Not available',
 };
 
 const mockI18nInstance = {
