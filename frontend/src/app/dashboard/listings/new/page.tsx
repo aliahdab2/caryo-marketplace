@@ -10,6 +10,19 @@ import { createListing } from '@/services/listings';
 import { ListingFormData } from "@/types/listings";
 import SuccessAlert from '@/components/ui/SuccessAlert';
 
+// Helper function to convert Arabic-Indic numerals to Latin numerals
+const convertArabicNumerals = (input: string): string => {
+  if (!input) return input;
+  
+  const arabicNumerals = '٠١٢٣٤٥٦٧٨٩';
+  const latinNumerals = '0123456789';
+  
+  return input.replace(/[٠-٩]/g, (char) => {
+    const index = arabicNumerals.indexOf(char);
+    return index !== -1 ? latinNumerals[index] : char;
+  });
+};
+
 export default function NewListingPage() {
   const router = useRouter();
   const { t, i18n } = useTranslation(['dashboard', 'listings', 'common', 'errors']);
@@ -137,11 +150,68 @@ export default function NewListingPage() {
     loadCarModels();
   }, [formData.make, carMakes, t, currentStep, error]);
   
+  // Keyboard navigation support
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only handle shortcuts when not in an input field
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement) {
+        return;
+      }
+      
+      // Alt + Left Arrow = Previous step
+      if (event.altKey && event.key === 'ArrowLeft' && currentStep > 1) {
+        event.preventDefault();
+        prevStep();
+      }
+      
+      // Alt + Right Arrow = Next step
+      if (event.altKey && event.key === 'ArrowRight' && currentStep < 4) {
+        event.preventDefault();
+        nextStep();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [currentStep]);
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    
+    // Convert Arabic-Indic numerals to Latin numerals for numeric fields
+    let processedValue = value;
+    if (['year', 'mileage', 'price', 'contactPhone'].includes(name)) {
+      processedValue = convertArabicNumerals(value);
+      
+      // Clean non-numeric characters for pure numeric fields
+      if (['year', 'mileage'].includes(name)) {
+        processedValue = processedValue.replace(/[^0-9]/g, '');
+      }
+      
+      // Additional validation for specific fields
+      if (name === 'year') {
+        // Only allow 4-digit years between 1920 and current year
+        const currentYear = new Date().getFullYear();
+        const numericValue = parseInt(processedValue);
+        if (processedValue.length <= 4 && (!numericValue || (numericValue >= 1920 && numericValue <= currentYear))) {
+          // Valid year or empty string
+        } else if (processedValue.length > 4) {
+          return; // Don't update if more than 4 digits
+        }
+      } else if (name === 'mileage') {
+        // Only allow positive numbers up to 7 digits
+        const numericValue = parseInt(processedValue);
+        if (processedValue.length <= 7 && (!numericValue || numericValue >= 0)) {
+          // Valid mileage or empty string
+        } else if (processedValue.length > 7) {
+          return; // Don't update if more than 7 digits
+        }
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: processedValue
     }));
   };
   
@@ -285,28 +355,58 @@ export default function NewListingPage() {
       
       <div className="mb-8"> {/* Progress Bar */}
         <div className="flex items-center justify-between">
-          {[1, 2, 3, 4].map((step) => (
+          {[
+            { step: 1, title: t('listings:newListing.step1Title', 'Basic Info') },
+            { step: 2, title: t('listings:newListing.step2Title', 'Details') },
+            { step: 3, title: t('listings:newListing.step3Title', 'Location & Contact') },
+            { step: 4, title: t('listings:newListing.step4Title', 'Images') }
+          ].map(({ step, title }) => (
             <div key={step} className="flex flex-col items-center">
-              <div 
-                className={`w-8 h-8 rounded-full flex items-center justify-center 
+              <button
+                type="button"
+                onClick={() => step <= currentStep && setCurrentStep(step)}
+                disabled={step > currentStep}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 font-semibold
                   ${currentStep >= step 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}
+                    ? 'bg-blue-600 text-white shadow-lg hover:bg-blue-700 cursor-pointer' 
+                    : currentStep + 1 === step
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 border-2 border-blue-300 dark:border-blue-600'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'}`}
               >
-                {step}
-              </div>
-              <span className="text-xs mt-1 hidden md:block">
-                {t(`listings:step${step}Title`, `Step ${step}`)}
+                {currentStep > step ? (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                ) : step}
+              </button>
+              <span className={`text-xs mt-2 text-center max-w-20 font-medium transition-colors duration-200 ${
+                currentStep >= step 
+                  ? 'text-blue-600 dark:text-blue-400' 
+                  : 'text-gray-500 dark:text-gray-400'
+              }`}>
+                {title}
               </span>
             </div>
           ))}
         </div>
-        <div className="relative mt-2">
+        <div className="relative mt-4">
           <div className="absolute top-0 left-0 h-2 bg-gray-200 dark:bg-gray-700 w-full rounded-full"></div>
           <div 
-            className="absolute top-0 left-0 h-2 bg-blue-600 rounded-full transition-all duration-300"
+            className="absolute top-0 left-0 h-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500 ease-in-out"
             style={{ width: `${(currentStep / 4) * 100}%` }}
           ></div>
+        </div>
+        
+        {/* Navigation Hint */}
+        <div className="mt-3 text-center">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            <span className="inline-flex items-center">
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {t('listings:newListing.navigationHint', 'Use Alt + ← → or click step numbers to navigate')}
+            </span>
+          </p>
         </div>
       </div>
       
@@ -364,8 +464,10 @@ export default function NewListingPage() {
                   value={formData.price} // formData.price is a string
                   onChange={handleChange}
                   required
+                  inputMode="numeric"
                   pattern="^[0-9]*[.,]?[0-9]+$" // Optional: pattern for numeric input if needed
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+                  dir="ltr"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-left"
                   placeholder={t('listings:newListing.pricePlaceholder', '25000')}
                 />
               </div>
@@ -495,17 +597,27 @@ export default function NewListingPage() {
                     {t('listings:newListing.year', 'Year')} *
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     name="year"
                     id="year"
                     value={formData.year}
                     onChange={handleChange}
                     required
-                    min="1920"
-                    max={new Date().getFullYear()} // Current year
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    dir="ltr"
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-left"
                     placeholder={t('listings:newListing.yearPlaceholder', 'e.g., 2020')}
+                    onKeyPress={(e) => {
+                      // Allow only numbers and Arabic-Indic numerals
+                      if (!/[0-9٠-٩]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab' && e.key !== 'Enter') {
+                        e.preventDefault();
+                      }
+                    }}
                   />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {t('listings:newListing.yearHint', 'Enter manufacturing year (1920-{{currentYear}})', { currentYear: new Date().getFullYear() })}
+                  </p>
                 </div>
                 
                 <div>
@@ -513,16 +625,27 @@ export default function NewListingPage() {
                     {t('listings:newListing.mileage', 'Mileage (km)')} *
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     name="mileage"
                     id="mileage"
                     value={formData.mileage}
                     onChange={handleChange}
                     required
-                    min="0"
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    dir="ltr"
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-left"
                     placeholder={t('listings:newListing.mileagePlaceholder', 'e.g., 50000')}
+                    onKeyPress={(e) => {
+                      // Allow only numbers and Arabic-Indic numerals
+                      if (!/[0-9٠-٩]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab' && e.key !== 'Enter') {
+                        e.preventDefault();
+                      }
+                    }}
                   />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {t('listings:newListing.mileageHint', 'Enter distance in kilometers')}
+                  </p>
                 </div>
                 
                 <div>
@@ -675,7 +798,9 @@ export default function NewListingPage() {
                   value={formData.contactPhone}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  inputMode="tel"
+                  dir="ltr"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white text-left"
                   placeholder={t('listings:newListing.contactPhonePlaceholder', 'e.g., +965 12345678')}
                 />
               </div>
@@ -767,36 +892,62 @@ export default function NewListingPage() {
           )}
           
           {/* Navigation Buttons */}
-          <div className="mt-8 flex justify-between items-center">
+          <div className="mt-8 flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-600">
             <div>
               {currentStep > 1 && (
                 <button 
                   type="button" 
                   onClick={prevStep} 
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-700"
+                  className="inline-flex items-center px-6 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-sm hover:shadow-md"
                 >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                   {t('listings:newListing.previous', 'Previous')}
                 </button>
               )}
             </div>
             
-            <div>
+            <div className="flex items-center space-x-4">
+              {/* Step counter */}
+              <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                {t('listings:newListing.stepCounter', 'Step {{current}} of {{total}}', { current: currentStep, total: 4 })}
+              </span>
+              
               {currentStep < 4 && (
                 <button 
                   type="button" 
                   onClick={nextStep} 
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-sm font-medium hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
                   {t('listings:newListing.next', 'Next')}
+                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               )}
               {currentStep === 4 && (
                 <button 
                   type="submit" 
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                  className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl text-sm font-medium hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
-                  {isSubmitting ? t('listings:newListing.submitting', 'Submitting...') : t('listings:newListing.submit', 'Submit Listing')}
+                  {isSubmitting ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      {t('listings:newListing.submitting', 'Submitting...')}
+                    </>
+                  ) : (
+                    <>
+                      {t('listings:newListing.submit', 'Submit Listing')}
+                      <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </>
+                  )}
                 </button>
               )}
             </div>
