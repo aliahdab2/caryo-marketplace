@@ -30,6 +30,10 @@ const mockTranslations: Record<string, string> = {
   'auth.username': 'Username',
   'auth.password': 'Password',
   
+  // Basic field labels
+  'phone': 'Phone',
+  'location': 'Location',
+  
   // Common translations
   'common:loading': 'Loading...',
   'common:authRequired': 'Authentication Required',
@@ -64,6 +68,11 @@ const mockTranslations: Record<string, string> = {
   'dashboard.profile': 'Profile',
   'dashboard.edit': 'Edit',
   'dashboard.role': 'Role',
+  'roles.user': 'User',
+  'roles.admin': 'Administrator',
+  'roles.moderator': 'Moderator',
+  'roles.seller': 'Seller',
+  'roles.premium': 'Premium User',
   'dashboard.accountInfo': 'Account Information',
   'dashboard.contactInfo': 'Contact Information',
   'dashboard.bio': 'Bio',
