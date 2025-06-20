@@ -30,6 +30,10 @@ const mockTranslations: Record<string, string> = {
   'auth.username': 'Username',
   'auth.password': 'Password',
   
+  // Basic field labels
+  'phone': 'Phone',
+  'location': 'Location',
+  
   // Common translations
   'common:loading': 'Loading...',
   'common:authRequired': 'Authentication Required',
@@ -64,6 +68,11 @@ const mockTranslations: Record<string, string> = {
   'dashboard.profile': 'Profile',
   'dashboard.edit': 'Edit',
   'dashboard.role': 'Role',
+  'roles.user': 'User',
+  'roles.admin': 'Administrator',
+  'roles.moderator': 'Moderator',
+  'roles.seller': 'Seller',
+  'roles.premium': 'Premium User',
   'dashboard.accountInfo': 'Account Information',
   'dashboard.contactInfo': 'Contact Information',
   'dashboard.bio': 'Bio',
@@ -73,12 +82,21 @@ const mockTranslations: Record<string, string> = {
   'dashboard.twoFactorAuth': 'Two-Factor Authentication',
   'dashboard.improveAccountSecurity': 'Improve your account security',
   'dashboard.setupTwoFactor': 'Setup Two-Factor',
+  'dashboard.manageProfile': 'Manage your profile information',
+  'dashboard.editProfile': 'Edit Profile',
+  'dashboard.updateInfo': 'Update your personal information',
+  'dashboard.manageSecuritySettings': 'Manage your security settings and authentication methods',
+  'dashboard.recommendPasswordUpdate': 'Recommended: Update your password regularly',
+  'dashboard.tellUsAboutYourself': 'Tell us about yourself...',
+  'dashboard.emailCannotBeChanged': 'Email address cannot be changed',
   
   // Contact information
   'contactInformation.memberSince': 'Member since',
   'contactInformation.phone': 'Phone',
   'contactInformation.location': 'Location',
   'contactInformation.notProvided': 'Not provided',
+  'contactInformation.enterPhone': 'Enter your phone number',
+  'contactInformation.enterLocation': 'Enter your location',
   
   // Auth related
   'auth.userId': 'User ID',

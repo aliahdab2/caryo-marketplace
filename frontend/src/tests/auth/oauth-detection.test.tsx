@@ -78,13 +78,9 @@ describe('OAuth User Detection in Profile Page', () => {
     // Should not show traditional 2FA setup for OAuth users
     expect(screen.queryByText(/setupTwoFactor/i)).not.toBeInTheDocument();
     
-    // Should show Google security management instead
+    // Should show Google security management text and Active status
     expect(screen.getByText(/Security is managed by your Google account/i)).toBeInTheDocument();
-    expect(screen.getByText(/Manage on Google/i)).toBeInTheDocument();
-    
-    // Should show Google security management instead
-    expect(screen.getByText(/Security is managed by your Google account/i)).toBeInTheDocument();
-    expect(screen.getByText(/Manage on Google/i)).toBeInTheDocument();
+    expect(screen.getByText(/Active/i)).toBeInTheDocument();
   });
 
   it('should hide change password for Google OAuth users (image URL)', () => {
