@@ -82,7 +82,7 @@ const mockTranslations: Record<string, string> = {
   'dashboard.twoFactorAuth': 'Two-Factor Authentication',
   'dashboard.improveAccountSecurity': 'Improve your account security',
   'dashboard.setupTwoFactor': 'Setup Two-Factor',
-  'dashboard.manageProfile': 'Manage your profile information and preferences',
+  'dashboard.manageProfile': 'Manage your profile information',
   'dashboard.editProfile': 'Edit Profile',
   'dashboard.updateInfo': 'Update your personal information',
   'dashboard.manageSecuritySettings': 'Manage your security settings and authentication methods',
