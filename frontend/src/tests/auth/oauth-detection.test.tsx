@@ -133,13 +133,13 @@ describe('OAuth User Detection in Profile Page', () => {
     render(<ProfilePage />);
 
     // Should show change password button for regular users
-    expect(screen.getByText(/changePassword/i)).toBeInTheDocument();
+    expect(screen.getByText(/change password/i)).toBeInTheDocument();
     
     // Should not show Google authentication info
     expect(screen.queryByText(/Google Authentication/i)).not.toBeInTheDocument();
     
     // Should show traditional 2FA setup for regular users
-    expect(screen.getByText(/setupTwoFactor/i)).toBeInTheDocument();
+    expect(screen.getByText(/setup two.factor/i)).toBeInTheDocument();
     
     // Should not show Google security management
     expect(screen.queryByText(/Security is managed by your Google account/i)).not.toBeInTheDocument();
