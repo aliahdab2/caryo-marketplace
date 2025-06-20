@@ -139,7 +139,7 @@ describe('OAuth User Detection in Profile Page', () => {
     expect(screen.queryByText(/Google Authentication/i)).not.toBeInTheDocument();
     
     // Should show traditional 2FA setup for regular users
-    expect(screen.getByText(/setup two.factor/i)).toBeInTheDocument();
+    expect(screen.getByText(/setup two-factor/i)).toBeInTheDocument();
     
     // Should not show Google security management
     expect(screen.queryByText(/Security is managed by your Google account/i)).not.toBeInTheDocument();
