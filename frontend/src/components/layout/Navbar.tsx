@@ -47,7 +47,7 @@ export default function Navbar({ className }: ComponentProps) {
   return (
     <nav className={`bg-white shadow-md dark:bg-gray-900 mobile-prevent-scroll ${className || ''}`}>
       <div className="w-full max-w-[94%] xs:max-w-[92%] sm:max-w-[90%] md:max-w-[88%] lg:max-w-6xl xl:max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6 tablet-nav-improvements">
-        <div className="flex items-center justify-between h-14 xs:h-15 sm:h-16 md:h-16 landscape-mobile-nav">
+        <div className="flex items-center justify-between h-16 xs:h-17 sm:h-18 md:h-20 landscape-mobile-nav">
           
           {/* Left Side - Logo (Like Blocket) */}
           <div className="flex items-center flex-shrink-0">
@@ -71,49 +71,44 @@ export default function Navbar({ className }: ComponentProps) {
           </div>
 
           {/* Right Side - Navigation + Language Switcher + Login/User Menu */}
-          <div className="hidden sm:flex sm:items-center sm:space-x-2 md:space-x-3 lg:space-x-4 rtl:space-x-reverse flex-shrink-0">
-            {/* Navigation Items */}
-            <div className="flex items-center space-x-1 md:space-x-2 lg:space-x-3 rtl:space-x-reverse" role="navigation" aria-label="Main navigation">
+          <div className="hidden sm:flex sm:items-center sm:space-x-3 md:space-x-4 lg:space-x-6 rtl:space-x-reverse flex-shrink-0">
+            {/* Navigation Items - Larger like Blocket */}
+            <div className="flex items-center space-x-2 md:space-x-3 lg:space-x-4 rtl:space-x-reverse" role="navigation" aria-label="Main navigation">
               {/* Post Ad Button - Prominent blue button like Blocket */}
               <Link
                 href={session ? "/dashboard/listings/new" : "/auth/signin"}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-2 rounded text-xs font-medium flex flex-col items-center justify-center transition-colors min-w-[50px] max-w-[60px] h-12"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2.5 rounded-md text-sm font-medium flex flex-col items-center justify-center transition-colors min-w-[70px] max-w-[85px] h-14 shadow-sm"
               >
-                <MdAdd className="h-4 w-4 mb-0.5 flex-shrink-0" />
-                <span className="text-[10px] leading-tight">{t('header.postAd')}</span>
+                <MdAdd className="h-5 w-5 mb-1 flex-shrink-0" />
+                <span className="text-xs leading-tight font-medium">{t('header.postAd')}</span>
               </Link>
               
-              {/* Listings - Compact style like Blocket */}
+              {/* Listings - Larger style like Blocket */}
               <Link 
                 href="/listings" 
-                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-2 py-2 rounded transition-colors min-w-[50px] max-w-[60px] h-12"
+                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
               >
-                <MdDirectionsCar className="h-4 w-4 mb-0.5 flex-shrink-0" />
-                <span className="text-[10px] leading-tight">{t('header.listings')}</span>
+                <MdDirectionsCar className="h-5 w-5 mb-1 flex-shrink-0" />
+                <span className="text-xs leading-tight font-medium">{t('header.listings')}</span>
               </Link>
               
-              {/* Messages - Compact style like Blocket */}
+              {/* Messages - Larger style like Blocket */}
               <Link 
                 href={session ? "/dashboard/messages" : "/auth/signin"}
-                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-2 py-2 rounded transition-colors min-w-[50px] max-w-[60px] h-12"
+                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
               >
-                <MdEmail className="h-4 w-4 mb-0.5 flex-shrink-0" />
-                <span className="text-[10px] leading-tight">{t('header.messages')}</span>
+                <MdEmail className="h-5 w-5 mb-1 flex-shrink-0" />
+                <span className="text-xs leading-tight font-medium">{t('header.messages')}</span>
               </Link>
               
-              {/* Saved Searches - Compact style like Blocket */}
+              {/* Saved Searches - Larger style like Blocket */}
               <Link 
                 href={session ? "/dashboard/saved-searches" : "/auth/signin"}
-                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-2 py-2 rounded transition-colors min-w-[50px] max-w-[60px] h-12"
+                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
               >
-                <MdBookmark className="h-4 w-4 mb-0.5 flex-shrink-0" />
-                <span className="text-[10px] leading-tight">{t('header.savedSearches')}</span>
+                <MdBookmark className="h-5 w-5 mb-1 flex-shrink-0" />
+                <span className="text-xs leading-tight font-medium">{t('header.savedSearches')}</span>
               </Link>
-            </div>
-
-            {/* Language Switcher */}
-            <div className="border-l pl-2 md:pl-3 lg:pl-4 border-gray-200 dark:border-gray-700">
-              <LanguageSwitcher />
             </div>
             
             {/* User Menu / Login Button */}
@@ -128,6 +123,11 @@ export default function Navbar({ className }: ComponentProps) {
                   aria-controls="user-menu"
                   aria-label="User account menu"
                 >
+                  {/* Compact Language Switcher integrated with user menu */}
+                  <div className="flex items-center mr-2">
+                    <LanguageSwitcher />
+                  </div>
+                  
                   <div className="flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-full h-7 w-7 sm:h-8 sm:w-8 shadow-sm ring-2 ring-white dark:ring-gray-800">
                     {session.user?.image ? (
                       <Image 
@@ -236,7 +236,13 @@ export default function Navbar({ className }: ComponentProps) {
                 </div>
               </div>
             ) : (
-              <SignInButton className="text-xs xs:text-sm" />
+              <div className="flex items-center space-x-3">
+                {/* Compact Language Switcher for non-logged in users */}
+                <div className="flex items-center">
+                  <LanguageSwitcher />
+                </div>
+                <SignInButton className="text-xs xs:text-sm" />
+              </div>
             )}
           </div>
           
@@ -302,38 +308,38 @@ export default function Navbar({ className }: ComponentProps) {
           {/* Post Ad - First item like Blocket (Prominent button) */}
           <Link 
             href={session ? "/dashboard/listings/new" : "/auth/signin"}
-            className="mobile-nav-link bg-blue-600 hover:bg-blue-700 text-white flex flex-col items-center px-3 py-2.5 rounded text-sm font-medium transition-colors shadow-sm mx-3 mb-3"
+            className="mobile-nav-link bg-blue-600 hover:bg-blue-700 text-white flex flex-col items-center px-4 py-3 rounded-md text-sm font-medium transition-colors shadow-sm mx-3 mb-4"
             onClick={() => setMobileMenuOpen(false)}
           >
-            <MdAdd className="h-5 w-5 mb-1" />
-            <span className="text-xs">{t('header.postAd')}</span>
+            <MdAdd className="h-6 w-6 mb-1.5" />
+            <span className="text-sm font-medium">{t('header.postAd')}</span>
           </Link>
           
-          {/* Navigation Links in Blocket order - Compact grid */}
-          <div className="grid grid-cols-3 gap-1 px-3 py-2">
+          {/* Navigation Links in Blocket order - Larger grid */}
+          <div className="grid grid-cols-3 gap-2 px-3 py-3">
             <Link 
               href="/listings"
-              className="mobile-nav-link flex flex-col items-center px-2 py-2.5 rounded text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
+              className="mobile-nav-link flex flex-col items-center px-3 py-3 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <MdDirectionsCar className="h-5 w-5 mb-1" />
-              <span className="text-[10px] text-center leading-tight">{t('header.listings')}</span>
+              <MdDirectionsCar className="h-6 w-6 mb-1.5" />
+              <span className="text-xs text-center leading-tight font-medium">{t('header.listings')}</span>
             </Link>
             <Link 
               href={session ? "/dashboard/messages" : "/auth/signin"}
-              className="mobile-nav-link flex flex-col items-center px-2 py-2.5 rounded text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
+              className="mobile-nav-link flex flex-col items-center px-3 py-3 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <MdEmail className="h-5 w-5 mb-1" />
-              <span className="text-[10px] text-center leading-tight">{t('header.messages')}</span>
+              <MdEmail className="h-6 w-6 mb-1.5" />
+              <span className="text-xs text-center leading-tight font-medium">{t('header.messages')}</span>
             </Link>
             <Link 
               href={session ? "/dashboard/saved-searches" : "/auth/signin"}
-              className="mobile-nav-link flex flex-col items-center px-2 py-2.5 rounded text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
+              className="mobile-nav-link flex flex-col items-center px-3 py-3 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <MdBookmark className="h-5 w-5 mb-1" />
-              <span className="text-[10px] text-center leading-tight">{t('header.savedSearches')}</span>
+              <MdBookmark className="h-6 w-6 mb-1.5" />
+              <span className="text-xs text-center leading-tight font-medium">{t('header.savedSearches')}</span>
             </Link>
           </div>
           
