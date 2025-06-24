@@ -10,10 +10,35 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.config({ extends: ["next/core-web-vitals", "next/typescript"] }),
+  // Global ignores - these need to be in a separate object at the root level
+  {
+    ignores: [
+      ".next/**",
+      "node_modules/**",
+      "coverage/**",
+      "out/**",
+      "build/**",
+      "dist/**",
+      "__mocks__/**", 
+      "*.config.js",
+      "*.config.mjs",
+      "*.config.ts",
+      ".husky/**",
+      "public/**",
+    ],
+  },
+  
+  // Apply Next.js configurations with explicit plugin detection
+  ...compat.config({ 
+    extends: ["next/core-web-vitals", "next/typescript"],
+    env: {
+      browser: true,
+      es6: true,
+      node: true,
+    },
+  }),
 
   {
-    ignores: [".next/**", "__mocks__/**"], // Ignore the .next and __mocks__ directories
     rules: {
       "@typescript-eslint/no-explicit-any": "error",             // ❌ Prevent using `any`
       "@typescript-eslint/no-unused-vars": ["error", {           // ❌ No unused vars unless start with _
