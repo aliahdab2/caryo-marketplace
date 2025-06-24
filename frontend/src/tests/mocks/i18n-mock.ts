@@ -98,6 +98,13 @@ const mockTranslations: Record<string, string> = {
   'contactInformation.enterPhone': 'Enter your phone number',
   'contactInformation.enterLocation': 'Enter your location',
   
+  // Google Auth and Security
+  'dashboard.googleAuth': 'Google Authentication',
+  'dashboard.googleAuthSignedIn': 'You\'re signed in with your Google account',
+  'dashboard.googleAuthSecurity': 'Security is managed by your Google account',
+  'dashboard.active': 'Active',
+  'dashboard.twoFactorAuthRecommended': 'Recommended for enhanced security',
+  
   // Auth related
   'auth.userId': 'User ID',
   'auth.passwordsDoNotMatch': 'New passwords do not match',
