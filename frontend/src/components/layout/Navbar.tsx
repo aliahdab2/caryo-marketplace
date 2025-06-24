@@ -71,16 +71,16 @@ export default function Navbar({ className }: ComponentProps) {
           </div>
 
           {/* Right Side - Navigation + Login/User Menu (Language Auto-Detected) */}
-          <div className="hidden sm:flex sm:items-center sm:space-x-3 md:space-x-4 lg:space-x-6 rtl:space-x-reverse flex-shrink-0">
+          <div className="hidden sm:flex sm:items-center sm:space-x-2 md:space-x-3 rtl:space-x-reverse flex-shrink-0">
             {/* Navigation Items - Larger like Blocket */}
-            <div className="flex items-center space-x-2 md:space-x-3 lg:space-x-4 rtl:space-x-reverse" role="navigation" aria-label="Main navigation">
-              {/* Post Ad Button - Prominent blue button like Blocket */}
+            <div className="flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse" role="navigation" aria-label="Main navigation">
+              {/* Post Ad Button - Horizontal layout like Blocket */}
               <Link
                 href={session ? "/dashboard/listings/new" : "/auth/signin"}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2.5 rounded-md text-sm font-medium flex flex-col items-center justify-center transition-colors min-w-[70px] max-w-[85px] h-14 shadow-sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-md text-sm font-medium flex items-center justify-center transition-colors min-w-[100px] max-w-[120px] h-12 shadow-sm"
               >
-                <MdAdd className="h-5 w-5 mb-1 flex-shrink-0" />
-                <span className="text-xs leading-tight font-medium">{t('header.postAd')}</span>
+                <MdAdd className="h-5 w-5 mr-2 flex-shrink-0" />
+                <span className="text-sm font-medium whitespace-nowrap">{t('header.postAd')}</span>
               </Link>
               
               {/* Listings - Larger style like Blocket */}
@@ -111,7 +111,7 @@ export default function Navbar({ className }: ComponentProps) {
               </Link>
             </div>
             
-            {/* User Menu / Login Button */}
+            {/* User Menu / Login Button - Closer to navigation */}
             {session ? (
               <div className="relative" ref={userMenuRef}>
                 <button 

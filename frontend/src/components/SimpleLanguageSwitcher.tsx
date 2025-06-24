@@ -33,7 +33,7 @@ export default function SimpleLanguageSwitcher({ className }: SimpleLanguageSwit
     <div className={`flex items-center space-x-2 ${className || ''}`}>
       <button
         onClick={() => handleLanguageChange('en')}
-        className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+        className={`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap ${
           locale === 'en'
             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
             : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700'
@@ -43,7 +43,7 @@ export default function SimpleLanguageSwitcher({ className }: SimpleLanguageSwit
       </button>
       <button
         onClick={() => handleLanguageChange('ar')}
-        className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+        className={`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap ${
           locale === 'ar'
             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
             : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700'
