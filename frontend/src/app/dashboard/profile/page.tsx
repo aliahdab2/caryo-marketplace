@@ -260,10 +260,6 @@ export default function ProfilePage() {
         
         <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div className="flex-1">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-green-200">Online</span>
-            </div>
             <h1 className="text-4xl lg:text-5xl font-bold mb-3 leading-tight">
               {t('dashboard.profile')}
             </h1>
@@ -611,12 +607,12 @@ export default function ProfilePage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Google Authentication</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{t('dashboard.googleAuth')}</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      You&apos;re signed in with your Google account
+                      {t('dashboard.googleAuthSignedIn')}
                     </p>
                     <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                      Security is managed by your Google account
+                      {t('dashboard.googleAuthSecurity')}
                     </p>
                   </div>
                 </div>
@@ -624,7 +620,7 @@ export default function ProfilePage() {
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  Active
+                  {t('dashboard.active')}
                 </span>
               </div>
             </div>
@@ -647,7 +643,7 @@ export default function ProfilePage() {
                       {t('dashboard.improveAccountSecurity')}
                     </p>
                     <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                      Recommended for enhanced security
+                      {t('dashboard.twoFactorAuthRecommended')}
                     </p>
                   </div>
                 </div>

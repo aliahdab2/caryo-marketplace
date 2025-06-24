@@ -347,5 +347,10 @@
   "dashboard.recommendPasswordUpdate": "Recommended: Update your password regularly",
   "dashboard.tellUsAboutYourself": "Tell us about yourself...",
   "contactInformation.enterPhone": "Enter your phone number",
-  "contactInformation.enterLocation": "Enter your location"
+  "contactInformation.enterLocation": "Enter your location",
+  "dashboard.googleAuth": "Google Authentication",
+  "dashboard.googleAuthSignedIn": "You're signed in with your Google account",
+  "dashboard.googleAuthSecurity": "Security is managed by your Google account",
+  "dashboard.active": "Active",
+  "dashboard.twoFactorAuthRecommended": "Recommended for enhanced security"
 }

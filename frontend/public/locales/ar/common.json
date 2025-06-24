@@ -350,5 +350,10 @@
   "dashboard.recommendPasswordUpdate": "موصى به: قم بتحديث كلمة المرور بانتظام",
   "dashboard.tellUsAboutYourself": "أخبرنا عن نفسك...",
   "contactInformation.enterPhone": "أدخل رقم هاتفك",
-  "contactInformation.enterLocation": "أدخل موقعك"
+  "contactInformation.enterLocation": "أدخل موقعك",
+  "dashboard.googleAuth": "مصادقة جوجل",
+  "dashboard.googleAuthSignedIn": "أنت مسجل الدخول باستخدام حساب جوجل الخاص بك",
+  "dashboard.googleAuthSecurity": "الأمان يُدار من قبل حساب جوجل الخاص بك",
+  "dashboard.active": "نشط",
+  "dashboard.twoFactorAuthRecommended": "موصى به لتعزيز الأمان"
 }
