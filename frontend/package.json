@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:check": "npm run lint && npm run build",
     "start": "next start",
     "lint": "eslint src --ext .ts,.tsx,.js",
     "lint:fix": "eslint src --ext .ts,.tsx,.js --fix",
@@ -13,12 +14,11 @@
     "test": "node --no-deprecation ./node_modules/.bin/jest",
     "restart": "sh ./scripts/restart-dev.sh",
     "diagnose": "node ./scripts/diagnostics/simple-diagnostics.js",
-    "find-unused-translations": "node --experimental-modules ./scripts/diagnostics/find-unused-translations.js"
+    "find-unused-translations": "node ./scripts/diagnostics/find-unused-translations.js"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
     "@iconify/react": "^6.0.0",
-    "@rushstack/eslint-patch": "^1.11.0",
     "axios": "^1.9.0",
     "cookies-next": "^5.1.0",
     "eslint-config-next": "^15.3.2",
@@ -29,7 +29,6 @@
     "lucide-react": "^0.511.0",
     "next": "15.3.2",
     "next-auth": "^4.24.11",
-    "next-i18next": "^15.4.2",
     "punycode": "^2.3.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -44,7 +43,6 @@
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.1",
     "@testing-library/user-event": "^14.5.2",
-    "@types/axios": "^0.9.36",
     "@types/jest": "^29.5.12",
     "@types/lodash": "^4.17.17",
     "@types/node": "^20",
