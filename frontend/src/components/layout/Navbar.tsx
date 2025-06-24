@@ -57,14 +57,14 @@ export default function Navbar({ className }: ComponentProps) {
               aria-label={t('header.home')}
             >
               <Image 
-                className="h-7 w-auto xs:h-8 sm:h-8" 
+                className="h-9 w-auto xs:h-10 sm:h-11 md:h-12" 
                 src={logoSrc} 
                 alt="" 
-                width={32} 
-                height={32}
+                width={48} 
+                height={48}
                 onError={handleLogoError}
               />
-              <span className="ml-2 xs:ml-2 rtl:mr-2 rtl:xs:mr-2 rtl:ml-0 text-lg xs:text-xl sm:text-xl font-bold text-gray-900 dark:text-white logo-text">
+              <span className="ml-2 xs:ml-2 rtl:mr-2 rtl:xs:mr-2 rtl:ml-0 text-xl xs:text-2xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white logo-text">
                 Caryo
               </span>
             </Link>
