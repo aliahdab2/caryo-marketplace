@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
+import SimpleLanguageSwitcher from "@/components/SimpleLanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
 import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdDirectionsCar } from "react-icons/md";
 import type { ComponentProps } from "@/types/components";
@@ -211,6 +212,14 @@ export default function Navbar({ className }: ComponentProps) {
                       <MdSettings className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
                       {t("dashboard.accountSettings")}
                     </Link>
+                    
+                    {/* Language Switcher in user menu */}
+                    <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-600">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                        {t('header.language', 'Language')}
+                      </div>
+                      <SimpleLanguageSwitcher />
+                    </div>
                   </div>
                   
                   <div className="py-1 border-t dark:border-gray-700">
@@ -381,6 +390,15 @@ export default function Navbar({ className }: ComponentProps) {
                   <MdSettings className="mr-3 h-5 w-5" />
                   {t("dashboard.accountSettings")}
                 </Link>
+                
+                {/* Language Switcher in mobile menu for logged-in users */}
+                <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-700">
+                  <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                    {t('header.language', 'Language')}
+                  </div>
+                  <SimpleLanguageSwitcher />
+                </div>
+                
                 <button
                   onClick={async () => {
                     await signOut({ redirect: false });

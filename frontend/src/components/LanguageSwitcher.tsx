@@ -5,11 +5,13 @@ import { useLanguage } from '@/components/EnhancedLanguageProvider';
 import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
 import { SupportedLanguage } from '@/utils/i18nExports';
+import { useManualLanguageOverride } from '@/hooks/useAutomaticLanguageDetection';
 
 type LanguageSwitcherProps = ComponentProps;
 
 export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const { locale, changeLanguage } = useLanguage();
+  const { setLanguageManually } = useManualLanguageOverride();
   const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -107,6 +109,9 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
     // Use a longer delay to ensure UI elements have settled
     setTimeout(() => {
       try {
+        // Mark that the user has manually chosen a language
+        setLanguageManually(lang);
+        
         // Change the language
         changeLanguage(lang);
         
