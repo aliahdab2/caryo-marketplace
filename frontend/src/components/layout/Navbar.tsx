@@ -89,7 +89,7 @@ export default function Navbar({ className }: ComponentProps) {
                 className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
               >
                 <MdDirectionsCar className="h-5 w-5 mb-1 flex-shrink-0" />
-                <span className="text-xs leading-tight font-medium">{t('header.listings')}</span>
+                <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('header.listings')}</span>
               </Link>
               
               {/* Messages - Larger style like Blocket */}
@@ -98,7 +98,7 @@ export default function Navbar({ className }: ComponentProps) {
                 className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
               >
                 <MdEmail className="h-5 w-5 mb-1 flex-shrink-0" />
-                <span className="text-xs leading-tight font-medium">{t('header.messages')}</span>
+                <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('header.messages')}</span>
               </Link>
               
               {/* Saved Searches - Larger style like Blocket */}
@@ -107,7 +107,7 @@ export default function Navbar({ className }: ComponentProps) {
                 className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
               >
                 <MdBookmark className="h-5 w-5 mb-1 flex-shrink-0" />
-                <span className="text-xs leading-tight font-medium">{t('header.savedSearches')}</span>
+                <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('header.savedSearches')}</span>
               </Link>
             </div>
             
