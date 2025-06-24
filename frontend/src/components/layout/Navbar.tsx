@@ -7,7 +7,7 @@ import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
-import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdMessage, MdBookmark } from "react-icons/md";
+import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdDirectionsCar } from "react-icons/md";
 import type { ComponentProps } from "@/types/components";
 
 export default function Navbar({ className }: ComponentProps) {
@@ -77,38 +77,36 @@ export default function Navbar({ className }: ComponentProps) {
               {/* Post Ad Button - Prominent blue button like Blocket */}
               <Link
                 href={session ? "/dashboard/listings/new" : "/auth/signin"}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1.5 rounded text-xs font-medium flex flex-col items-center transition-colors min-w-[50px] max-w-[60px]"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-2 rounded text-xs font-medium flex flex-col items-center justify-center transition-colors min-w-[50px] max-w-[60px] h-12"
               >
-                <MdAdd className="h-4 w-4 mb-0.5" />
+                <MdAdd className="h-4 w-4 mb-0.5 flex-shrink-0" />
                 <span className="text-[10px] leading-tight">{t('header.postAd')}</span>
               </Link>
               
               {/* Listings - Compact style like Blocket */}
               <Link 
                 href="/listings" 
-                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center px-2 py-1.5 rounded transition-colors min-w-[50px] max-w-[60px]"
+                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-2 py-2 rounded transition-colors min-w-[50px] max-w-[60px] h-12"
               >
-                <svg className="h-4 w-4 mb-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                </svg>
+                <MdDirectionsCar className="h-4 w-4 mb-0.5 flex-shrink-0" />
                 <span className="text-[10px] leading-tight">{t('header.listings')}</span>
               </Link>
               
               {/* Messages - Compact style like Blocket */}
               <Link 
                 href={session ? "/dashboard/messages" : "/auth/signin"}
-                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center px-2 py-1.5 rounded transition-colors min-w-[50px] max-w-[60px]"
+                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-2 py-2 rounded transition-colors min-w-[50px] max-w-[60px] h-12"
               >
-                <MdMessage className="h-4 w-4 mb-0.5" />
+                <MdEmail className="h-4 w-4 mb-0.5 flex-shrink-0" />
                 <span className="text-[10px] leading-tight">{t('header.messages')}</span>
               </Link>
               
               {/* Saved Searches - Compact style like Blocket */}
               <Link 
                 href={session ? "/dashboard/saved-searches" : "/auth/signin"}
-                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center px-2 py-1.5 rounded transition-colors min-w-[50px] max-w-[60px]"
+                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-2 py-2 rounded transition-colors min-w-[50px] max-w-[60px] h-12"
               >
-                <MdBookmark className="h-4 w-4 mb-0.5" />
+                <MdBookmark className="h-4 w-4 mb-0.5 flex-shrink-0" />
                 <span className="text-[10px] leading-tight">{t('header.savedSearches')}</span>
               </Link>
             </div>
@@ -196,7 +194,7 @@ export default function Navbar({ className }: ComponentProps) {
                       onClick={() => setUserMenuOpen(false)}
                       role="menuitem"
                     >
-                      <MdMessage className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                      <MdEmail className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
                       {t('header.messages')}
                     </Link>
                     
@@ -318,9 +316,7 @@ export default function Navbar({ className }: ComponentProps) {
               className="mobile-nav-link flex flex-col items-center px-2 py-2.5 rounded text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <svg className="h-5 w-5 mb-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-              </svg>
+              <MdDirectionsCar className="h-5 w-5 mb-1" />
               <span className="text-[10px] text-center leading-tight">{t('header.listings')}</span>
             </Link>
             <Link 
@@ -328,7 +324,7 @@ export default function Navbar({ className }: ComponentProps) {
               className="mobile-nav-link flex flex-col items-center px-2 py-2.5 rounded text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <MdMessage className="h-5 w-5 mb-1" />
+              <MdEmail className="h-5 w-5 mb-1" />
               <span className="text-[10px] text-center leading-tight">{t('header.messages')}</span>
             </Link>
             <Link 
