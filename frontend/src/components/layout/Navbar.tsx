@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
 import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdDirectionsCar } from "react-icons/md";
 import type { ComponentProps } from "@/types/components";
@@ -70,7 +69,7 @@ export default function Navbar({ className }: ComponentProps) {
             </Link>
           </div>
 
-          {/* Right Side - Navigation + Language Switcher + Login/User Menu */}
+          {/* Right Side - Navigation + Login/User Menu (Language Auto-Detected) */}
           <div className="hidden sm:flex sm:items-center sm:space-x-3 md:space-x-4 lg:space-x-6 rtl:space-x-reverse flex-shrink-0">
             {/* Navigation Items - Larger like Blocket */}
             <div className="flex items-center space-x-2 md:space-x-3 lg:space-x-4 rtl:space-x-reverse" role="navigation" aria-label="Main navigation">
@@ -123,11 +122,6 @@ export default function Navbar({ className }: ComponentProps) {
                   aria-controls="user-menu"
                   aria-label="User account menu"
                 >
-                  {/* Compact Language Switcher integrated with user menu */}
-                  <div className="flex items-center mr-2">
-                    <LanguageSwitcher />
-                  </div>
-                  
                   <div className="flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-full h-7 w-7 sm:h-8 sm:w-8 shadow-sm ring-2 ring-white dark:ring-gray-800">
                     {session.user?.image ? (
                       <Image 
@@ -236,13 +230,7 @@ export default function Navbar({ className }: ComponentProps) {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center space-x-3">
-                {/* Compact Language Switcher for non-logged in users */}
-                <div className="flex items-center">
-                  <LanguageSwitcher />
-                </div>
-                <SignInButton className="text-xs xs:text-sm" />
-              </div>
+              <SignInButton className="text-xs xs:text-sm" />
             )}
           </div>
           
@@ -341,14 +329,6 @@ export default function Navbar({ className }: ComponentProps) {
               <MdBookmark className="h-6 w-6 mb-1.5" />
               <span className="text-xs text-center leading-tight font-medium">{t('header.savedSearches')}</span>
             </Link>
-          </div>
-          
-          {/* Language Switcher in mobile menu */}
-          <div className="px-3 py-2">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-              {t('header.language')}
-            </div>
-            <LanguageSwitcher />
           </div>
           
           {/* User Section */}

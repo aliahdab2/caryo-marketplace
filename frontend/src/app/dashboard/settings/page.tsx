@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/components/EnhancedLanguageProvider";
 import { SupportedLanguage } from "@/utils/i18n";
+import { useManualLanguageOverride } from "@/hooks/useAutomaticLanguageDetection";
 
 export default function SettingsPage() {
   const { t } = useTranslation('common');
-  const { locale, changeLanguage } = useLanguage();
+  const { locale } = useLanguage();
+  const { setLanguageManually } = useManualLanguageOverride();
 
   const [accountSettings, setAccountSettings] = useState({
     language: locale, // Initialize with current locale
@@ -52,15 +54,14 @@ export default function SettingsPage() {
       const newLanguage = value as SupportedLanguage;
       if (newLanguage !== locale) { // Only proceed if the language is actually different
         setIsChangingLanguage(true);
-        changeLanguage(newLanguage)
-          .catch((error) => {
-            console.error("Failed to change language:", error);
-            // If change fails, locale won't update.
-            // The useEffect above will ensure accountSettings.language reverts to the old locale.
-          })
-          .finally(() => {
-            setIsChangingLanguage(false);
-          });
+        try {
+          // Use manual override to change language and mark it as user-selected
+          setLanguageManually(newLanguage);
+        } catch (error: unknown) {
+          console.error("Failed to change language:", error);
+        } finally {
+          setIsChangingLanguage(false);
+        }
       }
       // The useEffect syncing with `locale` will handle updating the dropdown display
       // once the language change is complete and the context updates.
