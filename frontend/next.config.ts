@@ -31,6 +31,12 @@ if (!minioUrl && showWarnings) {
 }
 
 const nextConfig: NextConfig = {
+  // ESLint configuration for Next.js integration
+  eslint: {
+    // Skip ESLint during builds - we use our own lint scripts
+    ignoreDuringBuilds: true,
+  },
+  
   env: {
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
