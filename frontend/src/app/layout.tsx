@@ -9,6 +9,7 @@ import I18nProvider from "@/components/I18nProvider";
 import MainLayout from "@/components/layout/MainLayout";
 import ClientRTLStylesLoader from "@/components/layout/ClientRTLStylesLoader";
 import AuthDataHandler from "@/components/auth/AuthDataHandler";
+import AutoLanguageDetector from "@/components/AutoLanguageDetector";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,6 +49,7 @@ export default async function RootLayout({
           <AuthDataHandler />
           <I18nProvider>
             <LanguageProvider>
+              <AutoLanguageDetector />
               <MainLayout>{children}</MainLayout>
             </LanguageProvider>
           </I18nProvider>
