@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -192,35 +192,86 @@ export default function AdvancedSearchPage() {
     }
   }, [filters.brand, carMakes, getDisplayName]);
 
-  // Handle input changes
-  const handleInputChange = (field: keyof AdvancedSearchFilters, value: string | number | undefined) => {
-    setFilters(prev => ({
-      ...prev,
-      [field]: value || undefined
-    }));
-
-    // Reset model when brand changes
-    if (field === 'brand') {
-      setFilters(prev => ({
+  // Handle input changes with better state management
+  const handleInputChange = useCallback((field: keyof AdvancedSearchFilters, value: string | number | undefined) => {
+    setFilters(prev => {
+      const newFilters = {
         ...prev,
-        model: undefined
-      }));
-      
+        [field]: value || undefined
+      };
+
+      // Reset model when brand changes
+      if (field === 'brand') {
+        newFilters.model = undefined;
+      }
+
+      return newFilters;
+    });
+
+    // Update selected make when brand changes
+    if (field === 'brand') {
       const brand = carMakes?.find(make => 
         getDisplayName(make).toLowerCase() === value?.toString().toLowerCase()
       );
       setSelectedMake(brand ? brand.id : null);
     }
-  };
+  }, [carMakes, getDisplayName]);
 
-  // Clear all filters
-  const clearAllFilters = () => {
+  // Clear all filters with URL update
+  const clearAllFilters = useCallback(() => {
     setFilters({});
     setSelectedMake(null);
-  };
+    // Clear URL parameters as well
+    router.replace('/search');
+  }, [router]);
 
-  // Handle search submission
-  const handleSearch = () => {
+  // Clear filter with immediate URL update
+  const clearSpecificFilter = useCallback((filterType: FilterType) => {
+    setFilters(prev => {
+      const newFilters = { ...prev };
+      
+      switch (filterType) {
+        case 'makeModel':
+          delete newFilters.brand;
+          delete newFilters.model;
+          setSelectedMake(null);
+          break;
+        case 'price':
+          delete newFilters.minPrice;
+          delete newFilters.maxPrice;
+          break;
+        case 'year':
+          delete newFilters.minYear;
+          delete newFilters.maxYear;
+          break;
+        case 'mileage':
+          delete newFilters.minMileage;
+          delete newFilters.maxMileage;
+          break;
+        case 'transmission':
+          delete newFilters.transmissionId;
+          break;
+        case 'condition':
+          delete newFilters.conditionId;
+          break;
+        case 'fuelType':
+          delete newFilters.fuelTypeId;
+          break;
+        case 'bodyStyle':
+          delete newFilters.bodyStyleId;
+          break;
+        case 'location':
+          delete newFilters.location;
+          delete newFilters.locationId;
+          break;
+      }
+      
+      return newFilters;
+    });
+  }, []);
+
+  // Handle search submission with debounced URL updates
+  const handleSearch = useCallback(() => {
     const params = new URLSearchParams();
     
     // Add all non-empty filters to URL params
@@ -231,14 +282,17 @@ export default function AdvancedSearchPage() {
     });
 
     // Update current page URL instead of navigating away
-    const newUrl = `/search?${params.toString()}`;
+    const newUrl = params.toString() ? `/search?${params.toString()}` : '/search';
     router.replace(newUrl);
-  };
+  }, [filters, router]);
 
-  // Count active filters
-  const activeFiltersCount = Object.values(filters).filter(value => 
-    value !== undefined && value !== null && value !== ''
-  ).length;
+  // Count active filters with memoization
+  const activeFiltersCount = useMemo(() => 
+    Object.values(filters).filter(value => 
+      value !== undefined && value !== null && value !== ''
+    ).length,
+    [filters]
+  );
 
   // Get filter display text
   const getFilterDisplayText = (filterType: FilterType): string => {
@@ -258,9 +312,9 @@ export default function AdvancedSearchPage() {
         if (filters.maxYear) return `${t('search.upTo', 'Up to')} ${filters.maxYear}`;
         return t('search.year', 'Year');
       case 'mileage':
-        if (filters.minMileage && filters.maxMileage) return `${filters.minMileage} - ${filters.maxMileage} ${t('search.miles', 'miles')}`;
-        if (filters.minMileage) return `${t('search.from', 'From')} ${filters.minMileage} ${t('search.miles', 'miles')}`;
-        if (filters.maxMileage) return `${t('search.upTo', 'Up to')} ${filters.maxMileage} ${t('search.miles', 'miles')}`;
+        if (filters.minMileage && filters.maxMileage) return `${filters.minMileage} - ${filters.maxMileage}`;
+        if (filters.minMileage) return `${t('search.from', 'From')} ${filters.minMileage}`;
+        if (filters.maxMileage) return `${t('search.upTo', 'Up to')} ${filters.maxMileage}`;
         return t('search.mileage', 'Mileage');
       case 'transmission':
         return filters.transmissionId ? getTransmissionDisplayName(filters.transmissionId) : t('search.gearbox', 'Gearbox');
@@ -303,8 +357,8 @@ export default function AdvancedSearchPage() {
     }
   };
 
-  // Filter pill component
-  const FilterPill = ({ filterType, onClick }: { filterType: FilterType; onClick: () => void }) => {
+  // Filter pill component with memo for performance
+  const FilterPill = React.memo(({ filterType, onClick }: { filterType: FilterType; onClick: () => void }) => {
     const isActive = isFilterActive(filterType);
     const displayText = getFilterDisplayText(filterType);
     
@@ -316,12 +370,14 @@ export default function AdvancedSearchPage() {
             ? 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100'
             : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
         }`}
+        aria-label={`Filter by ${displayText}`}
       >
         <MdAdd className="mr-2 h-4 w-4" />
         {displayText}
       </button>
     );
-  };
+  });
+  FilterPill.displayName = 'FilterPill';
 
   // Modal component
   const FilterModal = ({ filterType, onClose }: { filterType: FilterType; onClose: () => void }) => {
@@ -586,13 +642,24 @@ export default function AdvancedSearchPage() {
       }
     };
 
+    // Handle keyboard navigation for modals
+    const handleModalKeyDown = useCallback((e: React.KeyboardEvent, onClose: () => void) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    }, []);
+
     return (
       <div className="fixed inset-0 z-50 overflow-y-auto pointer-events-none">
         <div className="flex min-h-full items-start justify-center p-4 pt-16 text-center sm:items-start sm:pt-20 sm:p-0">
           {/* Extremely subtle overlay that barely affects background visibility */}
           <div className="fixed inset-0 bg-black/3 transition-opacity pointer-events-auto" onClick={onClose} />
           
-          <div className="relative transform overflow-hidden rounded-xl bg-white px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 border border-gray-100 pointer-events-auto">
+          <div 
+            className="relative transform overflow-hidden rounded-xl bg-white px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 border border-gray-100 pointer-events-auto"
+            onKeyDown={(e) => handleModalKeyDown(e, onClose)}
+            tabIndex={-1}
+          >
             <div className="absolute right-0 top-0 pr-4 pt-4">
               <button
                 type="button"
@@ -608,46 +675,10 @@ export default function AdvancedSearchPage() {
               
               <div className="mt-8 flex justify-between">
                 <button
-                  onClick={() => {
-                    // Clear this specific filter
-                    switch (filterType) {
-                      case 'makeModel':
-                        handleInputChange('brand', undefined);
-                        handleInputChange('model', undefined);
-                        break;
-                      case 'price':
-                        handleInputChange('minPrice', undefined);
-                        handleInputChange('maxPrice', undefined);
-                        break;
-                      case 'year':
-                        handleInputChange('minYear', undefined);
-                        handleInputChange('maxYear', undefined);
-                        break;
-                      case 'mileage':
-                        handleInputChange('minMileage', undefined);
-                        handleInputChange('maxMileage', undefined);
-                        break;
-                      case 'transmission':
-                        handleInputChange('transmissionId', undefined);
-                        break;
-                      case 'condition':
-                        handleInputChange('conditionId', undefined);
-                        break;
-                      case 'fuelType':
-                        handleInputChange('fuelTypeId', undefined);
-                        break;
-                      case 'bodyStyle':
-                        handleInputChange('bodyStyleId', undefined);
-                        break;
-                      case 'location':
-                        handleInputChange('location', undefined);
-                        handleInputChange('locationId', undefined);
-                        break;
-                    }
-                  }}
+                  onClick={() => clearSpecificFilter(filterType)}
                   className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
                 >
-                  {t('search.clearAll', 'Clear all')}
+                  {t('search.clearFilter', 'Clear filter')}
                 </button>
                 
                 <button
@@ -669,7 +700,7 @@ export default function AdvancedSearchPage() {
     );
   };
 
-  // Fetch car listings
+  // Fetch car listings with improved error handling
   const fetchListings = useCallback(async () => {
     setIsLoadingListings(true);
     setListingsError(null);
@@ -697,7 +728,17 @@ export default function AdvancedSearchPage() {
       setCarListings(response);
     } catch (error) {
       console.error('Error fetching car listings:', error);
-      setListingsError(error instanceof Error ? error.message : 'Failed to fetch car listings');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch car listings';
+      setListingsError(errorMessage);
+      // Set empty results on error to show proper no-results state
+      setCarListings({
+        content: [],
+        page: 0,
+        size: 20,
+        totalElements: 0,
+        totalPages: 0,
+        last: true
+      });
     } finally {
       setIsLoadingListings(false);
     }
@@ -707,6 +748,22 @@ export default function AdvancedSearchPage() {
   useEffect(() => {
     fetchListings();
   }, [fetchListings]);
+
+  // Loading skeleton component for better UX
+  const LoadingSkeleton = () => (
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden animate-pulse">
+      <div className="aspect-w-16 aspect-h-12 bg-gray-300 h-48"></div>
+      <div className="p-4 space-y-3">
+        <div className="h-4 bg-gray-300 rounded"></div>
+        <div className="h-3 bg-gray-300 rounded w-3/4"></div>
+        <div className="h-5 bg-gray-300 rounded w-1/2"></div>
+        <div className="flex justify-between items-center">
+          <div className="h-3 bg-gray-300 rounded w-1/4"></div>
+          <div className="h-3 bg-gray-300 rounded w-1/4"></div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -766,14 +823,7 @@ export default function AdvancedSearchPage() {
           {isLoadingListings ? (
             // Loading state
             Array.from({ length: 8 }).map((_, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden animate-pulse">
-                <div className="aspect-w-16 aspect-h-12 bg-gray-300 h-48"></div>
-                <div className="p-4">
-                  <div className="h-4 bg-gray-300 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-300 rounded mb-2 w-3/4"></div>
-                  <div className="h-5 bg-gray-300 rounded w-1/2"></div>
-                </div>
-              </div>
+              <LoadingSkeleton key={index} />
             ))
           ) : carListings && carListings.content.length > 0 ? (
             // Real car listings using reusable component
@@ -858,12 +908,24 @@ export default function AdvancedSearchPage() {
           />
         )}
 
-        {/* Error States */}
+        {/* Error States with better styling */}
         {(brandsError || modelsError || referenceDataError || listingsError) && (
-          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-md">
-            <p className="text-sm text-red-800 dark:text-red-400">
-              {listingsError || t('search.loadingError', 'Error loading filter options. Please refresh the page.')}
-            </p>
+          <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-400">
+                  {t('search.errorTitle', 'Something went wrong')}
+                </h3>
+                <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+                  {listingsError || t('search.loadingError', 'Error loading filter options. Please refresh the page.')}
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </div>

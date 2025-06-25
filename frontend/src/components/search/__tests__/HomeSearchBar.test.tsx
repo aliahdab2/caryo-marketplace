@@ -320,7 +320,7 @@ describe('HomeSearchBar', () => {
       await userEvent.click(searchButton);
       
       expect(mockPush).toHaveBeenCalledWith(
-        expect.stringContaining('/listings?'),
+        expect.stringContaining('/search?'),
         { scroll: false }
       );
     });
