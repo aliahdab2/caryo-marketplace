@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.service.storage;
 
 import com.autotrader.autotraderbackend.config.StorageProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -27,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Service
+@ConditionalOnProperty(name = "storage.s3.enabled", havingValue = "true", matchIfMissing = true)
 public class StorageUrlGenerator {
 
     private final StorageProperties storageProperties;

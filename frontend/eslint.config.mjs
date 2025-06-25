@@ -42,7 +42,9 @@ const eslintConfig = [
     rules: {
       "@typescript-eslint/no-explicit-any": "error",             // ❌ Prevent using `any`
       "@typescript-eslint/no-unused-vars": ["error", {           // ❌ No unused vars unless start with _
-        "argsIgnorePattern": "^_"
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
       }],
       "react-hooks/exhaustive-deps": "warn",                      // ⚠️ Warn if useEffect deps missing
       "no-console": "off",                                       // ⚠️ Warn on console.log (optional)

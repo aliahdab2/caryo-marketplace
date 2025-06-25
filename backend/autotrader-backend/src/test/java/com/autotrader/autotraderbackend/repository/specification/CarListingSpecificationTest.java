@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.repository.specification;
 
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import jakarta.persistence.criteria.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -240,5 +241,34 @@ class CarListingSpecificationTest {
 
         verify(criteriaBuilder).isTrue(eq(root.get("approved"))); // Use eq() for Path
         verifyNoMoreInteractions(criteriaBuilder); // Ensure only isTrue was called
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void fromFilter_withGovernorateEntity_shouldAddGovernoratePredicate() {
+        // Create a mock Governorate entity
+        Governorate mockGovernorate = mock(Governorate.class);
+        when(mockGovernorate.getId()).thenReturn(1L);
+
+        // Mock the nested path structure for governorate.id
+        Path<Object> governoratePath = mock(Path.class);
+        Path<Object> governorateIdPath = mock(Path.class);
+        when(root.get("governorate")).thenReturn(governoratePath);
+        when(governoratePath.get("id")).thenReturn(governorateIdPath);
+
+        ListingFilterRequest filter = new ListingFilterRequest();
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, mockGovernorate);
+
+        spec.toPredicate(root, query, criteriaBuilder);
+
+        // Verify that the correct path is used: root.get("governorate").get("id")
+        verify(root).get("governorate");
+        verify(governoratePath).get("id");
+        verify(criteriaBuilder).equal(governorateIdPath, 1L);
+
+        // Use ArgumentCaptor for 'and'
+        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
+        verify(criteriaBuilder).and(predicateCaptor.capture());
+        assertEquals(1, predicateCaptor.getValue().length, "Should combine exactly 1 predicate for governorate filter");
     }
 }

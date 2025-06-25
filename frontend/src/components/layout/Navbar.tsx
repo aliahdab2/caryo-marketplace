@@ -7,7 +7,7 @@ import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import SimpleLanguageSwitcher from "@/components/SimpleLanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
-import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdDirectionsCar } from "react-icons/md";
+import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdDirectionsCar, MdSearch } from "react-icons/md";
 import type { ComponentProps } from "@/types/components";
 
 export default function Navbar({ className }: ComponentProps) {
@@ -108,6 +108,15 @@ export default function Navbar({ className }: ComponentProps) {
               >
                 <MdBookmark className="h-5 w-5 mb-1 flex-shrink-0" />
                 <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('header.savedSearches')}</span>
+              </Link>
+              
+              {/* Advanced Search - Larger style like Blocket */}
+              <Link 
+                href="/search"
+                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
+              >
+                <MdSearch className="h-5 w-5 mb-1 flex-shrink-0" />
+                <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('header.advancedSearch')}</span>
               </Link>
             </div>
             
@@ -313,7 +322,7 @@ export default function Navbar({ className }: ComponentProps) {
           </Link>
           
           {/* Navigation Links in Blocket order - Larger grid */}
-          <div className="grid grid-cols-3 gap-2 px-3 py-3">
+          <div className="grid grid-cols-2 gap-2 px-3 py-3">
             <Link 
               href="/listings"
               className="mobile-nav-link flex flex-col items-center px-3 py-3 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
@@ -321,6 +330,14 @@ export default function Navbar({ className }: ComponentProps) {
             >
               <MdDirectionsCar className="h-6 w-6 mb-1.5" />
               <span className="text-xs text-center leading-tight font-medium">{t('header.listings')}</span>
+            </Link>
+            <Link 
+              href="/search"
+              className="mobile-nav-link flex flex-col items-center px-3 py-3 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <MdSearch className="h-6 w-6 mb-1.5" />
+              <span className="text-xs text-center leading-tight font-medium">{t('header.advancedSearch')}</span>
             </Link>
             <Link 
               href={session ? "/dashboard/messages" : "/auth/signin"}
