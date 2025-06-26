@@ -618,45 +618,62 @@ export default function AdvancedSearchPage() {
       switch (filterType) {
         case 'makeModel':
           return (
-            <div className="space-y-6">
+            <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg">
               {/* Header */}
-              <div className="text-center border-b border-gray-200 pb-4">
-                <h2 className="text-xl font-semibold text-gray-900">{t('search.makeAndModel', 'Make & Model')}</h2>
-              </div>
-
-              {/* Search bar */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MdSearch className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder={t('search.searchPlaceholder', 'Search for brands...')}
-                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm('')}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                  >
-                    <MdClose className="h-5 w-5" />
-                  </button>
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                {i18n.language === 'ar' ? (
+                  <>
+                    <div className="w-12"></div> {/* Spacer to center the title */}
+                    <h2 className="text-lg font-semibold text-gray-900 text-center flex-1">
+                      {t('search.makeAndModel', 'الماركة والموديل')}
+                    </h2>
+                    <button
+                      onClick={handleClose}
+                      className="text-gray-500 hover:text-gray-700 p-1 text-sm"
+                    >
+                      {t('search.abort', 'إلغاء')}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {t('search.makeAndModel', 'Make & Model')}
+                    </h2>
+                    <button
+                      onClick={handleClose}
+                      className="text-gray-500 hover:text-gray-700 p-1 text-sm"
+                    >
+                      {t('search.abort', 'Cancel')}
+                    </button>
+                  </>
                 )}
               </div>
 
-              {/* Selected Filters Pills Section */}
+              {/* Search bar */}
+              <div className="p-4 border-b border-gray-200">
+                <div className="relative">
+                  <div className={`absolute inset-y-0 ${i18n.language === 'ar' ? 'right-0 pr-3' : 'left-0 pl-3'} flex items-center pointer-events-none`}>
+                    <MdSearch className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={t('search.searchFilterPlaceholder', 'Search for make or model')}
+                    className={`w-full ${i18n.language === 'ar' ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4 text-left'} py-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-500`}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Selected Filters Pills - Only show if we have selections */}
               {(filters.brand || getSelectedModels().length > 0) && (
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <h3 className="text-sm font-medium text-blue-900 mb-3">{t('search.selectedFilters', 'Selected filters')}</h3>
+                <div className="p-4 bg-blue-50 border-b border-gray-200">
                   <div className="flex flex-wrap gap-2">
                     {/* Brand pill */}
                     {filters.brand && (
                       <BrandPill 
                         brandName={filters.brand}
                         onClick={() => {
-                          // When clicking on brand pill in modal, find and expand the brand
                           const brand = carMakes?.find(make => 
                             getDisplayName(make).toLowerCase() === filters.brand?.toLowerCase()
                           );
@@ -684,182 +701,165 @@ export default function AdvancedSearchPage() {
                 </div>
               )}
 
-              {/* Brands section */}
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
+              {/* Brands section title */}
+              <div className="p-4 pb-2">
+                <h3 className={`text-base font-medium text-gray-900 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
                   {searchTerm 
-                    ? `${t('search.searchResults', 'Search results')} (${filteredCarMakes.length})` 
-                    : t('search.popularBrands', 'Vanligaste märkena')
+                    ? `${t('search:searchResults', 'Search results')}` 
+                    : t('search:popularBrands', 'Most popular brands')
                   }
                 </h3>
-                
-                <div className="space-y-2 max-h-80 overflow-y-auto">
-                  {filteredCarMakes.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <div className="mb-2">
-                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-3-3v3m-2.5 6.5h5"></path>
-                        </svg>
-                      </div>
-                      <p>{t('search.noSearchResults', 'No brands found')}</p>
-                      {searchTerm && (
-                        <button
-                          onClick={() => setSearchTerm('')}
-                          className="mt-2 text-blue-600 hover:text-blue-700 text-sm"
-                        >
-                          {t('search.clearSearch', 'Clear search')}
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    filteredCarMakes?.slice(0, 15).map(make => (
-                    <div key={make.id} className="space-y-2">
-                      {/* Brand row */}
-                      <div 
-                        className="flex items-center justify-between py-2 hover:bg-gray-50 rounded-md px-2"
-                        onClick={(e) => e.stopPropagation()} // Prevent modal from closing
+              </div>
+
+              {/* Brands list - Scrollable area */}
+              <div className="px-4 pb-4 max-h-96 overflow-y-auto">
+                {filteredCarMakes.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>{t('search.noSearchResults', 'No brands found')}</p>
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm('')}
+                        className="mt-2 text-blue-600 hover:text-blue-700 text-sm"
                       >
-                        <div className="flex items-center space-x-3 flex-1">
-                          <input
-                            type="checkbox"
-                            id={`make-${make.id}`}
-                            checked={filters.brand === getDisplayName(make)}
-                            onChange={(e) => {
-                              e.stopPropagation(); // Prevent modal from closing
-                              console.log('Brand checkbox clicked:', getDisplayName(make), 'checked:', e.target.checked);
-                              if (e.target.checked) {
-                                // Select the brand and expand to show models
-                                handleInputChange('brand', getDisplayName(make));
-                                setSelectedMake(make.id);
-                                console.log('Expanding brand:', make.id);
-                              } else {
-                                // Unselect the brand and clear models when unchecking
-                                handleInputChange('brand', undefined);
-                                handleInputChange('model', undefined);
-                                if (selectedMake === make.id) {
-                                  setSelectedMake(null);
-                                  console.log('Collapsing brand:', make.id);
-                                }
-                              }
-                            }}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <label 
-                            htmlFor={`make-${make.id}`}
-                            className="text-gray-900 cursor-pointer flex-1 font-medium"
-                            onClick={(e) => e.stopPropagation()} // Prevent modal from closing
-                          >
-                            {getDisplayName(make)}
-                          </label>
-                          <span className="text-gray-500 text-sm">
-                            ({make.listingCount || 0})
-                          </span>
-                        </div>
-                        
-                        {/* Expandable arrow for models */}
-                        <button
+                        {t('search.clearSearch', 'Clear search')}
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {filteredCarMakes?.slice(0, 15).map(make => (
+                      <div key={make.id} className="space-y-1">
+                        {/* Brand row with checkbox, name, count and arrow */}
+                        <div 
+                          className="flex items-center justify-between py-3 hover:bg-gray-50 rounded-md px-2 cursor-pointer"
                           onClick={(e) => {
-                            e.stopPropagation(); // Prevent modal from closing
-                            console.log('Expand/collapse button clicked for brand:', getDisplayName(make), 'current selectedMake:', selectedMake);
+                            e.stopPropagation();
+                            // Toggle expansion when clicking anywhere on the row
                             if (selectedMake === make.id) {
-                              // If currently expanded, collapse it
                               setSelectedMake(null);
-                              console.log('Collapsing brand:', make.id);
                             } else {
-                              // If collapsed or different brand selected, expand this one
                               setSelectedMake(make.id);
-                              console.log('Expanding brand:', make.id);
-                              // Don't auto-select the brand when just expanding to view models
                             }
                           }}
-                          className="ml-2 p-1 hover:bg-gray-100 rounded"
                         >
-                          <svg 
-                            className={`h-5 w-5 text-gray-400 transition-transform ${
-                              selectedMake === make.id ? 'rotate-90' : ''
-                            }`} 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                          </svg>
-                        </button>
-                      </div>
-
-                      {/* Models section - shown under the brand when expanded */}
-                      {selectedMake === make.id && (
-                        <div 
-                          className="ml-8 border-l-2 border-blue-200 pl-4 space-y-1 bg-blue-50/30 py-2 rounded-r-md"
-                          onClick={(e) => e.stopPropagation()} // Prevent modal from closing
-                        >
-                          {_isLoadingModels ? (
-                            <div className="text-xs text-gray-500 italic">
-                              {t('search.loadingModels', 'Loading models...')}
-                            </div>
-                          ) : availableModels && availableModels.length > 0 ? (
-                            <>
-                              <div className="text-xs text-blue-600 font-medium mb-2 uppercase tracking-wider">
-                                {availableModels.length} {t('search.models', 'models')}
-                              </div>
-                              {availableModels.map(model => (
-                                <div 
-                                  key={model.id} 
-                                  className="flex items-center justify-between py-1 hover:bg-blue-50 rounded-md px-2"
-                                  onClick={(e) => e.stopPropagation()} // Prevent modal from closing
-                                >
-                                  <div className="flex items-center space-x-3 flex-1">
-                                    <input
-                                      type="checkbox"
-                                      id={`model-${model.id}`}
-                                      checked={isModelSelected(getDisplayName(model))}
-                                      onChange={(e) => {
-                                        e.stopPropagation(); // Prevent modal from closing
-                                        if (e.target.checked) {
-                                          addModel(getDisplayName(model));
-                                        } else {
-                                          removeModel(getDisplayName(model));
-                                        }
-                                      }}
-                                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    />
-                                    <label 
-                                      htmlFor={`model-${model.id}`}
-                                      className="text-gray-700 cursor-pointer text-sm"
-                                      onClick={(e) => e.stopPropagation()} // Prevent modal from closing
-                                    >
-                                      {getDisplayName(model)}
-                                    </label>                                <span className="text-gray-400 text-xs">
-                                  ({model.listingCount || 0})
-                                </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </>
-                          ) : (
-                            <div className="text-xs text-gray-500 italic">
-                              {t('search.noModels', 'No models available')}
-                            </div>
-                          )}
+                          <div className={`flex items-center flex-1 ${i18n.language === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+                            <input
+                              type="checkbox"
+                              id={`make-${make.id}`}
+                              checked={filters.brand === getDisplayName(make)}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                if (e.target.checked) {
+                                  handleInputChange('brand', getDisplayName(make));
+                                  setSelectedMake(make.id);
+                                } else {
+                                  handleInputChange('brand', undefined);
+                                  handleInputChange('model', undefined);
+                                  if (selectedMake === make.id) {
+                                    setSelectedMake(null);
+                                  }
+                                }
+                              }}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-5 w-5"
+                            />
+                            <label 
+                              htmlFor={`make-${make.id}`}
+                              className={`text-gray-900 cursor-pointer flex-1 font-medium ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {getDisplayName(make)}
+                            </label>
+                          </div>
+                          
+                          <div className={`flex items-center ${i18n.language === 'ar' ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
+                            <span className="text-gray-500 text-sm">
+                              ({make.listingCount || 0})
+                            </span>
+                            {/* Expandable arrow for models */}
+                            <svg 
+                              className={`h-5 w-5 text-gray-400 transition-transform ${
+                                selectedMake === make.id ? 'rotate-180' : ''
+                              }`} 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  ))
-                  )}
-                </div>
+
+                        {/* Models section - shown under the brand when expanded */}
+                        {selectedMake === make.id && (
+                          <div 
+                            className={`${i18n.language === 'ar' ? 'border-r-2 border-blue-200 pr-4 mr-6 rounded-l-md' : 'border-l-2 border-blue-200 pl-4 ml-6 rounded-r-md'} space-y-1 bg-blue-50/30 py-2`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {_isLoadingModels ? (
+                              <div className={`text-sm text-gray-500 italic ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
+                                {t('search.loadingModels', 'Loading models...')}
+                              </div>
+                            ) : availableModels && availableModels.length > 0 ? (
+                              <>
+                                {availableModels.map(model => (
+                                  <div 
+                                    key={model.id} 
+                                    className="flex items-center justify-between py-2 hover:bg-blue-50 rounded-md px-2"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <div className={`flex items-center flex-1 ${i18n.language === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+                                      <input
+                                        type="checkbox"
+                                        id={`model-${model.id}`}
+                                        checked={isModelSelected(getDisplayName(model))}
+                                        onChange={(e) => {
+                                          e.stopPropagation();
+                                          if (e.target.checked) {
+                                            addModel(getDisplayName(model));
+                                          } else {
+                                            removeModel(getDisplayName(model));
+                                          }
+                                        }}
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-5 w-5"
+                                      />
+                                      <label 
+                                        htmlFor={`model-${model.id}`}
+                                        className={`text-gray-700 cursor-pointer text-sm ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        {getDisplayName(model)}
+                                      </label>
+                                    </div>
+                                    <span className="text-gray-400 text-xs">
+                                      ({model.listingCount || 0})
+                                    </span>
+                                  </div>
+                                ))}
+                              </>
+                            ) : (
+                              <div className={`text-sm text-gray-500 italic ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
+                                {t('search.noModels', 'No models available')}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Bottom action buttons */}
-              <div className="flex justify-between pt-4 border-t border-gray-200">
+              <div className={`flex justify-between p-4 border-t border-gray-200 ${i18n.language === 'ar' ? 'flex-row-reverse' : ''}`}>
                 <button
                   onClick={() => {
                     handleInputChange('brand', undefined);
                     handleInputChange('model', undefined);
                     setSelectedMake(null);
                   }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                  className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                 >
-                  {t('search.reset', 'Rensa')}
+                  {t('search:clear', 'Clear')}
                 </button>
                 
                 <button
@@ -869,7 +869,10 @@ export default function AdvancedSearchPage() {
                   }}
                   className="px-8 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 text-sm"
                 >
-                  {t('search.showResults', 'Visa annonser')}
+                  {carListings?.totalElements 
+                    ? `${t('search:showAdsText', 'Show')} ${carListings.totalElements.toLocaleString()} ${t('search:adsText', 'ads')}`
+                    : t('search:showResults', 'Show results')
+                  }
                 </button>
               </div>
             </div>
@@ -1178,12 +1181,12 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-8 max-h-96 overflow-y-auto">
               <div className="text-center">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('search.allFilters', 'Alla filter')}</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('search.allFilters', 'All filters')}</h2>
                 <button
                   onClick={onClose}
                   className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                 >
-                  {t('search.cancel', 'Avbryt')}
+                  {t('search.cancel', 'Cancel')}
                 </button>
               </div>
 
@@ -1246,7 +1249,7 @@ export default function AdvancedSearchPage() {
                   }}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
                 >
-                  {t('search.reset', 'Rensa')}
+                  {t('search.reset', 'Reset')}
                 </button>
                 
                 <button
@@ -1256,7 +1259,10 @@ export default function AdvancedSearchPage() {
                   }}
                   className="px-8 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 text-sm"
                 >
-                  {t('search.showResults', 'Visa 19 114 annonser')}
+                  {carListings?.totalElements 
+                    ? `${t('search:showAdsText', 'Show')} ${carListings.totalElements.toLocaleString()} ${t('search:adsText', 'ads')}`
+                    : t('search:showResults', 'Show results')
+                  }
                 </button>
               </div>
             </div>
@@ -1275,35 +1281,18 @@ export default function AdvancedSearchPage() {
     }, []);
 
     return (
-      <div className="fixed inset-0 z-50 overflow-y-auto pointer-events-none">
-        <div className="flex min-h-full items-start justify-center p-4 pt-16 text-center sm:items-start sm:pt-20 sm:p-0">
-          {/* Extremely subtle overlay that barely affects background visibility */}
-          <div className="fixed inset-0 bg-black/3 transition-opacity pointer-events-auto" onClick={onClose} />
+      <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="flex min-h-full items-center justify-center p-4">
+          {/* Background overlay */}
+          <div className="fixed inset-0 bg-black/30 transition-opacity" onClick={onClose} />
           
+          {/* Modal content - smaller size like in the image */}
           <div 
-            className={`relative transform overflow-hidden rounded-xl bg-white px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full border border-gray-100 pointer-events-auto ${
-              filterType === 'allFilters' 
-                ? 'sm:max-w-2xl sm:p-8' // Wider modal for all filters
-                : 'sm:max-w-lg sm:p-6'  // Regular size for individual filters
-            }`}
+            className="relative transform overflow-hidden rounded-xl bg-white shadow-2xl transition-all w-full max-w-sm"
             onKeyDown={(e) => handleModalKeyDown(e, onClose)}
             tabIndex={-1}
           >
-            {filterType !== 'allFilters' && (
-              <div className="absolute right-0 top-0 pr-4 pt-4">
-                <button
-                  type="button"
-                  className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none"
-                  onClick={onClose}
-                >
-                  <MdClose className="h-6 w-6" />
-                </button>
-              </div>
-            )}
-
-            <div className="mt-3">
-              {renderModalContent()}
-            </div>
+            {renderModalContent()}
           </div>
         </div>
       </div>
@@ -1391,7 +1380,7 @@ export default function AdvancedSearchPage() {
       <div className="container mx-auto px-4 py-6">
         {/* Page Title */}
         <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">{t('search.carsForSale', 'Cars for sale in Skåne')}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('search.carsForSale', 'Cars for sale')}</h1>
         </div>
 
         {/* Optimized Filter Pills Row - 90% Original Size */}
@@ -1524,8 +1513,8 @@ export default function AdvancedSearchPage() {
             // No results state
             <div className="col-span-full text-center py-12">
               <MdDirectionsCar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No cars found</h3>
-              <p className="text-gray-600">Try adjusting your search filters to see more results.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('search.noCarsFound', 'No cars found')}</h3>
+              <p className="text-gray-600">{t('search.adjustFilters', 'Try adjusting your search filters to see more results.')}</p>
             </div>
           )}
         </div>
@@ -1538,16 +1527,16 @@ export default function AdvancedSearchPage() {
                 disabled={carListings.page === 0}
                 className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Previous
+                {t('search.previous', 'Previous')}
               </button>
               <span className="px-3 py-2 text-sm text-gray-700">
-                Page {carListings.page + 1} of {carListings.totalPages}
+                {t('search.pageInfo', 'Page {{current}} of {{total}}', { current: carListings.page + 1, total: carListings.totalPages })}
               </span>
               <button
                 disabled={carListings.last}
                 className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
+                {t('search.next', 'Next')}
               </button>
             </div>
           </div>
@@ -1556,7 +1545,10 @@ export default function AdvancedSearchPage() {
         {/* Results summary */}
         {carListings && (
           <div className="mt-4 text-center text-sm text-gray-600">
-            Showing {carListings.content.length} of {carListings.totalElements} cars
+            {t('search.showingResults', 'Showing {{count}} of {{total}} cars', { 
+              count: carListings.content.length, 
+              total: carListings.totalElements 
+            })}
           </div>
         )}
 
