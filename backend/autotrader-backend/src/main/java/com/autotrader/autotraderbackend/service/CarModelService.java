@@ -135,6 +135,7 @@ public class CarModelService {
      * @return Created model
      */
     @Transactional
+    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
     public CarModel createModel(CarModel model) {
         // Ensure the brand exists
         CarBrand brand = carBrandService.getBrandById(model.getBrand().getId());
@@ -152,6 +153,7 @@ public class CarModelService {
      * @throws ResourceNotFoundException if model not found
      */
     @Transactional
+    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
     public CarModel updateModel(Long id, CarModel modelDetails) {
         CarModel model = getModelById(id);
         
@@ -178,6 +180,7 @@ public class CarModelService {
      * @return Updated model
      */
     @Transactional
+    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
     public CarModel updateModelActivation(Long id, boolean isActive) {
         CarModel model = getModelById(id);
         model.setIsActive(isActive);
@@ -191,6 +194,7 @@ public class CarModelService {
      * @param id Model ID
      */
     @Transactional
+    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
     public void deleteModel(Long id) {
         CarModel model = getModelById(id);
         log.info("Deleting car model with id: {}", id);

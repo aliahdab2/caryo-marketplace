@@ -35,8 +35,9 @@ public class CarBrandService {
      * Get only active car brands
      * @return List of active car brands
      */
-    @Cacheable(value = "carBrands", key = "'active'")
+    @Cacheable(value = "activeBrands", key = "'active'")
     public List<CarBrand> getActiveBrands() {
+        log.debug("Fetching active car brands from database");
         return carBrandRepository.findByIsActiveTrue();
     }
     
@@ -130,7 +131,7 @@ public class CarBrandService {
      * @param id Brand ID
      */
     @Transactional
-    @CacheEvict(value = "carBrands", key = "#id")
+    @CacheEvict(value = {"carBrands", "activeBrands"}, allEntries = true)
     public void deleteBrand(Long id) {
         CarBrand brand = getBrandById(id);
         log.info("Deleting car brand with id: {}", id);
