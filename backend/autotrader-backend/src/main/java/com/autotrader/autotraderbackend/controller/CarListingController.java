@@ -302,6 +302,7 @@ public class CarListingController {
             @Parameter(description = "Maximum mileage") @RequestParam(required = false) Integer maxMileage,
             @Parameter(description = "Show sold listings") @RequestParam(required = false) Boolean isSold,
             @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
+            @Parameter(description = "Filter by seller type ID") @RequestParam(required = false) Long sellerTypeId,
             @PageableDefault(size = 10, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
         log.debug("Received GET request to filter listings. Pageable: {}", pageable);
         ListingFilterRequest filterRequest = new ListingFilterRequest();
@@ -317,6 +318,7 @@ public class CarListingController {
         filterRequest.setMaxMileage(maxMileage);
         filterRequest.setIsSold(isSold);
         filterRequest.setIsArchived(isArchived);
+        filterRequest.setSellerTypeId(sellerTypeId);
         Page<CarListingResponse> listingPage = carListingService.getFilteredListings(filterRequest, pageable);
         PageResponse<CarListingResponse> response = new PageResponse<>(
             listingPage.getContent(),

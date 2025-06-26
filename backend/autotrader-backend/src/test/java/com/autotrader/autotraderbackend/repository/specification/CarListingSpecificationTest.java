@@ -196,7 +196,16 @@ class CarListingSpecificationTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void fromFilter_withAllFilters_shouldAddAllPredicates() {
+        // Mock the nested path structure for seller.sellerType.id
+        Path<Object> sellerPath = mock(Path.class);
+        Path<Object> sellerTypePath = mock(Path.class);
+        Path<Object> sellerTypeIdPath = mock(Path.class);
+        when(root.get("seller")).thenReturn(sellerPath);
+        when(sellerPath.get("sellerType")).thenReturn(sellerTypePath);
+        when(sellerTypePath.get("id")).thenReturn(sellerTypeIdPath);
+
         ListingFilterRequest filter = new ListingFilterRequest();
         filter.setBrand("Honda");
         filter.setModel("Civic");
@@ -209,6 +218,7 @@ class CarListingSpecificationTest {
         filter.setMinMileage(30000);
         filter.setMaxMileage(60000);
         filter.setLocation("Manchester");
+        filter.setSellerTypeId(1L);
 
         Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
         spec.toPredicate(root, query, criteriaBuilder);
@@ -225,13 +235,19 @@ class CarListingSpecificationTest {
         verify(criteriaBuilder).greaterThanOrEqualTo(eq(root.get("mileage")), eq(30000));
         verify(criteriaBuilder).lessThanOrEqualTo(eq(root.get("mileage")), eq(60000));
         
+        // Verify seller type filter
+        verify(root).get("seller");
+        verify(sellerPath).get("sellerType");
+        verify(sellerTypePath).get("id");
+        verify(criteriaBuilder).equal(sellerTypeIdPath, 1L);
+        
         // No longer verify location String predicate since we use locationEntity now
         // verify(criteriaBuilder).like(any(), eq("%manchester%"));
 
-        // Verify the final 'and' combines all 8 predicates using ArgumentCaptor (was 9, now 8 without location)
+        // Verify the final 'and' combines all 9 predicates using ArgumentCaptor (was 8, now 9 with sellerType)
         ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
         verify(criteriaBuilder).and(predicateCaptor.capture());
-        assertEquals(8, predicateCaptor.getValue().length, "Should combine exactly 8 predicates");
+        assertEquals(9, predicateCaptor.getValue().length, "Should combine exactly 9 predicates");
     }
 
     @Test
@@ -270,5 +286,53 @@ class CarListingSpecificationTest {
         ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
         verify(criteriaBuilder).and(predicateCaptor.capture());
         assertEquals(1, predicateCaptor.getValue().length, "Should combine exactly 1 predicate for governorate filter");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void fromFilter_withSellerTypeId_shouldAddSellerTypePredicate() {
+        // Mock the nested path structure for seller.sellerType.id
+        Path<Object> sellerPath = mock(Path.class);
+        Path<Object> sellerTypePath = mock(Path.class);
+        Path<Object> sellerTypeIdPath = mock(Path.class);
+        when(root.get("seller")).thenReturn(sellerPath);
+        when(sellerPath.get("sellerType")).thenReturn(sellerTypePath);
+        when(sellerTypePath.get("id")).thenReturn(sellerTypeIdPath);
+
+        ListingFilterRequest filter = new ListingFilterRequest();
+        filter.setSellerTypeId(2L);
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+
+        spec.toPredicate(root, query, criteriaBuilder);
+
+        // Verify that the correct path is used: root.get("seller").get("sellerType").get("id")
+        verify(root).get("seller");
+        verify(sellerPath).get("sellerType");
+        verify(sellerTypePath).get("id");
+        verify(criteriaBuilder).equal(sellerTypeIdPath, 2L);
+
+        // Use ArgumentCaptor for 'and'
+        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
+        verify(criteriaBuilder).and(predicateCaptor.capture());
+        assertEquals(1, predicateCaptor.getValue().length, "Should combine exactly 1 predicate for seller type filter");
+    }
+
+    @Test
+    void fromFilter_withIsSoldAndIsArchived_shouldAddStatusPredicates() {
+        ListingFilterRequest filter = new ListingFilterRequest();
+        filter.setIsSold(true);
+        filter.setIsArchived(false);
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+
+        spec.toPredicate(root, query, criteriaBuilder);
+
+        // Verify status filters
+        verify(criteriaBuilder).equal(eq(root.get("sold")), eq(true));
+        verify(criteriaBuilder).equal(eq(root.get("archived")), eq(false));
+
+        // Use ArgumentCaptor for 'and'
+        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
+        verify(criteriaBuilder).and(predicateCaptor.capture());
+        assertEquals(2, predicateCaptor.getValue().length, "Should combine exactly 2 predicates for status filters");
     }
 }
