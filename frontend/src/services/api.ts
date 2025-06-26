@@ -1,3 +1,17 @@
+/**
+ * Fetches listing counts for multiple models in a single batch request
+ * @param brandId Brand ID
+ * @param modelIds Array of model IDs
+ * @returns Array of { modelId, listingCount }
+ */
+export async function fetchModelCountsBatch(brandId: number, modelIds: number[]): Promise<{ modelId: number; listingCount: number }[]> {
+  // Backend endpoint should accept POST /api/listings/model-counts { brandId, modelIds: [] }
+  // and return [{ modelId, listingCount }]
+  return api.post<{ modelId: number; listingCount: number }[]>(
+    '/api/listings/model-counts',
+    { brandId, modelIds }
+  );
+}
 'use client';
 
 import { CarMake, CarModel, CarTrim } from '@/types/car';
@@ -415,76 +429,70 @@ export async function fetchCarModelsWithCounts(brandId: number): Promise<CarMode
  */
 export async function fetchCarModelsWithRealCounts(brandId: number): Promise<CarModel[]> {
   console.log(`Fetching car models with real listing counts for brand ${brandId}`);
-  
   try {
-    // First get all models for the brand
     const models = await fetchCarModels(brandId);
-    
-    // Get the brand name for API filtering
-    const brands = await fetchCarBrands();
-    const brand = brands.find(b => b.id === brandId);
-    
-    if (!brand) {
-      console.warn(`Brand with ID ${brandId} not found`);
-      return models;
-    }
-    
-    // Limit models to avoid too many API calls
-    const modelsToCheck = models.slice(0, 15);
-    const remainingModels = models.slice(15);
-    
-    // Get listing count for each model by calling the listings API
-    const modelsWithCounts = await Promise.allSettled(
-      modelsToCheck.map(async (model) => {
-        try {
-          const listingsResponse = await fetchCarListings({ 
-            brand: brand.displayNameEn, // Use English name for API call
-            model: model.displayNameEn, // Use English name for API call
-            size: 1, // We only need the total count, not the actual listings
-            page: 0
-          });
-          
+    if (!models.length) return models;
+
+    // Try batch endpoint first
+    try {
+      const modelIds = models.map(m => m.id);
+      const counts = await fetchModelCountsBatch(brandId, modelIds);
+      // Map counts to models
+      const countMap = new Map(counts.map(c => [c.modelId, c.listingCount]));
+      return models.map(model => ({
+        ...model,
+        listingCount: countMap.get(model.id) ?? 0
+      })).filter(m => (m.listingCount || 0) > 0);
+    } catch (batchErr) {
+      console.warn('Batch model count endpoint failed or not implemented, falling back to N+1:', batchErr);
+      // Fallback to old N+1 logic
+      // ...existing code for N+1 fallback...
+      const brands = await fetchCarBrands();
+      const brand = brands.find(b => b.id === brandId);
+      if (!brand) return models;
+      const modelsToCheck = models.slice(0, 15);
+      const remainingModels = models.slice(15);
+      const modelsWithCounts = await Promise.allSettled(
+        modelsToCheck.map(async (model) => {
+          try {
+            const listingsResponse = await fetchCarListings({ 
+              brand: brand.displayNameEn,
+              model: model.displayNameEn,
+              size: 1,
+              page: 0
+            });
+            return {
+              ...model,
+              listingCount: listingsResponse.totalElements
+            };
+          } catch (error) {
+            return {
+              ...model,
+              listingCount: Math.floor(Math.random() * 80) + 5
+            };
+          }
+        })
+      );
+      const processedModels = modelsWithCounts.map((result, index) => {
+        if (result.status === 'fulfilled') {
+          return result.value;
+        } else {
+          const model = modelsToCheck[index];
           return {
             ...model,
-            listingCount: listingsResponse.totalElements
-          };
-        } catch (error) {
-          console.warn(`Failed to get count for model ${model.displayNameEn}:`, error);
-          // Fallback to realistic static data
-          return {
-            ...model,
-            listingCount: Math.floor(Math.random() * 80) + 5
+            listingCount: Math.floor(Math.random() * 40) + 3
           };
         }
-      })
-    );
-    
-    // Process settled promises
-    const processedModels = modelsWithCounts.map((result, index) => {
-      if (result.status === 'fulfilled') {
-        return result.value;
-      } else {
-        // Fallback for failed requests
-        const model = modelsToCheck[index];
-        return {
-          ...model,
-          listingCount: Math.floor(Math.random() * 40) + 3
-        };
-      }
-    });
-    
-    // Add remaining models with static fallback counts
-    const remainingModelsWithCounts = remainingModels.map(model => ({
-      ...model,
-      listingCount: Math.floor(Math.random() * 20) + 1
-    }));
-    
-    // Filter out models with 0 counts
-    const allModels = [...processedModels, ...remainingModelsWithCounts];
-    return allModels.filter(model => (model.listingCount || 0) > 0);
+      });
+      const remainingModelsWithCounts = remainingModels.map(model => ({
+        ...model,
+        listingCount: Math.floor(Math.random() * 20) + 1
+      }));
+      const allModels = [...processedModels, ...remainingModelsWithCounts];
+      return allModels.filter(model => (model.listingCount || 0) > 0);
+    }
   } catch (error) {
     console.error('Failed to fetch models with real counts:', error);
-    // Fallback to regular models fetch
     return fetchCarModels(brandId);
   }
 }

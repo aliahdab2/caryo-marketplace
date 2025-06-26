@@ -619,18 +619,18 @@ export default function AdvancedSearchPage() {
       switch (filterType) {
         case 'makeModel':
           return (
-            <div className="max-w-sm mx-auto bg-white rounded-2xl shadow-2xl border border-gray-100 ring-1 ring-black/5">
+            <div className="max-w-sm mx-auto bg-white rounded-3xl shadow-2xl border border-gray-100 ring-1 ring-black/5">
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center justify-between px-7 py-5 border-b border-gray-100 bg-gradient-to-b from-gray-50 to-white">
                 {i18n.language === 'ar' ? (
                   <>
                     <div className="w-12" aria-hidden="true"></div>
-                    <h2 className="text-lg font-bold text-gray-900 text-center flex-1 select-none">
+                    <h2 className="text-xl font-extrabold text-gray-900 text-center flex-1 select-none tracking-tight">
                       {t('search.makeAndModel', 'الماركة والموديل')}
                     </h2>
                     <button
                       onClick={handleClose}
-                      className="text-gray-400 hover:text-blue-600 p-1 text-base font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded transition"
+                      className="text-gray-400 hover:text-blue-600 p-2 text-lg font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full transition"
                       tabIndex={0}
                       aria-label={t('search.abort', 'إلغاء')}
                     >
@@ -639,12 +639,12 @@ export default function AdvancedSearchPage() {
                   </>
                 ) : (
                   <>
-                    <h2 className="text-lg font-bold text-gray-900 select-none">
+                    <h2 className="text-xl font-extrabold text-gray-900 select-none tracking-tight">
                       {t('search.makeAndModel', 'Make & Model')}
                     </h2>
                     <button
                       onClick={handleClose}
-                      className="text-gray-400 hover:text-blue-600 p-1 text-base font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded transition"
+                      className="text-gray-400 hover:text-blue-600 p-2 text-lg font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full transition"
                       tabIndex={0}
                       aria-label={t('search.abort', 'Cancel')}
                     >
@@ -655,7 +655,7 @@ export default function AdvancedSearchPage() {
               </div>
 
               {/* Search bar */}
-              <div className="px-6 py-3 border-b border-gray-100 bg-gray-50">
+              <div className="px-7 py-4 border-b border-gray-100 bg-gray-50">
                 <div className="relative">
                   <div className={`absolute inset-y-0 ${i18n.language === 'ar' ? 'right-0 pr-3' : 'left-0 pl-3'} flex items-center pointer-events-none`}>
                     <MdSearch className="h-5 w-5 text-gray-400" />
@@ -663,7 +663,7 @@ export default function AdvancedSearchPage() {
                   <input
                     type="text"
                     placeholder={t('search:searchFilterPlaceholder', 'Search for make or model')}
-                    className={`w-full ${i18n.language === 'ar' ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4 text-left'} py-2.5 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder-gray-400 transition-shadow shadow-sm focus:shadow-md`}
+                    className={`w-full ${i18n.language === 'ar' ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4 text-left'} py-3 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder-gray-400 transition-shadow shadow focus:shadow-lg`}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     autoFocus
