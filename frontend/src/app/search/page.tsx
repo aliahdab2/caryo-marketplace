@@ -565,13 +565,22 @@ export default function AdvancedSearchPage() {
         }`}
         aria-label={`Filter by ${displayText}`}
       >
-        {!isActive && <MdAdd className="mr-1.5 h-4 w-4" />}
-        {isActive && (
-          <div className="mr-1.5 h-4 w-4 rounded-full bg-white/20 flex items-center justify-center">
-            <div className="h-1.5 w-1.5 rounded-full bg-white"></div>
-          </div>
+        {!isActive && i18n.language === 'ar' ? (
+          <>
+            <span className="truncate max-w-[100px]">{optimizedText}</span>
+            <MdAdd className="ml-1.5 h-4 w-4" />
+          </>
+        ) : (
+          <>
+            {!isActive && <MdAdd className="mr-1.5 h-4 w-4" />}
+            {isActive && (
+              <div className="mr-1.5 h-4 w-4 rounded-full bg-white/20 flex items-center justify-center">
+                <div className="h-1.5 w-1.5 rounded-full bg-white"></div>
+              </div>
+            )}
+            <span className="truncate max-w-[100px]">{optimizedText}</span>
+          </>
         )}
-        <span className="truncate max-w-[100px]">{optimizedText}</span>
         {isActive && (
           <div
             onClick={(e) => {
@@ -1393,8 +1402,17 @@ export default function AdvancedSearchPage() {
               onClick={() => setActiveFilterModal('allFilters')}
               className="flex-shrink-0 inline-flex items-center px-3 py-2 rounded-full border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors whitespace-nowrap"
             >
-              <MdTune className="mr-1.5 h-4 w-4" />
-              {t('search.allFilters', 'Alla filter')}
+              {i18n.language === 'ar' ? (
+                <>
+                  {t('search.allFilters', 'All filters')}
+                  <MdTune className="ml-1.5 h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  <MdTune className="mr-1.5 h-4 w-4" />
+                  {t('search.allFilters', 'All filters')}
+                </>
+              )}
             </button>
             
             {/* Essential filters only - most commonly used */}
@@ -1430,15 +1448,33 @@ export default function AdvancedSearchPage() {
                 onClick={clearAllFilters}
                 className="text-sm text-gray-600 hover:text-gray-800 flex items-center"
               >
-                <MdClear className="mr-1 h-4 w-4" />
-                {t('search.clearAll', 'Clear all filters')}
+                {i18n.language === 'ar' ? (
+                  <>
+                    {t('search.clearAll', 'Clear all filters')}
+                    <MdClear className="ml-1 h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    <MdClear className="mr-1 h-4 w-4" />
+                    {t('search.clearAll', 'Clear all filters')}
+                  </>
+                )}
               </button>
             )}
           </div>
           
           <button className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium">
-            <MdFavoriteBorder className="mr-2 h-4 w-4" />
-            {t('search.saveSearch', 'Save search')}
+            {i18n.language === 'ar' ? (
+              <>
+                {t('search.saveSearch', 'Save search')}
+                <MdFavoriteBorder className="ml-2 h-4 w-4" />
+              </>
+            ) : (
+              <>
+                <MdFavoriteBorder className="mr-2 h-4 w-4" />
+                {t('search.saveSearch', 'Save search')}
+              </>
+            )}
           </button>
         </div>
 
