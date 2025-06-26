@@ -97,4 +97,10 @@ public class ListingFilterRequest {
      * If true, only archived listings are returned; if false, only active listings.
      */
     private Boolean isArchived;
+
+    /**
+     * Filter by seller type ID. Optional.
+     * Use this to filter listings by the type of seller (e.g., dealer, private).
+     */
+    private Long sellerTypeId;
 }

@@ -175,6 +175,33 @@ public class CarListingControllerTest {
         assertNotNull(response.getBody());
         assertEquals(listings, Objects.requireNonNull(response.getBody()).getContent());
     }
+
+    @Test
+    void filterListings_WithSellerTypeId_ShouldReturnFilteredListings() {
+        // Arrange
+        List<CarListingResponse> listings = new ArrayList<>();
+        listings.add(carListingResponse);
+        Page<CarListingResponse> page = new PageImpl<>(listings);
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setSellerTypeId(1L); // Filter by seller type
+        when(carListingService.getFilteredListings(any(ListingFilterRequest.class), any(Pageable.class))).thenReturn(page);
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("createdAt").descending());
+        
+        // Act
+        ResponseEntity<PageResponse<CarListingResponse>> response = carListingController.getFilteredListings(filterRequest, pageable);
+        
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(listings, Objects.requireNonNull(response.getBody()).getContent());
+        
+        // Verify that the service was called with the correct filter
+        verify(carListingService).getFilteredListings(argThat(filter -> 
+            filter.getSellerTypeId() != null && filter.getSellerTypeId().equals(1L)
+        ), eq(pageable));
+    }
+
     @Test
     void getAllListings_ShouldReturnListingsSortedByPriceAscAndDesc() {
         // Arrange: create listings with different prices
@@ -884,7 +911,6 @@ public class CarListingControllerTest {
         assertTrue(response.getBody() instanceof Map);
         @SuppressWarnings("unchecked")
         Map<String, String> errorBody = (Map<String, String>) response.getBody();
-        assertNotNull(errorBody); // Added null check
         assertTrue(errorBody.containsKey("message"));
         assertEquals("CarListing not found with id : '" + listingId + "'", errorBody.get("message"));
     }
@@ -909,7 +935,6 @@ public class CarListingControllerTest {
         assertTrue(response.getBody() instanceof Map);
         @SuppressWarnings("unchecked")
         Map<String, String> errorBody = (Map<String, String>) response.getBody();
-        assertNotNull(errorBody); // Added null check
         assertTrue(errorBody.containsKey("message"));
         assertEquals(errorMessage, errorBody.get("message"));
     }

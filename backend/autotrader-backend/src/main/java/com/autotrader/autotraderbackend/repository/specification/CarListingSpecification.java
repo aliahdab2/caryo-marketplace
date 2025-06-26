@@ -74,6 +74,11 @@ public class CarListingSpecification {
                 predicates.add(criteriaBuilder.equal(root.get("archived"), filter.getIsArchived()));
             }
 
+            // Add filter for seller type if provided
+            if (filter.getSellerTypeId() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("seller").get("sellerType").get("id"), filter.getSellerTypeId()));
+            }
+
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }

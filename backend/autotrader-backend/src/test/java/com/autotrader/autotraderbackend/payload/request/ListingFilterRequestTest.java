@@ -116,4 +116,32 @@ public class ListingFilterRequestTest {
             .anyMatch(v -> v.getMessage().equals("Maximum year filter must be a 4-digit number"));
         assertTrue(foundMessage, "Should have validation message about 4-digit requirement");
     }
+
+    @Test
+    void shouldAllowValidSellerTypeId() {
+        // Arrange
+        ListingFilterRequest request = new ListingFilterRequest();
+        request.setSellerTypeId(1L);
+        
+        // Act
+        Set<ConstraintViolation<ListingFilterRequest>> violations = validator.validate(request);
+        
+        // Assert
+        assertTrue(violations.isEmpty(), "Valid seller type ID should not cause validation errors");
+        assertEquals(1L, request.getSellerTypeId(), "Seller type ID should be set correctly");
+    }
+    
+    @Test
+    void shouldAllowNullSellerTypeId() {
+        // Arrange
+        ListingFilterRequest request = new ListingFilterRequest();
+        request.setSellerTypeId(null);
+        
+        // Act
+        Set<ConstraintViolation<ListingFilterRequest>> violations = validator.validate(request);
+        
+        // Assert
+        assertTrue(violations.isEmpty(), "Null seller type ID should not cause validation errors");
+        assertEquals(null, request.getSellerTypeId(), "Seller type ID should be null");
+    }
 }
