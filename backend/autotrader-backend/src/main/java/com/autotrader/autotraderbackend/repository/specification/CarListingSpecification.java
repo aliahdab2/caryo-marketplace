@@ -30,15 +30,29 @@ public class CarListingSpecification {
                 predicates.add(criteriaBuilder.or(brandEnPredicate, brandArPredicate));
             }
             if (StringUtils.hasText(filter.getModel())) {
-                Predicate modelEnPredicate = criteriaBuilder.like(
-                    criteriaBuilder.lower(root.get("modelNameEn")),
-                    "%" + filter.getModel().toLowerCase() + "%"
-                );
-                Predicate modelArPredicate = criteriaBuilder.like(
-                    criteriaBuilder.lower(root.get("modelNameAr")),
-                    "%" + filter.getModel().toLowerCase() + "%"
-                );
-                predicates.add(criteriaBuilder.or(modelEnPredicate, modelArPredicate));
+                // Handle multiple models (comma-separated) or single model
+                String[] modelNames = filter.getModel().split(",");
+                List<Predicate> modelPredicates = new ArrayList<>();
+                
+                for (String modelName : modelNames) {
+                    String trimmedModel = modelName.trim();
+                    if (StringUtils.hasText(trimmedModel)) {
+                        Predicate modelEnPredicate = criteriaBuilder.like(
+                            criteriaBuilder.lower(root.get("modelNameEn")),
+                            "%" + trimmedModel.toLowerCase() + "%"
+                        );
+                        Predicate modelArPredicate = criteriaBuilder.like(
+                            criteriaBuilder.lower(root.get("modelNameAr")),
+                            "%" + trimmedModel.toLowerCase() + "%"
+                        );
+                        modelPredicates.add(criteriaBuilder.or(modelEnPredicate, modelArPredicate));
+                    }
+                }
+                
+                if (!modelPredicates.isEmpty()) {
+                    // Use OR to match any of the specified models
+                    predicates.add(criteriaBuilder.or(modelPredicates.toArray(new Predicate[0])));
+                }
             }
             if (filter.getMinYear() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("modelYear"), filter.getMinYear()));

@@ -335,4 +335,118 @@ class CarListingSpecificationTest {
         verify(criteriaBuilder).and(predicateCaptor.capture());
         assertEquals(2, predicateCaptor.getValue().length, "Should combine exactly 2 predicates for status filters");
     }
+
+    @Test
+    void fromFilter_withSingleModel_shouldCreateSingleModelPredicate() {
+        ListingFilterRequest filter = new ListingFilterRequest();
+        filter.setModel("Camry");
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+
+        spec.toPredicate(root, query, criteriaBuilder);
+
+        // Verify model filters for both languages - should appear twice (EN + AR)
+        verify(criteriaBuilder, times(2)).like(any(), eq("%camry%"));
+        verify(criteriaBuilder, times(2)).like(any(), anyString()); // English + Arabic
+
+        // Use ArgumentCaptor for 'and'
+        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
+        verify(criteriaBuilder).and(predicateCaptor.capture());
+        assertEquals(1, predicateCaptor.getValue().length, "Should combine exactly 1 predicate for single model filter");
+    }
+
+    @Test
+    void fromFilter_withMultipleModels_shouldCreateMultipleModelPredicates() {
+        ListingFilterRequest filter = new ListingFilterRequest();
+        filter.setModel("Camry,Corolla,RAV4");
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+
+        spec.toPredicate(root, query, criteriaBuilder);
+
+        // Verify each model is searched in both languages (each model name appears twice)
+        verify(criteriaBuilder, times(2)).like(any(), eq("%camry%"));
+        verify(criteriaBuilder, times(2)).like(any(), eq("%corolla%"));
+        verify(criteriaBuilder, times(2)).like(any(), eq("%rav4%"));
+        
+        // Should have 6 LIKE calls total (3 models × 2 languages)
+        verify(criteriaBuilder, times(6)).like(any(), anyString());
+        
+        // Should combine model predicates with OR operations
+        verify(criteriaBuilder, times(3)).or(any(Predicate.class), any(Predicate.class)); // One for each model (EN OR AR)
+        verify(criteriaBuilder, times(1)).or(any(Predicate[].class)); // Combine all models with OR
+
+        // Use ArgumentCaptor for 'and'
+        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
+        verify(criteriaBuilder).and(predicateCaptor.capture());
+        assertEquals(1, predicateCaptor.getValue().length, "Should combine exactly 1 predicate for multiple model filter");
+    }
+
+    @Test
+    void fromFilter_withMultipleModelsWithSpaces_shouldTrimAndFilter() {
+        ListingFilterRequest filter = new ListingFilterRequest();
+        filter.setModel(" Camry , Corolla , RAV4 ");
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+
+        spec.toPredicate(root, query, criteriaBuilder);
+
+        // Verify spaces are trimmed properly - each model name appears twice (EN + AR)
+        verify(criteriaBuilder, times(2)).like(any(), eq("%camry%"));
+        verify(criteriaBuilder, times(2)).like(any(), eq("%corolla%"));
+        verify(criteriaBuilder, times(2)).like(any(), eq("%rav4%"));
+        
+        // Should have 6 LIKE calls total (3 models × 2 languages)
+        verify(criteriaBuilder, times(6)).like(any(), anyString());
+    }
+
+    @Test
+    void fromFilter_withEmptyAndValidModels_shouldFilterOutEmptyOnes() {
+        ListingFilterRequest filter = new ListingFilterRequest();
+        filter.setModel("Camry,,Corolla, ,RAV4");
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+
+        spec.toPredicate(root, query, criteriaBuilder);
+
+        // Should only create predicates for non-empty models - each appears twice (EN + AR)
+        verify(criteriaBuilder, times(2)).like(any(), eq("%camry%"));
+        verify(criteriaBuilder, times(2)).like(any(), eq("%corolla%"));
+        verify(criteriaBuilder, times(2)).like(any(), eq("%rav4%"));
+        
+        // Should have 6 LIKE calls total (3 valid models × 2 languages)
+        verify(criteriaBuilder, times(6)).like(any(), anyString());
+    }
+
+    @Test
+    void fromFilter_withEmptyModel_shouldNotCreateModelPredicate() {
+        ListingFilterRequest filter = new ListingFilterRequest();
+        filter.setModel("");
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+
+        spec.toPredicate(root, query, criteriaBuilder);
+
+        // Should not create any model-related predicates
+        verify(root, never()).get("modelNameEn");
+        verify(root, never()).get("modelNameAr");
+        
+        // Use ArgumentCaptor for 'and' - should have 0 predicates
+        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
+        verify(criteriaBuilder).and(predicateCaptor.capture());
+        assertEquals(0, predicateCaptor.getValue().length, "Should have no predicates for empty model filter");
+    }
+
+    @Test
+    void fromFilter_withNullModel_shouldNotCreateModelPredicate() {
+        ListingFilterRequest filter = new ListingFilterRequest();
+        filter.setModel(null);
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+
+        spec.toPredicate(root, query, criteriaBuilder);
+
+        // Should not create any model-related predicates
+        verify(root, never()).get("modelNameEn");
+        verify(root, never()).get("modelNameAr");
+        
+        // Use ArgumentCaptor for 'and' - should have 0 predicates
+        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
+        verify(criteriaBuilder).and(predicateCaptor.capture());
+        assertEquals(0, predicateCaptor.getValue().length, "Should have no predicates for null model filter");
+    }
 }

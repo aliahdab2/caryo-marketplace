@@ -33,6 +33,7 @@ public class ListingFilterRequest {
 
     /**
      * Filter by car model. Optional.
+     * Supports multiple models as comma-separated values (e.g., "Camry,Corolla").
      */
     private String model;
 
