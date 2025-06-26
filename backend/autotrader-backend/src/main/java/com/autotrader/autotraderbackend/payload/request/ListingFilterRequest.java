@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.payload.request;
 
 import com.autotrader.autotraderbackend.validation.CurrentYearOrEarlier;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -102,5 +103,6 @@ public class ListingFilterRequest {
      * Filter by seller type ID. Optional.
      * Use this to filter listings by the type of seller (e.g., dealer, private).
      */
+    @Schema(description = "Filter by seller type ID (e.g., 1 for dealer, 2 for private seller)", example = "1")
     private Long sellerTypeId;
 }
