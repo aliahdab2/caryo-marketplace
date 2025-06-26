@@ -47,6 +47,7 @@ interface AdvancedSearchFilters {
   transmissionId?: number;
   fuelTypeId?: number;
   bodyStyleId?: number;
+  sellerTypeId?: number;
   
   // Direct field filters
   exteriorColor?: string;
@@ -54,7 +55,7 @@ interface AdvancedSearchFilters {
   cylinders?: number;
 }
 
-type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'condition' | 'fuelType' | 'bodyStyle' | 'location';
+type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'condition' | 'fuelType' | 'bodyStyle' | 'location' | 'sellerType';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
@@ -142,6 +143,14 @@ export default function AdvancedSearchPage() {
     return bodyStyle ? getDisplayName(bodyStyle) : '';
   }, [referenceData, getDisplayName]);
 
+  const getSellerTypeDisplayName = useCallback((id: number): string => {
+    const sellerType = referenceData?.sellerTypes?.find(s => s.id === id);
+    if (sellerType && typeof sellerType === 'object' && 'displayNameEn' in sellerType && 'displayNameAr' in sellerType) {
+      return getDisplayName(sellerType as { displayNameEn: string; displayNameAr: string });
+    }
+    return '';
+  }, [referenceData, getDisplayName]);
+
   const getLocationDisplayName = useCallback((locationId: number): string => {
     const governorate = governorates?.find(g => g.id === locationId);
     return governorate ? getDisplayName(governorate) : '';
@@ -171,6 +180,7 @@ export default function AdvancedSearchPage() {
     if (searchParams?.get('transmissionId')) initialFilters.transmissionId = parseInt(searchParams.get('transmissionId')!);
     if (searchParams?.get('fuelTypeId')) initialFilters.fuelTypeId = parseInt(searchParams.get('fuelTypeId')!);
     if (searchParams?.get('bodyStyleId')) initialFilters.bodyStyleId = parseInt(searchParams.get('bodyStyleId')!);
+    if (searchParams?.get('sellerTypeId')) initialFilters.sellerTypeId = parseInt(searchParams.get('sellerTypeId')!);
     if (searchParams?.get('exteriorColor')) initialFilters.exteriorColor = searchParams.get('exteriorColor')!;
     if (searchParams?.get('doors')) initialFilters.doors = parseInt(searchParams.get('doors')!);
     if (searchParams?.get('cylinders')) initialFilters.cylinders = parseInt(searchParams.get('cylinders')!);
@@ -264,6 +274,9 @@ export default function AdvancedSearchPage() {
           delete newFilters.location;
           delete newFilters.locationId;
           break;
+        case 'sellerType':
+          delete newFilters.sellerTypeId;
+          break;
       }
       
       return newFilters;
@@ -326,6 +339,8 @@ export default function AdvancedSearchPage() {
         return filters.bodyStyleId ? getBodyStyleDisplayName(filters.bodyStyleId) : t('search.bodyStyle', 'Body style');
       case 'location':
         return filters.locationId ? getLocationDisplayName(filters.locationId) : t('search.location', 'Location');
+      case 'sellerType':
+        return filters.sellerTypeId ? getSellerTypeDisplayName(filters.sellerTypeId) : t('search.sellerType', 'Seller type');
       default:
         return '';
     }
@@ -352,6 +367,8 @@ export default function AdvancedSearchPage() {
         return !!filters.bodyStyleId;
       case 'location':
         return !!filters.locationId;
+      case 'sellerType':
+        return !!filters.sellerTypeId;
       default:
         return false;
     }
@@ -637,6 +654,31 @@ export default function AdvancedSearchPage() {
             </div>
           );
 
+        case 'sellerType':
+          return (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.sellerType', 'Seller type')}</h3>
+                <select
+                  value={filters.sellerTypeId || ''}
+                  onChange={(e) => handleInputChange('sellerTypeId', e.target.value ? parseInt(e.target.value) : undefined)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  disabled={isLoadingReferenceData}
+                >
+                  <option value="">{t('search.any', 'Any')}</option>
+                  {referenceData?.sellerTypes?.map(sellerType => {
+                    const id = sellerType.id as number;
+                    return (
+                      <option key={id} value={id}>
+                        {getDisplayName(sellerType as { displayNameEn: string; displayNameAr: string })}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            </div>
+          );
+
         default:
           return null;
       }
@@ -718,6 +760,7 @@ export default function AdvancedSearchPage() {
         maxMileage: filters.maxMileage,
         location: filters.location,
         locationId: filters.locationId,
+        sellerTypeId: filters.sellerTypeId,
         size: 20, // Default page size
         page: 0, // Default to first page
         sort: 'createdAt,desc' // Default sort
@@ -780,6 +823,7 @@ export default function AdvancedSearchPage() {
             <FilterPill filterType="condition" onClick={() => setActiveFilterModal('condition')} />
             <FilterPill filterType="fuelType" onClick={() => setActiveFilterModal('fuelType')} />
             <FilterPill filterType="bodyStyle" onClick={() => setActiveFilterModal('bodyStyle')} />
+            <FilterPill filterType="sellerType" onClick={() => setActiveFilterModal('sellerType')} />
             
             {/* Filter and Sort Button */}
             <button

@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.config;
 
 import com.autotrader.autotraderbackend.model.*;
+import com.autotrader.autotraderbackend.payload.request.SellerTypeRequest;
 import com.autotrader.autotraderbackend.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -150,13 +151,12 @@ public class ReferenceDataInitializer implements CommandLineRunner {
     }
     
     private void initializeSellerTypes() {
-        List<SellerType> sellerTypes = Arrays.asList(
-            createSellerType("private", "Private Seller", "بائع خاص"),
-            createSellerType("dealer", "Dealer", "معرض سيارات"),
-            createSellerType("certified", "Certified Dealer", "معرض معتمد")
+        List<SellerTypeRequest> sellerTypes = Arrays.asList(
+            createSellerTypeRequest("PRIVATE", "Private Seller", "بائع خاص"),
+            createSellerTypeRequest("DEALER", "Dealer", "معرض سيارات")
         );
         
-        for (SellerType sellerType : sellerTypes) {
+        for (SellerTypeRequest sellerType : sellerTypes) {
             try {
                 sellerTypeService.getSellerTypeByName(sellerType.getName());
                 log.debug("Seller type '{}' already exists", sellerType.getName());
@@ -209,11 +209,11 @@ public class ReferenceDataInitializer implements CommandLineRunner {
         return transmission;
     }
     
-    private SellerType createSellerType(String name, String displayNameEn, String displayNameAr) {
-        SellerType sellerType = new SellerType();
-        sellerType.setName(name);
-        sellerType.setDisplayNameEn(displayNameEn);
-        sellerType.setDisplayNameAr(displayNameAr);
-        return sellerType;
+    private SellerTypeRequest createSellerTypeRequest(String name, String displayNameEn, String displayNameAr) {
+        return SellerTypeRequest.builder()
+                .name(name)
+                .displayNameEn(displayNameEn)
+                .displayNameAr(displayNameAr)
+                .build();
     }
 }

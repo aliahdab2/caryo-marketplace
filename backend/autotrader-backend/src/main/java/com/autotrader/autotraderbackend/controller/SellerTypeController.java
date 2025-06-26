@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.controller;
 
-import com.autotrader.autotraderbackend.model.SellerType;
+import com.autotrader.autotraderbackend.payload.request.SellerTypeRequest;
+import com.autotrader.autotraderbackend.payload.response.SellerTypeResponse;
 import com.autotrader.autotraderbackend.service.SellerTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,14 +31,14 @@ public class SellerTypeController {
     @GetMapping
     @Operation(
         summary = "Get all seller types",
-        description = "Returns all seller types in the system.",
+        description = "Returns all seller types in the system ordered by English display name.",
         responses = {
             @ApiResponse(responseCode = "200", description = "List of seller types retrieved successfully")
         }
     )
-    public ResponseEntity<List<SellerType>> getAllSellerTypes() {
+    public ResponseEntity<List<SellerTypeResponse>> getAllSellerTypes() {
         log.debug("Request received to get all seller types");
-        List<SellerType> sellerTypes = sellerTypeService.getAllSellerTypes();
+        List<SellerTypeResponse> sellerTypes = sellerTypeService.getAllSellerTypes();
         log.debug("Returning {} seller types", sellerTypes.size());
         return ResponseEntity.ok(sellerTypes);
     }
@@ -51,11 +52,11 @@ public class SellerTypeController {
             @ApiResponse(responseCode = "404", description = "Seller type not found")
         }
     )
-    public ResponseEntity<SellerType> getSellerTypeById(
+    public ResponseEntity<SellerTypeResponse> getSellerTypeById(
             @Parameter(description = "Seller type ID", required = true)
             @PathVariable Long id) {
         log.debug("Request received to get seller type with ID: {}", id);
-        SellerType sellerType = sellerTypeService.getSellerTypeById(id);
+        SellerTypeResponse sellerType = sellerTypeService.getSellerTypeById(id);
         log.debug("Returning seller type with ID: {}", id);
         return ResponseEntity.ok(sellerType);
     }
@@ -63,17 +64,17 @@ public class SellerTypeController {
     @GetMapping("/name/{name}")
     @Operation(
         summary = "Get seller type by name",
-        description = "Returns a specific seller type by its name.",
+        description = "Returns a specific seller type by its name (case insensitive).",
         responses = {
             @ApiResponse(responseCode = "200", description = "Seller type retrieved successfully"),
             @ApiResponse(responseCode = "404", description = "Seller type not found")
         }
     )
-    public ResponseEntity<SellerType> getSellerTypeByName(
+    public ResponseEntity<SellerTypeResponse> getSellerTypeByName(
             @Parameter(description = "Seller type name", required = true)
             @PathVariable String name) {
         log.debug("Request received to get seller type with name: {}", name);
-        SellerType sellerType = sellerTypeService.getSellerTypeByName(name);
+        SellerTypeResponse sellerType = sellerTypeService.getSellerTypeByName(name);
         log.debug("Returning seller type with name: {}", name);
         return ResponseEntity.ok(sellerType);
     }
@@ -81,16 +82,16 @@ public class SellerTypeController {
     @GetMapping("/search")
     @Operation(
         summary = "Search seller types",
-        description = "Search for seller types by name (works with both English and Arabic names).",
+        description = "Search for seller types by name (works with English, Arabic names, and system names).",
         responses = {
             @ApiResponse(responseCode = "200", description = "Search results retrieved successfully")
         }
     )
-    public ResponseEntity<List<SellerType>> searchSellerTypes(
+    public ResponseEntity<List<SellerTypeResponse>> searchSellerTypes(
             @Parameter(description = "Search query", required = true)
             @RequestParam String q) {
         log.debug("Request received to search seller types with query: {}", q);
-        List<SellerType> results = sellerTypeService.searchSellerTypes(q);
+        List<SellerTypeResponse> results = sellerTypeService.searchSellerTypes(q);
         log.debug("Returning {} search results for seller types", results.size());
         return ResponseEntity.ok(results);
     }
@@ -107,13 +108,14 @@ public class SellerTypeController {
             @ApiResponse(responseCode = "201", description = "Seller type created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - Admin access required")
+            @ApiResponse(responseCode = "403", description = "Forbidden - Admin access required"),
+            @ApiResponse(responseCode = "409", description = "Seller type with same name already exists")
         }
     )
-    public ResponseEntity<SellerType> createSellerType(
-            @Valid @RequestBody SellerType sellerType) {
+    public ResponseEntity<SellerTypeResponse> createSellerType(
+            @Valid @RequestBody SellerTypeRequest request) {
         log.debug("Request received to create a new seller type");
-        SellerType createdSellerType = sellerTypeService.createSellerType(sellerType);
+        SellerTypeResponse createdSellerType = sellerTypeService.createSellerType(request);
         log.info("Created new seller type with ID: {}", createdSellerType.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdSellerType);
     }
@@ -129,15 +131,16 @@ public class SellerTypeController {
             @ApiResponse(responseCode = "400", description = "Invalid input"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Forbidden - Admin access required"),
-            @ApiResponse(responseCode = "404", description = "Seller type not found")
+            @ApiResponse(responseCode = "404", description = "Seller type not found"),
+            @ApiResponse(responseCode = "409", description = "Seller type with same name already exists")
         }
     )
-    public ResponseEntity<SellerType> updateSellerType(
+    public ResponseEntity<SellerTypeResponse> updateSellerType(
             @Parameter(description = "Seller type ID", required = true)
             @PathVariable Long id,
-            @Valid @RequestBody SellerType sellerType) {
+            @Valid @RequestBody SellerTypeRequest request) {
         log.debug("Request received to update seller type with ID: {}", id);
-        SellerType updatedSellerType = sellerTypeService.updateSellerType(id, sellerType);
+        SellerTypeResponse updatedSellerType = sellerTypeService.updateSellerType(id, request);
         log.info("Updated seller type with ID: {}", id);
         return ResponseEntity.ok(updatedSellerType);
     }

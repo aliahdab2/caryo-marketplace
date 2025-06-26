@@ -149,6 +149,7 @@ export interface CarListingFilterParams {
   maxMileage?: number;
   isSold?: boolean;
   isArchived?: boolean;
+  sellerTypeId?: number;
   page?: number;
   size?: number;
   sort?: string;
@@ -399,6 +400,7 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
     if (filters.maxMileage) queryParams.append('maxMileage', filters.maxMileage.toString());
     if (filters.isSold !== undefined) queryParams.append('isSold', filters.isSold.toString());
     if (filters.isArchived !== undefined) queryParams.append('isArchived', filters.isArchived.toString());
+    if (filters.sellerTypeId) queryParams.append('sellerTypeId', filters.sellerTypeId.toString());
     if (filters.page !== undefined) queryParams.append('page', filters.page.toString());
     if (filters.size !== undefined) queryParams.append('size', filters.size.toString());
     if (filters.sort) queryParams.append('sort', filters.sort);

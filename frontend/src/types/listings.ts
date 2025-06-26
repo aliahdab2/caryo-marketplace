@@ -14,6 +14,7 @@ export interface ListingFilters {
   searchTerm?: string;
   page?: number;
   limit?: number;
+  sellerTypeId?: number;
 }
 
 /**

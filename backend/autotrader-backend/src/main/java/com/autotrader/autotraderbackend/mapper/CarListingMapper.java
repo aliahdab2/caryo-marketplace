@@ -5,6 +5,7 @@ import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.GovernorateResponse;
 import com.autotrader.autotraderbackend.payload.response.ListingMediaResponse;
 import com.autotrader.autotraderbackend.payload.response.LocationResponse;
+import com.autotrader.autotraderbackend.payload.response.SellerTypeResponse;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -79,6 +80,11 @@ public class CarListingMapper {
             if (Objects.nonNull(carListing.getSeller())) {
                 response.setSellerId(carListing.getSeller().getId());
                 response.setSellerUsername(carListing.getSeller().getUsername());
+                
+                // Add seller type information
+                if (Objects.nonNull(carListing.getSeller().getSellerType())) {
+                    response.setSellerType(SellerTypeResponse.fromEntity(carListing.getSeller().getSellerType()));
+                }
             } else {
                 log.warn("CarListing with ID {} has a null seller.", carListing.getId());
             }

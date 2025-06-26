@@ -12,6 +12,8 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import com.autotrader.autotraderbackend.payload.response.SellerTypeResponse;
+
 // Keep Lombok annotations for potential future use/consistency, but add explicit methods
 @Getter
 @Setter
@@ -80,6 +82,7 @@ public class CarListingResponse {
     private Boolean isArchived;
     private Boolean isUserActive;
     private Boolean isExpired; // Added field
+    private SellerTypeResponse sellerType; // Added field
 
     // Explicit Getters
     public Long getId() { return id; }
@@ -110,6 +113,7 @@ public class CarListingResponse {
     public Boolean getIsArchived() { return isArchived; }
     public Boolean getIsUserActive() { return isUserActive; } // Added getter
     public Boolean getIsExpired() { return isExpired; } // Added getter
+    public SellerTypeResponse getSellerType() { return sellerType; } // Added getter
 
     // Explicit Setters (Add if needed, currently only getters seem required by errors)
     public void setId(Long id) { this.id = id; }
@@ -140,4 +144,5 @@ public class CarListingResponse {
     public void setIsArchived(Boolean isArchived) { this.isArchived = isArchived; }
     public void setIsUserActive(Boolean isUserActive) { this.isUserActive = isUserActive; } // Added setter
     public void setIsExpired(Boolean isExpired) { this.isExpired = isExpired; } // Added setter
+    public void setSellerType(SellerTypeResponse sellerType) { this.sellerType = sellerType; } // Added setter
 }
