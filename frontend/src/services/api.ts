@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Fetches listing counts for multiple models in a single batch request
  * @param brandId Brand ID
@@ -12,7 +14,6 @@ export async function fetchModelCountsBatch(brandId: number, modelIds: number[])
     { brandId, modelIds }
   );
 }
-'use client';
 
 import { CarMake, CarModel, CarTrim } from '@/types/car';
 import { ApiError } from '@/utils/apiErrorHandler';
@@ -202,7 +203,9 @@ async function apiRequest<T>(
   timeout: number = 15000 // Default timeout: 15 seconds
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  console.log(`Making ${method} request to: ${url}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Making ${method} request to: ${url}`);
+  }
   
   const options: RequestOptions = {
     method,
@@ -321,7 +324,9 @@ export const api = {
  * Fetches all car brands
  */
 export async function fetchCarBrands(): Promise<CarMake[]> {
-  console.log('Fetching car brands from API');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Fetching car brands from API');
+  }
   return api.get<CarMake[]>('/api/reference-data/brands');
 }
 
@@ -338,7 +343,9 @@ export async function fetchCarBrandsWithCounts(): Promise<CarMake[]> {
  * Uses parallel requests with fallback to realistic static data
  */
 export async function fetchCarBrandsWithRealCounts(): Promise<CarMake[]> {
-  console.log('Fetching car brands with real listing counts');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Fetching car brands with real listing counts');
+  }
   
   try {
     // First get all brands
@@ -411,7 +418,9 @@ export async function fetchCarBrandsWithRealCounts(): Promise<CarMake[]> {
  * Fetches models for a specific brand
  */
 export async function fetchCarModels(brandId: number): Promise<CarModel[]> {
-  console.log(`Fetching car models for brand ${brandId} from API`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Fetching car models for brand ${brandId} from API`);
+  }
   return api.get<CarModel[]>(`/api/reference-data/brands/${brandId}/models`);
 }
 
@@ -428,7 +437,9 @@ export async function fetchCarModelsWithCounts(brandId: number): Promise<CarMode
  * Uses parallel requests with fallback to realistic static data
  */
 export async function fetchCarModelsWithRealCounts(brandId: number): Promise<CarModel[]> {
-  console.log(`Fetching car models with real listing counts for brand ${brandId}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Fetching car models with real listing counts for brand ${brandId}`);
+  }
   try {
     const models = await fetchCarModels(brandId);
     if (!models.length) return models;
@@ -465,7 +476,7 @@ export async function fetchCarModelsWithRealCounts(brandId: number): Promise<Car
               ...model,
               listingCount: listingsResponse.totalElements
             };
-          } catch (error) {
+          } catch (_error) {
             return {
               ...model,
               listingCount: Math.floor(Math.random() * 80) + 5
@@ -509,7 +520,9 @@ export async function fetchCarTrims(brandId: number, modelId: number): Promise<C
  * Fetches all car reference data (conditions, transmissions, fuel types, etc.)
  */
 export async function fetchCarReferenceData(): Promise<CarReferenceData> {
-  console.log('Fetching car reference data from API');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Fetching car reference data from API');
+  }
   return api.get<CarReferenceData>('/api/reference-data');
 }
 
@@ -558,7 +571,9 @@ export async function fetchDriveTypes(): Promise<DriveType[]> {
  * @returns Promise with array of governorates
  */
 export async function fetchGovernorates(): Promise<Governorate[]> {
-  console.log('Fetching governorates from API');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Fetching governorates from API');
+  }
   return api.get<Governorate[]>('/api/reference-data/governorates');
 }
 
@@ -566,7 +581,9 @@ export async function fetchGovernorates(): Promise<Governorate[]> {
  * Fetches car listings with optional filters
  */
 export async function fetchCarListings(filters?: CarListingFilterParams): Promise<PageResponse<CarListing>> {
-  console.log('Fetching car listings from API with filters:', filters);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Fetching car listings from API with filters:', filters);
+  }
   
   // Build query parameters
   const queryParams = new URLSearchParams();
@@ -599,8 +616,10 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
   }
   
   const endpoint = `/api/listings/filter${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-  console.log('API endpoint being called:', endpoint);
-  console.log('Full URL:', `${API_BASE_URL}${endpoint}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('API endpoint being called:', endpoint);
+    console.log('Full URL:', `${API_BASE_URL}${endpoint}`);
+  }
   return api.get<PageResponse<CarListing>>(endpoint);
 }
 
@@ -658,7 +677,9 @@ export async function fetchWithCache<T>(
 ): Promise<T> {
   // Skip caching for invalid endpoints
   if (endpoint.includes('null') || endpoint.includes('undefined')) {
-    console.log(`Skipping cache for invalid endpoint: ${endpoint}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Skipping cache for invalid endpoint: ${endpoint}`);
+    }
     return fetchFn();
   }
   
@@ -700,10 +721,14 @@ export function clearApiCache(endpoint?: string): void {
     [...apiCache.keys()]
       .filter(key => key.startsWith(prefix))
       .forEach(key => apiCache.delete(key));
-    console.log(`Cleared cache for ${endpoint}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Cleared cache for ${endpoint}`);
+    }
   } else {
     // Clear entire cache
     apiCache.clear();
-    console.log('Cleared entire API cache');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Cleared entire API cache');
+    }
   }
 }

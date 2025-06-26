@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -10,7 +10,8 @@ import {
   MdClose,
   MdDirectionsCar,
   MdFavoriteBorder,
-  MdSearch
+  MdSearch,
+  MdError
 } from 'react-icons/md';
 import { CarMake, CarModel } from '@/types/car';
 import CarListingCard, { CarListingCardData } from '@/components/listings/CarListingCard';
@@ -28,6 +29,7 @@ import {
 } from '@/services/api';
 import { useApiData } from '@/hooks/useApiData';
 
+// Move interface outside component for better performance
 interface AdvancedSearchFilters {
   // Basic filters matching backend ListingFilterRequest
   brand?: string;
@@ -58,10 +60,38 @@ interface AdvancedSearchFilters {
 
 type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'condition' | 'fuelType' | 'bodyStyle' | 'location' | 'sellerType' | 'exteriorColor' | 'doors' | 'cylinders' | 'allFilters';
 
+// Constants moved outside component
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
 
-export default function AdvancedSearchPage() {
+// Error boundary component for better error handling
+const SearchErrorBoundary: React.FC<{
+  children: React.ReactNode;
+  error?: string | null;
+  onRetry?: () => void;
+}> = ({ children, error, onRetry }) => {
+  if (error) {
+    return (
+      <div className="col-span-full flex flex-col items-center justify-center py-12 bg-red-50 rounded-lg border border-red-200">
+        <MdError className="h-16 w-16 text-red-400 mb-4" />
+        <h3 className="text-lg font-medium text-red-800 mb-2">Search Error</h3>
+        <p className="text-red-600 text-center mb-4 max-w-md">{error}</p>
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Try Again
+          </button>
+        )}
+      </div>
+    );
+  }
+  return <>{children}</>;
+};
+
+// Wrap the main component with Suspense for better loading states
+function AdvancedSearchPageContent() {
   const { t, i18n } = useTranslation(['common', 'search']);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -119,31 +149,31 @@ export default function AdvancedSearchPage() {
     [t]
   );
 
-  // Get display name based on current language
+  // Simplified helper function for better performance
   const getDisplayName = useCallback((item: { displayNameEn: string; displayNameAr: string }) => {
     return i18n.language === 'ar' ? item.displayNameAr : item.displayNameEn;
   }, [i18n.language]);
 
-  // Helper functions to get display names for reference data
+  // Simple helper functions - these are fast enough without memoization
   const getConditionDisplayName = useCallback((id: number): string => {
     const condition = referenceData?.carConditions?.find(c => c.id === id);
     return condition ? getDisplayName(condition) : '';
-  }, [referenceData, getDisplayName]);
+  }, [referenceData?.carConditions, getDisplayName]);
 
   const getTransmissionDisplayName = useCallback((id: number): string => {
     const transmission = referenceData?.transmissions?.find(t => t.id === id);
     return transmission ? getDisplayName(transmission) : '';
-  }, [referenceData, getDisplayName]);
+  }, [referenceData?.transmissions, getDisplayName]);
 
   const getFuelTypeDisplayName = useCallback((id: number): string => {
     const fuelType = referenceData?.fuelTypes?.find(f => f.id === id);
     return fuelType ? getDisplayName(fuelType) : '';
-  }, [referenceData, getDisplayName]);
+  }, [referenceData?.fuelTypes, getDisplayName]);
 
   const getBodyStyleDisplayName = useCallback((id: number): string => {
     const bodyStyle = referenceData?.bodyStyles?.find(b => b.id === id);
     return bodyStyle ? getDisplayName(bodyStyle) : '';
-  }, [referenceData, getDisplayName]);
+  }, [referenceData?.bodyStyles, getDisplayName]);
 
   const getSellerTypeDisplayName = useCallback((id: number): string => {
     const sellerType = referenceData?.sellerTypes?.find(s => s.id === id);
@@ -151,7 +181,7 @@ export default function AdvancedSearchPage() {
       return getDisplayName(sellerType as { displayNameEn: string; displayNameAr: string });
     }
     return '';
-  }, [referenceData, getDisplayName]);
+  }, [referenceData?.sellerTypes, getDisplayName]);
 
   const getLocationDisplayName = useCallback((locationId: number): string => {
     const governorate = governorates?.find(g => g.id === locationId);
@@ -306,10 +336,16 @@ export default function AdvancedSearchPage() {
     handleInputChange('model', newModelValue);
   }, [getSelectedModels, handleInputChange]);
 
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [filters]);
+
   // Clear all filters with URL update
   const clearAllFilters = useCallback(() => {
     setFilters({});
     setSelectedMake(null);
+    setCurrentPage(0);
     // Clear URL parameters as well
     router.replace('/search');
   }, [router]);
@@ -1305,7 +1341,18 @@ export default function AdvancedSearchPage() {
     );
   };
 
-  // Fetch car listings with improved error handling
+  // Pagination state and handlers
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageSize = 20;
+
+  // Handle pagination with better UX
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
+    // Scroll to top of results
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  // Optimized fetchListings without complex memoization
   const fetchListings = useCallback(async () => {
     setIsLoadingListings(true);
     setListingsError(null);
@@ -1314,7 +1361,7 @@ export default function AdvancedSearchPage() {
       // Convert filters to backend format
       const listingFilters: CarListingFilterParams = {
         brand: filters.brand,
-        model: Array.isArray(filters.model) ? filters.model.join(',') : filters.model, // Convert array to comma-separated string
+        model: Array.isArray(filters.model) ? filters.model.join(',') : filters.model,
         minYear: filters.minYear,
         maxYear: filters.maxYear,
         minPrice: filters.minPrice,
@@ -1331,26 +1378,24 @@ export default function AdvancedSearchPage() {
         exteriorColor: filters.exteriorColor,
         doors: filters.doors,
         cylinders: filters.cylinders,
-        size: 20, // Default page size
-        page: 0, // Default to first page
+        size: pageSize,
+        page: currentPage,
         sort: 'createdAt,desc' // Default sort
       };
 
-      console.log('Sending search filters:', listingFilters);
-      console.log('Selected models array:', filters.model);
-      console.log('Model string being sent:', listingFilters.model);
       const response = await fetchCarListings(listingFilters);
-      console.log('API response:', response);
       setCarListings(response);
     } catch (error) {
-      console.error('Error fetching car listings:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch car listings';
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error fetching car listings:', error);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch car listings. Please try again.';
       setListingsError(errorMessage);
       // Set empty results on error to show proper no-results state
       setCarListings({
         content: [],
         page: 0,
-        size: 20,
+        size: pageSize,
         totalElements: 0,
         totalPages: 0,
         last: true
@@ -1358,16 +1403,26 @@ export default function AdvancedSearchPage() {
     } finally {
       setIsLoadingListings(false);
     }
-  }, [filters]);
+  }, [filters, currentPage]);
 
-  // Fetch listings when filters change, language changes, or on component mount
+  // Retry function for better UX
+  const retrySearch = useCallback(() => {
+    setListingsError(null);
+    fetchListings();
+  }, [fetchListings]);
+
+  // Immediate fetch listings without debouncing for better responsiveness
   useEffect(() => {
     fetchListings();
   }, [fetchListings]);
 
-  // Loading skeleton component for better UX
-  const LoadingSkeleton = () => (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden animate-pulse">
+  // Optimized loading skeleton component with accessibility
+  const LoadingSkeleton = React.memo(() => (
+    <div 
+      className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden animate-pulse"
+      role="status"
+      aria-label="Loading car listing"
+    >
       <div className="aspect-w-16 aspect-h-12 bg-gray-300 h-48"></div>
       <div className="p-4 space-y-3">
         <div className="h-4 bg-gray-300 rounded"></div>
@@ -1378,8 +1433,10 @@ export default function AdvancedSearchPage() {
           <div className="h-3 bg-gray-300 rounded w-1/4"></div>
         </div>
       </div>
+      <span className="sr-only">Loading...</span>
     </div>
-  );
+  ));
+  LoadingSkeleton.displayName = 'LoadingSkeleton';
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -1473,74 +1530,108 @@ export default function AdvancedSearchPage() {
           </button>
         </div>
 
-        {/* Car Listings Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {isLoadingListings ? (
-            // Loading state
-            Array.from({ length: 8 }).map((_, index) => (
-              <LoadingSkeleton key={index} />
-            ))
-          ) : carListings && carListings.content.length > 0 ? (
-            // Real car listings using reusable component
-            carListings.content.map((listing) => {
-              // Transform backend CarListing to CarListingCardData format
-              const cardData: CarListingCardData = {
-                id: listing.id,
-                title: listing.title,
-                price: listing.price,
-                year: listing.modelYear,
-                mileage: listing.mileage,
-                transmission: listing.transmission,
-                fuelType: listing.fuelType,
-                createdAt: listing.createdAt,
-                sellerUsername: listing.sellerUsername,
-                governorateNameEn: listing.governorateNameEn,
-                governorateNameAr: listing.governorateNameAr,
-                media: listing.media?.map(m => ({
-                  url: m.url,
-                  isPrimary: m.isPrimary,
-                  contentType: m.contentType
-                }))
-              };
+        {/* Car Listings Grid with Error Boundary */}
+        <SearchErrorBoundary error={listingsError} onRetry={retrySearch}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {isLoadingListings ? (
+              // Loading state with improved skeleton
+              Array.from({ length: 8 }).map((_, index) => (
+                <LoadingSkeleton key={`skeleton-${index}`} />
+              ))
+            ) : carListings && carListings.content.length > 0 ? (
+              // Real car listings using reusable component
+              carListings.content.map((listing) => {
+                // Transform backend CarListing to CarListingCardData format
+                const cardData: CarListingCardData = {
+                  id: listing.id,
+                  title: listing.title,
+                  price: listing.price,
+                  year: listing.modelYear,
+                  mileage: listing.mileage,
+                  transmission: listing.transmission,
+                  fuelType: listing.fuelType,
+                  createdAt: listing.createdAt,
+                  sellerUsername: listing.sellerUsername,
+                  governorateNameEn: listing.governorateNameEn,
+                  governorateNameAr: listing.governorateNameAr,
+                  media: listing.media?.map(m => ({
+                    url: m.url,
+                    isPrimary: m.isPrimary,
+                    contentType: m.contentType
+                  }))
+                };
 
-              return (
-                <CarListingCard
-                  key={listing.id}
-                  listing={cardData}
-                  onFavoriteToggle={(isFavorite) => {
-                    // Handle favorite toggle if needed
-                    console.log(`Car ${listing.id} favorite toggled:`, isFavorite);
-                  }}
-                  initialFavorite={false}
-                />
-              );
-            })
-          ) : (
-            // No results state
-            <div className="col-span-full text-center py-12">
-              <MdDirectionsCar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('search.noCarsFound', 'No cars found')}</h3>
-              <p className="text-gray-600">{t('search.adjustFilters', 'Try adjusting your search filters to see more results.')}</p>
-            </div>
-          )}
-        </div>
+                return (
+                  <CarListingCard
+                    key={`listing-${listing.id}`}
+                    listing={cardData}
+                    onFavoriteToggle={(isFavorite) => {
+                      // Handle favorite toggle if needed
+                      console.log(`Car ${listing.id} favorite toggled:`, isFavorite);
+                    }}
+                    initialFavorite={false}
+                  />
+                );
+              })
+            ) : (
+              // No results state with better messaging
+              <div className="col-span-full text-center py-12">
+                <MdDirectionsCar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('search.noCarsFound', 'No cars found')}</h3>
+                <p className="text-gray-600 mb-4">{t('search.adjustFilters', 'Try adjusting your search filters to see more results.')}</p>
+                {activeFiltersCount > 0 && (
+                  <button
+                    onClick={clearAllFilters}
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <MdClear className="mr-2 h-4 w-4" />
+                    {t('search.clearAllFilters', 'Clear all filters')}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </SearchErrorBoundary>
 
-        {/* Pagination */}
+        {/* Improved Pagination */}
         {carListings && carListings.totalPages > 1 && (
           <div className="mt-8 flex justify-center">
             <div className="flex items-center space-x-2">
               <button
-                disabled={carListings.page === 0}
-                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={carListings.page === 0 || isLoadingListings}
+                onClick={() => handlePageChange(carListings.page - 1)}
+                className="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {t('search.previous', 'Previous')}
               </button>
-              <span className="px-3 py-2 text-sm text-gray-700">
-                {t('search.pageInfo', 'Page {{current}} of {{total}}', { current: carListings.page + 1, total: carListings.totalPages })}
-              </span>
+              
+              {/* Page numbers */}
+              <div className="flex items-center space-x-1">
+                {Array.from({ length: Math.min(5, carListings.totalPages) }, (_, i) => {
+                  const page = i + Math.max(0, carListings.page - 2);
+                  if (page >= carListings.totalPages) return null;
+                  
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      disabled={isLoadingListings}
+                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                        page === carListings.page
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-500 hover:bg-gray-50 disabled:opacity-50'
+                      }`}
+                    >
+                      {page + 1}
+                    </button>
+                  );
+                })}
+              </div>
+              
               <button
-                disabled={carListings.last}
-                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={carListings.last || isLoadingListings}
+                onClick={() => handlePageChange(carListings.page + 1)}
+                className="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {t('search.next', 'Next')}
               </button>
@@ -1588,5 +1679,20 @@ export default function AdvancedSearchPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdvancedSearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading search...</p>
+        </div>
+      </div>
+    }>
+      <AdvancedSearchPageContent />
+    </Suspense>
   );
 }
