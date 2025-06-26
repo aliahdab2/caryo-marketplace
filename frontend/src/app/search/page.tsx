@@ -1608,6 +1608,8 @@ function AdvancedSearchPageContent() {
               {/* Page numbers */}
               <div className="flex items-center space-x-1">
                 {Array.from({ length: Math.min(5, carListings.totalPages) }, (_, i) => {
+                  // Ensure the pagination starts at a reasonable point, even when the current page is near the beginning.
+                  // Math.max(0, carListings.page - 2) centers the current page with 2 pages before it when possible
                   const page = i + Math.max(0, carListings.page - 2);
                   if (page >= carListings.totalPages) return null;
                   
