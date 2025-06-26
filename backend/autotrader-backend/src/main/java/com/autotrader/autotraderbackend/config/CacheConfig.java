@@ -13,6 +13,12 @@ public class CacheConfig {
     @Bean
     public CacheManager cacheManager() {
         // Using simple in-memory cache. For production, consider using Redis or similar
-        return new ConcurrentMapCacheManager("favorites");
+        return new ConcurrentMapCacheManager(
+            "favorites",
+            "sellerTypes", 
+            "locations",
+            "locationsByCountry",
+            "locationsByGovernorate"
+        );
     }
 }
