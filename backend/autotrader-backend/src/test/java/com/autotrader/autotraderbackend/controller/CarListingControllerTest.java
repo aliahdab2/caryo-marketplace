@@ -313,6 +313,7 @@ public class CarListingControllerTest {
                 null, // maxMileage
                 null, // isSold
                 null, // isArchived
+                null, // sellerTypeId
                 pageable
             )
         );
