@@ -8,6 +8,7 @@ export interface CarMake {
   displayNameEn: string;
   displayNameAr: string;
   isActive: boolean;
+  listingCount?: number; // Optional count of listings for this brand
   models?: CarModel[];
 }
 
@@ -21,6 +22,7 @@ export interface CarModel {
   displayNameEn: string;
   displayNameAr: string;
   isActive: boolean;
+  listingCount?: number; // Optional count of listings for this model
   brand?: CarMake;
   trims?: CarTrim[];
 }
