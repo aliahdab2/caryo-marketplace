@@ -7,7 +7,7 @@
  * @returns Array of { modelId, listingCount }
  */
 export async function fetchModelCountsBatch(brandId: number, modelIds: number[]): Promise<{ modelId: number; listingCount: number }[]> {
-  // Backend endpoint should accept POST /api/listings/model-counts { brandId, modelIds: [] }
+  // Backend endpoint should accept POST /api/listings/model-counts
   // and return [{ modelId, listingCount }]
   return api.post<{ modelId: number; listingCount: number }[]>(
     '/api/listings/model-counts',
@@ -203,9 +203,6 @@ async function apiRequest<T>(
   timeout: number = 15000 // Default timeout: 15 seconds
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`Making ${method} request to: ${url}`);
-  }
   
   const options: RequestOptions = {
     method,
@@ -228,8 +225,6 @@ async function apiRequest<T>(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
     
-    console.log('Request options:', JSON.stringify(options, null, 2));
-    
     const response = await fetch(url, {
       ...options,
       signal: controller.signal,
@@ -238,22 +233,16 @@ async function apiRequest<T>(
     
     clearTimeout(timeoutId);
     
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-    
     // Parse the response
     let responseData: unknown;
     
     // Try to parse as JSON first
     const contentType = response.headers.get('content-type');
-    console.log('Response content-type:', contentType);
     
     if (contentType && contentType.includes('application/json')) {
       responseData = await response.json();
-      console.log('Parsed JSON response:', responseData);
     } else {
       responseData = await response.text();
-      console.log('Text response:', responseData);
     }
 
     // Check for errors
@@ -324,9 +313,6 @@ export const api = {
  * Fetches all car brands
  */
 export async function fetchCarBrands(): Promise<CarMake[]> {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Fetching car brands from API');
-  }
   return api.get<CarMake[]>('/api/reference-data/brands');
 }
 
@@ -334,7 +320,6 @@ export async function fetchCarBrands(): Promise<CarMake[]> {
  * Fetches all car brands with listing counts
  */
 export async function fetchCarBrandsWithCounts(): Promise<CarMake[]> {
-  console.log('Fetching car brands with counts from API');
   return api.get<CarMake[]>('/api/reference-data/brands?includeCounts=true');
 }
 
@@ -343,10 +328,6 @@ export async function fetchCarBrandsWithCounts(): Promise<CarMake[]> {
  * Uses parallel requests with fallback to realistic static data
  */
 export async function fetchCarBrandsWithRealCounts(): Promise<CarMake[]> {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Fetching car brands with real listing counts');
-  }
-  
   try {
     // First get all brands
     const brands = await fetchCarBrands();
@@ -428,7 +409,6 @@ export async function fetchCarModels(brandId: number): Promise<CarModel[]> {
  * Fetches models for a specific brand with listing counts
  */
 export async function fetchCarModelsWithCounts(brandId: number): Promise<CarModel[]> {
-  console.log(`Fetching car models with counts for brand ${brandId} from API`);
   return api.get<CarModel[]>(`/api/reference-data/brands/${brandId}/models?includeCounts=true`);
 }
 
