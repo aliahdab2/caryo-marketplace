@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.config;
 
+import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.*;
 import com.autotrader.autotraderbackend.payload.request.SellerTypeRequest;
 import com.autotrader.autotraderbackend.service.*;
@@ -160,9 +161,16 @@ public class ReferenceDataInitializer implements CommandLineRunner {
             try {
                 sellerTypeService.getSellerTypeByName(sellerType.getName());
                 log.debug("Seller type '{}' already exists", sellerType.getName());
+            } catch (ResourceNotFoundException e) {
+                // Seller type doesn't exist, create it
+                try {
+                    sellerTypeService.createSellerType(sellerType);
+                    log.info("Created seller type: {}", sellerType.getName());
+                } catch (Exception createException) {
+                    log.warn("Failed to create seller type '{}': {}", sellerType.getName(), createException.getMessage());
+                }
             } catch (Exception e) {
-                sellerTypeService.createSellerType(sellerType);
-                log.info("Created seller type: {}", sellerType.getName());
+                log.error("Error checking seller type '{}': {}", sellerType.getName(), e.getMessage());
             }
         }
     }

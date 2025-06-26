@@ -7,8 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,12 +25,6 @@ public class SellerTypeResponse {
     
     @Schema(description = "Display name in Arabic", example = "تاجر")
     private String displayNameAr;
-    
-    @Schema(description = "Creation timestamp")
-    private LocalDateTime createdAt;
-    
-    @Schema(description = "Last update timestamp")
-    private LocalDateTime updatedAt;
 
     /**
      * Factory method to create SellerTypeResponse from SellerType entity
@@ -47,8 +39,6 @@ public class SellerTypeResponse {
                 .name(sellerType.getName())
                 .displayNameEn(sellerType.getDisplayNameEn())
                 .displayNameAr(sellerType.getDisplayNameAr())
-                .createdAt(sellerType.getCreatedAt())
-                .updatedAt(sellerType.getUpdatedAt())
                 .build();
     }
 }

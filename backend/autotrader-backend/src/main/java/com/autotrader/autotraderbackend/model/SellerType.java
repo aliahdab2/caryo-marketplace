@@ -11,8 +11,6 @@ import lombok.Setter;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "seller_types", indexes = {
     @Index(name = "idx_seller_type_name", columnList = "name", unique = true)
@@ -42,22 +40,4 @@ public class SellerType {
     @Size(min = 2, max = 50, message = "Arabic display name must be between 2 and 50 characters")
     @Column(name = "display_name_ar", nullable = false, length = 50)
     private String displayNameAr;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        createdAt = now;
-        updatedAt = now;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }
