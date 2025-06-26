@@ -1,14 +1,11 @@
 "use client";
 
-import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { Listing, ListingFilters } from '@/types/listings';
 import { getListings } from '@/services/listings';
-import { formatDate, formatNumber } from '@/utils/localization';
-import FavoriteButton from '@/components/common/FavoriteButton';
+import CarListingCard, { CarListingCardData } from '@/components/listings/CarListingCard';
 
 // Corrected Filters interface
 interface Filters {
@@ -29,7 +26,7 @@ interface Filters {
 }
 
 const ListingsPage = () => {
-  const { t, i18n } = useLazyTranslation(['listings', 'errors']);
+  const { t } = useLazyTranslation(['listings', 'errors']);
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialFilters: Filters = {
@@ -256,60 +253,36 @@ const ListingsPage = () => {
   return (
     <div className="min-h-[60vh]">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {listings.map((listing) => (
-          <div key={listing.id} className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out">
-            <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
-              <FavoriteButton
-                listingId={listing.id.toString()}
-                variant="filled"
-                size="sm"
-                className="shadow-md hover:shadow-lg"
-                initialFavorite={false}
-                onToggle={() => {
-                  // Handle favorite toggle if needed
-                }}
-              />
-            </div>
-            <Link href={`/listings/${listing.id}`} className="block group">
-              <div className="relative h-48 w-full overflow-hidden">
-                {listing.media && listing.media.length > 0 ? (
-                  <Image
-                    src={listing.media.find(m => m.isPrimary)?.url || listing.media[0].url}
-                    alt={listing.title}
-                    className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    unoptimized
-                  />
-                ) : (
-                  <Image
-                    src="/images/vehicles/car-default.svg"
-                    alt={listing.title}
-                    className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    unoptimized
-                  />
-                )}
-              </div>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold mb-2">{listing.title}</h3>
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-3">
-                  {formatNumber(listing.price, i18n.language)}
-                </p>
-                <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  <div>{listing.year}</div>
-                  <div>{listing.mileage} km</div>
-                  <div>{listing.transmission}</div>
-                  <div>{listing.fuelType}</div>
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {formatDate(listing.createdAt, i18n.language)}
-                </div>
-              </div>
-            </Link>
-          </div>
-        ))}
+        {listings.map((listing) => {
+          // Transform Listing to CarListingCardData format
+          const cardData: CarListingCardData = {
+            id: listing.id,
+            title: listing.title,
+            price: listing.price,
+            year: listing.year,
+            mileage: listing.mileage,
+            transmission: listing.transmission,
+            fuelType: listing.fuelType,
+            createdAt: listing.createdAt,
+            media: listing.media?.map(m => ({
+              url: m.url,
+              isPrimary: m.isPrimary,
+              type: m.type
+            }))
+          };
+
+          return (
+            <CarListingCard
+              key={listing.id}
+              listing={cardData}
+              onFavoriteToggle={(isFavorite) => {
+                // Handle favorite toggle if needed
+                console.log(`Car ${listing.id} favorite toggled:`, isFavorite);
+              }}
+              initialFavorite={false}
+            />
+          );
+        })}
       </div>
     </div>
   );

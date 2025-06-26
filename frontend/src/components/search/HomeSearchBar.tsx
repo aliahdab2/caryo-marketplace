@@ -199,17 +199,23 @@ const HomeSearchBar: React.FC = () => {
     
     // Build location parameters
     if (selectedGovernorate) {
-      params.append('location', selectedGovernorate);
-      
       const selectedGov = governorates?.find(gov => gov.displayNameEn === selectedGovernorate);
       if (selectedGov) {
-        // Add slug for SEO
-        params.append('locationSlug', selectedGov.slug);
+        // Send the slug to the backend for location filtering (backend searches by slug)
+        if (selectedGov.slug) {
+          params.append('location', selectedGov.slug);
+        }
+        params.append('locationId', selectedGov.id.toString());
+        
+        if (selectedGov.slug) {
+          // Add slug for SEO
+          params.append('locationSlug', selectedGov.slug);
+        }
       }
     }
 
     // Use replace instead of push to avoid history stacking on quick searches
-    router.push(`/listings?${params.toString()}`, { scroll: false });
+    router.push(`/search?${params.toString()}`, { scroll: false });
   }, [selectedMake, selectedModel, selectedGovernorate, carMakes, availableModels, governorates, getDisplayName, router]);
 
   // Create a debounced search function

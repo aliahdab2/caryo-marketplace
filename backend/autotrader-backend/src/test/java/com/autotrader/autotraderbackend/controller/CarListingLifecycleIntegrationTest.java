@@ -80,6 +80,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
     private String baseUrl;
     private String jwtToken;
     private Long testLocationId;
+    private Long testGovernorateId; // Added to store the governorate ID for filtering
     private User testUser; // Added to store the test user
     private CarBrand testCarBrand; // Added
     private CarModel testCarModel; // Added
@@ -106,6 +107,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         // Create test governorate
         testGovernorate = TestGeographyUtils.createTestGovernorate("Test Governorate", "محافظة اختبار", testCountry);
         testGovernorate = governorateRepository.save(testGovernorate);
+        testGovernorateId = testGovernorate.getId(); // Store the governorate ID for filtering
 
         // Create test location
         Location testLocation = TestGeographyUtils.createTestLocation("Test City Lifecycle", "مدينة اختبار دورة الحياة", testGovernorate);
@@ -326,7 +328,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                baseUrl + "/api/listings/filter?location=test-city-lifecycle",
+                baseUrl + "/api/listings/filter?location=test-governorate", // Use governorate slug, not location slug
                 HttpMethod.GET,
                 entity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
@@ -431,7 +433,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                baseUrl + "/api/listings/filter?locationId=" + testLocationId, // Filter by the ID of mainTestLocation
+                baseUrl + "/api/listings/filter?locationId=" + testGovernorateId, // Filter by the ID of testGovernorate
                 HttpMethod.GET,
                 entity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
@@ -502,10 +504,10 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         headers.set("Authorization", "Bearer " + jwtToken);
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        // Provide both locationId (for mainTestLocation) and location slug (for savedAnotherLocation)
+        // Provide both locationId (for testGovernorate) and location slug (for savedAnotherLocation)
         // Expecting locationId to take precedence
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                baseUrl + "/api/listings/filter?locationId=" + testLocationId + "&location=" + savedAnotherLocation.getSlug(),
+                baseUrl + "/api/listings/filter?locationId=" + testGovernorateId + "&location=" + savedAnotherLocation.getSlug(),
                 HttpMethod.GET,
                 entity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}

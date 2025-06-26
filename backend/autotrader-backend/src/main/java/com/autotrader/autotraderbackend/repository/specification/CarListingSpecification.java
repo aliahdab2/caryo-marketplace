@@ -1,7 +1,7 @@
 package com.autotrader.autotraderbackend.repository.specification;
 
 import com.autotrader.autotraderbackend.model.CarListing;
-import com.autotrader.autotraderbackend.model.Location;
+import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
@@ -12,7 +12,7 @@ import java.util.List;
 
 public class CarListingSpecification {
 
-    public static Specification<CarListing> fromFilter(ListingFilterRequest filter, Location locationEntity) {
+    public static Specification<CarListing> fromFilter(ListingFilterRequest filter, Governorate governorateEntity) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -59,9 +59,9 @@ public class CarListingSpecification {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("mileage"), filter.getMaxMileage()));
             }
 
-            // Add filter for Location entity if provided
-            if (locationEntity != null) {
-                predicates.add(criteriaBuilder.equal(root.get("location"), locationEntity));
+            // Add filter for Governorate entity if provided
+            if (governorateEntity != null) {
+                predicates.add(criteriaBuilder.equal(root.get("governorate").get("id"), governorateEntity.getId()));
             }
 
             // Add filter for isSold status if provided

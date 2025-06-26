@@ -14,6 +14,7 @@ import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
+import com.autotrader.autotraderbackend.repository.GovernorateRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.specification.CarListingSpecification;
@@ -44,6 +45,7 @@ public class CarListingService {
     private final CarListingRepository carListingRepository;
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
+    private final GovernorateRepository governorateRepository;
     private final StorageService storageService;
     private final StorageKeyGenerator storageKeyGenerator;
     private final CarListingMapper carListingMapper;
@@ -219,52 +221,52 @@ public class CarListingService {
         }
 
         Specification<CarListing> spec;
-        Location locationToFilterBy = null;
+        Governorate governorateToFilterBy = null;
         boolean locationFilterAttempted = false;
         String locationFilterType = "none"; // For logging
 
         if (filterRequest.getLocationId() != null) {
             locationFilterAttempted = true;
             locationFilterType = "ID: " + filterRequest.getLocationId();
-            Optional<Location> locationOpt = locationRepository.findById(filterRequest.getLocationId());
-            if (locationOpt.isPresent()) {
-                locationToFilterBy = locationOpt.get();
-                log.info("Location found by ID: {}. Applying filter.", filterRequest.getLocationId());
+            Optional<Governorate> governorateOpt = governorateRepository.findById(filterRequest.getLocationId());
+            if (governorateOpt.isPresent()) {
+                governorateToFilterBy = governorateOpt.get();
+                log.info("Governorate found by ID: {}. Applying filter.", filterRequest.getLocationId());
             } else {
-                log.warn("Location ID {} provided in filter but not found. No listings will match this location criterion.", filterRequest.getLocationId());
-                // locationToFilterBy remains null, spec will be set to disjunction
+                log.warn("Governorate ID {} provided in filter but not found. No listings will match this location criterion.", filterRequest.getLocationId());
+                // governorateToFilterBy remains null, spec will be set to disjunction
             }
         } else if (StringUtils.isNotBlank(filterRequest.getLocation())) { // Changed from StringUtils.hasText
             locationFilterAttempted = true;
             locationFilterType = "slug: '" + filterRequest.getLocation() + "'";
-            Optional<Location> locationOpt = locationRepository.findBySlug(filterRequest.getLocation());
-            if (locationOpt.isPresent()) {
-                locationToFilterBy = locationOpt.get();
-                log.info("Location found by slug: '{}'. Applying filter.", filterRequest.getLocation());
+            Optional<Governorate> governorateOpt = governorateRepository.findBySlug(filterRequest.getLocation());
+            if (governorateOpt.isPresent()) {
+                governorateToFilterBy = governorateOpt.get();
+                log.info("Governorate found by slug: '{}'. Applying filter.", filterRequest.getLocation());
             } else {
-                log.warn("Location slug '{}' provided in filter but not found. No listings will match this location criterion.", filterRequest.getLocation());
-                // locationToFilterBy remains null, spec will be set to disjunction
+                log.warn("Governorate slug '{}' provided in filter but not found. No listings will match this location criterion.", filterRequest.getLocation());
+                // governorateToFilterBy remains null, spec will be set to disjunction
             }
         }
 
-        if (locationFilterAttempted && locationToFilterBy == null) {
-            // A location filter was specified (ID or slug) but the location was not found.
+        if (locationFilterAttempted && governorateToFilterBy == null) {
+            // A location filter was specified (ID or slug) but the governorate was not found.
             // We should return an empty page result directly rather than using JPA filtering
-            log.info("Location filter ({}) resulted in no valid location. Returning empty page result.", locationFilterType);
+            log.info("Location filter ({}) resulted in no valid governorate. Returning empty page result.", locationFilterType);
             
             // Return empty page immediately
             Page<CarListing> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
             log.info("Empty page returned for invalid location filter");
             return emptyPage.map(carListingMapper::toCarListingResponse);
         } else {
-            // Either no location filter was specified, or a valid location was found.
-            // Pass locationToFilterBy (which is null if no filter applied, or a valid Location object if found)
-            // CarListingSpecification.fromFilter handles a null locationToFilterBy gracefully (no location predicate added).
-            spec = CarListingSpecification.fromFilter(filterRequest, locationToFilterBy);
-            if (locationToFilterBy != null) {
-                log.info("Applying location filter for {}.", locationFilterType);
+            // Either no location filter was specified, or a valid governorate was found.
+            // Pass governorateToFilterBy (which is null if no filter applied, or a valid Governorate object if found)
+            // CarListingSpecification.fromFilter handles a null governorateToFilterBy gracefully (no governorate predicate added).
+            spec = CarListingSpecification.fromFilter(filterRequest, governorateToFilterBy);
+            if (governorateToFilterBy != null) {
+                log.info("Applying governorate filter for {}.", locationFilterType);
             } else if (!locationFilterAttempted) {
-                log.info("No location ID or slug provided in filter. Proceeding without specific location entity filter.");
+                log.info("No location ID or slug provided in filter. Proceeding without specific governorate filter.");
             }
         }
 

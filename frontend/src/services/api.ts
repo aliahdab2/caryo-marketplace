@@ -3,6 +3,157 @@
 import { CarMake, CarModel, CarTrim } from '@/types/car';
 import { ApiError } from '@/utils/apiErrorHandler';
 
+// Reference data interfaces to match backend
+export interface CarCondition {
+  id: number;
+  name: string;
+  displayNameEn: string;
+  displayNameAr: string;
+}
+
+export interface Transmission {
+  id: number;
+  name: string;
+  displayNameEn: string;
+  displayNameAr: string;
+}
+
+export interface FuelType {
+  id: number;
+  name: string;
+  displayNameEn: string;
+  displayNameAr: string;
+}
+
+export interface BodyStyle {
+  id: number;
+  name: string;
+  displayNameEn: string;
+  displayNameAr: string;
+}
+
+export interface DriveType {
+  id: number;
+  name: string;
+  displayNameEn: string;
+  displayNameAr: string;
+}
+
+export interface CarReferenceData {
+  carConditions: CarCondition[];
+  driveTypes: DriveType[];
+  bodyStyles: BodyStyle[];
+  fuelTypes: FuelType[];
+  transmissions: Transmission[];
+  sellerTypes: Record<string, unknown>[];
+}
+
+export interface Governorate {
+  id: number;
+  name?: string;
+  displayNameEn: string;
+  displayNameAr: string;
+  slug?: string;
+  countryCode?: string;
+}
+
+// Car Listing interfaces
+export interface ListingMediaResponse {
+  id: number;
+  url: string;
+  fileKey: string;
+  fileName: string;
+  contentType: string;
+  size: number;
+  sortOrder: number;
+  isPrimary: boolean;
+  mediaType: string;
+}
+
+export interface LocationResponse {
+  id: number;
+  displayNameEn: string;
+  displayNameAr: string;
+  slug: string;
+  countryCode: string;
+  governorateId: number;
+  governorateNameEn: string;
+  governorateNameAr: string;
+  region: string;
+  latitude: number;
+  longitude: number;
+  active: boolean;
+}
+
+export interface GovernorateResponse {
+  id: number;
+  displayNameEn: string;
+  displayNameAr: string;
+  slug: string;
+  countryId: number;
+  countryCode: string;
+  countryNameEn: string;
+  countryNameAr: string;
+  region: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface CarListing {
+  id: number;
+  title: string;
+  brandNameEn: string;
+  brandNameAr: string;
+  modelNameEn: string;
+  modelNameAr: string;
+  governorateNameEn: string;
+  governorateNameAr: string;
+  locationDetails: LocationResponse;
+  governorateDetails: GovernorateResponse;
+  modelYear: number;
+  price: number;
+  mileage: number;
+  transmission: string;
+  fuelType: string;
+  description: string;
+  media: ListingMediaResponse[];
+  approved: boolean;
+  sellerId: number;
+  sellerUsername: string;
+  createdAt: string;
+  isSold: boolean;
+  isArchived: boolean;
+  isUserActive: boolean;
+  isExpired: boolean;
+}
+
+export interface PageResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}
+
+export interface CarListingFilterParams {
+  brand?: string;
+  model?: string;
+  minYear?: number;
+  maxYear?: number;
+  location?: string;
+  locationId?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  minMileage?: number;
+  maxMileage?: number;
+  isSold?: boolean;
+  isArchived?: boolean;
+  page?: number;
+  size?: number;
+  sort?: string;
+}
+
 // Base URL for the API - will be set from environment variables
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -164,28 +315,97 @@ export async function fetchCarModels(brandId: number): Promise<CarModel[]> {
  * Fetches trims for a specific model
  */
 export async function fetchCarTrims(brandId: number, modelId: number): Promise<CarTrim[]> {
-  console.log(`Fetching car trims for brand ${brandId} model ${modelId} from API`);
+  console.log(`Fetching car trims for brand ${brandId}, model ${modelId} from API`);
   return api.get<CarTrim[]>(`/api/reference-data/brands/${brandId}/models/${modelId}/trims`);
 }
 
 /**
- * Fetches available governorates
+ * Fetches all car reference data (conditions, transmissions, fuel types, etc.)
  */
-export interface Governorate {
-  id: number;
-  displayNameEn: string;
-  displayNameAr: string;
-  slug: string;
-  countryCode?: string;
+export async function fetchCarReferenceData(): Promise<CarReferenceData> {
+  console.log('Fetching car reference data from API');
+  return api.get<CarReferenceData>('/api/reference-data');
 }
 
 /**
- * Fetches all governorates from the API
+ * Fetches car conditions only
+ */
+export async function fetchCarConditions(): Promise<CarCondition[]> {
+  console.log('Fetching car conditions from API');
+  return api.get<CarCondition[]>('/api/car-conditions');
+}
+
+/**
+ * Fetches transmissions only
+ */
+export async function fetchTransmissions(): Promise<Transmission[]> {
+  console.log('Fetching transmissions from API');
+  return api.get<Transmission[]>('/api/transmissions');
+}
+
+/**
+ * Fetches fuel types only
+ */
+export async function fetchFuelTypes(): Promise<FuelType[]> {
+  console.log('Fetching fuel types from API');
+  return api.get<FuelType[]>('/api/fuel-types');
+}
+
+/**
+ * Fetches body styles only
+ */
+export async function fetchBodyStyles(): Promise<BodyStyle[]> {
+  console.log('Fetching body styles from API');
+  return api.get<BodyStyle[]>('/api/body-styles');
+}
+
+/**
+ * Fetches drive types only
+ */
+export async function fetchDriveTypes(): Promise<DriveType[]> {
+  console.log('Fetching drive types from API');
+  return api.get<DriveType[]>('/api/drive-types');
+}
+
+/**
+ * Fetches all governorates from the API (stub for backward compatibility)
  * @returns Promise with array of governorates
  */
 export async function fetchGovernorates(): Promise<Governorate[]> {
   console.log('Fetching governorates from API');
   return api.get<Governorate[]>('/api/reference-data/governorates');
+}
+
+/**
+ * Fetches car listings with optional filters
+ */
+export async function fetchCarListings(filters?: CarListingFilterParams): Promise<PageResponse<CarListing>> {
+  console.log('Fetching car listings from API with filters:', filters);
+  
+  // Build query parameters
+  const queryParams = new URLSearchParams();
+  
+  if (filters) {
+    // Add each filter parameter if it exists
+    if (filters.brand) queryParams.append('brand', filters.brand);
+    if (filters.model) queryParams.append('model', filters.model);
+    if (filters.minYear) queryParams.append('minYear', filters.minYear.toString());
+    if (filters.maxYear) queryParams.append('maxYear', filters.maxYear.toString());
+    if (filters.location) queryParams.append('location', filters.location);
+    if (filters.locationId) queryParams.append('locationId', filters.locationId.toString());
+    if (filters.minPrice) queryParams.append('minPrice', filters.minPrice.toString());
+    if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice.toString());
+    if (filters.minMileage) queryParams.append('minMileage', filters.minMileage.toString());
+    if (filters.maxMileage) queryParams.append('maxMileage', filters.maxMileage.toString());
+    if (filters.isSold !== undefined) queryParams.append('isSold', filters.isSold.toString());
+    if (filters.isArchived !== undefined) queryParams.append('isArchived', filters.isArchived.toString());
+    if (filters.page !== undefined) queryParams.append('page', filters.page.toString());
+    if (filters.size !== undefined) queryParams.append('size', filters.size.toString());
+    if (filters.sort) queryParams.append('sort', filters.sort);
+  }
+  
+  const endpoint = `/api/listings/filter${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  return api.get<PageResponse<CarListing>>(endpoint);
 }
 
 /**
