@@ -6,6 +6,8 @@ import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.repository.CarModelRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +28,9 @@ public class CarModelService {
      * Get all car models
      * @return List of all car models
      */
+    @Cacheable(value = "carModels", key = "'all'")
     public List<CarModel> getAllModels() {
+        log.debug("Fetching all car models from database");
         return carModelRepository.findAll();
     }
     
@@ -35,7 +39,9 @@ public class CarModelService {
      * @param brandId ID of the brand
      * @return List of car models belonging to the brand
      */
+    @Cacheable(value = "modelsByBrand", key = "#brandId")
     public List<CarModel> getModelsByBrandId(Long brandId) {
+        log.debug("Fetching car models for brand ID: {}", brandId);
         CarBrand brand = carBrandService.getBrandById(brandId);
         return carModelRepository.findByBrand(brand);
     }
@@ -45,7 +51,9 @@ public class CarModelService {
      * @param brandId ID of the brand
      * @return List of active car models belonging to the brand
      */
+    @Cacheable(value = "modelsByBrand", key = "'active-' + #brandId")
     public List<CarModel> getActiveModelsByBrandId(Long brandId) {
+        log.debug("Fetching active car models for brand ID: {}", brandId);
         CarBrand brand = carBrandService.getBrandById(brandId);
         return carModelRepository.findByBrandAndIsActiveTrue(brand);
     }
@@ -127,6 +135,7 @@ public class CarModelService {
      * @return Created model
      */
     @Transactional
+    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
     public CarModel createModel(CarModel model) {
         // Ensure the brand exists
         CarBrand brand = carBrandService.getBrandById(model.getBrand().getId());
@@ -144,6 +153,7 @@ public class CarModelService {
      * @throws ResourceNotFoundException if model not found
      */
     @Transactional
+    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
     public CarModel updateModel(Long id, CarModel modelDetails) {
         CarModel model = getModelById(id);
         
@@ -170,6 +180,7 @@ public class CarModelService {
      * @return Updated model
      */
     @Transactional
+    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
     public CarModel updateModelActivation(Long id, boolean isActive) {
         CarModel model = getModelById(id);
         model.setIsActive(isActive);
@@ -183,6 +194,7 @@ public class CarModelService {
      * @param id Model ID
      */
     @Transactional
+    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
     public void deleteModel(Long id) {
         CarModel model = getModelById(id);
         log.info("Deleting car model with id: {}", id);

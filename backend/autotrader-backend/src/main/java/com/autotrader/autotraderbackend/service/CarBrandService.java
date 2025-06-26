@@ -5,6 +5,8 @@ import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.repository.CarBrandRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ public class CarBrandService {
      * Get all car brands
      * @return List of all car brands
      */
+    @Cacheable(value = "carBrands", key = "'all'")
     public List<CarBrand> getAllBrands() {
         return carBrandRepository.findAll();
     }
@@ -32,7 +35,9 @@ public class CarBrandService {
      * Get only active car brands
      * @return List of active car brands
      */
+    @Cacheable(value = "activeBrands", key = "'active'")
     public List<CarBrand> getActiveBrands() {
+        log.debug("Fetching active car brands from database");
         return carBrandRepository.findByIsActiveTrue();
     }
     
@@ -42,6 +47,7 @@ public class CarBrandService {
      * @return Car brand
      * @throws ResourceNotFoundException if brand not found
      */
+    @Cacheable(value = "carBrands", key = "#id")
     public CarBrand getBrandById(Long id) {
         return carBrandRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("CarBrand", "id", id));
@@ -76,6 +82,7 @@ public class CarBrandService {
      * @return Created brand
      */
     @Transactional
+    @CacheEvict(value = {"carBrands", "activeBrands"}, allEntries = true)
     public CarBrand createBrand(CarBrand brand) {
         log.info("Creating new car brand: {}", brand.getName());
         return carBrandRepository.save(brand);
@@ -89,6 +96,7 @@ public class CarBrandService {
      * @throws ResourceNotFoundException if brand not found
      */
     @Transactional
+    @CacheEvict(value = {"carBrands", "activeBrands"}, allEntries = true)
     public CarBrand updateBrand(Long id, CarBrand brandDetails) {
         CarBrand brand = getBrandById(id);
         
@@ -109,6 +117,7 @@ public class CarBrandService {
      * @return Updated brand
      */
     @Transactional
+    @CacheEvict(value = {"carBrands", "activeBrands"}, allEntries = true)
     public CarBrand updateBrandActivation(Long id, boolean isActive) {
         CarBrand brand = getBrandById(id);
         brand.setIsActive(isActive);
@@ -122,6 +131,7 @@ public class CarBrandService {
      * @param id Brand ID
      */
     @Transactional
+    @CacheEvict(value = {"carBrands", "activeBrands"}, allEntries = true)
     public void deleteBrand(Long id) {
         CarBrand brand = getBrandById(id);
         log.info("Deleting car brand with id: {}", id);

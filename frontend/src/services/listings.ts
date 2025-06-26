@@ -132,6 +132,7 @@ export async function getListings(filters: ListingFilters = {}): Promise<{ listi
     if (filters.minYear) params.set('minYear', filters.minYear);
     if (filters.maxYear) params.set('maxYear', filters.maxYear);
     if (filters.location) params.set('location', filters.location);
+    if (filters.sellerTypeId) params.set('sellerTypeId', filters.sellerTypeId.toString());
     
     // Ensure brand and model are explicitly added
     if (filters.brand) {

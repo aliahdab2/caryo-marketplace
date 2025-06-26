@@ -16,5 +16,5 @@ public class CarReferenceDataResponse {
     private List<BodyStyle> bodyStyles;
     private List<FuelType> fuelTypes;
     private List<Transmission> transmissions;
-    private List<SellerType> sellerTypes;
+    private List<SellerTypeResponse> sellerTypes;
 }

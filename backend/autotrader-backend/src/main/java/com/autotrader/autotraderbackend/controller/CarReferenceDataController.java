@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.model.*;
 import com.autotrader.autotraderbackend.payload.response.CarReferenceDataResponse; // Added import
+import com.autotrader.autotraderbackend.payload.response.SellerTypeResponse;
 import com.autotrader.autotraderbackend.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,7 +48,7 @@ public class CarReferenceDataController {
         List<BodyStyle> bodyStyles = bodyStyleService.getAllBodyStyles();
         List<FuelType> fuelTypes = fuelTypeService.getAllFuelTypes();
         List<Transmission> transmissions = transmissionService.getAllTransmissions();
-        List<SellerType> sellerTypes = sellerTypeService.getAllSellerTypes();
+        List<SellerTypeResponse> sellerTypes = sellerTypeService.getAllSellerTypes();
         
         CarReferenceDataResponse referenceData = new CarReferenceDataResponse(
             carConditions,
