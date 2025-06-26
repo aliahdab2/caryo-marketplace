@@ -608,40 +608,45 @@ export default function AdvancedSearchPage() {
 
   // Modal component
   const FilterModal = ({ filterType, onClose }: { filterType: FilterType; onClose: () => void }) => {
+
     // Reset search when modal closes
     const handleClose = () => {
       setSearchTerm('');
       onClose();
     };
-    
+
     const renderModalContent = () => {
       switch (filterType) {
         case 'makeModel':
           return (
-            <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg">
+            <div className="max-w-sm mx-auto bg-white rounded-2xl shadow-2xl border border-gray-100 ring-1 ring-black/5">
               {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 {i18n.language === 'ar' ? (
                   <>
-                    <div className="w-12"></div> {/* Spacer to center the title */}
-                    <h2 className="text-lg font-semibold text-gray-900 text-center flex-1">
+                    <div className="w-12" aria-hidden="true"></div>
+                    <h2 className="text-lg font-bold text-gray-900 text-center flex-1 select-none">
                       {t('search.makeAndModel', 'الماركة والموديل')}
                     </h2>
                     <button
                       onClick={handleClose}
-                      className="text-gray-500 hover:text-gray-700 p-1 text-sm"
+                      className="text-gray-400 hover:text-blue-600 p-1 text-base font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded transition"
+                      tabIndex={0}
+                      aria-label={t('search.abort', 'إلغاء')}
                     >
                       {t('search.abort', 'إلغاء')}
                     </button>
                   </>
                 ) : (
                   <>
-                    <h2 className="text-lg font-semibold text-gray-900">
+                    <h2 className="text-lg font-bold text-gray-900 select-none">
                       {t('search.makeAndModel', 'Make & Model')}
                     </h2>
                     <button
                       onClick={handleClose}
-                      className="text-gray-500 hover:text-gray-700 p-1 text-sm"
+                      className="text-gray-400 hover:text-blue-600 p-1 text-base font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded transition"
+                      tabIndex={0}
+                      aria-label={t('search.abort', 'Cancel')}
                     >
                       {t('search.abort', 'Cancel')}
                     </button>
@@ -650,17 +655,18 @@ export default function AdvancedSearchPage() {
               </div>
 
               {/* Search bar */}
-              <div className="p-4 border-b border-gray-200">
+              <div className="px-6 py-3 border-b border-gray-100 bg-gray-50">
                 <div className="relative">
                   <div className={`absolute inset-y-0 ${i18n.language === 'ar' ? 'right-0 pr-3' : 'left-0 pl-3'} flex items-center pointer-events-none`}>
                     <MdSearch className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
                     type="text"
-                    placeholder={t('search.searchFilterPlaceholder', 'Search for make or model')}
-                    className={`w-full ${i18n.language === 'ar' ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4 text-left'} py-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-500`}
+                    placeholder={t('search:searchFilterPlaceholder', 'Search for make or model')}
+                    className={`w-full ${i18n.language === 'ar' ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4 text-left'} py-2.5 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder-gray-400 transition-shadow shadow-sm focus:shadow-md`}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    autoFocus
                   />
                 </div>
               </div>
