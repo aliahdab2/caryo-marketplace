@@ -20,9 +20,9 @@ public class CarListingSpecification {
             // Search in both English and Arabic fields for better bilingual support
             
             // New logic for brand/model filtering to support complex hierarchical queries.
-            // The `brand` parameter can now contain brand-model pairs, e.g., "Toyota:Camry;Corolla,Honda"
+            // The `brand` parameter must contain brand-model pairs, e.g., "Toyota:Camry;Corolla,Honda"
             // This translates to (Toyota AND (Camry OR Corolla)) OR (Honda).
-            // The top-level `model` parameter is only used if the `brand` parameter is empty.
+            // Note: Model-only filtering is not supported - brand must always be provided with model.
             if (StringUtils.hasText(filter.getBrand())) {
                 List<Predicate> brandOrConditions = new ArrayList<>();
                 String[] brandModelGroups = filter.getBrand().split(",");
@@ -67,20 +67,9 @@ public class CarListingSpecification {
                 if (!brandOrConditions.isEmpty()) {
                     predicates.add(criteriaBuilder.or(brandOrConditions.toArray(new Predicate[0])));
                 }
-            } else if (StringUtils.hasText(filter.getModel())) {
-                // Fallback to model-only search if brand is not provided
-                List<Predicate> modelPredicates = new ArrayList<>();
-                String[] modelNames = filter.getModel().split(",");
-                for (String modelName : modelNames) {
-                    String trimmedModel = modelName.trim();
-                    if (StringUtils.hasText(trimmedModel)) {
-                        modelPredicates.add(createBilingualLikePredicate(root, criteriaBuilder, "modelName", trimmedModel));
-                    }
-                }
-                if (!modelPredicates.isEmpty()) {
-                    predicates.add(criteriaBuilder.or(modelPredicates.toArray(new Predicate[0])));
-                }
             }
+            // Note: The separate 'model' parameter is intentionally not processed.
+            // Frontend must always provide brand context with model selections.
             
             if (filter.getMinYear() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("modelYear"), filter.getMinYear()));

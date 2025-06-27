@@ -146,14 +146,15 @@ class CarListingSpecificationTest {
     }
 
     @Test
-    void fromFilter_withModelOnly_shouldCreateModelPredicate() {
+    void fromFilter_withModelOnly_shouldNotCreateAnyPredicate() {
         ListingFilterRequest filter = new ListingFilterRequest();
-        filter.setModel("Camry");
+        // Model-only filtering is not supported anymore - would need to be "Toyota:Camry"
         Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
 
         spec.toPredicate(root, query, criteriaBuilder);
 
-        verify(criteriaBuilder, times(2)).like(any(), eq("%camry%"));
+        // Model-only filtering is not supported - no model predicates should be created
+        verify(criteriaBuilder, never()).like(any(), eq("%camry%"));
         verify(criteriaBuilder, never()).like(any(), eq("%toyota%"));
     }
 
@@ -215,15 +216,16 @@ class CarListingSpecificationTest {
     }
 
     @Test
-    void fromFilter_withEmptyBrand_shouldNotCreateBrandPredicate() {
+    void fromFilter_withEmptyBrand_shouldNotCreateAnyBrandOrModelPredicate() {
         ListingFilterRequest filter = new ListingFilterRequest();
         filter.setBrand("");
-        filter.setModel("Camry");
+        // Model-only filtering is not supported anymore
         Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
 
         spec.toPredicate(root, query, criteriaBuilder);
 
-        verify(criteriaBuilder, times(2)).like(any(), eq("%camry%"));
+        // Since model-only filtering is not supported, no brand or model predicates should be created
+        verify(criteriaBuilder, never()).like(any(), eq("%camry%"));
         verify(criteriaBuilder, never()).like(any(), eq("%toyota%"));
     }
 
@@ -231,7 +233,7 @@ class CarListingSpecificationTest {
     void fromFilter_withEmptyModel_shouldNotCreateModelPredicate() {
         ListingFilterRequest filter = new ListingFilterRequest();
         filter.setBrand("Toyota");
-        filter.setModel("");
+        // Empty model is not relevant anymore since we removed the model field
         Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
 
         spec.toPredicate(root, query, criteriaBuilder);

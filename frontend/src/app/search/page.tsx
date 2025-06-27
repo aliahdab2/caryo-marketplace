@@ -14,6 +14,7 @@ import {
   MdError
 } from 'react-icons/md';
 import { CarMake, CarModel } from '@/types/car';
+import { buildHierarchicalBrandFilter } from '@/utils/brandFilters';
 import CarListingCard, { CarListingCardData } from '@/components/listings/CarListingCard';
 import { 
   fetchCarBrandsWithRealCounts,
@@ -32,8 +33,16 @@ import { useApiData } from '@/hooks/useApiData';
 // Move interface outside component for better performance
 interface AdvancedSearchFilters {
   // Basic filters matching backend ListingFilterRequest
-  brand?: string | string[]; // Support both single brand and multiple brands
-  model?: string | string[]; // Support both single model and multiple models
+  /**
+   * Brand filter with hierarchical syntax support.
+   * Examples: "Toyota", "Toyota:Camry", "Toyota:Camry;Corolla", "Toyota:Camry,Honda"
+   */
+  brand?: string | string[]; // Support both single brand and multiple brands for internal use
+  
+  // TODO: Remove this field after completing hierarchical migration
+  // Temporary field for backward compatibility during migration
+  model?: string | string[]; // Will be converted to hierarchical brand syntax
+  
   minYear?: number;
   maxYear?: number;
   minPrice?: number;
@@ -189,57 +198,121 @@ function AdvancedSearchPageContent() {
   }, [governorates, getDisplayName]);
 
   // Initialize form from URL params (only on initial load)
+  // Initialize filters from URL params only once on mount
+  const [isInitialized, setIsInitialized] = useState(false);
+  
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Initializing filters from URL params:', searchParams?.toString());
-    }
+    // Only initialize from URL params once when component first mounts
+    if (isInitialized || !searchParams) return;
+    
     const initialFilters: AdvancedSearchFilters = {};
     
-    // Basic filters
-    if (searchParams?.get('brand')) {
-      const brandParam = searchParams.get('brand')!;
-      // Handle comma-separated brands
-      if (brandParam.includes(',')) {
-        initialFilters.brand = brandParam.split(',').map(b => b.trim());
-      } else {
-        initialFilters.brand = brandParam;
+    try {
+      // Basic filters with error handling
+      if (searchParams?.get('brand')) {
+        const brandParam = searchParams.get('brand')!;
+        // Handle comma-separated brands
+        if (brandParam.includes(',')) {
+          initialFilters.brand = brandParam.split(',').map(b => b.trim()).filter(Boolean);
+        } else {
+          initialFilters.brand = brandParam;
+        }
       }
-    }
-    if (searchParams?.get('model')) {
-      const modelParam = searchParams.get('model')!;
-      // Handle comma-separated models
-      if (modelParam.includes(',')) {
-        initialFilters.model = modelParam.split(',').map(m => m.trim());
-      } else {
-        initialFilters.model = modelParam;
+      if (searchParams?.get('model')) {
+        const modelParam = searchParams.get('model')!;
+        // Handle comma-separated models
+        if (modelParam.includes(',')) {
+          initialFilters.model = modelParam.split(',').map(m => m.trim()).filter(Boolean);
+        } else {
+          initialFilters.model = modelParam;
+        }
       }
+      
+      // Numeric filters with validation
+      const minYear = searchParams?.get('minYear');
+      if (minYear && !isNaN(parseInt(minYear))) {
+        initialFilters.minYear = parseInt(minYear);
+      }
+      
+      const maxYear = searchParams?.get('maxYear');
+      if (maxYear && !isNaN(parseInt(maxYear))) {
+        initialFilters.maxYear = parseInt(maxYear);
+      }
+      
+      const minPrice = searchParams?.get('minPrice');
+      if (minPrice && !isNaN(parseFloat(minPrice))) {
+        initialFilters.minPrice = parseFloat(minPrice);
+      }
+      
+      const maxPrice = searchParams?.get('maxPrice');
+      if (maxPrice && !isNaN(parseFloat(maxPrice))) {
+        initialFilters.maxPrice = parseFloat(maxPrice);
+      }
+      
+      const minMileage = searchParams?.get('minMileage');
+      if (minMileage && !isNaN(parseInt(minMileage))) {
+        initialFilters.minMileage = parseInt(minMileage);
+      }
+      
+      const maxMileage = searchParams?.get('maxMileage');
+      if (maxMileage && !isNaN(parseInt(maxMileage))) {
+        initialFilters.maxMileage = parseInt(maxMileage);
+      }
+    
+      // Location filters
+      if (searchParams?.get('location')) initialFilters.location = searchParams.get('location')!;
+      
+      const locationId = searchParams?.get('locationId');
+      if (locationId && !isNaN(parseInt(locationId))) {
+        initialFilters.locationId = parseInt(locationId);
+      }
+      
+      // Entity ID filters with validation
+      const conditionId = searchParams?.get('conditionId');
+      if (conditionId && !isNaN(parseInt(conditionId))) {
+        initialFilters.conditionId = parseInt(conditionId);
+      }
+      
+      const transmissionId = searchParams?.get('transmissionId');
+      if (transmissionId && !isNaN(parseInt(transmissionId))) {
+        initialFilters.transmissionId = parseInt(transmissionId);
+      }
+      
+      const fuelTypeId = searchParams?.get('fuelTypeId');
+      if (fuelTypeId && !isNaN(parseInt(fuelTypeId))) {
+        initialFilters.fuelTypeId = parseInt(fuelTypeId);
+      }
+      
+      const bodyStyleId = searchParams?.get('bodyStyleId');
+      if (bodyStyleId && !isNaN(parseInt(bodyStyleId))) {
+        initialFilters.bodyStyleId = parseInt(bodyStyleId);
+      }
+      
+      const sellerTypeId = searchParams?.get('sellerTypeId');
+      if (sellerTypeId && !isNaN(parseInt(sellerTypeId))) {
+        initialFilters.sellerTypeId = parseInt(sellerTypeId);
+      }
+      
+      if (searchParams?.get('exteriorColor')) {
+        initialFilters.exteriorColor = searchParams.get('exteriorColor')!;
+      }
+      
+      const doors = searchParams?.get('doors');
+      if (doors && !isNaN(parseInt(doors))) {
+        initialFilters.doors = parseInt(doors);
+      }
+      
+      const cylinders = searchParams?.get('cylinders');
+      if (cylinders && !isNaN(parseInt(cylinders))) {
+        initialFilters.cylinders = parseInt(cylinders);
+      }
+    } catch (error) {
+      console.warn('Error parsing URL parameters:', error);
     }
-    if (searchParams?.get('minYear')) initialFilters.minYear = parseInt(searchParams.get('minYear')!);
-    if (searchParams?.get('maxYear')) initialFilters.maxYear = parseInt(searchParams.get('maxYear')!);
-    if (searchParams?.get('minPrice')) initialFilters.minPrice = parseFloat(searchParams.get('minPrice')!);
-    if (searchParams?.get('maxPrice')) initialFilters.maxPrice = parseFloat(searchParams.get('maxPrice')!);
-    if (searchParams?.get('minMileage')) initialFilters.minMileage = parseInt(searchParams.get('minMileage')!);
-    if (searchParams?.get('maxMileage')) initialFilters.maxMileage = parseInt(searchParams.get('maxMileage')!);
-    
-    // Location filters
-    if (searchParams?.get('location')) initialFilters.location = searchParams.get('location')!;
-    if (searchParams?.get('locationId')) initialFilters.locationId = parseInt(searchParams.get('locationId')!);
-    
-    // Entity ID filters
-    if (searchParams?.get('conditionId')) initialFilters.conditionId = parseInt(searchParams.get('conditionId')!);
-    if (searchParams?.get('transmissionId')) initialFilters.transmissionId = parseInt(searchParams.get('transmissionId')!);
-    if (searchParams?.get('fuelTypeId')) initialFilters.fuelTypeId = parseInt(searchParams.get('fuelTypeId')!);
-    if (searchParams?.get('bodyStyleId')) initialFilters.bodyStyleId = parseInt(searchParams.get('bodyStyleId')!);
-    if (searchParams?.get('sellerTypeId')) initialFilters.sellerTypeId = parseInt(searchParams.get('sellerTypeId')!);
-    if (searchParams?.get('exteriorColor')) initialFilters.exteriorColor = searchParams.get('exteriorColor')!;
-    if (searchParams?.get('doors')) initialFilters.doors = parseInt(searchParams.get('doors')!);
-    if (searchParams?.get('cylinders')) initialFilters.cylinders = parseInt(searchParams.get('cylinders')!);
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Setting initial filters:', initialFilters);
-    }
     setFilters(initialFilters);
-  }, [searchParams]); // Remove carMakes and getDisplayName dependencies
+    setIsInitialized(true);
+  }, [searchParams, isInitialized]);
 
   // Set selected make when carMakes loads and we have a brand filter
   // useEffect(() => {
@@ -254,29 +327,27 @@ function AdvancedSearchPageContent() {
   //   }
   // }, [filters.brand, carMakes, getDisplayName]);
 
-  // Debug effect to monitor available models and selectedMake
-  useEffect(() => {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('State changed:', {
-        selectedMake,
-        modelsCount: availableModels?.length || 0,
-        isLoadingModels: _isLoadingModels,
-        models: availableModels?.map(m => ({ id: m.id, name: getDisplayName(m) }))
-      });
-    }
-  }, [availableModels, selectedMake, _isLoadingModels, getDisplayName]);
+  // Debug effect removed to prevent infinite re-renders
 
-  // Filter car makes based on search term
+  // Filter car makes based on search term with error handling
   const filteredCarMakes = useMemo(() => {
     if (!searchTerm.trim() || !carMakes) {
       return carMakes || [];
     }
     
-    return carMakes.filter(make => 
-      getDisplayName(make).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      make.displayNameEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      make.displayNameAr.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    try {
+      return carMakes.filter(make => {
+        const displayName = getDisplayName(make);
+        const searchTermLower = searchTerm.toLowerCase();
+        
+        return displayName.toLowerCase().includes(searchTermLower) ||
+               make.displayNameEn.toLowerCase().includes(searchTermLower) ||
+               make.displayNameAr.toLowerCase().includes(searchTermLower);
+      });
+    } catch (error) {
+      console.warn('Error filtering car makes:', error);
+      return carMakes || [];
+    }
   }, [carMakes, searchTerm, getDisplayName]);
 
   // Handle input changes with better state management
@@ -298,10 +369,17 @@ function AdvancedSearchPageContent() {
 
     // Update selected make when brand changes
     if (field === 'brand') {
-      const brand = carMakes?.find(make => 
-        getDisplayName(make).toLowerCase() === value?.toString().toLowerCase()
-      );
-      setSelectedMake(brand ? brand.id : null);
+      if (!value) {
+        // No brand selected, close any expanded make
+        setSelectedMake(null);
+      } else {
+        // Find the brand and set selected make
+        const brandName = Array.isArray(value) ? value[0] : value.toString();
+        const brand = carMakes?.find(make => 
+          getDisplayName(make).toLowerCase() === brandName.toLowerCase()
+        );
+        setSelectedMake(brand ? brand.id : null);
+      }
     }
   }, [carMakes, getDisplayName]);
 
@@ -322,13 +400,6 @@ function AdvancedSearchPageContent() {
       const newModels = [...selectedModels, modelName];
       const newModelValue = newModels.length === 1 ? newModels[0] : newModels;
       
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Adding model:', modelName);
-        console.log('Previous models:', selectedModels);
-        console.log('New models:', newModels);
-        console.log('New model value for filter:', newModelValue);
-      }
-      
       handleInputChange('model', newModelValue);
       
       // Auto-select the brand if not already selected
@@ -345,13 +416,6 @@ function AdvancedSearchPageContent() {
     const selectedModels = getSelectedModels();
     const newModels = selectedModels.filter(m => m !== modelName);
     const newModelValue = newModels.length === 0 ? undefined : (newModels.length === 1 ? newModels[0] : newModels);
-    
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Removing model:', modelName);
-      console.log('Previous models:', selectedModels);
-      console.log('New models:', newModels);
-      console.log('New model value for filter:', newModelValue);
-    }
     
     handleInputChange('model', newModelValue);
   }, [getSelectedModels, handleInputChange]);
@@ -371,11 +435,6 @@ function AdvancedSearchPageContent() {
     const selectedBrands = getSelectedBrands();
     let newBrands: string[];
     
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Toggle brand called:', brandName);
-      console.log('Current selected brands:', selectedBrands);
-    }
-    
     if (selectedBrands.includes(brandName)) {
       // Remove brand
       newBrands = selectedBrands.filter(b => b !== brandName);
@@ -387,15 +446,10 @@ function AdvancedSearchPageContent() {
     const newBrandValue = newBrands.length === 0 ? undefined : 
                          newBrands.length === 1 ? newBrands[0] : newBrands;
     
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('New brands array:', newBrands);
-      console.log('New brand value for filter:', newBrandValue);
-    }
-    
     handleInputChange('brand', newBrandValue);
     
-    // Clear models if no brands are selected
-    if (newBrands.length === 0) {
+    // Clear models if removing the only brand or if no brands are selected
+    if (newBrands.length === 0 || (selectedBrands.includes(brandName) && newBrands.length === 0)) {
       handleInputChange('model', undefined);
     }
   }, [getSelectedBrands, handleInputChange]);
@@ -489,7 +543,9 @@ function AdvancedSearchPageContent() {
 
     // Update current page URL instead of navigating away
     const newUrl = params.toString() ? `/search?${params.toString()}` : '/search';
-    router.replace(newUrl);
+    
+    // Use push instead of replace to avoid potential re-render issues
+    router.push(newUrl);
   }, [filters, router]);
 
   // Count active filters with memoization
@@ -518,40 +574,40 @@ function AdvancedSearchPageContent() {
             ? (filters.brand.length > 1 ? `${filters.brand.length} brands` : filters.brand[0])
             : filters.brand;
         }
-        return t('search.makeAndModel', 'Make and model');
+        return t('makeAndModel', 'Make and model', { ns: 'search' });
       case 'price':
         if (filters.minPrice && filters.maxPrice) return `£${filters.minPrice} - £${filters.maxPrice}`;
-        if (filters.minPrice) return `${t('search.from', 'From')} £${filters.minPrice}`;
-        if (filters.maxPrice) return `${t('search.upTo', 'Up to')} £${filters.maxPrice}`;
-        return t('search.price', 'Price');
+        if (filters.minPrice) return `${t('from', 'From', { ns: 'search' })} £${filters.minPrice}`;
+        if (filters.maxPrice) return `${t('upTo', 'Up to', { ns: 'search' })} £${filters.maxPrice}`;
+        return t('price', 'Price', { ns: 'search' });
       case 'year':
         if (filters.minYear && filters.maxYear) return `${filters.minYear} - ${filters.maxYear}`;
-        if (filters.minYear) return `${t('search.from', 'From')} ${filters.minYear}`;
-        if (filters.maxYear) return `${t('search.upTo', 'Up to')} ${filters.maxYear}`;
-        return t('search.year', 'Year');
+        if (filters.minYear) return `${t('from', 'From', { ns: 'search' })} ${filters.minYear}`;
+        if (filters.maxYear) return `${t('upTo', 'Up to', { ns: 'search' })} ${filters.maxYear}`;
+        return t('year', 'Year', { ns: 'search' });
       case 'mileage':
         if (filters.minMileage && filters.maxMileage) return `${filters.minMileage} - ${filters.maxMileage}`;
-        if (filters.minMileage) return `${t('search.from', 'From')} ${filters.minMileage}`;
-        if (filters.maxMileage) return `${t('search.upTo', 'Up to')} ${filters.maxMileage}`;
-        return t('search.mileage', 'Mileage');
+        if (filters.minMileage) return `${t('from', 'From', { ns: 'search' })} ${filters.minMileage}`;
+        if (filters.maxMileage) return `${t('upTo', 'Up to', { ns: 'search' })} ${filters.maxMileage}`;
+        return t('mileage', 'Mileage', { ns: 'search' });
       case 'transmission':
-        return filters.transmissionId ? getTransmissionDisplayName(filters.transmissionId) : t('search.gearbox', 'Gearbox');
+        return filters.transmissionId ? getTransmissionDisplayName(filters.transmissionId) : t('gearbox', 'Gearbox', { ns: 'search' });
       case 'condition':
-        return filters.conditionId ? getConditionDisplayName(filters.conditionId) : t('search.condition', 'Condition');
+        return filters.conditionId ? getConditionDisplayName(filters.conditionId) : t('condition', 'Condition', { ns: 'search' });
       case 'fuelType':
-        return filters.fuelTypeId ? getFuelTypeDisplayName(filters.fuelTypeId) : t('search.fuelType', 'Fuel type');
+        return filters.fuelTypeId ? getFuelTypeDisplayName(filters.fuelTypeId) : t('fuelType', 'Fuel type', { ns: 'search' });
       case 'bodyStyle':
-        return filters.bodyStyleId ? getBodyStyleDisplayName(filters.bodyStyleId) : t('search.bodyStyle', 'Body style');
+        return filters.bodyStyleId ? getBodyStyleDisplayName(filters.bodyStyleId) : t('bodyStyle', 'Body style', { ns: 'search' });
       case 'location':
-        return filters.locationId ? getLocationDisplayName(filters.locationId) : t('search.location', 'Location');
+        return filters.locationId ? getLocationDisplayName(filters.locationId) : t('location', 'Location', { ns: 'search' });
       case 'sellerType':
-        return filters.sellerTypeId ? getSellerTypeDisplayName(filters.sellerTypeId) : t('search.sellerType', 'Seller type');
+        return filters.sellerTypeId ? getSellerTypeDisplayName(filters.sellerTypeId) : t('sellerType', 'Seller type', { ns: 'search' });
       case 'exteriorColor':
-        return filters.exteriorColor || t('search.exteriorColor', 'Exterior color');
+        return filters.exteriorColor || t('exteriorColor', 'Exterior color', { ns: 'search' });
       case 'doors':
-        return filters.doors ? `${filters.doors} ${t('search.doors', 'doors')}` : t('search.doors', 'Doors');
+        return filters.doors ? `${filters.doors} ${t('doors', 'doors', { ns: 'search' })}` : t('doors', 'Doors', { ns: 'search' });
       case 'cylinders':
-        return filters.cylinders ? `${filters.cylinders} ${t('search.cylinders', 'cylinders')}` : t('search.cylinders', 'Cylinders');
+        return filters.cylinders ? `${filters.cylinders} ${t('cylinders', 'cylinders', { ns: 'search' })}` : t('cylinders', 'Cylinders', { ns: 'search' });
       default:
         return '';
     }
@@ -733,29 +789,29 @@ function AdvancedSearchPageContent() {
                   <>
                     <div className="w-12" aria-hidden="true"></div>
                     <h2 className="text-xl font-extrabold text-gray-900 text-center flex-1 select-none tracking-tight">
-                      {t('search.makeAndModel', 'الماركة والموديل')}
+                      {t('makeAndModel', 'الماركة والموديل', { ns: 'search' })}
                     </h2>
                     <button
                       onClick={handleClose}
                       className="text-gray-400 hover:text-blue-600 p-2 text-lg font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full transition"
                       tabIndex={0}
-                      aria-label={t('search.abort', 'إلغاء')}
+                      aria-label={t('abort', 'إلغاء', { ns: 'search' })}
                     >
-                      {t('search.abort', 'إلغاء')}
+                      {t('abort', 'إلغاء', { ns: 'search' })}
                     </button>
                   </>
                 ) : (
                   <>
                     <h2 className="text-xl font-extrabold text-gray-900 select-none tracking-tight">
-                      {t('search.makeAndModel', 'Make & Model')}
+                      {t('makeAndModel', 'Make & Model', { ns: 'search' })}
                     </h2>
                     <button
                       onClick={handleClose}
                       className="text-gray-400 hover:text-blue-600 p-2 text-lg font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full transition"
                       tabIndex={0}
-                      aria-label={t('search.abort', 'Cancel')}
+                      aria-label={t('abort', 'Cancel', { ns: 'search' })}
                     >
-                      {t('search.abort', 'Cancel')}
+                      {t('abort', 'Cancel', { ns: 'search' })}
                     </button>
                   </>
                 )}
@@ -769,7 +825,7 @@ function AdvancedSearchPageContent() {
                   </div>
                   <input
                     type="text"
-                    placeholder={t('search:searchFilterPlaceholder', 'Search for make or model')}
+                    placeholder={t('searchFilterPlaceholder', 'Search for make or model', { ns: 'search' })}
                     className={`w-full ${i18n.language === 'ar' ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4 text-left'} py-3 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder-gray-400 transition-shadow shadow focus:shadow-lg`}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -840,13 +896,13 @@ function AdvancedSearchPageContent() {
               <div className="px-4 pb-4 max-h-96 overflow-y-auto">
                 {filteredCarMakes.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    <p>{t('search.noSearchResults', 'No brands found')}</p>
+                    <p>{t('noSearchResults', 'No brands found', { ns: 'search' })}</p>
                     {searchTerm && (
                       <button
                         onClick={() => setSearchTerm('')}
                         className="mt-2 text-blue-600 hover:text-blue-700 text-sm"
                       >
-                        {t('search.clearSearch', 'Clear search')}
+                        {t('clearSearch', 'Clear search', { ns: 'search' })}
                       </button>
                     )}
                   </div>
@@ -858,8 +914,14 @@ function AdvancedSearchPageContent() {
                         <div 
                           className="flex items-center justify-between py-3 hover:bg-gray-50 rounded-md px-2 cursor-pointer"
                           onClick={(e) => {
+                            // Only toggle expansion if not clicking on checkbox or label
+                            const target = e.target as HTMLInputElement;
+                            if (target.type === 'checkbox' || target.tagName === 'LABEL') {
+                              return;
+                            }
+                            
                             e.stopPropagation();
-                            // Toggle expansion when clicking anywhere on the row
+                            // Toggle expansion when clicking anywhere on the row (except checkbox)
                             if (selectedMake === make.id) {
                               setSelectedMake(null);
                             } else {
@@ -867,7 +929,10 @@ function AdvancedSearchPageContent() {
                             }
                           }}
                         >
-                          <div className={`flex items-center flex-1 ${i18n.language === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+                          <div 
+                            className={`flex items-center flex-1 ${i18n.language === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <input
                               type="checkbox"
                               id={`make-${make.id}`}
@@ -876,23 +941,17 @@ function AdvancedSearchPageContent() {
                                 e.stopPropagation();
                                 const brandName = getDisplayName(make);
                                 toggleBrand(brandName);
-                                
-                                // If unchecking the currently expanded brand, close the expansion
-                                if (!e.target.checked && selectedMake === make.id) {
-                                  setSelectedMake(null);
-                                  // Also clear models when unchecking the brand
-                                  handleInputChange('model', undefined);
-                                } else if (e.target.checked) {
-                                  // Expand this brand when checking it
-                                  setSelectedMake(make.id);
-                                }
                               }}
                               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-5 w-5"
                             />
                             <label 
                               htmlFor={`make-${make.id}`}
                               className={`text-gray-900 cursor-pointer flex-1 font-medium ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const brandName = getDisplayName(make);
+                                toggleBrand(brandName);
+                              }}
                             >
                               {getDisplayName(make)}
                             </label>
@@ -924,7 +983,7 @@ function AdvancedSearchPageContent() {
                           >
                             {_isLoadingModels ? (
                               <div className={`text-sm text-gray-500 italic ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
-                                {t('search.loadingModels', 'Loading models...')}
+                                {t('loadingModels', 'Loading models...', { ns: 'search' })}
                               </div>
                             ) : availableModels && availableModels.length > 0 ? (
                               <>
@@ -965,7 +1024,7 @@ function AdvancedSearchPageContent() {
                               </>
                             ) : (
                               <div className={`text-sm text-gray-500 italic ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
-                                {t('search.noModels', 'No models available')}
+                                {t('noModels', 'No models available', { ns: 'search' })}
                               </div>
                             )}
                           </div>
@@ -991,8 +1050,12 @@ function AdvancedSearchPageContent() {
                 
                 <button
                   onClick={() => {
-                    handleSearch();
+                    // Close modal first, then perform search to avoid state conflicts
                     handleClose();
+                    // Use setTimeout to ensure modal is closed before URL update
+                    setTimeout(() => {
+                      handleSearch();
+                    }, 0);
                   }}
                   className="px-8 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 text-sm"
                 >
@@ -1009,25 +1072,25 @@ function AdvancedSearchPageContent() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.priceRange', 'Price range')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('priceRange', 'Price range', { ns: 'search' })}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('search.from', 'From')}</label>
+                    <label className="block text-sm text-gray-600 mb-2">{t('from', 'From', { ns: 'search' })}</label>
                     <input
                       type="number"
                       value={filters.minPrice || ''}
                       onChange={(e) => handleInputChange('minPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      placeholder={t('search.any', 'Any')}
+                      placeholder={t('any', 'Any', { ns: 'search' })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('search.to', 'To')}</label>
+                    <label className="block text-sm text-gray-600 mb-2">{t('to', 'To', { ns: 'search' })}</label>
                     <input
                       type="number"
                       value={filters.maxPrice || ''}
                       onChange={(e) => handleInputChange('maxPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      placeholder={t('search.any', 'Any')}
+                      placeholder={t('any', 'Any', { ns: 'search' })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -1040,7 +1103,7 @@ function AdvancedSearchPageContent() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.yearRange', 'Year range')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('yearRange', 'Year range', { ns: 'search' })}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-600 mb-2">From</label>
@@ -1049,20 +1112,20 @@ function AdvancedSearchPageContent() {
                       onChange={(e) => handleInputChange('minYear', e.target.value ? parseInt(e.target.value) : undefined)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">{t('search.any', 'Any')}</option>
+                      <option value="">{t('any', 'Any', { ns: 'search' })}</option>
                       {YEARS.map(year => (
                         <option key={year} value={year}>{year}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('search.to', 'To')}</label>
+                    <label className="block text-sm text-gray-600 mb-2">{t('to', 'To', { ns: 'search' })}</label>
                     <select
                       value={filters.maxYear || ''}
                       onChange={(e) => handleInputChange('maxYear', e.target.value ? parseInt(e.target.value) : undefined)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">{t('search.any', 'Any')}</option>
+                      <option value="">{t('any', 'Any', { ns: 'search' })}</option>
                       {YEARS.map(year => (
                         <option key={year} value={year}>{year}</option>
                       ))}
@@ -1077,7 +1140,7 @@ function AdvancedSearchPageContent() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.mileageRange', 'Mileage range')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('mileageRange', 'Mileage range', { ns: 'search' })}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-600 mb-2">From</label>
@@ -1085,17 +1148,17 @@ function AdvancedSearchPageContent() {
                       type="number"
                       value={filters.minMileage || ''}
                       onChange={(e) => handleInputChange('minMileage', e.target.value ? parseInt(e.target.value) : undefined)}
-                      placeholder={t('search.any', 'Any')}
+                      placeholder={t('any', 'Any', { ns: 'search' })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('search.to', 'To')}</label>
+                    <label className="block text-sm text-gray-600 mb-2">{t('to', 'To', { ns: 'search' })}</label>
                     <input
                       type="number"
                       value={filters.maxMileage || ''}
                       onChange={(e) => handleInputChange('maxMileage', e.target.value ? parseInt(e.target.value) : undefined)}
-                      placeholder={t('search.any', 'Any')}
+                      placeholder={t('any', 'Any', { ns: 'search' })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -1108,14 +1171,14 @@ function AdvancedSearchPageContent() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.gearbox', 'Gearbox')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('gearbox', 'Gearbox', { ns: 'search' })}</h3>
                 <select
                   value={filters.transmissionId || ''}
                   onChange={(e) => handleInputChange('transmissionId', e.target.value ? parseInt(e.target.value) : undefined)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={isLoadingReferenceData}
                 >
-                  <option value="">{t('search.any', 'Any')}</option>
+                  <option value="">{t('any', 'Any', { ns: 'search' })}</option>
                   {referenceData?.transmissions?.map(transmission => (
                     <option key={transmission.id} value={transmission.id}>
                       {getDisplayName(transmission)}
@@ -1130,14 +1193,14 @@ function AdvancedSearchPageContent() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.condition', 'Condition')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('condition', 'Condition', { ns: 'search' })}</h3>
                 <select
                   value={filters.conditionId || ''}
                   onChange={(e) => handleInputChange('conditionId', e.target.value ? parseInt(e.target.value) : undefined)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={isLoadingReferenceData}
                 >
-                  <option value="">{t('search.any', 'Any')}</option>
+                  <option value="">{t('any', 'Any', { ns: 'search' })}</option>
                   {referenceData?.carConditions?.map(condition => (
                     <option key={condition.id} value={condition.id}>
                       {getDisplayName(condition)}
@@ -1152,14 +1215,14 @@ function AdvancedSearchPageContent() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.fuelType', 'Fuel type')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('fuelType', 'Fuel type', { ns: 'search' })}</h3>
                 <select
                   value={filters.fuelTypeId || ''}
                   onChange={(e) => handleInputChange('fuelTypeId', e.target.value ? parseInt(e.target.value) : undefined)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={isLoadingReferenceData}
                 >
-                  <option value="">{t('search.any', 'Any')}</option>
+                  <option value="">{t('any', 'Any', { ns: 'search' })}</option>
                   {referenceData?.fuelTypes?.map(fuelType => (
                     <option key={fuelType.id} value={fuelType.id}>
                       {getDisplayName(fuelType)}
@@ -1174,14 +1237,14 @@ function AdvancedSearchPageContent() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.bodyStyle', 'Body style')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('bodyStyle', 'Body style', { ns: 'search' })}</h3>
                 <select
                   value={filters.bodyStyleId || ''}
                   onChange={(e) => handleInputChange('bodyStyleId', e.target.value ? parseInt(e.target.value) : undefined)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={isLoadingReferenceData}
                 >
-                  <option value="">{t('search.any', 'Any')}</option>
+                  <option value="">{t('any', 'Any', { ns: 'search' })}</option>
                   {referenceData?.bodyStyles?.map(bodyStyle => (
                     <option key={bodyStyle.id} value={bodyStyle.id}>
                       {getDisplayName(bodyStyle)}
@@ -1196,7 +1259,7 @@ function AdvancedSearchPageContent() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.location', 'Location')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('location', 'Location', { ns: 'search' })}</h3>
                 <select
                   value={filters.locationId || ''}
                   onChange={(e) => {
@@ -1209,7 +1272,7 @@ function AdvancedSearchPageContent() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={isLoadingGovernorates}
                 >
-                  <option value="">{t('search.any', 'Any')}</option>
+                  <option value="">{t('any', 'Any', { ns: 'search' })}</option>
                   {governorates?.map(governorate => (
                     <option key={governorate.id} value={governorate.id}>
                       {getDisplayName(governorate)}
@@ -1224,14 +1287,14 @@ function AdvancedSearchPageContent() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.sellerType', 'Seller type')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('sellerType', 'Seller type', { ns: 'search' })}</h3>
                 <select
                   value={filters.sellerTypeId || ''}
                   onChange={(e) => handleInputChange('sellerTypeId', e.target.value ? parseInt(e.target.value) : undefined)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={isLoadingReferenceData}
                 >
-                  <option value="">{t('search.any', 'Any')}</option>
+                  <option value="">{t('any', 'Any', { ns: 'search' })}</option>
                   {referenceData?.sellerTypes?.map(sellerType => {
                     const id = sellerType.id as number;
                     return (
@@ -1249,12 +1312,12 @@ function AdvancedSearchPageContent() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.exteriorColor', 'Exterior color')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('exteriorColor', 'Exterior color', { ns: 'search' })}</h3>
                 <input
                   type="text"
                   value={filters.exteriorColor || ''}
                   onChange={(e) => handleInputChange('exteriorColor', e.target.value)}
-                  placeholder={t('search.enterColor', 'Enter color')}
+                  placeholder={t('enterColor', 'Enter color', { ns: 'search' })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -1265,13 +1328,13 @@ function AdvancedSearchPageContent() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.doors', 'Number of doors')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('doors', 'Number of doors', { ns: 'search' })}</h3>
                 <select
                   value={filters.doors || ''}
                   onChange={(e) => handleInputChange('doors', e.target.value ? parseInt(e.target.value) : undefined)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 >
-                  <option value="">{t('search.any', 'Any')}</option>
+                  <option value="">{t('any', 'Any', { ns: 'search' })}</option>
                   <option value="2">2</option>
                   <option value="3">3</option>
                   <option value="4">4</option>
@@ -1286,13 +1349,13 @@ function AdvancedSearchPageContent() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.cylinders', 'Number of cylinders')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('cylinders', 'Number of cylinders', { ns: 'search' })}</h3>
                 <select
                   value={filters.cylinders || ''}
                   onChange={(e) => handleInputChange('cylinders', e.target.value ? parseInt(e.target.value) : undefined)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 >
-                  <option value="">{t('search.any', 'Any')}</option>
+                  <option value="">{t('any', 'Any', { ns: 'search' })}</option>
                   <option value="3">3</option>
                   <option value="4">4</option>
                   <option value="6">6</option>
@@ -1308,30 +1371,30 @@ function AdvancedSearchPageContent() {
           return (
             <div className="space-y-8 max-h-96 overflow-y-auto">
               <div className="text-center">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('search.allFilters', 'All filters')}</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('allFilters', 'All filters', { ns: 'search' })}</h2>
                 <button
                   onClick={onClose}
                   className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                 >
-                  {t('search.cancel', 'Cancel')}
+                  {t('cancel', 'Cancel', { ns: 'search' })}
                 </button>
               </div>
 
               {/* Exterior Color */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.exteriorColor', 'Exterior color')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('exteriorColor', 'Exterior color', { ns: 'search' })}</h3>
                 <input
                   type="text"
                   value={filters.exteriorColor || ''}
                   onChange={(e) => handleInputChange('exteriorColor', e.target.value)}
-                  placeholder={t('search.enterColor', 'Enter color')}
+                  placeholder={t('enterColor', 'Enter color', { ns: 'search' })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               {/* Number of Doors */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.doors', 'Number of doors')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('doors', 'Number of doors', { ns: 'search' })}</h3>
                 <div className="grid grid-cols-3 gap-3">
                   {[2, 3, 4, 5, 6].map(doorCount => (
                     <label key={doorCount} className="flex items-center space-x-2 cursor-pointer">
@@ -1349,7 +1412,7 @@ function AdvancedSearchPageContent() {
 
               {/* Number of Cylinders */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.cylinders', 'Number of cylinders')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('cylinders', 'Number of cylinders', { ns: 'search' })}</h3>
                 <div className="grid grid-cols-3 gap-3">
                   {[3, 4, 6, 8, 10, 12].map(cylinderCount => (
                     <label key={cylinderCount} className="flex items-center space-x-2 cursor-pointer">
@@ -1376,7 +1439,7 @@ function AdvancedSearchPageContent() {
                   }}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
                 >
-                  {t('search.reset', 'Reset')}
+                  {t('reset', 'Reset', { ns: 'search' })}
                 </button>
                 
                 <button
@@ -1443,10 +1506,42 @@ function AdvancedSearchPageContent() {
     setListingsError(null);
     
     try {
-      // Convert filters to backend format
+      // Helper function to convert internal filters to hierarchical brand syntax
+      const buildHierarchicalBrandFromFilters = (filters: AdvancedSearchFilters): string | undefined => {
+        const brands = Array.isArray(filters.brand) ? filters.brand : (filters.brand ? [filters.brand] : []);
+        const models = Array.isArray(filters.model) ? filters.model : (filters.model ? [filters.model] : []);
+        
+        if (brands.length === 0) {
+          return undefined;
+        }
+        
+        // If no models selected, just return brands
+        if (models.length === 0) {
+          return brands.join(',');
+        }
+        
+        // For now, combine first brand with all models (simplified approach)
+        // TODO: Implement more sophisticated brand-model mapping
+        if (brands.length > 0 && models.length > 0) {
+          const primaryBrand = brands[0];
+          const hierarchicalBrand = buildHierarchicalBrandFilter(primaryBrand, models.join(';'));
+          
+          // Add additional brands if any
+          const additionalBrands = brands.slice(1);
+          if (additionalBrands.length > 0) {
+            return [hierarchicalBrand, ...additionalBrands].join(',');
+          }
+          
+          return hierarchicalBrand;
+        }
+        
+        return brands.join(',');
+      };
+      
+      // Convert filters to backend format using hierarchical brand syntax
       const listingFilters: CarListingFilterParams = {
-        brand: Array.isArray(filters.brand) ? filters.brand.join(',') : filters.brand,
-        model: Array.isArray(filters.model) ? filters.model.join(',') : filters.model,
+        brand: buildHierarchicalBrandFromFilters(filters),
+        // Note: model parameter is no longer sent to API - it's included in hierarchical brand
         minYear: filters.minYear,
         maxYear: filters.maxYear,
         minPrice: filters.minPrice,
@@ -1468,18 +1563,13 @@ function AdvancedSearchPageContent() {
         sort: 'createdAt,desc' // Default sort
       };
 
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Sending API request with filters:', listingFilters);
-        console.log('Original filters.brand:', filters.brand);
-        console.log('Processed brand for API:', listingFilters.brand);
-      }
-
       const response = await fetchCarListings(listingFilters);
       setCarListings(response);
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching car listings:', error);
-      }
+      // Avoid excessive logging here
+      // if (process.env.NODE_ENV === 'development') {
+      //   console.error('Error fetching car listings:', error);
+      // }
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch car listings. Please try again.';
       setListingsError(errorMessage);
       // Set empty results on error to show proper no-results state
@@ -1534,7 +1624,7 @@ function AdvancedSearchPageContent() {
       <div className="container mx-auto px-4 py-6">
         {/* Page Title */}
         <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">{t('search.carsForSale', 'Cars for sale')}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('carsForSale', 'Cars for sale', { ns: 'search' })}</h1>
         </div>
 
         {/* Optimized Filter Pills Row - 90% Original Size */}
@@ -1547,13 +1637,13 @@ function AdvancedSearchPageContent() {
             >
               {i18n.language === 'ar' ? (
                 <>
-                  {t('search.allFilters', 'All filters')}
+                  {t('allFilters', 'All filters', { ns: 'search' })}
                   <MdTune className="ml-1.5 h-4 w-4" />
                 </>
               ) : (
                 <>
                   <MdTune className="mr-1.5 h-4 w-4" />
-                  {t('search.allFilters', 'All filters')}
+                  {t('allFilters', 'All filters', { ns: 'search' })}
                 </>
               )}
             </button>
@@ -1582,9 +1672,8 @@ function AdvancedSearchPageContent() {
 
         {/* Results Info */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <p className="text-lg font-medium text-gray-900 dark:text-white">
-              {carListings?.totalElements ? `${carListings.totalElements.toLocaleString()} ${t('search.results', 'results')}` : t('search.loading', 'Loading...')}
+          <div className="flex items-center space-x-4">              <p className="text-lg font-medium text-gray-900 dark:text-white">
+              {carListings?.totalElements ? `${carListings.totalElements.toLocaleString()} ${t('results', 'results', { ns: 'search' })}` : t('loading', 'Loading...', { ns: 'search' })}
             </p>
             {activeFiltersCount > 0 && (
               <button
@@ -1593,13 +1682,13 @@ function AdvancedSearchPageContent() {
               >
                 {i18n.language === 'ar' ? (
                   <>
-                    {t('search.clearAll', 'Clear all filters')}
+                    {t('clearAll', 'Clear all filters', { ns: 'search' })}
                     <MdClear className="ml-1 h-4 w-4" />
                   </>
                 ) : (
                   <>
                     <MdClear className="mr-1 h-4 w-4" />
-                    {t('search.clearAll', 'Clear all filters')}
+                    {t('clearAll', 'Clear all filters', { ns: 'search' })}
                   </>
                 )}
               </button>
@@ -1656,11 +1745,8 @@ function AdvancedSearchPageContent() {
                   <CarListingCard
                     key={`listing-${listing.id}`}
                     listing={cardData}
-                    onFavoriteToggle={(isFavorite) => {
+                    onFavoriteToggle={(_isFavorite) => {
                       // Handle favorite toggle if needed
-                      if (process.env.NODE_ENV !== 'production') {
-                        console.log(`Car ${listing.id} favorite toggled:`, isFavorite);
-                      }
                     }}
                     initialFavorite={false}
                   />
@@ -1670,15 +1756,15 @@ function AdvancedSearchPageContent() {
               // No results state with better messaging
               <div className="col-span-full text-center py-12">
                 <MdDirectionsCar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('search.noCarsFound', 'No cars found')}</h3>
-                <p className="text-gray-600 mb-4">{t('search.adjustFilters', 'Try adjusting your search filters to see more results.')}</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noCarsFound', 'No cars found', { ns: 'search' })}</h3>
+                <p className="text-gray-600 mb-4">{t('adjustFilters', 'Try adjusting your search filters to see more results.', { ns: 'search' })}</p>
                 {activeFiltersCount > 0 && (
                   <button
                     onClick={clearAllFilters}
                     className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     <MdClear className="mr-2 h-4 w-4" />
-                    {t('search.clearAllFilters', 'Clear all filters')}
+                    {t('clearAllFilters', 'Clear all filters', { ns: 'search' })}
                   </button>
                 )}
               </div>
@@ -1695,7 +1781,7 @@ function AdvancedSearchPageContent() {
                 onClick={() => handlePageChange(carListings.page - 1)}
                 className="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {t('search.previous', 'Previous')}
+                {t('previous', 'Previous', { ns: 'search' })}
               </button>
               
               {/* Page numbers */}
@@ -1728,7 +1814,7 @@ function AdvancedSearchPageContent() {
                 onClick={() => handlePageChange(carListings.page + 1)}
                 className="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {t('search.next', 'Next')}
+                {t('next', 'Next', { ns: 'search' })}
               </button>
             </div>
           </div>
@@ -1737,9 +1823,10 @@ function AdvancedSearchPageContent() {
         {/* Results summary */}
         {carListings && (
           <div className="mt-4 text-center text-sm text-gray-600">
-            {t('search.showingResults', 'Showing {{count}} of {{total}} cars', { 
+            {t('showingResults', 'Showing {{count}} of {{total}} cars', { 
               count: carListings.content.length, 
-              total: carListings.totalElements 
+              total: carListings.totalElements,
+              ns: 'search'
             })}
           </div>
         )}
@@ -1763,10 +1850,10 @@ function AdvancedSearchPageContent() {
               </div>
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800 dark:text-red-400">
-                  {t('search.errorTitle', 'Something went wrong')}
+                  {t('errorTitle', 'Something went wrong', { ns: 'search' })}
                 </h3>
                 <p className="mt-1 text-sm text-red-700 dark:text-red-300">
-                  {listingsError || t('search.loadingError', 'Error loading filter options. Please refresh the page.')}
+                  {listingsError || t('loadingError', 'Error loading filter options. Please refresh the page.', { ns: 'search' })}
                 </p>
               </div>
             </div>

@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { Listing } from '@/types/listings';
+import { buildHierarchicalBrandFilter } from '@/utils/brandFilters';
 
 interface BreadcrumbNavigationProps {
   listing: Listing & {
@@ -38,9 +39,11 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({ listing }) 
   }
 
   if (modelName) {
+    // Use hierarchical brand filtering syntax
+    const hierarchicalBrand = buildHierarchicalBrandFilter(brandName || '', modelName);
     breadcrumbs.push({
       label: modelName,
-      href: `/listings?brand=${encodeURIComponent(brandName || '')}&model=${encodeURIComponent(modelName)}`
+      href: `/listings?brand=${encodeURIComponent(hierarchicalBrand)}`
     });
   }
 

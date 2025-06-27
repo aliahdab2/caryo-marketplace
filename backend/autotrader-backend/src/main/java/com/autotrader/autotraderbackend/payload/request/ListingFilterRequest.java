@@ -29,14 +29,14 @@ public class ListingFilterRequest {
     /**
      * Filter by car brand (manufacturer). Optional.
      * Supports multiple brands as comma-separated values (e.g., "Toyota,Honda").
+     * Also supports hierarchical syntax for filtering by specific models within brands.
+     * Examples:
+     * - "Toyota" - All Toyota vehicles
+     * - "Toyota:Camry" - Only Toyota Camry models
+     * - "Toyota:Camry;Corolla" - Toyota Camry and Corolla models
+     * - "Toyota:Camry;Corolla,Honda" - Toyota Camry/Corolla and all Honda models
      */
     private String brand;
-
-    /**
-     * Filter by car model. Optional.
-     * Supports multiple models as comma-separated values (e.g., "Camry,Corolla").
-     */
-    private String model;
 
     /**
      * Minimum model year for filtering. Optional. Must be a 4-digit integer and not earlier than 1920.

@@ -21,8 +21,11 @@ interface Filters {
   minYear?: number;
   maxYear?: number;
   location?: string;
+  /**
+   * Brand filter with hierarchical syntax support.
+   * Examples: "Toyota", "Toyota:Camry", "Toyota:Camry;Corolla", "Toyota:Camry,Honda"
+   */
   brand?: string;
-  model?: string;
 }
 
 const ListingsPage = () => {
@@ -42,8 +45,7 @@ const ListingsPage = () => {
     minYear: searchParams?.get('minYear') ? parseInt(searchParams?.get('minYear') || '', 10) : undefined,
     maxYear: searchParams?.get('maxYear') ? parseInt(searchParams?.get('maxYear') || '', 10) : undefined,
     location: searchParams?.get('location') || undefined,
-    brand: searchParams?.get('brand') || undefined, // Directly include brand
-    model: searchParams?.get('model') || undefined, // Directly include model
+    brand: searchParams?.get('brand') || undefined, // Hierarchical brand syntax
   };
 
   const [listings, setListings] = useState<Listing[]>([]);
@@ -72,7 +74,6 @@ const ListingsPage = () => {
       maxYear: searchParams?.get('maxYear') ? parseInt(searchParams?.get('maxYear') || '', 10) : undefined,
       location: searchParams?.get('location') || undefined,
       brand: searchParams?.get('brand') || undefined,
-      model: searchParams?.get('model') || undefined,
     };
     
     setFilters(updatedFilters);
@@ -104,8 +105,7 @@ const ListingsPage = () => {
       minYear: filters.minYear?.toString(),
       maxYear: filters.maxYear?.toString(),
       location: filters.location,
-      brand: filters.brand, // Ensure brand is passed to the API
-      model: filters.model  // Ensure model is passed to the API
+      brand: filters.brand // Use hierarchical brand syntax
     };
 
     getListings(apiFilters)
@@ -158,7 +158,6 @@ const ListingsPage = () => {
     if (filters.maxYear) queryParams.set('maxYear', String(filters.maxYear));
     if (filters.location) queryParams.set('location', filters.location);
     if (filters.brand) queryParams.set('brand', filters.brand);
-    if (filters.model) queryParams.set('model', filters.model);
 
     const newUrl = `/listings?${queryParams.toString()}`;
     
@@ -275,9 +274,8 @@ const ListingsPage = () => {
             <CarListingCard
               key={listing.id}
               listing={cardData}
-              onFavoriteToggle={(isFavorite) => {
+              onFavoriteToggle={(_isFavorite) => {
                 // Handle favorite toggle if needed
-                console.log(`Car ${listing.id} favorite toggled:`, isFavorite);
               }}
               initialFavorite={false}
             />

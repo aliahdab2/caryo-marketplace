@@ -31,6 +31,58 @@ curl -X POST http://localhost:8080/api/auth/signin \
 # 4. Use the token to access protected endpoints
 curl -X GET http://localhost:8080/api/listings/my-listings \
   -H "Authorization: Bearer $TOKEN"
+
+# 5. Test the new filtering API (no authentication required)
+# Simple brand filter
+curl -X GET "http://localhost:8080/api/listings/filter?brand=Toyota"
+
+# Advanced hierarchical filtering
+curl -X POST http://localhost:8080/api/listings/filter \
+  -H "Content-Type: application/json" \
+  -d '{"brand":"Toyota:Camry;Corolla,Honda","minYear":2020,"maxYear":2024}'
+```
+
+### Testing the New Filtering API
+
+The filtering API supports powerful search capabilities without requiring authentication:
+
+```bash
+# Find all Toyota cars
+curl -X GET "http://localhost:8080/api/listings/filter?brand=Toyota"
+
+# Find specific models from Toyota (Camry and Corolla only)
+curl -X GET "http://localhost:8080/api/listings/filter?brand=Toyota:Camry;Corolla"
+
+# Find Toyota Camry and all Honda cars
+curl -X GET "http://localhost:8080/api/listings/filter?brand=Toyota:Camry,Honda"
+
+# Complex filtering with multiple criteria
+curl -X POST http://localhost:8080/api/listings/filter \
+  -H "Content-Type: application/json" \
+  -d '{
+    "brand": "Toyota:Camry;Corolla,Honda:Civic,BMW",
+    "minYear": 2018,
+    "maxYear": 2024,
+    "minPrice": 15000,
+    "maxPrice": 50000,
+    "maxMileage": 80000
+  }'
+
+# Search with pagination
+curl -X GET "http://localhost:8080/api/listings/filter?brand=Mercedes-Benz&page=0&size=5&sort=price,asc"
+```
+
+### Interactive API Documentation
+
+Once the application is running, you can access the interactive Swagger UI documentation at:
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **OpenAPI JSON**: http://localhost:8080/v3/api-docs
+
+The Swagger UI provides:
+- Complete API documentation with request/response examples
+- Interactive testing interface for all endpoints
+- Real-time schema validation
+- Built-in authentication testing for protected endpoints
 ```
 
 ### Running API Tests
@@ -54,7 +106,7 @@ The HTML report will be available at `results/html-report.html`.
 The automated API tests cover:
 - **Authentication**: User registration, login, and JWT token validation
 - **Reference Data**: Governorates, car brands, models, and other lookup data
-- **Car Listings**: CRUD operations and filtering (coming soon)
+- **Car Listings**: CRUD operations and advanced hierarchical filtering
 - **Error Handling**: Invalid requests, authentication failures, and data validation
 
 All tests include proper authentication and validate both success and error scenarios.
@@ -236,6 +288,197 @@ Authorization: Bearer <your_jwt_token>
     }
   ]
   ```
+
+#### Filter Car Listings
+
+The filtering API supports powerful hierarchical brand/model filtering that allows for complex search queries. You can use either POST (with request body) or GET (with query parameters) methods.
+
+##### POST Method - Filter with Request Body
+
+- **Endpoint**: `POST /api/listings/filter`
+- **Access**: Public
+- **Description**: Returns a paginated list of car listings matching the provided filter criteria. By default, only approved, unsold, and non-archived listings are returned.
+- **Authentication**: Not required
+- **Request Body**:
+  ```json
+  {
+    "brand": "Toyota:Camry;Corolla,Honda:Civic,BMW",
+    "minYear": 2018,
+    "maxYear": 2024,
+    "minPrice": 15000,
+    "maxPrice": 50000,
+    "minMileage": 0,
+    "maxMileage": 80000,
+    "location": "new-york-ny",
+    "locationId": 1,
+    "isSold": false,
+    "isArchived": false,
+    "sellerTypeId": 1
+  }
+  ```
+
+**Advanced Brand/Model Filtering Syntax:**
+
+The `brand` parameter supports hierarchical filtering with the following syntax:
+- **Single brand**: `"Toyota"` → All Toyota cars
+- **Brand with specific model**: `"Toyota:Camry"` → Only Toyota Camry cars
+- **Brand with multiple models**: `"Toyota:Camry;Corolla"` → Toyota Camry and Corolla cars
+- **Multiple brands with models**: `"Toyota:Camry;Corolla,Honda:Civic"` → Toyota Camry/Corolla AND Honda Civic cars
+- **Mixed brand filtering**: `"Toyota:Camry,Honda"` → Toyota Camry cars AND all Honda cars
+- **Complex example**: `"Toyota:Camry;Corolla,Honda:Civic,BMW"` → Toyota Camry/Corolla AND Honda Civic AND all BMW cars
+
+**Important Requirements:**
+- **Brand context is mandatory**: When filtering by models, you must always provide the parent brand
+- **No model-only filtering**: Sending only the `model` parameter without `brand` will be ignored
+- **Frontend responsibility**: The frontend must construct the brand:model syntax properly
+
+**Special Characters in Model Names:**
+- Model names containing colons are supported: `"Toyota:Prius:Hybrid"` (brand="Toyota", model="Prius:Hybrid")
+- Brands with hyphens: `"Mercedes-Benz:C-Class"`
+
+**Bilingual Support:**
+- All brand and model searches work in both English and Arabic
+- Search is case-insensitive and supports partial matching
+
+- **Response (200 OK)**:
+  ```json
+  {
+    "content": [
+      {
+        "id": 1,
+        "title": "2019 Toyota Camry",
+        "brandNameEn": "Toyota",
+        "brandNameAr": "تويوتا",
+        "modelNameEn": "Camry",
+        "modelNameAr": "كامري",
+        "modelYear": 2019,
+        "price": 18500,
+        "mileage": 35000,
+        "location": "New York, NY",
+        "description": "Excellent condition, one owner, no accidents",
+        "approved": true,
+        "sold": false,
+        "archived": false,
+        "createdAt": "2025-04-30T10:15:30Z",
+        "media": [
+          {
+            "id": 1,
+            "fileName": "camry_front.jpg",
+            "fileUrl": "https://example.com/images/camry_front.jpg",
+            "mediaType": "IMAGE",
+            "isPrimary": true
+          }
+        ]
+      }
+    ],
+    "pageable": {
+      "sort": {
+        "sorted": true,
+        "unsorted": false
+      },
+      "pageNumber": 0,
+      "pageSize": 10
+    },
+    "totalElements": 1,
+    "totalPages": 1,
+    "last": true,
+    "numberOfElements": 1,
+    "first": true
+  }
+  ```
+
+##### GET Method - Filter with Query Parameters
+
+- **Endpoint**: `GET /api/listings/filter`
+- **Access**: Public
+- **Description**: Returns a paginated list of car listings matching the provided filter criteria as query parameters
+- **Authentication**: Not required
+- **Query Parameters**:
+  - `brand` (string): Brand filter using hierarchical syntax (same as POST method)
+  - `model` (string): **DEPRECATED** - Model filter (ignored if provided without brand context)
+  - `minYear` (integer): Minimum model year (1920+)
+  - `maxYear` (integer): Maximum model year (current year or earlier)
+  - `minPrice` (decimal): Minimum price
+  - `maxPrice` (decimal): Maximum price
+  - `minMileage` (integer): Minimum mileage
+  - `maxMileage` (integer): Maximum mileage
+  - `location` (string): Location slug
+  - `locationId` (long): Location ID
+  - `isSold` (boolean): Filter by sold status
+  - `isArchived` (boolean): Filter by archived status
+  - `sellerTypeId` (long): Filter by seller type ID
+  - `page` (integer): Page number (0-based, default: 0)
+  - `size` (integer): Page size (default: 10)
+  - `sort` (string): Sort criteria (default: createdAt,desc)
+
+**Important Note**: The `model` parameter is deprecated and will be ignored. You must use the hierarchical `brand` syntax to filter by models (e.g., `brand=Toyota:Camry` instead of `brand=Toyota&model=Camry`).
+
+**Example Requests:**
+
+```bash
+# Simple brand filter
+GET /api/listings/filter?brand=Toyota
+
+# Hierarchical filtering
+GET /api/listings/filter?brand=Toyota:Camry;Corolla,Honda&minYear=2020&maxYear=2024
+
+# Price range with location
+GET /api/listings/filter?minPrice=15000&maxPrice=50000&location=new-york-ny
+
+# Complex filtering with pagination
+GET /api/listings/filter?brand=Mercedes-Benz:C-Class,BMW:X5&minYear=2019&page=0&size=20&sort=price,asc
+```
+
+- **Response**: Same structure as POST method
+
+**Filter Examples by Use Case:**
+
+1. **Find all Toyota cars**: `brand=Toyota`
+2. **Find Toyota Camry and Corolla only**: `brand=Toyota:Camry;Corolla`
+3. **Find Toyota Camry and all Honda cars**: `brand=Toyota:Camry,Honda`
+4. **Find luxury cars**: `brand=BMW,Mercedes-Benz,Audi&minPrice=30000`
+5. **Find affordable sedans**: `brand=Toyota:Camry;Corolla,Honda:Civic;Accord&maxPrice=25000`
+6. **Find recent cars in specific location**: `minYear=2020&location=new-york-ny`
+
+## Frontend Migration Guide
+
+### Old Approach (Deprecated)
+```javascript
+// ❌ This will no longer work - model parameter is ignored
+const filters = {
+  brand: "Toyota",
+  model: "Camry"
+};
+```
+
+### New Approach (Required)
+```javascript
+// ✅ Use hierarchical brand syntax
+const filters = {
+  brand: "Toyota:Camry"  // brand:model format
+};
+
+// ✅ Multiple models from same brand
+const filters = {
+  brand: "Toyota:Camry;Corolla"  // brand:model1;model2 format
+};
+
+// ✅ Multiple brands with specific models
+const filters = {
+  brand: "Toyota:Camry,Honda:Civic"  // brand1:model1,brand2:model2 format
+};
+
+// ✅ Mix of specific models and all models from a brand
+const filters = {
+  brand: "Toyota:Camry,Honda"  // Toyota Camry only + all Honda cars
+};
+```
+
+### Frontend Implementation Requirements
+1. **Always provide brand context** when filtering by models
+2. **Build the hierarchical syntax** on the frontend before sending to API
+3. **Remove any usage** of the separate `model` parameter
+4. **Update filter UI** to construct proper brand:model combinations
 
 #### Favorites
 

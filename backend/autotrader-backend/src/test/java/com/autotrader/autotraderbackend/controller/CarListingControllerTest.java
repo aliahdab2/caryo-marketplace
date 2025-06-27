@@ -302,7 +302,6 @@ public class CarListingControllerTest {
             IllegalArgumentException.class,
             () -> carListingController.getFilteredListingsByParams(
                 null, // brand
-                null, // model
                 null, // minYear
                 null, // maxYear
                 null, // location

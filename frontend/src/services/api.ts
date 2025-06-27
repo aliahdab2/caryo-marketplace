@@ -6,18 +6,39 @@
  * @param modelIds Array of model IDs
  * @returns Array of { modelId, listingCount }
  */
+// Circuit breaker for model-counts endpoint
+let modelCountsEndpointFailed = false;
+let lastFailureTime = 0;
+const CIRCUIT_BREAKER_TIMEOUT = 60000; // 1 minute timeout before trying again
+
 export async function fetchModelCountsBatch(brandId: number, modelIds: number[]): Promise<{ modelId: number; listingCount: number }[]> {
+  // Check if circuit breaker is active
+  const now = Date.now();
+  if (modelCountsEndpointFailed && (now - lastFailureTime < CIRCUIT_BREAKER_TIMEOUT)) {
+    // Circuit is open, immediately reject
+    throw new Error('Batch model count endpoint temporarily disabled due to previous failures');
+  }
+  
   // Backend endpoint should accept POST /api/listings/model-counts
   // and return [{ modelId, listingCount }]
   try {
-    return await api.post<{ modelId: number; listingCount: number }[]>(
+    const result = await api.post<{ modelId: number; listingCount: number }[]>(
       '/api/listings/model-counts',
       { brandId, modelIds }
     );
+    
+    // Reset circuit breaker on success
+    modelCountsEndpointFailed = false;
+    return result;
+    
   } catch (error) {
+    // Update circuit breaker state
+    modelCountsEndpointFailed = true;
+    lastFailureTime = Date.now();
+    
     // If the batch endpoint is not implemented, throw a specific error
     // so the caller can fall back to individual requests
-    if (error instanceof ApiError && (error.status === 404 || error.status === 401)) {
+    if (error instanceof ApiError && (error.status === 404 || error.status === 401 || error.status === 500)) {
       throw new Error('Batch model count endpoint not available');
     }
     throw error;
@@ -162,8 +183,11 @@ export interface PageResponse<T> {
 }
 
 export interface CarListingFilterParams {
+  /**
+   * Brand filter with hierarchical syntax support.
+   * Examples: "Toyota", "Toyota:Camry", "Toyota:Camry;Corolla", "Toyota:Camry,Honda"
+   */
   brand?: string;
-  model?: string;
   minYear?: number;
   maxYear?: number;
   location?: string;
@@ -458,7 +482,7 @@ export async function fetchCarModelsWithCounts(brandId: number): Promise<CarMode
 
 /**
  * Fetches car models with real listing counts by calling the listings API
- * Uses parallel requests with fallback to realistic static data
+ * Uses batch endpoint with fallback to simpler model approach
  */
 export async function fetchCarModelsWithRealCounts(brandId: number): Promise<CarModel[]> {
   try {
@@ -477,53 +501,14 @@ export async function fetchCarModelsWithRealCounts(brandId: number): Promise<Car
       })).filter(m => (m.listingCount || 0) > 0);
     } catch (batchErr) {
       if (process.env.NODE_ENV !== 'production') {
-        console.warn('Batch model count endpoint failed or not implemented, falling back to N+1:', batchErr);
+        console.warn('Batch model count endpoint failed, returning models without count filtering:', batchErr);
       }
-      // Fallback to old N+1 logic
-      // ...existing code for N+1 fallback...
-      const brands = await fetchCarBrands();
-      const brand = brands.find(b => b.id === brandId);
-      if (!brand) return models;
-      const modelsToCheck = models.slice(0, 15);
-      const remainingModels = models.slice(15);
-      const modelsWithCounts = await Promise.allSettled(
-        modelsToCheck.map(async (model) => {
-          try {
-            const listingsResponse = await fetchCarListings({ 
-              brand: brand.displayNameEn,
-              model: model.displayNameEn,
-              size: 1,
-              page: 0
-            });
-            return {
-              ...model,
-              listingCount: listingsResponse.totalElements
-            };
-          } catch (_error) {
-            return {
-              ...model,
-              listingCount: Math.floor(Math.random() * 80) + 5
-            };
-          }
-        })
-      );
-      const processedModels = modelsWithCounts.map((result, index) => {
-        if (result.status === 'fulfilled') {
-          return result.value;
-        } else {
-          const model = modelsToCheck[index];
-          return {
-            ...model,
-            listingCount: Math.floor(Math.random() * 40) + 3
-          };
-        }
-      });
-      const remainingModelsWithCounts = remainingModels.map(model => ({
+      // When batch API fails, just return models without count filtering
+      // This prevents the UI from breaking or making too many API calls
+      return models.map(model => ({
         ...model,
-        listingCount: Math.floor(Math.random() * 20) + 1
+        listingCount: 0 // Default to 0 counts
       }));
-      const allModels = [...processedModels, ...remainingModelsWithCounts];
-      return allModels.filter(model => (model.listingCount || 0) > 0);
     }
   } catch (error) {
     if (process.env.NODE_ENV !== 'production') {
@@ -600,7 +585,6 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
   if (filters) {
     // Add each filter parameter if it exists
     if (filters.brand) queryParams.append('brand', filters.brand);
-    if (filters.model) queryParams.append('model', filters.model);
     if (filters.minYear) queryParams.append('minYear', filters.minYear.toString());
     if (filters.maxYear) queryParams.append('maxYear', filters.maxYear.toString());
     if (filters.location) queryParams.append('location', filters.location);

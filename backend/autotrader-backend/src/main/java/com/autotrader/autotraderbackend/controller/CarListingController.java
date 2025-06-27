@@ -290,8 +290,7 @@ public class CarListingController {
         }
     )
     public ResponseEntity<PageResponse<CarListingResponse>> getFilteredListingsByParams(
-            @Parameter(description = "Brand filter") @RequestParam(required = false) String brand,
-            @Parameter(description = "Model filter") @RequestParam(required = false) String model,
+            @Parameter(description = "Brand filter - supports hierarchical syntax (e.g., 'Toyota:Camry;Corolla' or 'Toyota,Honda')") @RequestParam(required = false) String brand,
             @Parameter(description = "Minimum year") @RequestParam(required = false) Integer minYear,
             @Parameter(description = "Maximum year") @RequestParam(required = false) Integer maxYear,
             @Parameter(description = "Location (slug or name)") @RequestParam(required = false) String location,
@@ -307,7 +306,6 @@ public class CarListingController {
         log.debug("Received GET request to filter listings. Pageable: {}", pageable);
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         filterRequest.setBrand(brand);
-        filterRequest.setModel(model);
         filterRequest.setMinYear(minYear);
         filterRequest.setMaxYear(maxYear);
         filterRequest.setLocation(location);

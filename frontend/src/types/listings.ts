@@ -9,8 +9,15 @@ export interface ListingFilters {
   minYear?: string;
   maxYear?: string;
   location?: string;
+  /**
+   * Brand filter with hierarchical syntax support.
+   * Examples:
+   * - "Toyota" - All Toyota cars
+   * - "Toyota:Camry" - Only Toyota Camry models
+   * - "Toyota:Camry;Corolla" - Toyota Camry and Corolla models
+   * - "Toyota:Camry,Honda" - Toyota Camry and all Honda cars
+   */
   brand?: string;
-  model?: string;
   searchTerm?: string;
   page?: number;
   limit?: number;

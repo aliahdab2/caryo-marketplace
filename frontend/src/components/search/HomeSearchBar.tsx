@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import debounce from 'lodash/debounce';
 
 import { CarMake, CarModel } from '@/types/car';
+import { buildHierarchicalBrandFilter } from '@/utils/brandFilters';
 import { 
   fetchCarBrands, 
   fetchCarModels, 
@@ -175,26 +176,32 @@ const HomeSearchBar: React.FC = () => {
     
     const params = new URLSearchParams();
     
-    // Build brand parameters
+    // Build hierarchical brand filter
+    let brandName = '';
+    let modelName = '';
+    
     if (selectedMake !== null) {
       const selectedBrand = carMakes?.find(make => make.id === selectedMake);
       if (selectedBrand) {
-        // Use display name for filtering and human-readable URLs
-        params.append('brand', getDisplayName(selectedBrand));
+        brandName = getDisplayName(selectedBrand);
         // Add slug for SEO
         params.append('brandSlug', selectedBrand.slug);
       }
     }
     
-    // Build model parameters
     if (selectedModel !== null) {
       const selectedCarModel = availableModels?.find(model => model.id === selectedModel);
       if (selectedCarModel) {
-        // Use display name for filtering and human-readable URLs
-        params.append('model', getDisplayName(selectedCarModel));
+        modelName = getDisplayName(selectedCarModel);
         // Add slug for SEO
         params.append('modelSlug', selectedCarModel.slug);
       }
+    }
+    
+    // Use hierarchical brand filtering syntax
+    if (brandName) {
+      const hierarchicalBrand = buildHierarchicalBrandFilter(brandName, modelName || undefined);
+      params.append('brand', hierarchicalBrand);
     }
     
     // Build location parameters
