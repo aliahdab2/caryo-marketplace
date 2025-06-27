@@ -9,14 +9,24 @@
 export async function fetchModelCountsBatch(brandId: number, modelIds: number[]): Promise<{ modelId: number; listingCount: number }[]> {
   // Backend endpoint should accept POST /api/listings/model-counts
   // and return [{ modelId, listingCount }]
-  return api.post<{ modelId: number; listingCount: number }[]>(
-    '/api/listings/model-counts',
-    { brandId, modelIds }
-  );
+  try {
+    return await api.post<{ modelId: number; listingCount: number }[]>(
+      '/api/listings/model-counts',
+      { brandId, modelIds }
+    );
+  } catch (error) {
+    // If the batch endpoint is not implemented, throw a specific error
+    // so the caller can fall back to individual requests
+    if (error instanceof ApiError && (error.status === 404 || error.status === 401)) {
+      throw new Error('Batch model count endpoint not available');
+    }
+    throw error;
+  }
 }
 
 import { CarMake, CarModel, CarTrim } from '@/types/car';
 import { ApiError } from '@/utils/apiErrorHandler';
+import { getAuthHeaders } from '@/utils/auth';
 
 // Reference data interfaces to match backend
 export interface CarCondition {
@@ -204,13 +214,50 @@ async function apiRequest<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
   
+  // Prepare base headers
+  let headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    ...customHeaders,
+  };
+
+  // Add authentication headers if this is a protected endpoint
+  // Most endpoints except basic reference data require authentication
+  const publicEndpoints = [
+    '/api/reference-data/brands',
+    '/api/reference-data/governorates',
+    '/api/car-conditions',
+    '/api/transmissions',
+    '/api/fuel-types',
+    '/api/body-styles',
+    '/api/drive-types',
+    '/api/reference-data'
+  ];
+  
+  const isPublicEndpoint = publicEndpoints.some(publicPath => endpoint.startsWith(publicPath));
+  
+  if (!isPublicEndpoint) {
+    try {
+      // Skip authentication in development for now to avoid blocking prompts
+      if (process.env.NODE_ENV === 'development') {
+        // Try to get existing token without prompting
+        const existingToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+        if (existingToken) {
+          headers = { ...headers, 'Authorization': `Bearer ${existingToken}` };
+        }
+      } else {
+        const authHeaders = await getAuthHeaders();
+        headers = { ...headers, ...authHeaders };
+      }
+    } catch (_authError) {
+      // If authentication fails, let the request proceed without auth headers
+      // The backend will return 401 and the error will be handled appropriately
+    }
+  }
+  
   const options: RequestOptions = {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      ...customHeaders,
-    },
+    headers,
     mode: 'cors',
     credentials: 'include',
     timeout
@@ -257,8 +304,7 @@ async function apiRequest<T>(
         // If it's an object but not with a 'message' field, stringify it.
         try {
           detailedErrorMessage = JSON.stringify(responseData);
-        } catch (stringifyError) { // Changed variable name to avoid conflict and indicate usage
-          console.warn('Failed to stringify error object:', stringifyError);
+        } catch (_stringifyError) { // Changed variable name to avoid conflict and indicate usage
           detailedErrorMessage = 'Non-JSON error object received.';
         }
       } else if (responseData && typeof responseData === 'object' && Object.keys(responseData).length === 0 && response.statusText) {
@@ -273,8 +319,6 @@ async function apiRequest<T>(
 
     return responseData as T;
   } catch (error) {
-    console.error('Request failed:', error);
-    
     // Handle timeout/abort errors explicitly
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new ApiError('Request timed out', 0);
@@ -350,7 +394,9 @@ export async function fetchCarBrandsWithRealCounts(): Promise<CarMake[]> {
             listingCount: listingsResponse.totalElements
           };
         } catch (error) {
-          console.warn(`Failed to get count for brand ${brand.displayNameEn}:`, error);
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn(`Failed to get count for brand ${brand.displayNameEn}:`, error);
+          }
           // Fallback to realistic static data based on popular brands
           const popularBrands = ['Toyota', 'Honda', 'BMW', 'Mercedes-Benz', 'Audi', 'Volkswagen', 'Ford', 'Nissan', 'Hyundai', 'Kia'];
           const isPopular = popularBrands.some(popular => 
@@ -388,7 +434,9 @@ export async function fetchCarBrandsWithRealCounts(): Promise<CarMake[]> {
     const allBrands = [...processedBrands, ...remainingBrandsWithCounts];
     return allBrands.filter(brand => (brand.listingCount || 0) > 0);
   } catch (error) {
-    console.error('Failed to fetch brands with real counts:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Failed to fetch brands with real counts:', error);
+    }
     // Fallback to regular brands fetch
     return fetchCarBrands();
   }
@@ -428,7 +476,9 @@ export async function fetchCarModelsWithRealCounts(brandId: number): Promise<Car
         listingCount: countMap.get(model.id) ?? 0
       })).filter(m => (m.listingCount || 0) > 0);
     } catch (batchErr) {
-      console.warn('Batch model count endpoint failed or not implemented, falling back to N+1:', batchErr);
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('Batch model count endpoint failed or not implemented, falling back to N+1:', batchErr);
+      }
       // Fallback to old N+1 logic
       // ...existing code for N+1 fallback...
       const brands = await fetchCarBrands();
@@ -476,7 +526,9 @@ export async function fetchCarModelsWithRealCounts(brandId: number): Promise<Car
       return allModels.filter(model => (model.listingCount || 0) > 0);
     }
   } catch (error) {
-    console.error('Failed to fetch models with real counts:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Failed to fetch models with real counts:', error);
+    }
     return fetchCarModels(brandId);
   }
 }
