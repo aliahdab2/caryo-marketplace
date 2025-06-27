@@ -244,10 +244,11 @@ class CarListingSpecificationTest {
         // No longer verify location String predicate since we use locationEntity now
         // verify(criteriaBuilder).like(any(), eq("%manchester%"));
 
-        // Verify the final 'and' combines all 9 predicates using ArgumentCaptor (was 8, now 9 with sellerType)
+        // Verify the final 'and' combines all 8 predicates using ArgumentCaptor 
+        // (Brand and Model are now combined into a single OR predicate when both are present)
         ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
         verify(criteriaBuilder).and(predicateCaptor.capture());
-        assertEquals(9, predicateCaptor.getValue().length, "Should combine exactly 9 predicates");
+        assertEquals(8, predicateCaptor.getValue().length, "Should combine exactly 8 predicates");
     }
 
     @Test

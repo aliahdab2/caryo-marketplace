@@ -28,6 +28,7 @@ public class ListingFilterRequest {
 
     /**
      * Filter by car brand (manufacturer). Optional.
+     * Supports multiple brands as comma-separated values (e.g., "Toyota,Honda").
      */
     private String brand;
 

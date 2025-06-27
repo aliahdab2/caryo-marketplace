@@ -18,19 +18,81 @@ public class CarListingSpecification {
 
             // Using denormalized fields for brand and model filtering
             // Search in both English and Arabic fields for better bilingual support
-            if (StringUtils.hasText(filter.getBrand())) {
-                Predicate brandEnPredicate = criteriaBuilder.like(
-                    criteriaBuilder.lower(root.get("brandNameEn")),
-                    "%" + filter.getBrand().toLowerCase() + "%"
-                );
-                Predicate brandArPredicate = criteriaBuilder.like(
-                    criteriaBuilder.lower(root.get("brandNameAr")),
-                    "%" + filter.getBrand().toLowerCase() + "%"
-                );
-                predicates.add(criteriaBuilder.or(brandEnPredicate, brandArPredicate));
-            }
-            if (StringUtils.hasText(filter.getModel())) {
-                // Handle multiple models (comma-separated) or single model
+            
+            boolean hasBrandFilter = StringUtils.hasText(filter.getBrand());
+            boolean hasModelFilter = StringUtils.hasText(filter.getModel());
+            
+            if (hasBrandFilter && hasModelFilter) {
+                // When both brands and models are selected, create a combined OR condition:
+                // (brand1 OR brand2 OR ... OR brandN) OR (model1 OR model2 OR ... OR modelN)
+                // This allows showing cars from any selected brand PLUS cars with any selected model
+                
+                List<Predicate> combinedPredicates = new ArrayList<>();
+                
+                // Add brand predicates
+                String[] brandNames = filter.getBrand().split(",");
+                for (String brandName : brandNames) {
+                    String trimmedBrand = brandName.trim();
+                    if (StringUtils.hasText(trimmedBrand)) {
+                        Predicate brandEnPredicate = criteriaBuilder.like(
+                            criteriaBuilder.lower(root.get("brandNameEn")),
+                            "%" + trimmedBrand.toLowerCase() + "%"
+                        );
+                        Predicate brandArPredicate = criteriaBuilder.like(
+                            criteriaBuilder.lower(root.get("brandNameAr")),
+                            "%" + trimmedBrand.toLowerCase() + "%"
+                        );
+                        combinedPredicates.add(criteriaBuilder.or(brandEnPredicate, brandArPredicate));
+                    }
+                }
+                
+                // Add model predicates
+                String[] modelNames = filter.getModel().split(",");
+                for (String modelName : modelNames) {
+                    String trimmedModel = modelName.trim();
+                    if (StringUtils.hasText(trimmedModel)) {
+                        Predicate modelEnPredicate = criteriaBuilder.like(
+                            criteriaBuilder.lower(root.get("modelNameEn")),
+                            "%" + trimmedModel.toLowerCase() + "%"
+                        );
+                        Predicate modelArPredicate = criteriaBuilder.like(
+                            criteriaBuilder.lower(root.get("modelNameAr")),
+                            "%" + trimmedModel.toLowerCase() + "%"
+                        );
+                        combinedPredicates.add(criteriaBuilder.or(modelEnPredicate, modelArPredicate));
+                    }
+                }
+                
+                if (!combinedPredicates.isEmpty()) {
+                    predicates.add(criteriaBuilder.or(combinedPredicates.toArray(new Predicate[0])));
+                }
+                
+            } else if (hasBrandFilter) {
+                // Only brands selected - show cars from any selected brand
+                String[] brandNames = filter.getBrand().split(",");
+                List<Predicate> brandPredicates = new ArrayList<>();
+                
+                for (String brandName : brandNames) {
+                    String trimmedBrand = brandName.trim();
+                    if (StringUtils.hasText(trimmedBrand)) {
+                        Predicate brandEnPredicate = criteriaBuilder.like(
+                            criteriaBuilder.lower(root.get("brandNameEn")),
+                            "%" + trimmedBrand.toLowerCase() + "%"
+                        );
+                        Predicate brandArPredicate = criteriaBuilder.like(
+                            criteriaBuilder.lower(root.get("brandNameAr")),
+                            "%" + trimmedBrand.toLowerCase() + "%"
+                        );
+                        brandPredicates.add(criteriaBuilder.or(brandEnPredicate, brandArPredicate));
+                    }
+                }
+                
+                if (!brandPredicates.isEmpty()) {
+                    predicates.add(criteriaBuilder.or(brandPredicates.toArray(new Predicate[0])));
+                }
+                
+            } else if (hasModelFilter) {
+                // Only models selected - show cars with any selected model
                 String[] modelNames = filter.getModel().split(",");
                 List<Predicate> modelPredicates = new ArrayList<>();
                 
@@ -50,7 +112,6 @@ public class CarListingSpecification {
                 }
                 
                 if (!modelPredicates.isEmpty()) {
-                    // Use OR to match any of the specified models
                     predicates.add(criteriaBuilder.or(modelPredicates.toArray(new Predicate[0])));
                 }
             }
