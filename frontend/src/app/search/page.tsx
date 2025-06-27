@@ -495,11 +495,16 @@ function AdvancedSearchPageContent() {
     switch (filterType) {
       case 'makeModel':
         if (filters.brand) {
-          return Array.isArray(filters.brand) 
-            ? (filters.brand.length > 1 
-                ? t('multipleBrands', '{{count}} brands', { count: filters.brand.length, ns: 'search' })
-                : filters.brand[0])
-            : filters.brand;
+          if (Array.isArray(filters.brand) && filters.brand.length > 1) {
+            // Fallback approach - direct check language and use simple string
+            if (i18n.language === 'ar') {
+              return `${filters.brand.length} ماركات`;
+            } else {
+              return `${filters.brand.length} brands`;
+            }
+          } else {
+            return Array.isArray(filters.brand) ? filters.brand[0] : filters.brand;
+          }
         }
         return t('makeAndModel', 'Make and model', { ns: 'search' });
       case 'price':

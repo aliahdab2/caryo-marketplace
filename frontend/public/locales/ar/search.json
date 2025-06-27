@@ -3,7 +3,6 @@
   "model": "الموديل",
   "any": "الكل",
   "makeAndModel": "الماركة والموديل",
-  "multipleBrands": "{{count}} ماركات",
   "price": "السعر",
   "priceRange": "نطاق السعر",
   "from": "من",

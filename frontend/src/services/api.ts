@@ -255,7 +255,8 @@ async function apiRequest<T>(
     '/api/fuel-types',
     '/api/body-styles',
     '/api/drive-types',
-    '/api/reference-data'
+    '/api/reference-data',
+    '/api/listings/filter' // Public car listings search endpoint
   ];
   
   const isPublicEndpoint = publicEndpoints.some(publicPath => endpoint.startsWith(publicPath));
