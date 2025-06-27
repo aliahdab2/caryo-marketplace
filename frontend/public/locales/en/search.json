@@ -3,6 +3,7 @@
   "model": "Model",
   "any": "Any",
   "makeAndModel": "Make and model",
+  "multipleBrands": "{{count}} brands",
   "price": "Price",
   "priceRange": "Price range",
   "from": "From",

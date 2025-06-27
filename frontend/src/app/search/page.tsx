@@ -13,12 +13,11 @@ import {
   MdSearch,
   MdError
 } from 'react-icons/md';
-import { CarMake, CarModel } from '@/types/car';
-import { buildHierarchicalBrandFilter } from '@/utils/brandFilters';
+import { CarMake } from '@/types/car';
+// Note: buildHierarchicalBrandFilter removed since we're using simple brand filtering now
 import CarListingCard, { CarListingCardData } from '@/components/listings/CarListingCard';
 import { 
   fetchCarBrandsWithRealCounts,
-  fetchCarModelsWithRealCounts,
   fetchCarReferenceData,
   fetchCarListings,
   fetchGovernorates,
@@ -38,10 +37,6 @@ interface AdvancedSearchFilters {
    * Examples: "Toyota", "Toyota:Camry", "Toyota:Camry;Corolla", "Toyota:Camry,Honda"
    */
   brand?: string | string[]; // Support both single brand and multiple brands for internal use
-  
-  // TODO: Remove this field after completing hierarchical migration
-  // Temporary field for backward compatibility during migration
-  model?: string | string[]; // Will be converted to hierarchical brand syntax
   
   minYear?: number;
   maxYear?: number;
@@ -127,16 +122,7 @@ function AdvancedSearchPageContent() {
     [t]
   );
 
-  const {
-    data: availableModels = [],
-    isLoading: _isLoadingModels,
-    error: modelsError
-  } = useApiData<CarModel[]>(
-    () => selectedMake ? fetchCarModelsWithRealCounts(selectedMake) : Promise.resolve([]), // Use real counts from actual listings
-    selectedMake ? `/api/reference-data/brands/${selectedMake}/models-with-counts` : '',
-    [selectedMake, t],
-    selectedMake ? { makeId: selectedMake } : undefined
-  );
+  // Note: availableModels removed since we're using hierarchical brand syntax instead of separate model selection
 
   const {
     data: referenceData,
@@ -218,15 +204,7 @@ function AdvancedSearchPageContent() {
           initialFilters.brand = brandParam;
         }
       }
-      if (searchParams?.get('model')) {
-        const modelParam = searchParams.get('model')!;
-        // Handle comma-separated models
-        if (modelParam.includes(',')) {
-          initialFilters.model = modelParam.split(',').map(m => m.trim()).filter(Boolean);
-        } else {
-          initialFilters.model = modelParam;
-        }
-      }
+      // Note: Model is now handled within hierarchical brand syntax, no separate model parameter
       
       // Numeric filters with validation
       const minYear = searchParams?.get('minYear');
@@ -351,18 +329,12 @@ function AdvancedSearchPageContent() {
   }, [carMakes, searchTerm, getDisplayName]);
 
   // Handle input changes with better state management
-  const handleInputChange = useCallback((field: keyof AdvancedSearchFilters, value: string | number | string[] | undefined, keepModels = false) => {
+  const handleInputChange = useCallback((field: keyof AdvancedSearchFilters, value: string | number | string[] | undefined) => {
     setFilters(prev => {
       const newFilters = {
         ...prev,
         [field]: value || undefined
       };
-
-      // Reset model when brand changes (but only if not setting multiple models)
-      // Don't reset models if we're just auto-selecting a brand for existing models
-      if (field === 'brand' && !keepModels && !Array.isArray(prev.model)) {
-        newFilters.model = undefined;
-      }
 
       return newFilters;
     });
@@ -382,43 +354,6 @@ function AdvancedSearchPageContent() {
       }
     }
   }, [carMakes, getDisplayName]);
-
-  // Helper functions for multiple model handling
-  const getSelectedModels = useCallback((): string[] => {
-    if (!filters.model) return [];
-    return Array.isArray(filters.model) ? filters.model : [filters.model];
-  }, [filters.model]);
-
-  const isModelSelected = useCallback((modelName: string): boolean => {
-    const selectedModels = getSelectedModels();
-    return selectedModels.includes(modelName);
-  }, [getSelectedModels]);
-
-  const addModel = useCallback((modelName: string) => {
-    const selectedModels = getSelectedModels();
-    if (!selectedModels.includes(modelName)) {
-      const newModels = [...selectedModels, modelName];
-      const newModelValue = newModels.length === 1 ? newModels[0] : newModels;
-      
-      handleInputChange('model', newModelValue);
-      
-      // Auto-select the brand if not already selected
-      if (!filters.brand && selectedMake) {
-        const make = carMakes?.find(m => m.id === selectedMake);
-        if (make) {
-          handleInputChange('brand', getDisplayName(make), true); // Keep models when auto-selecting brand
-        }
-      }
-    }
-  }, [getSelectedModels, handleInputChange, filters.brand, selectedMake, carMakes, getDisplayName]);
-
-  const removeModel = useCallback((modelName: string) => {
-    const selectedModels = getSelectedModels();
-    const newModels = selectedModels.filter(m => m !== modelName);
-    const newModelValue = newModels.length === 0 ? undefined : (newModels.length === 1 ? newModels[0] : newModels);
-    
-    handleInputChange('model', newModelValue);
-  }, [getSelectedModels, handleInputChange]);
 
   // Helper functions for multiple brand handling
   const getSelectedBrands = useCallback((): string[] => {
@@ -449,8 +384,8 @@ function AdvancedSearchPageContent() {
     handleInputChange('brand', newBrandValue);
     
     // Clear models if removing the only brand or if no brands are selected
-    if (newBrands.length === 0 || (selectedBrands.includes(brandName) && newBrands.length === 0)) {
-      handleInputChange('model', undefined);
+    if (newBrands.length === 0) {
+      // When no brands selected, we don't need to clear models since we removed model support
     }
   }, [getSelectedBrands, handleInputChange]);
 
@@ -476,7 +411,6 @@ function AdvancedSearchPageContent() {
       switch (filterType) {
         case 'makeModel':
           delete newFilters.brand;
-          delete newFilters.model;
           setSelectedMake(null);
           break;
         case 'price':
@@ -560,18 +494,11 @@ function AdvancedSearchPageContent() {
   const getFilterDisplayText = (filterType: FilterType): string => {
     switch (filterType) {
       case 'makeModel':
-        if (filters.brand && filters.model) {
-          const brandText = Array.isArray(filters.brand) 
-            ? (filters.brand.length > 1 ? `${filters.brand.length} brands` : filters.brand[0])
-            : filters.brand;
-          const modelText = Array.isArray(filters.model) 
-            ? (filters.model.length > 1 ? `${filters.model.length} models` : filters.model[0])
-            : filters.model;
-          return `${brandText} ${modelText}`;
-        }
         if (filters.brand) {
           return Array.isArray(filters.brand) 
-            ? (filters.brand.length > 1 ? `${filters.brand.length} brands` : filters.brand[0])
+            ? (filters.brand.length > 1 
+                ? t('multipleBrands', '{{count}} brands', { count: filters.brand.length, ns: 'search' })
+                : filters.brand[0])
             : filters.brand;
         }
         return t('makeAndModel', 'Make and model', { ns: 'search' });
@@ -617,7 +544,7 @@ function AdvancedSearchPageContent() {
   const isFilterActive = (filterType: FilterType): boolean => {
     switch (filterType) {
       case 'makeModel':
-        return !!(filters.brand || filters.model);
+        return !!filters.brand;
       case 'price':
         return !!(filters.minPrice || filters.maxPrice);
       case 'year':
@@ -835,7 +762,7 @@ function AdvancedSearchPageContent() {
               </div>
 
               {/* Selected Filters Pills - Only show if we have selections */}
-              {(filters.brand || getSelectedModels().length > 0) && (
+              {filters.brand && (
                 <div className="p-4 bg-blue-50 border-b border-gray-200">
                   <div className="flex flex-wrap gap-2">
                     {/* Brand pills */}
@@ -859,9 +786,8 @@ function AdvancedSearchPageContent() {
                                 const newBrands = filters.brand.filter(b => b !== brandName);
                                 handleInputChange('brand', newBrands.length === 1 ? newBrands[0] : newBrands);
                               } else {
-                                // Remove all brands and models
+                                // Remove all brands
                                 handleInputChange('brand', undefined);
-                                handleInputChange('model', undefined);
                                 setSelectedMake(null);
                               }
                             }}
@@ -869,15 +795,6 @@ function AdvancedSearchPageContent() {
                         ))}
                       </>
                     )}
-                    
-                    {/* Model pills */}
-                    {getSelectedModels().map(modelName => (
-                      <ModelPill 
-                        key={modelName}
-                        modelName={modelName}
-                        onRemove={() => removeModel(modelName)}
-                      />
-                    ))}
                   </div>
                 </div>
               )}
@@ -975,60 +892,8 @@ function AdvancedSearchPageContent() {
                           </div>
                         </div>
 
-                        {/* Models section - shown under the brand when expanded */}
-                        {selectedMake === make.id && (
-                          <div 
-                            className={`${i18n.language === 'ar' ? 'border-r-2 border-blue-200 pr-4 mr-6 rounded-l-md' : 'border-l-2 border-blue-200 pl-4 ml-6 rounded-r-md'} space-y-1 bg-blue-50/30 py-2`}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {_isLoadingModels ? (
-                              <div className={`text-sm text-gray-500 italic ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
-                                {t('loadingModels', 'Loading models...', { ns: 'search' })}
-                              </div>
-                            ) : availableModels && availableModels.length > 0 ? (
-                              <>
-                                {availableModels.map(model => (
-                                  <div 
-                                    key={model.id} 
-                                    className="flex items-center justify-between py-2 hover:bg-blue-50 rounded-md px-2"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <div className={`flex items-center flex-1 ${i18n.language === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
-                                      <input
-                                        type="checkbox"
-                                        id={`model-${model.id}`}
-                                        checked={isModelSelected(getDisplayName(model))}
-                                        onChange={(e) => {
-                                          e.stopPropagation();
-                                          if (e.target.checked) {
-                                            addModel(getDisplayName(model));
-                                          } else {
-                                            removeModel(getDisplayName(model));
-                                          }
-                                        }}
-                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-5 w-5"
-                                      />
-                                      <label 
-                                        htmlFor={`model-${model.id}`}
-                                        className={`text-gray-700 cursor-pointer text-sm ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        {getDisplayName(model)}
-                                      </label>
-                                    </div>
-                                    <span className="text-gray-400 text-xs">
-                                      ({model.listingCount || 0})
-                                    </span>
-                                  </div>
-                                ))}
-                              </>
-                            ) : (
-                              <div className={`text-sm text-gray-500 italic ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
-                                {t('noModels', 'No models available', { ns: 'search' })}
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        {/* Models section removed - using hierarchical brand syntax instead */}
+                        {/* Note: Model selection is now handled within brand filter using hierarchical syntax */}
                       </div>
                     ))}
                   </div>
@@ -1040,7 +905,6 @@ function AdvancedSearchPageContent() {
                 <button
                   onClick={() => {
                     handleInputChange('brand', undefined);
-                    handleInputChange('model', undefined);
                     setSelectedMake(null);
                   }}
                   className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
@@ -1509,32 +1373,13 @@ function AdvancedSearchPageContent() {
       // Helper function to convert internal filters to hierarchical brand syntax
       const buildHierarchicalBrandFromFilters = (filters: AdvancedSearchFilters): string | undefined => {
         const brands = Array.isArray(filters.brand) ? filters.brand : (filters.brand ? [filters.brand] : []);
-        const models = Array.isArray(filters.model) ? filters.model : (filters.model ? [filters.model] : []);
         
         if (brands.length === 0) {
           return undefined;
         }
         
-        // If no models selected, just return brands
-        if (models.length === 0) {
-          return brands.join(',');
-        }
-        
-        // For now, combine first brand with all models (simplified approach)
-        // TODO: Implement more sophisticated brand-model mapping
-        if (brands.length > 0 && models.length > 0) {
-          const primaryBrand = brands[0];
-          const hierarchicalBrand = buildHierarchicalBrandFilter(primaryBrand, models.join(';'));
-          
-          // Add additional brands if any
-          const additionalBrands = brands.slice(1);
-          if (additionalBrands.length > 0) {
-            return [hierarchicalBrand, ...additionalBrands].join(',');
-          }
-          
-          return hierarchicalBrand;
-        }
-        
+        // Return brands in hierarchical format
+        // Note: Models are now handled within brand filter using hierarchical syntax
         return brands.join(',');
       };
       
@@ -1618,6 +1463,10 @@ function AdvancedSearchPageContent() {
     </div>
   ));
   LoadingSkeleton.displayName = 'LoadingSkeleton';
+
+  // Memoized car listing component for better performance
+  const MemoizedCarListingCard = React.memo(CarListingCard);
+  MemoizedCarListingCard.displayName = 'MemoizedCarListingCard';
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -1742,7 +1591,7 @@ function AdvancedSearchPageContent() {
                 };
 
                 return (
-                  <CarListingCard
+                  <MemoizedCarListingCard
                     key={`listing-${listing.id}`}
                     listing={cardData}
                     onFavoriteToggle={(_isFavorite) => {
@@ -1840,7 +1689,7 @@ function AdvancedSearchPageContent() {
         )}
 
         {/* Error States with better styling */}
-        {(brandsError || modelsError || referenceDataError || listingsError) && (
+        {(brandsError || referenceDataError || listingsError) && (
           <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
             <div className="flex items-center">
               <div className="flex-shrink-0">
