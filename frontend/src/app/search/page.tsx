@@ -14,11 +14,12 @@ import {
   MdSearch,
   MdError
 } from 'react-icons/md';
-import { CarMake } from '@/types/car';
-// Note: buildHierarchicalBrandFilter removed since we're using simple brand filtering now
+import { CarMake, CarModel } from '@/types/car';
+import { buildHierarchicalBrandFilter } from '@/utils/brandFilters';
 import CarListingCard, { CarListingCardData } from '@/components/listings/CarListingCard';
 import { 
   fetchCarBrandsWithRealCounts,
+  fetchCarModelsWithRealCounts,
   fetchCarReferenceData,
   fetchCarListings,
   fetchGovernorates,
@@ -38,6 +39,12 @@ interface AdvancedSearchFilters {
    * Examples: "Toyota", "Toyota:Camry", "Toyota:Camry;Corolla", "Toyota:Camry,Honda"
    */
   brand?: string | string[]; // Support both single brand and multiple brands for internal use
+  
+  /**
+   * Model filter for hierarchical brand:model combinations.
+   * Used internally to build the hierarchical brand filter.
+   */
+  model?: string | string[];
   
   minYear?: number;
   maxYear?: number;
@@ -123,7 +130,16 @@ function AdvancedSearchPageContent() {
     [t]
   );
 
-  // Note: availableModels removed since we're using hierarchical brand syntax instead of separate model selection
+  // Fetch models for selected make with real counts
+  const {
+    data: availableModels = [],
+    isLoading: _isLoadingModels,
+    error: _modelsError
+  } = useApiData<CarModel[]>(
+    () => selectedMake ? fetchCarModelsWithRealCounts(selectedMake) : Promise.resolve([]),
+    selectedMake ? `models-with-real-counts-${selectedMake}` : 'no-models',
+    [selectedMake, t]
+  );
 
   const {
     data: referenceData,
@@ -205,7 +221,16 @@ function AdvancedSearchPageContent() {
           initialFilters.brand = brandParam;
         }
       }
-      // Note: Model is now handled within hierarchical brand syntax, no separate model parameter
+      
+      // Handle model parameter for hierarchical filtering
+      if (searchParams?.get('model')) {
+        const modelParam = searchParams.get('model')!;
+        if (modelParam.includes(',')) {
+          initialFilters.model = modelParam.split(',').map(m => m.trim()).filter(Boolean);
+        } else {
+          initialFilters.model = modelParam;
+        }
+      }
       
       // Numeric filters with validation
       const minYear = searchParams?.get('minYear');
@@ -384,11 +409,39 @@ function AdvancedSearchPageContent() {
     
     handleInputChange('brand', newBrandValue);
     
-    // Clear models if removing the only brand or if no brands are selected
+    // Clear models when removing brand or when no brands are selected
     if (newBrands.length === 0) {
-      // When no brands selected, we don't need to clear models since we removed model support
+      handleInputChange('model', undefined);
     }
   }, [getSelectedBrands, handleInputChange]);
+
+  // Helper functions for multiple model handling
+  const getSelectedModels = useCallback((): string[] => {
+    if (!filters.model) return [];
+    return Array.isArray(filters.model) ? filters.model : [filters.model];
+  }, [filters.model]);
+
+  const isModelSelected = useCallback((modelName: string): boolean => {
+    const selectedModels = getSelectedModels();
+    return selectedModels.includes(modelName);
+  }, [getSelectedModels]);
+
+  const addModel = useCallback((modelName: string) => {
+    const selectedModels = getSelectedModels();
+    if (!selectedModels.includes(modelName)) {
+      const newModels = [...selectedModels, modelName];
+      const newModelValue = newModels.length === 1 ? newModels[0] : newModels;
+      handleInputChange('model', newModelValue);
+    }
+  }, [getSelectedModels, handleInputChange]);
+
+  const removeModel = useCallback((modelName: string) => {
+    const selectedModels = getSelectedModels();
+    const newModels = selectedModels.filter(m => m !== modelName);
+    const newModelValue = newModels.length === 0 ? undefined : 
+                         newModels.length === 1 ? newModels[0] : newModels;
+    handleInputChange('model', newModelValue);
+  }, [getSelectedModels, handleInputChange]);
 
   // Reset pagination when filters change
   useEffect(() => {
@@ -412,6 +465,7 @@ function AdvancedSearchPageContent() {
       switch (filterType) {
         case 'makeModel':
           delete newFilters.brand;
+          delete newFilters.model;
           setSelectedMake(null);
           break;
         case 'price':
@@ -495,16 +549,28 @@ function AdvancedSearchPageContent() {
   const getFilterDisplayText = (filterType: FilterType): string => {
     switch (filterType) {
       case 'makeModel':
-        if (filters.brand) {
-          if (Array.isArray(filters.brand) && filters.brand.length > 1) {
-            // Fallback approach - direct check language and use simple string
-            if (i18n.language === 'ar') {
-              return `${filters.brand.length} ماركات`;
+        if (filters.brand || filters.model) {
+          const brands = Array.isArray(filters.brand) ? filters.brand : (filters.brand ? [filters.brand] : []);
+          const models = Array.isArray(filters.model) ? filters.model : (filters.model ? [filters.model] : []);
+          
+          if (brands.length > 1) {
+            // Multiple brands - use proper translation
+            return t('multipleBrands', '{{count}} brands', { count: brands.length, ns: 'search' });
+          } else if (brands.length === 1) {
+            // Single brand
+            if (models.length > 1) {
+              // Single brand with multiple models
+              return `${brands[0]} (${models.length} ${t('models', 'models', { ns: 'search' })})`;
+            } else if (models.length === 1) {
+              // Single brand with single model
+              return `${brands[0]} ${models[0]}`;
             } else {
-              return `${filters.brand.length} brands`;
+              // Single brand with no models
+              return brands[0];
             }
-          } else {
-            return Array.isArray(filters.brand) ? filters.brand[0] : filters.brand;
+          } else if (models.length > 0) {
+            // Models without brand (shouldn't happen but handle gracefully)
+            return models.join(', ');
           }
         }
         return t('makeAndModel', 'Make and model', { ns: 'search' });
@@ -550,7 +616,7 @@ function AdvancedSearchPageContent() {
   const isFilterActive = (filterType: FilterType): boolean => {
     switch (filterType) {
       case 'makeModel':
-        return !!filters.brand;
+        return !!(filters.brand || filters.model);
       case 'price':
         return !!(filters.minPrice || filters.maxPrice);
       case 'year':
@@ -768,7 +834,7 @@ function AdvancedSearchPageContent() {
               </div>
 
               {/* Selected Filters Pills - Only show if we have selections */}
-              {filters.brand && (
+              {(filters.brand || filters.model) && (
                 <div className="p-4 bg-blue-50 border-b border-gray-200">
                   <div className="flex flex-wrap gap-2">
                     {/* Brand pills */}
@@ -797,6 +863,19 @@ function AdvancedSearchPageContent() {
                                 setSelectedMake(null);
                               }
                             }}
+                          />
+                        ))}
+                      </>
+                    )}
+                    
+                    {/* Model pills */}
+                    {filters.model && (
+                      <>
+                        {(Array.isArray(filters.model) ? filters.model : [filters.model]).map(modelName => (
+                          <ModelPill
+                            key={modelName}
+                            modelName={modelName}
+                            onRemove={() => removeModel(modelName)}
                           />
                         ))}
                       </>
@@ -898,8 +977,43 @@ function AdvancedSearchPageContent() {
                           </div>
                         </div>
 
-                        {/* Models section removed - using hierarchical brand syntax instead */}
-                        {/* Note: Model selection is now handled within brand filter using hierarchical syntax */}
+                        {/* Models section - Expandable under each brand */}
+                        {selectedMake === make.id && availableModels && availableModels.length > 0 && (
+                          <div className="ml-8 mr-4 border-l-2 border-blue-100 pl-4 py-2">
+                            <div className="space-y-2">
+                              {availableModels.map(model => (
+                                <div key={model.id} className="flex items-center justify-between py-2">
+                                  <div className={`flex items-center ${i18n.language === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+                                    <input
+                                      type="checkbox"
+                                      id={`model-${model.id}`}
+                                      checked={isModelSelected(getDisplayName(model))}
+                                      onChange={(e) => {
+                                        e.stopPropagation();
+                                        const modelName = getDisplayName(model);
+                                        if (e.target.checked) {
+                                          addModel(modelName);
+                                        } else {
+                                          removeModel(modelName);
+                                        }
+                                      }}
+                                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                                    />
+                                    <label 
+                                      htmlFor={`model-${model.id}`}
+                                      className={`text-gray-700 cursor-pointer flex-1 text-sm ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}
+                                    >
+                                      {getDisplayName(model)}
+                                    </label>
+                                  </div>
+                                  <span className="text-gray-400 text-xs">
+                                    ({model.listingCount || 0})
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -911,6 +1025,7 @@ function AdvancedSearchPageContent() {
                 <button
                   onClick={() => {
                     handleInputChange('brand', undefined);
+                    handleInputChange('model', undefined);
                     setSelectedMake(null);
                   }}
                   className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
@@ -1379,14 +1494,27 @@ function AdvancedSearchPageContent() {
       // Helper function to convert internal filters to hierarchical brand syntax
       const buildHierarchicalBrandFromFilters = (filters: AdvancedSearchFilters): string | undefined => {
         const brands = Array.isArray(filters.brand) ? filters.brand : (filters.brand ? [filters.brand] : []);
+        const models = Array.isArray(filters.model) ? filters.model : (filters.model ? [filters.model] : []);
         
         if (brands.length === 0) {
           return undefined;
         }
         
-        // Return brands in hierarchical format
-        // Note: Models are now handled within brand filter using hierarchical syntax
-        return brands.join(',');
+        // If no models selected, return simple brand list
+        if (models.length === 0) {
+          return brands.join(',');
+        }
+        
+        // Build hierarchical brand:model syntax
+        if (brands.length === 1) {
+          // Single brand with models
+          return buildHierarchicalBrandFilter(brands[0], models.join(';'));
+        } else {
+          // Multiple brands - for now, just use the first brand with models
+          // TODO: Enhance to support different models for different brands
+          return buildHierarchicalBrandFilter(brands[0], models.join(';')) + 
+                 (brands.length > 1 ? ',' + brands.slice(1).join(',') : '');
+        }
       };
       
       // Convert filters to backend format using hierarchical brand syntax
@@ -1553,6 +1681,15 @@ function AdvancedSearchPageContent() {
                     }
                   }}
                   onRemove={() => toggleBrand(brandName)}
+                />
+              ))}
+
+              {/* Model Pills */}
+              {getSelectedModels().map((modelName) => (
+                <ModelPill
+                  key={modelName}
+                  modelName={modelName}
+                  onRemove={() => removeModel(modelName)}
                 />
               ))}
 
