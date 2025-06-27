@@ -190,7 +190,9 @@ function AdvancedSearchPageContent() {
 
   // Initialize form from URL params (only on initial load)
   useEffect(() => {
-    console.log('Initializing filters from URL params:', searchParams?.toString());
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Initializing filters from URL params:', searchParams?.toString());
+    }
     const initialFilters: AdvancedSearchFilters = {};
     
     // Basic filters
@@ -225,7 +227,9 @@ function AdvancedSearchPageContent() {
     if (searchParams?.get('doors')) initialFilters.doors = parseInt(searchParams.get('doors')!);
     if (searchParams?.get('cylinders')) initialFilters.cylinders = parseInt(searchParams.get('cylinders')!);
 
-    console.log('Setting initial filters:', initialFilters);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Setting initial filters:', initialFilters);
+    }
     setFilters(initialFilters);
   }, [searchParams]); // Remove carMakes and getDisplayName dependencies
 
@@ -244,12 +248,14 @@ function AdvancedSearchPageContent() {
 
   // Debug effect to monitor available models and selectedMake
   useEffect(() => {
-    console.log('State changed:', {
-      selectedMake,
-      modelsCount: availableModels?.length || 0,
-      isLoadingModels: _isLoadingModels,
-      models: availableModels?.map(m => ({ id: m.id, name: getDisplayName(m) }))
-    });
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('State changed:', {
+        selectedMake,
+        modelsCount: availableModels?.length || 0,
+        isLoadingModels: _isLoadingModels,
+        models: availableModels?.map(m => ({ id: m.id, name: getDisplayName(m) }))
+      });
+    }
   }, [availableModels, selectedMake, _isLoadingModels, getDisplayName]);
 
   // Filter car makes based on search term
@@ -307,10 +313,13 @@ function AdvancedSearchPageContent() {
     if (!selectedModels.includes(modelName)) {
       const newModels = [...selectedModels, modelName];
       const newModelValue = newModels.length === 1 ? newModels[0] : newModels;
-      console.log('Adding model:', modelName);
-      console.log('Previous models:', selectedModels);
-      console.log('New models:', newModels);
-      console.log('New model value for filter:', newModelValue);
+      
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Adding model:', modelName);
+        console.log('Previous models:', selectedModels);
+        console.log('New models:', newModels);
+        console.log('New model value for filter:', newModelValue);
+      }
       
       handleInputChange('model', newModelValue);
       
@@ -328,10 +337,13 @@ function AdvancedSearchPageContent() {
     const selectedModels = getSelectedModels();
     const newModels = selectedModels.filter(m => m !== modelName);
     const newModelValue = newModels.length === 0 ? undefined : (newModels.length === 1 ? newModels[0] : newModels);
-    console.log('Removing model:', modelName);
-    console.log('Previous models:', selectedModels);
-    console.log('New models:', newModels);
-    console.log('New model value for filter:', newModelValue);
+    
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Removing model:', modelName);
+      console.log('Previous models:', selectedModels);
+      console.log('New models:', newModels);
+      console.log('New model value for filter:', newModelValue);
+    }
     
     handleInputChange('model', newModelValue);
   }, [getSelectedModels, handleInputChange]);
@@ -1567,7 +1579,9 @@ function AdvancedSearchPageContent() {
                     listing={cardData}
                     onFavoriteToggle={(isFavorite) => {
                       // Handle favorite toggle if needed
-                      console.log(`Car ${listing.id} favorite toggled:`, isFavorite);
+                      if (process.env.NODE_ENV !== 'production') {
+                        console.log(`Car ${listing.id} favorite toggled:`, isFavorite);
+                      }
                     }}
                     initialFavorite={false}
                   />

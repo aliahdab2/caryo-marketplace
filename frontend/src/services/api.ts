@@ -268,7 +268,6 @@ async function apiRequest<T>(
          detailedErrorMessage = `Error ${response.status}: ${response.statusText}`;
       }
         
-      console.error('API error details:', { status: response.status, message: detailedErrorMessage, rawResponse: responseData });
       throw new ApiError(detailedErrorMessage, response.status, responseData);
     }
 
