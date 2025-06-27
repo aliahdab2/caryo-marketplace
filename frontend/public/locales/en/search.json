@@ -63,5 +63,7 @@
   "previous": "Previous",
   "next": "Next", 
   "pageInfo": "Page {{current}} of {{total}}",
-  "showingResults": "Showing {{count}} of {{total}} cars"
+  "showingResults": "Showing {{count}} of {{total}} cars",
+  "currency": "KD",
+  "km": "km"
 }

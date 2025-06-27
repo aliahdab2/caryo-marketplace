@@ -64,5 +64,7 @@
   "previous": "السابق",
   "next": "التالي",
   "pageInfo": "صفحة {{current}} من {{total}}",
-  "showingResults": "عرض {{count}} من {{total}} سيارة"
+  "showingResults": "عرض {{count}} من {{total}} سيارة",
+  "currency": "د.ك",
+  "km": "كم"
 }

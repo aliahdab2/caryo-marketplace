@@ -8,6 +8,7 @@ import {
   MdTune,
   MdAdd,
   MdClose,
+  MdDelete,
   MdDirectionsCar,
   MdFavoriteBorder,
   MdSearch,
@@ -1523,6 +1524,216 @@ function AdvancedSearchPageContent() {
             )}
           </div>
         </div>
+
+        {/* Active Filter Pills - Blocket Style */}
+        {activeFiltersCount > 0 && (
+          <div className="mb-4">
+            <div className="flex items-center gap-2">
+              {/* Clear All Button */}
+              <button
+                onClick={clearAllFilters}
+                className="flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+              >
+                <MdDelete className={`h-4 w-4 ${i18n.language === 'ar' ? 'ml-1' : 'mr-1'}`} />
+                {t('clearAll', `Clear (${activeFiltersCount})`, { ns: 'search' })}
+              </button>
+
+              {/* Brand Pills */}
+              {getSelectedBrands().map((brandName) => (
+                <BrandPill
+                  key={brandName}
+                  brandName={brandName}
+                  onClick={() => {
+                    const brand = carMakes?.find(make => 
+                      getDisplayName(make).toLowerCase() === brandName.toLowerCase()
+                    );
+                    if (brand) {
+                      setSelectedMake(brand.id);
+                      setActiveFilterModal('makeModel');
+                    }
+                  }}
+                  onRemove={() => toggleBrand(brandName)}
+                />
+              ))}
+
+              {/* Price Range Pill */}
+              {(filters.minPrice || filters.maxPrice) && (
+                <div className="flex items-center bg-gray-100 rounded-full px-3 py-1.5 text-sm text-gray-700">
+                  <span>
+                    {filters.minPrice && filters.maxPrice 
+                      ? `${filters.minPrice.toLocaleString()} - ${filters.maxPrice.toLocaleString()} ${t('currency', 'KD', { ns: 'search' })}`
+                      : filters.minPrice 
+                        ? `${t('from', 'From', { ns: 'search' })} ${filters.minPrice.toLocaleString()} ${t('currency', 'KD', { ns: 'search' })}`
+                        : `${t('upTo', 'Up to', { ns: 'search' })} ${filters.maxPrice?.toLocaleString()} ${t('currency', 'KD', { ns: 'search' })}`
+                    }
+                  </span>
+                  <button
+                    onClick={() => {
+                      handleInputChange('minPrice', undefined);
+                      handleInputChange('maxPrice', undefined);
+                    }}
+                    className={`${i18n.language === 'ar' ? 'mr-2' : 'ml-2'} text-gray-500 hover:text-gray-700`}
+                  >
+                    <MdClose className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Year Range Pill */}
+              {(filters.minYear || filters.maxYear) && (
+                <div className="flex items-center bg-gray-100 rounded-full px-3 py-1.5 text-sm text-gray-700">
+                  <span>
+                    {filters.minYear && filters.maxYear 
+                      ? `${filters.minYear} - ${filters.maxYear}`
+                      : filters.minYear 
+                        ? `${t('from', 'From', { ns: 'search' })} ${filters.minYear}`
+                        : `${t('upTo', 'Up to', { ns: 'search' })} ${filters.maxYear}`
+                    }
+                  </span>
+                  <button
+                    onClick={() => {
+                      handleInputChange('minYear', undefined);
+                      handleInputChange('maxYear', undefined);
+                    }}
+                    className={`${i18n.language === 'ar' ? 'mr-2' : 'ml-2'} text-gray-500 hover:text-gray-700`}
+                  >
+                    <MdClose className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Mileage Range Pill */}
+              {(filters.minMileage || filters.maxMileage) && (
+                <div className="flex items-center bg-gray-100 rounded-full px-3 py-1.5 text-sm text-gray-700">
+                  <span>
+                    {filters.minMileage && filters.maxMileage 
+                      ? `${filters.minMileage.toLocaleString()} - ${filters.maxMileage.toLocaleString()} ${t('km', 'km', { ns: 'search' })}`
+                      : filters.minMileage 
+                        ? `${t('from', 'From', { ns: 'search' })} ${filters.minMileage.toLocaleString()} ${t('km', 'km', { ns: 'search' })}`
+                        : `${t('upTo', 'Up to', { ns: 'search' })} ${filters.maxMileage?.toLocaleString()} ${t('km', 'km', { ns: 'search' })}`
+                    }
+                  </span>
+                  <button
+                    onClick={() => {
+                      handleInputChange('minMileage', undefined);
+                      handleInputChange('maxMileage', undefined);
+                    }}
+                    className={`${i18n.language === 'ar' ? 'mr-2' : 'ml-2'} text-gray-500 hover:text-gray-700`}
+                  >
+                    <MdClose className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Location Pill */}
+              {filters.locationId && (
+                <div className="flex items-center bg-gray-100 rounded-full px-3 py-1.5 text-sm text-gray-700">
+                  <span>{getLocationDisplayName(filters.locationId)}</span>
+                  <button
+                    onClick={() => {
+                      handleInputChange('locationId', undefined);
+                      handleInputChange('location', undefined);
+                    }}
+                    className={`${i18n.language === 'ar' ? 'mr-2' : 'ml-2'} text-gray-500 hover:text-gray-700`}
+                  >
+                    <MdClose className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Condition Pill */}
+              {filters.conditionId && (
+                <div className="flex items-center bg-gray-100 rounded-full px-3 py-1.5 text-sm text-gray-700">
+                  <span>{getConditionDisplayName(filters.conditionId)}</span>
+                  <button
+                    onClick={() => handleInputChange('conditionId', undefined)}
+                    className={`${i18n.language === 'ar' ? 'mr-2' : 'ml-2'} text-gray-500 hover:text-gray-700`}
+                  >
+                    <MdClose className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Transmission Pill */}
+              {filters.transmissionId && (
+                <div className="flex items-center bg-gray-100 rounded-full px-3 py-1.5 text-sm text-gray-700">
+                  <span>{getTransmissionDisplayName(filters.transmissionId)}</span>
+                  <button
+                    onClick={() => handleInputChange('transmissionId', undefined)}
+                    className={`${i18n.language === 'ar' ? 'mr-2' : 'ml-2'} text-gray-500 hover:text-gray-700`}
+                  >
+                    <MdClose className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Fuel Type Pill */}
+              {filters.fuelTypeId && (
+                <div className="flex items-center bg-gray-100 rounded-full px-3 py-1.5 text-sm text-gray-700">
+                  <span>{getFuelTypeDisplayName(filters.fuelTypeId)}</span>
+                  <button
+                    onClick={() => handleInputChange('fuelTypeId', undefined)}
+                    className={`${i18n.language === 'ar' ? 'mr-2' : 'ml-2'} text-gray-500 hover:text-gray-700`}
+                  >
+                    <MdClose className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Body Style Pill */}
+              {filters.bodyStyleId && (
+                <div className="flex items-center bg-gray-100 rounded-full px-3 py-1.5 text-sm text-gray-700">
+                  <span>{getBodyStyleDisplayName(filters.bodyStyleId)}</span>
+                  <button
+                    onClick={() => handleInputChange('bodyStyleId', undefined)}
+                    className={`${i18n.language === 'ar' ? 'mr-2' : 'ml-2'} text-gray-500 hover:text-gray-700`}
+                  >
+                    <MdClose className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Exterior Color Pill */}
+              {filters.exteriorColor && (
+                <div className="flex items-center bg-gray-100 rounded-full px-3 py-1.5 text-sm text-gray-700">
+                  <span>{filters.exteriorColor}</span>
+                  <button
+                    onClick={() => handleInputChange('exteriorColor', undefined)}
+                    className={`${i18n.language === 'ar' ? 'mr-2' : 'ml-2'} text-gray-500 hover:text-gray-700`}
+                  >
+                    <MdClose className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Doors Pill */}
+              {filters.doors && (
+                <div className="flex items-center bg-gray-100 rounded-full px-3 py-1.5 text-sm text-gray-700">
+                  <span>{filters.doors} {t('doors', 'doors', { ns: 'search' })}</span>
+                  <button
+                    onClick={() => handleInputChange('doors', undefined)}
+                    className={`${i18n.language === 'ar' ? 'mr-2' : 'ml-2'} text-gray-500 hover:text-gray-700`}
+                  >
+                    <MdClose className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Cylinders Pill */}
+              {filters.cylinders && (
+                <div className="flex items-center bg-gray-100 rounded-full px-3 py-1.5 text-sm text-gray-700">
+                  <span>{filters.cylinders} {t('cylinders', 'cylinders', { ns: 'search' })}</span>
+                  <button
+                    onClick={() => handleInputChange('cylinders', undefined)}
+                    className={`${i18n.language === 'ar' ? 'mr-2' : 'ml-2'} text-gray-500 hover:text-gray-700`}
+                  >
+                    <MdClose className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Results Info */}
         <div className="flex items-center justify-between mb-6">
