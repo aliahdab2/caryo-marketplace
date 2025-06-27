@@ -51,6 +51,7 @@ public class CarModelService {
      * @param brandId ID of the brand
      * @return List of active car models belonging to the brand
      */
+    @Transactional(readOnly = true)
     @Cacheable(value = "modelsByBrand", key = "'active-' + #brandId")
     public List<CarModel> getActiveModelsByBrandId(Long brandId) {
         log.debug("Fetching active car models for brand ID: {}", brandId);

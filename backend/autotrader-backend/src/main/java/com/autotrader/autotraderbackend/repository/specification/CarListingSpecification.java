@@ -19,102 +19,69 @@ public class CarListingSpecification {
             // Using denormalized fields for brand and model filtering
             // Search in both English and Arabic fields for better bilingual support
             
-            boolean hasBrandFilter = StringUtils.hasText(filter.getBrand());
-            boolean hasModelFilter = StringUtils.hasText(filter.getModel());
-            
-            if (hasBrandFilter && hasModelFilter) {
-                // When both brands and models are selected, create a combined OR condition:
-                // (brand1 OR brand2 OR ... OR brandN) OR (model1 OR model2 OR ... OR modelN)
-                // This allows showing cars from any selected brand PLUS cars with any selected model
-                
-                List<Predicate> combinedPredicates = new ArrayList<>();
-                
-                // Add brand predicates
-                String[] brandNames = filter.getBrand().split(",");
-                for (String brandName : brandNames) {
-                    String trimmedBrand = brandName.trim();
-                    if (StringUtils.hasText(trimmedBrand)) {
-                        Predicate brandEnPredicate = criteriaBuilder.like(
-                            criteriaBuilder.lower(root.get("brandNameEn")),
-                            "%" + trimmedBrand.toLowerCase() + "%"
-                        );
-                        Predicate brandArPredicate = criteriaBuilder.like(
-                            criteriaBuilder.lower(root.get("brandNameAr")),
-                            "%" + trimmedBrand.toLowerCase() + "%"
-                        );
-                        combinedPredicates.add(criteriaBuilder.or(brandEnPredicate, brandArPredicate));
+            // New logic for brand/model filtering to support complex hierarchical queries.
+            // The `brand` parameter can now contain brand-model pairs, e.g., "Toyota:Camry;Corolla,Honda"
+            // This translates to (Toyota AND (Camry OR Corolla)) OR (Honda).
+            // The top-level `model` parameter is only used if the `brand` parameter is empty.
+            if (StringUtils.hasText(filter.getBrand())) {
+                List<Predicate> brandOrConditions = new ArrayList<>();
+                String[] brandModelGroups = filter.getBrand().split(",");
+
+                for (String group : brandModelGroups) {
+                    if (StringUtils.hasText(group)) {
+                        String[] parts = group.split(":", 2);  // Split only on first colon
+                        String brandName = parts[0].trim();
+
+                        if (StringUtils.hasText(brandName)) {
+                            Predicate brandPredicate = createBilingualLikePredicate(root, criteriaBuilder, "brandName", brandName);
+
+                            if (parts.length > 1 && StringUtils.hasText(parts[1])) {
+                                // This group has models, e.g., "Camry;Corolla"
+                                String[] modelNames = parts[1].split(";");
+                                List<Predicate> modelOrPredicates = new ArrayList<>();
+                                
+                                for (String modelName : modelNames) {
+                                    String trimmedModel = modelName.trim();
+                                    if (StringUtils.hasText(trimmedModel)) {
+                                        modelOrPredicates.add(createBilingualLikePredicate(root, criteriaBuilder, "modelName", trimmedModel));
+                                    }
+                                }
+
+                                if (!modelOrPredicates.isEmpty()) {
+                                    Predicate modelsPredicate = modelOrPredicates.size() == 1
+                                        ? modelOrPredicates.get(0)
+                                        : criteriaBuilder.or(modelOrPredicates.toArray(new Predicate[0]));
+                                    brandOrConditions.add(criteriaBuilder.and(brandPredicate, modelsPredicate));
+                                } else {
+                                    // This case might happen for "Toyota:", treat as brand-only
+                                    brandOrConditions.add(brandPredicate);
+                                }
+                            } else {
+                                // This group is a brand only, e.g., "Honda"
+                                brandOrConditions.add(brandPredicate);
+                            }
+                        }
                     }
                 }
-                
-                // Add model predicates
-                String[] modelNames = filter.getModel().split(",");
-                for (String modelName : modelNames) {
-                    String trimmedModel = modelName.trim();
-                    if (StringUtils.hasText(trimmedModel)) {
-                        Predicate modelEnPredicate = criteriaBuilder.like(
-                            criteriaBuilder.lower(root.get("modelNameEn")),
-                            "%" + trimmedModel.toLowerCase() + "%"
-                        );
-                        Predicate modelArPredicate = criteriaBuilder.like(
-                            criteriaBuilder.lower(root.get("modelNameAr")),
-                            "%" + trimmedModel.toLowerCase() + "%"
-                        );
-                        combinedPredicates.add(criteriaBuilder.or(modelEnPredicate, modelArPredicate));
-                    }
+
+                if (!brandOrConditions.isEmpty()) {
+                    predicates.add(criteriaBuilder.or(brandOrConditions.toArray(new Predicate[0])));
                 }
-                
-                if (!combinedPredicates.isEmpty()) {
-                    predicates.add(criteriaBuilder.or(combinedPredicates.toArray(new Predicate[0])));
-                }
-                
-            } else if (hasBrandFilter) {
-                // Only brands selected - show cars from any selected brand
-                String[] brandNames = filter.getBrand().split(",");
-                List<Predicate> brandPredicates = new ArrayList<>();
-                
-                for (String brandName : brandNames) {
-                    String trimmedBrand = brandName.trim();
-                    if (StringUtils.hasText(trimmedBrand)) {
-                        Predicate brandEnPredicate = criteriaBuilder.like(
-                            criteriaBuilder.lower(root.get("brandNameEn")),
-                            "%" + trimmedBrand.toLowerCase() + "%"
-                        );
-                        Predicate brandArPredicate = criteriaBuilder.like(
-                            criteriaBuilder.lower(root.get("brandNameAr")),
-                            "%" + trimmedBrand.toLowerCase() + "%"
-                        );
-                        brandPredicates.add(criteriaBuilder.or(brandEnPredicate, brandArPredicate));
-                    }
-                }
-                
-                if (!brandPredicates.isEmpty()) {
-                    predicates.add(criteriaBuilder.or(brandPredicates.toArray(new Predicate[0])));
-                }
-                
-            } else if (hasModelFilter) {
-                // Only models selected - show cars with any selected model
-                String[] modelNames = filter.getModel().split(",");
+            } else if (StringUtils.hasText(filter.getModel())) {
+                // Fallback to model-only search if brand is not provided
                 List<Predicate> modelPredicates = new ArrayList<>();
-                
+                String[] modelNames = filter.getModel().split(",");
                 for (String modelName : modelNames) {
                     String trimmedModel = modelName.trim();
                     if (StringUtils.hasText(trimmedModel)) {
-                        Predicate modelEnPredicate = criteriaBuilder.like(
-                            criteriaBuilder.lower(root.get("modelNameEn")),
-                            "%" + trimmedModel.toLowerCase() + "%"
-                        );
-                        Predicate modelArPredicate = criteriaBuilder.like(
-                            criteriaBuilder.lower(root.get("modelNameAr")),
-                            "%" + trimmedModel.toLowerCase() + "%"
-                        );
-                        modelPredicates.add(criteriaBuilder.or(modelEnPredicate, modelArPredicate));
+                        modelPredicates.add(createBilingualLikePredicate(root, criteriaBuilder, "modelName", trimmedModel));
                     }
                 }
-                
                 if (!modelPredicates.isEmpty()) {
                     predicates.add(criteriaBuilder.or(modelPredicates.toArray(new Predicate[0])));
                 }
             }
+            
             if (filter.getMinYear() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("modelYear"), filter.getMinYear()));
             }
@@ -172,5 +139,18 @@ public class CarListingSpecification {
 
     public static Specification<CarListing> isUserActive() {
         return (root, query, criteriaBuilder) -> criteriaBuilder.isTrue(root.get("isUserActive"));
+    }
+
+    private static Predicate createBilingualLikePredicate(jakarta.persistence.criteria.Root<CarListing> root, jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder, String fieldName, String value) {
+        String lowerCaseValue = "%" + value.toLowerCase().trim() + "%";
+        Predicate enPredicate = criteriaBuilder.like(
+            criteriaBuilder.lower(root.get(fieldName + "En")),
+            lowerCaseValue
+        );
+        Predicate arPredicate = criteriaBuilder.like(
+            criteriaBuilder.lower(root.get(fieldName + "Ar")),
+            lowerCaseValue
+        );
+        return criteriaBuilder.or(enPredicate, arPredicate);
     }
 }
