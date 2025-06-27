@@ -32,7 +32,7 @@ import { useApiData } from '@/hooks/useApiData';
 // Move interface outside component for better performance
 interface AdvancedSearchFilters {
   // Basic filters matching backend ListingFilterRequest
-  brand?: string;
+  brand?: string | string[]; // Support both single brand and multiple brands
   model?: string | string[]; // Support both single model and multiple models
   minYear?: number;
   maxYear?: number;
@@ -196,7 +196,15 @@ function AdvancedSearchPageContent() {
     const initialFilters: AdvancedSearchFilters = {};
     
     // Basic filters
-    if (searchParams?.get('brand')) initialFilters.brand = searchParams.get('brand')!;
+    if (searchParams?.get('brand')) {
+      const brandParam = searchParams.get('brand')!;
+      // Handle comma-separated brands
+      if (brandParam.includes(',')) {
+        initialFilters.brand = brandParam.split(',').map(b => b.trim());
+      } else {
+        initialFilters.brand = brandParam;
+      }
+    }
     if (searchParams?.get('model')) {
       const modelParam = searchParams.get('model')!;
       // Handle comma-separated models
@@ -348,6 +356,50 @@ function AdvancedSearchPageContent() {
     handleInputChange('model', newModelValue);
   }, [getSelectedModels, handleInputChange]);
 
+  // Helper functions for multiple brand handling
+  const getSelectedBrands = useCallback((): string[] => {
+    if (!filters.brand) return [];
+    return Array.isArray(filters.brand) ? filters.brand : [filters.brand];
+  }, [filters.brand]);
+
+  const isBrandSelected = useCallback((brandName: string): boolean => {
+    const selectedBrands = getSelectedBrands();
+    return selectedBrands.includes(brandName);
+  }, [getSelectedBrands]);
+
+  const toggleBrand = useCallback((brandName: string) => {
+    const selectedBrands = getSelectedBrands();
+    let newBrands: string[];
+    
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Toggle brand called:', brandName);
+      console.log('Current selected brands:', selectedBrands);
+    }
+    
+    if (selectedBrands.includes(brandName)) {
+      // Remove brand
+      newBrands = selectedBrands.filter(b => b !== brandName);
+    } else {
+      // Add brand
+      newBrands = [...selectedBrands, brandName];
+    }
+    
+    const newBrandValue = newBrands.length === 0 ? undefined : 
+                         newBrands.length === 1 ? newBrands[0] : newBrands;
+    
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('New brands array:', newBrands);
+      console.log('New brand value for filter:', newBrandValue);
+    }
+    
+    handleInputChange('brand', newBrandValue);
+    
+    // Clear models if no brands are selected
+    if (newBrands.length === 0) {
+      handleInputChange('model', undefined);
+    }
+  }, [getSelectedBrands, handleInputChange]);
+
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(0);
@@ -453,12 +505,19 @@ function AdvancedSearchPageContent() {
     switch (filterType) {
       case 'makeModel':
         if (filters.brand && filters.model) {
+          const brandText = Array.isArray(filters.brand) 
+            ? (filters.brand.length > 1 ? `${filters.brand.length} brands` : filters.brand[0])
+            : filters.brand;
           const modelText = Array.isArray(filters.model) 
             ? (filters.model.length > 1 ? `${filters.model.length} models` : filters.model[0])
             : filters.model;
-          return `${filters.brand} ${modelText}`;
+          return `${brandText} ${modelText}`;
         }
-        if (filters.brand) return filters.brand;
+        if (filters.brand) {
+          return Array.isArray(filters.brand) 
+            ? (filters.brand.length > 1 ? `${filters.brand.length} brands` : filters.brand[0])
+            : filters.brand;
+        }
         return t('search.makeAndModel', 'Make and model');
       case 'price':
         if (filters.minPrice && filters.maxPrice) return `£${filters.minPrice} - £${filters.maxPrice}`;
@@ -723,24 +782,36 @@ function AdvancedSearchPageContent() {
               {(filters.brand || getSelectedModels().length > 0) && (
                 <div className="p-4 bg-blue-50 border-b border-gray-200">
                   <div className="flex flex-wrap gap-2">
-                    {/* Brand pill */}
+                    {/* Brand pills */}
                     {filters.brand && (
-                      <BrandPill 
-                        brandName={filters.brand}
-                        onClick={() => {
-                          const brand = carMakes?.find(make => 
-                            getDisplayName(make).toLowerCase() === filters.brand?.toLowerCase()
-                          );
-                          if (brand) {
-                            setSelectedMake(brand.id);
-                          }
-                        }}
-                        onRemove={() => {
-                          handleInputChange('brand', undefined);
-                          handleInputChange('model', undefined);
-                          setSelectedMake(null);
-                        }}
-                      />
+                      <>
+                        {(Array.isArray(filters.brand) ? filters.brand : [filters.brand]).map(brandName => (
+                          <BrandPill 
+                            key={brandName}
+                            brandName={brandName}
+                            onClick={() => {
+                              const brand = carMakes?.find(make => 
+                                getDisplayName(make).toLowerCase() === brandName.toLowerCase()
+                              );
+                              if (brand) {
+                                setSelectedMake(brand.id);
+                              }
+                            }}
+                            onRemove={() => {
+                              if (Array.isArray(filters.brand) && filters.brand.length > 1) {
+                                // Remove just this brand
+                                const newBrands = filters.brand.filter(b => b !== brandName);
+                                handleInputChange('brand', newBrands.length === 1 ? newBrands[0] : newBrands);
+                              } else {
+                                // Remove all brands and models
+                                handleInputChange('brand', undefined);
+                                handleInputChange('model', undefined);
+                                setSelectedMake(null);
+                              }
+                            }}
+                          />
+                        ))}
+                      </>
                     )}
                     
                     {/* Model pills */}
@@ -800,18 +871,20 @@ function AdvancedSearchPageContent() {
                             <input
                               type="checkbox"
                               id={`make-${make.id}`}
-                              checked={filters.brand === getDisplayName(make)}
+                              checked={isBrandSelected(getDisplayName(make))}
                               onChange={(e) => {
                                 e.stopPropagation();
-                                if (e.target.checked) {
-                                  handleInputChange('brand', getDisplayName(make));
-                                  setSelectedMake(make.id);
-                                } else {
-                                  handleInputChange('brand', undefined);
+                                const brandName = getDisplayName(make);
+                                toggleBrand(brandName);
+                                
+                                // If unchecking the currently expanded brand, close the expansion
+                                if (!e.target.checked && selectedMake === make.id) {
+                                  setSelectedMake(null);
+                                  // Also clear models when unchecking the brand
                                   handleInputChange('model', undefined);
-                                  if (selectedMake === make.id) {
-                                    setSelectedMake(null);
-                                  }
+                                } else if (e.target.checked) {
+                                  // Expand this brand when checking it
+                                  setSelectedMake(make.id);
                                 }
                               }}
                               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-5 w-5"
@@ -1372,7 +1445,7 @@ function AdvancedSearchPageContent() {
     try {
       // Convert filters to backend format
       const listingFilters: CarListingFilterParams = {
-        brand: filters.brand,
+        brand: Array.isArray(filters.brand) ? filters.brand.join(',') : filters.brand,
         model: Array.isArray(filters.model) ? filters.model.join(',') : filters.model,
         minYear: filters.minYear,
         maxYear: filters.maxYear,
@@ -1394,6 +1467,12 @@ function AdvancedSearchPageContent() {
         page: currentPage,
         sort: 'createdAt,desc' // Default sort
       };
+
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Sending API request with filters:', listingFilters);
+        console.log('Original filters.brand:', filters.brand);
+        console.log('Processed brand for API:', listingFilters.brand);
+      }
 
       const response = await fetchCarListings(listingFilters);
       setCarListings(response);
