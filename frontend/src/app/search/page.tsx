@@ -118,7 +118,7 @@ function AdvancedSearchPageContent() {
     error: brandsError
   } = useApiData<CarMake[]>(
     fetchCarBrandsWithRealCounts, // Use real counts from actual listings
-    '/api/reference-data/brands-with-counts',
+    'brands-with-real-counts', // Custom cache key for composite operation
     [t]
   );
 
