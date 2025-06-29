@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
-import SimpleLanguageSwitcher from "@/components/SimpleLanguageSwitcher";
+import DropdownLanguageSwitcher from "@/components/DropdownLanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
 import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdDirectionsCar, MdSearch } from "react-icons/md";
 import type { ComponentProps } from "@/types/components";
@@ -224,10 +224,7 @@ export default function Navbar({ className }: ComponentProps) {
                     
                     {/* Language Switcher in user menu */}
                     <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-600">
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                        {t('header.language', 'Language')}
-                      </div>
-                      <SimpleLanguageSwitcher />
+                      <DropdownLanguageSwitcher />
                     </div>
                   </div>
                   
@@ -410,10 +407,7 @@ export default function Navbar({ className }: ComponentProps) {
                 
                 {/* Language Switcher in mobile menu for logged-in users */}
                 <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-700">
-                  <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                    {t('header.language', 'Language')}
-                  </div>
-                  <SimpleLanguageSwitcher />
+                  <DropdownLanguageSwitcher />
                 </div>
                 
                 <button
