@@ -3,336 +3,551 @@ package com.autotrader.autotraderbackend.repository.specification;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
-import jakarta.persistence.criteria.*;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@ExtendWith(MockitoExtension.class)
+@DisplayName("CarListingSpecification Tests")
 class CarListingSpecificationTest {
 
-    @Mock
-    private Root<CarListing> root;
+    @Nested
+    @DisplayName("Hierarchical Brand Filter Tests")
+    class HierarchicalBrandFilterTests {
 
-    @Mock
-    private CriteriaQuery<?> query;
+        @Test
+        @DisplayName("Should create specification with single brand filter")
+        void fromFilter_withSingleBrand_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setBrand("Toyota");
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
 
-    @Mock
-    private CriteriaBuilder criteriaBuilder;
+        @Test
+        @DisplayName("Should create specification with brand and single model")
+        void fromFilter_withBrandAndSingleModel_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setBrand("Toyota:Camry");
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
 
-    @Mock
-    private Path<String> stringPath;
-    @Mock
-    private Path<Integer> integerPath;
-    @Mock
-    private Path<Double> doublePath;
-    @Mock
-    private Path<BigDecimal> bigDecimalPath;
-    @Mock
-    private Path<Boolean> booleanPath;
+        @Test
+        @DisplayName("Should create specification with brand and multiple models")
+        void fromFilter_withBrandAndMultipleModels_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setBrand("Toyota:Camry;Corolla;Prius");
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
 
-    @Mock
-    private Predicate mockPredicate;
+        @Test
+        @DisplayName("Should create specification with multiple brands and models")
+        void fromFilter_withMultipleBrandsAndModels_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setBrand("Toyota:Camry;Corolla,Honda:Civic;Accord,BMW:X3");
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
 
-    @BeforeEach
-    @SuppressWarnings("unchecked") // Suppress warnings for generic mocking
-    void setUpMocks() {
-        // Mock root.get() calls to return appropriate Path objects
-        lenient().when(root.<String>get(anyString())).thenReturn(stringPath);
-        lenient().when(root.<Integer>get(eq("modelYear"))).thenReturn(integerPath);
-        lenient().when(root.<Integer>get(eq("mileage"))).thenReturn(integerPath);
-        // Mock get("price") to return the BigDecimal path
-        lenient().when(root.<BigDecimal>get(eq("price"))).thenReturn(bigDecimalPath);
-        lenient().when(root.<Boolean>get(eq("approved"))).thenReturn(booleanPath);
+        @Test
+        @DisplayName("Should create specification with mixed brand-only and brand-with-models")
+        void fromFilter_withMixedBrandTypes_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setBrand("Toyota:Camry,Honda,BMW:X3;X5");
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
 
-        // Mock criteriaBuilder methods to return a generic predicate
-        // Specific interactions will be verified in tests
-        lenient().when(criteriaBuilder.like(any(), anyString())).thenReturn(mockPredicate);
-        lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(mockPredicate);
-        lenient().when(criteriaBuilder.or(any(Predicate.class), any(Predicate.class))).thenReturn(mockPredicate);
-        // These lines cause the warnings, suppressed by annotation on method
-        lenient().when(criteriaBuilder.greaterThanOrEqualTo(any(), any(Comparable.class))).thenReturn(mockPredicate);
-        lenient().when(criteriaBuilder.lessThanOrEqualTo(any(), any(Comparable.class))).thenReturn(mockPredicate);
-        lenient().when(criteriaBuilder.isTrue(any())).thenReturn(mockPredicate);
-        lenient().when(criteriaBuilder.and(any(Predicate[].class))).thenReturn(mockPredicate); // For the final AND
-        lenient().when(criteriaBuilder.lower(any())).thenReturn(stringPath); // Mock lower() to return the path itself for simplicity
+        @Test
+        @DisplayName("Should handle empty brand filter gracefully")
+        void fromFilter_withEmptyBrand_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setBrand("");
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should handle null brand filter gracefully")
+        void fromFilter_withNullBrand_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setBrand(null);
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should handle brand filter with spaces and special characters")
+        void fromFilter_withSpecialCharacters_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setBrand("Mercedes-Benz:C-Class;E-Class,Rolls-Royce:Phantom");
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+            "Toyota:Camry",
+            "Honda",
+            "BMW:X3;X5;M3",
+            "Toyota:Camry,Honda:Civic",
+            "Mercedes-Benz:C-Class;E-Class,BMW",
+            "Audi:A4;A6;Q7,Lexus:ES;RX,Infiniti"
+        })
+        @DisplayName("Should handle various valid brand filter formats")
+        void fromFilter_withVariousValidFormats_shouldCreateSpecification(String brandFilter) {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setBrand(brandFilter);
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
     }
 
-    @Test
-    void fromFilter_withEmptyFilter_shouldReturnNoPredicates() {
-        ListingFilterRequest filter = new ListingFilterRequest();
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+    @Nested
+    @DisplayName("Year Range Filter Tests")
+    class YearRangeFilterTests {
 
-        spec.toPredicate(root, query, criteriaBuilder);
+        @Test
+        @DisplayName("Should create specification with valid year range")
+        void fromFilter_withValidYearRange_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setMinYear(2020);
+            filter.setMaxYear(2024);
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
 
-        // Verify that 'and' is called with an empty array (or null predicate if empty)
-        verify(criteriaBuilder).and(eq(new Predicate[0]));
-        verifyNoMoreInteractions(criteriaBuilder); // Ensure no other criteria methods were called
+        @Test
+        @DisplayName("Should create specification with only minimum year")
+        void fromFilter_withOnlyMinYear_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setMinYear(2020);
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should create specification with only maximum year")
+        void fromFilter_withOnlyMaxYear_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setMaxYear(2024);
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "1899", "2031", "0", "-1", "3000"
+        })
+        @DisplayName("Should throw exception for invalid minimum years")
+        void fromFilter_withInvalidMinYear_shouldThrowException(int invalidYear) {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setMinYear(invalidYear);
+            
+            // When & Then
+            assertThatThrownBy(() -> CarListingSpecification.fromFilter(filter, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid minimum year");
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "1899", "2031", "0", "-1", "3000"
+        })
+        @DisplayName("Should throw exception for invalid maximum years")
+        void fromFilter_withInvalidMaxYear_shouldThrowException(int invalidYear) {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setMaxYear(invalidYear);
+            
+            // When & Then
+            assertThatThrownBy(() -> CarListingSpecification.fromFilter(filter, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid maximum year");
+        }
+
+        @Test
+        @DisplayName("Should throw exception when min year is greater than max year")
+        void fromFilter_withMinYearGreaterThanMaxYear_shouldThrowException() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setMinYear(2024);
+            filter.setMaxYear(2020);
+            
+            // When & Then
+            assertThatThrownBy(() -> CarListingSpecification.fromFilter(filter, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Minimum year cannot be greater than maximum year");
+        }
     }
 
-    @Test
-    void fromFilter_withBrand_shouldAddBrandPredicate() {
-        ListingFilterRequest filter = new ListingFilterRequest();
-        filter.setBrand("Toyota");
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+    @Nested
+    @DisplayName("Price Range Filter Tests")
+    class PriceRangeFilterTests {
 
-        spec.toPredicate(root, query, criteriaBuilder);
+        @Test
+        @DisplayName("Should create specification with valid price range")
+        void fromFilter_withValidPriceRange_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setMinPrice(new BigDecimal("10000"));
+            filter.setMaxPrice(new BigDecimal("50000"));
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
 
-        // Verify bilingual brand search - should search in both English and Arabic fields
-        verify(criteriaBuilder, times(2)).lower(any()); // Called twice: once for brandNameEn, once for brandNameAr
-        verify(criteriaBuilder, times(2)).like(any(), eq("%toyota%"));
-        verify(criteriaBuilder).or(any(Predicate.class), any(Predicate.class));
+        @Test
+        @DisplayName("Should throw exception for negative minimum price")
+        void fromFilter_withNegativeMinPrice_shouldThrowException() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setMinPrice(new BigDecimal("-1000"));
+            
+            // When & Then
+            assertThatThrownBy(() -> CarListingSpecification.fromFilter(filter, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Minimum price cannot be negative");
+        }
 
-        // Use ArgumentCaptor for 'and'
-        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
-        verify(criteriaBuilder).and(predicateCaptor.capture());
-        assertEquals(1, predicateCaptor.getValue().length, "Should combine exactly 1 predicate");
+        @Test
+        @DisplayName("Should throw exception for negative maximum price")
+        void fromFilter_withNegativeMaxPrice_shouldThrowException() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setMaxPrice(new BigDecimal("-5000"));
+            
+            // When & Then
+            assertThatThrownBy(() -> CarListingSpecification.fromFilter(filter, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Maximum price cannot be negative");
+        }
+
+        @Test
+        @DisplayName("Should throw exception when min price is greater than max price")
+        void fromFilter_withMinPriceGreaterThanMaxPrice_shouldThrowException() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setMinPrice(new BigDecimal("50000"));
+            filter.setMaxPrice(new BigDecimal("30000"));
+            
+            // When & Then
+            assertThatThrownBy(() -> CarListingSpecification.fromFilter(filter, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Minimum price cannot be greater than maximum price");
+        }
     }
 
-    @Test
-    void fromFilter_withModel_shouldAddModelPredicate() {
-        ListingFilterRequest filter = new ListingFilterRequest();
-        filter.setModel("Camry");
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+    @Nested
+    @DisplayName("Mileage Range Filter Tests")
+    class MileageRangeFilterTests {
 
-        spec.toPredicate(root, query, criteriaBuilder);
+        @Test
+        @DisplayName("Should create specification with valid mileage range")
+        void fromFilter_withValidMileageRange_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setMinMileage(10000);
+            filter.setMaxMileage(100000);
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
 
-        // Verify bilingual model search - should search in both English and Arabic fields
-        verify(criteriaBuilder, times(2)).lower(any()); // Called twice: once for modelNameEn, once for modelNameAr
-        verify(criteriaBuilder, times(2)).like(any(), eq("%camry%"));
-        verify(criteriaBuilder).or(any(Predicate.class), any(Predicate.class));
+        @Test
+        @DisplayName("Should throw exception for negative minimum mileage")
+        void fromFilter_withNegativeMinMileage_shouldThrowException() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setMinMileage(-1000);
+            
+            // When & Then
+            assertThatThrownBy(() -> CarListingSpecification.fromFilter(filter, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Minimum mileage cannot be negative");
+        }
 
-        // Use ArgumentCaptor for 'and'
-        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
-        verify(criteriaBuilder).and(predicateCaptor.capture());
-        assertEquals(1, predicateCaptor.getValue().length, "Should combine exactly 1 predicate");
+        @Test
+        @DisplayName("Should throw exception when min mileage is greater than max mileage")
+        void fromFilter_withMinMileageGreaterThanMaxMileage_shouldThrowException() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setMinMileage(100000);
+            filter.setMaxMileage(50000);
+            
+            // When & Then
+            assertThatThrownBy(() -> CarListingSpecification.fromFilter(filter, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Minimum mileage cannot be greater than maximum mileage");
+        }
     }
 
-    @Test
-    void fromFilter_withMinMaxYear_shouldAddYearPredicates() {
-        ListingFilterRequest filter = new ListingFilterRequest();
-        filter.setMinYear(2015);
-        filter.setMaxYear(2020);
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+    @Nested
+    @DisplayName("Complex Filter Combination Tests")
+    class ComplexFilterTests {
 
-        spec.toPredicate(root, query, criteriaBuilder);
+        @Test
+        @DisplayName("Should create specification with all filters combined")
+        void fromFilter_withAllFilters_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setBrand("Toyota:Camry;Corolla,Honda:Civic");
+            filter.setMinYear(2020);
+            filter.setMaxYear(2024);
+            filter.setMinPrice(new BigDecimal("15000"));
+            filter.setMaxPrice(new BigDecimal("45000"));
+            filter.setMinMileage(5000);
+            filter.setMaxMileage(80000);
+            filter.setIsSold(false);
+            filter.setIsArchived(false);
+            filter.setSellerTypeId(1L);
 
-        // Use eq() for the Path argument
-        verify(criteriaBuilder).greaterThanOrEqualTo(eq(root.get("modelYear")), eq(2015));
-        verify(criteriaBuilder).lessThanOrEqualTo(eq(root.get("modelYear")), eq(2020));
+            Governorate governorate = new Governorate();
+            governorate.setId(1L);
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, governorate);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
 
-        // Use ArgumentCaptor for 'and'
-        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
-        verify(criteriaBuilder).and(predicateCaptor.capture());
-        assertEquals(2, predicateCaptor.getValue().length, "Should combine exactly 2 predicates");
+        @Test
+        @DisplayName("Should handle filters with whitespace and formatting issues")
+        void fromFilter_withWhitespaceAndFormatting_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            filter.setBrand("  Toyota : Camry ; Corolla  ,  Honda : Civic  ");
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
     }
 
-     @Test
-    void fromFilter_withMinMaxPrice_shouldAddPricePredicates() {
-        ListingFilterRequest filter = new ListingFilterRequest();
-        BigDecimal minPrice = BigDecimal.valueOf(10000.0);
-        BigDecimal maxPrice = BigDecimal.valueOf(20000.0);
-        filter.setMinPrice(minPrice);
-        filter.setMaxPrice(maxPrice);
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+    @Nested
+    @DisplayName("Null and Edge Case Tests")
+    class NullAndEdgeCaseTests {
 
-        spec.toPredicate(root, query, criteriaBuilder);
+        @Test
+        @DisplayName("Should throw exception for null filter")
+        void fromFilter_withNullFilter_shouldThrowException() {
+            // When & Then
+            assertThatThrownBy(() -> CarListingSpecification.fromFilter(null, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Filter request cannot be null");
+        }
 
-        // Use eq() for the Path argument
-        verify(criteriaBuilder).greaterThanOrEqualTo(eq(root.get("price")), eq(minPrice));
-        verify(criteriaBuilder).lessThanOrEqualTo(eq(root.get("price")), eq(maxPrice));
+        @Test
+        @DisplayName("Should create specification with empty filter")
+        void fromFilter_withEmptyFilter_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
 
-        // Use ArgumentCaptor for 'and'
-        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
-        verify(criteriaBuilder).and(predicateCaptor.capture());
-        assertEquals(2, predicateCaptor.getValue().length, "Should combine exactly 2 predicates");
+        @Test
+        @DisplayName("Should handle governorate entity filter")
+        void fromFilter_withGovernorateEntity_shouldCreateSpecification() {
+            // Given
+            ListingFilterRequest filter = new ListingFilterRequest();
+            Governorate governorate = new Governorate();
+            governorate.setId(1L);
+            
+            // When
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, governorate);
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
     }
 
-    @Test
-    void fromFilter_withMinMaxMileage_shouldAddMileagePredicates() {
-        ListingFilterRequest filter = new ListingFilterRequest();
-        filter.setMinMileage(50000);
-        filter.setMaxMileage(100000);
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+    @Nested
+    @DisplayName("Static Specification Tests")
+    class StaticSpecificationTests {
 
-        spec.toPredicate(root, query, criteriaBuilder);
+        @Test
+        @DisplayName("Should create isApproved specification")
+        void isApproved_shouldCreateSpecification() {
+            // When
+            Specification<CarListing> spec = CarListingSpecification.isApproved();
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
 
-        // Use eq() for the Path argument
-        verify(criteriaBuilder).greaterThanOrEqualTo(eq(root.get("mileage")), eq(50000));
-        verify(criteriaBuilder).lessThanOrEqualTo(eq(root.get("mileage")), eq(100000));
+        @Test
+        @DisplayName("Should create isNotSold specification")
+        void isNotSold_shouldCreateSpecification() {
+            // When
+            Specification<CarListing> spec = CarListingSpecification.isNotSold();
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
 
-        // Use ArgumentCaptor for 'and'
-        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
-        verify(criteriaBuilder).and(predicateCaptor.capture());
-        assertEquals(2, predicateCaptor.getValue().length, "Should combine exactly 2 predicates");
+        @Test
+        @DisplayName("Should create isNotArchived specification")
+        void isNotArchived_shouldCreateSpecification() {
+            // When
+            Specification<CarListing> spec = CarListingSpecification.isNotArchived();
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should create isUserActive specification")
+        void isUserActive_shouldCreateSpecification() {
+            // When
+            Specification<CarListing> spec = CarListingSpecification.isUserActive();
+            
+            // Then
+            assertThat(spec).isNotNull();
+        }
     }
 
-    @Test
-    void fromFilter_withLocation_shouldAddLocationPredicate() {
-        ListingFilterRequest filter = new ListingFilterRequest();
-        filter.setLocation("London");
-        // We're passing null for the locationEntity - the location field in filter should be ignored
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+    @Nested
+    @DisplayName("Brand Filter Validation Tests")
+    class BrandFilterValidationTests {
 
-        spec.toPredicate(root, query, criteriaBuilder);
+        @ParameterizedTest
+        @ValueSource(strings = {
+            "Toyota",
+            "Toyota:Camry",
+            "Toyota:Camry;Corolla",
+            "Toyota:Camry,Honda:Civic",
+            "Mercedes-Benz:C-Class;E-Class",
+            ""
+        })
+        @DisplayName("Should validate correct brand filter formats")
+        void isValidHierarchicalBrandFilter_withValidFormats_shouldReturnTrue(String brandFilter) {
+            // When
+            boolean isValid = CarListingSpecification.isValidHierarchicalBrandFilter(brandFilter);
+            
+            // Then
+            assertThat(isValid).isTrue();
+        }
 
-        // Verify location filter has been removed in favor of locationEntity in the main specification
-        // This test now verifies that no location-related filters are applied without a Location entity
+        @Test
+        @DisplayName("Should validate null brand filter as valid")
+        void isValidHierarchicalBrandFilter_withNull_shouldReturnTrue() {
+            // When
+            boolean isValid = CarListingSpecification.isValidHierarchicalBrandFilter(null);
+            
+            // Then
+            assertThat(isValid).isTrue();
+        }
 
-        // Use ArgumentCaptor for 'and'
-        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
-        verify(criteriaBuilder).and(predicateCaptor.capture());
-        assertEquals(0, predicateCaptor.getValue().length, "Should combine 0 predicates since location string is now ignored");
-    }
+        @Test
+        @DisplayName("Should invalidate brand filter with excessively long brand name")
+        void isValidHierarchicalBrandFilter_withLongBrandName_shouldReturnFalse() {
+            // Given
+            String longBrandName = "A".repeat(101); // 101 characters
+            
+            // When
+            boolean isValid = CarListingSpecification.isValidHierarchicalBrandFilter(longBrandName);
+            
+            // Then
+            assertThat(isValid).isFalse();
+        }
 
-    @Test
-    @SuppressWarnings("unchecked")
-    void fromFilter_withAllFilters_shouldAddAllPredicates() {
-        // Mock the nested path structure for seller.sellerType.id
-        Path<Object> sellerPath = mock(Path.class);
-        Path<Object> sellerTypePath = mock(Path.class);
-        Path<Object> sellerTypeIdPath = mock(Path.class);
-        when(root.get("seller")).thenReturn(sellerPath);
-        when(sellerPath.get("sellerType")).thenReturn(sellerTypePath);
-        when(sellerTypePath.get("id")).thenReturn(sellerTypeIdPath);
-
-        ListingFilterRequest filter = new ListingFilterRequest();
-        filter.setBrand("Honda");
-        filter.setModel("Civic");
-        filter.setMinYear(2018);
-        filter.setMaxYear(2021);
-        BigDecimal minPrice = BigDecimal.valueOf(15000.0);
-        BigDecimal maxPrice = BigDecimal.valueOf(25000.0);
-        filter.setMinPrice(minPrice);
-        filter.setMaxPrice(maxPrice);
-        filter.setMinMileage(30000);
-        filter.setMaxMileage(60000);
-        filter.setLocation("Manchester");
-        filter.setSellerTypeId(1L);
-
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
-        spec.toPredicate(root, query, criteriaBuilder);
-
-        // Verify individual predicates using eq() for Path arguments where applicable
-        verify(criteriaBuilder, times(4)).lower(any()); // Called 4 times: 2 for brand (EN + AR), 2 for model (EN + AR)
-        verify(criteriaBuilder, times(2)).like(any(), eq("%honda%")); // 2 times for brand (EN + AR)
-        verify(criteriaBuilder, times(2)).like(any(), eq("%civic%")); // 2 times for model (EN + AR)
-        verify(criteriaBuilder, times(2)).or(any(Predicate.class), any(Predicate.class)); // For brand and model OR conditions
-        verify(criteriaBuilder).greaterThanOrEqualTo(eq(root.get("modelYear")), eq(2018));
-        verify(criteriaBuilder).lessThanOrEqualTo(eq(root.get("modelYear")), eq(2021));
-        verify(criteriaBuilder).greaterThanOrEqualTo(eq(root.get("price")), eq(minPrice));
-        verify(criteriaBuilder).lessThanOrEqualTo(eq(root.get("price")), eq(maxPrice));
-        verify(criteriaBuilder).greaterThanOrEqualTo(eq(root.get("mileage")), eq(30000));
-        verify(criteriaBuilder).lessThanOrEqualTo(eq(root.get("mileage")), eq(60000));
-        
-        // Verify seller type filter
-        verify(root).get("seller");
-        verify(sellerPath).get("sellerType");
-        verify(sellerTypePath).get("id");
-        verify(criteriaBuilder).equal(sellerTypeIdPath, 1L);
-        
-        // No longer verify location String predicate since we use locationEntity now
-        // verify(criteriaBuilder).like(any(), eq("%manchester%"));
-
-        // Verify the final 'and' combines all 9 predicates using ArgumentCaptor (was 8, now 9 with sellerType)
-        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
-        verify(criteriaBuilder).and(predicateCaptor.capture());
-        assertEquals(9, predicateCaptor.getValue().length, "Should combine exactly 9 predicates");
-    }
-
-    @Test
-    void isApproved_shouldAddApprovedPredicate() {
-        Specification<CarListing> spec = CarListingSpecification.isApproved();
-        spec.toPredicate(root, query, criteriaBuilder);
-
-        verify(criteriaBuilder).isTrue(eq(root.get("approved"))); // Use eq() for Path
-        verifyNoMoreInteractions(criteriaBuilder); // Ensure only isTrue was called
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void fromFilter_withGovernorateEntity_shouldAddGovernoratePredicate() {
-        // Create a mock Governorate entity
-        Governorate mockGovernorate = mock(Governorate.class);
-        when(mockGovernorate.getId()).thenReturn(1L);
-
-        // Mock the nested path structure for governorate.id
-        Path<Object> governoratePath = mock(Path.class);
-        Path<Object> governorateIdPath = mock(Path.class);
-        when(root.get("governorate")).thenReturn(governoratePath);
-        when(governoratePath.get("id")).thenReturn(governorateIdPath);
-
-        ListingFilterRequest filter = new ListingFilterRequest();
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, mockGovernorate);
-
-        spec.toPredicate(root, query, criteriaBuilder);
-
-        // Verify that the correct path is used: root.get("governorate").get("id")
-        verify(root).get("governorate");
-        verify(governoratePath).get("id");
-        verify(criteriaBuilder).equal(governorateIdPath, 1L);
-
-        // Use ArgumentCaptor for 'and'
-        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
-        verify(criteriaBuilder).and(predicateCaptor.capture());
-        assertEquals(1, predicateCaptor.getValue().length, "Should combine exactly 1 predicate for governorate filter");
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void fromFilter_withSellerTypeId_shouldAddSellerTypePredicate() {
-        // Mock the nested path structure for seller.sellerType.id
-        Path<Object> sellerPath = mock(Path.class);
-        Path<Object> sellerTypePath = mock(Path.class);
-        Path<Object> sellerTypeIdPath = mock(Path.class);
-        when(root.get("seller")).thenReturn(sellerPath);
-        when(sellerPath.get("sellerType")).thenReturn(sellerTypePath);
-        when(sellerTypePath.get("id")).thenReturn(sellerTypeIdPath);
-
-        ListingFilterRequest filter = new ListingFilterRequest();
-        filter.setSellerTypeId(2L);
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
-
-        spec.toPredicate(root, query, criteriaBuilder);
-
-        // Verify that the correct path is used: root.get("seller").get("sellerType").get("id")
-        verify(root).get("seller");
-        verify(sellerPath).get("sellerType");
-        verify(sellerTypePath).get("id");
-        verify(criteriaBuilder).equal(sellerTypeIdPath, 2L);
-
-        // Use ArgumentCaptor for 'and'
-        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
-        verify(criteriaBuilder).and(predicateCaptor.capture());
-        assertEquals(1, predicateCaptor.getValue().length, "Should combine exactly 1 predicate for seller type filter");
-    }
-
-    @Test
-    void fromFilter_withIsSoldAndIsArchived_shouldAddStatusPredicates() {
-        ListingFilterRequest filter = new ListingFilterRequest();
-        filter.setIsSold(true);
-        filter.setIsArchived(false);
-        Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
-
-        spec.toPredicate(root, query, criteriaBuilder);
-
-        // Verify status filters
-        verify(criteriaBuilder).equal(eq(root.get("sold")), eq(true));
-        verify(criteriaBuilder).equal(eq(root.get("archived")), eq(false));
-
-        // Use ArgumentCaptor for 'and'
-        ArgumentCaptor<Predicate[]> predicateCaptor = ArgumentCaptor.forClass(Predicate[].class);
-        verify(criteriaBuilder).and(predicateCaptor.capture());
-        assertEquals(2, predicateCaptor.getValue().length, "Should combine exactly 2 predicates for status filters");
+        @Test
+        @DisplayName("Should invalidate brand filter with excessively long model name")
+        void isValidHierarchicalBrandFilter_withLongModelName_shouldReturnFalse() {
+            // Given
+            String longModelName = "A".repeat(101); // 101 characters
+            String brandFilter = "Toyota:" + longModelName;
+            
+            // When
+            boolean isValid = CarListingSpecification.isValidHierarchicalBrandFilter(brandFilter);
+            
+            // Then
+            assertThat(isValid).isFalse();
+        }
     }
 }

@@ -28,12 +28,22 @@ public class ListingFilterRequest {
 
     /**
      * Filter by car brand (manufacturer). Optional.
+     * Supports multiple brands as comma-separated values (e.g., "Toyota,Honda").
+     * Also supports hierarchical syntax for filtering by specific models within brands.
+     * Examples:
+     * - "Toyota" - All Toyota vehicles
+     * - "Toyota:Camry" - Only Toyota Camry models
+     * - "Toyota:Camry;Corolla" - Toyota Camry and Corolla models
+     * - "Toyota:Camry;Corolla,Honda" - Toyota Camry/Corolla and all Honda models
      */
     private String brand;
 
     /**
      * Filter by car model. Optional.
+     * @deprecated Use the hierarchical brand syntax instead (e.g., "Toyota:Camry")
+     * This field is kept for backward compatibility but is ignored when hierarchical brand syntax is used.
      */
+    @Deprecated
     private String model;
 
     /**

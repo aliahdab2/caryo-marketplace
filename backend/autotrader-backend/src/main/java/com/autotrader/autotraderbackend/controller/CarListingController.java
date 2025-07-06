@@ -290,8 +290,8 @@ public class CarListingController {
         }
     )
     public ResponseEntity<PageResponse<CarListingResponse>> getFilteredListingsByParams(
-            @Parameter(description = "Brand filter") @RequestParam(required = false) String brand,
-            @Parameter(description = "Model filter") @RequestParam(required = false) String model,
+            @Parameter(description = "Brand filter. Supports hierarchical syntax: 'Toyota' (all Toyota), 'Toyota:Camry' (only Camry), 'Toyota:Camry;Corolla' (Camry and Corolla), 'Toyota:Camry,Honda' (Toyota Camry and all Honda)") @RequestParam(required = false) String brand,
+            @Parameter(description = "Model filter (deprecated - use hierarchical brand syntax instead)") @RequestParam(required = false) String model,
             @Parameter(description = "Minimum year") @RequestParam(required = false) Integer minYear,
             @Parameter(description = "Maximum year") @RequestParam(required = false) Integer maxYear,
             @Parameter(description = "Location (slug or name)") @RequestParam(required = false) String location,
