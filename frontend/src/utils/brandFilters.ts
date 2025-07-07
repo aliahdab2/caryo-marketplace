@@ -8,8 +8,41 @@ export interface BrandModelFilter {
   models?: string[];
 }
 
-// Cache for built filters to improve performance
+// Cache for built filters to improve performance with LRU eviction
 const filterCache = new Map<string, string>();
+const MAX_CACHE_SIZE = 1000;
+
+/**
+ * Gets an entry from the cache with LRU behavior (moves accessed item to end)
+ */
+function getCacheEntry(key: string): string | undefined {
+  if (!filterCache.has(key)) {
+    return undefined;
+  }
+  
+  // Get the value and refresh its position (delete and re-add)
+  const value = filterCache.get(key)!;
+  filterCache.delete(key);
+  filterCache.set(key, value);
+  return value;
+}
+function setCacheEntry(key: string, value: string): void {
+  // If key already exists, delete it first to refresh its position
+  if (filterCache.has(key)) {
+    filterCache.delete(key);
+  }
+  
+  // If cache is at max capacity, remove the oldest entry (first in Map)
+  if (filterCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = filterCache.keys().next().value;
+    if (firstKey) {
+      filterCache.delete(firstKey);
+    }
+  }
+  
+  // Add new entry (will be most recent)
+  filterCache.set(key, value);
+}
 
 /**
  * Builds hierarchical brand filter string from brand and model selections with caching
@@ -22,20 +55,21 @@ export function buildHierarchicalBrandFilter(brandName: string, modelName?: stri
   const cacheKey = `${brandName}:${modelName || ''}`;
   
   // Check cache first
-  if (filterCache.has(cacheKey)) {
-    return filterCache.get(cacheKey)!;
+  const cachedResult = getCacheEntry(cacheKey);
+  if (cachedResult !== undefined) {
+    return cachedResult;
   }
 
   // Validate and sanitize inputs
-  const sanitizedBrand = brandName?.trim();
+  const sanitizedBrand = brandName.trim();
   if (!sanitizedBrand) {
-    filterCache.set(cacheKey, '');
+    setCacheEntry(cacheKey, '');
     return '';
   }
 
   const sanitizedModel = modelName?.trim();
   if (!sanitizedModel) {
-    filterCache.set(cacheKey, sanitizedBrand);
+    setCacheEntry(cacheKey, sanitizedBrand);
     return sanitizedBrand;
   }
 
@@ -46,17 +80,12 @@ export function buildHierarchicalBrandFilter(brandName: string, modelName?: stri
     .filter(Boolean);
 
   if (cleanModelNames.length === 0) {
-    filterCache.set(cacheKey, sanitizedBrand);
+    setCacheEntry(cacheKey, sanitizedBrand);
     return sanitizedBrand;
   }
 
   const result = `${sanitizedBrand}:${cleanModelNames.join(';')}`;
-  filterCache.set(cacheKey, result);
-  
-  // Prevent cache from growing too large
-  if (filterCache.size > 1000) {
-    filterCache.clear();
-  }
+  setCacheEntry(cacheKey, result);
   
   return result;
 }
@@ -73,8 +102,9 @@ export function buildComplexHierarchicalBrandFilter(filters: BrandModelFilter[])
 
   // Create cache key for complex filters
   const complexCacheKey = JSON.stringify(filters);
-  if (filterCache.has(complexCacheKey)) {
-    return filterCache.get(complexCacheKey)!;
+  const cachedComplexResult = getCacheEntry(complexCacheKey);
+  if (cachedComplexResult !== undefined) {
+    return cachedComplexResult;
   }
 
   const result = filters
@@ -102,12 +132,7 @@ export function buildComplexHierarchicalBrandFilter(filters: BrandModelFilter[])
     .filter(Boolean)
     .join(',');
 
-  filterCache.set(complexCacheKey, result);
-  
-  // Prevent cache from growing too large
-  if (filterCache.size > 1000) {
-    filterCache.clear();
-  }
+  setCacheEntry(complexCacheKey, result);
 
   return result;
 }

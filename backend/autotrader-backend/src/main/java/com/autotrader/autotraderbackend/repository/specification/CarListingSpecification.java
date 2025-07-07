@@ -147,8 +147,8 @@ public class CarListingSpecification {
             String[] parts = trimmedGroup.split(":");
             String brand = parts[0].trim();
             
-            // Validate brand name length
-            if (brand.length() > 50) {
+            // Validate brand name length (consistent with other validation methods)
+            if (brand.length() > 100) {
                 throw new IllegalArgumentException("Brand name is too long: " + brand);
             }
 
@@ -158,7 +158,7 @@ public class CarListingSpecification {
                 
                 for (String model : models) {
                     String trimmedModel = model.trim();
-                    if (StringUtils.hasText(trimmedModel) && trimmedModel.length() > 50) {
+                    if (StringUtils.hasText(trimmedModel) && trimmedModel.length() > 100) {
                         throw new IllegalArgumentException("Model name is too long: " + trimmedModel);
                     }
                 }
@@ -428,7 +428,7 @@ public class CarListingSpecification {
         
         // Remove or escape potentially dangerous characters
         return value.trim()
-                   .replaceAll("[%_]", "\\\\$0")  // Escape SQL LIKE wildcards
+                   .replaceAll("[%_]", "\\\\$&")  // Escape SQL LIKE wildcards
                    .replaceAll("[\\r\\n\\t]", " ")  // Replace line breaks with spaces
                    .replaceAll("\\s+", " ");  // Normalize whitespace
     }
