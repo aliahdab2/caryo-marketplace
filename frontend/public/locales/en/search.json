@@ -29,5 +29,6 @@
   "apply": "Apply",
   "selectBrand": "Select brand",
   "selectModel": "Select model",
-  "selectGovernorate": "Select governorate"
+  "selectGovernorate": "Select governorate",
+  "sellerType": "Seller type"
 }

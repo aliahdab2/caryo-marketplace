@@ -33,6 +33,7 @@
   "selectBrand": "اختر الماركة",
   "selectModel": "اختر الموديل",
   "selectGovernorate": "اختر المحافظة",
+  "sellerType": "نوع البائع",
   "loadingError": "خطأ في تحميل خيارات التصفية. يرجى تحديث الصفحة.",
   "errorTitle": "حدث خطأ ما"
 }
