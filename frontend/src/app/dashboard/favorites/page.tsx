@@ -29,6 +29,9 @@ import { formatDate, formatNumber } from '@/utils/localization';
 import { transformMinioUrl } from '@/utils/mediaUtils';
 
 // Component for displaying localized text with proper RTL support
+
+// Move namespaces outside component to prevent recreation on every render
+const FAVORITES_NAMESPACES = ['favorites', 'listings', 'common', 'auth', 'errors'];
 interface LocalizedTextProps {
   content: string;
   language: string;
@@ -61,7 +64,7 @@ const FavoritesPage: React.FC = () => {
   const [visibleCount, setVisibleCount] = useState<number>(8); // Number of initially visible favorites
   const MAX_RETRIES = 3;
 
-  const { t, i18n, ready: i18nReady } = useLazyTranslation(['favorites', 'listings', 'common', 'auth', 'errors']);
+  const { t, i18n, ready: i18nReady } = useLazyTranslation(FAVORITES_NAMESPACES);
   const currentLanguage = i18n.language as Lang; // Ensure currentLanguage is of type Lang
 
   // Helper function to get localized content

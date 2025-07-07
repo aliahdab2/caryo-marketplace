@@ -8,8 +8,11 @@ import { getFeaturedListings } from "@/services/listings";
 import { Listing } from "@/types/listings";
 import { transformMinioUrl } from "@/utils/mediaUtils";
 
+// Move namespaces outside component to prevent recreation on every render
+const HOME_NAMESPACES = ['home', 'common'];
+
 export default function Home() {
-  const { t, ready } = useLazyTranslation(['home', 'common']); // Removed i18n as it's unused
+  const { t, ready } = useLazyTranslation(HOME_NAMESPACES); // Removed i18n as it's unused
   const [featuredCars, setFeaturedCars] = useState<Listing[]>([]);
   const [isLoadingListings, setIsLoadingListings] = useState(true);
 

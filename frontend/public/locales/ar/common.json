@@ -447,5 +447,6 @@
   "search.priceRange": "نطاق السعر",
   "search.yearRange": "نطاق السنة",
   "search.mileageRange": "نطاق المسافة المقطوعة",
-  "search.sellerType": "نوع البائع"
+  "search.sellerType": "نوع البائع",
+  "search.clearFilter": "مسح الفلتر"
 }

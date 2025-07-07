@@ -19,10 +19,13 @@ import {
   MdCalendarToday
 } from "react-icons/md";
 
+// Move namespaces outside component to prevent recreation on every render
+const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings'];
+
 export default function Dashboard() {
   const { data: session } = useSession();
   const router = useRouter();
-  const { t, i18n, ready } = useLazyTranslation(['dashboard', 'common', 'listings']);
+  const { t, i18n, ready } = useLazyTranslation(DASHBOARD_NAMESPACES);
   const [favoritesCount, setFavoritesCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 

@@ -11,9 +11,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import useLazyTranslation from "@/hooks/useLazyTranslation";
 
+// Move namespaces outside component to prevent recreation on every render
+const AUTH_NAMESPACES = ['auth', 'errors'];
+
 const SignInPage: React.FC = () => {
   // Lazy load the auth and errors namespaces
-  useLazyTranslation(['auth', 'errors']);
+  useLazyTranslation(AUTH_NAMESPACES);
 
   const { t } = useTranslation(['auth', 'errors']);
   const router = useRouter();

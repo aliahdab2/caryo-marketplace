@@ -8,6 +8,9 @@ import { formatDate, formatNumber } from '@/utils/localization';
 import FavoriteButton from '@/components/common/FavoriteButton';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
 
+// Move namespaces outside component to prevent recreation on every render
+const COMMON_NAMESPACES = ['common'];
+
 // Unified interface for car listing data
 export interface CarListingCardData {
   id: string | number;
@@ -41,7 +44,7 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
   onFavoriteToggle,
   initialFavorite = false 
 }) => {
-  const { i18n, t } = useLazyTranslation(['common']);
+  const { i18n, t } = useLazyTranslation(COMMON_NAMESPACES);
 
   // Get the primary image or fallback to first image
   const primaryImage = listing.media?.find(m => m.isPrimary)?.url || listing.media?.[0]?.url;

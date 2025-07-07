@@ -181,7 +181,6 @@ async function apiRequest<T>(
   timeout: number = 15000 // Default timeout: 15 seconds
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  console.log(`Making ${method} request to: ${url}`);
   
   const options: RequestOptions = {
     method,
@@ -204,8 +203,6 @@ async function apiRequest<T>(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
     
-    console.log('Request options:', JSON.stringify(options, null, 2));
-    
     const response = await fetch(url, {
       ...options,
       signal: controller.signal,
@@ -214,22 +211,16 @@ async function apiRequest<T>(
     
     clearTimeout(timeoutId);
     
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-    
     // Parse the response
     let responseData: unknown;
     
     // Try to parse as JSON first
     const contentType = response.headers.get('content-type');
-    console.log('Response content-type:', contentType);
     
     if (contentType && contentType.includes('application/json')) {
       responseData = await response.json();
-      console.log('Parsed JSON response:', responseData);
     } else {
       responseData = await response.text();
-      console.log('Text response:', responseData);
     }
 
     // Check for errors
@@ -300,7 +291,6 @@ export const api = {
  * Fetches all car brands
  */
 export async function fetchCarBrands(): Promise<CarMake[]> {
-  console.log('Fetching car brands from API');
   return api.get<CarMake[]>('/api/reference-data/brands');
 }
 
@@ -308,7 +298,6 @@ export async function fetchCarBrands(): Promise<CarMake[]> {
  * Fetches models for a specific brand
  */
 export async function fetchCarModels(brandId: number): Promise<CarModel[]> {
-  console.log(`Fetching car models for brand ${brandId} from API`);
   return api.get<CarModel[]>(`/api/reference-data/brands/${brandId}/models`);
 }
 
@@ -316,7 +305,6 @@ export async function fetchCarModels(brandId: number): Promise<CarModel[]> {
  * Fetches trims for a specific model
  */
 export async function fetchCarTrims(brandId: number, modelId: number): Promise<CarTrim[]> {
-  console.log(`Fetching car trims for brand ${brandId}, model ${modelId} from API`);
   return api.get<CarTrim[]>(`/api/reference-data/brands/${brandId}/models/${modelId}/trims`);
 }
 
@@ -324,7 +312,6 @@ export async function fetchCarTrims(brandId: number, modelId: number): Promise<C
  * Fetches all car reference data (conditions, transmissions, fuel types, etc.)
  */
 export async function fetchCarReferenceData(): Promise<CarReferenceData> {
-  console.log('Fetching car reference data from API');
   return api.get<CarReferenceData>('/api/reference-data');
 }
 
@@ -332,7 +319,6 @@ export async function fetchCarReferenceData(): Promise<CarReferenceData> {
  * Fetches car conditions only
  */
 export async function fetchCarConditions(): Promise<CarCondition[]> {
-  console.log('Fetching car conditions from API');
   return api.get<CarCondition[]>('/api/car-conditions');
 }
 
@@ -340,7 +326,6 @@ export async function fetchCarConditions(): Promise<CarCondition[]> {
  * Fetches transmissions only
  */
 export async function fetchTransmissions(): Promise<Transmission[]> {
-  console.log('Fetching transmissions from API');
   return api.get<Transmission[]>('/api/transmissions');
 }
 
@@ -348,7 +333,6 @@ export async function fetchTransmissions(): Promise<Transmission[]> {
  * Fetches fuel types only
  */
 export async function fetchFuelTypes(): Promise<FuelType[]> {
-  console.log('Fetching fuel types from API');
   return api.get<FuelType[]>('/api/fuel-types');
 }
 
@@ -356,7 +340,6 @@ export async function fetchFuelTypes(): Promise<FuelType[]> {
  * Fetches body styles only
  */
 export async function fetchBodyStyles(): Promise<BodyStyle[]> {
-  console.log('Fetching body styles from API');
   return api.get<BodyStyle[]>('/api/body-styles');
 }
 
@@ -364,7 +347,6 @@ export async function fetchBodyStyles(): Promise<BodyStyle[]> {
  * Fetches drive types only
  */
 export async function fetchDriveTypes(): Promise<DriveType[]> {
-  console.log('Fetching drive types from API');
   return api.get<DriveType[]>('/api/drive-types');
 }
 
@@ -373,7 +355,6 @@ export async function fetchDriveTypes(): Promise<DriveType[]> {
  * @returns Promise with array of governorates
  */
 export async function fetchGovernorates(): Promise<Governorate[]> {
-  console.log('Fetching governorates from API');
   return api.get<Governorate[]>('/api/reference-data/governorates');
 }
 
@@ -381,8 +362,6 @@ export async function fetchGovernorates(): Promise<Governorate[]> {
  * Fetches car listings with optional filters
  */
 export async function fetchCarListings(filters?: CarListingFilterParams): Promise<PageResponse<CarListing>> {
-  console.log('Fetching car listings from API with filters:', filters);
-  
   // Build query parameters
   const queryParams = new URLSearchParams();
   
@@ -464,7 +443,6 @@ export async function fetchWithCache<T>(
 ): Promise<T> {
   // Skip caching for invalid endpoints
   if (endpoint.includes('null') || endpoint.includes('undefined')) {
-    console.log(`Skipping cache for invalid endpoint: ${endpoint}`);
     return fetchFn();
   }
   
@@ -479,7 +457,6 @@ export async function fetchWithCache<T>(
   
   // Return cached data if still valid
   if (cachedItem && Date.now() - cachedItem.timestamp < expiration) {
-    console.log(`Using cached data for ${cacheKey}`);
     return cachedItem.data;
   }
   
@@ -506,10 +483,8 @@ export function clearApiCache(endpoint?: string): void {
     [...apiCache.keys()]
       .filter(key => key.startsWith(prefix))
       .forEach(key => apiCache.delete(key));
-    console.log(`Cleared cache for ${endpoint}`);
   } else {
     // Clear entire cache
     apiCache.clear();
-    console.log('Cleared entire API cache');
   }
 }

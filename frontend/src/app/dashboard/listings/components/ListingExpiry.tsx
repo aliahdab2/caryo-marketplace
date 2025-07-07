@@ -24,6 +24,9 @@ export default function ListingExpiry({
   onRenew 
 }: ListingExpiryProps) {
   const { t, i18n } = useTranslation('common');
+  
+  // Extract language to prevent i18n object recreation causing re-renders
+  const currentLanguage = i18n.language;
   const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
   const [renewalDuration, setRenewalDuration] = useState(30); // Default 30 days
   
@@ -55,10 +58,10 @@ export default function ListingExpiry({
       return t('listings.expiresIn', { days: daysRemaining });
     } else {
       return t('listings.validUntil', { 
-        date: formatDate(new Date(expiryDate), i18n.language, {dateStyle: 'medium'}) 
+        date: formatDate(new Date(expiryDate), currentLanguage, {dateStyle: 'medium'}) 
       });
     }
-  }, [status, daysRemaining, expiryDate, t, i18n.language]);
+  }, [status, daysRemaining, expiryDate, t, currentLanguage]);
   
   // Handle renewal submission
   const handleRenewal = () => {

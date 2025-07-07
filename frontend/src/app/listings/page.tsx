@@ -25,8 +25,11 @@ interface Filters {
   model?: string;
 }
 
+// Move namespaces outside component to prevent recreating on every render
+const TRANSLATION_NAMESPACES = ['listings', 'errors'];
+
 const ListingsPage = () => {
-  const { t } = useLazyTranslation(['listings', 'errors']);
+  const { t } = useLazyTranslation(TRANSLATION_NAMESPACES);
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialFilters: Filters = {

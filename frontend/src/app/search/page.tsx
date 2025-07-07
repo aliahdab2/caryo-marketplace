@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTranslation } from 'react-i18next';
+import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { 
   MdClear, 
   MdTune,
@@ -60,10 +60,16 @@ type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
 
+// Move namespaces outside component to prevent recreation on every render
+const SEARCH_NAMESPACES = ['common', 'search'];
+
 export default function AdvancedSearchPage() {
-  const { t, i18n } = useTranslation(['common', 'search']);
+  const { t, i18n } = useLazyTranslation(SEARCH_NAMESPACES);
   const router = useRouter();
   const searchParams = useSearchParams();
+  
+  // Extract language to prevent i18n object recreation causing re-renders
+  const currentLanguage = i18n.language;
 
   // Form state
   const [filters, setFilters] = useState<AdvancedSearchFilters>({});
@@ -83,7 +89,7 @@ export default function AdvancedSearchPage() {
   } = useApiData<CarMake[]>(
     fetchCarBrands,
     '/api/reference-data/brands',
-    [t]
+    []
   );
 
   const {
@@ -93,7 +99,7 @@ export default function AdvancedSearchPage() {
   } = useApiData<CarModel[]>(
     () => selectedMake ? fetchCarModels(selectedMake) : Promise.resolve([]),
     selectedMake ? `/api/reference-data/brands/${selectedMake}/models` : '',
-    [selectedMake, t],
+    [selectedMake],
     selectedMake ? { makeId: selectedMake } : undefined
   );
 
@@ -104,7 +110,7 @@ export default function AdvancedSearchPage() {
   } = useApiData<CarReferenceData>(
     fetchCarReferenceData,
     '/api/reference-data',
-    [t]
+    []
   );
 
   const {
@@ -114,51 +120,46 @@ export default function AdvancedSearchPage() {
   } = useApiData<Governorate[]>(
     fetchGovernorates,
     '/api/reference-data/governorates',
-    [t]
+    []
   );
 
-  // Get display name based on current language
-  const getDisplayName = useCallback((item: { displayNameEn: string; displayNameAr: string }) => {
-    return i18n.language === 'ar' ? item.displayNameAr : item.displayNameEn;
-  }, [i18n.language]);
-
-  // Helper functions to get display names for reference data
+  // Helper functions to get display names for reference data  
   const getConditionDisplayName = useCallback((id: number): string => {
     const condition = referenceData?.carConditions?.find(c => c.id === id);
-    return condition ? getDisplayName(condition) : '';
-  }, [referenceData, getDisplayName]);
+    return condition ? (currentLanguage === 'ar' ? condition.displayNameAr : condition.displayNameEn) : '';
+  }, [referenceData, currentLanguage]);
 
   const getTransmissionDisplayName = useCallback((id: number): string => {
     const transmission = referenceData?.transmissions?.find(t => t.id === id);
-    return transmission ? getDisplayName(transmission) : '';
-  }, [referenceData, getDisplayName]);
+    return transmission ? (currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn) : '';
+  }, [referenceData, currentLanguage]);
 
   const getFuelTypeDisplayName = useCallback((id: number): string => {
     const fuelType = referenceData?.fuelTypes?.find(f => f.id === id);
-    return fuelType ? getDisplayName(fuelType) : '';
-  }, [referenceData, getDisplayName]);
+    return fuelType ? (currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn) : '';
+  }, [referenceData, currentLanguage]);
 
   const getBodyStyleDisplayName = useCallback((id: number): string => {
     const bodyStyle = referenceData?.bodyStyles?.find(b => b.id === id);
-    return bodyStyle ? getDisplayName(bodyStyle) : '';
-  }, [referenceData, getDisplayName]);
+    return bodyStyle ? (currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn) : '';
+  }, [referenceData, currentLanguage]);
 
   const getSellerTypeDisplayName = useCallback((id: number): string => {
     const sellerType = referenceData?.sellerTypes?.find(s => s.id === id);
     if (sellerType && typeof sellerType === 'object' && 'displayNameEn' in sellerType && 'displayNameAr' in sellerType) {
-      return getDisplayName(sellerType as { displayNameEn: string; displayNameAr: string });
+      const typedSellerType = sellerType as { displayNameEn: string; displayNameAr: string };
+      return currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn;
     }
     return '';
-  }, [referenceData, getDisplayName]);
+  }, [referenceData, currentLanguage]);
 
   const getLocationDisplayName = useCallback((locationId: number): string => {
     const governorate = governorates?.find(g => g.id === locationId);
-    return governorate ? getDisplayName(governorate) : '';
-  }, [governorates, getDisplayName]);
+    return governorate ? (currentLanguage === 'ar' ? governorate.displayNameAr : governorate.displayNameEn) : '';
+  }, [governorates, currentLanguage]);
 
   // Initialize form from URL params (only on initial load)
   useEffect(() => {
-    console.log('Initializing filters from URL params:', searchParams?.toString());
     const initialFilters: AdvancedSearchFilters = {};
     
     // Basic filters
@@ -185,22 +186,21 @@ export default function AdvancedSearchPage() {
     if (searchParams?.get('doors')) initialFilters.doors = parseInt(searchParams.get('doors')!);
     if (searchParams?.get('cylinders')) initialFilters.cylinders = parseInt(searchParams.get('cylinders')!);
 
-    console.log('Setting initial filters:', initialFilters);
     setFilters(initialFilters);
   }, [searchParams]); // Remove carMakes and getDisplayName dependencies
 
   // Set selected make when carMakes loads and we have a brand filter
   useEffect(() => {
     if (filters.brand && carMakes && carMakes.length > 0) {
-      const brand = carMakes.find(make => 
-        getDisplayName(make).toLowerCase() === filters.brand?.toLowerCase()
-      );
+      const brand = carMakes.find(make => {
+        const displayName = currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn;
+        return displayName.toLowerCase() === filters.brand?.toLowerCase();
+      });
       if (brand) {
-        console.log('Setting selected make:', brand);
         setSelectedMake(brand.id);
       }
     }
-  }, [filters.brand, carMakes, getDisplayName]);
+  }, [filters.brand, carMakes, currentLanguage]);
 
   // Handle input changes with better state management
   const handleInputChange = useCallback((field: keyof AdvancedSearchFilters, value: string | number | undefined) => {
@@ -220,12 +220,13 @@ export default function AdvancedSearchPage() {
 
     // Update selected make when brand changes
     if (field === 'brand') {
-      const brand = carMakes?.find(make => 
-        getDisplayName(make).toLowerCase() === value?.toString().toLowerCase()
-      );
+      const brand = carMakes?.find(make => {
+        const displayName = currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn;
+        return displayName.toLowerCase() === value?.toString().toLowerCase();
+      });
       setSelectedMake(brand ? brand.id : null);
     }
-  }, [carMakes, getDisplayName]);
+  }, [carMakes, currentLanguage]);
 
   // Clear all filters with URL update
   const clearAllFilters = useCallback(() => {
@@ -413,8 +414,8 @@ export default function AdvancedSearchPage() {
                 >
                   <option value="">{t('search.any', 'Any')}</option>
                   {carMakes?.map(make => (
-                    <option key={make.id} value={getDisplayName(make)}>
-                      {getDisplayName(make)}
+                    <option key={make.id} value={currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn}>
+                      {currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn}
                     </option>
                   ))}
                 </select>
@@ -430,8 +431,8 @@ export default function AdvancedSearchPage() {
                 >
                   <option value="">{t('search.any', 'Any')}</option>
                   {availableModels?.map(model => (
-                    <option key={model.id} value={getDisplayName(model)}>
-                      {getDisplayName(model)}
+                    <option key={model.id} value={currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn}>
+                      {currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn}
                     </option>
                   ))}
                 </select>
@@ -552,7 +553,7 @@ export default function AdvancedSearchPage() {
                   <option value="">{t('search.any', 'Any')}</option>
                   {referenceData?.transmissions?.map(transmission => (
                     <option key={transmission.id} value={transmission.id}>
-                      {getDisplayName(transmission)}
+                      {currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn}
                     </option>
                   ))}
                 </select>
@@ -574,7 +575,7 @@ export default function AdvancedSearchPage() {
                   <option value="">{t('search.any', 'Any')}</option>
                   {referenceData?.carConditions?.map(condition => (
                     <option key={condition.id} value={condition.id}>
-                      {getDisplayName(condition)}
+                      {currentLanguage === 'ar' ? condition.displayNameAr : condition.displayNameEn}
                     </option>
                   ))}
                 </select>
@@ -596,7 +597,7 @@ export default function AdvancedSearchPage() {
                   <option value="">{t('search.any', 'Any')}</option>
                   {referenceData?.fuelTypes?.map(fuelType => (
                     <option key={fuelType.id} value={fuelType.id}>
-                      {getDisplayName(fuelType)}
+                      {currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn}
                     </option>
                   ))}
                 </select>
@@ -618,7 +619,7 @@ export default function AdvancedSearchPage() {
                   <option value="">{t('search.any', 'Any')}</option>
                   {referenceData?.bodyStyles?.map(bodyStyle => (
                     <option key={bodyStyle.id} value={bodyStyle.id}>
-                      {getDisplayName(bodyStyle)}
+                      {currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn}
                     </option>
                   ))}
                 </select>
@@ -646,7 +647,7 @@ export default function AdvancedSearchPage() {
                   <option value="">{t('search.any', 'Any')}</option>
                   {governorates?.map(governorate => (
                     <option key={governorate.id} value={governorate.id}>
-                      {getDisplayName(governorate)}
+                      {currentLanguage === 'ar' ? governorate.displayNameAr : governorate.displayNameEn}
                     </option>
                   ))}
                 </select>
@@ -668,9 +669,10 @@ export default function AdvancedSearchPage() {
                   <option value="">{t('search.any', 'Any')}</option>
                   {referenceData?.sellerTypes?.map(sellerType => {
                     const id = sellerType.id as number;
+                    const typedSellerType = sellerType as { displayNameEn: string; displayNameAr: string };
                     return (
                       <option key={id} value={id}>
-                        {getDisplayName(sellerType as { displayNameEn: string; displayNameAr: string })}
+                        {currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn}
                       </option>
                     );
                   })}
@@ -766,7 +768,6 @@ export default function AdvancedSearchPage() {
         sort: 'createdAt,desc' // Default sort
       };
 
-      console.log('Sending search filters:', listingFilters);
       const response = await fetchCarListings(listingFilters);
       setCarListings(response);
     } catch (error) {
@@ -896,9 +897,8 @@ export default function AdvancedSearchPage() {
                 <CarListingCard
                   key={listing.id}
                   listing={cardData}
-                  onFavoriteToggle={(isFavorite) => {
+                  onFavoriteToggle={(_isFavorite) => {
                     // Handle favorite toggle if needed
-                    console.log(`Car ${listing.id} favorite toggled:`, isFavorite);
                   }}
                   initialFavorite={false}
                 />
