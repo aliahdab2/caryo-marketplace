@@ -1,6 +1,8 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.model.Location;
+import com.autotrader.autotraderbackend.model.CarBrand;
+import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.model.Country;
 import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
@@ -11,6 +13,8 @@ import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.CountryRepository;
 import com.autotrader.autotraderbackend.repository.GovernorateRepository;
+import com.autotrader.autotraderbackend.repository.CarBrandRepository;
+import com.autotrader.autotraderbackend.repository.CarModelRepository;
 import com.autotrader.autotraderbackend.util.TestDataGenerator;
 import com.autotrader.autotraderbackend.util.TestGeographyUtils;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
@@ -57,10 +61,17 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
     private CountryRepository countryRepository;
     
     @Autowired
-    private GovernorateRepository governorateRepository; 
+    private GovernorateRepository governorateRepository;
+    
+    @Autowired
+    private CarBrandRepository carBrandRepository;
+    
+    @Autowired
+    private CarModelRepository carModelRepository; 
 
     private String baseUrl;
     private Long testLocationId;
+    private Long testModelId;
 
     @BeforeEach
     public void setUp() {
@@ -68,6 +79,8 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         carListingRepository.deleteAll();
         userRepository.deleteAll();
         locationRepository.deleteAll();
+        carModelRepository.deleteAll();
+        carBrandRepository.deleteAll();
         governorateRepository.deleteAll();
         countryRepository.deleteAll();
 
@@ -84,6 +97,25 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         // Finally save location
         Location savedLocation = locationRepository.save(location);
         testLocationId = savedLocation.getId();
+
+        // Create test car brand and model
+        CarBrand testBrand = new CarBrand();
+        testBrand.setName("TestBrand");
+        testBrand.setDisplayNameEn("Test Brand");
+        testBrand.setDisplayNameAr("علامة تجريبية");
+        testBrand.setSlug("test-brand");
+        testBrand.setIsActive(true);
+        CarBrand savedBrand = carBrandRepository.save(testBrand);
+        
+        CarModel testModel = new CarModel();
+        testModel.setName("TestModel");
+        testModel.setDisplayNameEn("Test Model");
+        testModel.setDisplayNameAr("موديل تجريبي");
+        testModel.setSlug("test-model");
+        testModel.setBrand(savedBrand);
+        testModel.setIsActive(true);
+        CarModel savedModel = carModelRepository.save(testModel);
+        testModelId = savedModel.getId();
 
         registerUser("testuser", "password", Set.of("user"));
         registerUser("adminuser", "password", Set.of("admin", "user"));
@@ -131,8 +163,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         HttpHeaders userHeaders = getAuthHeaders("testuser", "password");
         Map<String, Object> createPayload = new HashMap<>();
         createPayload.put("title", "Test Car for Approval");
-        createPayload.put("brand", "TestBrand");
-        createPayload.put("model", "TestModel");
+        createPayload.put("modelId", testModelId);
         createPayload.put("modelYear", 2021);
         createPayload.put("price", 19999.99);
         createPayload.put("mileage", 15000);

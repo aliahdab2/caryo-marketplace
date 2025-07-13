@@ -40,6 +40,11 @@ public class ValidCurrencyValidator implements ConstraintValidator<ValidCurrency
     private static final Set<String> SUPPORTED_CURRENCIES = Set.of("USD", "SYP");
     
     /**
+     * Ordered display string for consistent error messages.
+     */
+    private static final String CURRENCIES_DISPLAY = "USD, SYP";
+    
+    /**
      * Pattern to validate ISO 4217 currency code format (exactly 3 uppercase letters).
      */
     private static final Pattern CURRENCY_CODE_PATTERN = Pattern.compile("^[A-Z]{3}$");
@@ -92,7 +97,7 @@ public class ValidCurrencyValidator implements ConstraintValidator<ValidCurrency
             context.buildConstraintViolationWithTemplate(
                 String.format("Unsupported currency: '%s'. Syrian marketplace supports: %s. " +
                              "USD is recommended for car sales, SYP for local transactions.", 
-                             currency, String.join(", ", SUPPORTED_CURRENCIES))
+                             currency, CURRENCIES_DISPLAY)
             ).addConstraintViolation();
             return false;
         }
