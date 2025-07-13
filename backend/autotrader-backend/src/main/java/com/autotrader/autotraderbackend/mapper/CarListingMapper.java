@@ -46,6 +46,7 @@ public class CarListingMapper {
             response.setTitle(carListing.getTitle());
             response.setModelYear(carListing.getModelYear());
             response.setPrice(carListing.getPrice());
+            response.setCurrency(carListing.getCurrency());
             response.setMileage(carListing.getMileage());
             response.setDescription(carListing.getDescription());
             
@@ -150,6 +151,9 @@ public class CarListingMapper {
             
             try { response.setPrice(carListing.getPrice()); } 
             catch (Exception e) { log.warn("Error setting price for listing ID {}", carListing.getId()); }
+            
+            try { response.setCurrency(carListing.getCurrency()); } 
+            catch (Exception e) { log.warn("Error setting currency for listing ID {}", carListing.getId()); }
             
             try { response.setMileage(carListing.getMileage()); } 
             catch (Exception e) { log.warn("Error setting mileage for listing ID {}", carListing.getId()); }

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ListingFormData, UpdateListingData } from '@/types/listings';
 import { Governorate, fetchGovernorates } from '@/services/api';
 import { getListingById, updateListing } from '@/services/listings';
+import { SUPPORTED_CURRENCIES } from '@/utils/currency';
 import ListingExpiry from "../../components/ListingExpiry";
 
 // Client component
@@ -173,6 +174,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
         modelYear: parseInt(formData.year) || undefined,
         mileage: parseInt(formData.mileage) || undefined,
         price: parseFloat(formData.price) || undefined,
+        currency: formData.currency || undefined,
         // locationId: // Need to map from location to locationId
         description: formData.description,
         transmission: formData.transmission,
@@ -390,10 +392,9 @@ export default function EditListingPageClient({ id }: { id: string }) {
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         >
-          <option value="USD">USD</option>
-          <option value="EUR">EUR</option>
-          <option value="AED">AED</option>
-          {/* Add more currencies as needed */}
+          {SUPPORTED_CURRENCIES.map((curr) => (
+            <option key={curr.code} value={curr.code}>{curr.code} - {curr.name}</option>
+          ))}
         </select>
       </div>
 

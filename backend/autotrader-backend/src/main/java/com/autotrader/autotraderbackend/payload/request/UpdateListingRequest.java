@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.payload.request;
 
 import com.autotrader.autotraderbackend.validation.CurrentYearOrEarlier;
+import com.autotrader.autotraderbackend.validation.ValidCurrency;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
@@ -22,6 +23,8 @@ public class UpdateListingRequest {
     private Integer mileage;
     @Positive(message = "Price must be a positive number")
     private BigDecimal price;
+    @ValidCurrency
+    private String currency; // Currency code for the price (USD, SYP)
     /**
      * ID of the location entity
      */
@@ -37,6 +40,7 @@ public class UpdateListingRequest {
     public Integer getModelYear() { return modelYear; }
     public Integer getMileage() { return mileage; }
     public BigDecimal getPrice() { return price; }
+    public String getCurrency() { return currency; }
     public Long getLocationId() { return locationId; }
     public String getDescription() { return description; }
     public String getTransmission() { return transmission; }
@@ -48,6 +52,7 @@ public class UpdateListingRequest {
     public void setModelYear(Integer modelYear) { this.modelYear = modelYear; }
     public void setMileage(Integer mileage) { this.mileage = mileage; }
     public void setPrice(BigDecimal price) { this.price = price; }
+    public void setCurrency(String currency) { this.currency = currency; }
     public void setLocationId(Long locationId) { this.locationId = locationId; }
     public void setDescription(String description) { this.description = description; }
     public void setTransmission(String transmission) { this.transmission = transmission; }

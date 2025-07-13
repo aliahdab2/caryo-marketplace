@@ -357,6 +357,9 @@ public class CarListingService {
         if (request.getPrice() != null) {
             existingListing.setPrice(request.getPrice());
         }
+        if (request.getCurrency() != null) {
+            existingListing.setCurrency(request.getCurrency());
+        }
         if (request.getMileage() != null) {
             existingListing.setMileage(request.getMileage());
         }
@@ -567,6 +570,7 @@ public class CarListingService {
         
         carListing.setModelYear(request.getModelYear());
         carListing.setPrice(request.getPrice());
+        carListing.setCurrency(request.getCurrency() != null ? request.getCurrency() : "USD");
         carListing.setMileage(request.getMileage());
         carListing.setDescription(request.getDescription());
         

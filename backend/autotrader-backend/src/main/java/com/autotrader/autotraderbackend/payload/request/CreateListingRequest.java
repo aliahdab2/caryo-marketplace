@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.payload.request;
 
 import com.autotrader.autotraderbackend.validation.CurrentYearOrEarlier;
+import com.autotrader.autotraderbackend.validation.ValidCurrency;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -53,6 +54,13 @@ public class CreateListingRequest {
     private BigDecimal price;
 
     /**
+     * The currency for the price. Defaults to USD if not specified.
+     * Supported currencies: USD, SYP
+     */
+    @ValidCurrency
+    private String currency = "USD";
+
+    /**
      * ID of the location entity. Required.
      */
     @NotNull(message = "Location is required")
@@ -79,6 +87,7 @@ public class CreateListingRequest {
     public Integer getModelYear() { return modelYear; }
     public Integer getMileage() { return mileage; }
     public BigDecimal getPrice() { return price; }
+    public String getCurrency() { return currency; }
     public Long getLocationId() { return locationId; }
     public String getDescription() { return description; }
     public Boolean getIsSold() { return isSold; }
@@ -90,6 +99,7 @@ public class CreateListingRequest {
     public void setModelYear(Integer modelYear) { this.modelYear = modelYear; }
     public void setMileage(Integer mileage) { this.mileage = mileage; }
     public void setPrice(BigDecimal price) { this.price = price; }
+    public void setCurrency(String currency) { this.currency = currency; }
     public void setLocationId(Long locationId) { this.locationId = locationId; }
     public void setDescription(String description) { this.description = description; }
     public void setIsSold(Boolean isSold) { this.isSold = isSold; }

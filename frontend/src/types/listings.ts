@@ -61,6 +61,7 @@ export interface ApiListingItem {
   modelYear: number;
   mileage: number;
   price: number;
+  currency?: string; // Currency code for the listing price
   locationDetails: LocationDetails | null;
   governorateDetails?: GovernorateDetails;
   governorateNameEn?: string;
@@ -100,6 +101,7 @@ export interface UpdateListingData {
   modelYear?: number;
   mileage?: number;
   price?: number;
+  currency?: string; // Add currency support to update interface
   locationId?: number;
   description?: string;
   transmission?: string;
