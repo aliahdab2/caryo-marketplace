@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
+import { useOptimizedFiltering } from '@/hooks/useOptimizedFiltering';
+import SmoothTransition from '@/components/ui/SmoothTransition';
 import { 
   MdClear, 
   MdTune,
@@ -78,11 +80,41 @@ export default function AdvancedSearchPage() {
   const [filters, setFilters] = useState<AdvancedSearchFilters>({});
   const [selectedMake, setSelectedMake] = useState<number | null>(null);
   const [activeFilterModal, setActiveFilterModal] = useState<FilterType | null>(null);
+  const [showNoChangesMessage, setShowNoChangesMessage] = useState(false);
 
-  // Car listings state
-  const [carListings, setCarListings] = useState<PageResponse<CarListing> | null>(null);
-  const [isLoadingListings, setIsLoadingListings] = useState(false);
-  const [listingsError, setListingsError] = useState<string | null>(null);
+  // Memoize listing filters to prevent unnecessary re-creation
+  const listingFilters = useMemo<CarListingFilterParams>(() => ({
+    brand: filters.brand, // This now contains hierarchical format like "Toyota:Camry"
+    minYear: filters.minYear,
+    maxYear: filters.maxYear,
+    minPrice: filters.minPrice,
+    maxPrice: filters.maxPrice,
+    minMileage: filters.minMileage,
+    maxMileage: filters.maxMileage,
+    location: filters.location,
+    locationId: filters.locationId,
+    sellerTypeId: filters.sellerTypeId,
+    size: 20, // Default page size
+    page: 0, // Default to first page
+    sort: 'createdAt,desc' // Default sort
+  }), [filters.brand, filters.minYear, filters.maxYear, filters.minPrice, filters.maxPrice, filters.minMileage, filters.maxMileage, filters.location, filters.locationId, filters.sellerTypeId]);
+
+  // Car listings state using optimized filtering
+  const {
+    data: carListings,
+    isLoading: isLoadingListings,
+    isManualSearch,
+    error: listingsError,
+    search: executeSearch
+  } = useOptimizedFiltering<CarListingFilterParams, PageResponse<CarListing>>(
+    listingFilters,
+    fetchCarListings,
+    {
+      debounceMs: 300,
+      minLoadingDelayMs: 150,
+      immediate: false
+    }
+  );
 
   // API data hooks - with stable dependencies to prevent loops
   const {
@@ -776,59 +808,27 @@ export default function AdvancedSearchPage() {
     );
   };
 
-  // Memoize the filter parameters to prevent unnecessary re-renders
-  const listingFilters = useMemo<CarListingFilterParams>(() => ({
-    brand: filters.brand, // This now contains hierarchical format like "Toyota:Camry"
-    minYear: filters.minYear,
-    maxYear: filters.maxYear,
-    minPrice: filters.minPrice,
-    maxPrice: filters.maxPrice,
-    minMileage: filters.minMileage,
-    maxMileage: filters.maxMileage,
-    location: filters.location,
-    locationId: filters.locationId,
-    sellerTypeId: filters.sellerTypeId,
-    size: 20, // Default page size
-    page: 0, // Default to first page
-    sort: 'createdAt,desc' // Default sort
-  }), [filters.brand, filters.minYear, filters.maxYear, filters.minPrice, filters.maxPrice, filters.minMileage, filters.maxMileage, filters.location, filters.locationId, filters.sellerTypeId]);
-
-  // Fetch car listings with improved error handling
-  const fetchListings = useCallback(async () => {
-    setIsLoadingListings(true);
-    setListingsError(null);
-    
-    try {
-      const response = await fetchCarListings(listingFilters);
-      setCarListings(response);
-    } catch (error) {
-      console.error('Error fetching car listings:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch car listings';
-      setListingsError(errorMessage);
-      // Set empty results on error to show proper no-results state
-      setCarListings({
-        content: [],
-        page: 0,
-        size: 20,
-        totalElements: 0,
-        totalPages: 0,
-        last: true
-      });
-    } finally {
-      setIsLoadingListings(false);
-    }
-  }, [listingFilters]);
-
-  // Handle search submission - simplified to prevent loops
+  // Handle search submission - for user-initiated searches
   const handleSearch = useCallback(() => {
-    // Just fetch listings without updating URL to prevent loops
-    fetchListings();
-  }, [fetchListings]);
+    // Create a custom search function that checks for changes first
+    const hasChanged = JSON.stringify(listingFilters) !== JSON.stringify(previousFiltersRef.current);
+    
+    if (!hasChanged && previousFiltersRef.current !== null) {
+      // No changes detected, show subtle feedback
+      setShowNoChangesMessage(true);
+      setTimeout(() => setShowNoChangesMessage(false), 3000);
+      return;
+    }
 
-  // Fetch listings when filters change or on component mount
-  useEffect(() => {
-    fetchListings();
-  }, [fetchListings]);
+    // Store current filters for comparison
+    previousFiltersRef.current = listingFilters;
+    setShowNoChangesMessage(false);
+    
+    executeSearch(false); // Execute manual search
+  }, [executeSearch, listingFilters]);
+
+  // Ref to track previous filters for comparison
+  const previousFiltersRef = React.useRef<typeof listingFilters | null>(null);
 
   // Loading skeleton component for better UX
   const LoadingSkeleton = () => (
@@ -869,11 +869,35 @@ export default function AdvancedSearchPage() {
                 // Apply current filters by updating URL and fetching new results
                 handleSearch();
               }}
-              className="inline-flex items-center px-6 py-2 rounded-full bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+              disabled={isLoadingListings && isManualSearch}
+              className={`inline-flex items-center px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                isLoadingListings && isManualSearch
+                  ? 'bg-blue-400 text-white cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
             >
-              <MdTune className="mr-2 h-4 w-4" />
-              {t('search.filterAndSort', 'Filter and sort')}
+              {isLoadingListings && isManualSearch ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  {t('search.applying', 'Applying...')}
+                </>
+              ) : (
+                <>
+                  <MdTune className="mr-2 h-4 w-4" />
+                  {t('search.filterAndSort', 'Filter and sort')}
+                </>
+              )}
             </button>
+            
+            {/* No Changes Message */}
+            {showNoChangesMessage && (
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-amber-100 text-amber-800 text-sm font-medium border border-amber-200 animate-pulse">
+                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {t('search.noChangesDetected', 'No changes detected')}
+              </div>
+            )}
           </div>
         </div>
 
@@ -900,15 +924,46 @@ export default function AdvancedSearchPage() {
           </button>
         </div>
 
-        {/* Car Listings Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {isLoadingListings ? (
-            // Loading state
-            Array.from({ length: 8 }).map((_, index) => (
-              <LoadingSkeleton key={index} />
-            ))
+        {/* Car Listings Grid with Smooth Transitions */}
+        <SmoothTransition
+          isLoading={isLoadingListings}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          loadingType={isManualSearch ? 'overlay' : 'full'}
+          minimumLoadingTime={isManualSearch ? 100 : 200}
+          loadingComponent={
+            isManualSearch ? (
+              // Subtle spinner for manual searches
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              // Full skeleton loading for automatic changes
+              <>
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <LoadingSkeleton key={index} />
+                ))}
+              </>
+            )
+          }
+        >
+          {listingsError ? (
+            <div className="col-span-full flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="text-red-500 text-lg mb-2">
+                  {t('search.errorLoadingResults', 'Error loading results')}
+                </div>
+                <div className="text-gray-600 text-sm">
+                  {typeof listingsError === 'string' ? listingsError : 'An error occurred'}
+                </div>
+                <button
+                  onClick={() => executeSearch(false)}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {t('search.tryAgain', 'Try again')}
+                </button>
+              </div>
+            </div>
           ) : carListings && carListings.content.length > 0 ? (
-            // Real car listings using reusable component
             carListings.content.map((listing) => {
               // Transform backend CarListing to CarListingCardData format
               const cardData: CarListingCardData = {
@@ -949,7 +1004,7 @@ export default function AdvancedSearchPage() {
               <p className="text-gray-600">Try adjusting your search filters to see more results.</p>
             </div>
           )}
-        </div>
+        </SmoothTransition>
 
         {/* Pagination */}
         {carListings && carListings.totalPages > 1 && (
