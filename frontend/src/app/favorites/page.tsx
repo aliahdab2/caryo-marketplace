@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSession } from 'next-auth/react';
+import { useAuthStatus } from '@/hooks/useAuthSession';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getUserFavorites } from '@/services/favorites';
@@ -13,7 +13,7 @@ import { Listing } from '@/types/listings';
 
 export default function FavoritesPage() {
   const { t, i18n } = useTranslation(['common']);
-  const { status } = useSession();
+  const status = useAuthStatus();
   const router = useRouter();
   
   const [favorites, setFavorites] = useState<Listing[]>([]);
@@ -22,13 +22,13 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     // Redirect to login if user is not authenticated
-    if (status === 'unauthenticated') {
+    if (status.isUnauthenticated) {
       router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname));
       return;
     }
 
     // Fetch favorites when auth status is confirmed
-    if (status === 'authenticated') {
+    if (status.isAuthenticated) {
       fetchFavorites();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

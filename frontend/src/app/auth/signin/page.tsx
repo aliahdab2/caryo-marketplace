@@ -1,6 +1,7 @@
 "use client";
 
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect, FormEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -32,7 +33,7 @@ const SignInPage: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [credentialsCorrect, setCredentialsCorrect] = useState(false);
 
-  const { data: session } = useSession();
+  const { session } = useAuthSession();
 
   // Extract callback URL from search params if present
   useEffect(() => {
