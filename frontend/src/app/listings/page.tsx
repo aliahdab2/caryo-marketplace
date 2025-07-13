@@ -115,8 +115,15 @@ const ListingsPage = () => {
 
   // Track the previous URL to avoid unnecessary updates
   const prevUrlRef = React.useRef<string | null>(null);
+  const isFirstRenderRef = React.useRef(true);
   
   useEffect(() => {
+    // Skip the initial render to avoid unnecessary URL update on mount
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
+    }
+
     // Update URL when filters change (but not on first render)
     const queryParams = new URLSearchParams();
     
