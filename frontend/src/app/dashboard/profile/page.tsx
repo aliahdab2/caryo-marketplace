@@ -1,20 +1,8 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-
-interface ExtendedSession {
-  user?: {
-    id?: string;
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-    provider?: string;
-    roles?: string[];
-  };
-  accessToken?: string;
-}
 
 // Helper function to format role names and get styling
 const formatRole = (role: string) => {
@@ -56,7 +44,8 @@ const formatRole = (role: string) => {
 };
 
 export default function ProfilePage() {
-  const { data: session } = useSession() as { data: ExtendedSession | null };
+  // Use optimized auth hook instead of direct useSession
+  const { session } = useAuthSession();
   const { t } = useTranslation('common');
   const [isEditing, setIsEditing] = useState(false);
   const [userRoles, setUserRoles] = useState<string>('');
@@ -74,8 +63,7 @@ export default function ProfilePage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Check if user logged in via OAuth (like Google)
-  const isOAuthUser = session?.user?.provider === 'google' || 
-                      session?.user?.image?.includes('googleusercontent.com') || 
+  const isOAuthUser = session?.user?.image?.includes('googleusercontent.com') || 
                       localStorage.getItem('authMethod') === 'oauth';
   
   // Form state (in a real app, this would be handled with React Hook Form)
@@ -172,7 +160,7 @@ export default function ProfilePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Here you would make an API call to update the user profile
-    console.log("Form data to submit:", formData);
+    // Submit form data
     // Mock success - in real app this would happen after API response
     setTimeout(() => {
       setIsEditing(false);

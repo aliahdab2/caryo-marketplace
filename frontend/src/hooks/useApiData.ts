@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
 import { fetchWithCache } from '@/services/api';
 
 /**
@@ -16,7 +15,6 @@ export function useApiData<T>(
   dependencies: React.DependencyList = [],
   params?: Record<string, string | number>
 ) {
-  const { t } = useTranslation('common');
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,12 +42,12 @@ export function useApiData<T>(
       setData(result);
     } catch (err) {
       console.error(`Failed to fetch data from ${endpoint}:`, err);
-      setError(t('common.errorLoadingData', 'Error loading data. Please try again.'));
+      setError('Error loading data. Please try again.');
       setData(null);
     } finally {
       setIsLoading(false);
     }
-  }, [endpoint, fetchFunction, params, t]);
+  }, [endpoint, fetchFunction, params]);
 
   // Load data on mount and when dependencies change
   useEffect(() => {

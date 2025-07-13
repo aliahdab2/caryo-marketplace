@@ -1,17 +1,18 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import DropdownLanguageSwitcher from "@/components/DropdownLanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
+import { useAuthUser } from "@/hooks/useAuthSession";
 import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdDirectionsCar, MdSearch } from "react-icons/md";
 import type { ComponentProps } from "@/types/components";
 
 export default function Navbar({ className }: ComponentProps) {
-  const { data: session } = useSession();
+  const user = useAuthUser(); // Use optimized hook instead of full session
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [logoSrc] = useState("/images/logo.svg");
@@ -76,7 +77,7 @@ export default function Navbar({ className }: ComponentProps) {
             <div className="flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse" role="navigation" aria-label="Main navigation">
               {/* Post Ad Button - Horizontal layout like Blocket */}
               <Link
-                href={session ? "/dashboard/listings/new" : "/auth/signin"}
+                href={user ? "/dashboard/listings/new" : "/auth/signin"}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-md text-sm font-medium flex items-center justify-center transition-colors min-w-[100px] max-w-[120px] h-12 shadow-sm"
               >
                 <MdAdd className="h-5 w-5 mr-2 flex-shrink-0" />
@@ -94,7 +95,7 @@ export default function Navbar({ className }: ComponentProps) {
               
               {/* Messages - Larger style like Blocket */}
               <Link 
-                href={session ? "/dashboard/messages" : "/auth/signin"}
+                href={user ? "/dashboard/messages" : "/auth/signin"}
                 className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
               >
                 <MdEmail className="h-5 w-5 mb-1 flex-shrink-0" />
@@ -103,7 +104,7 @@ export default function Navbar({ className }: ComponentProps) {
               
               {/* Saved Searches - Larger style like Blocket */}
               <Link 
-                href={session ? "/dashboard/saved-searches" : "/auth/signin"}
+                href={user ? "/dashboard/saved-searches" : "/auth/signin"}
                 className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
               >
                 <MdBookmark className="h-5 w-5 mb-1 flex-shrink-0" />
@@ -121,7 +122,7 @@ export default function Navbar({ className }: ComponentProps) {
             </div>
             
             {/* User Menu / Login Button - Closer to navigation */}
-            {session ? (
+            {user ? (
               <div className="relative" ref={userMenuRef}>
                 <button 
                   id="user-menu-button"
@@ -133,10 +134,10 @@ export default function Navbar({ className }: ComponentProps) {
                   aria-label="User account menu"
                 >
                   <div className="flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-full h-7 w-7 sm:h-8 sm:w-8 shadow-sm ring-2 ring-white dark:ring-gray-800">
-                    {session.user?.image ? (
+                    {user?.image ? (
                       <Image 
-                        src={session.user.image} 
-                        alt={session.user?.name || "User"}
+                        src={user.image} 
+                        alt={user?.name || "User"}
                         width={32}
                         height={32}
                         className="rounded-full h-full w-full object-cover"
@@ -147,7 +148,7 @@ export default function Navbar({ className }: ComponentProps) {
                   </div>
                   <div className="hidden md:block">
                     <span className="text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 max-w-[80px] lg:max-w-[120px] truncate">
-                      {session.user?.name || session.user?.email?.split('@')[0] || "User"}
+                      {user?.name || user?.email?.split('@')[0] || "User"}
                     </span>
                   </div>
                   <svg 
@@ -174,10 +175,10 @@ export default function Navbar({ className }: ComponentProps) {
                 >
                   <div className="px-4 py-3 border-b dark:border-gray-700">
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {session.user?.name || "User"}
+                      {user?.name || "User"}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {session.user?.email}
+                      {user?.email}
                     </p>
                   </div>
                   
@@ -310,7 +311,7 @@ export default function Navbar({ className }: ComponentProps) {
         <div className="px-2 pt-2 pb-3 space-y-1 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
           {/* Post Ad - First item like Blocket (Prominent button) */}
           <Link 
-            href={session ? "/dashboard/listings/new" : "/auth/signin"}
+            href={user ? "/dashboard/listings/new" : "/auth/signin"}
             className="mobile-nav-link bg-blue-600 hover:bg-blue-700 text-white flex flex-col items-center px-4 py-3 rounded-md text-sm font-medium transition-colors shadow-sm mx-3 mb-4"
             onClick={() => setMobileMenuOpen(false)}
           >
@@ -337,7 +338,7 @@ export default function Navbar({ className }: ComponentProps) {
               <span className="text-xs text-center leading-tight font-medium">{t('header.advancedSearch')}</span>
             </Link>
             <Link 
-              href={session ? "/dashboard/messages" : "/auth/signin"}
+              href={user ? "/dashboard/messages" : "/auth/signin"}
               className="mobile-nav-link flex flex-col items-center px-3 py-3 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -345,7 +346,7 @@ export default function Navbar({ className }: ComponentProps) {
               <span className="text-xs text-center leading-tight font-medium">{t('header.messages')}</span>
             </Link>
             <Link 
-              href={session ? "/dashboard/saved-searches" : "/auth/signin"}
+              href={user ? "/dashboard/saved-searches" : "/auth/signin"}
               className="mobile-nav-link flex flex-col items-center px-3 py-3 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -356,17 +357,17 @@ export default function Navbar({ className }: ComponentProps) {
           
           {/* User Section */}
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-            {session ? (
+            {user ? (
               <div className="space-y-1">
                 {/* User Info */}
                 <div className="px-3 py-3 bg-white dark:bg-gray-900 rounded-md mx-3 mb-2">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
                       <div className="flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-full h-10 w-10 shadow-sm">
-                        {session.user?.image ? (
+                        {user?.image ? (
                           <Image 
-                            src={session.user.image} 
-                            alt={session.user?.name || "User"}
+                            src={user.image} 
+                            alt={user?.name || "User"}
                             width={40}
                             height={40}
                             className="rounded-full h-full w-full object-cover"
@@ -378,10 +379,10 @@ export default function Navbar({ className }: ComponentProps) {
                     </div>
                     <div className="ml-3 min-w-0 flex-1">
                       <p className="text-sm font-medium text-gray-900 dark:text-white mobile-text-truncate">
-                        {session.user?.name || session.user?.email?.split('@')[0] || "User"}
+                        {user?.name || user?.email?.split('@')[0] || "User"}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mobile-text-truncate">
-                        {session.user?.email}
+                        {user?.email}
                       </p>
                     </div>
                   </div>

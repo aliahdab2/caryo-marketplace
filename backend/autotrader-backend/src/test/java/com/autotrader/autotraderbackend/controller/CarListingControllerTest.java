@@ -1,8 +1,6 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
-import com.autotrader.autotraderbackend.model.CarBrand;
-import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
@@ -302,7 +300,6 @@ public class CarListingControllerTest {
             IllegalArgumentException.class,
             () -> carListingController.getFilteredListingsByParams(
                 null, // brand
-                null, // model
                 null, // minYear
                 null, // maxYear
                 null, // location

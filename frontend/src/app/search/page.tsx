@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTranslation } from 'react-i18next';
+import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { 
   MdClear, 
   MdTune,
@@ -28,9 +28,8 @@ import {
 import { useApiData } from '@/hooks/useApiData';
 
 interface AdvancedSearchFilters {
-  // Basic filters matching backend ListingFilterRequest
-  brand?: string;
-  model?: string;
+  // Basic filters matching new backend hierarchical format
+  brand?: string; // Now stores "Make:Model" format like "Toyota:Camry" or "تويوتا:كامري"
   minYear?: number;
   maxYear?: number;
   minPrice?: number;
@@ -53,6 +52,10 @@ interface AdvancedSearchFilters {
   exteriorColor?: string;
   doors?: number;
   cylinders?: number;
+
+  // UI-only fields for form state (not sent to backend)
+  selectedMake?: string; // For UI form state only
+  selectedModel?: string; // For UI form state only
 }
 
 type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'condition' | 'fuelType' | 'bodyStyle' | 'location' | 'sellerType';
@@ -60,10 +63,16 @@ type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
 
+// Move namespaces outside component to prevent recreation on every render
+const SEARCH_NAMESPACES = ['common', 'search'];
+
 export default function AdvancedSearchPage() {
-  const { t, i18n } = useTranslation(['common', 'search']);
-  const router = useRouter();
+  const { t, i18n } = useLazyTranslation(SEARCH_NAMESPACES);
+  const _router = useRouter();
   const searchParams = useSearchParams();
+  
+  // Extract language to prevent i18n object recreation causing re-renders
+  const currentLanguage = i18n.language;
 
   // Form state
   const [filters, setFilters] = useState<AdvancedSearchFilters>({});
@@ -75,7 +84,7 @@ export default function AdvancedSearchPage() {
   const [isLoadingListings, setIsLoadingListings] = useState(false);
   const [listingsError, setListingsError] = useState<string | null>(null);
 
-  // API data hooks
+  // API data hooks - with stable dependencies to prevent loops
   const {
     data: carMakes = [],
     isLoading: isLoadingBrands,
@@ -83,7 +92,13 @@ export default function AdvancedSearchPage() {
   } = useApiData<CarMake[]>(
     fetchCarBrands,
     '/api/reference-data/brands',
-    [t]
+    [] // No dependencies needed - brands don't change
+  );
+
+  // Stable dependency for models to prevent loops
+  const modelsFetchKey = useMemo(() => 
+    selectedMake ? `/api/reference-data/brands/${selectedMake}/models` : '', 
+    [selectedMake]
   );
 
   const {
@@ -91,9 +106,9 @@ export default function AdvancedSearchPage() {
     isLoading: isLoadingModels,
     error: modelsError
   } = useApiData<CarModel[]>(
-    () => selectedMake ? fetchCarModels(selectedMake) : Promise.resolve([]),
-    selectedMake ? `/api/reference-data/brands/${selectedMake}/models` : '',
-    [selectedMake, t],
+    useCallback(() => selectedMake ? fetchCarModels(selectedMake) : Promise.resolve([]), [selectedMake]),
+    modelsFetchKey,
+    [], // Empty dependencies - the key change will trigger the refetch
     selectedMake ? { makeId: selectedMake } : undefined
   );
 
@@ -104,7 +119,7 @@ export default function AdvancedSearchPage() {
   } = useApiData<CarReferenceData>(
     fetchCarReferenceData,
     '/api/reference-data',
-    [t]
+    [] // No dependencies needed - reference data doesn't change
   );
 
   const {
@@ -114,93 +129,110 @@ export default function AdvancedSearchPage() {
   } = useApiData<Governorate[]>(
     fetchGovernorates,
     '/api/reference-data/governorates',
-    [t]
+    [] // No dependencies needed - governorates don't change
   );
 
-  // Get display name based on current language
-  const getDisplayName = useCallback((item: { displayNameEn: string; displayNameAr: string }) => {
-    return i18n.language === 'ar' ? item.displayNameAr : item.displayNameEn;
-  }, [i18n.language]);
+  // Helper functions to get display names for reference data - memoized to prevent re-renders
+  const getConditionDisplayName = useMemo(() => 
+    (id: number): string => {
+      const condition = referenceData?.carConditions?.find(c => c.id === id);
+      return condition ? (currentLanguage === 'ar' ? condition.displayNameAr : condition.displayNameEn) : '';
+    }, [referenceData?.carConditions, currentLanguage]
+  );
 
-  // Helper functions to get display names for reference data
-  const getConditionDisplayName = useCallback((id: number): string => {
-    const condition = referenceData?.carConditions?.find(c => c.id === id);
-    return condition ? getDisplayName(condition) : '';
-  }, [referenceData, getDisplayName]);
+  const getTransmissionDisplayName = useMemo(() => 
+    (id: number): string => {
+      const transmission = referenceData?.transmissions?.find(t => t.id === id);
+      return transmission ? (currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn) : '';
+    }, [referenceData?.transmissions, currentLanguage]
+  );
 
-  const getTransmissionDisplayName = useCallback((id: number): string => {
-    const transmission = referenceData?.transmissions?.find(t => t.id === id);
-    return transmission ? getDisplayName(transmission) : '';
-  }, [referenceData, getDisplayName]);
+  const getFuelTypeDisplayName = useMemo(() => 
+    (id: number): string => {
+      const fuelType = referenceData?.fuelTypes?.find(f => f.id === id);
+      return fuelType ? (currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn) : '';
+    }, [referenceData?.fuelTypes, currentLanguage]
+  );
 
-  const getFuelTypeDisplayName = useCallback((id: number): string => {
-    const fuelType = referenceData?.fuelTypes?.find(f => f.id === id);
-    return fuelType ? getDisplayName(fuelType) : '';
-  }, [referenceData, getDisplayName]);
+  const getBodyStyleDisplayName = useMemo(() => 
+    (id: number): string => {
+      const bodyStyle = referenceData?.bodyStyles?.find(b => b.id === id);
+      return bodyStyle ? (currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn) : '';
+    }, [referenceData?.bodyStyles, currentLanguage]
+  );
 
-  const getBodyStyleDisplayName = useCallback((id: number): string => {
-    const bodyStyle = referenceData?.bodyStyles?.find(b => b.id === id);
-    return bodyStyle ? getDisplayName(bodyStyle) : '';
-  }, [referenceData, getDisplayName]);
+  const getSellerTypeDisplayName = useMemo(() => 
+    (id: number): string => {
+      const sellerType = referenceData?.sellerTypes?.find(s => s.id === id);
+      if (sellerType && typeof sellerType === 'object' && 'displayNameEn' in sellerType && 'displayNameAr' in sellerType) {
+        const typedSellerType = sellerType as { displayNameEn: string; displayNameAr: string };
+        return currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn;
+      }
+      return '';
+    }, [referenceData?.sellerTypes, currentLanguage]
+  );
 
-  const getSellerTypeDisplayName = useCallback((id: number): string => {
-    const sellerType = referenceData?.sellerTypes?.find(s => s.id === id);
-    if (sellerType && typeof sellerType === 'object' && 'displayNameEn' in sellerType && 'displayNameAr' in sellerType) {
-      return getDisplayName(sellerType as { displayNameEn: string; displayNameAr: string });
-    }
-    return '';
-  }, [referenceData, getDisplayName]);
+  const getLocationDisplayName = useMemo(() => 
+    (locationId: number): string => {
+      const governorate = governorates?.find(g => g.id === locationId);
+      return governorate ? (currentLanguage === 'ar' ? governorate.displayNameAr : governorate.displayNameEn) : '';
+    }, [governorates, currentLanguage]
+  );
 
-  const getLocationDisplayName = useCallback((locationId: number): string => {
-    const governorate = governorates?.find(g => g.id === locationId);
-    return governorate ? getDisplayName(governorate) : '';
-  }, [governorates, getDisplayName]);
+  // Simplified form state initialization to prevent loops
+  const [hasInitialized, setHasInitialized] = useState(false);
 
-  // Initialize form from URL params (only on initial load)
+  // Initialize form from URL params (only once on mount)
   useEffect(() => {
-    console.log('Initializing filters from URL params:', searchParams?.toString());
+    if (hasInitialized || !searchParams) return;
+
     const initialFilters: AdvancedSearchFilters = {};
     
-    // Basic filters
-    if (searchParams?.get('brand')) initialFilters.brand = searchParams.get('brand')!;
-    if (searchParams?.get('model')) initialFilters.model = searchParams.get('model')!;
-    if (searchParams?.get('minYear')) initialFilters.minYear = parseInt(searchParams.get('minYear')!);
-    if (searchParams?.get('maxYear')) initialFilters.maxYear = parseInt(searchParams.get('maxYear')!);
-    if (searchParams?.get('minPrice')) initialFilters.minPrice = parseFloat(searchParams.get('minPrice')!);
-    if (searchParams?.get('maxPrice')) initialFilters.maxPrice = parseFloat(searchParams.get('maxPrice')!);
-    if (searchParams?.get('minMileage')) initialFilters.minMileage = parseInt(searchParams.get('minMileage')!);
-    if (searchParams?.get('maxMileage')) initialFilters.maxMileage = parseInt(searchParams.get('maxMileage')!);
+    // Handle brand parameter
+    const brandParam = searchParams.get('brand');
+    if (brandParam) {
+      if (brandParam.includes(':')) {
+        // Hierarchical format
+        initialFilters.brand = brandParam;
+        const [make, model] = brandParam.split(':');
+        initialFilters.selectedMake = make;
+        initialFilters.selectedModel = model;
+      } else {
+        // Just a brand
+        initialFilters.selectedMake = brandParam;
+        initialFilters.brand = brandParam;
+      }
+    }
     
-    // Location filters
-    if (searchParams?.get('location')) initialFilters.location = searchParams.get('location')!;
-    if (searchParams?.get('locationId')) initialFilters.locationId = parseInt(searchParams.get('locationId')!);
+    // Other simple filters
+    const minYear = searchParams.get('minYear');
+    if (minYear) initialFilters.minYear = parseInt(minYear);
     
-    // Entity ID filters
-    if (searchParams?.get('conditionId')) initialFilters.conditionId = parseInt(searchParams.get('conditionId')!);
-    if (searchParams?.get('transmissionId')) initialFilters.transmissionId = parseInt(searchParams.get('transmissionId')!);
-    if (searchParams?.get('fuelTypeId')) initialFilters.fuelTypeId = parseInt(searchParams.get('fuelTypeId')!);
-    if (searchParams?.get('bodyStyleId')) initialFilters.bodyStyleId = parseInt(searchParams.get('bodyStyleId')!);
-    if (searchParams?.get('sellerTypeId')) initialFilters.sellerTypeId = parseInt(searchParams.get('sellerTypeId')!);
-    if (searchParams?.get('exteriorColor')) initialFilters.exteriorColor = searchParams.get('exteriorColor')!;
-    if (searchParams?.get('doors')) initialFilters.doors = parseInt(searchParams.get('doors')!);
-    if (searchParams?.get('cylinders')) initialFilters.cylinders = parseInt(searchParams.get('cylinders')!);
+    const maxYear = searchParams.get('maxYear');  
+    if (maxYear) initialFilters.maxYear = parseInt(maxYear);
+    
+    const minPrice = searchParams.get('minPrice');
+    if (minPrice) initialFilters.minPrice = parseFloat(minPrice);
+    
+    const maxPrice = searchParams.get('maxPrice');
+    if (maxPrice) initialFilters.maxPrice = parseFloat(maxPrice);
 
-    console.log('Setting initial filters:', initialFilters);
     setFilters(initialFilters);
-  }, [searchParams]); // Remove carMakes and getDisplayName dependencies
+    setHasInitialized(true);
+  }, [hasInitialized, searchParams]);
 
   // Set selected make when carMakes loads and we have a brand filter
   useEffect(() => {
-    if (filters.brand && carMakes && carMakes.length > 0) {
-      const brand = carMakes.find(make => 
-        getDisplayName(make).toLowerCase() === filters.brand?.toLowerCase()
-      );
+    if (filters.selectedMake && carMakes && carMakes.length > 0) {
+      const brand = carMakes.find(make => {
+        const displayName = currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn;
+        return displayName.toLowerCase() === filters.selectedMake?.toLowerCase();
+      });
       if (brand) {
-        console.log('Setting selected make:', brand);
         setSelectedMake(brand.id);
       }
     }
-  }, [filters.brand, carMakes, getDisplayName]);
+  }, [filters.selectedMake, carMakes, currentLanguage]);
 
   // Handle input changes with better state management
   const handleInputChange = useCallback((field: keyof AdvancedSearchFilters, value: string | number | undefined) => {
@@ -210,32 +242,40 @@ export default function AdvancedSearchPage() {
         [field]: value || undefined
       };
 
-      // Reset model when brand changes
-      if (field === 'brand') {
-        newFilters.model = undefined;
+      // Handle hierarchical brand:model format
+      if (field === 'selectedMake') {
+        // When make changes, reset model and update hierarchical brand
+        newFilters.selectedModel = undefined;
+        newFilters.brand = value ? String(value) : undefined;
+      } else if (field === 'selectedModel') {
+        // When model changes, combine with make to create hierarchical brand
+        if (newFilters.selectedMake && value) {
+          newFilters.brand = `${newFilters.selectedMake}:${value}`;
+        } else if (newFilters.selectedMake) {
+          newFilters.brand = String(newFilters.selectedMake);
+        }
       }
 
       return newFilters;
     });
 
     // Update selected make when brand changes
-    if (field === 'brand') {
-      const brand = carMakes?.find(make => 
-        getDisplayName(make).toLowerCase() === value?.toString().toLowerCase()
-      );
+    if (field === 'selectedMake' && carMakes) {
+      const brand = carMakes.find(make => {
+        const displayName = currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn;
+        return displayName.toLowerCase() === value?.toString().toLowerCase();
+      });
       setSelectedMake(brand ? brand.id : null);
     }
-  }, [carMakes, getDisplayName]);
+  }, [carMakes, currentLanguage]);
 
-  // Clear all filters with URL update
+  // Clear all filters - simplified to prevent loops
   const clearAllFilters = useCallback(() => {
     setFilters({});
     setSelectedMake(null);
-    // Clear URL parameters as well
-    router.replace('/search');
-  }, [router]);
+  }, []);
 
-  // Clear filter with immediate URL update
+  // Clear filter - simplified to prevent loops  
   const clearSpecificFilter = useCallback((filterType: FilterType) => {
     setFilters(prev => {
       const newFilters = { ...prev };
@@ -243,7 +283,8 @@ export default function AdvancedSearchPage() {
       switch (filterType) {
         case 'makeModel':
           delete newFilters.brand;
-          delete newFilters.model;
+          delete newFilters.selectedMake;
+          delete newFilters.selectedModel;
           setSelectedMake(null);
           break;
         case 'price':
@@ -283,22 +324,6 @@ export default function AdvancedSearchPage() {
     });
   }, []);
 
-  // Handle search submission with debounced URL updates
-  const handleSearch = useCallback(() => {
-    const params = new URLSearchParams();
-    
-    // Add all non-empty filters to URL params
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        params.set(key, value.toString());
-      }
-    });
-
-    // Update current page URL instead of navigating away
-    const newUrl = params.toString() ? `/search?${params.toString()}` : '/search';
-    router.replace(newUrl);
-  }, [filters, router]);
-
   // Count active filters with memoization
   const activeFiltersCount = useMemo(() => 
     Object.values(filters).filter(value => 
@@ -307,12 +332,20 @@ export default function AdvancedSearchPage() {
     [filters]
   );
 
-  // Get filter display text
-  const getFilterDisplayText = (filterType: FilterType): string => {
+  // Get filter display text - memoized to prevent re-renders
+  const getFilterDisplayText = useCallback((filterType: FilterType): string => {
     switch (filterType) {
       case 'makeModel':
-        if (filters.brand && filters.model) return `${filters.brand} ${filters.model}`;
-        if (filters.brand) return filters.brand;
+        if (filters.selectedMake && filters.selectedModel) return `${filters.selectedMake} ${filters.selectedModel}`;
+        if (filters.selectedMake) return filters.selectedMake;
+        if (filters.brand) {
+          // Parse hierarchical format for display
+          if (filters.brand.includes(':')) {
+            const [make, model] = filters.brand.split(':');
+            return `${make} ${model}`;
+          }
+          return filters.brand;
+        }
         return t('search.makeAndModel', 'Make and model');
       case 'price':
         if (filters.minPrice && filters.maxPrice) return `£${filters.minPrice} - £${filters.maxPrice}`;
@@ -344,13 +377,13 @@ export default function AdvancedSearchPage() {
       default:
         return '';
     }
-  };
+  }, [filters, t, getTransmissionDisplayName, getConditionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getLocationDisplayName, getSellerTypeDisplayName]);
 
-  // Check if filter has active values
-  const isFilterActive = (filterType: FilterType): boolean => {
+  // Check if filter has active values - memoized to prevent re-renders
+  const isFilterActive = useCallback((filterType: FilterType): boolean => {
     switch (filterType) {
       case 'makeModel':
-        return !!(filters.brand || filters.model);
+        return !!(filters.brand || filters.selectedMake || filters.selectedModel);
       case 'price':
         return !!(filters.minPrice || filters.maxPrice);
       case 'year':
@@ -372,7 +405,7 @@ export default function AdvancedSearchPage() {
       default:
         return false;
     }
-  };
+  }, [filters]);
 
   // Filter pill component with memo for performance
   const FilterPill = React.memo(({ filterType, onClick }: { filterType: FilterType; onClick: () => void }) => {
@@ -406,15 +439,15 @@ export default function AdvancedSearchPage() {
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.make', 'Make')}</h3>
                 <select
-                  value={filters.brand || ''}
-                  onChange={(e) => handleInputChange('brand', e.target.value)}
+                  value={filters.selectedMake || ''}
+                  onChange={(e) => handleInputChange('selectedMake', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={isLoadingBrands}
                 >
                   <option value="">{t('search.any', 'Any')}</option>
                   {carMakes?.map(make => (
-                    <option key={make.id} value={getDisplayName(make)}>
-                      {getDisplayName(make)}
+                    <option key={make.id} value={currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn}>
+                      {currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn}
                     </option>
                   ))}
                 </select>
@@ -423,15 +456,15 @@ export default function AdvancedSearchPage() {
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.model', 'Model')}</h3>
                 <select
-                  value={filters.model || ''}
-                  onChange={(e) => handleInputChange('model', e.target.value)}
+                  value={filters.selectedModel || ''}
+                  onChange={(e) => handleInputChange('selectedModel', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={!selectedMake || isLoadingModels}
                 >
                   <option value="">{t('search.any', 'Any')}</option>
                   {availableModels?.map(model => (
-                    <option key={model.id} value={getDisplayName(model)}>
-                      {getDisplayName(model)}
+                    <option key={model.id} value={currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn}>
+                      {currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn}
                     </option>
                   ))}
                 </select>
@@ -552,7 +585,7 @@ export default function AdvancedSearchPage() {
                   <option value="">{t('search.any', 'Any')}</option>
                   {referenceData?.transmissions?.map(transmission => (
                     <option key={transmission.id} value={transmission.id}>
-                      {getDisplayName(transmission)}
+                      {currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn}
                     </option>
                   ))}
                 </select>
@@ -574,7 +607,7 @@ export default function AdvancedSearchPage() {
                   <option value="">{t('search.any', 'Any')}</option>
                   {referenceData?.carConditions?.map(condition => (
                     <option key={condition.id} value={condition.id}>
-                      {getDisplayName(condition)}
+                      {currentLanguage === 'ar' ? condition.displayNameAr : condition.displayNameEn}
                     </option>
                   ))}
                 </select>
@@ -596,7 +629,7 @@ export default function AdvancedSearchPage() {
                   <option value="">{t('search.any', 'Any')}</option>
                   {referenceData?.fuelTypes?.map(fuelType => (
                     <option key={fuelType.id} value={fuelType.id}>
-                      {getDisplayName(fuelType)}
+                      {currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn}
                     </option>
                   ))}
                 </select>
@@ -618,7 +651,7 @@ export default function AdvancedSearchPage() {
                   <option value="">{t('search.any', 'Any')}</option>
                   {referenceData?.bodyStyles?.map(bodyStyle => (
                     <option key={bodyStyle.id} value={bodyStyle.id}>
-                      {getDisplayName(bodyStyle)}
+                      {currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn}
                     </option>
                   ))}
                 </select>
@@ -646,7 +679,7 @@ export default function AdvancedSearchPage() {
                   <option value="">{t('search.any', 'Any')}</option>
                   {governorates?.map(governorate => (
                     <option key={governorate.id} value={governorate.id}>
-                      {getDisplayName(governorate)}
+                      {currentLanguage === 'ar' ? governorate.displayNameAr : governorate.displayNameEn}
                     </option>
                   ))}
                 </select>
@@ -668,9 +701,10 @@ export default function AdvancedSearchPage() {
                   <option value="">{t('search.any', 'Any')}</option>
                   {referenceData?.sellerTypes?.map(sellerType => {
                     const id = sellerType.id as number;
+                    const typedSellerType = sellerType as { displayNameEn: string; displayNameAr: string };
                     return (
                       <option key={id} value={id}>
-                        {getDisplayName(sellerType as { displayNameEn: string; displayNameAr: string })}
+                        {currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn}
                       </option>
                     );
                   })}
@@ -742,31 +776,29 @@ export default function AdvancedSearchPage() {
     );
   };
 
+  // Memoize the filter parameters to prevent unnecessary re-renders
+  const listingFilters = useMemo<CarListingFilterParams>(() => ({
+    brand: filters.brand, // This now contains hierarchical format like "Toyota:Camry"
+    minYear: filters.minYear,
+    maxYear: filters.maxYear,
+    minPrice: filters.minPrice,
+    maxPrice: filters.maxPrice,
+    minMileage: filters.minMileage,
+    maxMileage: filters.maxMileage,
+    location: filters.location,
+    locationId: filters.locationId,
+    sellerTypeId: filters.sellerTypeId,
+    size: 20, // Default page size
+    page: 0, // Default to first page
+    sort: 'createdAt,desc' // Default sort
+  }), [filters.brand, filters.minYear, filters.maxYear, filters.minPrice, filters.maxPrice, filters.minMileage, filters.maxMileage, filters.location, filters.locationId, filters.sellerTypeId]);
+
   // Fetch car listings with improved error handling
   const fetchListings = useCallback(async () => {
     setIsLoadingListings(true);
     setListingsError(null);
     
     try {
-      // Convert filters to backend format
-      const listingFilters: CarListingFilterParams = {
-        brand: filters.brand,
-        model: filters.model,
-        minYear: filters.minYear,
-        maxYear: filters.maxYear,
-        minPrice: filters.minPrice,
-        maxPrice: filters.maxPrice,
-        minMileage: filters.minMileage,
-        maxMileage: filters.maxMileage,
-        location: filters.location,
-        locationId: filters.locationId,
-        sellerTypeId: filters.sellerTypeId,
-        size: 20, // Default page size
-        page: 0, // Default to first page
-        sort: 'createdAt,desc' // Default sort
-      };
-
-      console.log('Sending search filters:', listingFilters);
       const response = await fetchCarListings(listingFilters);
       setCarListings(response);
     } catch (error) {
@@ -785,9 +817,15 @@ export default function AdvancedSearchPage() {
     } finally {
       setIsLoadingListings(false);
     }
-  }, [filters]);
+  }, [listingFilters]);
 
-  // Fetch listings when filters change, language changes, or on component mount
+  // Handle search submission - simplified to prevent loops
+  const handleSearch = useCallback(() => {
+    // Just fetch listings without updating URL to prevent loops
+    fetchListings();
+  }, [fetchListings]);
+
+  // Fetch listings when filters change or on component mount
   useEffect(() => {
     fetchListings();
   }, [fetchListings]);
@@ -896,9 +934,8 @@ export default function AdvancedSearchPage() {
                 <CarListingCard
                   key={listing.id}
                   listing={cardData}
-                  onFavoriteToggle={(isFavorite) => {
+                  onFavoriteToggle={(_isFavorite) => {
                     // Handle favorite toggle if needed
-                    console.log(`Car ${listing.id} favorite toggled:`, isFavorite);
                   }}
                   initialFavorite={false}
                 />

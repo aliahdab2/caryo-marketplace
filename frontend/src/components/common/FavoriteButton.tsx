@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSession } from 'next-auth/react';
+import { useAuthUser } from '@/hooks/useAuthSession';
 import { useRouter } from 'next/navigation';
 import { FavoriteButtonProps } from '@/types/components';
 
@@ -20,7 +20,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isLoading, setIsLoading] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const { data: session } = useSession();
+  const user = useAuthUser();
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const statusCheckedRef = useRef(false);
 
@@ -54,10 +54,10 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   };
 
   useEffect(() => {
-    if (!session?.user || !session?.accessToken) {
-      console.warn('[FAVORITE] No valid session found');
+    if (!user?.accessToken) {
+      console.warn('[FAVORITE] No valid user session found');
     }
-  }, [session]);
+  }, [user]);
 
   // Parse API response for favorite status
   const parse = async (response: Response) => {
@@ -116,17 +116,17 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       setIsFavorite(false);
       return;
     }
-    if (!session?.user || !session?.accessToken) {
+    if (!user?.accessToken) {
       setIsFavorite(false);
       statusCheckedRef.current = false;
       return;
     }
     checkFavoriteStatus(true);
     const refreshInterval = setInterval(() => {
-      if (session?.user) checkFavoriteStatus(true);
+      if (user) checkFavoriteStatus(true);
     }, 30000);
     return () => clearInterval(refreshInterval);
-  }, [listingId, session, checkFavoriteStatus]);
+  }, [listingId, user, checkFavoriteStatus]);
 
   // Re-check status when the component becomes visible again
   useEffect(() => {
@@ -159,7 +159,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   // Effect to process pending favorite action after login
   useEffect(() => {
     const processPendingFavorite = async () => {
-      if (session?.user && listingId) {
+      if (user?.email && listingId) {
         const pendingActionJSON = localStorage.getItem('pendingFavoriteAction');
         if (pendingActionJSON) {
           let pendingAction;
@@ -223,7 +223,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
     };
 
     processPendingFavorite();
-  }, [session, listingId, onToggle, startAnimation, checkFavoriteStatus, isFavorite]); // Dependencies
+  }, [user, listingId, onToggle, startAnimation, checkFavoriteStatus, isFavorite]); // Dependencies
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -232,7 +232,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
     if (isLoading) return;
 
     // If not authenticated, store pending action and redirect to sign-in
-    if (!session?.user || !session?.accessToken) {
+    if (!user?.email || !user?.accessToken) {
       const pendingActionData = {
         listingId: listingId,
         action: isFavorite ? 'remove' : 'add',

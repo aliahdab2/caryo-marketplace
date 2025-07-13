@@ -1,6 +1,7 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
+import { useAuthUser } from "@/hooks/useAuthSession";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLazyTranslation } from '../../hooks/useLazyTranslation';
@@ -19,10 +20,13 @@ import {
   MdCalendarToday
 } from "react-icons/md";
 
+// Move namespaces outside component to prevent recreation on every render
+const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings'];
+
 export default function Dashboard() {
-  const { data: session } = useSession();
+  const user = useAuthUser();
   const router = useRouter();
-  const { t, i18n, ready } = useLazyTranslation(['dashboard', 'common', 'listings']);
+  const { t, i18n, ready } = useLazyTranslation(DASHBOARD_NAMESPACES);
   const [favoritesCount, setFavoritesCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -31,7 +35,7 @@ export default function Dashboard() {
     let mounted = true;
 
     const loadFavoritesCount = async () => {
-      if (!session?.user) {
+      if (!user) {
         setFavoritesCount(0);
         setIsLoading(false);
         return;
@@ -96,7 +100,7 @@ export default function Dashboard() {
     return () => {
       mounted = false;
     };
-  }, [session]);
+  }, [user]);
 
   if (!ready) {
     return <div>Loading translations...</div>;
@@ -240,7 +244,7 @@ export default function Dashboard() {
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
           {t('welcome')}
-          {session?.user?.name ? `, ${session.user.name}` : ''}!
+          {user?.name ? `, ${user.name}` : ''}!
         </h1>
         <p className="text-gray-600 dark:text-gray-400 text-lg">
           {t('overviewSubtitle')}

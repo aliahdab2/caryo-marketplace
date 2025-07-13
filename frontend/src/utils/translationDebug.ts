@@ -58,46 +58,54 @@ export const translationDebug = {
   
   /**
    * Print a report of loaded and unloaded namespaces
+   * Now throttled to reduce console noise
    */
-  printLoadingReport: (instance?: I18nInstanceType) => { // Accepts an optional i18n instance
-    if (process.env.NODE_ENV !== 'development') return;
+  printLoadingReport: (() => {
+    let lastReportTime = 0;
+    const THROTTLE_DELAY = 5000; // Only show report every 5 seconds
     
-    const i18nInstance = instance || i18n; // Use provided instance or default
-    
-    // Ensure i18nInstance and its language property are available
-    if (!i18nInstance || !i18nInstance.language) {
-      console.warn('%c[i18n Debug] i18n instance or language not available for report.', 'color: orange');
-      return;
-    }
-    const language = i18nInstance.language;
+    return (instance?: I18nInstanceType) => {
+      if (process.env.NODE_ENV !== 'development') return;
+      
+      const now = Date.now();
+      if (now - lastReportTime < THROTTLE_DELAY) return;
+      lastReportTime = now;
+      
+      const i18nInstance = instance || i18n;
+      
+      if (!i18nInstance || !i18nInstance.language) {
+        console.warn('%c[i18n Debug] i18n instance or language not available for report.', 'color: orange');
+        return;
+      }
+      const language = i18nInstance.language;
 
-    // Ensure the language data exists in the store before proceeding
-    if (!i18nInstance.store?.data?.[language]) {
-      console.warn(`%c[i18n Debug] No resource data for language "${language}" to generate report.`, 'color: orange');
-      return;
-    }
+      if (!i18nInstance.store?.data?.[language]) {
+        console.warn(`%c[i18n Debug] No resource data for language "${language}" to generate report.`, 'color: orange');
+        return;
+      }
 
-    const allNamespaces = ['common', 'translation', 'errors', 'listings', 'auth'];
-    const loadedNamespaces = translationDebug.listLoadedNamespaces(language, i18nInstance);
-    const unloadedNamespaces = allNamespaces.filter(ns => !loadedNamespaces.includes(ns));
-    
-    console.group('%c[i18n Report] Translation Namespaces', 'color: #673AB7; font-weight: bold');
-    console.log(
-      `%cLoaded (%c${language}%c): %c${loadedNamespaces.join(', ') || 'None'}`,
-      'color: #4CAF50; font-weight: bold',
-      'color: #FF9800;', // Language color
-      'color: #4CAF50; font-weight: bold', // Reset to loaded color
-      'color: #2196F3'
-    );
-    console.log(
-      `%cUnloaded (%c${language}%c): %c${unloadedNamespaces.join(', ') || 'None'}`,
-      'color: #F44336; font-weight: bold',
-      'color: #FF9800;', // Language color
-      'color: #F44336; font-weight: bold', // Reset to unloaded color
-      'color: #9E9E9E'
-    );
-    console.groupEnd();
-  }
+      const allNamespaces = ['common', 'translation', 'errors', 'listings', 'auth', 'search', 'dashboard', 'favorites', 'home'];
+      const loadedNamespaces = translationDebug.listLoadedNamespaces(language, i18nInstance);
+      const unloadedNamespaces = allNamespaces.filter(ns => !loadedNamespaces.includes(ns));
+      
+      console.group('%c[i18n Report] Translation Status', 'color: #673AB7; font-weight: bold');
+      console.log(
+        `%cLoaded (%c${language}%c): %c${loadedNamespaces.join(', ') || 'None'}`,
+        'color: #4CAF50; font-weight: bold',
+        'color: #FF9800;',
+        'color: #4CAF50; font-weight: bold',
+        'color: #2196F3'
+      );
+      if (unloadedNamespaces.length > 0) {
+        console.log(
+          `%cPending: %c${unloadedNamespaces.join(', ')}`,
+          'color: #9E9E9E; font-weight: bold',
+          'color: #9E9E9E'
+        );
+      }
+      console.groupEnd();
+    };
+  })()
 };
 
 export default translationDebug;

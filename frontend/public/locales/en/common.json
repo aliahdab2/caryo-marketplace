@@ -425,5 +425,7 @@
   "search.colors.red": "Red",
   "search.colors.green": "Green",
   "search.colors.brown": "Brown",
-  "search.colors.beige": "Beige"
+  "search.colors.beige": "Beige",
+  "search.sellerType": "Seller type",
+  "search.clearFilter": "Clear filter"
 }

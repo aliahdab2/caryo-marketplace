@@ -90,6 +90,7 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt" as const,
     maxAge: 24 * 60 * 60, // 24 hours
+    updateAge: 2 * 60 * 60, // Update session every 2 hours instead of on every request
   },
   jwt: {
     maxAge: 24 * 60 * 60, // 24 hours
@@ -181,5 +182,5 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/signin",
     error: "/auth/error",
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: false, // Disable debug in all environments to reduce console noise
 };

@@ -1,6 +1,7 @@
 "use client";
 
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect, FormEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,9 +12,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import useLazyTranslation from "@/hooks/useLazyTranslation";
 
+// Move namespaces outside component to prevent recreation on every render
+const AUTH_NAMESPACES = ['auth', 'errors'];
+
 const SignInPage: React.FC = () => {
   // Lazy load the auth and errors namespaces
-  useLazyTranslation(['auth', 'errors']);
+  useLazyTranslation(AUTH_NAMESPACES);
 
   const { t } = useTranslation(['auth', 'errors']);
   const router = useRouter();
@@ -29,7 +33,7 @@ const SignInPage: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [credentialsCorrect, setCredentialsCorrect] = useState(false);
 
-  const { data: session } = useSession();
+  const { session } = useAuthSession();
 
   // Extract callback URL from search params if present
   useEffect(() => {

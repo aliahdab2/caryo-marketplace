@@ -2,7 +2,7 @@
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { useSession } from "next-auth/react";
+import { useAuthStatus } from "@/hooks/useAuthSession";
 import type { MainLayoutProps } from "@/types/components";
 // Import DevTools component conditionally
 import dynamic from "next/dynamic";
@@ -13,14 +13,14 @@ const DevTools = dynamic(() => import("@/components/debug/DevTools"), {
 });
 
 export default function MainLayout({ children }: MainLayoutProps) {
-  const { status } = useSession();
+  const { isLoading } = useAuthStatus();
   
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       
       <main className="flex-grow">
-        {status === "loading" ? (
+        {isLoading ? (
           <div className="flex justify-center items-center h-full py-12">
             <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
           </div>
