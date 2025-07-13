@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function NewListingPage() {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, _setCurrentStep] = useState(1);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

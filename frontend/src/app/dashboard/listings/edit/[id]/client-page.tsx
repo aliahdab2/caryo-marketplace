@@ -63,6 +63,8 @@ export default function EditListingPageClient({ id }: { id: string }) {
           currency: listing.currency || "SAR",
           condition: "used", // Default since backend doesn't seem to have this field
           mileage: listing.mileage?.toString() || "",
+          engine: "", // Default empty for edit form
+          color: listing.exteriorColor || "",
           exteriorColor: "",
           interiorColor: "",
           transmission: listing.transmission || "",
@@ -71,6 +73,8 @@ export default function EditListingPageClient({ id }: { id: string }) {
           location: listing.location?.city || "",
           governorateId: "1", // This needs to be mapped from the location data
           city: listing.location?.city || "",
+          state: "", // Default empty for edit form
+          zipCode: "", // Default empty for edit form
           contactName: listing.seller?.name || "",
           contactPhone: listing.seller?.phone || "",
           contactEmail: listing.seller?.email || "",
