@@ -333,16 +333,21 @@ export default function NewListingPage() {
                   </div>
                   
                   <div className="group">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded-full text-xs font-semibold mr-2 dark:bg-blue-900 dark:text-blue-300">
+                        💱
+                      </span>
                       {t('listings:newListing.currency', 'Currency')}
+                      <span className="text-red-500 ml-1">*</span>
                     </label>
                     <select
                       name="currency"
                       value={formData.currency}
                       onChange={handleChange}
-                      className={`flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 ${
+                      className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 ${
                         i18n.language === 'ar' ? 'text-right' : 'text-left'
                       }`}
+                      required
                     >
                       {SUPPORTED_CURRENCIES.map((curr) => (
                         <option key={curr.code} value={curr.code}>
