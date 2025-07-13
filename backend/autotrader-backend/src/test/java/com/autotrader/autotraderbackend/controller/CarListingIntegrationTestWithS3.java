@@ -9,6 +9,8 @@ import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.repository.CountryRepository;
+import com.autotrader.autotraderbackend.repository.GovernorateRepository;
 import com.autotrader.autotraderbackend.util.TestDataGenerator;
 import com.autotrader.autotraderbackend.util.TestGeographyUtils;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
@@ -49,7 +51,13 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
     private CarListingRepository carListingRepository;
 
     @Autowired
-    private LocationRepository locationRepository; 
+    private LocationRepository locationRepository;
+    
+    @Autowired
+    private CountryRepository countryRepository;
+    
+    @Autowired
+    private GovernorateRepository governorateRepository; 
 
     private String baseUrl;
     private Long testLocationId;
@@ -59,10 +67,21 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         baseUrl = "http://localhost:" + port;
         carListingRepository.deleteAll();
         userRepository.deleteAll();
-        locationRepository.deleteAll(); 
+        locationRepository.deleteAll();
+        governorateRepository.deleteAll();
+        countryRepository.deleteAll();
 
         // Create a test location with country and governorate hierarchy
+        // Save entities in the correct order to avoid constraint violations
         Location location = TestDataGenerator.createTestLocationWithHierarchy("XX");
+        
+        // Save country first
+        countryRepository.save(location.getGovernorate().getCountry());
+        
+        // Save governorate second
+        governorateRepository.save(location.getGovernorate());
+        
+        // Finally save location
         Location savedLocation = locationRepository.save(location);
         testLocationId = savedLocation.getId();
 

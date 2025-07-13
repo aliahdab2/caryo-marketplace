@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.*;
 
 /**
@@ -103,12 +105,22 @@ public final class CurrencyUtil {
         // Round to appropriate decimal places
         BigDecimal roundedAmount = amount.setScale(info.decimalPlaces, RoundingMode.HALF_UP);
         
+        // Use US locale for consistent formatting (commas for thousands, periods for decimals)
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+        DecimalFormat formatter;
+        
         // Format based on currency
         if ("USD".equals(normalizedCurrency)) {
-            return String.format("$%,." + info.decimalPlaces + "f", roundedAmount);
+            if (info.decimalPlaces > 0) {
+                formatter = new DecimalFormat("#,##0.00", symbols);
+            } else {
+                formatter = new DecimalFormat("#,##0", symbols);
+            }
+            return "$" + formatter.format(roundedAmount);
         } else if ("SYP".equals(normalizedCurrency)) {
             // Format SYP with no decimal places and appropriate grouping
-            return String.format("SYR%,.0f", roundedAmount);
+            formatter = new DecimalFormat("#,##0", symbols);
+            return "SYR" + formatter.format(roundedAmount);
         }
         
         return String.format("%s %s", info.symbol, roundedAmount.toString());

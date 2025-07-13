@@ -387,6 +387,7 @@ class CurrencyUtilTest {
                 constructor.newInstance();
             })
             .hasCauseInstanceOf(UnsupportedOperationException.class)
+            .cause()
             .hasMessageContaining("utility class");
         }
     }
