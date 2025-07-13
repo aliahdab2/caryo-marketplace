@@ -2,6 +2,17 @@
 
 This document provides detailed information about the available API endpoints in the Autotrader Marketplace backend service.
 
+**Last Updated:** July 13, 2025
+
+**Recent Updates:**
+- Added social login endpoint (`POST /api/auth/social-login`)
+- Added change password endpoint (`POST /api/auth/change-password`)
+- Added advanced listing management endpoints (mark-sold, archive, unarchive)
+- Added listing creation with image upload (`POST /api/listings/with-image`)
+- Added comprehensive reference data endpoints (fuel-types, body-styles, transmissions, etc.)
+- Updated all testing examples with correct API paths
+- Added bilingual field support documentation
+
 ## Quick Start Guide
 
 ### Starting the Application
@@ -146,6 +157,68 @@ Authorization: Bearer <your_jwt_token>
   ```json
   {
     "message": "Invalid username or password"
+  }
+  ```
+
+#### Social Login
+
+- **Endpoint**: `POST /api/auth/social-login`
+- **Access**: Public
+- **Description**: Authenticate or register a user with social login providers (Google, etc.)
+- **Request Body**:
+  ```json
+  {
+    "email": "user@example.com",
+    "name": "John Doe",
+    "provider": "google"
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "username": "user",
+    "email": "user@example.com",
+    "roles": ["ROLE_USER"],
+    "accessToken": "eyJhbGciOiJIUzI1NiJ9..."
+  }
+  ```
+- **Response (400 Bad Request)** - Invalid social login data:
+  ```json
+  {
+    "message": "Error: Invalid social login data"
+  }
+  ```
+
+#### Change Password
+
+- **Endpoint**: `POST /api/auth/change-password`
+- **Access**: Authenticated users
+- **Description**: Changes the current user's password
+- **Authentication**: Required (JWT token)
+- **Request Body**:
+  ```json
+  {
+    "currentPassword": "oldPassword123",
+    "newPassword": "newPassword456"
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "message": "Password changed successfully!"
+  }
+  ```
+- **Response (400 Bad Request)** - Invalid current password:
+  ```json
+  {
+    "message": "Error: Current password is incorrect!"
+  }
+  ```
+- **Response (401 Unauthorized)** - Not authenticated:
+  ```json
+  {
+    "message": "Error: User not authenticated!"
   }
   ```
 
@@ -421,8 +494,273 @@ Authorization: Bearer <your_jwt_token>
   ```json
   {
     "status": "API is up and running",
-    "timestamp": "2025-04-30T12:34:56Z"
+    "timestamp": "2025-07-13T12:34:56Z"
   }
+  ```
+
+## Reference Data Endpoints
+
+### Fuel Types
+
+#### Get All Fuel Types
+
+- **Endpoint**: `GET /api/fuel-types`
+- **Access**: Public
+- **Description**: Returns all available fuel types (e.g., Gasoline, Diesel, Electric, Hybrid)
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "nameEn": "Gasoline",
+      "nameAr": "بنزين"
+    },
+    {
+      "id": 2,
+      "nameEn": "Diesel",
+      "nameAr": "ديزل"
+    },
+    {
+      "id": 3,
+      "nameEn": "Electric",
+      "nameAr": "كهربائي"
+    }
+  ]
+  ```
+
+#### Get Fuel Type by ID
+
+- **Endpoint**: `GET /api/fuel-types/{id}`
+- **Access**: Public
+- **Description**: Returns a specific fuel type by its ID
+- **Parameters**:
+  - `id` (path parameter): ID of the fuel type
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "nameEn": "Gasoline",
+    "nameAr": "بنزين"
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "Fuel type not found"
+  }
+  ```
+
+### Body Styles
+
+#### Get All Body Styles
+
+- **Endpoint**: `GET /api/body-styles`
+- **Access**: Public
+- **Description**: Returns all available body styles (e.g., Sedan, SUV, Hatchback, Convertible)
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "nameEn": "Sedan",
+      "nameAr": "سيدان"
+    },
+    {
+      "id": 2,
+      "nameEn": "SUV",
+      "nameAr": "دفع رباعي"
+    },
+    {
+      "id": 3,
+      "nameEn": "Hatchback",
+      "nameAr": "هاتشباك"
+    }
+  ]
+  ```
+
+#### Get Body Style by ID
+
+- **Endpoint**: `GET /api/body-styles/{id}`
+- **Access**: Public
+- **Description**: Returns a specific body style by its ID
+- **Parameters**:
+  - `id` (path parameter): ID of the body style
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "nameEn": "Sedan",
+    "nameAr": "سيدان"
+  }
+  ```
+
+### Transmissions
+
+#### Get All Transmissions
+
+- **Endpoint**: `GET /api/transmissions`
+- **Access**: Public
+- **Description**: Returns all available transmission types (e.g., Manual, Automatic, CVT)
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "nameEn": "Manual",
+      "nameAr": "يدوي"
+    },
+    {
+      "id": 2,
+      "nameEn": "Automatic",
+      "nameAr": "أوتوماتيك"
+    },
+    {
+      "id": 3,
+      "nameEn": "CVT",
+      "nameAr": "متغير السرعة"
+    }
+  ]
+  ```
+
+#### Get Transmission by ID
+
+- **Endpoint**: `GET /api/transmissions/{id}`
+- **Access**: Public
+- **Description**: Returns a specific transmission type by its ID
+- **Parameters**:
+  - `id` (path parameter): ID of the transmission
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "nameEn": "Manual",
+    "nameAr": "يدوي"
+  }
+  ```
+
+### Drive Types
+
+#### Get All Drive Types
+
+- **Endpoint**: `GET /api/drive-types`
+- **Access**: Public
+- **Description**: Returns all available drive types (e.g., FWD, RWD, AWD, 4WD)
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "nameEn": "Front-wheel drive (FWD)",
+      "nameAr": "دفع أمامي"
+    },
+    {
+      "id": 2,
+      "nameEn": "Rear-wheel drive (RWD)",
+      "nameAr": "دفع خلفي"
+    },
+    {
+      "id": 3,
+      "nameEn": "All-wheel drive (AWD)",
+      "nameAr": "دفع رباعي"
+    }
+  ]
+  ```
+
+### Car Conditions
+
+#### Get All Car Conditions
+
+- **Endpoint**: `GET /api/car-conditions`
+- **Access**: Public
+- **Description**: Returns all available car conditions (e.g., New, Used, Certified Pre-owned)
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "nameEn": "New",
+      "nameAr": "جديد"
+    },
+    {
+      "id": 2,
+      "nameEn": "Used",
+      "nameAr": "مستعمل"
+    },
+    {
+      "id": 3,
+      "nameEn": "Certified Pre-owned",
+      "nameAr": "مستعمل معتمد"
+    }
+  ]
+  ```
+
+### Seller Types
+
+#### Get All Seller Types
+
+- **Endpoint**: `GET /api/seller-types`
+- **Access**: Public
+- **Description**: Returns all available seller types (e.g., Private, Dealer)
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "nameEn": "Private",
+      "nameAr": "خاص"
+    },
+    {
+      "id": 2,
+      "nameEn": "Dealer",
+      "nameAr": "معرض"
+    }
+  ]
+  ```
+
+### Locations
+
+#### Get All Governorates
+
+- **Endpoint**: `GET /api/governorates`
+- **Access**: Public
+- **Description**: Returns all available governorates/states
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "nameEn": "Amman",
+      "nameAr": "عمان"
+    },
+    {
+      "id": 2,
+      "nameEn": "Irbid",
+      "nameAr": "إربد"
+    }
+  ]
+  ```
+
+#### Get All Locations
+
+- **Endpoint**: `GET /api/locations`
+- **Access**: Public
+- **Description**: Returns all available locations/cities
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "nameEn": "Amman",
+      "nameAr": "عمان",
+      "governorateId": 1
+    },
+    {
+      "id": 2,
+      "nameEn": "Zarqa",
+      "nameAr": "الزرقاء",
+      "governorateId": 1
+    }
+  ]
   ```
 
 ## Error Responses
@@ -433,7 +771,7 @@ Most error responses follow this format:
 
 ```json
 {
-  "timestamp": "2025-04-30T12:34:56Z", // Or current time in yyyy-MM-dd hh:mm:ss format
+  "timestamp": "2025-07-13T12:34:56Z", // Or current time in yyyy-MM-dd hh:mm:ss format
   "status": 400, // HTTP status code
   "error": "Bad Request", // HTTP status reason phrase
   "message": "Error message details", // Specific error message
@@ -458,22 +796,43 @@ Most error responses follow this format:
 
 #### Register a User
 ```bash
-curl -X POST http://localhost:8080/auth/signup \
+curl -X POST http://localhost:8080/api/auth/signup \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser1","email":"testuser1@example.com","password":"password123"}'
 ```
 
 #### Login
 ```bash
-curl -X POST http://localhost:8080/auth/signin \
+curl -X POST http://localhost:8080/api/auth/signin \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser1","password":"password123"}'
 ```
 
-#### Create a Car Listing (after login)
+#### Social Login
+```bash
+curl -X POST http://localhost:8080/api/auth/social-login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","name":"John Doe","provider":"google"}'
+```
+
+#### Change Password (after login)
 ```bash
 # First get a token
-TOKEN=$(curl -s -X POST http://localhost:8080/auth/signin \
+TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/signin \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser1","password":"password123"}' | grep -o '"accessToken":"[^"]*' | cut -d':' -f2 | tr -d '"')
+
+# Then change password
+curl -X POST http://localhost:8080/api/auth/change-password \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"currentPassword":"password123","newPassword":"newPassword456"}'
+```
+
+#### Create a Car Listing (after login)
+```bash
+# First get a token (if not already obtained)
+TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/signin \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser1","password":"password123"}' | grep -o '"accessToken":"[^"]*' | cut -d':' -f2 | tr -d '"')
 
@@ -484,10 +843,47 @@ curl -X POST http://localhost:8080/api/listings \
   -d '{"title":"2019 Toyota Camry","brand":"Toyota","model":"Camry","modelYear":2019,"price":18500,"mileage":35000,"location":"New York, NY","description":"Excellent condition, one owner, no accidents","imageUrl":"https://example.com/camry.jpg"}'
 ```
 
+#### Create a Car Listing with Image
+```bash
+# Using the token from previous step
+curl -X POST http://localhost:8080/api/listings/with-image \
+  -H "Authorization: Bearer $TOKEN" \
+  -F 'listing={"title":"2020 Honda Civic","brand":"Honda","model":"Civic","modelYear":2020,"price":20000,"mileage":25000,"location":"Amman, Jordan","description":"Like new condition"}' \
+  -F 'image=@/path/to/your/image.jpg'
+```
+
 #### Get Your Listings
 ```bash
 # Using the token from previous step
 curl -X GET http://localhost:8080/api/listings/my-listings \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+#### Pause a Listing
+```bash
+# Using the token from previous step
+curl -X PUT http://localhost:8080/api/listings/123/pause \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+#### Resume a Listing
+```bash
+# Using the token from previous step
+curl -X PUT http://localhost:8080/api/listings/123/resume \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+#### Mark Listing as Sold
+```bash
+# Using the token from previous step
+curl -X POST http://localhost:8080/api/listings/123/mark-sold \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+#### Archive a Listing
+```bash
+# Using the token from previous step
+curl -X POST http://localhost:8080/api/listings/123/archive \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -503,6 +899,28 @@ curl -X POST http://localhost:8080/api/favorites/123 \
 # Using the token from previous step
 curl -X DELETE http://localhost:8080/api/favorites/123 \
   -H "Authorization: Bearer $TOKEN"
+```
+
+#### Get Your Favorites
+```bash
+# Using the token from previous step
+curl -X GET http://localhost:8080/api/favorites \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+#### Get Reference Data
+```bash
+# Get all fuel types (public endpoint)
+curl -X GET http://localhost:8080/api/fuel-types
+
+# Get all body styles (public endpoint)
+curl -X GET http://localhost:8080/api/body-styles
+
+# Get all transmissions (public endpoint)
+curl -X GET http://localhost:8080/api/transmissions
+
+# Get all locations (public endpoint)
+curl -X GET http://localhost:8080/api/locations
 ```
 
 #### Get Your Favorite Listings
@@ -586,6 +1004,111 @@ To run all API tests automatically:
   - **403 Forbidden**: When user is not the owner of the listing
   - **404 Not Found**: When listing does not exist
   - **409 Conflict**: When listing is already active
+
+#### Mark Listing as Sold
+
+- **Endpoint**: `POST /api/listings/{id}/mark-sold`
+- **Access**: Authenticated owner of the listing
+- **Description**: Marks a listing as sold, removing it from active listings
+- **Authentication**: Required (JWT token)
+- **Parameters**:
+  - `id` (path parameter): ID of the car listing to mark as sold
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 123,
+    "title": "2019 Toyota Camry",
+    "isSold": true,
+    "message": "Listing marked as sold successfully"
+  }
+  ```
+- **Error Responses**:
+  - **403 Forbidden**: When user is not the owner of the listing
+  - **404 Not Found**: When listing does not exist
+  - **409 Conflict**: When listing is already sold or archived
+
+#### Archive Listing
+
+- **Endpoint**: `POST /api/listings/{id}/archive`
+- **Access**: Authenticated owner of the listing
+- **Description**: Archives a listing, hiding it from public view but keeping it in user's history
+- **Authentication**: Required (JWT token)
+- **Parameters**:
+  - `id` (path parameter): ID of the car listing to archive
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 123,
+    "title": "2019 Toyota Camry",
+    "isArchived": true,
+    "message": "Listing archived successfully"
+  }
+  ```
+- **Error Responses**:
+  - **403 Forbidden**: When user is not the owner of the listing
+  - **404 Not Found**: When listing does not exist
+  - **409 Conflict**: When listing is already archived
+
+#### Unarchive Listing
+
+- **Endpoint**: `POST /api/listings/{id}/unarchive`
+- **Access**: Authenticated owner of the listing
+- **Description**: Unarchives a listing, making it available for public viewing again
+- **Authentication**: Required (JWT token)
+- **Parameters**:
+  - `id` (path parameter): ID of the car listing to unarchive
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 123,
+    "title": "2019 Toyota Camry",
+    "isArchived": false,
+    "message": "Listing unarchived successfully"
+  }
+  ```
+- **Error Responses**:
+  - **403 Forbidden**: When user is not the owner of the listing
+  - **404 Not Found**: When listing does not exist
+  - **409 Conflict**: When listing is not archived
+
+#### Create Listing with Image
+
+- **Endpoint**: `POST /api/listings/with-image`
+- **Access**: Authenticated users
+- **Description**: Creates a new car listing with an image file uploaded simultaneously
+- **Authentication**: Required (JWT token)
+- **Content-Type**: `multipart/form-data`
+- **Parameters**:
+  - `listing` (form-data): JSON string containing listing data
+  - `image` (form-data): The image file to upload (JPEG, PNG, GIF, or WebP)
+- **Example Request Body**:
+  ```
+  listing: {"title":"2019 Toyota Camry","brand":"Toyota","model":"Camry","modelYear":2019,"price":18500,"mileage":35000,"location":"New York, NY","description":"Excellent condition"}
+  image: [binary file data]
+  ```
+- **Response (201 Created)**:
+  ```json
+  {
+    "id": 1,
+    "title": "2019 Toyota Camry",
+    "brand": "Toyota",
+    "model": "Camry",
+    "modelYear": 2019,
+    "price": 18500,
+    "mileage": 35000,
+    "location": "New York, NY",
+    "description": "Excellent condition",
+    "imageUrl": "https://storage.example.com/listings/1/image.jpg",
+    "approved": false,
+    "userId": 1,
+    "createdAt": "2025-07-13T10:15:30Z",
+    "isSold": false,
+    "isArchived": false
+  }
+  ```
+- **Error Responses**:
+  - **400 Bad Request**: Invalid listing data or image format
+  - **413 Payload Too Large**: Image file exceeds size limit
 
 ### Additional Operations
 
