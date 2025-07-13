@@ -39,14 +39,6 @@ public class ListingFilterRequest {
     private String brand;
 
     /**
-     * Filter by car model. Optional.
-     * @deprecated Use the hierarchical brand syntax instead (e.g., "Toyota:Camry")
-     * This field is kept for backward compatibility but is ignored when hierarchical brand syntax is used.
-     */
-    @Deprecated
-    private String model;
-
-    /**
      * Minimum model year for filtering. Optional. Must be a 4-digit integer and not earlier than 1920.
      */
     @Min(value = 1920, message = "Minimum year filter must be 1920 or later")

@@ -291,7 +291,6 @@ public class CarListingController {
     )
     public ResponseEntity<PageResponse<CarListingResponse>> getFilteredListingsByParams(
             @Parameter(description = "Brand filter. Supports hierarchical syntax: 'Toyota' (all Toyota), 'Toyota:Camry' (only Camry), 'Toyota:Camry;Corolla' (Camry and Corolla), 'Toyota:Camry,Honda' (Toyota Camry and all Honda)") @RequestParam(required = false) String brand,
-            @Parameter(description = "Model filter (deprecated - use hierarchical brand syntax instead)") @RequestParam(required = false) String model,
             @Parameter(description = "Minimum year") @RequestParam(required = false) Integer minYear,
             @Parameter(description = "Maximum year") @RequestParam(required = false) Integer maxYear,
             @Parameter(description = "Location (slug or name)") @RequestParam(required = false) String location,
@@ -304,10 +303,10 @@ public class CarListingController {
             @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
             @Parameter(description = "Filter by seller type ID") @RequestParam(required = false) Long sellerTypeId,
             @PageableDefault(size = 10, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
-        log.debug("Received GET request to filter listings. Pageable: {}", pageable);
+        log.info("Received request to filter listings. Filter: brand={}, Pageable: {}", brand, pageable);
+        
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         filterRequest.setBrand(brand);
-        filterRequest.setModel(model);
         filterRequest.setMinYear(minYear);
         filterRequest.setMaxYear(maxYear);
         filterRequest.setLocation(location);

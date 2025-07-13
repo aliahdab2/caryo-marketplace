@@ -127,6 +127,7 @@ public class CarListingSpecification {
         if (filter.getBrand() != null && !filter.getBrand().trim().isEmpty()) {
             validateBrandFilter(filter.getBrand());
         }
+
     }
 
     /**
@@ -173,32 +174,28 @@ public class CarListingSpecification {
                                               jakarta.persistence.criteria.Root<CarListing> root,
                                               jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
                                               List<Predicate> predicates) {
-        if (!StringUtils.hasText(filter.getBrand())) {
-            return;
-        }
+        if (StringUtils.hasText(filter.getBrand())) {
+            String brandFilter = filter.getBrand().trim();
+            if (!brandFilter.isEmpty()) {
+                List<Predicate> brandOrConditions = new ArrayList<>();
+                String[] brandModelGroups = brandFilter.split(",");
 
-        String brandFilter = filter.getBrand().trim();
-        if (brandFilter.isEmpty()) {
-            return;
-        }
+                for (String group : brandModelGroups) {
+                    String trimmedGroup = group.trim();
+                    if (!StringUtils.hasText(trimmedGroup)) {
+                        continue;
+                    }
 
-        List<Predicate> brandOrConditions = new ArrayList<>();
-        String[] brandModelGroups = brandFilter.split(",");
+                    Predicate groupPredicate = processBrandModelGroup(trimmedGroup, root, criteriaBuilder);
+                    if (groupPredicate != null) {
+                        brandOrConditions.add(groupPredicate);
+                    }
+                }
 
-        for (String group : brandModelGroups) {
-            String trimmedGroup = group.trim();
-            if (!StringUtils.hasText(trimmedGroup)) {
-                continue;
+                if (!brandOrConditions.isEmpty()) {
+                    predicates.add(criteriaBuilder.or(brandOrConditions.toArray(new Predicate[0])));
+                }
             }
-
-            Predicate groupPredicate = processBrandModelGroup(trimmedGroup, root, criteriaBuilder);
-            if (groupPredicate != null) {
-                brandOrConditions.add(groupPredicate);
-            }
-        }
-
-        if (!brandOrConditions.isEmpty()) {
-            predicates.add(criteriaBuilder.or(brandOrConditions.toArray(new Predicate[0])));
         }
     }
 
@@ -224,7 +221,7 @@ public class CarListingSpecification {
             throw new IllegalArgumentException("Brand name too long: " + brandName);
         }
 
-        Predicate brandPredicate = createBilingualLikePredicate(root, criteriaBuilder, "brandName", brandName);
+        Predicate brandPredicate = createBilingualExactPredicate(root, criteriaBuilder, "brandName", brandName);
 
         if (parts.length > 1 && StringUtils.hasText(parts[1])) {
             // Process models
@@ -238,7 +235,7 @@ public class CarListingSpecification {
                     if (trimmedModel.length() > 100) {
                         throw new IllegalArgumentException("Model name too long: " + trimmedModel);
                     }
-                    modelOrPredicates.add(createBilingualLikePredicate(root, criteriaBuilder, "modelName", trimmedModel));
+                    modelOrPredicates.add(createBilingualExactPredicate(root, criteriaBuilder, "modelName", trimmedModel));
                 }
             }
 
@@ -388,30 +385,38 @@ public class CarListingSpecification {
      * @return Predicate that searches in both language fields
      * @throws IllegalArgumentException if parameters are invalid
      */
-    private static Predicate createBilingualLikePredicate(jakarta.persistence.criteria.Root<CarListing> root, 
-                                                        jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder, 
-                                                        String fieldName, 
-                                                        String value) {
+    /**
+     * Creates a bilingual exact match predicate for brand and model searches.
+     * Uses exact matching to avoid false positives, especially important for Arabic text.
+     */
+    private static Predicate createBilingualExactPredicate(jakarta.persistence.criteria.Root<CarListing> root, 
+                                                         jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder, 
+                                                         String fieldName, 
+                                                         String value) {
         if (!StringUtils.hasText(fieldName) || !StringUtils.hasText(value)) {
             throw new IllegalArgumentException("Field name and value cannot be null or empty");
         }
 
         // Sanitize the search value to prevent SQL injection
         String sanitizedValue = sanitizeSearchValue(value);
-        String lowerCaseValue = "%" + sanitizedValue.toLowerCase().trim() + "%";
+        String lowerCaseValue = sanitizedValue.toLowerCase().trim();
         
         try {
-            Predicate enPredicate = criteriaBuilder.like(
+            // For brand and model searches, use exact matching to avoid false positives
+            // This is especially important for Arabic text where similar characters 
+            // might cause incorrect partial matches
+            Predicate enPredicate = criteriaBuilder.equal(
                 criteriaBuilder.lower(root.get(fieldName + "En")),
                 lowerCaseValue
             );
-            Predicate arPredicate = criteriaBuilder.like(
+            Predicate arPredicate = criteriaBuilder.equal(
                 criteriaBuilder.lower(root.get(fieldName + "Ar")),
                 lowerCaseValue
             );
+            
             return criteriaBuilder.or(enPredicate, arPredicate);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Error creating bilingual predicate for field: " + fieldName, e);
+            throw new IllegalArgumentException("Error creating bilingual exact predicate for field: " + fieldName, e);
         }
     }
 

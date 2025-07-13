@@ -1,14 +1,16 @@
 "use client";
 
 import { useSession } from 'next-auth/react';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 
 /**
  * Component that handles storing auth data in localStorage when session changes
  * This ensures roles and other auth data are available to isAdmin() and other functions
+ * Optimized to reduce unnecessary API calls
  */
 export default function AuthDataHandler() {
   const { data: session, status } = useSession();
+  const lastUpdateRef = useRef<string | null>(null);
 
   // Function to fetch roles from backend when not available in session
   const fetchUserRoles = useCallback(async (email: string) => {
@@ -40,6 +42,19 @@ export default function AuthDataHandler() {
   useEffect(() => {
     const handleSessionUpdate = async () => {
       if (status === 'loading') return; // Wait for session to be resolved
+
+      // Create a session signature to detect changes
+      const sessionSignature = JSON.stringify({
+        email: session?.user?.email,
+        name: session?.user?.name,
+        accessToken: session?.accessToken,
+        roles: session?.user && 'roles' in session.user ? session.user.roles : null,
+        authenticated: !!session
+      });
+
+      // Only update if session actually changed
+      if (lastUpdateRef.current === sessionSignature) return;
+      lastUpdateRef.current = sessionSignature;
 
       if (session?.user && session.accessToken) {
         // Store user data in localStorage for use by auth utilities

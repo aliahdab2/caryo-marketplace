@@ -137,8 +137,7 @@ export interface PageResponse<T> {
 }
 
 export interface CarListingFilterParams {
-  brand?: string;
-  model?: string;
+  brand?: string; // Now supports hierarchical format: "Toyota:Camry" or "تويوتا:كامري"
   minYear?: number;
   maxYear?: number;
   location?: string;
@@ -368,7 +367,6 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
   if (filters) {
     // Add each filter parameter if it exists
     if (filters.brand) queryParams.append('brand', filters.brand);
-    if (filters.model) queryParams.append('model', filters.model);
     if (filters.minYear) queryParams.append('minYear', filters.minYear.toString());
     if (filters.maxYear) queryParams.append('maxYear', filters.maxYear.toString());
     if (filters.location) queryParams.append('location', filters.location);

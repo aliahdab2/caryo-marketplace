@@ -16,7 +16,7 @@ import { translationDebug } from '@/utils/translationDebug';
  */
 export function useLazyTranslation(
   namespaces: string | string[], 
-  debug: boolean = process.env.NODE_ENV === 'development'
+  debug: boolean = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_I18N_DEBUG !== 'false'
 ): UseTranslationResponse<string | string[], string> {
   const [namespacesLoaded, setNamespacesLoaded] = useState(false);
   
@@ -41,26 +41,9 @@ export function useLazyTranslation(
           
           if (notLoadedNamespaces.length > 0) {
             console.log(
-              `%c[i18n Loading] %c${notLoadedNamespaces.join(', ')} %cfor lang %c${i18nInstance.language}`,
+              `%c[i18n] Loading %c${notLoadedNamespaces.join(', ')} %c(${i18nInstance.language})`,
               'color: #FF9800; font-weight: bold',
               'color: #2196F3; font-weight: bold',
-              'color: #9E9E9E',
-              'color: #4CAF50; font-weight: bold'
-            );
-            if (typeof document !== 'undefined') {
-              document.dispatchEvent(
-                new CustomEvent('i18n-namespaces-requested', {
-                  detail: { namespaces: notLoadedNamespaces, lang: i18nInstance.language }
-                })
-              );
-            }
-          } else if (normalizedNamespaces.length > 0) {
-            console.log(
-              `%c[i18n Cache Hit] %c${normalizedNamespaces.join(', ')} %cfor lang %c${i18nInstance.language} %c(already loaded)`,
-              'color: #9C27B0; font-weight: bold',
-              'color: #2196F3; font-weight: bold',
-              'color: #9E9E9E',
-              'color: #4CAF50; font-weight: bold',
               'color: #9E9E9E'
             );
           }
@@ -78,7 +61,7 @@ export function useLazyTranslation(
           setNamespacesLoaded(true);
         }
         
-        if (debug) {
+        if (debug && normalizedNamespaces.length > 0) {
           translationDebug.logNamespaceLoaded(normalizedNamespaces, i18nInstance.language);
         }
       } catch (error) {
@@ -92,10 +75,14 @@ export function useLazyTranslation(
     loadAndSetNamespaces();
     
     if (debug) {
+      // Throttle the debug report to reduce console noise
       const timeoutId = setTimeout(() => {
         translationDebug.printLoadingReport(i18nInstance);
-      }, 500);
-      return () => clearTimeout(timeoutId);
+      }, 1000);
+      return () => {
+        isMounted = false;
+        clearTimeout(timeoutId);
+      };
     }
 
     return () => {
