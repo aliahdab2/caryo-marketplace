@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { fetchGovernorates, Governorate } from '@/services/api';
@@ -10,8 +10,24 @@ import { ListingFormData } from "@/types/listings";
 import { SUPPORTED_CURRENCIES } from '@/utils/currency';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 
-// Helper function to convert Arabic-Indic numerals to Latin numerals
-const _convertArabicNumerals = (input: string): string => {
+// Types for better type safety
+interface FormErrors {
+  [key: string]: string;
+}
+
+interface StepConfig {
+  step: number;
+  title: string;
+  icon: string;
+  isComplete: boolean;
+}
+
+// Constants
+const TOTAL_STEPS = 4;
+const DEFAULT_CURRENCY = "USD";
+
+// Helper functions
+const convertArabicNumerals = (input: string): string => {
   if (!input) return input;
   
   const arabicNumerals = '٠١٢٣٤٥٦٧٨٩';
@@ -21,6 +37,37 @@ const _convertArabicNumerals = (input: string): string => {
     const index = arabicNumerals.indexOf(char);
     return index !== -1 ? latinNumerals[index] : char;
   });
+};
+
+const sanitizeInput = (input: string): string => {
+  return input.trim().replace(/[<>]/g, '');
+};
+
+const validateStep = (step: number, formData: ListingFormData): string[] => {
+  const errors: string[] = [];
+  
+  switch (step) {
+    case 1:
+      if (!formData.title) errors.push('Title is required');
+      if (!formData.description) errors.push('Description is required');
+      if (!formData.price) errors.push('Price is required');
+      if (formData.price && isNaN(Number(formData.price))) errors.push('Price must be a valid number');
+      break;
+    case 2:
+      if (!formData.make) errors.push('Make is required');
+      if (!formData.model) errors.push('Model is required');
+      if (!formData.year) errors.push('Year is required');
+      break;
+    case 3:
+      if (!formData.contactName) errors.push('Contact name is required');
+      if (!formData.contactPhone) errors.push('Contact phone is required');
+      break;
+    case 4:
+      if (formData.images.length === 0) errors.push('At least one image is required');
+      break;
+  }
+  
+  return errors;
 };
 
 export default function NewListingPage() {
@@ -307,13 +354,13 @@ export default function NewListingPage() {
                     required
                   />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Make it descriptive and appealing to buyers
+                    {t('listings:newListing.titleHint', 'Make it descriptive and appealing to buyers')}
                   </p>
                 </div>
 
                 {/* Price and Currency */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="md:col-span-2 group">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="group">
                     <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 text-green-600 rounded-full text-xs font-semibold mr-2 dark:bg-green-900 dark:text-green-300">
                         💰
@@ -344,7 +391,7 @@ export default function NewListingPage() {
                       name="currency"
                       value={formData.currency}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 ${
+                      className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 appearance-none bg-white ${
                         i18n.language === 'ar' ? 'text-right' : 'text-left'
                       }`}
                       required
@@ -377,7 +424,7 @@ export default function NewListingPage() {
                     required
                   />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Include key features, condition, and any special details
+                    {t('listings:newListing.descriptionHint', 'Include key features, condition, and any special details')}
                   </p>
                 </div>
               </div>
