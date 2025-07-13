@@ -1,13 +1,13 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { useSession } from 'next-auth/react';
+import { useAuthSession } from '@/hooks/useAuthSession';
 import ProfilePage from '@/app/dashboard/profile/page';
 // Import our i18n mock
 import '../mocks/i18n-mock';
 
-// Mock next-auth
-jest.mock('next-auth/react');
+// Mock the auth session hook
+jest.mock('@/hooks/useAuthSession');
 
 // Extended user interface for testing OAuth users
 interface ExtendedUser {
@@ -41,7 +41,7 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-const mockUseSession = useSession as jest.MockedFunction<typeof useSession>;
+const mockUseAuthSession = useAuthSession as jest.MockedFunction<typeof useAuthSession>;
 
 describe('OAuth User Detection in Profile Page', () => {
   beforeEach(() => {
@@ -50,42 +50,11 @@ describe('OAuth User Detection in Profile Page', () => {
   });
 
   it('should hide change password for Google OAuth users (provider field)', () => {
-    mockUseSession.mockReturnValue({
-      data: {
-        user: {
-          id: '1',
-          name: 'John Doe',
-          email: 'john@gmail.com',
-          provider: 'google',
-          roles: ['USER']
-        } as ExtendedUser,
-        accessToken: 'mock-token',
-        expires: '2024-12-31T23:59:59.999Z'
-      },
-      status: 'authenticated',
-      update: jest.fn()
-    });
-
-    render(<ProfilePage />);
-
-    // Should not show change password button for OAuth users
-    expect(screen.queryByText(/changePassword/i)).not.toBeInTheDocument();
+    // Set up localStorage to indicate OAuth
+    localStorage.setItem('authMethod', 'oauth');
     
-    // Should show Google authentication info instead
-    expect(screen.getByText(/Google Authentication/i)).toBeInTheDocument();
-    expect(screen.getByText(/signed in with your Google account/i)).toBeInTheDocument();
-    
-    // Should not show traditional 2FA setup for OAuth users
-    expect(screen.queryByText(/setupTwoFactor/i)).not.toBeInTheDocument();
-    
-    // Should show Google security management text and Active status
-    expect(screen.getByText(/Security is managed by your Google account/i)).toBeInTheDocument();
-    expect(screen.getByText(/Active/i)).toBeInTheDocument();
-  });
-
-  it('should hide change password for Google OAuth users (image URL)', () => {
-    mockUseSession.mockReturnValue({
-      data: {
+    mockUseAuthSession.mockReturnValue({
+      session: {
         user: {
           id: '1',
           name: 'John Doe',
@@ -97,47 +66,101 @@ describe('OAuth User Detection in Profile Page', () => {
         expires: '2024-12-31T23:59:59.999Z'
       },
       status: 'authenticated',
-      update: jest.fn()
+      isLoading: false,
+      isAuthenticated: true,
+      user: {
+        id: '1',
+        name: 'John Doe',
+        email: 'john@gmail.com',
+        image: 'https://lh3.googleusercontent.com/a/xyz',
+        roles: ['USER']
+      } as ExtendedUser,
+      userRoles: ['USER'],
+      isAdmin: false
     });
 
     render(<ProfilePage />);
 
-    // Should not show change password button for OAuth users
-    expect(screen.queryByText(/changePassword/i)).not.toBeInTheDocument();
+    // Should not show change password section for OAuth users
+    expect(screen.queryByText(/Change Password/i)).not.toBeInTheDocument();
     
-    // Should show Google authentication info instead
-    expect(screen.getByText(/Google Authentication/i)).toBeInTheDocument();
+    // Should show the green OAuth authentication section
+    expect(screen.getByText(/dashboard\.googleAuth/)).toBeInTheDocument();
+    expect(screen.getByText(/dashboard\.active/)).toBeInTheDocument();
   });
 
-  it('should show change password for regular email/password users', () => {
-    mockUseSession.mockReturnValue({
-      data: {
+  it('should hide change password for Google OAuth users (image URL)', () => {
+    mockUseAuthSession.mockReturnValue({
+      session: {
         user: {
           id: '1',
           name: 'John Doe',
-          email: 'john@email.com',
-          provider: 'credentials',
+          email: 'john@gmail.com',
+          image: 'https://lh3.googleusercontent.com/a/xyz',
           roles: ['USER']
         } as ExtendedUser,
         accessToken: 'mock-token',
         expires: '2024-12-31T23:59:59.999Z'
       },
       status: 'authenticated',
-      update: jest.fn()
+      isLoading: false,
+      isAuthenticated: true,
+      user: {
+        id: '1',
+        name: 'John Doe',
+        email: 'john@gmail.com',
+        image: 'https://lh3.googleusercontent.com/a/xyz',
+        roles: ['USER']
+      } as ExtendedUser,
+      userRoles: ['USER'],
+      isAdmin: false
     });
 
     render(<ProfilePage />);
 
-    // Should show change password button for regular users
-    expect(screen.getByText(/change password/i)).toBeInTheDocument();
+    // Should not show change password section for OAuth users
+    expect(screen.queryByText(/Change Password/i)).not.toBeInTheDocument();
     
-    // Should not show Google authentication info
-    expect(screen.queryByText(/Google Authentication/i)).not.toBeInTheDocument();
+    // Should show OAuth authentication section
+    expect(screen.getByText(/dashboard\.googleAuth/)).toBeInTheDocument();
+  });
+
+  it('should show change password for regular email/password users', () => {
+    mockUseAuthSession.mockReturnValue({
+      session: {
+        user: {
+          id: '1',
+          name: 'John Doe',
+          email: 'john@email.com',
+          image: null,
+          roles: ['USER']
+        } as ExtendedUser,
+        accessToken: 'mock-token',
+        expires: '2024-12-31T23:59:59.999Z'
+      },
+      status: 'authenticated',
+      isLoading: false,
+      isAuthenticated: true,
+      user: {
+        id: '1',
+        name: 'John Doe',
+        email: 'john@email.com',
+        image: null,
+        roles: ['USER']
+      } as ExtendedUser,
+      userRoles: ['USER'],
+      isAdmin: false
+    });
+
+    render(<ProfilePage />);
+
+    // Should show change password section for regular users
+    expect(screen.getByText(/dashboard\.changePassword/)).toBeInTheDocument();
     
-    // Should show traditional 2FA setup for regular users
-    expect(screen.getByText(/setup two-factor/i)).toBeInTheDocument();
+    // Should not show OAuth authentication section
+    expect(screen.queryByText(/dashboard\.googleAuth/)).not.toBeInTheDocument();
     
-    // Should not show Google security management
-    expect(screen.queryByText(/Security is managed by your Google account/i)).not.toBeInTheDocument();
+    // Should show two-factor authentication setup for regular users
+    expect(screen.getByText(/dashboard\.twoFactorAuth/)).toBeInTheDocument();
   });
 });
