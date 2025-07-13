@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState, useRef } from 'react';
 
 interface SmoothTransitionProps {
   children: ReactNode;
@@ -23,8 +23,15 @@ export const SmoothTransition: React.FC<SmoothTransitionProps> = ({
 }) => {
   const [showLoading, setShowLoading] = useState(isLoading);
   const [loadingStartTime, setLoadingStartTime] = useState<number | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // Clear any existing timeout
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
     if (isLoading) {
       setShowLoading(true);
       setLoadingStartTime(Date.now());
@@ -32,14 +39,32 @@ export const SmoothTransition: React.FC<SmoothTransitionProps> = ({
       const elapsed = Date.now() - loadingStartTime;
       const remainingTime = Math.max(0, minimumLoadingTime - elapsed);
       
-      setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         setShowLoading(false);
         setLoadingStartTime(null);
       }, remainingTime);
     } else {
       setShowLoading(false);
     }
+
+    // Cleanup function
+    return () => {
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
   }, [isLoading, loadingStartTime, minimumLoadingTime]);
+
+  // Additional cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, []);
 
   if (loadingType === 'overlay') {
     return (

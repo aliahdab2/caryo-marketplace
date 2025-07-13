@@ -411,7 +411,7 @@
   "search.applying": "Applying...",
   "search.errorLoadingResults": "Error loading results",
   "search.noResultsFound": "No cars found",
-  "search.tryDifferentFilters": "Try adjusting your search filters",
+  "search.tryDifferentFilters": "Try adjusting your search filters to see more results.",
   "search.clearFilters": "Clear all filters",
   "search.conditions.new": "New",
   "search.conditions.used": "Used",
