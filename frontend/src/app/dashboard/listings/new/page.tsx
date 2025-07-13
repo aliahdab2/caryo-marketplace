@@ -589,6 +589,16 @@ export default function NewListingPage() {
             {/* Step 2: Car Details */}
             {currentStep === 2 && (
               <div className="space-y-8 animate-fadeIn">
+                {/* Step Header */}
+                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {t('listings:newListing.step2Title', 'Car Details')}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {t('listings:newListing.step2Description', 'Provide specific details about your vehicle')}
+                  </p>
+                </div>
+
                 {/* Car Make */}
                 <div className="space-y-3">
                   <label 
@@ -833,6 +843,16 @@ export default function NewListingPage() {
             {/* Step 3: Location and Contact */}
             {currentStep === 3 && (
               <div className="space-y-8 animate-fadeIn">
+                {/* Step Header */}
+                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {t('listings:newListing.step3Title', 'Location & Contact')}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {t('listings:newListing.step3Description', 'Where to find you and how to get in touch')}
+                  </p>
+                </div>
+
                 {/* Location Information */}
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
@@ -1012,6 +1032,16 @@ export default function NewListingPage() {
             {/* Step 4: Images */}
             {currentStep === 4 && (
               <div className="space-y-8 animate-fadeIn">
+                {/* Step 4 Header */}
+                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                    {t('listings:newListing.step4Title', 'Upload Images')}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                    {t('listings:newListing.step4Description', 'Add high-quality photos to showcase your car and attract potential buyers.')}
+                  </p>
+                </div>
+
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
                     {t('listings:newListing.carImages', 'Car Images')}
