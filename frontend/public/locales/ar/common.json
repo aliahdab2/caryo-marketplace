@@ -448,5 +448,8 @@
   "search.yearRange": "نطاق السنة",
   "search.mileageRange": "نطاق المسافة المقطوعة",
   "search.sellerType": "نوع البائع",
-  "search.clearFilter": "مسح الفلتر"
+  "search.clearFilter": "مسح الفلتر",
+  "search.done": "تم",
+  "search.noResultsFound": "لم يتم العثور على سيارات",
+  "search.tryDifferentFilters": "جرّب تعديل فلاتر البحث لرؤية المزيد من النتائج."
 }
