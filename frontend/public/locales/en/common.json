@@ -433,6 +433,5 @@
   "search.colors.beige": "Beige",
   "search.sellerType": "Seller type",
   "search.clearFilter": "Clear filter",
-  "search.noChangesDetected": "No changes detected",
-  "search.filterAndSort": "Filter and sort"
+  "search.done": "Done"
 }

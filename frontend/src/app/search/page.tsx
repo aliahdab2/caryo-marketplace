@@ -80,7 +80,6 @@ export default function AdvancedSearchPage() {
   const [filters, setFilters] = useState<AdvancedSearchFilters>({});
   const [selectedMake, setSelectedMake] = useState<number | null>(null);
   const [activeFilterModal, setActiveFilterModal] = useState<FilterType | null>(null);
-  const [showNoChangesMessage, setShowNoChangesMessage] = useState(false);
 
   // Memoize listing filters to prevent unnecessary re-creation
   const listingFilters = useMemo<CarListingFilterParams>(() => ({
@@ -791,14 +790,12 @@ export default function AdvancedSearchPage() {
                 
                 <button
                   onClick={() => {
-                    // Update URL with current filters when user applies them
-                    handleSearch();
-                    // Close the modal
+                    // Close the modal since filters apply automatically
                     onClose();
                   }}
                   className="rounded-md bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
-                  {t('search.apply', 'Apply')}
+                  {t('search.done', 'Done')}
                 </button>
               </div>
             </div>
@@ -808,27 +805,11 @@ export default function AdvancedSearchPage() {
     );
   };
 
-  // Handle search submission - for user-initiated searches
-  const handleSearch = useCallback(() => {
-    // Create a custom search function that checks for changes first
-    const hasChanged = JSON.stringify(listingFilters) !== JSON.stringify(previousFiltersRef.current);
-    
-    if (!hasChanged && previousFiltersRef.current !== null) {
-      // No changes detected, show subtle feedback
-      setShowNoChangesMessage(true);
-      setTimeout(() => setShowNoChangesMessage(false), 3000);
-      return;
-    }
-
-    // Store current filters for comparison
-    previousFiltersRef.current = listingFilters;
-    setShowNoChangesMessage(false);
-    
-    executeSearch(false); // Execute manual search
-  }, [executeSearch, listingFilters]);
-
-  // Ref to track previous filters for comparison
-  const previousFiltersRef = React.useRef<typeof listingFilters | null>(null);
+  // Handle done button - close any open modals since filters apply automatically
+  const handleCloseFilters = useCallback(() => {
+    // Close any open filter modals
+    setActiveFilterModal(null);
+  }, []);
 
   // Loading skeleton component for better UX
   const LoadingSkeleton = () => (
@@ -866,38 +847,14 @@ export default function AdvancedSearchPage() {
             {/* Filter and Sort Button */}
             <button
               onClick={() => {
-                // Apply current filters by updating URL and fetching new results
-                handleSearch();
+                // Simply close any open modals since filters apply automatically
+                handleCloseFilters();
               }}
-              disabled={isLoadingListings && isManualSearch}
-              className={`inline-flex items-center px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                isLoadingListings && isManualSearch
-                  ? 'bg-blue-400 text-white cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              className="inline-flex items-center px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 bg-blue-600 text-white hover:bg-blue-700"
             >
-              {isLoadingListings && isManualSearch ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {t('search.applying', 'Applying...')}
-                </>
-              ) : (
-                <>
-                  <MdTune className="mr-2 h-4 w-4" />
-                  {t('search.filterAndSort', 'Filter and sort')}
-                </>
-              )}
+              <MdTune className="mr-2 h-4 w-4" />
+              {t('search.filterAndSort', 'Filters')}
             </button>
-            
-            {/* No Changes Message */}
-            {showNoChangesMessage && (
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-amber-100 text-amber-800 text-sm font-medium border border-amber-200 animate-pulse">
-                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                {t('search.noChangesDetected', 'No changes detected')}
-              </div>
-            )}
           </div>
         </div>
 
