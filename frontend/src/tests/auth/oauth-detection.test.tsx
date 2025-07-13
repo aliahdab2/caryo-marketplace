@@ -85,8 +85,8 @@ describe('OAuth User Detection in Profile Page', () => {
     expect(screen.queryByText(/Change Password/i)).not.toBeInTheDocument();
     
     // Should show the green OAuth authentication section
-    expect(screen.getByText(/dashboard\.googleAuth/)).toBeInTheDocument();
-    expect(screen.getByText(/dashboard\.active/)).toBeInTheDocument();
+    expect(screen.getByText(/Google Authentication/)).toBeInTheDocument();
+    expect(screen.getByText(/Active/)).toBeInTheDocument();
   });
 
   it('should hide change password for Google OAuth users (image URL)', () => {
@@ -122,7 +122,7 @@ describe('OAuth User Detection in Profile Page', () => {
     expect(screen.queryByText(/Change Password/i)).not.toBeInTheDocument();
     
     // Should show OAuth authentication section
-    expect(screen.getByText(/dashboard\.googleAuth/)).toBeInTheDocument();
+    expect(screen.getByText(/Google Authentication/)).toBeInTheDocument();
   });
 
   it('should show change password for regular email/password users', () => {
@@ -155,12 +155,12 @@ describe('OAuth User Detection in Profile Page', () => {
     render(<ProfilePage />);
 
     // Should show change password section for regular users
-    expect(screen.getByText(/dashboard\.changePassword/)).toBeInTheDocument();
+    expect(screen.getByText(/Change Password/)).toBeInTheDocument();
     
     // Should not show OAuth authentication section
-    expect(screen.queryByText(/dashboard\.googleAuth/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Google Authentication/)).not.toBeInTheDocument();
     
     // Should show two-factor authentication setup for regular users
-    expect(screen.getByText(/dashboard\.twoFactorAuth/)).toBeInTheDocument();
+    expect(screen.getByText(/Two-Factor Authentication/)).toBeInTheDocument();
   });
 });
