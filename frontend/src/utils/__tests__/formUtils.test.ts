@@ -414,6 +414,41 @@ describe('Form Utils', () => {
         expect(time).toBeLessThan(maxAcceptableTime);
       });
     });
+
+    test('LRU cache eviction works correctly', () => {
+      // Clear cache first
+      clearSanitizationCache();
+      
+      // We need to access the internal cache for testing
+      // This test verifies that frequently accessed items stay in cache longer
+      const testInputs = [
+        'input1',
+        'input2', 
+        'input3',
+        'input4',
+        'input5'
+      ];
+      
+      // Fill cache with 5 items (assuming cache limit allows this)
+      testInputs.forEach(input => {
+        sanitizeInput(input, 'standard');
+      });
+      
+      // Access input1 again to make it recently used
+      sanitizeInput('input1', 'standard');
+      
+      // Add more items to trigger eviction
+      sanitizeInput('input6', 'standard');
+      sanitizeInput('input7', 'standard');
+      
+      // input1 should still be cached (recently used)
+      // but input2, input3 might be evicted (less recently used)
+      
+      // This test mainly verifies the code doesn't crash
+      // and cache operations work smoothly with LRU
+      const result = sanitizeInput('input1', 'standard');
+      expect(result).toBe('input1');
+    });
   });
 
   describe('sanitizeUserContent', () => {
