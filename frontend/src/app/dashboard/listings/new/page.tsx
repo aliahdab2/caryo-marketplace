@@ -476,7 +476,7 @@ export default function NewListingPage() {
 
                 {/* Title Field */}
                 <div className="group">
-                  <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="title" className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded-full text-xs font-semibold mr-2 dark:bg-blue-900 dark:text-blue-300">
                       📝
                     </span>
@@ -485,6 +485,7 @@ export default function NewListingPage() {
                   </label>
                   <input
                     type="text"
+                    id="title"
                     name="title"
                     value={formData.title}
                     onChange={handleChange}
@@ -504,7 +505,7 @@ export default function NewListingPage() {
                 {/* Price and Currency */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="group">
-                    <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label htmlFor="price" className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 text-green-600 rounded-full text-xs font-semibold mr-2 dark:bg-green-900 dark:text-green-300">
                         💰
                       </span>
@@ -513,6 +514,7 @@ export default function NewListingPage() {
                     </label>
                     <input
                       type="number"
+                      id="price"
                       name="price"
                       value={formData.price}
                       onChange={handleChange}
@@ -532,7 +534,7 @@ export default function NewListingPage() {
                   </div>
                   
                   <div className="group">
-                    <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label htmlFor="currency" className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded-full text-xs font-semibold mr-2 dark:bg-blue-900 dark:text-blue-300">
                         💱
                       </span>
@@ -540,6 +542,7 @@ export default function NewListingPage() {
                       <span className="text-red-500 ml-1">*</span>
                     </label>
                     <select
+                      id="currency"
                       name="currency"
                       value={formData.currency}
                       onChange={handleChange}
@@ -559,7 +562,7 @@ export default function NewListingPage() {
 
                 {/* Description */}
                 <div className="group">
-                  <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="description" className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <span className="inline-flex items-center justify-center w-5 h-5 bg-purple-100 text-purple-600 rounded-full text-xs font-semibold mr-2 dark:bg-purple-900 dark:text-purple-300">
                       📄
                     </span>
@@ -567,6 +570,7 @@ export default function NewListingPage() {
                     <span className="text-red-500 ml-1">*</span>
                   </label>
                   <textarea
+                    id="description"
                     name="description"
                     value={formData.description}
                     onChange={handleChange}
