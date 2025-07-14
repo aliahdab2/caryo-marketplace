@@ -1,7 +1,7 @@
 /**
  * Main utils module index
  * 
- * Re-exports all utility functions maintaining backward compatibility
+ * Clean modular exports for development phase
  */
 
 // Sanitization utilities
@@ -25,17 +25,13 @@ export {
 
 // Form processing utilities
 export {
+  FORM_FIELD_CATEGORIES,
   processFormFieldValue,
   getFieldCategory,
   processFormFields,
   requiresArabicConversion,
   requiresSanitization
 } from './forms/processing';
-
-// Re-export sanitizeInput with legacy names for backward compatibility
-import { sanitizeInput } from './sanitization';
-export { sanitizeInput as sanitizeFormField };
-export { sanitizeInput as sanitizeUserInput };
 
 // Type exports
 export type { SanitizationLevel } from './sanitization/core';

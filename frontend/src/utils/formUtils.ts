@@ -1,12 +1,11 @@
 /**
  * Form utilities and helper functions
  * 
- * This module provides a streamlined interface for form handling and validation
- * while maintaining backward compatibility with existing code.
+ * Clean modular interface for form handling and validation.
  * 
- * The implementation now uses a modular architecture for better maintainability:
+ * Modular architecture:
  * - sanitization/ - Core sanitization logic with LRU cache and performance tracking
- * - numeral/ - Arabic numeral conversion utilities
+ * - numeral/ - Arabic numeral conversion utilities  
  * - forms/ - Smart field processing based on field type
  */
 
@@ -23,87 +22,21 @@ import {
   getSanitizationStats,
   clearSanitizationCache,
   smartSanitize,
-  sanitizeHtml
+  sanitizeHtml,
+  FORM_FIELD_CATEGORIES
 } from './index';
 
-// Re-export main functions for backward compatibility
+// Export main functions
 export { 
   sanitizeInput,
   convertArabicNumerals,
   processFormFieldValue,
-  processFormFieldValue as processField,
-  getSanitizationStats as getPerformanceStats,
+  getSanitizationStats,
   clearSanitizationCache,
   smartSanitize,
-  sanitizeHtml
+  sanitizeHtml,
+  FORM_FIELD_CATEGORIES
 };
-
-/**
- * Legacy function names for backward compatibility
- */
-export const sanitizeFormField = sanitizeInput;
-export const sanitizeUserInput = sanitizeInput;
-
-/**
- * Sanitize car listing data - backward compatibility function
- */
-export function sanitizeListingData(data: Partial<ListingFormData>): Partial<ListingFormData> {
-  return sanitizeFormData(data);
-}
-
-/**
- * Batch sanitize array of inputs
- */
-export function batchSanitize(inputs: string[], level: 'basic' | 'standard' | 'strict' = 'standard'): string[] {
-  return inputs.map(input => sanitizeInput(input, level));
-}
-
-/**
- * Sanitize search query with optional length limiting
- */
-export function sanitizeSearchQuery(query: string, options?: { maxLength?: number }): string {
-  if (!query || typeof query !== 'string') return '';
-  
-  let sanitized = smartSanitize(query.trim());
-  
-  // Apply length limiting if specified
-  if (options?.maxLength && sanitized.length > options.maxLength) {
-    sanitized = sanitized.substring(0, options.maxLength);
-  }
-  
-  return sanitized;
-}
-
-/**
- * Sanitize user content - returns Promise for backward compatibility
- */
-export async function sanitizeUserContent(
-  content: string, 
-  options?: { 
-    level?: 'basic' | 'standard' | 'strict';
-    maxLength?: number;
-    isHtml?: boolean;
-  }
-): Promise<string> {
-  const level = options?.level || 'standard';
-  const maxLength = options?.maxLength;
-  const isHtml = options?.isHtml || false;
-  
-  let result: string;
-  
-  if (isHtml) {
-    result = await sanitizeHtml(content);
-  } else {
-    result = sanitizeInput(content, level);
-  }
-  
-  // Apply length limiting if specified
-  if (maxLength && result.length > maxLength) {
-    result = result.substring(0, maxLength);
-  }
-  
-  return result;
-}
 
 /**
  * Main form data sanitization function

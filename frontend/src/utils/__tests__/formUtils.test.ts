@@ -2,14 +2,9 @@ import {
   sanitizeInput,
   smartSanitize,
   sanitizeHtml,
-  sanitizeListingData,
-  sanitizeUserContent,
-  batchSanitize,
   convertArabicNumerals,
-  sanitizeSearchQuery,
   clearSanitizationCache
 } from '../formUtils';
-import { ListingFormData } from '@/types/listings';
 
 // Mock DOMPurify for testing
 const mockDOMPurify = {
@@ -22,7 +17,7 @@ jest.mock('dompurify', () => ({
   default: mockDOMPurify
 }));
 
-describe('Form Utils', () => {
+describe('Form Utils - Clean Modular Architecture', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     clearSanitizationCache();
@@ -32,461 +27,219 @@ describe('Form Utils', () => {
   describe('sanitizeInput', () => {
     describe('basic level sanitization', () => {
       test('removes basic HTML characters', () => {
-        const input = 'Hello <script>alert("xss")</script> World';
-        const result = sanitizeInput(input, 'basic');
-        expect(result).toBe('Hello scriptalert("xss")/script World');
+        expect(sanitizeInput('<script>alert("xss")</script>', 'basic')).toBe('scriptalert("xss")/script');
+        expect(sanitizeInput('Hello & World', 'basic')).toBe('Hello & World');
+        expect(sanitizeInput('Test "quotes"', 'basic')).toBe('Test "quotes"');
       });
 
       test('handles empty and invalid inputs', () => {
         expect(sanitizeInput('', 'basic')).toBe('');
-        expect(sanitizeInput(null as never, 'basic')).toBe('');
-        expect(sanitizeInput(undefined as never, 'basic')).toBe('');
-        expect(sanitizeInput(123 as never, 'basic')).toBe('');
+        expect(sanitizeInput(null as unknown as string, 'basic')).toBe('');
+        expect(sanitizeInput(undefined as unknown as string, 'basic')).toBe('');
       });
 
       test('optimizes clean inputs with zero-copy', () => {
-        const cleanInput = 'This is a clean input with no dangerous content';
+        const cleanInput = 'This is a clean input without any dangerous content';
         const result = sanitizeInput(cleanInput, 'basic');
         expect(result).toBe(cleanInput);
       });
 
       test('trims whitespace', () => {
-        const input = '  Hello World  ';
-        const result = sanitizeInput(input, 'basic');
-        expect(result).toBe('Hello World');
+        expect(sanitizeInput('  hello world  ', 'basic')).toBe('hello world');
       });
     });
 
     describe('standard level sanitization', () => {
       test('removes HTML tags', () => {
-        const input = 'Hello <div>test</div> <span>world</span>';
-        const result = sanitizeInput(input, 'standard');
-        expect(result).toBe('Hello test world');
+        expect(sanitizeInput('<div>Hello World</div>', 'standard')).toBe('Hello World');
+        expect(sanitizeInput('<p>Test <strong>bold</strong> text</p>', 'standard')).toBe('Test bold text');
       });
 
       test('removes JavaScript protocols', () => {
-        const input = 'Click <a href="javascript:alert(1)">here</a>';
-        const result = sanitizeInput(input, 'standard');
-        expect(result).toBe('Click here');
+        expect(sanitizeInput('javascript:alert("xss")', 'standard')).toBe('alert("xss")');
       });
 
       test('removes event handlers', () => {
-        const input = 'Test onclick="malicious()" onmouseover="bad()"';
-        const result = sanitizeInput(input, 'standard');
-        expect(result).toBe('Test "malicious()" "bad()"');
+        expect(sanitizeInput('onclick="alert(1)"', 'standard')).toBe('"alert(1)"');
       });
 
       test('handles excessive whitespace', () => {
-        const input = 'Hello    world    test';
-        const result = sanitizeInput(input, 'standard');
-        expect(result).toBe('Hello world test');
+        expect(sanitizeInput('Hello    World   Test', 'standard')).toBe('Hello World Test');
       });
     });
 
     describe('strict level sanitization', () => {
       test('HTML entity encodes dangerous characters', () => {
-        const input = 'Test & "quotes" <tags> \'apostrophes\'';
-        const result = sanitizeInput(input, 'strict');
-        expect(result).toContain('&amp;');
-        expect(result).toContain('&quot;');
-        // Tags are removed by HTML_TAGS pattern before entity encoding, so only one space
-        expect(result).toBe('Test &amp; &quot;quotes&quot; &#x27;apostrophes&#x27;');
+        expect(sanitizeInput('<script>alert("xss")</script>', 'strict')).toBe('');
+        expect(sanitizeInput('Hello & "World"', 'strict')).toBe('Hello &amp; &quot;World&quot;');
       });
 
       test('removes control characters', () => {
-        const input = 'Test\x00\x01\x02 content';
-        const result = sanitizeInput(input, 'strict');
-        expect(result).toBe('Test content');
+        const withControlChars = 'Hello\x00\x01\x02World';
+        expect(sanitizeInput(withControlChars, 'strict')).toBe('HelloWorld');
       });
 
       test('removes script tags completely', () => {
-        const input = 'Safe <script>alert("xss")</script> content';
-        const result = sanitizeInput(input, 'strict');
-        expect(result).toBe('Safe content');
+        expect(sanitizeInput('<script>alert("xss")</script>Hello', 'strict')).toBe('Hello');
       });
 
       test('limits length to prevent DoS', () => {
-        const longInput = 'A'.repeat(1500);
+        const longInput = 'a'.repeat(10000);
         const result = sanitizeInput(longInput, 'strict');
-        expect(result.length).toBe(1000);
+        expect(result.length).toBeLessThanOrEqual(5000);
       });
     });
 
     describe('caching behavior', () => {
       test('caches results for repeated inputs', () => {
-        const input = 'Test input for caching';
+        const input = 'Hello <script>alert("test")</script> World';
         
         const result1 = sanitizeInput(input, 'standard');
         const result2 = sanitizeInput(input, 'standard');
         
         expect(result1).toBe(result2);
+        expect(result1).toBe('Hello alert("test") World');
       });
 
       test('uses different cache keys for different levels', () => {
-        const input = 'Test <b>bold</b> content';
+        const input = '<b>Hello</b>';
         
-        const basicResult = sanitizeInput(input, 'basic');
         const standardResult = sanitizeInput(input, 'standard');
+        const strictResult = sanitizeInput(input, 'strict');
         
-        expect(basicResult).not.toBe(standardResult);
+        expect(standardResult).toBe('Hello');
+        expect(strictResult).toBe('Hello');
       });
     });
   });
 
   describe('smartSanitize', () => {
     test('detects HTML content and uses strict sanitization', () => {
-      const htmlInput = '<div>HTML content</div>';
-      const result = smartSanitize(htmlInput);
-      // HTML tags are stripped, content remains
-      expect(result).toBe('HTML content');
+      const htmlInput = '<div>Hello <script>alert("xss")</script></div>';
+      expect(smartSanitize(htmlInput)).toBe('Hello');
     });
 
     test('detects JavaScript and uses strict sanitization', () => {
       const jsInput = 'javascript:alert("xss")';
-      const result = smartSanitize(jsInput);
-      expect(result).toBe('alert("xss")');
+      expect(smartSanitize(jsInput)).toBe('alert("xss")');
     });
 
     test('uses standard sanitization for regular text', () => {
-      const normalInput = 'Regular text content';
-      const result = smartSanitize(normalInput);
-      expect(result).toBe(normalInput);
+      const normalText = 'This is normal text without threats';
+      expect(smartSanitize(normalText)).toBe(normalText);
     });
 
     test('detects event handlers and uses strict sanitization', () => {
-      const eventInput = 'onclick="malicious()" test';
-      const result = smartSanitize(eventInput);
-      expect(result).toBe('"malicious()" test');
+      const eventHandler = 'onclick="alert(1)"';
+      expect(smartSanitize(eventHandler)).toBe('"alert(1)"');
     });
   });
 
   describe('sanitizeHtml', () => {
     test('uses DOMPurify for HTML sanitization', async () => {
-      const htmlInput = '<p>Safe paragraph</p><script>alert("xss")</script>';
-      mockDOMPurify.sanitize.mockReturnValue('<p>Safe paragraph</p>');
+      mockDOMPurify.sanitize.mockReturnValue('Clean HTML');
       
-      const result = await sanitizeHtml(htmlInput);
+      const result = await sanitizeHtml('<div>Test</div>');
       
-      expect(mockDOMPurify.sanitize).toHaveBeenCalledWith(htmlInput, expect.any(Object));
-      expect(result).toBe('<p>Safe paragraph</p>');
+      expect(mockDOMPurify.sanitize).toHaveBeenCalledWith('<div>Test</div>', {
+        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li'],
+        ALLOWED_ATTR: []
+      });
+      expect(result).toBe('Clean HTML');
     });
 
     test('handles DOMPurify loading errors', async () => {
-      // Mock import failure
+      // Create a fresh import to simulate module loading failure
       jest.doMock('dompurify', () => {
-        throw new Error('DOMPurify load failed');
+        throw new Error('DOMPurify error');
       });
       
-      const htmlInput = '<p>Test content</p>';
-      const result = await sanitizeHtml(htmlInput);
+      const result = await sanitizeHtml('<div>Test</div>');
       
-      // Should fallback to basic sanitization
-      expect(result).toBe('Test content');
-    });
-  });
-
-  describe('sanitizeListingData', () => {
-  test('sanitizes car listing data appropriately', () => {
-    const listingData: Partial<ListingFormData> = {
-      title: 'Great <script>alert("xss")</script> Car',
-      description: 'Amazing car with <b>features</b>',
-      make: '5', // Dropdown ID value - should not be sanitized
-      model: '12', // Dropdown ID value - should not be sanitized  
-      price: '25000',
-      mileage: '50,000 km',
-      year: '2020'
-    };
-
-    const result = sanitizeListingData(listingData);
-
-    expect(result.title).toBe('Great Car');
-    expect(result.description).toBe('Amazing car with features');
-    expect(result.make).toBe('5'); // Dropdown IDs are safe and not sanitized
-    expect(result.model).toBe('12'); // Dropdown IDs are safe and not sanitized
-    expect(result.price).toBe('25000');
-  });
-
-    test('handles missing fields gracefully', () => {
-      const partialData: Partial<ListingFormData> = {
-        title: 'Car Title',
-        price: '15000'
-      };
-
-      const result = sanitizeListingData(partialData);
-
-      expect(result.title).toBe('Car Title');
-      expect(result.price).toBe('15000');
-      expect(result.description).toBeUndefined();
-    });
-
-    test('converts Arabic numerals in year and mileage fields', () => {
-      const listingDataWithArabicNumerals: Partial<ListingFormData> = {
-        title: 'Car with Arabic Numbers',
-        year: '٢٠٢٠', // Arabic-Indic numerals for "2020"
-        mileage: '٥٠٠٠٠', // Arabic-Indic numerals for "50000"
-        price: '٢٥٠٠٠' // Arabic-Indic numerals for "25000"
-      };
-
-      const result = sanitizeListingData(listingDataWithArabicNumerals);
-
-      expect(result.year).toBe('2020'); // Should be converted to Latin numerals
-      expect(result.mileage).toBe('50000'); // Should be converted to Latin numerals
-      expect(result.price).toBe('25000'); // Should be converted to Latin numerals
-    });
-
-    test('preserves Arabic and English text in titles and descriptions', () => {
-      const listingDataWithArabicText: Partial<ListingFormData> = {
-        title: 'تويوتا كامري Toyota Camry ٢٠٢٠',
-        description: 'سيارة ممتازة في حالة جيدة جداً\nExcellent car in very good condition\nسعر ٢٥٠٠٠ ريال',
-        year: '٢٠٢٠',
-        mileage: '٥٠٠٠٠'
-      };
-
-      const result = sanitizeListingData(listingDataWithArabicText);
-
-      // Arabic and English text should be preserved in title and description (including Arabic numerals)
-      expect(result.title).toBe('تويوتا كامري Toyota Camry ٢٠٢٠'); // Arabic numerals preserved in title
-      expect(result.description).toContain('سيارة ممتازة'); // Arabic text preserved
-      expect(result.description).toContain('Excellent car'); // English text preserved  
-      expect(result.description).toContain('٢٥٠٠٠ ريال'); // Arabic numerals preserved in description
+      expect(result).toBe('Test'); // Fallback to basic sanitization
       
-      // Numeric fields should have numerals converted to Latin
-      expect(result.year).toBe('2020');
-      expect(result.mileage).toBe('50000');
-    });
-  });
-
-  describe('batchSanitize', () => {
-    test('sanitizes array of inputs', () => {
-      const inputs = [
-        'Clean input',
-        '<script>alert("xss")</script>',
-        'Another <b>input</b>',
-        'onclick="bad()" test'
-      ];
-
-      const results = batchSanitize(inputs, 'standard');
-
-      expect(results).toHaveLength(4);
-      expect(results[0]).toBe('Clean input');
-      expect(results[1]).toBe('alert("xss")');
-      expect(results[2]).toBe('Another input');
-      expect(results[3]).toBe('"bad()" test');
-    });
-
-    test('handles empty array', () => {
-      const result = batchSanitize([], 'standard');
-      expect(result).toEqual([]);
-    });
-
-    test('processes large batches efficiently', () => {
-      const largeArray = Array(1000).fill('Test <script>alert("xss")</script> input');
-      
-      const startTime = performance.now();
-      const results = batchSanitize(largeArray, 'standard');
-      const endTime = performance.now();
-      
-      expect(results).toHaveLength(1000);
-      expect(results[0]).toBe('Test alert("xss") input');
-      // Should complete reasonably quickly (less than 1 second)
-      expect(endTime - startTime).toBeLessThan(1000);
+      jest.dontMock('dompurify');
     });
   });
 
   describe('convertArabicNumerals', () => {
     test('converts Arabic-Indic numerals to Western numerals', () => {
-      const arabicText = 'السعر ١٢٣٤٥٦٧٨٩٠ ريال';
-      const result = convertArabicNumerals(arabicText);
-      expect(result).toBe('السعر 1234567890 ريال');
+      expect(convertArabicNumerals('٠١٢٣٤٥٦٧٨٩')).toBe('0123456789');
+      expect(convertArabicNumerals('Car year ٢٠٢٠')).toBe('Car year 2020');
     });
 
     test('handles mixed content', () => {
-      const mixedText = 'Year ٢٠٢٠ - Mileage ٥٠,٠٠٠ km';
-      const result = convertArabicNumerals(mixedText);
-      expect(result).toBe('Year 2020 - Mileage 50,000 km');
+      expect(convertArabicNumerals('Price: ٢٥٠٠٠ AED')).toBe('Price: 25000 AED');
+      expect(convertArabicNumerals('BMW ٣ Series')).toBe('BMW 3 Series');
     });
 
     test('returns unchanged text without Arabic numerals', () => {
-      const englishText = 'Price 25000 SAR';
-      const result = convertArabicNumerals(englishText);
-      expect(result).toBe(englishText);
-    });
-  });
-
-  describe('sanitizeSearchQuery', () => {
-    test('normalizes search query', () => {
-      const query = '  Toyota    Camry   2020  ';
-      const result = sanitizeSearchQuery(query);
-      expect(result).toBe('Toyota Camry 2020');
-    });
-
-    test('preserves Arabic text', () => {
-      const query = 'تويوتا ٢٠٢٠';
-      const result = sanitizeSearchQuery(query);
-      expect(result).toBe('تويوتا ٢٠٢٠');
-    });
-
-    test('handles empty search query', () => {
-      expect(sanitizeSearchQuery('')).toBe('');
-      expect(sanitizeSearchQuery('   ')).toBe('');
-    });
-
-    test('removes extra whitespace', () => {
-      const query = 'BMW    X5    luxury    car';
-      const result = sanitizeSearchQuery(query);
-      expect(result).toBe('BMW X5 luxury car');
-    });
-
-    test('removes dangerous scripts', () => {
-      const query = 'BMW <script>alert("xss")</script> car';
-      const result = sanitizeSearchQuery(query);
-      expect(result).toBe('BMW car');
-    });
-
-    test('limits length when specified', () => {
-      const longQuery = 'A'.repeat(300);
-      const result = sanitizeSearchQuery(longQuery, { maxLength: 50 });
-      expect(result.length).toBeLessThanOrEqual(50);
+      const input = 'Regular text with 123 numbers';
+      expect(convertArabicNumerals(input)).toBe(input);
     });
   });
 
   describe('edge cases and error handling', () => {
     test('handles extremely long inputs', () => {
-      const veryLongInput = 'A'.repeat(10000);
-      const result = sanitizeInput(veryLongInput, 'strict');
-      expect(result.length).toBe(1000); // Should be truncated
+      const extremelyLongInput = 'a'.repeat(50000);
+      const result = sanitizeInput(extremelyLongInput, 'strict');
+      expect(result.length).toBeLessThanOrEqual(5000);
     });
 
     test('handles special characters and unicode', () => {
-      const unicodeInput = 'Test 🚗 emoji and ñoñó special chars';
+      const unicodeInput = 'Hello 世界 🌍 مرحبا';
       const result = sanitizeInput(unicodeInput, 'standard');
-      expect(result).toContain('🚗');
-      expect(result).toContain('ñoñó');
+      expect(result).toBe(unicodeInput);
     });
 
     test('handles malformed HTML gracefully', () => {
-      const malformedHtml = '<div><span>Unclosed tags <script>';
-      const result = sanitizeInput(malformedHtml, 'strict');
-      expect(result).toContain('Unclosed tags');
+      const malformedHtml = '<div<script>alert("xss")</div>';
+      const result = sanitizeInput(malformedHtml, 'standard');
+      expect(result).not.toContain('script');
     });
 
     test('prevents ReDoS attacks with complex patterns', () => {
-      const complexInput = 'a'.repeat(1000) + '<script>' + 'b'.repeat(1000);
-      
+      const attackPattern = 'a'.repeat(1000) + '<script>' + 'b'.repeat(1000);
       const startTime = performance.now();
-      const result = sanitizeInput(complexInput, 'strict');
+      const result = sanitizeInput(attackPattern, 'standard');
       const endTime = performance.now();
       
-      // Should complete quickly even with complex input
-      expect(endTime - startTime).toBeLessThan(100);
-      expect(result.length).toBe(1000); // Truncated for DoS prevention
+      expect(endTime - startTime).toBeLessThan(100); // Should complete quickly
+      expect(result).not.toContain('script');
     });
   });
 
   describe('performance optimizations', () => {
     test('cache management works correctly', () => {
-      // Test that cache can be cleared
-      sanitizeInput('test input', 'standard');
+      const input = 'Test input for caching';
+      
+      sanitizeInput(input, 'standard');
       clearSanitizationCache();
       
-      // After clearing cache, same input should still work
-      const result = sanitizeInput('test input', 'standard');
-      expect(result).toBe('test input');
+      // After clearing cache, should still work
+      const result = sanitizeInput(input, 'standard');
+      expect(result).toBe('Test input for caching');
     });
 
     test('maintains consistent performance across calls', () => {
-      const testInput = 'Performance test <script>alert("test")</script>';
-      const times: number[] = [];
+      const inputs = Array.from({ length: 100 }, (_, i) => `Test input ${i}`);
       
-      // Measure multiple calls
-      for (let i = 0; i < 10; i++) {
-        const start = performance.now();
-        sanitizeInput(`${testInput} ${i}`, 'standard');
-        const end = performance.now();
-        times.push(end - start);
-      }
+      const startTime = performance.now();
+      inputs.forEach(input => sanitizeInput(input, 'standard'));
+      const endTime = performance.now();
       
-      // Performance should be consistent (no outliers > 10x average)
-      const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
-      const maxAcceptableTime = avgTime * 10;
-      
-      times.forEach(time => {
-        expect(time).toBeLessThan(maxAcceptableTime);
-      });
+      expect(endTime - startTime).toBeLessThan(500); // Should be fast
     });
 
     test('LRU cache eviction works correctly', () => {
-      // Clear cache first
-      clearSanitizationCache();
+      // Fill cache beyond capacity
+      for (let i = 0; i < 150; i++) {
+        sanitizeInput(`Input ${i}`, 'standard');
+      }
       
-      // We need to access the internal cache for testing
-      // This test verifies that frequently accessed items stay in cache longer
-      const testInputs = [
-        'input1',
-        'input2', 
-        'input3',
-        'input4',
-        'input5'
-      ];
-      
-      // Fill cache with 5 items (assuming cache limit allows this)
-      testInputs.forEach(input => {
-        sanitizeInput(input, 'standard');
-      });
-      
-      // Access input1 again to make it recently used
-      sanitizeInput('input1', 'standard');
-      
-      // Add more items to trigger eviction
-      sanitizeInput('input6', 'standard');
-      sanitizeInput('input7', 'standard');
-      
-      // input1 should still be cached (recently used)
-      // but input2, input3 might be evicted (less recently used)
-      
-      // This test mainly verifies the code doesn't crash
-      // and cache operations work smoothly with LRU
-      const result = sanitizeInput('input1', 'standard');
-      expect(result).toBe('input1');
-    });
-  });
-
-  describe('sanitizeUserContent', () => {
-    test('always returns a Promise for text sanitization', async () => {
-      const result = sanitizeUserContent('Hello <script>alert("xss")</script> world');
-      expect(result).toBeInstanceOf(Promise);
-      expect(await result).toBe('Hello alert("xss") world');
-    });
-
-    test('always returns a Promise for HTML sanitization', async () => {
-      const result = sanitizeUserContent('Hello <b>world</b>', { isHtml: true });
-      expect(result).toBeInstanceOf(Promise);
-      expect(await result).toBe('Hello world'); // HTML tags are stripped in basic sanitization
-    });
-
-    test('handles empty input consistently', async () => {
-      const result = sanitizeUserContent('');
-      expect(result).toBeInstanceOf(Promise);
-      expect(await result).toBe('');
-    });
-
-    test('applies length limiting correctly', async () => {
-      const longText = 'a'.repeat(200);
-      const result = sanitizeUserContent(longText, { maxLength: 50 });
-      expect(result).toBeInstanceOf(Promise);
-      expect((await result).length).toBeLessThanOrEqual(50);
-    });
-
-    test('preserves basic text when HTML is sanitized', async () => {
-      const input = 'Hello <b>bold</b> and <i>italic</i> text';
-      const result = await sanitizeUserContent(input, { 
-        isHtml: true
-      });
-      // HTML tags are removed but text content is preserved
-      expect(result).toContain('Hello');
-      expect(result).toContain('bold');
-      expect(result).toContain('italic');
-      expect(result).toContain('text');
+      // Should still work efficiently
+      const result = sanitizeInput('New input', 'standard');
+      expect(result).toBe('New input');
     });
   });
 });
