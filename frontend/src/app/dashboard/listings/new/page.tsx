@@ -1095,7 +1095,7 @@ export default function NewListingPage() {
                             <div className="aspect-square rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 relative">
                               <Image
                                 src={URL.createObjectURL(image)}
-                                alt={`Preview ${index + 1}`}
+                                alt={`Car listing image ${index + 1} - uploaded preview for ${formData.title || 'new listing'}`}
                                 fill
                                 className="object-cover transition-transform duration-200 group-hover:scale-105"
                                 sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
