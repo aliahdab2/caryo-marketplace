@@ -137,7 +137,13 @@ export interface PageResponse<T> {
 }
 
 export interface CarListingFilterParams {
-  brand?: string; // Now supports hierarchical format: "Toyota:Camry" or "تويوتا:كامري"
+  // NEW: Slug-based filtering (AutoTrader UK pattern)
+  brandSlugs?: string[]; // Array of brand slugs: ["toyota", "honda", "bmw"]  
+  modelSlugs?: string[]; // Array of model slugs: ["camry", "civic", "x3"]
+  
+  // LEGACY: Still supported for backward compatibility
+  brand?: string; // Hierarchical format: "Toyota:Camry" or "تويوتا:كامري"
+  
   minYear?: number;
   maxYear?: number;
   location?: string;
@@ -365,8 +371,25 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
   const queryParams = new URLSearchParams();
   
   if (filters) {
-    // Add each filter parameter if it exists
-    if (filters.brand) queryParams.append('brand', filters.brand);
+    // NEW: Slug-based filtering (AutoTrader UK pattern)
+    if (filters.brandSlugs && filters.brandSlugs.length > 0) {
+      filters.brandSlugs.forEach(brandSlug => {
+        queryParams.append('brandSlugs', brandSlug);
+      });
+    }
+    
+    if (filters.modelSlugs && filters.modelSlugs.length > 0) {
+      filters.modelSlugs.forEach(modelSlug => {
+        queryParams.append('modelSlugs', modelSlug);
+      });
+    }
+    
+    // LEGACY: Hierarchical brand filtering (for backward compatibility)
+    if (filters.brand && !filters.brandSlugs && !filters.modelSlugs) {
+      queryParams.append('brand', filters.brand);
+    }
+    
+    // Add other filter parameters
     if (filters.minYear) queryParams.append('minYear', filters.minYear.toString());
     if (filters.maxYear) queryParams.append('maxYear', filters.maxYear.toString());
     if (filters.location) queryParams.append('location', filters.location);

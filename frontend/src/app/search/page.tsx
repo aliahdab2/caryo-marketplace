@@ -30,7 +30,11 @@ import {
 import { useApiData } from '@/hooks/useApiData';
 
 interface AdvancedSearchFilters {
-  // Basic filters matching new backend hierarchical format
+  // NEW: Slug-based filters (AutoTrader UK pattern)
+  brandSlugs?: string[];
+  modelSlugs?: string[];
+  
+  // LEGACY: Basic filters matching old backend hierarchical format
   brand?: string; // Now stores "Make:Model" format like "Toyota:Camry" or "تويوتا:كامري"
   minYear?: number;
   maxYear?: number;
@@ -82,21 +86,51 @@ export default function AdvancedSearchPage() {
   const [activeFilterModal, setActiveFilterModal] = useState<FilterType | null>(null);
 
   // Memoize listing filters to prevent unnecessary re-creation
-  const listingFilters = useMemo<CarListingFilterParams>(() => ({
-    brand: filters.brand, // This now contains hierarchical format like "Toyota:Camry"
-    minYear: filters.minYear,
-    maxYear: filters.maxYear,
-    minPrice: filters.minPrice,
-    maxPrice: filters.maxPrice,
-    minMileage: filters.minMileage,
-    maxMileage: filters.maxMileage,
-    location: filters.location,
-    locationId: filters.locationId,
-    sellerTypeId: filters.sellerTypeId,
-    size: 20, // Default page size
-    page: 0, // Default to first page
-    sort: 'createdAt,desc' // Default sort
-  }), [filters.brand, filters.minYear, filters.maxYear, filters.minPrice, filters.maxPrice, filters.minMileage, filters.maxMileage, filters.location, filters.locationId, filters.sellerTypeId]);
+  const listingFilters = useMemo<CarListingFilterParams>(() => {
+    const params: CarListingFilterParams = {
+      minYear: filters.minYear,
+      maxYear: filters.maxYear,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      minMileage: filters.minMileage,
+      maxMileage: filters.maxMileage,
+      location: filters.location,
+      locationId: filters.locationId,
+      sellerTypeId: filters.sellerTypeId,
+      size: 20, // Default page size
+      page: 0, // Default to first page
+      sort: 'createdAt,desc' // Default sort
+    };
+
+    // NEW: Slug-based filtering (priority over legacy)
+    if (filters.brandSlugs && filters.brandSlugs.length > 0) {
+      params.brandSlugs = filters.brandSlugs;
+    }
+    
+    if (filters.modelSlugs && filters.modelSlugs.length > 0) {
+      params.modelSlugs = filters.modelSlugs;
+    }
+    
+    // FALLBACK: Legacy hierarchical format for backward compatibility
+    if (!params.brandSlugs && !params.modelSlugs && filters.brand) {
+      params.brand = filters.brand;
+    }
+
+    return params;
+  }, [
+    filters.brandSlugs, 
+    filters.modelSlugs, 
+    filters.brand, 
+    filters.minYear, 
+    filters.maxYear, 
+    filters.minPrice, 
+    filters.maxPrice, 
+    filters.minMileage, 
+    filters.maxMileage, 
+    filters.location, 
+    filters.locationId, 
+    filters.sellerTypeId
+  ]);
 
   // Car listings state using optimized filtering
   const {
@@ -219,21 +253,42 @@ export default function AdvancedSearchPage() {
 
     const initialFilters: AdvancedSearchFilters = {};
     
-    // Handle brand parameter
-    const brandParam = searchParams.get('brand');
-    if (brandParam) {
-      if (brandParam.includes(':')) {
-        // Hierarchical format
-        initialFilters.brand = brandParam;
-        const [make, model] = brandParam.split(':');
-        initialFilters.selectedMake = make;
-        initialFilters.selectedModel = model;
-      } else {
-        // Just a brand
-        initialFilters.selectedMake = brandParam;
-        initialFilters.brand = brandParam;
+    // NEW: Handle slug-based parameters (AutoTrader UK pattern)
+    const brandSlugs = searchParams.getAll('brandSlugs');
+    const modelSlugs = searchParams.getAll('modelSlugs');
+    
+    if (brandSlugs.length > 0) {
+      initialFilters.brandSlugs = brandSlugs;
+    }
+    
+    if (modelSlugs.length > 0) {
+      initialFilters.modelSlugs = modelSlugs;
+    }
+    
+    // FALLBACK: Handle legacy brand parameter for backward compatibility
+    if (brandSlugs.length === 0 && modelSlugs.length === 0) {
+      const brandParam = searchParams.get('brand');
+      if (brandParam) {
+        if (brandParam.includes(':')) {
+          // Hierarchical format
+          initialFilters.brand = brandParam;
+          const [make, model] = brandParam.split(':');
+          initialFilters.selectedMake = make;
+          initialFilters.selectedModel = model;
+        } else {
+          // Just a brand
+          initialFilters.selectedMake = brandParam;
+          initialFilters.brand = brandParam;
+        }
       }
     }
+    
+    // Handle location parameters
+    const location = searchParams.get('location');
+    if (location) initialFilters.location = location;
+    
+    const locationId = searchParams.get('locationId');
+    if (locationId) initialFilters.locationId = parseInt(locationId);
     
     // Other simple filters
     const minYear = searchParams.get('minYear');
@@ -252,18 +307,37 @@ export default function AdvancedSearchPage() {
     setHasInitialized(true);
   }, [hasInitialized, searchParams]);
 
-  // Set selected make when carMakes loads and we have a brand filter
+  // Trigger search after filters are initialized from URL parameters
   useEffect(() => {
-    if (filters.selectedMake && carMakes && carMakes.length > 0) {
+    if (hasInitialized && (filters.brandSlugs?.length || filters.modelSlugs?.length || filters.brand)) {
+      // Delay search slightly to ensure all state is updated
+      const timeoutId = setTimeout(() => {
+        executeSearch(false);
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [hasInitialized, filters.brandSlugs, filters.modelSlugs, filters.brand, executeSearch]);
+
+  // Convert brand slugs to selectedMake ID when carMakes loads
+  useEffect(() => {
+    if (filters.brandSlugs && filters.brandSlugs.length > 0 && carMakes && carMakes.length > 0) {
+      const firstBrandSlug = filters.brandSlugs[0];
+      const brand = carMakes.find(make => make.slug === firstBrandSlug);
+      if (brand && selectedMake !== brand.id) {
+        setSelectedMake(brand.id);
+      }
+    } else if (filters.selectedMake && carMakes && carMakes.length > 0) {
+      // Legacy: Handle display name lookup
       const brand = carMakes.find(make => {
         const displayName = currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn;
         return displayName.toLowerCase() === filters.selectedMake?.toLowerCase();
       });
-      if (brand) {
+      if (brand && selectedMake !== brand.id) {
         setSelectedMake(brand.id);
       }
     }
-  }, [filters.selectedMake, carMakes, currentLanguage]);
+  }, [filters.brandSlugs, filters.selectedMake, carMakes, currentLanguage, selectedMake]);
 
   // Handle input changes with better state management
   const handleInputChange = useCallback((field: keyof AdvancedSearchFilters, value: string | number | undefined) => {

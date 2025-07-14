@@ -151,7 +151,7 @@ public class CarListingSpecification {
         
         // Brand filtering (supports multiple brands)
         if (!brandSlugs.isEmpty()) {
-            Predicate brandPredicate = root.get("carModel").get("carBrand").get("slug").in(brandSlugs);
+            Predicate brandPredicate = root.get("model").get("brand").get("slug").in(brandSlugs);
             predicates.add(brandPredicate);
             
             // Log for debugging
@@ -160,7 +160,7 @@ public class CarListingSpecification {
         
         // Model filtering (supports multiple models, can span multiple brands)
         if (!modelSlugs.isEmpty()) {
-            Predicate modelPredicate = root.get("carModel").get("slug").in(modelSlugs);
+            Predicate modelPredicate = root.get("model").get("slug").in(modelSlugs);
             predicates.add(modelPredicate);
             
             // Log for debugging
