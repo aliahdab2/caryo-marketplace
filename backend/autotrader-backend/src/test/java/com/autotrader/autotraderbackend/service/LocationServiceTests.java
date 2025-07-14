@@ -185,6 +185,14 @@ class LocationServiceTests {
         try (MockedStatic<SlugUtils> mockedSlugUtils = Mockito.mockStatic(SlugUtils.class)) {
             mockedSlugUtils.when(() -> SlugUtils.slugify("New City")).thenReturn("new-city");
             when(locationRepository.findBySlug("new-city")).thenReturn(Optional.empty()); // For unique slug check
+            
+            // Mock the governorate lookup
+            Governorate mockGovernorate = new Governorate();
+            mockGovernorate.setId(1L);
+            mockGovernorate.setDisplayNameEn("Damascus");
+            mockGovernorate.setDisplayNameAr("دمشق");
+            when(governorateRepository.findById(1L)).thenReturn(Optional.of(mockGovernorate));
+            
             when(locationRepository.save(any(Location.class))).thenAnswer(invocation -> {
                 Location savedLocation = invocation.getArgument(0);
                 savedLocation.setId(3L); // Simulate save
@@ -198,6 +206,7 @@ class LocationServiceTests {
             assertEquals("new-city", response.getSlug());
             assertTrue(response.isActive());
             verify(locationRepository).save(any(Location.class));
+            verify(governorateRepository).findById(1L);
         }
     }
     
@@ -212,6 +221,14 @@ class LocationServiceTests {
 
             when(locationRepository.findBySlug("new-city")).thenReturn(Optional.of(existingLocationWithSlug));
             when(locationRepository.findBySlug("new-city-1")).thenReturn(Optional.empty());
+            
+            // Mock the governorate lookup
+            Governorate mockGovernorate = new Governorate();
+            mockGovernorate.setId(1L);
+            mockGovernorate.setDisplayNameEn("Damascus");
+            mockGovernorate.setDisplayNameAr("دمشق");
+            when(governorateRepository.findById(1L)).thenReturn(Optional.of(mockGovernorate));
+            
             when(locationRepository.save(any(Location.class))).thenAnswer(invocation -> {
                 Location savedLocation = invocation.getArgument(0);
                 savedLocation.setId(3L);
@@ -223,6 +240,7 @@ class LocationServiceTests {
             assertNotNull(response);
             assertEquals("new-city-1", response.getSlug());
             verify(locationRepository).save(any(Location.class));
+            verify(governorateRepository).findById(1L);
         }
     }
 
@@ -235,6 +253,13 @@ class LocationServiceTests {
             mockedSlugUtils.when(() -> SlugUtils.slugify("Updated City A")).thenReturn("updated-city-a");
             when(locationRepository.findBySlug("updated-city-a")).thenReturn(Optional.empty()); // For unique slug check
 
+            // Mock the governorate lookup
+            Governorate mockGovernorate = new Governorate();
+            mockGovernorate.setId(1L);
+            mockGovernorate.setDisplayNameEn("Damascus");
+            mockGovernorate.setDisplayNameAr("دمشق");
+            when(governorateRepository.findById(1L)).thenReturn(Optional.of(mockGovernorate));
+
             // Return the location instance that is passed to the save method
             when(locationRepository.save(any(Location.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -245,6 +270,7 @@ class LocationServiceTests {
             assertEquals("Updated City A", response.getDisplayNameEn());
             assertEquals("updated-city-a", response.getSlug());
             verify(locationRepository).save(location1);
+            verify(governorateRepository).findById(1L);
         }
     }
     
@@ -255,6 +281,13 @@ class LocationServiceTests {
         // To test this specific case, let's make them the same before the call
         locationRequest.setNameEn("City A"); // Same as current English name
 
+        // Mock the governorate lookup
+        Governorate mockGovernorate = new Governorate();
+        mockGovernorate.setId(1L);
+        mockGovernorate.setDisplayNameEn("Damascus");
+        mockGovernorate.setDisplayNameAr("دمشق");
+        when(governorateRepository.findById(1L)).thenReturn(Optional.of(mockGovernorate));
+
         when(locationRepository.save(any(Location.class))).thenReturn(location1);
 
         LocationResponse response = locationService.updateLocation(1L, locationRequest);
@@ -263,6 +296,7 @@ class LocationServiceTests {
         assertEquals("City A", response.getDisplayNameEn()); // NameEn from request
         assertEquals("city-a", response.getSlug()); // Original slug, not changed
         verify(locationRepository).save(location1);
+        verify(governorateRepository).findById(1L);
         // Verify SlugUtils.slugify was NOT called
         // This requires a bit more setup if SlugUtils is static, or a spy if it's a bean.
         // For now, we assert the slug remained the same.

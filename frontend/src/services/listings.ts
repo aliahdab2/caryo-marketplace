@@ -396,7 +396,7 @@ export async function getMyListings(): Promise<Listing[]> {
           type: 'private' as const,
           phone: '+966 50 123 4567'
         },
-        currency: 'SAR'
+        currency: item.currency || 'USD' // Use actual currency from API, default to USD
       };
     });
   } catch (error) {
@@ -433,6 +433,7 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       modelYear: parseInt(formData.year, 10),
       mileage: parseInt(formData.mileage, 10),
       price: parseFloat(formData.price),
+      currency: formData.currency || 'USD', // Include currency in API request
       locationId: parseInt(formData.governorateId, 10), // Backend expects Long locationId
       isSold: false, // Optional field - default to false
       isArchived: false // Optional field - default to false

@@ -61,6 +61,7 @@ export interface ApiListingItem {
   modelYear: number;
   mileage: number;
   price: number;
+  currency?: string; // Currency code for the listing price
   locationDetails: LocationDetails | null;
   governorateDetails?: GovernorateDetails;
   governorateNameEn?: string;
@@ -100,6 +101,7 @@ export interface UpdateListingData {
   modelYear?: number;
   mileage?: number;
   price?: number;
+  currency?: string; // Add currency support to update interface
   locationId?: number;
   description?: string;
   transmission?: string;
@@ -189,6 +191,8 @@ export interface ListingFormData {
   currency: string; // Assuming this is for a generic listing, might need to be part of attributes
   condition: string; // Assuming this is for a generic listing, might need to be part of attributes
   mileage: string; // Assuming this is for a generic listing, might need to be part of attributes
+  engine: string; // Engine specifications
+  color: string; // Exterior color
   exteriorColor: string; // Assuming this is for a generic listing, might need to be part of attributes
   interiorColor: string; // Assuming this is for a generic listing, might need to be part of attributes
   transmission: string; // Assuming this is for a generic listing, might need to be part of attributes
@@ -199,6 +203,8 @@ export interface ListingFormData {
   location?: string; 
   governorateId: string; 
   city: string; // This was in the original form state, ensure it's needed
+  state: string; // State or province
+  zipCode: string; // Postal/ZIP code
   contactName: string; // Added
   contactPhone: string; // Added
   contactEmail?: string; // Added, optional

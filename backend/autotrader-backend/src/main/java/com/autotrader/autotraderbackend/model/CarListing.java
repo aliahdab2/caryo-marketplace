@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.model;
 
 import com.autotrader.autotraderbackend.validation.CurrentYearOrEarlier;
+import com.autotrader.autotraderbackend.validation.ValidCurrency;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
@@ -45,6 +46,21 @@ public class CarListing {
 
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
+
+    /**
+     * Currency for the listing price following ISO 4217 standard.
+     * 
+     * <p>Supported currencies for Syrian marketplace:</p>
+     * <ul>
+     *   <li><strong>USD</strong> - US Dollar (default, primary for car sales)</li>
+     *   <li><strong>SYP</strong> - Syrian Pound (local currency)</li>
+     * </ul>
+     * 
+     * <p>Defaults to USD as it's the most common currency for car sales in Syria.</p>
+     */
+    @ValidCurrency
+    @Column(name = "currency", nullable = false, length = 3, columnDefinition = "VARCHAR(3) DEFAULT 'USD'")
+    private String currency = "USD";
 
     @Size(max = 17)
     @Column(name = "vin", length = 17)

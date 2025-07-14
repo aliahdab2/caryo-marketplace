@@ -1,21 +1,20 @@
 -- Test Users
 
--- Test Users (H2-compatible)
-MERGE INTO users (username, email, password)
-KEY(username)
-VALUES ('test_user', 'test@example.com', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG');
+-- Test Users (H2-compatible) - Use existing user from sample data
+-- The sample car listings already create a user with id=1, username='testuser', email='test@example.com'
+-- We'll just reference that user instead of creating a new one
 
--- Test User Role
+-- Test User Role for existing user
 MERGE INTO user_roles (user_id, role_id)
 KEY(user_id, role_id)
 SELECT u.id, r.id
 FROM users u, roles r
-WHERE u.username = 'test_user' AND r.name = 'ROLE_USER';
+WHERE u.username = 'testuser' AND r.name = 'ROLE_USER';
 
 -- Test Location
-MERGE INTO locations (display_name_en, display_name_ar, slug, country_code, region, latitude, longitude)
+MERGE INTO locations (display_name_en, display_name_ar, slug, region, latitude, longitude)
 KEY(slug)
-VALUES ('Test Location', 'موقع اختبار', 'test-location', 'AE', 'Test Region', 25.0, 55.0);
+VALUES ('Test Location', 'موقع اختبار', 'test-location', 'Test Region', 25.0, 55.0);
 
 -- Single Test Car Listing
 MERGE INTO car_listings (
@@ -49,7 +48,7 @@ FROM
     drive_types d
 WHERE
     l.slug = 'test-location'
-    AND u.username = 'test_user'
+    AND u.username = 'testuser'
     AND c.name = 'excellent'
     AND b.name = 'sedan'
     AND t.name = 'automatic'

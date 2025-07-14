@@ -27,6 +27,7 @@ public class CarListingResponse {
     private Integer modelYear;
     private Integer mileage;
     private BigDecimal price;
+    private String currency; // Currency code for the price (USD, SYP)
     private String transmission; // Added field
     private String fuelType; // Added field
     
@@ -97,6 +98,7 @@ public class CarListingResponse {
     public Integer getModelYear() { return modelYear; }
     public Integer getMileage() { return mileage; }
     public BigDecimal getPrice() { return price; }
+    public String getCurrency() { return currency; }
     public String getTransmission() { return transmission; } // Added getter
     public String getFuelType() { return fuelType; } // Added getter
     
@@ -128,6 +130,7 @@ public class CarListingResponse {
     public void setModelYear(Integer modelYear) { this.modelYear = modelYear; }
     public void setMileage(Integer mileage) { this.mileage = mileage; }
     public void setPrice(BigDecimal price) { this.price = price; }
+    public void setCurrency(String currency) { this.currency = currency; }
     public void setTransmission(String transmission) { this.transmission = transmission; } // Added setter
     public void setFuelType(String fuelType) { this.fuelType = fuelType; } // Added setter
     
