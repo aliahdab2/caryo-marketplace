@@ -27,6 +27,9 @@ const loadDOMPurify = async (): Promise<typeof import('dompurify').default | nul
   return null;
 };
 
+// Configuration constants
+export const MAX_SANITIZED_LENGTH = 5000; // Maximum length for sanitized content to prevent DoS attacks
+
 // Pre-compiled regex patterns for performance
 export const SECURITY_PATTERNS = {
   HTML_TAGS: /<[^>]*>/g,
@@ -89,8 +92,8 @@ export function sanitizeCore(input: string, level: SanitizationLevel): string {
   sanitized = sanitized.replace(SECURITY_PATTERNS.EXCESSIVE_WHITESPACE, ' ').trim();
   
   // Length limiting for DoS prevention
-  if (sanitized.length > 1000) {
-    sanitized = sanitized.substring(0, 1000);
+  if (sanitized.length > MAX_SANITIZED_LENGTH) {
+    sanitized = sanitized.substring(0, MAX_SANITIZED_LENGTH);
   }
   
   return sanitized;

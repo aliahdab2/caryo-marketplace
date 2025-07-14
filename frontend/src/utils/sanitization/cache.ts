@@ -42,10 +42,36 @@ export function setCachedResult(key: string, value: string): void {
 }
 
 /**
- * Generate cache key for sanitization
+ * Simple hash function for generating predictable cache keys
+ */
+function hashString(str: string): string {
+  let hash = 0;
+  if (str.length === 0) return '0';
+  
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  return Math.abs(hash).toString(36); // Base36 for shorter strings
+}
+
+/**
+ * Generate cache key for sanitization with predictable length
  */
 export function createCacheKey(input: string, level: string): string {
-  return `${level}:${input}`;
+  // For short inputs (≤50 chars), use direct key for better readability in debugging
+  if (input.length <= 50) {
+    return `${level}:${input}`;
+  }
+  
+  // For longer inputs, use hash to maintain predictable key length
+  const inputHash = hashString(input);
+  const inputLength = input.length;
+  
+  // Include input length in key for additional uniqueness
+  return `${level}:${inputLength}:${inputHash}`;
 }
 
 /**

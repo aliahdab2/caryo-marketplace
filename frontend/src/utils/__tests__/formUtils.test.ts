@@ -110,6 +110,25 @@ describe('Form Utils - Clean Modular Architecture', () => {
         expect(standardResult).toBe('Hello');
         expect(strictResult).toBe('Hello');
       });
+
+      test('generates predictable cache keys for large inputs', () => {
+        const shortInput = 'Hello world';
+        const longInput = 'A'.repeat(1000); // Very long input
+        
+        const shortKey = sanitizeInput(shortInput, 'basic');
+        const longKey = sanitizeInput(longInput, 'basic');
+        
+        // Both should work and be cached
+        expect(shortKey).toBe(shortInput); // No change needed
+        expect(longKey).toBe('A'.repeat(1000)); // Should be truncated to MAX_SANITIZED_LENGTH
+        
+        // Verify caching works for both
+        const shortKey2 = sanitizeInput(shortInput, 'basic');
+        const longKey2 = sanitizeInput(longInput, 'basic');
+        
+        expect(shortKey2).toBe(shortKey);
+        expect(longKey2).toBe(longKey);
+      });
     });
   });
 

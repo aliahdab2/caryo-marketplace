@@ -4,7 +4,7 @@
  * Provides the primary sanitizeInput function with caching and performance tracking
  */
 
-import { sanitizeCore, smartSanitize, sanitizeHtml, type SanitizationLevel } from './core';
+import { sanitizeCore, smartSanitize, sanitizeHtml, MAX_SANITIZED_LENGTH, type SanitizationLevel } from './core';
 import { getCachedResult, setCachedResult, createCacheKey, clearCache as clearSanitizationCache } from './cache';
 import { 
   initializeStats, 
@@ -60,6 +60,9 @@ export function sanitizeInput(input: string, level: SanitizationLevel = 'standar
 export { smartSanitize, sanitizeHtml };
 export { clearSanitizationCache };
 export { getStats as getSanitizationStats, resetStats as resetSanitizationStats, getCacheHitRate };
+
+// Re-export configuration constants
+export { MAX_SANITIZED_LENGTH };
 
 // Re-export types
 export type { SanitizationLevel };
