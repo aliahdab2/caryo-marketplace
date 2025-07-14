@@ -93,11 +93,15 @@ export const sanitizeInput = (
 ): string => {
   if (!input || typeof input !== 'string') return '';
   
-  // Performance tracking (development only)
-  const startTime = sanitizationStats ? performance.now() : 0;
+  // Performance tracking with sampling (development only)
+  const shouldMeasure = sanitizationStats && Math.random() < PERFORMANCE_SAMPLING_RATE;
+  const startTime = shouldMeasure ? performance.now() : 0;
   
   // Zero-copy optimization: return early if input is already clean
   if (level === 'basic' && !/<|>|javascript:|on\w+=/i.test(input)) {
+    if (sanitizationStats) {
+      sanitizationStats.calls++;
+    }
     return input.trim();
   }
   
@@ -108,7 +112,12 @@ export const sanitizeInput = (
       sanitizationStats.calls++;
       sanitizationStats.cacheHits++;
     }
-    return SANITIZATION_CACHE.get(cacheKey)!;
+    
+    // LRU: Move accessed item to end by deleting and re-setting
+    const cachedValue = SANITIZATION_CACHE.get(cacheKey)!;
+    SANITIZATION_CACHE.delete(cacheKey);
+    SANITIZATION_CACHE.set(cacheKey, cachedValue);
+    return cachedValue;
   }
   
   let sanitized = input.trim();
@@ -154,22 +163,32 @@ export const sanitizeInput = (
     sanitized = sanitized.substring(0, 1000);
   }
   
-  // Cache the result (with size limiting)
+  // Cache the result with LRU eviction strategy
   if (SANITIZATION_CACHE.size >= CACHE_SIZE_LIMIT) {
-    // Remove oldest entries (FIFO)
-    const firstKey = SANITIZATION_CACHE.keys().next().value;
-    if (firstKey) {
-      SANITIZATION_CACHE.delete(firstKey);
+    // Remove least recently used entry (LRU)
+    // Map.keys() returns keys in insertion order, so first key is LRU
+    const lruKey = SANITIZATION_CACHE.keys().next().value;
+    if (lruKey) {
+      SANITIZATION_CACHE.delete(lruKey);
     }
   }
+  
+  // Set/update the cache entry (this moves it to end of iteration order in Map)
   SANITIZATION_CACHE.set(cacheKey, sanitized);
   
-  // Update performance stats
+  // Update performance stats with sampling
   if (sanitizationStats) {
-    const endTime = performance.now();
-    const duration = endTime - startTime;
     sanitizationStats.calls++;
-    sanitizationStats.avgTime = (sanitizationStats.avgTime * (sanitizationStats.calls - 1) + duration) / sanitizationStats.calls;
+    
+    // Only measure performance for sampled calls to reduce overhead
+    if (shouldMeasure) {
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+      sanitizationStats.sampledMeasurements++;
+      sanitizationStats.avgTime = (
+        sanitizationStats.avgTime * (sanitizationStats.sampledMeasurements - 1) + duration
+      ) / sanitizationStats.sampledMeasurements;
+    }
   }
   
   return sanitized;
@@ -566,10 +585,13 @@ export const debounce = <T extends (...args: unknown[]) => void>(
 };
 
 // Performance monitoring utilities (development only)
-let sanitizationStats: { calls: number; cacheHits: number; avgTime: number } | null = null;
+let sanitizationStats: { calls: number; cacheHits: number; avgTime: number; sampledMeasurements: number } | null = null;
+
+// Performance sampling configuration to reduce overhead
+const PERFORMANCE_SAMPLING_RATE = 0.1; // Sample 10% of calls to minimize performance impact
 
 if (process.env.NODE_ENV === 'development') {
-  sanitizationStats = { calls: 0, cacheHits: 0, avgTime: 0 };
+  sanitizationStats = { calls: 0, cacheHits: 0, avgTime: 0, sampledMeasurements: 0 };
   
   // Export performance stats for debugging
   (globalThis as Record<string, unknown>).__formUtilsStats = () => {
@@ -584,7 +606,9 @@ if (process.env.NODE_ENV === 'development') {
       cacheHits: sanitizationStats.cacheHits,
       hitRate: `${hitRate}%`,
       avgTimeMs: sanitizationStats.avgTime.toFixed(2),
-      cacheSize: SANITIZATION_CACHE.size
+      cacheSize: SANITIZATION_CACHE.size,
+      samplingRate: `${(PERFORMANCE_SAMPLING_RATE * 100).toFixed(1)}%`,
+      sampledMeasurements: sanitizationStats.sampledMeasurements
     };
   };
 }
@@ -598,6 +622,7 @@ export const clearSanitizationCache = (): void => {
     sanitizationStats.calls = 0;
     sanitizationStats.cacheHits = 0;
     sanitizationStats.avgTime = 0;
+    sanitizationStats.sampledMeasurements = 0;
   }
 };
 
@@ -648,6 +673,8 @@ export const getSanitizationStats = (): {
   hitRate: string;
   avgTimeMs: string;
   cacheSize: number;
+  samplingRate: string;
+  sampledMeasurements: number;
 } | null => {
   if (!sanitizationStats) return null;
   
@@ -660,7 +687,9 @@ export const getSanitizationStats = (): {
     cacheHits: sanitizationStats.cacheHits,
     hitRate: `${hitRate}%`,
     avgTimeMs: sanitizationStats.avgTime.toFixed(2),
-    cacheSize: SANITIZATION_CACHE.size
+    cacheSize: SANITIZATION_CACHE.size,
+    samplingRate: `${(PERFORMANCE_SAMPLING_RATE * 100).toFixed(1)}%`,
+    sampledMeasurements: sanitizationStats.sampledMeasurements
   };
 };
 
@@ -672,6 +701,7 @@ export const resetSanitizationStats = (): void => {
     sanitizationStats.calls = 0;
     sanitizationStats.cacheHits = 0;
     sanitizationStats.avgTime = 0;
+    sanitizationStats.sampledMeasurements = 0;
   }
 };
 
