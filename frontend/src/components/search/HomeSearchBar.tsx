@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import debounce from 'lodash/debounce';
 
 import { CarMake, CarModel } from '@/types/car';
-import { buildHierarchicalBrandFilter } from '@/utils/brandFilters';
 import { 
   fetchCarBrands, 
   fetchCarModels, 
@@ -176,31 +175,20 @@ const HomeSearchBar: React.FC = () => {
     
     const params = new URLSearchParams();
     
-    // NEW: Clean slug-based URLs (user-friendly)
-    // Add brand slug if selected
+    // NEW: AutoTrader UK style slug-based URLs
+    // Add brand slugs if selected
     if (selectedMake !== null) {
       const selectedBrand = carMakes?.find(make => make.id === selectedMake);
       if (selectedBrand && selectedBrand.slug) {
-        params.append('brand', selectedBrand.slug); // Clean URL: ?brand=toyota
+        params.append('brandSlugs', selectedBrand.slug); // Multiple brand support: ?brandSlugs=toyota&brandSlugs=honda
       }
     }
     
-    // Add model slug if selected
+    // Add model slugs if selected
     if (selectedModel !== null) {
       const selectedCarModel = availableModels?.find(model => model.id === selectedModel);
       if (selectedCarModel && selectedCarModel.slug) {
-        params.append('model', selectedCarModel.slug); // Clean URL: ?model=camry
-      }
-    }
-    
-    // FALLBACK: For backward compatibility with legacy brand filtering
-    // Only use if slugs are not available
-    if (selectedMake !== null && selectedModel === null) {
-      const selectedBrand = carMakes?.find(make => make.id === selectedMake);
-      if (selectedBrand && !selectedBrand.slug) {
-        const brandName = getDisplayName(selectedBrand);
-        const hierarchicalBrand = buildHierarchicalBrandFilter(brandName);
-        params.append('legacyBrand', hierarchicalBrand);
+        params.append('modelSlugs', selectedCarModel.slug); // Multiple model support: ?modelSlugs=camry&modelSlugs=corolla
       }
     }
     
@@ -218,7 +206,7 @@ const HomeSearchBar: React.FC = () => {
 
     // Use replace instead of push to avoid history stacking on quick searches
     router.push(`/search?${params.toString()}`, { scroll: false });
-  }, [selectedMake, selectedModel, selectedGovernorate, carMakes, availableModels, governorates, getDisplayName, router]);
+  }, [selectedMake, selectedModel, selectedGovernorate, carMakes, availableModels, governorates, router]);
 
   // Create a debounced search function
   const debouncedSearch = useMemo(() => debounce(handleSearch, 500), [handleSearch]);

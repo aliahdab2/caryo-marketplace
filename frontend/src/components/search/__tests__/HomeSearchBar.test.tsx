@@ -309,7 +309,7 @@ describe('HomeSearchBar', () => {
       expect(modelSelect.value).toBe('');
     });
 
-    it('handles search functionality correctly', async () => {
+    it('handles search functionality with slug-based URLs correctly', async () => {
       const mockSetSelectedMake = jest.fn();
       (useApiDataHook.useFormSelection as jest.Mock).mockReturnValue([1, mockSetSelectedMake]);
 
@@ -319,10 +319,120 @@ describe('HomeSearchBar', () => {
       
       await userEvent.click(searchButton);
       
+      // Should use brandSlugs parameter with AutoTrader UK pattern
       expect(mockPush).toHaveBeenCalledWith(
-        expect.stringContaining('/search?'),
+        expect.stringContaining('/search?brandSlugs=toyota'),
         { scroll: false }
       );
+    });
+
+    it('handles model selection with slug-based URLs correctly', async () => {
+      // Mock form selections to have both brand selected
+      (useApiDataHook.useFormSelection as jest.Mock)
+        .mockReturnValueOnce([1, jest.fn()]); // selectedMake = 1 (Toyota)
+
+      // Create a mock useState for selectedModel = 1 (Camry) and selectedGovernorate = ''
+      const originalUseState = React.useState;
+      const mockSetSelectedModel = jest.fn();
+      const mockSetSelectedGovernorate = jest.fn();
+      let callCount = 0;
+      
+      jest.spyOn(React, 'useState').mockImplementation((initial) => {
+        if (callCount === 0) {
+          callCount++;
+          return [1, mockSetSelectedModel]; // selectedModel = 1 (Camry)
+        } else if (callCount === 1) {
+          callCount++;
+          return ['', mockSetSelectedGovernorate]; // selectedGovernorate = ''
+        }
+        return originalUseState(initial);
+      });
+
+      // Mock useApiData to return both brands and models
+      (useApiDataHook.useApiData as jest.Mock)
+        .mockReturnValueOnce({
+          data: mockCarMakes,
+          isLoading: false,
+          error: null,
+          retry: jest.fn(),
+        })
+        .mockReturnValueOnce({
+          data: mockGovernorates,
+          isLoading: false,
+          error: null,
+          retry: jest.fn(),
+        })
+        .mockReturnValueOnce({
+          data: mockCarModels, // Return models for selected brand
+          isLoading: false,
+          error: null,
+          retry: jest.fn(),
+        });
+
+      render(<HomeSearchBar />);
+
+      const searchButton = screen.getByRole('button', { name: /search cars/i });
+      
+      await userEvent.click(searchButton);
+      
+      // Should include both brandSlugs and modelSlugs
+      expect(mockPush).toHaveBeenCalledWith(
+        expect.stringMatching(/brandSlugs=toyota.*modelSlugs=camry/),
+        { scroll: false }
+      );
+      
+      // Cleanup the spy
+      jest.restoreAllMocks();
+    });
+
+    it('only creates URLs when brands/models have slugs', async () => {
+      // Mock a brand without a slug
+      const mockCarMakesWithoutSlug = [
+        { id: 1, displayNameEn: 'Toyota', displayNameAr: 'تويوتا' }, // No slug property
+      ];
+
+      // Mock form selections to have no selections
+      (useApiDataHook.useFormSelection as jest.Mock)
+        .mockReturnValueOnce([null, jest.fn()]) // selectedMake = null
+
+      // Mock useState for other selections
+      const mockSetSelectedModel = jest.fn();
+      const mockSetSelectedGovernorate = jest.fn();
+      jest.spyOn(React, 'useState')
+        .mockReturnValueOnce([null, mockSetSelectedModel]) // selectedModel = null
+        .mockReturnValueOnce(['', mockSetSelectedGovernorate]); // selectedGovernorate = ''
+
+      (useApiDataHook.useApiData as jest.Mock)
+        .mockReturnValueOnce({
+          data: mockCarMakesWithoutSlug,
+          isLoading: false,
+          error: null,
+          retry: jest.fn(),
+        })
+        .mockReturnValueOnce({
+          data: mockGovernorates,
+          isLoading: false,
+          error: null,
+          retry: jest.fn(),
+        })
+        .mockReturnValueOnce({
+          data: [],
+          isLoading: false,
+          error: null,
+          retry: jest.fn(),
+        });
+
+      render(<HomeSearchBar />);
+
+      const searchButton = screen.getByRole('button', { name: /search cars/i });
+      
+      await userEvent.click(searchButton);
+      
+      // Should not create URL params when no valid selections
+      expect(mockPush).toHaveBeenCalledWith('/search', { scroll: false });
+      
+      // Cleanup the spy
+      jest.restoreAllMocks();
     });
   });
 
@@ -476,12 +586,14 @@ describe('HomeSearchBar', () => {
 
   describe('Error Handling', () => {
     it('displays error messages and retry buttons', () => {
+      const retryBrandsFn = jest.fn();
+      
       (useApiDataHook.useApiData as jest.Mock)
         .mockReturnValueOnce({
           data: null,
           isLoading: false,
           error: 'Failed to load brands',
-          retry: jest.fn(),
+          retry: retryBrandsFn,
         })
         .mockReturnValueOnce({
           data: mockGovernorates,
@@ -496,10 +608,18 @@ describe('HomeSearchBar', () => {
           retry: jest.fn(),
         });
 
+      (useApiDataHook.useFormSelection as jest.Mock)
+        .mockReturnValueOnce([null, jest.fn()]); // selectedMake hook
+
       render(<HomeSearchBar />);
 
       expect(screen.getByText('Failed to load brands')).toBeInTheDocument();
       expect(screen.getByText(/try again/i)).toBeInTheDocument();
+      
+      // Test that retry button works
+      const retryButton = screen.getByText(/try again/i);
+      userEvent.click(retryButton);
+      expect(retryBrandsFn).toHaveBeenCalled();
     });
   });
 });

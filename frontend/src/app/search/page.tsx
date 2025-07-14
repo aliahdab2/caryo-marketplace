@@ -30,12 +30,11 @@ import {
 import { useApiData } from '@/hooks/useApiData';
 
 interface AdvancedSearchFilters {
-  // NEW: Slug-based filters (AutoTrader UK pattern)
+  // Slug-based filters (AutoTrader UK pattern)
   brandSlugs?: string[];
   modelSlugs?: string[];
   
-  // LEGACY: Basic filters matching old backend hierarchical format
-  brand?: string; // Now stores "Make:Model" format like "Toyota:Camry" or "تويوتا:كامري"
+  // Basic filters
   minYear?: number;
   maxYear?: number;
   minPrice?: number;
@@ -58,10 +57,6 @@ interface AdvancedSearchFilters {
   exteriorColor?: string;
   doors?: number;
   cylinders?: number;
-
-  // UI-only fields for form state (not sent to backend)
-  selectedMake?: string; // For UI form state only
-  selectedModel?: string; // For UI form state only
 }
 
 type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'condition' | 'fuelType' | 'bodyStyle' | 'location' | 'sellerType';
@@ -74,7 +69,7 @@ const SEARCH_NAMESPACES = ['common', 'search'];
 
 export default function AdvancedSearchPage() {
   const { t, i18n } = useLazyTranslation(SEARCH_NAMESPACES);
-  const _router = useRouter();
+  const router = useRouter();
   const searchParams = useSearchParams();
   
   // Extract language to prevent i18n object recreation causing re-renders
@@ -83,6 +78,7 @@ export default function AdvancedSearchPage() {
   // Form state
   const [filters, setFilters] = useState<AdvancedSearchFilters>({});
   const [selectedMake, setSelectedMake] = useState<number | null>(null);
+  const [selectedModel, setSelectedModel] = useState<number | null>(null);
   const [activeFilterModal, setActiveFilterModal] = useState<FilterType | null>(null);
 
   // Memoize listing filters to prevent unnecessary re-creation
@@ -102,7 +98,7 @@ export default function AdvancedSearchPage() {
       sort: 'createdAt,desc' // Default sort
     };
 
-    // NEW: Slug-based filtering (priority over legacy)
+    // Slug-based filtering
     if (filters.brandSlugs && filters.brandSlugs.length > 0) {
       params.brandSlugs = filters.brandSlugs;
     }
@@ -110,17 +106,11 @@ export default function AdvancedSearchPage() {
     if (filters.modelSlugs && filters.modelSlugs.length > 0) {
       params.modelSlugs = filters.modelSlugs;
     }
-    
-    // FALLBACK: Legacy hierarchical format for backward compatibility
-    if (!params.brandSlugs && !params.modelSlugs && filters.brand) {
-      params.brand = filters.brand;
-    }
 
     return params;
   }, [
     filters.brandSlugs, 
     filters.modelSlugs, 
-    filters.brand, 
     filters.minYear, 
     filters.maxYear, 
     filters.minPrice, 
@@ -166,15 +156,20 @@ export default function AdvancedSearchPage() {
     [selectedMake]
   );
 
+  // Stable fetch function to prevent recreation on every render
+  const fetchModelsFunction = useMemo(() => 
+    () => selectedMake ? fetchCarModels(selectedMake) : Promise.resolve([]),
+    [selectedMake]
+  );
+
   const {
     data: availableModels = [],
     isLoading: isLoadingModels,
     error: modelsError
   } = useApiData<CarModel[]>(
-    useCallback(() => selectedMake ? fetchCarModels(selectedMake) : Promise.resolve([]), [selectedMake]),
+    fetchModelsFunction,
     modelsFetchKey,
-    [], // Empty dependencies - the key change will trigger the refetch
-    selectedMake ? { makeId: selectedMake } : undefined
+    [] // Empty dependencies - the key change will trigger the refetch
   );
 
   const {
@@ -244,6 +239,29 @@ export default function AdvancedSearchPage() {
     }, [governorates, currentLanguage]
   );
 
+  // Helper functions to convert slugs to display names
+  const getBrandDisplayNameFromSlug = useCallback((slug: string): string => {
+    const brand = carMakes?.find(make => make.slug === slug);
+    return brand ? (currentLanguage === 'ar' ? brand.displayNameAr : brand.displayNameEn) : slug;
+  }, [carMakes, currentLanguage]);
+
+  const getModelDisplayNameFromSlug = useCallback((slug: string): string => {
+    // First try to find in current availableModels
+    const model = availableModels?.find(model => model.slug === slug);
+    if (model) {
+      return currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn;
+    }
+    
+    // If not found, try to extract display name from slug
+    // Convert slug like "honda-civic" to "Honda Civic"
+    const words = slug.split('-');
+    const displayName = words
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+    
+    return displayName;
+  }, [availableModels, currentLanguage]);
+
   // Simplified form state initialization to prevent loops
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -253,34 +271,30 @@ export default function AdvancedSearchPage() {
 
     const initialFilters: AdvancedSearchFilters = {};
     
-    // NEW: Handle clean URL parameters and convert to slug arrays for API
+    // Handle slug-based URL parameters (AutoTrader UK pattern)
+    const brandSlugs = searchParams.getAll('brandSlugs');
+    const modelSlugs = searchParams.getAll('modelSlugs');
+    
+    if (brandSlugs.length > 0) {
+      initialFilters.brandSlugs = brandSlugs;
+    }
+    
+    if (modelSlugs.length > 0) {
+      initialFilters.modelSlugs = modelSlugs;
+    }
+    
+    // Handle single slug parameters (clean URLs from HomeSearchBar)
     const brandParam = searchParams.get('brand'); // Clean URL: ?brand=toyota
     const modelParam = searchParams.get('model'); // Clean URL: ?model=camry
     
-    if (brandParam) {
+    if (brandParam && brandSlugs.length === 0) {
       // Convert single brand slug to array for API
       initialFilters.brandSlugs = [brandParam];
     }
     
-    if (modelParam) {
+    if (modelParam && modelSlugs.length === 0) {
       // Convert single model slug to array for API
       initialFilters.modelSlugs = [modelParam];
-    }
-    
-    // FALLBACK: Handle legacy parameters for backward compatibility
-    const legacyBrandParam = searchParams.get('legacyBrand');
-    if (legacyBrandParam && !brandParam && !modelParam) {
-      if (legacyBrandParam.includes(':')) {
-        // Hierarchical format
-        initialFilters.brand = legacyBrandParam;
-        const [make, model] = legacyBrandParam.split(':');
-        initialFilters.selectedMake = make;
-        initialFilters.selectedModel = model;
-      } else {
-        // Just a brand
-        initialFilters.selectedMake = legacyBrandParam;
-        initialFilters.brand = legacyBrandParam;
-      }
     }
     
     // Handle location parameters
@@ -309,7 +323,7 @@ export default function AdvancedSearchPage() {
 
   // Trigger search after filters are initialized from URL parameters
   useEffect(() => {
-    if (hasInitialized && (filters.brandSlugs?.length || filters.modelSlugs?.length || filters.brand)) {
+    if (hasInitialized && (filters.brandSlugs?.length || filters.modelSlugs?.length)) {
       // Delay search slightly to ensure all state is updated
       const timeoutId = setTimeout(() => {
         executeSearch(false);
@@ -317,29 +331,87 @@ export default function AdvancedSearchPage() {
       
       return () => clearTimeout(timeoutId);
     }
-  }, [hasInitialized, filters.brandSlugs, filters.modelSlugs, filters.brand, executeSearch]);
+  }, [hasInitialized, filters.brandSlugs, filters.modelSlugs, executeSearch]);
 
   // Convert brand slugs to selectedMake ID when carMakes loads
   useEffect(() => {
     if (filters.brandSlugs && filters.brandSlugs.length > 0 && carMakes && carMakes.length > 0) {
       const firstBrandSlug = filters.brandSlugs[0];
       const brand = carMakes.find(make => make.slug === firstBrandSlug);
-      if (brand && selectedMake !== brand.id) {
-        setSelectedMake(brand.id);
+      if (brand) {
+        setSelectedMake(prevSelectedMake => {
+          // Only update if the value actually changed
+          return prevSelectedMake !== brand.id ? brand.id : prevSelectedMake;
+        });
       }
-    } else if (filters.selectedMake && carMakes && carMakes.length > 0) {
-      // Legacy: Handle display name lookup
-      const brand = carMakes.find(make => {
-        const displayName = currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn;
-        return displayName.toLowerCase() === filters.selectedMake?.toLowerCase();
+    } else if (!filters.brandSlugs?.length) {
+      // Clear selection when no brand filters
+      setSelectedMake(prevSelectedMake => {
+        // Only update if there was a previous selection
+        return prevSelectedMake !== null ? null : prevSelectedMake;
       });
-      if (brand && selectedMake !== brand.id) {
-        setSelectedMake(brand.id);
-      }
     }
-  }, [filters.brandSlugs, filters.selectedMake, carMakes, currentLanguage, selectedMake]);
+  }, [filters.brandSlugs, carMakes]); // Removed selectedMake from dependencies
 
-  // Handle input changes with better state management
+  // Convert model slugs to selectedModel ID when availableModels loads
+  useEffect(() => {
+    if (filters.modelSlugs && filters.modelSlugs.length > 0 && availableModels && availableModels.length > 0) {
+      const firstModelSlug = filters.modelSlugs[0];
+      const model = availableModels.find(m => m.slug === firstModelSlug);
+      if (model) {
+        setSelectedModel(prevSelectedModel => {
+          // Only update if the value actually changed
+          return prevSelectedModel !== model.id ? model.id : prevSelectedModel;
+        });
+      }
+    } else if (!filters.modelSlugs?.length) {
+      // Clear selection when no model filters
+      setSelectedModel(prevSelectedModel => {
+        // Only update if there was a previous selection
+        return prevSelectedModel !== null ? null : prevSelectedModel;
+      });
+    }
+  }, [filters.modelSlugs, availableModels]); // Removed selectedModel from dependencies
+
+  // Function to update URL when filters change
+  const updateUrlFromFilters = useCallback((newFilters: AdvancedSearchFilters) => {
+    const params = new URLSearchParams();
+    
+    // Add brand slugs
+    if (newFilters.brandSlugs && newFilters.brandSlugs.length > 0) {
+      newFilters.brandSlugs.forEach(brandSlug => {
+        params.append('brandSlugs', brandSlug);
+      });
+    }
+    
+    // Add model slugs
+    if (newFilters.modelSlugs && newFilters.modelSlugs.length > 0) {
+      newFilters.modelSlugs.forEach(modelSlug => {
+        params.append('modelSlugs', modelSlug);
+      });
+    }
+    
+    // Add other filters
+    if (newFilters.location) params.append('location', newFilters.location);
+    if (newFilters.locationId) params.append('locationId', newFilters.locationId.toString());
+    if (newFilters.minYear) params.append('minYear', newFilters.minYear.toString());
+    if (newFilters.maxYear) params.append('maxYear', newFilters.maxYear.toString());
+    if (newFilters.minPrice) params.append('minPrice', newFilters.minPrice.toString());
+    if (newFilters.maxPrice) params.append('maxPrice', newFilters.maxPrice.toString());
+    if (newFilters.minMileage) params.append('minMileage', newFilters.minMileage.toString());
+    if (newFilters.maxMileage) params.append('maxMileage', newFilters.maxMileage.toString());
+    if (newFilters.conditionId) params.append('conditionId', newFilters.conditionId.toString());
+    if (newFilters.transmissionId) params.append('transmissionId', newFilters.transmissionId.toString());
+    if (newFilters.fuelTypeId) params.append('fuelTypeId', newFilters.fuelTypeId.toString());
+    if (newFilters.bodyStyleId) params.append('bodyStyleId', newFilters.bodyStyleId.toString());
+    if (newFilters.sellerTypeId) params.append('sellerTypeId', newFilters.sellerTypeId.toString());
+    
+    // Update URL without causing a page reload
+    const newUrl = `/search${params.toString() ? `?${params.toString()}` : ''}`;
+    router.replace(newUrl, { scroll: false });
+  }, [router]);
+
+  // Handle input changes - simplified for slug-based filtering only
   const handleInputChange = useCallback((field: keyof AdvancedSearchFilters, value: string | number | undefined) => {
     setFilters(prev => {
       const newFilters = {
@@ -347,38 +419,22 @@ export default function AdvancedSearchPage() {
         [field]: value || undefined
       };
 
-      // Handle hierarchical brand:model format
-      if (field === 'selectedMake') {
-        // When make changes, reset model and update hierarchical brand
-        newFilters.selectedModel = undefined;
-        newFilters.brand = value ? String(value) : undefined;
-      } else if (field === 'selectedModel') {
-        // When model changes, combine with make to create hierarchical brand
-        if (newFilters.selectedMake && value) {
-          newFilters.brand = `${newFilters.selectedMake}:${value}`;
-        } else if (newFilters.selectedMake) {
-          newFilters.brand = String(newFilters.selectedMake);
-        }
-      }
-
+      // Update URL with the new filters after state update
+      // Use requestAnimationFrame for better performance
+      requestAnimationFrame(() => updateUrlFromFilters(newFilters));
+      
       return newFilters;
     });
-
-    // Update selected make when brand changes
-    if (field === 'selectedMake' && carMakes) {
-      const brand = carMakes.find(make => {
-        const displayName = currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn;
-        return displayName.toLowerCase() === value?.toString().toLowerCase();
-      });
-      setSelectedMake(brand ? brand.id : null);
-    }
-  }, [carMakes, currentLanguage]);
+  }, [updateUrlFromFilters]);
 
   // Clear all filters - simplified to prevent loops
   const clearAllFilters = useCallback(() => {
-    setFilters({});
+    const emptyFilters = {};
+    setFilters(emptyFilters);
     setSelectedMake(null);
-  }, []);
+    setSelectedModel(null);
+    updateUrlFromFilters(emptyFilters);
+  }, [updateUrlFromFilters]);
 
   // Clear filter - simplified to prevent loops  
   const clearSpecificFilter = useCallback((filterType: FilterType) => {
@@ -387,10 +443,11 @@ export default function AdvancedSearchPage() {
       
       switch (filterType) {
         case 'makeModel':
-          delete newFilters.brand;
-          delete newFilters.selectedMake;
-          delete newFilters.selectedModel;
+          // Clear slug-based filters only
+          delete newFilters.brandSlugs;
+          delete newFilters.modelSlugs;
           setSelectedMake(null);
+          setSelectedModel(null);
           break;
         case 'price':
           delete newFilters.minPrice;
@@ -425,9 +482,12 @@ export default function AdvancedSearchPage() {
           break;
       }
       
+      // Update URL with cleared filters - use requestAnimationFrame for better performance
+      requestAnimationFrame(() => updateUrlFromFilters(newFilters));
+      
       return newFilters;
     });
-  }, []);
+  }, [updateUrlFromFilters]);
 
   // Count active filters with memoization
   const activeFiltersCount = useMemo(() => 
@@ -441,15 +501,16 @@ export default function AdvancedSearchPage() {
   const getFilterDisplayText = useCallback((filterType: FilterType): string => {
     switch (filterType) {
       case 'makeModel':
-        if (filters.selectedMake && filters.selectedModel) return `${filters.selectedMake} ${filters.selectedModel}`;
-        if (filters.selectedMake) return filters.selectedMake;
-        if (filters.brand) {
-          // Parse hierarchical format for display
-          if (filters.brand.includes(':')) {
-            const [make, model] = filters.brand.split(':');
-            return `${make} ${model}`;
+        // Display slug-based selections with proper localized names
+        if (filters.brandSlugs && filters.brandSlugs.length > 0) {
+          const brandNames = filters.brandSlugs.map(slug => getBrandDisplayNameFromSlug(slug));
+          let display = brandNames.join(', ');
+          
+          if (filters.modelSlugs && filters.modelSlugs.length > 0) {
+            const modelNames = filters.modelSlugs.map(slug => getModelDisplayNameFromSlug(slug));
+            display += ` - ${modelNames.join(', ')}`;
           }
-          return filters.brand;
+          return display;
         }
         return t('search.makeAndModel', 'Make and model');
       case 'price':
@@ -482,13 +543,16 @@ export default function AdvancedSearchPage() {
       default:
         return '';
     }
-  }, [filters, t, getTransmissionDisplayName, getConditionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getLocationDisplayName, getSellerTypeDisplayName]);
+  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getConditionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getLocationDisplayName, getSellerTypeDisplayName]);
 
   // Check if filter has active values - memoized to prevent re-renders
   const isFilterActive = useCallback((filterType: FilterType): boolean => {
     switch (filterType) {
       case 'makeModel':
-        return !!(filters.brand || filters.selectedMake || filters.selectedModel);
+        return !!(
+          (filters.brandSlugs && filters.brandSlugs.length > 0) ||
+          (filters.modelSlugs && filters.modelSlugs.length > 0)
+        );
       case 'price':
         return !!(filters.minPrice || filters.maxPrice);
       case 'year':
@@ -544,14 +608,45 @@ export default function AdvancedSearchPage() {
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.make', 'Make')}</h3>
                 <select
-                  value={filters.selectedMake || ''}
-                  onChange={(e) => handleInputChange('selectedMake', e.target.value)}
+                  value={selectedMake || ''}
+                  onChange={(e) => {
+                    const makeId = e.target.value ? Number(e.target.value) : null;
+                    
+                    // Only update if the value actually changed
+                    if (selectedMake !== makeId) {
+                      setSelectedMake(makeId);
+                      setSelectedModel(null); // Reset model when brand changes
+                      
+                      // Find the brand and update filters with slug
+                      if (makeId && carMakes) {
+                        const brand = carMakes.find(make => make.id === makeId);
+                        if (brand) {
+                          const newFilters = {
+                            ...filters,
+                            brandSlugs: [brand.slug],
+                            modelSlugs: []
+                          };
+                          setFilters(newFilters);
+                          // Use requestAnimationFrame for better performance
+                          requestAnimationFrame(() => updateUrlFromFilters(newFilters));
+                        }
+                      } else {
+                        const newFilters = {
+                          ...filters,
+                          brandSlugs: [],
+                          modelSlugs: []
+                        };
+                        setFilters(newFilters);
+                        requestAnimationFrame(() => updateUrlFromFilters(newFilters));
+                      }
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={isLoadingBrands}
                 >
                   <option value="">{t('search.any', 'Any')}</option>
                   {carMakes?.map(make => (
-                    <option key={make.id} value={currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn}>
+                    <option key={make.id} value={make.id}>
                       {currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn}
                     </option>
                   ))}
@@ -561,14 +656,42 @@ export default function AdvancedSearchPage() {
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.model', 'Model')}</h3>
                 <select
-                  value={filters.selectedModel || ''}
-                  onChange={(e) => handleInputChange('selectedModel', e.target.value)}
+                  value={selectedModel || ''}
+                  onChange={(e) => {
+                    const modelId = e.target.value ? Number(e.target.value) : null;
+                    
+                    // Only update if the value actually changed
+                    if (selectedModel !== modelId) {
+                      setSelectedModel(modelId);
+                      
+                      // Find the model and update filters with slug
+                      if (modelId && availableModels) {
+                        const model = availableModels.find(m => m.id === modelId);
+                        if (model) {
+                          const newFilters = {
+                            ...filters,
+                            modelSlugs: [model.slug]
+                          };
+                          setFilters(newFilters);
+                          // Use requestAnimationFrame for better performance
+                          requestAnimationFrame(() => updateUrlFromFilters(newFilters));
+                        }
+                      } else {
+                        const newFilters = {
+                          ...filters,
+                          modelSlugs: []
+                        };
+                        setFilters(newFilters);
+                        requestAnimationFrame(() => updateUrlFromFilters(newFilters));
+                      }
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={!selectedMake || isLoadingModels}
                 >
                   <option value="">{t('search.any', 'Any')}</option>
                   {availableModels?.map(model => (
-                    <option key={model.id} value={currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn}>
+                    <option key={model.id} value={model.id}>
                       {currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn}
                     </option>
                   ))}
@@ -886,7 +1009,7 @@ export default function AdvancedSearchPage() {
   }, []);
 
   // Loading skeleton component for better UX
-  const LoadingSkeleton = () => (
+  const LoadingSkeleton = React.memo(() => (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden animate-pulse">
       <div className="aspect-w-16 aspect-h-12 bg-gray-300 h-48"></div>
       <div className="p-4 space-y-3">
@@ -899,7 +1022,8 @@ export default function AdvancedSearchPage() {
         </div>
       </div>
     </div>
-  );
+  ));
+  LoadingSkeleton.displayName = 'LoadingSkeleton';
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

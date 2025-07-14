@@ -137,13 +137,11 @@ export interface PageResponse<T> {
 }
 
 export interface CarListingFilterParams {
-  // NEW: Slug-based filtering (AutoTrader UK pattern)
+  // Slug-based filtering (AutoTrader UK pattern)
   brandSlugs?: string[]; // Array of brand slugs: ["toyota", "honda", "bmw"]  
   modelSlugs?: string[]; // Array of model slugs: ["camry", "civic", "x3"]
   
-  // LEGACY: Still supported for backward compatibility
-  brand?: string; // Hierarchical format: "Toyota:Camry" or "تويوتا:كامري"
-  
+  // Filter parameters
   minYear?: number;
   maxYear?: number;
   location?: string;
@@ -152,9 +150,19 @@ export interface CarListingFilterParams {
   maxPrice?: number;
   minMileage?: number;
   maxMileage?: number;
+  
+  // Entity filters  
+  conditionId?: number;
+  transmissionId?: number;
+  fuelTypeId?: number;
+  bodyStyleId?: number;
+  sellerTypeId?: number;
+  
+  // Status filters
   isSold?: boolean;
   isArchived?: boolean;
-  sellerTypeId?: number;
+  
+  // Pagination and sorting
   page?: number;
   size?: number;
   sort?: string;
@@ -365,49 +373,71 @@ export async function fetchGovernorates(): Promise<Governorate[]> {
 
 /**
  * Fetches car listings with optional filters
+ * Uses slug-based filtering for brands and models
  */
 export async function fetchCarListings(filters?: CarListingFilterParams): Promise<PageResponse<CarListing>> {
   // Build query parameters
   const queryParams = new URLSearchParams();
   
   if (filters) {
-    // NEW: Slug-based filtering (AutoTrader UK pattern)
+    // Slug-based filtering
     if (filters.brandSlugs && filters.brandSlugs.length > 0) {
       filters.brandSlugs.forEach(brandSlug => {
-        queryParams.append('brandSlugs', brandSlug);
+        if (brandSlug.trim()) { // Validate non-empty slugs
+          queryParams.append('brandSlugs', brandSlug);
+        }
       });
     }
     
     if (filters.modelSlugs && filters.modelSlugs.length > 0) {
       filters.modelSlugs.forEach(modelSlug => {
-        queryParams.append('modelSlugs', modelSlug);
+        if (modelSlug.trim()) { // Validate non-empty slugs
+          queryParams.append('modelSlugs', modelSlug);
+        }
       });
     }
     
-    // LEGACY: Hierarchical brand filtering (for backward compatibility)
-    if (filters.brand && !filters.brandSlugs && !filters.modelSlugs) {
-      queryParams.append('brand', filters.brand);
+    // Add numeric filter parameters with validation
+    if (filters.minYear && filters.minYear > 1900) queryParams.append('minYear', filters.minYear.toString());
+    if (filters.maxYear && filters.maxYear <= new Date().getFullYear() + 1) {
+      queryParams.append('maxYear', filters.maxYear.toString());
     }
+    if (filters.minPrice && filters.minPrice >= 0) queryParams.append('minPrice', filters.minPrice.toString());
+    if (filters.maxPrice && filters.maxPrice >= 0) queryParams.append('maxPrice', filters.maxPrice.toString());
+    if (filters.minMileage && filters.minMileage >= 0) queryParams.append('minMileage', filters.minMileage.toString());
+    if (filters.maxMileage && filters.maxMileage >= 0) queryParams.append('maxMileage', filters.maxMileage.toString());
     
-    // Add other filter parameters
-    if (filters.minYear) queryParams.append('minYear', filters.minYear.toString());
-    if (filters.maxYear) queryParams.append('maxYear', filters.maxYear.toString());
+    // Location filters
     if (filters.location) queryParams.append('location', filters.location);
-    if (filters.locationId) queryParams.append('locationId', filters.locationId.toString());
-    if (filters.minPrice) queryParams.append('minPrice', filters.minPrice.toString());
-    if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice.toString());
-    if (filters.minMileage) queryParams.append('minMileage', filters.minMileage.toString());
-    if (filters.maxMileage) queryParams.append('maxMileage', filters.maxMileage.toString());
+    if (filters.locationId && filters.locationId > 0) queryParams.append('locationId', filters.locationId.toString());
+    
+    // Entity ID filters
+    if (filters.conditionId && filters.conditionId > 0) queryParams.append('conditionId', filters.conditionId.toString());
+    if (filters.transmissionId && filters.transmissionId > 0) queryParams.append('transmissionId', filters.transmissionId.toString());
+    if (filters.fuelTypeId && filters.fuelTypeId > 0) queryParams.append('fuelTypeId', filters.fuelTypeId.toString());
+    if (filters.bodyStyleId && filters.bodyStyleId > 0) queryParams.append('bodyStyleId', filters.bodyStyleId.toString());
+    if (filters.sellerTypeId && filters.sellerTypeId > 0) queryParams.append('sellerTypeId', filters.sellerTypeId.toString());
+    
+    // Status filters
     if (filters.isSold !== undefined) queryParams.append('isSold', filters.isSold.toString());
     if (filters.isArchived !== undefined) queryParams.append('isArchived', filters.isArchived.toString());
-    if (filters.sellerTypeId) queryParams.append('sellerTypeId', filters.sellerTypeId.toString());
-    if (filters.page !== undefined) queryParams.append('page', filters.page.toString());
-    if (filters.size !== undefined) queryParams.append('size', filters.size.toString());
+    
+    // Pagination with validation
+    if (filters.page !== undefined && filters.page >= 0) queryParams.append('page', filters.page.toString());
+    if (filters.size !== undefined && filters.size > 0 && filters.size <= 100) {
+      queryParams.append('size', filters.size.toString());
+    }
     if (filters.sort) queryParams.append('sort', filters.sort);
   }
   
   const endpoint = `/api/listings/filter${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-  return api.get<PageResponse<CarListing>>(endpoint);
+  
+  try {
+    return await api.get<PageResponse<CarListing>>(endpoint);
+  } catch (error) {
+    console.error('Error fetching car listings:', error);
+    throw error;
+  }
 }
 
 /**
