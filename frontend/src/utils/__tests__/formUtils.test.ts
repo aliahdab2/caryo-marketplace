@@ -459,7 +459,7 @@ describe('Form Utils', () => {
     });
 
     test('always returns a Promise for HTML sanitization', async () => {
-      const result = sanitizeUserContent('Hello <b>world</b>', { allowHtml: true });
+      const result = sanitizeUserContent('Hello <b>world</b>', { isHtml: true });
       expect(result).toBeInstanceOf(Promise);
       expect(await result).toBe('Hello world'); // HTML tags are stripped in basic sanitization
     });
@@ -480,7 +480,7 @@ describe('Form Utils', () => {
     test('preserves basic text when HTML is sanitized', async () => {
       const input = 'Hello <b>bold</b> and <i>italic</i> text';
       const result = await sanitizeUserContent(input, { 
-        allowHtml: true
+        isHtml: true
       });
       // HTML tags are removed but text content is preserved
       expect(result).toContain('Hello');
