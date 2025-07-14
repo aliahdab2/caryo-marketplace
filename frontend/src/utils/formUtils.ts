@@ -18,30 +18,25 @@ const CACHE_SIZE_LIMIT = 100;
 
 // Lazy load DOMPurify only when needed for HTML content
 let DOMPurifyModule: typeof import('dompurify').default | null = null;
-let isDOMPurifyLoading = false;
+let DOMPurifyPromise: Promise<typeof import('dompurify').default | null> | null = null;
 
 const loadDOMPurify = async (): Promise<typeof import('dompurify').default | null> => {
   if (DOMPurifyModule) return DOMPurifyModule;
-  if (isDOMPurifyLoading) {
-    // Wait for existing load to complete
-    while (isDOMPurifyLoading && !DOMPurifyModule) {
-      await new Promise(resolve => setTimeout(resolve, 10));
-    }
-    return DOMPurifyModule;
-  }
+  if (DOMPurifyPromise) return DOMPurifyPromise;
   
   if (typeof window !== 'undefined') {
-    isDOMPurifyLoading = true;
-    try {
-      const { default: purify } = await import('dompurify');
-      DOMPurifyModule = purify;
-    } catch (error) {
-      console.warn('Failed to load DOMPurify:', error);
-    } finally {
-      isDOMPurifyLoading = false;
-    }
+    DOMPurifyPromise = import('dompurify')
+      .then(({ default: purify }) => {
+        DOMPurifyModule = purify;
+        return purify;
+      })
+      .catch(error => {
+        console.warn('Failed to load DOMPurify:', error);
+        return null;
+      });
+    return DOMPurifyPromise;
   }
-  return DOMPurifyModule;
+  return null;
 };
 
 // Pre-compiled regex patterns for performance
