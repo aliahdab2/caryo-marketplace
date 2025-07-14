@@ -619,12 +619,67 @@ export const isSanitized = (
 ): boolean => {
   if (!input || typeof input !== 'string') return true;
   
-  const dangerosuPatterns = {
+  const dangerousPatterns = {
     basic: [/<|>|javascript:|on\w+=/i],
     standard: [SECURITY_PATTERNS.HTML_TAGS, SECURITY_PATTERNS.JS_PROTOCOLS, SECURITY_PATTERNS.EVENT_HANDLERS],
     strict: [SECURITY_PATTERNS.SCRIPT_TAGS, SECURITY_PATTERNS.CONTROL_CHARS]
   };
   
-  const patterns = dangerosuPatterns[level];
+  const patterns = dangerousPatterns[level];
   return !patterns.some(pattern => pattern.test(input));
+};
+
+/**
+ * Get performance statistics for debugging (development only)
+ * @returns Performance stats object or null if not in development
+ */
+export const getSanitizationStats = (): {
+  totalCalls: number;
+  cacheHits: number;
+  hitRate: string;
+  avgTimeMs: string;
+  cacheSize: number;
+} | null => {
+  if (!sanitizationStats) return null;
+  
+  const hitRate = sanitizationStats.calls > 0 
+    ? (sanitizationStats.cacheHits / sanitizationStats.calls * 100).toFixed(1)
+    : '0';
+    
+  return {
+    totalCalls: sanitizationStats.calls,
+    cacheHits: sanitizationStats.cacheHits,
+    hitRate: `${hitRate}%`,
+    avgTimeMs: sanitizationStats.avgTime.toFixed(2),
+    cacheSize: SANITIZATION_CACHE.size
+  };
+};
+
+/**
+ * Reset performance statistics (development only)
+ */
+export const resetSanitizationStats = (): void => {
+  if (sanitizationStats) {
+    sanitizationStats.calls = 0;
+    sanitizationStats.cacheHits = 0;
+    sanitizationStats.avgTime = 0;
+  }
+};
+
+/**
+ * Optimizes search queries for better performance and results
+ * @param query - The search query to optimize
+ * @returns Optimized search query
+ */
+export const optimizeSearchQuery = (query: string): string => {
+  if (!query || typeof query !== 'string') return '';
+  
+  // Convert Arabic numerals and normalize
+  let optimized = convertArabicNumerals(query);
+  
+  // Remove excessive whitespace and normalize
+  optimized = optimized.trim().toLowerCase();
+  optimized = optimized.replace(/\s+/g, ' ');
+  
+  return optimized;
 };
