@@ -327,11 +327,12 @@ export const sanitizeHtml = async (
 
 /**
  * Performance-optimized content sanitization with smart detection
+ * Always returns a Promise for consistent usage
  * @param input - The input string to sanitize
  * @param options - Configuration options
- * @returns Sanitized string or Promise<string> for HTML content
+ * @returns Promise<string> - Always returns a Promise for consistent usage
  */
-export const sanitizeUserContent = (
+export const sanitizeUserContent = async (
   input: string,
   options: {
     allowHtml?: boolean;
@@ -339,7 +340,7 @@ export const sanitizeUserContent = (
     level?: 'basic' | 'standard' | 'strict';
     preserveFormatting?: boolean;
   } = {}
-): string | Promise<string> => {
+): Promise<string> => {
   if (!input || typeof input !== 'string') return '';
   
   const {
@@ -364,14 +365,14 @@ export const sanitizeUserContent = (
   }
   
   if (allowHtml) {
-    // Return promise for HTML sanitization
-    return sanitizeHtml(sanitized, {
+    // Use HTML sanitization with DOMPurify
+    return await sanitizeHtml(sanitized, {
       allowedTags: preserveFormatting 
         ? ['b', 'i', 'u', 'strong', 'em', 'br', 'p', 'ul', 'ol', 'li'] 
         : ['b', 'i', 'strong', 'em']
     });
   } else {
-    // Use fast text sanitization
+    // Use fast text sanitization, but wrap in Promise for consistency
     return sanitizeInput(sanitized, level);
   }
 };
@@ -428,6 +429,7 @@ export const sanitizeListingData = (data: Partial<ListingFormData>): Partial<Lis
   
   // Copy truly safe fields (IDs and controlled values from dropdowns/database)
   // make and model are dropdown IDs from the car_brands/car_models tables, not user text
+  // currency is from SUPPORTED_CURRENCIES dropdown, not user text
   const trueSafeFields = ['make', 'model', 'currency', 'governorateId'] as const;
   trueSafeFields.forEach(field => {
     if (data[field]) {

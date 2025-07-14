@@ -197,9 +197,12 @@ export function parseCurrency(currencyString: string, currency: string = DEFAULT
   const currencyInfo = getCurrency(currency);
   if (!currencyInfo) return NaN;
 
+  // Escape special regex characters in the symbol and replace the entire symbol
+  const escapedSymbol = currencyInfo.symbol.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+  
   // Remove currency symbols and formatting
   const cleanString = currencyString
-    .replace(new RegExp(`[${currencyInfo.symbol}]`, 'g'), '')
+    .replace(new RegExp(escapedSymbol, 'g'), '')
     .replace(/[,\s]/g, '')
     .trim();
 

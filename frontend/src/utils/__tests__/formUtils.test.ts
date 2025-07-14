@@ -3,6 +3,7 @@ import {
   smartSanitize,
   sanitizeHtml,
   sanitizeListingData,
+  sanitizeUserContent,
   batchSanitize,
   convertArabicNumerals,
   sanitizeSearchQuery,
@@ -376,6 +377,45 @@ describe('Form Utils', () => {
       times.forEach(time => {
         expect(time).toBeLessThan(maxAcceptableTime);
       });
+    });
+  });
+
+  describe('sanitizeUserContent', () => {
+    test('always returns a Promise for text sanitization', async () => {
+      const result = sanitizeUserContent('Hello <script>alert("xss")</script> world');
+      expect(result).toBeInstanceOf(Promise);
+      expect(await result).toBe('Hello alert("xss") world');
+    });
+
+    test('always returns a Promise for HTML sanitization', async () => {
+      const result = sanitizeUserContent('Hello <b>world</b>', { allowHtml: true });
+      expect(result).toBeInstanceOf(Promise);
+      expect(await result).toBe('Hello world'); // HTML tags are stripped in basic sanitization
+    });
+
+    test('handles empty input consistently', async () => {
+      const result = sanitizeUserContent('');
+      expect(result).toBeInstanceOf(Promise);
+      expect(await result).toBe('');
+    });
+
+    test('applies length limiting correctly', async () => {
+      const longText = 'a'.repeat(200);
+      const result = sanitizeUserContent(longText, { maxLength: 50 });
+      expect(result).toBeInstanceOf(Promise);
+      expect((await result).length).toBeLessThanOrEqual(50);
+    });
+
+    test('preserves basic text when HTML is sanitized', async () => {
+      const input = 'Hello <b>bold</b> and <i>italic</i> text';
+      const result = await sanitizeUserContent(input, { 
+        allowHtml: true
+      });
+      // HTML tags are removed but text content is preserved
+      expect(result).toContain('Hello');
+      expect(result).toContain('bold');
+      expect(result).toContain('italic');
+      expect(result).toContain('text');
     });
   });
 });
