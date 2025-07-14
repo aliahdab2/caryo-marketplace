@@ -415,17 +415,20 @@ export const sanitizeListingData = (data: Partial<ListingFormData>): Partial<Lis
   }
   
   // Sanitize user-input fields (free text that users can type)
+  // For numeric fields, convert Arabic numerals first, then sanitize
   const userInputFields = ['year', 'mileage'] as const;
   userInputFields.forEach(field => {
     if (data[field] && typeof data[field] === 'string') {
-      sanitized[field] = sanitizeInput(data[field], 'standard');
+      const convertedValue = convertArabicNumerals(data[field]);
+      sanitized[field] = sanitizeInput(convertedValue, 'standard');
     }
   });
   
   // Copy truly safe fields (IDs and controlled values from dropdowns/database)
   // make and model are dropdown IDs from the car_brands/car_models tables, not user text
   // currency is from SUPPORTED_CURRENCIES dropdown, not user text
-  const trueSafeFields = ['make', 'model', 'currency', 'governorateId'] as const;
+  // transmission and fuelType are from predefined dropdown options, not user text
+  const trueSafeFields = ['make', 'model', 'currency', 'governorateId', 'transmission', 'fuelType'] as const;
   trueSafeFields.forEach(field => {
     if (data[field]) {
       sanitized[field] = data[field];
@@ -688,4 +691,68 @@ export const optimizeSearchQuery = (query: string): string => {
   optimized = optimized.replace(/\s+/g, ' ');
   
   return optimized;
+};
+
+// Field categorization for optimized form handling
+export const FORM_FIELD_CATEGORIES = {
+  // Safe dropdown fields from database/config (no sanitization needed)
+  DROPDOWN: ['make', 'model', 'currency', 'governorateId', 'transmission', 'fuelType'] as const,
+  
+  // Numeric fields that accept Arabic numerals and need conversion
+  NUMERIC: ['price', 'year', 'mileage'] as const,
+  
+  // Free text fields that need sanitization
+  TEXT: ['title', 'description', 'contactName', 'contactEmail', 'contactPhone'] as const
+} as const;
+
+export type DropdownField = typeof FORM_FIELD_CATEGORIES.DROPDOWN[number];
+export type NumericField = typeof FORM_FIELD_CATEGORIES.NUMERIC[number];
+export type TextField = typeof FORM_FIELD_CATEGORIES.TEXT[number];
+export type FormFieldName = DropdownField | NumericField | TextField;
+
+/**
+ * Determines the category of a form field for optimized processing
+ * @param fieldName - The name of the form field
+ * @returns The field category ('dropdown', 'numeric', 'text', or 'unknown')
+ */
+export const getFieldCategory = (fieldName: string): 'dropdown' | 'numeric' | 'text' | 'unknown' => {
+  if (FORM_FIELD_CATEGORIES.DROPDOWN.includes(fieldName as DropdownField)) {
+    return 'dropdown';
+  }
+  if (FORM_FIELD_CATEGORIES.NUMERIC.includes(fieldName as NumericField)) {
+    return 'numeric';
+  }
+  if (FORM_FIELD_CATEGORIES.TEXT.includes(fieldName as TextField)) {
+    return 'text';
+  }
+  return 'unknown';
+};
+
+/**
+ * Processes form field values based on their category
+ * @param fieldName - The name of the form field
+ * @param value - The raw field value
+ * @returns Processed value based on field category
+ */
+export const processFormFieldValue = (fieldName: string, value: string): string => {
+  const category = getFieldCategory(fieldName);
+  
+  switch (category) {
+    case 'dropdown':
+      // Dropdown fields: use value directly (already safe)
+      return value;
+      
+    case 'numeric':
+      // Numeric fields: sanitize + convert Arabic numerals
+      const sanitized = sanitizeInput(value);
+      return convertArabicNumerals(sanitized);
+      
+    case 'text':
+      // Text fields: sanitize only (preserve Arabic text)
+      return sanitizeInput(value);
+      
+    default:
+      // Unknown fields: sanitize for safety
+      return sanitizeInput(value);
+  }
 };

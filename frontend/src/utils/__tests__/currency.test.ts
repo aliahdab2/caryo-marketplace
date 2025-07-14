@@ -22,9 +22,9 @@ describe('Currency Utils', () => {
       // This tests the bug fix - previously 'S', 'Y', 'R' were removed individually
       expect(parseCurrency('SYR123SYR', 'SYP')).toBe(123);
       
-      // Before the fix, this would incorrectly remove S, Y, R individually 
-      // resulting in "123" instead of preserving the characters
-      expect(parseCurrency('S1Y2R3', 'SYP')).toBe(123); // Should NOT remove S, Y, R individually
+      // This string contains individual letters S, Y, R mixed with numbers
+      // The function should NOT remove individual characters, so this should be NaN
+      expect(parseCurrency('S1Y2R3', 'SYP')).toBeNaN(); // Should NOT remove S, Y, R individually
     });
 
     test('handles edge cases', () => {

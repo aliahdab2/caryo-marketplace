@@ -218,6 +218,42 @@ describe('Form Utils', () => {
       expect(result.price).toBe('15000');
       expect(result.description).toBeUndefined();
     });
+
+    test('converts Arabic numerals in year and mileage fields', () => {
+      const listingDataWithArabicNumerals: Partial<ListingFormData> = {
+        title: 'Car with Arabic Numbers',
+        year: '٢٠٢٠', // Arabic-Indic numerals for "2020"
+        mileage: '٥٠٠٠٠', // Arabic-Indic numerals for "50000"
+        price: '٢٥٠٠٠' // Arabic-Indic numerals for "25000"
+      };
+
+      const result = sanitizeListingData(listingDataWithArabicNumerals);
+
+      expect(result.year).toBe('2020'); // Should be converted to Latin numerals
+      expect(result.mileage).toBe('50000'); // Should be converted to Latin numerals
+      expect(result.price).toBe('25000'); // Should be converted to Latin numerals
+    });
+
+    test('preserves Arabic and English text in titles and descriptions', () => {
+      const listingDataWithArabicText: Partial<ListingFormData> = {
+        title: 'تويوتا كامري Toyota Camry ٢٠٢٠',
+        description: 'سيارة ممتازة في حالة جيدة جداً\nExcellent car in very good condition\nسعر ٢٥٠٠٠ ريال',
+        year: '٢٠٢٠',
+        mileage: '٥٠٠٠٠'
+      };
+
+      const result = sanitizeListingData(listingDataWithArabicText);
+
+      // Arabic and English text should be preserved in title and description (including Arabic numerals)
+      expect(result.title).toBe('تويوتا كامري Toyota Camry ٢٠٢٠'); // Arabic numerals preserved in title
+      expect(result.description).toContain('سيارة ممتازة'); // Arabic text preserved
+      expect(result.description).toContain('Excellent car'); // English text preserved  
+      expect(result.description).toContain('٢٥٠٠٠ ريال'); // Arabic numerals preserved in description
+      
+      // Numeric fields should have numerals converted to Latin
+      expect(result.year).toBe('2020');
+      expect(result.mileage).toBe('50000');
+    });
   });
 
   describe('batchSanitize', () => {

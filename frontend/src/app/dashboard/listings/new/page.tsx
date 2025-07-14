@@ -10,7 +10,7 @@ import { createListing } from '@/services/listings';
 import { ListingFormData } from "@/types/listings";
 import { FormErrors, StepConfig } from "@/types/forms";
 import { SUPPORTED_CURRENCIES } from '@/utils/currency';
-import { convertArabicNumerals, sanitizeInput, validateStep, calculateProgress } from '@/utils/formUtils';
+import { validateStep, calculateProgress, processFormFieldValue } from '@/utils/formUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 
 // Constants
@@ -94,14 +94,19 @@ export default function NewListingPage() {
     { step: 4, title: t('listings:newListing.step4Title', 'Images'), icon: '📸', isComplete: currentStep > 4 }
   ], [currentStep, t]);
 
-  // Optimized form change handler with validation
+  type FieldName = keyof ListingFormData;
+
+  // Optimized form change handler with smart field processing
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    const sanitizedValue = sanitizeInput(value);
+    const fieldName = name as FieldName;
+    
+    // Use centralized field processing utility
+    const finalValue = processFormFieldValue(fieldName, value);
     
     setFormData(prev => {
       const updates: Partial<ListingFormData> = {
-        [name]: name === 'price' ? convertArabicNumerals(sanitizedValue) : sanitizedValue
+        [name]: finalValue
       };
       
       // Reset model when make changes
@@ -515,13 +520,12 @@ export default function NewListingPage() {
                       <span className="text-red-500 ml-1">*</span>
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       id="price"
                       name="price"
                       value={formData.price}
                       onChange={handleChange}
-                      min="0"
-                      step="0.01"
                       className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 ${
                         formErrors.price ? 'border-red-300 dark:border-red-600' : 'border-gray-300'
                       }`}
@@ -694,13 +698,12 @@ export default function NewListingPage() {
                       {t('listings:newListing.year', 'Year')} <span className="text-red-500">*</span>
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       id="year"
                       name="year"
                       value={formData.year}
                       onChange={handleChange}
-                      min="1900"
-                      max={new Date().getFullYear() + 1}
                       className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                         formErrors.year ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                       }`}
@@ -723,12 +726,12 @@ export default function NewListingPage() {
                       {t('listings:newListing.mileage', 'Mileage')}
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       id="mileage"
                       name="mileage"
                       value={formData.mileage}
                       onChange={handleChange}
-                      min="0"
                       className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       placeholder={t('listings:newListing.mileagePlaceholder', '50000')}
                       aria-describedby="mileage-hint"
