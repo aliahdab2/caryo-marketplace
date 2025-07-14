@@ -176,12 +176,12 @@ const HomeSearchBar: React.FC = () => {
     
     const params = new URLSearchParams();
     
-    // NEW: Slug-based filtering (AutoTrader UK pattern)
+    // NEW: Clean slug-based URLs (user-friendly)
     // Add brand slug if selected
     if (selectedMake !== null) {
       const selectedBrand = carMakes?.find(make => make.id === selectedMake);
       if (selectedBrand && selectedBrand.slug) {
-        params.append('brandSlugs', selectedBrand.slug);
+        params.append('brand', selectedBrand.slug); // Clean URL: ?brand=toyota
       }
     }
     
@@ -189,7 +189,7 @@ const HomeSearchBar: React.FC = () => {
     if (selectedModel !== null) {
       const selectedCarModel = availableModels?.find(model => model.id === selectedModel);
       if (selectedCarModel && selectedCarModel.slug) {
-        params.append('modelSlugs', selectedCarModel.slug);
+        params.append('model', selectedCarModel.slug); // Clean URL: ?model=camry
       }
     }
     
@@ -200,7 +200,7 @@ const HomeSearchBar: React.FC = () => {
       if (selectedBrand && !selectedBrand.slug) {
         const brandName = getDisplayName(selectedBrand);
         const hierarchicalBrand = buildHierarchicalBrandFilter(brandName);
-        params.append('brand', hierarchicalBrand);
+        params.append('legacyBrand', hierarchicalBrand);
       }
     }
     
@@ -213,11 +213,6 @@ const HomeSearchBar: React.FC = () => {
           params.append('location', selectedGov.slug);
         }
         params.append('locationId', selectedGov.id.toString());
-        
-        if (selectedGov.slug) {
-          // Add slug for SEO-friendly URLs
-          params.append('locationSlug', selectedGov.slug);
-        }
       }
     }
 

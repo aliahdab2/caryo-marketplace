@@ -253,33 +253,33 @@ export default function AdvancedSearchPage() {
 
     const initialFilters: AdvancedSearchFilters = {};
     
-    // NEW: Handle slug-based parameters (AutoTrader UK pattern)
-    const brandSlugs = searchParams.getAll('brandSlugs');
-    const modelSlugs = searchParams.getAll('modelSlugs');
+    // NEW: Handle clean URL parameters and convert to slug arrays for API
+    const brandParam = searchParams.get('brand'); // Clean URL: ?brand=toyota
+    const modelParam = searchParams.get('model'); // Clean URL: ?model=camry
     
-    if (brandSlugs.length > 0) {
-      initialFilters.brandSlugs = brandSlugs;
+    if (brandParam) {
+      // Convert single brand slug to array for API
+      initialFilters.brandSlugs = [brandParam];
     }
     
-    if (modelSlugs.length > 0) {
-      initialFilters.modelSlugs = modelSlugs;
+    if (modelParam) {
+      // Convert single model slug to array for API
+      initialFilters.modelSlugs = [modelParam];
     }
     
-    // FALLBACK: Handle legacy brand parameter for backward compatibility
-    if (brandSlugs.length === 0 && modelSlugs.length === 0) {
-      const brandParam = searchParams.get('brand');
-      if (brandParam) {
-        if (brandParam.includes(':')) {
-          // Hierarchical format
-          initialFilters.brand = brandParam;
-          const [make, model] = brandParam.split(':');
-          initialFilters.selectedMake = make;
-          initialFilters.selectedModel = model;
-        } else {
-          // Just a brand
-          initialFilters.selectedMake = brandParam;
-          initialFilters.brand = brandParam;
-        }
+    // FALLBACK: Handle legacy parameters for backward compatibility
+    const legacyBrandParam = searchParams.get('legacyBrand');
+    if (legacyBrandParam && !brandParam && !modelParam) {
+      if (legacyBrandParam.includes(':')) {
+        // Hierarchical format
+        initialFilters.brand = legacyBrandParam;
+        const [make, model] = legacyBrandParam.split(':');
+        initialFilters.selectedMake = make;
+        initialFilters.selectedModel = model;
+      } else {
+        // Just a brand
+        initialFilters.selectedMake = legacyBrandParam;
+        initialFilters.brand = legacyBrandParam;
       }
     }
     
