@@ -14,7 +14,6 @@ export default function SettingsPage() {
   const [accountSettings, setAccountSettings] = useState({
     language: locale, // Initialize with current locale
     timezone: "UTC+3", // Default to Syria timezone
-    currency: "SYP", // Default to Syrian Pound
   });
 
   // State for loading indicator during language change
@@ -67,7 +66,7 @@ export default function SettingsPage() {
       // once the language change is complete and the context updates.
       // No immediate local state update for language here.
     } else {
-      // For other settings like timezone, currency
+      // For other settings like timezone
       setAccountSettings(prev => ({
         ...prev,
         [name]: value
@@ -143,22 +142,6 @@ export default function SettingsPage() {
               <option value="UTC+3">Syria (GMT+3)</option>
               <option value="UTC+4">UAE (GMT+4)</option>
               <option value="UTC+0">London (GMT+0)</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('settings.currency')}
-            </label>
-            <select
-              name="currency"
-              value={accountSettings.currency}
-              onChange={handleAccountChange}
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-            >
-              <option value="SYP">SYP (Syrian Pound)</option>
-              <option value="SAR">SAR (Saudi Riyal)</option>
-              <option value="USD">USD (US Dollar)</option>
             </select>
           </div>
         </div>
