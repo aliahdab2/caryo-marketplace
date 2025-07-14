@@ -418,9 +418,18 @@ export const sanitizeListingData = (data: Partial<ListingFormData>): Partial<Lis
     sanitized.contactEmail = sanitizeInput(data.contactEmail, 'basic').toLowerCase();
   }
   
-  // Copy other safe fields
-  const safeFields = ['make', 'model', 'year', 'currency', 'mileage', 'governorateId'] as const;
-  safeFields.forEach(field => {
+  // Sanitize user-input fields (free text that users can type)
+  const userInputFields = ['year', 'mileage'] as const;
+  userInputFields.forEach(field => {
+    if (data[field] && typeof data[field] === 'string') {
+      sanitized[field] = sanitizeInput(data[field], 'standard');
+    }
+  });
+  
+  // Copy truly safe fields (IDs and controlled values from dropdowns/database)
+  // make and model are dropdown IDs from the car_brands/car_models tables, not user text
+  const trueSafeFields = ['make', 'model', 'currency', 'governorateId'] as const;
+  trueSafeFields.forEach(field => {
     if (data[field]) {
       sanitized[field] = data[field];
     }

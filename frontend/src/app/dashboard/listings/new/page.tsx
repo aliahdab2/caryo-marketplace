@@ -84,7 +84,7 @@ export default function NewListingPage() {
   });
 
   // Store image object URLs for preview
-  const [_imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
 
   // Memoized step configuration
   const stepConfig = useMemo((): StepConfig[] => [
@@ -298,9 +298,11 @@ export default function NewListingPage() {
 
   // Handle image preview URLs
   useEffect(() => {
+    // Create managed object URLs for image previews
     const newUrls = formData.images.map(file => URL.createObjectURL(file));
     setImagePreviewUrls(newUrls);
 
+    // Cleanup: revoke object URLs to prevent memory leaks
     return () => {
       newUrls.forEach(url => URL.revokeObjectURL(url));
     };
@@ -1090,11 +1092,11 @@ export default function NewListingPage() {
                         {t('listings:newListing.imagePreview', 'Image Preview')} ({formData.images.length})
                       </h4>
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {formData.images.map((image: File, index: number) => (
+                        {imagePreviewUrls.map((url: string, index: number) => (
                           <div key={index} className="relative group">
                             <div className="aspect-square rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 relative">
                               <Image
-                                src={URL.createObjectURL(image)}
+                                src={url}
                                 alt={`Car listing image ${index + 1} - uploaded preview for ${formData.title || 'new listing'}`}
                                 fill
                                 className="object-cover transition-transform duration-200 group-hover:scale-105"

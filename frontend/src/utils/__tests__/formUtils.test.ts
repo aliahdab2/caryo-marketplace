@@ -185,24 +185,25 @@ describe('Form Utils', () => {
   });
 
   describe('sanitizeListingData', () => {
-    test('sanitizes car listing data appropriately', () => {
-      const listingData: Partial<ListingFormData> = {
-        title: 'Great <script>alert("xss")</script> Car',
-        description: 'Amazing car with <b>features</b>',
-        make: 'Toyota <script>', // This is copied as-is since it's in safeFields
-        model: 'Camry',
-        price: '25000',
-        mileage: '50,000 km',
-        year: '2020'
-      };
+  test('sanitizes car listing data appropriately', () => {
+    const listingData: Partial<ListingFormData> = {
+      title: 'Great <script>alert("xss")</script> Car',
+      description: 'Amazing car with <b>features</b>',
+      make: '5', // Dropdown ID value - should not be sanitized
+      model: '12', // Dropdown ID value - should not be sanitized  
+      price: '25000',
+      mileage: '50,000 km',
+      year: '2020'
+    };
 
-      const result = sanitizeListingData(listingData);
+    const result = sanitizeListingData(listingData);
 
-      expect(result.title).toBe('Great Car');
-      expect(result.description).toBe('Amazing car with features');
-      expect(result.make).toBe('Toyota <script>'); // Safe field, not sanitized
-      expect(result.price).toBe('25000');
-    });
+    expect(result.title).toBe('Great Car');
+    expect(result.description).toBe('Amazing car with features');
+    expect(result.make).toBe('5'); // Dropdown IDs are safe and not sanitized
+    expect(result.model).toBe('12'); // Dropdown IDs are safe and not sanitized
+    expect(result.price).toBe('25000');
+  });
 
     test('handles missing fields gracefully', () => {
       const partialData: Partial<ListingFormData> = {
