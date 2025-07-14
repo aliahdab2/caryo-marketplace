@@ -205,7 +205,9 @@ const HomeSearchBar: React.FC = () => {
     }
 
     // Use replace instead of push to avoid history stacking on quick searches
-    router.push(`/search?${params.toString()}`, { scroll: false });
+    const queryString = params.toString();
+    const url = queryString ? `/search?${queryString}` : '/search';
+    router.push(url, { scroll: false });
   }, [selectedMake, selectedModel, selectedGovernorate, carMakes, availableModels, governorates, router]);
 
   // Create a debounced search function
