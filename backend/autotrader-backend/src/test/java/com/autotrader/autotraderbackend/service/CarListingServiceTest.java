@@ -19,6 +19,8 @@ import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import com.autotrader.autotraderbackend.service.storage.StorageKeyGenerator;
+
+import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -377,7 +379,7 @@ class CarListingServiceTest {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
         ListingFilterRequest filter = new ListingFilterRequest(); // Populate filter
-        filter.setBrand("Honda"); // Keep this for filter logic, but CarListing/Response will use denormalized fields
+        filter.setBrandSlugs(Arrays.asList("honda")); // Use new slug-based filtering
 
         CarListing filteredListing = new CarListing(); // Setup listing
         filteredListing.setId(1L);
@@ -417,7 +419,7 @@ class CarListingServiceTest {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
         ListingFilterRequest filter = new ListingFilterRequest(); // Populate filter
-        filter.setBrand("NonExistent");
+        filter.setBrandSlugs(Arrays.asList("nonexistent"));
         Page<CarListing> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any(), eq(pageable))).thenReturn(emptyPage);

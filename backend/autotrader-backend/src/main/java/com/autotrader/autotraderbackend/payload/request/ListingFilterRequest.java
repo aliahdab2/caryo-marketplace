@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.payload.request;
 
 import com.autotrader.autotraderbackend.validation.CurrentYearOrEarlier;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
@@ -9,15 +10,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * Request object for filtering car listings.
- * All fields are optional; only provided fields will be used as filters.
- * Pagination and sorting are handled separately via @RequestParam in the controller.
- */
-
-/**
- * Request object for filtering car listings.
+ * Request object for filtering car listings with slug-based filtering support.
  * All fields are optional; only provided fields will be used as filters.
  * Pagination and sorting are handled separately via @RequestParam in the controller.
  */
@@ -25,18 +22,12 @@ import java.math.BigDecimal;
 @Setter
 public class ListingFilterRequest {
 
-
-    /**
-     * Filter by car brand (manufacturer). Optional.
-     * Supports multiple brands as comma-separated values (e.g., "Toyota,Honda").
-     * Also supports hierarchical syntax for filtering by specific models within brands.
-     * Examples:
-     * - "Toyota" - All Toyota vehicles
-     * - "Toyota:Camry" - Only Toyota Camry models
-     * - "Toyota:Camry;Corolla" - Toyota Camry and Corolla models
-     * - "Toyota:Camry;Corolla,Honda" - Toyota Camry/Corolla and all Honda models
-     */
-    private String brand;
+    // NEW: Slug-based fields for multiple brands/models (AutoTrader UK pattern)
+    @Schema(description = "Brand slugs for filtering (can be repeated)", example = "toyota")
+    private List<String> brandSlugs;
+    
+    @Schema(description = "Model slugs for filtering (can be repeated)", example = "camry")
+    private List<String> modelSlugs;
 
     /**
      * Minimum model year for filtering. Optional. Must be a 4-digit integer and not earlier than 1920.
@@ -107,4 +98,36 @@ public class ListingFilterRequest {
      */
     @Schema(description = "Filter by seller type ID (e.g., 1 for dealer, 2 for private seller)", example = "1")
     private Long sellerTypeId;
+
+    // Helper methods for slug-based filtering
+    
+    /**
+     * Returns normalized brand slugs (lowercase, trimmed, no duplicates).
+     */
+    @JsonIgnore
+    public List<String> getNormalizedBrandSlugs() {
+        return brandSlugs == null ? Collections.emptyList() :
+            brandSlugs.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .filter(slug -> !slug.isEmpty())
+                .distinct()
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Returns normalized model slugs (lowercase, trimmed, no duplicates).
+     */
+    @JsonIgnore
+    public List<String> getNormalizedModelSlugs() {
+        return modelSlugs == null ? Collections.emptyList() :
+            modelSlugs.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .filter(slug -> !slug.isEmpty())
+                .distinct()
+                .collect(Collectors.toList());
+    }
 }

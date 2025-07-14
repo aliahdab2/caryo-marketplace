@@ -1,0 +1,430 @@
+{
+  "info": {
+    "_postman_id": "slug-filtering-tests-collection",
+    "name": "AutoTrader Slug-Based Filtering Tests",
+    "description": "Tests for the new slug-based filtering functionality using AutoTrader UK pattern",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Filter by Single Brand Slug",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response has pagination structure\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('content');",
+              "    pm.expect(jsonData).to.have.property('totalElements');",
+              "    pm.expect(jsonData).to.have.property('totalPages');",
+              "    pm.expect(jsonData.content).to.be.an('array');",
+              "});",
+              "",
+              "pm.test(\"All listings match brand slug\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    jsonData.content.forEach(listing => {",
+              "        pm.expect(listing).to.have.property('carModel');",
+              "        pm.expect(listing.carModel).to.have.property('carBrand');",
+              "        pm.expect(listing.carModel.carBrand).to.have.property('slug');",
+              "        pm.expect(listing.carModel.carBrand.slug).to.equal('toyota');",
+              "    });",
+              "});",
+              "",
+              "console.log('Single brand slug filter test - Found', pm.response.json().content.length, 'Toyota listings');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/filter?brandSlugs=toyota",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "filter"],
+          "query": [
+            {
+              "key": "brandSlugs",
+              "value": "toyota"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Filter by Multiple Brand Slugs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response has pagination structure\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('content');",
+              "    pm.expect(jsonData.content).to.be.an('array');",
+              "});",
+              "",
+              "pm.test(\"All listings match one of the brand slugs\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    const allowedBrands = ['toyota', 'honda'];",
+              "    jsonData.content.forEach(listing => {",
+              "        const brandSlug = listing.carModel.carBrand.slug;",
+              "        pm.expect(allowedBrands).to.include(brandSlug);",
+              "    });",
+              "});",
+              "",
+              "console.log('Multiple brand slug filter test - Found', pm.response.json().content.length, 'Toyota/Honda listings');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/filter?brandSlugs=toyota&brandSlugs=honda",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "filter"],
+          "query": [
+            {
+              "key": "brandSlugs",
+              "value": "toyota"
+            },
+            {
+              "key": "brandSlugs",
+              "value": "honda"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Filter by Model Slugs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response has pagination structure\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('content');",
+              "    pm.expect(jsonData.content).to.be.an('array');",
+              "});",
+              "",
+              "pm.test(\"All listings match one of the model slugs\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    const allowedModels = ['camry', 'civic'];",
+              "    jsonData.content.forEach(listing => {",
+              "        const modelSlug = listing.carModel.slug;",
+              "        pm.expect(allowedModels).to.include(modelSlug);",
+              "    });",
+              "});",
+              "",
+              "console.log('Model slug filter test - Found', pm.response.json().content.length, 'Camry/Civic listings');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/filter?modelSlugs=camry&modelSlugs=civic",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "filter"],
+          "query": [
+            {
+              "key": "modelSlugs",
+              "value": "camry"
+            },
+            {
+              "key": "modelSlugs",
+              "value": "civic"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Combined Brand and Model Filter",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response has pagination structure\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('content');",
+              "    pm.expect(jsonData.content).to.be.an('array');",
+              "});",
+              "",
+              "pm.test(\"All listings match brand and model criteria\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    const allowedBrands = ['toyota', 'honda'];",
+              "    const allowedModels = ['camry', 'civic', 'accord'];",
+              "    ",
+              "    jsonData.content.forEach(listing => {",
+              "        const brandSlug = listing.carModel.carBrand.slug;",
+              "        const modelSlug = listing.carModel.slug;",
+              "        pm.expect(allowedBrands).to.include(brandSlug);",
+              "        pm.expect(allowedModels).to.include(modelSlug);",
+              "    });",
+              "});",
+              "",
+              "console.log('Combined filter test - Found', pm.response.json().content.length, 'matching listings');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/filter?brandSlugs=toyota&brandSlugs=honda&modelSlugs=camry&modelSlugs=civic&modelSlugs=accord",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "filter"],
+          "query": [
+            {
+              "key": "brandSlugs",
+              "value": "toyota"
+            },
+            {
+              "key": "brandSlugs",
+              "value": "honda"
+            },
+            {
+              "key": "modelSlugs",
+              "value": "camry"
+            },
+            {
+              "key": "modelSlugs",
+              "value": "civic"
+            },
+            {
+              "key": "modelSlugs",
+              "value": "accord"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Filter with Price Range and Slugs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response has pagination structure\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('content');",
+              "    pm.expect(jsonData.content).to.be.an('array');",
+              "});",
+              "",
+              "pm.test(\"All listings match price range and brand filter\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    const minPrice = 20000;",
+              "    const maxPrice = 40000;",
+              "    ",
+              "    jsonData.content.forEach(listing => {",
+              "        pm.expect(listing.price).to.be.at.least(minPrice);",
+              "        pm.expect(listing.price).to.be.at.most(maxPrice);",
+              "        pm.expect(listing.carModel.carBrand.slug).to.equal('toyota');",
+              "    });",
+              "});",
+              "",
+              "console.log('Price range + slug filter test - Found', pm.response.json().content.length, 'listings');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/filter?brandSlugs=toyota&minPrice=20000&maxPrice=40000",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "filter"],
+          "query": [
+            {
+              "key": "brandSlugs",
+              "value": "toyota"
+            },
+            {
+              "key": "minPrice",
+              "value": "20000"
+            },
+            {
+              "key": "maxPrice",
+              "value": "40000"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST Filter with Slug Arrays",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response has pagination structure\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('content');",
+              "    pm.expect(jsonData.content).to.be.an('array');",
+              "});",
+              "",
+              "pm.test(\"All listings match POST filter criteria\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    const allowedBrands = ['toyota', 'honda'];",
+              "    const allowedModels = ['camry', 'civic'];",
+              "    const minPrice = 15000;",
+              "    const maxPrice = 35000;",
+              "    ",
+              "    jsonData.content.forEach(listing => {",
+              "        const brandSlug = listing.carModel.carBrand.slug;",
+              "        const modelSlug = listing.carModel.slug;",
+              "        ",
+              "        pm.expect(allowedBrands).to.include(brandSlug);",
+              "        pm.expect(allowedModels).to.include(modelSlug);",
+              "        pm.expect(listing.price).to.be.at.least(minPrice);",
+              "        pm.expect(listing.price).to.be.at.most(maxPrice);",
+              "    });",
+              "});",
+              "",
+              "console.log('POST filter test - Found', pm.response.json().content.length, 'matching listings');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"brandSlugs\": [\"toyota\", \"honda\"],\n    \"modelSlugs\": [\"camry\", \"civic\"],\n    \"minPrice\": 15000,\n    \"maxPrice\": 35000\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/filter",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "filter"]
+        }
+      }
+    },
+    {
+      "name": "Validation Test - Too Many Brand Slugs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 for too many brand slugs\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test(\"Error message mentions brand filter limit\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('Too many brand filters');",
+              "});",
+              "",
+              "console.log('Validation test passed - Too many brand slugs correctly rejected');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/listings/filter?brandSlugs=toyota&brandSlugs=honda&brandSlugs=bmw&brandSlugs=mercedes&brandSlugs=audi&brandSlugs=lexus&brandSlugs=infiniti&brandSlugs=acura&brandSlugs=mazda&brandSlugs=nissan&brandSlugs=ford",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "listings", "filter"],
+          "query": [
+            {
+              "key": "brandSlugs",
+              "value": "toyota"
+            },
+            {
+              "key": "brandSlugs",
+              "value": "honda"
+            },
+            {
+              "key": "brandSlugs",
+              "value": "bmw"
+            },
+            {
+              "key": "brandSlugs",
+              "value": "mercedes"
+            },
+            {
+              "key": "brandSlugs",
+              "value": "audi"
+            },
+            {
+              "key": "brandSlugs",
+              "value": "lexus"
+            },
+            {
+              "key": "brandSlugs",
+              "value": "infiniti"
+            },
+            {
+              "key": "brandSlugs",
+              "value": "acura"
+            },
+            {
+              "key": "brandSlugs",
+              "value": "mazda"
+            },
+            {
+              "key": "brandSlugs",
+              "value": "nissan"
+            },
+            {
+              "key": "brandSlugs",
+              "value": "ford"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

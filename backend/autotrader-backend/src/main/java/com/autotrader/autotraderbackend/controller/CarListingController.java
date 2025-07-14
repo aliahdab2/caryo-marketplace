@@ -284,13 +284,23 @@ public class CarListingController {
     @GetMapping("/filter")
     @Operation(
         summary = "Filter car listings by query parameters (GET)",
-        description = "Returns a paginated list of car listings matching the provided filter criteria as query parameters. By default, only listings with approved=true, sold=false, and archived=false are returned unless explicitly overridden in the request. Each listing includes an array of its associated media items.",
+        description = "Returns a paginated list of car listings matching the provided filter criteria as query parameters. Supports both new slug-based filtering (brandSlugs, modelSlugs) and legacy hierarchical brand filtering. By default, only listings with approved=true, sold=false, and archived=false are returned unless explicitly overridden in the request. Each listing includes an array of its associated media items.",
         responses = {
             @ApiResponse(responseCode = "200", description = "Filtered list of car listings, including media details", content = @Content(schema = @Schema(implementation = PageResponse.class)))
         }
     )
     public ResponseEntity<PageResponse<CarListingResponse>> getFilteredListingsByParams(
-            @Parameter(description = "Brand filter. Supports hierarchical syntax: 'Toyota' (all Toyota), 'Toyota:Camry' (only Camry), 'Toyota:Camry;Corolla' (Camry and Corolla), 'Toyota:Camry,Honda' (Toyota Camry and all Honda)") @RequestParam(required = false) String brand,
+            // NEW: Slug-based parameters (AutoTrader UK pattern)
+            @Parameter(description = "Brand slugs (can be repeated for multiple brands)", example = "toyota") 
+            @RequestParam(required = false) List<String> brandSlugs,
+            
+            @Parameter(description = "Model slugs (can be repeated for multiple models)", example = "camry") 
+            @RequestParam(required = false) List<String> modelSlugs,
+            
+            // LEGACY: Keep for backward compatibility
+            @Parameter(description = "Brand filter. Supports hierarchical syntax: 'Toyota' (all Toyota), 'Toyota:Camry' (only Camry), 'Toyota:Camry;Corolla' (Camry and Corolla), 'Toyota:Camry,Honda' (Toyota Camry and all Honda)") 
+            @RequestParam(required = false) String brand,
+            
             @Parameter(description = "Minimum year") @RequestParam(required = false) Integer minYear,
             @Parameter(description = "Maximum year") @RequestParam(required = false) Integer maxYear,
             @Parameter(description = "Location (slug or name)") @RequestParam(required = false) String location,
@@ -303,10 +313,20 @@ public class CarListingController {
             @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
             @Parameter(description = "Filter by seller type ID") @RequestParam(required = false) Long sellerTypeId,
             @PageableDefault(size = 10, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
-        log.info("Received request to filter listings. Filter: brand={}, Pageable: {}", brand, pageable);
+        
+        log.info("Filtering listings: brandSlugs={}, modelSlugs={}, legacyBrand={}", 
+                 brandSlugs, modelSlugs, brand);
         
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        filterRequest.setBrand(brand);
+        
+        // Set slug-based filters (new approach)
+        filterRequest.setBrandSlugs(brandSlugs);
+        filterRequest.setModelSlugs(modelSlugs);
+        
+        // Set legacy brand filter for backward compatibility
+        // Legacy brand parameter is deprecated - use brandSlugs instead
+        
+        // Set existing filters (unchanged)
         filterRequest.setMinYear(minYear);
         filterRequest.setMaxYear(maxYear);
         filterRequest.setLocation(location);
@@ -318,6 +338,10 @@ public class CarListingController {
         filterRequest.setIsSold(isSold);
         filterRequest.setIsArchived(isArchived);
         filterRequest.setSellerTypeId(sellerTypeId);
+        
+        // Validate input
+        validateFilterRequest(filterRequest);
+        
         Page<CarListingResponse> listingPage = carListingService.getFilteredListings(filterRequest, pageable);
         PageResponse<CarListingResponse> response = new PageResponse<>(
             listingPage.getContent(),
@@ -327,8 +351,31 @@ public class CarListingController {
             listingPage.getTotalPages(),
             listingPage.isLast()
         );
-        log.debug("Returning {} filtered listings", response.getContent().size());
+        
+        log.info("Returning {} filtered listings for {} brand slugs, {} model slugs", 
+                 response.getContent().size(),
+                 brandSlugs != null ? brandSlugs.size() : 0,
+                 modelSlugs != null ? modelSlugs.size() : 0);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Validates filter request parameters.
+     */
+    private void validateFilterRequest(ListingFilterRequest filter) {
+        // Validate brand slugs
+        List<String> brandSlugs = filter.getNormalizedBrandSlugs();
+        if (brandSlugs.size() > 10) {
+            throw new IllegalArgumentException("Too many brand filters (max 10)");
+        }
+        
+        // Validate model slugs
+        List<String> modelSlugs = filter.getNormalizedModelSlugs();
+        if (modelSlugs.size() > 20) {
+            throw new IllegalArgumentException("Too many model filters (max 20)");
+        }
+        
+        // Additional validation can be added here for other parameters
     }
 
     @GetMapping("/{id}")
@@ -701,7 +748,6 @@ public class CarListingController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
         }
     }
-
 
 }
 

@@ -5,21 +5,20 @@ import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Enhanced JPA Specifications for CarListing filtering with hierarchical brand/model support.
+ * Enhanced JPA Specifications for CarListing filtering with slug-based brand/model support.
  * 
- * Supports hierarchical filtering syntax:
- * - "Toyota" (brand only)
- * - "Toyota:Camry" (brand with single model)
- * - "Toyota:Camry;Corolla" (brand with multiple models)
- * - "Toyota:Camry,Honda:Civic" (multiple brands with models)
- * - "Toyota:Camry;Corolla,Honda" (mixed brand-only and brand-with-models)
+ * Implements AutoTrader UK style filtering using repeated query parameters:
+ * - ?brandSlugs=toyota&brandSlugs=honda
+ * - ?modelSlugs=camry&modelSlugs=accord
+ * 
+ * This approach provides maximum flexibility for filtering by multiple brands and models
+ * across different brands, supporting complex search scenarios.
  */
 
 public class CarListingSpecification {
@@ -123,131 +122,50 @@ public class CarListingSpecification {
             }
         }
 
-        // Validate brand filter
-        if (filter.getBrand() != null && !filter.getBrand().trim().isEmpty()) {
-            validateBrandFilter(filter.getBrand());
+        // Validate slug filters (new fields don't need complex validation)
+        List<String> brandSlugs = filter.getNormalizedBrandSlugs();
+        List<String> modelSlugs = filter.getNormalizedModelSlugs();
+        
+        // Basic validation - no need for complex brand filter validation anymore
+        if (brandSlugs.size() > 50) {
+            throw new IllegalArgumentException("Too many brand slugs provided (max 50)");
+        }
+        
+        if (modelSlugs.size() > 50) {
+            throw new IllegalArgumentException("Too many model slugs provided (max 50)");
         }
 
     }
 
     /**
-     * Validates the brand filter format.
-     */
-    private static void validateBrandFilter(String brandFilter) {
-        if (brandFilter == null || brandFilter.trim().isEmpty()) {
-            return; // Empty filter is valid
-        }
-
-        String[] brandModelGroups = brandFilter.split(",");
-        for (String group : brandModelGroups) {
-            String trimmedGroup = group.trim();
-            if (!StringUtils.hasText(trimmedGroup)) {
-                continue;
-            }
-
-            String[] parts = trimmedGroup.split(":");
-            String brand = parts[0].trim();
-            
-            // Validate brand name length (consistent with other validation methods)
-            if (brand.length() > 100) {
-                throw new IllegalArgumentException("Brand name is too long: " + brand);
-            }
-
-            if (parts.length > 1) {
-                String modelsString = parts[1].trim();
-                String[] models = modelsString.split(";");
-                
-                for (String model : models) {
-                    String trimmedModel = model.trim();
-                    if (StringUtils.hasText(trimmedModel) && trimmedModel.length() > 100) {
-                        throw new IllegalArgumentException("Model name is too long: " + trimmedModel);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Adds brand and model predicates using hierarchical filtering syntax.
+     * Adds brand and model predicates using slug-based filtering.
      */
     private static void addBrandModelPredicates(ListingFilterRequest filter, 
                                               jakarta.persistence.criteria.Root<CarListing> root,
                                               jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
                                               List<Predicate> predicates) {
-        if (StringUtils.hasText(filter.getBrand())) {
-            String brandFilter = filter.getBrand().trim();
-            if (!brandFilter.isEmpty()) {
-                List<Predicate> brandOrConditions = new ArrayList<>();
-                String[] brandModelGroups = brandFilter.split(",");
-
-                for (String group : brandModelGroups) {
-                    String trimmedGroup = group.trim();
-                    if (!StringUtils.hasText(trimmedGroup)) {
-                        continue;
-                    }
-
-                    Predicate groupPredicate = processBrandModelGroup(trimmedGroup, root, criteriaBuilder);
-                    if (groupPredicate != null) {
-                        brandOrConditions.add(groupPredicate);
-                    }
-                }
-
-                if (!brandOrConditions.isEmpty()) {
-                    predicates.add(criteriaBuilder.or(brandOrConditions.toArray(new Predicate[0])));
-                }
-            }
+        
+        // Use slug-based filtering (AutoTrader UK pattern)
+        List<String> brandSlugs = filter.getNormalizedBrandSlugs();
+        List<String> modelSlugs = filter.getNormalizedModelSlugs();
+        
+        // Brand filtering (supports multiple brands)
+        if (!brandSlugs.isEmpty()) {
+            Predicate brandPredicate = root.get("carModel").get("carBrand").get("slug").in(brandSlugs);
+            predicates.add(brandPredicate);
+            
+            // Log for debugging
+            System.out.println("Added brand slug filter for: " + brandSlugs);
         }
-    }
-
-    /**
-     * Processes a single brand-model group (e.g., "Toyota:Camry;Corolla" or "Honda").
-     */
-    private static Predicate processBrandModelGroup(String group,
-                                                  jakarta.persistence.criteria.Root<CarListing> root,
-                                                  jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder) {
-        if (!StringUtils.hasText(group)) {
-            return null;
+        
+        // Model filtering (supports multiple models, can span multiple brands)
+        if (!modelSlugs.isEmpty()) {
+            Predicate modelPredicate = root.get("carModel").get("slug").in(modelSlugs);
+            predicates.add(modelPredicate);
+            
+            // Log for debugging
+            System.out.println("Added model slug filter for: " + modelSlugs);
         }
-
-        String[] parts = group.split(":", 2);
-        String brandName = parts[0].trim();
-
-        if (!StringUtils.hasText(brandName)) {
-            return null;
-        }
-
-        // Validate brand name (basic validation)
-        if (brandName.length() > 100) {
-            throw new IllegalArgumentException("Brand name too long: " + brandName);
-        }
-
-        Predicate brandPredicate = createBilingualExactPredicate(root, criteriaBuilder, "brandName", brandName);
-
-        if (parts.length > 1 && StringUtils.hasText(parts[1])) {
-            // Process models
-            String[] modelNames = parts[1].split(";");
-            List<Predicate> modelOrPredicates = new ArrayList<>();
-
-            for (String modelName : modelNames) {
-                String trimmedModel = modelName.trim();
-                if (StringUtils.hasText(trimmedModel)) {
-                    // Validate model name
-                    if (trimmedModel.length() > 100) {
-                        throw new IllegalArgumentException("Model name too long: " + trimmedModel);
-                    }
-                    modelOrPredicates.add(createBilingualExactPredicate(root, criteriaBuilder, "modelName", trimmedModel));
-                }
-            }
-
-            if (!modelOrPredicates.isEmpty()) {
-                Predicate modelsPredicate = modelOrPredicates.size() == 1
-                    ? modelOrPredicates.get(0)
-                    : criteriaBuilder.or(modelOrPredicates.toArray(new Predicate[0]));
-                return criteriaBuilder.and(brandPredicate, modelsPredicate);
-            }
-        }
-
-        return brandPredicate;
     }
 
     /**
@@ -372,112 +290,5 @@ public class CarListingSpecification {
      */
     public static Specification<CarListing> isUserActive() {
         return (root, query, criteriaBuilder) -> criteriaBuilder.isTrue(root.get("isUserActive"));
-    }
-
-    /**
-     * Creates a bilingual LIKE predicate that searches in both English and Arabic fields.
-     * This method handles case-insensitive searching and supports special characters.
-     * 
-     * @param root The JPA root entity
-     * @param criteriaBuilder The JPA criteria builder
-     * @param fieldName The base field name (without En/Ar suffix)
-     * @param value The search value
-     * @return Predicate that searches in both language fields
-     * @throws IllegalArgumentException if parameters are invalid
-     */
-    /**
-     * Creates a bilingual exact match predicate for brand and model searches.
-     * Uses exact matching to avoid false positives, especially important for Arabic text.
-     */
-    private static Predicate createBilingualExactPredicate(jakarta.persistence.criteria.Root<CarListing> root, 
-                                                         jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder, 
-                                                         String fieldName, 
-                                                         String value) {
-        if (!StringUtils.hasText(fieldName) || !StringUtils.hasText(value)) {
-            throw new IllegalArgumentException("Field name and value cannot be null or empty");
-        }
-
-        // Sanitize the search value to prevent SQL injection
-        String sanitizedValue = sanitizeSearchValue(value);
-        String lowerCaseValue = sanitizedValue.toLowerCase().trim();
-        
-        try {
-            // For brand and model searches, use exact matching to avoid false positives
-            // This is especially important for Arabic text where similar characters 
-            // might cause incorrect partial matches
-            Predicate enPredicate = criteriaBuilder.equal(
-                criteriaBuilder.lower(root.get(fieldName + "En")),
-                lowerCaseValue
-            );
-            Predicate arPredicate = criteriaBuilder.equal(
-                criteriaBuilder.lower(root.get(fieldName + "Ar")),
-                lowerCaseValue
-            );
-            
-            return criteriaBuilder.or(enPredicate, arPredicate);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Error creating bilingual exact predicate for field: " + fieldName, e);
-        }
-    }
-
-    /**
-     * Sanitizes search values to prevent SQL injection and handle special characters.
-     * 
-     * @param value The input value to sanitize
-     * @return Sanitized value safe for SQL LIKE operations
-     */
-    private static String sanitizeSearchValue(String value) {
-        if (value == null) {
-            return "";
-        }
-        
-        // Remove or escape potentially dangerous characters
-        return value.trim()
-                   .replaceAll("[%_]", "\\\\$&")  // Escape SQL LIKE wildcards
-                   .replaceAll("[\\r\\n\\t]", " ")  // Replace line breaks with spaces
-                   .replaceAll("\\s+", " ");  // Normalize whitespace
-    }
-
-    /**
-     * Validates a hierarchical brand filter string.
-     * 
-     * @param brandFilter The brand filter string to validate
-     * @return true if valid, false otherwise
-     */
-    public static boolean isValidHierarchicalBrandFilter(String brandFilter) {
-        if (!StringUtils.hasText(brandFilter)) {
-            return true; // Empty filters are valid (no filtering)
-        }
-
-        try {
-            String[] groups = brandFilter.split(",");
-            for (String group : groups) {
-                String trimmedGroup = group.trim();
-                if (!StringUtils.hasText(trimmedGroup)) {
-                    continue;
-                }
-
-                String[] parts = trimmedGroup.split(":", 2);
-                String brandName = parts[0].trim();
-                
-                // Basic validation
-                if (!StringUtils.hasText(brandName) || brandName.length() > 100) {
-                    return false;
-                }
-
-                if (parts.length > 1) {
-                    String[] modelNames = parts[1].split(";");
-                    for (String modelName : modelNames) {
-                        String trimmedModel = modelName.trim();
-                        if (StringUtils.hasText(trimmedModel) && trimmedModel.length() > 100) {
-                            return false;
-                        }
-                    }
-                }
-            }
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
     }
 }
