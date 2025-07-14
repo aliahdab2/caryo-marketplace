@@ -4,8 +4,8 @@
  */
 
 export interface FilterUrlParams {
-  brandSlugs?: string[];
-  modelSlugs?: string[];
+  brands?: string[];
+  models?: string[];
   minYear?: number;
   maxYear?: number;
   minPrice?: number;
@@ -13,7 +13,6 @@ export interface FilterUrlParams {
   minMileage?: number;
   maxMileage?: number;
   location?: string;
-  locationId?: number;
   conditionId?: number;
   transmissionId?: number;
   fuelTypeId?: number;
@@ -28,29 +27,26 @@ export interface FilterUrlParams {
 export function buildSearchParams(filters: FilterUrlParams): URLSearchParams {
   const params = new URLSearchParams();
   
-  // Brand slugs - multiple values: ?brandSlugs=toyota&brandSlugs=honda
-  if (filters.brandSlugs && filters.brandSlugs.length > 0) {
-    filters.brandSlugs.forEach(brandSlug => {
-      if (brandSlug.trim()) {
-        params.append('brandSlugs', brandSlug);
+  // Brand slugs - multiple values: ?brands=toyota&brands=honda
+  if (filters.brands && filters.brands.length > 0) {
+    filters.brands.forEach(brand => {
+      if (brand.trim()) {
+        params.append('brands', brand);
       }
     });
   }
   
-  // Model slugs - multiple values: ?modelSlugs=camry&modelSlugs=civic
-  if (filters.modelSlugs && filters.modelSlugs.length > 0) {
-    filters.modelSlugs.forEach(modelSlug => {
-      if (modelSlug.trim()) {
-        params.append('modelSlugs', modelSlug);
+  // Model slugs - multiple values: ?models=camry&models=civic
+  if (filters.models && filters.models.length > 0) {
+    filters.models.forEach(model => {
+      if (model.trim()) {
+        params.append('models', model);
       }
     });
   }
   
   // Single value parameters
   if (filters.location) params.append('location', filters.location);
-  if (filters.locationId && filters.locationId > 0) {
-    params.append('locationId', filters.locationId.toString());
-  }
   
   // Numeric filters with validation
   if (filters.minYear && filters.minYear > 1900) {
@@ -100,34 +96,31 @@ export function parseSearchParams(searchParams: URLSearchParams): FilterUrlParam
   const filters: FilterUrlParams = {};
   
   // Parse brand slugs (multiple values)
-  const brandSlugs = searchParams.getAll('brandSlugs').filter(slug => slug.trim());
-  if (brandSlugs.length > 0) {
-    filters.brandSlugs = brandSlugs;
+  const brands = searchParams.getAll('brands').filter(slug => slug.trim());
+  if (brands.length > 0) {
+    filters.brands = brands;
   }
   
   // Parse model slugs (multiple values)
-  const modelSlugs = searchParams.getAll('modelSlugs').filter(slug => slug.trim());
-  if (modelSlugs.length > 0) {
-    filters.modelSlugs = modelSlugs;
+  const models = searchParams.getAll('models').filter(slug => slug.trim());
+  if (models.length > 0) {
+    filters.models = models;
   }
   
   // Handle single brand/model parameters (clean URLs from HomeSearchBar)
   const brandParam = searchParams.get('brand');
-  if (brandParam && !filters.brandSlugs) {
-    filters.brandSlugs = [brandParam];
+  if (brandParam && !filters.brands) {
+    filters.brands = [brandParam];
   }
   
   const modelParam = searchParams.get('model');
-  if (modelParam && !filters.modelSlugs) {
-    filters.modelSlugs = [modelParam];
+  if (modelParam && !filters.models) {
+    filters.models = [modelParam];
   }
   
   // Parse location parameters
   const location = searchParams.get('location');
   if (location) filters.location = location;
-  
-  const locationId = searchParams.get('locationId');
-  if (locationId) filters.locationId = parseInt(locationId, 10);
   
   // Parse numeric filters with validation
   const minYear = searchParams.get('minYear');
@@ -279,9 +272,9 @@ export function hasActiveFilters(filters: FilterUrlParams): boolean {
 export function countActiveFilters(filters: FilterUrlParams): number {
   let count = 0;
   
-  if (filters.brandSlugs && filters.brandSlugs.length > 0) count++;
-  if (filters.modelSlugs && filters.modelSlugs.length > 0) count++;
-  if (filters.location || filters.locationId) count++;
+  if (filters.brands && filters.brands.length > 0) count++;
+  if (filters.models && filters.models.length > 0) count++;
+  if (filters.location) count++;
   if (filters.minYear || filters.maxYear) count++;
   if (filters.minPrice || filters.maxPrice) count++;
   if (filters.minMileage || filters.maxMileage) count++;
