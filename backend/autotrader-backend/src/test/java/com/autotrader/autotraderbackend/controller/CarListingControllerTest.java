@@ -24,6 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Arrays;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -162,7 +164,7 @@ public class CarListingControllerTest {
         listings.add(carListingResponse);
         Page<CarListingResponse> page = new PageImpl<>(listings);
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        filterRequest.setBrand("Toyota");
+        filterRequest.setBrandSlugs(Arrays.asList("toyota"));
         when(carListingService.getFilteredListings(any(ListingFilterRequest.class), any(Pageable.class))).thenReturn(page);
         Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("createdAt").descending());
         // Act
@@ -299,7 +301,9 @@ public class CarListingControllerTest {
         IllegalArgumentException ex = org.junit.jupiter.api.Assertions.assertThrows(
             IllegalArgumentException.class,
             () -> carListingController.getFilteredListingsByParams(
-                null, // brand
+                null, // brandSlugs
+                null, // modelSlugs
+                null, // brand (legacy)
                 null, // minYear
                 null, // maxYear
                 null, // location

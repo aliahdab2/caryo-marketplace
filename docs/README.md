@@ -4,6 +4,9 @@ This directory contains comprehensive documentation for the Caryo Marketplace pr
 
 ## Table of Contents
 
+### API Documentation
+- [Complete API Documentation](../backend/autotrader-backend/scripts/docs/api_documentation_generated.md) - Comprehensive API reference including filtering, testing, and examples
+
 ### Setup & Configuration
 - [Database Migration Guide](database_migration_guide.md)
 - [Frontend Environment Variables](frontend_environment_variables.md)
@@ -23,6 +26,11 @@ This directory contains comprehensive documentation for the Caryo Marketplace pr
 - [Database Migrations](database_migrations.md)
 - [Testing Plan](testing_plan.md)
 - [Frontend Testing Guide](frontend_testing_guide.md)
+
+### Improvements & Feature Updates
+- [Favorites Service Improvements](favorites_service_improvements.md)
+- [Favorites Improvements Summary](favorites_improvements_summary.md)
+- [Filter Flickering Fix Summary](filter_flickering_fix_summary.md)
 
 ### Feature Specific
 - [Lazy Loading Translations](lazy_loading_translations.md)
@@ -62,5 +70,10 @@ For environment setup, start with:
 For new developers, we recommend reading:
 1. System Design
 2. Folder Structure
-3. Translation Guide for Developers
-4. Frontend Development Plan
+3. Complete API Documentation
+4. Translation Guide for Developers
+5. Frontend Development Plan
+
+For API integration, start with:
+1. Complete API Documentation - Full endpoint reference with filtering, testing, and examples
+2. Frontend Development Plan - Client-side implementation

@@ -25,6 +25,23 @@ log_error() {
   echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Show usage information
+show_usage() {
+    echo -e "${BOLD}Usage: $0 [OPTIONS]${NC}"
+    echo ""
+    echo -e "${BOLD}Options:${NC}"
+    echo "  --all         Run all tests from main collection"
+    echo "  --slug        Run only slug-based filtering tests"
+    echo "  --reference   Run only reference data tests"
+    echo "  --help, -h    Show this help message"
+    echo ""
+    echo -e "${BOLD}Examples:${NC}"
+    echo "  $0                # Run all postman tests (default)"
+    echo "  $0 --slug         # Run only slug filtering tests"
+    echo "  $0 --reference    # Run only reference data tests"
+    echo ""
+}
+
 # Check if Newman is installed
 if ! command -v newman &> /dev/null; then
     log_warning "Newman is not installed. Installing now..."
@@ -168,6 +185,34 @@ if [ ! -z "$1" ]; then
     log_info "Additional options provided: $ADDITIONAL_OPTIONS"
 fi
 
+# Parse command line arguments
+RUN_MODE="all"
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --slug)
+            RUN_MODE="slug"
+            shift
+            ;;
+        --reference)
+            RUN_MODE="reference"
+            shift
+            ;;
+        --all)
+            RUN_MODE="all"
+            shift
+            ;;
+        --help|-h)
+            show_usage
+            exit 0
+            ;;
+        *)
+            log_error "Unknown option: $1"
+            show_usage
+            exit 1
+            ;;
+    esac
+done
+
 # Verify environment file before running tests
 log_info "Validating environment file..."
 if ! jq empty "$ENV_FILE" 2>/dev/null; then
@@ -186,9 +231,23 @@ if [ -z "$BASE_URL_VALUE" ] || [ "$BASE_URL_VALUE" == "null" ] || [ "$BASE_URL_V
     log_info "Using temporary environment file with correct baseUrl: $API_BASE_URL"
 fi
 
-# Run the tests
-log_info "Executing Postman tests..."
-COMMAND="newman run \"$COLLECTION_PATH\" --environment \"$ENV_FILE\" --reporters cli,htmlextra --reporter-htmlextra-export results/html-report.html"
+# Run the tests based on selected mode
+log_info "Executing Postman tests in '$RUN_MODE' mode..."
+
+case "$RUN_MODE" in
+    "slug")
+        log_info "🧪 Running Slug-Based Filtering Tests Only"
+        COMMAND="newman run \"$COLLECTION_PATH\" --folder \"Slug-Based Filtering\" --environment \"$ENV_FILE\" --reporters cli,htmlextra --reporter-htmlextra-export results/slug-filtering-report.html"
+        ;;
+    "reference")
+        log_info "📊 Running Reference Data Tests Only"
+        COMMAND="newman run \"$COLLECTION_PATH\" --folder \"Reference Data\" --environment \"$ENV_FILE\" --reporters cli,htmlextra --reporter-htmlextra-export results/reference-data-report.html"
+        ;;
+    "all"|*)
+        log_info "🔄 Running All Tests"
+        COMMAND="newman run \"$COLLECTION_PATH\" --environment \"$ENV_FILE\" --reporters cli,htmlextra --reporter-htmlextra-export results/html-report.html"
+        ;;
+esac
 
 # Add any additional options to the command
 if [ ! -z "$ADDITIONAL_OPTIONS" ]; then

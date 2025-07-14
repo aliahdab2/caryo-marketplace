@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import debounce from 'lodash/debounce';
 
 import { CarMake, CarModel } from '@/types/car';
-import { buildHierarchicalBrandFilter } from '@/utils/brandFilters';
 import { 
   fetchCarBrands, 
   fetchCarModels, 
@@ -176,32 +175,21 @@ const HomeSearchBar: React.FC = () => {
     
     const params = new URLSearchParams();
     
-    // Build hierarchical brand filter
-    let brandName = '';
-    let modelName = '';
-    
+    // NEW: AutoTrader UK style slug-based URLs
+    // Add brand slugs if selected
     if (selectedMake !== null) {
       const selectedBrand = carMakes?.find(make => make.id === selectedMake);
-      if (selectedBrand) {
-        brandName = getDisplayName(selectedBrand);
-        // Add slug for SEO
-        params.append('brandSlug', selectedBrand.slug);
+      if (selectedBrand && selectedBrand.slug) {
+        params.append('brandSlugs', selectedBrand.slug); // Multiple brand support: ?brandSlugs=toyota&brandSlugs=honda
       }
     }
     
+    // Add model slugs if selected
     if (selectedModel !== null) {
       const selectedCarModel = availableModels?.find(model => model.id === selectedModel);
-      if (selectedCarModel) {
-        modelName = getDisplayName(selectedCarModel);
-        // Add slug for SEO
-        params.append('modelSlug', selectedCarModel.slug);
+      if (selectedCarModel && selectedCarModel.slug) {
+        params.append('modelSlugs', selectedCarModel.slug); // Multiple model support: ?modelSlugs=camry&modelSlugs=corolla
       }
-    }
-    
-    // Use hierarchical brand filtering syntax
-    if (brandName) {
-      const hierarchicalBrand = buildHierarchicalBrandFilter(brandName, modelName || undefined);
-      params.append('brand', hierarchicalBrand);
     }
     
     // Build location parameters
@@ -213,17 +201,14 @@ const HomeSearchBar: React.FC = () => {
           params.append('location', selectedGov.slug);
         }
         params.append('locationId', selectedGov.id.toString());
-        
-        if (selectedGov.slug) {
-          // Add slug for SEO
-          params.append('locationSlug', selectedGov.slug);
-        }
       }
     }
 
     // Use replace instead of push to avoid history stacking on quick searches
-    router.push(`/search?${params.toString()}`, { scroll: false });
-  }, [selectedMake, selectedModel, selectedGovernorate, carMakes, availableModels, governorates, getDisplayName, router]);
+    const queryString = params.toString();
+    const url = queryString ? `/search?${queryString}` : '/search';
+    router.push(url, { scroll: false });
+  }, [selectedMake, selectedModel, selectedGovernorate, carMakes, availableModels, governorates, router]);
 
   // Create a debounced search function
   const debouncedSearch = useMemo(() => debounce(handleSearch, 500), [handleSearch]);
