@@ -24,15 +24,15 @@ export const ConvertibleIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" 
 );
 
 export const CoupeIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
-  <RiCarFill className={className} />
+  <FaCar className={className} />
 );
 
 export const EstateIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
-  <FaCar className={className} />
+  <FaCaravan className={className} />
 );
 
 export const HatchbackIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
-  <FaCar className={className} />
+  <RiCarFill className={className} />
 );
 
 export const MPVIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
@@ -52,7 +52,7 @@ export const SUVIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
 );
 
 export const VanIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
-  <FaCaravan className={className} />
+  <FaBus className={className} />
 );
 
 export const MotorcycleIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (

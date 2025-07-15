@@ -514,20 +514,6 @@ export default function AdvancedSearchPage() {
     });
   }, [updateUrlFromFilters]);
 
-  // Clear all filters - simplified to prevent loops (excludes locations)
-  // const clearAllFilters = useCallback(() => {
-  //   const emptyFilters: Partial<AdvancedSearchFilters> = {};
-  //   // Preserve locations when clearing other filters
-  //   if (filters.locations) {
-  //     emptyFilters.locations = filters.locations;
-  //   }
-  //   setFilters(emptyFilters);
-  //   setSelectedMake(null);
-  //   setSelectedModel(null);
-  //   setSearchQuery('');
-  //   updateUrlFromFilters(emptyFilters);
-  // }, [updateUrlFromFilters, filters.locations]);
-
   // Clear filter - simplified to prevent loops  
   const clearSpecificFilter = useCallback((filterType: FilterType) => {
     setFilters(prev => {
@@ -1051,13 +1037,6 @@ export default function AdvancedSearchPage() {
       </div>
     );
   };
-
-  // Handle done button - close any open modals since filters apply automatically
-  // const handleCloseFilters = useCallback(() => {
-  //   // Close any open filter modals
-  //   setActiveFilterModal(null);
-  // }, []);
-
   // Loading skeleton component for better UX
   const LoadingSkeleton = React.memo(() => (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden animate-pulse">
