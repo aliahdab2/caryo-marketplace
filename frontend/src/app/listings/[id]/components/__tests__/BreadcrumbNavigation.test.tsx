@@ -4,9 +4,17 @@ import BreadcrumbNavigation from '../BreadcrumbNavigation';
 import { Listing } from '@/types/listings';
 
 // Mock the translation hook
-const mockUseTranslation = jest.fn();
+const mockT = jest.fn();
+const mockI18n = {
+  language: 'en',
+  changeLanguage: jest.fn(),
+};
+
 jest.mock('react-i18next', () => ({
-  useTranslation: mockUseTranslation
+  useTranslation: () => ({
+    t: mockT,
+    i18n: mockI18n,
+  })
 }));
 
 // Mock Next.js Link component
@@ -45,26 +53,24 @@ describe('BreadcrumbNavigation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTranslation.mockReturnValue({
-      t: (key: string) => {
-        const translations: Record<string, string> = {
-          'allCars': 'All Cars',
-          'breadcrumbNavigation': 'Breadcrumb navigation',
-          'currentPage': 'Current page: {{label}}',
-          'navigateTo': 'Navigate to {{label}}'
-        };
-        return translations[key] || key;
-      },
-      i18n: {
-        language: 'en'
-      }
+    // Set up the default English mock
+    mockI18n.language = 'en';
+    mockT.mockImplementation((key: string) => {
+      const translations: Record<string, string> = {
+        'allCars': 'All Cars',
+        'breadcrumbNavigation': 'Breadcrumb navigation',
+        'currentPage': 'Current page: {{label}}',
+        'navigateTo': 'Navigate to {{label}}'
+      };
+      return translations[key] || key;
     });
   });
 
   it('should render "All Cars" breadcrumb', () => {
     render(<BreadcrumbNavigation listing={baseListing} />);
     
-    const allCarsLink = screen.getByRole('link', { name: /all cars/i });
+    // Find by text content instead of aria-label since the aria-label uses translation placeholders
+    const allCarsLink = screen.getByText('All Cars');
     expect(allCarsLink).toBeInTheDocument();
     expect(allCarsLink).toHaveAttribute('href', '/search');
   });
@@ -72,7 +78,7 @@ describe('BreadcrumbNavigation', () => {
   it('should render brand breadcrumb with correct slug', () => {
     render(<BreadcrumbNavigation listing={baseListing} />);
     
-    const brandLink = screen.getByRole('link', { name: /toyota/i });
+    const brandLink = screen.getByText('Toyota');
     expect(brandLink).toBeInTheDocument();
     expect(brandLink).toHaveAttribute('href', '/search?brand=toyota');
   });
@@ -80,7 +86,7 @@ describe('BreadcrumbNavigation', () => {
   it('should render model breadcrumb with compound slug', () => {
     render(<BreadcrumbNavigation listing={baseListing} />);
     
-    const modelLink = screen.getByRole('link', { name: /camry/i });
+    const modelLink = screen.getByText('Camry');
     expect(modelLink).toBeInTheDocument();
     expect(modelLink).toHaveAttribute('href', '/search?brand=toyota&model=toyota-camry');
   });
@@ -94,10 +100,10 @@ describe('BreadcrumbNavigation', () => {
 
     render(<BreadcrumbNavigation listing={listingWithSpaces} />);
     
-    const brandLink = screen.getByRole('link', { name: /land rover/i });
+    const brandLink = screen.getByText('Land Rover');
     expect(brandLink).toHaveAttribute('href', '/search?brand=land-rover');
     
-    const modelLink = screen.getByRole('link', { name: /range rover/i });
+    const modelLink = screen.getByText('Range Rover');
     expect(modelLink).toHaveAttribute('href', '/search?brand=land-rover&model=land-rover-range-rover');
   });
 
@@ -110,9 +116,9 @@ describe('BreadcrumbNavigation', () => {
 
     render(<BreadcrumbNavigation listing={listingWithoutModel} />);
     
-    expect(screen.getByRole('link', { name: /all cars/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /toyota/i })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /camry/i })).not.toBeInTheDocument();
+    expect(screen.getByText('All Cars')).toBeInTheDocument();
+    expect(screen.getByText('Toyota')).toBeInTheDocument();
+    expect(screen.queryByText('Camry')).not.toBeInTheDocument();
   });
 
   it('should handle missing brand gracefully', () => {
@@ -124,9 +130,9 @@ describe('BreadcrumbNavigation', () => {
 
     render(<BreadcrumbNavigation listing={listingWithoutBrand} />);
     
-    expect(screen.getByRole('link', { name: /all cars/i })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /toyota/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /camry/i })).not.toBeInTheDocument();
+    expect(screen.getByText('All Cars')).toBeInTheDocument();
+    expect(screen.queryByText('Toyota')).not.toBeInTheDocument();
+    expect(screen.queryByText('Camry')).not.toBeInTheDocument();
   });
 
   it('should handle special characters in brand/model names', () => {
@@ -138,33 +144,29 @@ describe('BreadcrumbNavigation', () => {
 
     render(<BreadcrumbNavigation listing={listingWithSpecialChars} />);
     
-    const brandLink = screen.getByRole('link', { name: /mclaren/i });
+    const brandLink = screen.getByText('McLaren');
     expect(brandLink).toHaveAttribute('href', '/search?brand=mclaren');
     
-    const modelLink = screen.getByRole('link', { name: /p1™/i });
+    const modelLink = screen.getByText('P1™');
     expect(modelLink).toHaveAttribute('href', '/search?brand=mclaren&model=mclaren-p1');
   });
 
   it('should use Arabic names when language is Arabic', () => {
-    // Mock Arabic language
-    mockUseTranslation.mockReturnValue({
-      t: (key: string) => key,
-      i18n: {
-        language: 'ar'
-      }
-    });
+    // Set up Arabic language mock
+    mockI18n.language = 'ar';
+    mockT.mockImplementation((key: string) => key);
 
     render(<BreadcrumbNavigation listing={baseListing} />);
     
-    expect(screen.getByRole('link', { name: /تويوتا/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /كامري/i })).toBeInTheDocument();
+    expect(screen.getByText('تويوتا')).toBeInTheDocument();
+    expect(screen.getByText('كامري')).toBeInTheDocument();
   });
 
   it('should have proper accessibility attributes', () => {
     render(<BreadcrumbNavigation listing={baseListing} />);
     
     const nav = screen.getByRole('navigation');
-    expect(nav).toHaveAttribute('aria-label', 'breadcrumbNavigation');
+    expect(nav).toHaveAttribute('aria-label', 'Breadcrumb navigation');
     
     // Check that separators are hidden from screen readers
     const separators = nav.querySelectorAll('svg[aria-hidden="true"]');
@@ -187,10 +189,10 @@ describe('BreadcrumbNavigation', () => {
 
     render(<BreadcrumbNavigation listing={listingWithSpecialChars} />);
     
-    const brandLink = screen.getByRole('link', { name: /rolls-royce/i });
+    const brandLink = screen.getByText('Rolls-Royce');
     expect(brandLink).toHaveAttribute('href', '/search?brand=rolls-royce');
     
-    const modelLink = screen.getByRole('link', { name: /phantom vii/i });
+    const modelLink = screen.getByText('Phantom VII');
     expect(modelLink).toHaveAttribute('href', '/search?brand=rolls-royce&model=rolls-royce-phantom-vii');
   });
 });

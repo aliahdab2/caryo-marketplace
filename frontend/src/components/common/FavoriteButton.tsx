@@ -191,12 +191,10 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
                 setIsFavorite(true); // Optimistic update
                 if (onToggle) onToggle(true);
                 await apiRequest(url, { method: 'POST' });
-                console.log('[FAVORITE] Successfully processed pending add action');
               } else if (pendingAction.action === 'remove') {
                 setIsFavorite(false); // Optimistic update
                 if (onToggle) onToggle(false);
                 await apiRequest(url, { method: 'DELETE' });
-                console.log('[FAVORITE] Successfully processed pending remove action');
               } else {
                 console.warn('[FAVORITE] Unknown pending action type:', pendingAction.action);
               }
@@ -244,11 +242,9 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         setIsLoading(true);
         
         localStorage.setItem('pendingFavoriteAction', JSON.stringify(pendingActionData));
-        console.log('[FAVORITE] Stored pending action:', pendingActionData);
         
         // Store the current page URL to redirect back after sign-in
         const currentUrl = window.location.pathname + window.location.search + window.location.hash;
-        console.log('[FAVORITE] Storing redirect URL:', currentUrl);
         
         // Small delay to show loading state, then redirect with returnUrl parameter
         setTimeout(() => {
@@ -307,7 +303,6 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         // Ensure localStorage is updated
         try {
           localStorage.setItem('pendingFavoriteAction', JSON.stringify(pendingActionData));
-          console.log('[FAVORITE] Stored pending action:', pendingActionData);
         } catch (storageError) {
           console.error('[FAVORITE] Failed to store pending action:', storageError);
         }

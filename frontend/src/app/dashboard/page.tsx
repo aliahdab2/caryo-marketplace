@@ -45,7 +45,6 @@ export default function Dashboard() {
         // Import apiRequest to make authenticated requests
         const { apiRequest } = await import('@/services/auth/session-manager');
         const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/favorites`;
-        console.log('[DASHBOARD] Fetching favorites from:', url);
 
         // apiRequest handles authentication, session validation, and token refresh automatically
         const response = await apiRequest(url, { 
@@ -57,7 +56,6 @@ export default function Dashboard() {
         }
 
         const text = await response.text();
-        console.log('[DASHBOARD] Raw response:', text);
 
         let data;
         try {
@@ -70,16 +68,12 @@ export default function Dashboard() {
         if (mounted) {
           // Handle different response formats
           if (Array.isArray(data)) {
-            console.log('[DASHBOARD] Found array of favorites:', data.length);
             setFavoritesCount(data.length);
           } else if (data && Array.isArray(data.favorites)) {
-            console.log('[DASHBOARD] Found favorites in object:', data.favorites.length);
             setFavoritesCount(data.favorites.length);
           } else if (data && Array.isArray(data.data)) {
-            console.log('[DASHBOARD] Found favorites in data property:', data.data.length);
             setFavoritesCount(data.data.length);
           } else {
-            console.log('[DASHBOARD] No valid favorites data found, setting to 0');
             setFavoritesCount(0);
           }
         }
