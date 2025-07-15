@@ -346,6 +346,7 @@ export default function AdvancedSearchPage() {
   // Trigger search after filters are initialized - always search to show results
   useEffect(() => {
     if (hasInitialized) {
+
       // Delay search slightly to ensure all state is updated
       const timeoutId = setTimeout(() => {
         executeSearch(false);
@@ -353,7 +354,7 @@ export default function AdvancedSearchPage() {
       
       return () => clearTimeout(timeoutId);
     }
-  }, [hasInitialized, listingFilters, executeSearch]);
+  }, [hasInitialized, listingFilters, executeSearch, filters]);
 
   // Convert brand slugs to selectedMake ID when carMakes loads
   useEffect(() => {
@@ -399,12 +400,12 @@ export default function AdvancedSearchPage() {
   // URLs use clean singular form (brand/model) for SEO and UX
   // Backend API expects plural form (brandSlugs/modelSlugs)
   const updateUrlFromFilters = useCallback((newFilters: AdvancedSearchFilters) => {
-    console.log('updateUrlFromFilters called with:', newFilters);
+
     const params = new URLSearchParams();
     
     // Location first for SEO - local relevance is primary
     if (newFilters.locations && newFilters.locations.length > 0) {
-      console.log('Adding locations to URL:', newFilters.locations);
+
       // Use dash-separated values for maximum SEO-friendliness (no encoding ever)
       params.set('locations', newFilters.locations.join('-'));
     }
@@ -1193,14 +1194,14 @@ export default function AdvancedSearchPage() {
                                   if (e.target.checked) {
                                     // Add location
                                     updatedFilters.locations = [...(filters.locations || []), locationValue];
-                                    console.log('Added location:', locationValue, 'New locations:', updatedFilters.locations);
+
                                   } else {
                                     // Remove location
                                     updatedFilters.locations = filters.locations?.filter(loc => loc !== locationValue) || [];
                                     if (updatedFilters.locations.length === 0) {
                                       delete updatedFilters.locations;
                                     }
-                                    console.log('Removed location:', locationValue, 'New locations:', updatedFilters.locations);
+
                                   }
                                   
                                   setFilters(updatedFilters);
@@ -1234,14 +1235,14 @@ export default function AdvancedSearchPage() {
                         </button>
                         <button
                           onClick={() => {
-                            console.log('Show button clicked, current filters:', filters);
+
                             
                             // Apply the current filter selections
                             updateUrlFromFilters(filters);
                             
                             // Trigger search after a short delay to ensure URL is updated
                             setTimeout(() => {
-                              console.log('Executing search after URL update');
+
                               executeSearch(false);
                             }, 100);
                             
