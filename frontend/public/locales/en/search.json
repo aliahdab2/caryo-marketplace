@@ -57,5 +57,15 @@
   "locationsSelected_other": "{{count}} governorates selected",
   "allLocations": "All Governorates",
   "clear": "Clear",
-  "show": "Show"
+  "show": "Show",
+  "removeYearFilter": "Remove year filter",
+  "removeMakeModelFilter": "Remove make and model filter",
+  "removePriceFilter": "Remove price filter",
+  "removeMileageFilter": "Remove mileage filter",
+  "removeTransmissionFilter": "Remove transmission filter",
+  "removeConditionFilter": "Remove condition filter",
+  "removeFuelTypeFilter": "Remove fuel type filter",
+  "removeBodyStyleFilter": "Remove body style filter",
+  "removeSellerTypeFilter": "Remove seller type filter",
+  "cars": "cars"
 }

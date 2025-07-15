@@ -1,4 +1,5 @@
-import { authService, LoginCredentials, SignupCredentials } from '@/services/auth';
+import { authService } from '@/services/auth';
+import { LoginCredentials, SignupCredentials } from '@/types/auth';
 import { api } from '@/services/api';
 import { ApiError } from '@/utils/apiErrorHandler';
 
@@ -65,7 +66,8 @@ describe('Auth Service', () => {
     const mockUserData: SignupCredentials = {
       username: 'newuser',
       email: 'new@example.com',
-      password: 'newpassword123'
+      password: 'newpassword123',
+      confirmPassword: 'newpassword123'
     };
 
     const mockResponse = {

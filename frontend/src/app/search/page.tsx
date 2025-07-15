@@ -6,14 +6,24 @@ import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useOptimizedFiltering } from '@/hooks/useOptimizedFiltering';
 import SmoothTransition from '@/components/ui/SmoothTransition';
 import { 
-  MdClear, 
-  MdTune,
   MdAdd,
   MdClose,
   MdDirectionsCar,
   MdFavoriteBorder,
   MdKeyboardArrowDown
 } from 'react-icons/md';
+import { 
+  ConvertibleIcon,
+  CoupeIcon,
+  EstateIcon,
+  HatchbackIcon,
+  MPVIcon,
+  PickupIcon,
+  SedanIcon,
+  SUVIcon,
+  VanIcon,
+  MotorcycleIcon
+} from '@/components/icons/CarIcons';
 import { CarMake, CarModel } from '@/types/car';
 import CarListingCard, { CarListingCardData } from '@/components/listings/CarListingCard';
 import { 
@@ -59,13 +69,42 @@ interface AdvancedSearchFilters {
   cylinders?: number;
 }
 
-type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'condition' | 'fuelType' | 'bodyStyle' | 'sellerType';
+type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'fuelType' | 'bodyStyle' | 'sellerType';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
 
 // Move namespaces outside component to prevent recreation on every render
 const SEARCH_NAMESPACES = ['common', 'search'];
+
+// Function to get appropriate car icon based on body style
+const getCarIcon = (bodyStyleName: string) => {
+  const normalizedName = bodyStyleName.toLowerCase();
+  const iconMap: Record<string, React.ReactNode> = {
+    'sedan': <SedanIcon className="w-8 h-6 text-gray-600" />,
+    'saloon': <SedanIcon className="w-8 h-6 text-gray-600" />,
+    'hatchback': <HatchbackIcon className="w-8 h-6 text-gray-600" />,
+    'suv': <SUVIcon className="w-8 h-6 text-gray-600" />,
+    'coupe': <CoupeIcon className="w-8 h-6 text-gray-600" />,
+    'convertible': <ConvertibleIcon className="w-8 h-6 text-gray-600" />,
+    'wagon': <EstateIcon className="w-8 h-6 text-gray-600" />,
+    'estate': <EstateIcon className="w-8 h-6 text-gray-600" />,
+    'truck': <PickupIcon className="w-8 h-6 text-gray-600" />,
+    'pickup': <PickupIcon className="w-8 h-6 text-gray-600" />,
+    'van': <VanIcon className="w-8 h-6 text-gray-600" />,
+    'minivan': <MPVIcon className="w-8 h-6 text-gray-600" />,
+    'mpv': <MPVIcon className="w-8 h-6 text-gray-600" />,
+    'motorcycle': <MotorcycleIcon className="w-8 h-6 text-gray-600" />,
+    'crossover': <SUVIcon className="w-8 h-6 text-gray-600" />,
+    'taxi': <SedanIcon className="w-8 h-6 text-gray-600" />,
+    'ambulance': <VanIcon className="w-8 h-6 text-gray-600" />,
+    'rv': <VanIcon className="w-8 h-6 text-gray-600" />,
+    'camper': <VanIcon className="w-8 h-6 text-gray-600" />,
+    'other': <SedanIcon className="w-8 h-6 text-gray-600" />
+  };
+
+  return iconMap[normalizedName] || <SedanIcon className="w-8 h-6 text-gray-600" />;
+};
 
 export default function AdvancedSearchPage() {
   const { t, i18n } = useLazyTranslation(SEARCH_NAMESPACES);
@@ -231,13 +270,6 @@ export default function AdvancedSearchPage() {
   }, [governorates]);
 
   // Helper functions to get display names for reference data - memoized to prevent re-renders
-  const getConditionDisplayName = useMemo(() => 
-    (id: number): string => {
-      const condition = referenceData?.carConditions?.find(c => c.id === id);
-      return condition ? (currentLanguage === 'ar' ? condition.displayNameAr : condition.displayNameEn) : '';
-    }, [referenceData?.carConditions, currentLanguage]
-  );
-
   const getTransmissionDisplayName = useMemo(() => 
     (id: number): string => {
       const transmission = referenceData?.transmissions?.find(t => t.id === id);
@@ -429,7 +461,7 @@ export default function AdvancedSearchPage() {
     if (newFilters.maxPrice) params.append('maxPrice', newFilters.maxPrice.toString());
     if (newFilters.minMileage) params.append('minMileage', newFilters.minMileage.toString());
     if (newFilters.maxMileage) params.append('maxMileage', newFilters.maxMileage.toString());
-    if (newFilters.conditionId) params.append('conditionId', newFilters.conditionId.toString());
+
     if (newFilters.transmissionId) params.append('transmissionId', newFilters.transmissionId.toString());
     if (newFilters.fuelTypeId) params.append('fuelTypeId', newFilters.fuelTypeId.toString());
     if (newFilters.bodyStyleId) params.append('bodyStyleId', newFilters.bodyStyleId.toString());
@@ -448,6 +480,32 @@ export default function AdvancedSearchPage() {
         [field]: value || undefined
       };
 
+      // Range validation: ensure max values are not less than min values
+      if (field === 'minYear' && newFilters.maxYear && value && (value as number) > newFilters.maxYear) {
+        // If new minYear is greater than current maxYear, clear maxYear
+        newFilters.maxYear = undefined;
+      }
+      if (field === 'maxYear' && newFilters.minYear && value && (value as number) < newFilters.minYear) {
+        // If new maxYear is less than current minYear, clear minYear
+        newFilters.minYear = undefined;
+      }
+      if (field === 'minPrice' && newFilters.maxPrice && value && (value as number) > newFilters.maxPrice) {
+        // If new minPrice is greater than current maxPrice, clear maxPrice
+        newFilters.maxPrice = undefined;
+      }
+      if (field === 'maxPrice' && newFilters.minPrice && value && (value as number) < newFilters.minPrice) {
+        // If new maxPrice is less than current minPrice, clear minPrice
+        newFilters.minPrice = undefined;
+      }
+      if (field === 'minMileage' && newFilters.maxMileage && value && (value as number) > newFilters.maxMileage) {
+        // If new minMileage is greater than current maxMileage, clear maxMileage
+        newFilters.maxMileage = undefined;
+      }
+      if (field === 'maxMileage' && newFilters.minMileage && value && (value as number) < newFilters.minMileage) {
+        // If new maxMileage is less than current minMileage, clear minMileage
+        newFilters.minMileage = undefined;
+      }
+
       // Update URL with the new filters after state update
       // Use requestAnimationFrame for better performance
       requestAnimationFrame(() => updateUrlFromFilters(newFilters));
@@ -455,20 +513,6 @@ export default function AdvancedSearchPage() {
       return newFilters;
     });
   }, [updateUrlFromFilters]);
-
-  // Clear all filters - simplified to prevent loops (excludes locations)
-  const clearAllFilters = useCallback(() => {
-    const emptyFilters: Partial<AdvancedSearchFilters> = {};
-    // Preserve locations when clearing other filters
-    if (filters.locations) {
-      emptyFilters.locations = filters.locations;
-    }
-    setFilters(emptyFilters);
-    setSelectedMake(null);
-    setSelectedModel(null);
-    setSearchQuery('');
-    updateUrlFromFilters(emptyFilters);
-  }, [updateUrlFromFilters, filters.locations]);
 
   // Clear filter - simplified to prevent loops  
   const clearSpecificFilter = useCallback((filterType: FilterType) => {
@@ -498,9 +542,7 @@ export default function AdvancedSearchPage() {
         case 'transmission':
           delete newFilters.transmissionId;
           break;
-        case 'condition':
-          delete newFilters.conditionId;
-          break;
+
         case 'fuelType':
           delete newFilters.fuelTypeId;
           break;
@@ -518,17 +560,6 @@ export default function AdvancedSearchPage() {
       return newFilters;
     });
   }, [updateUrlFromFilters]);
-
-  // Count active filters with memoization
-  const activeFiltersCount = useMemo(() => {
-    // Count filters excluding locations (locations have their own clear button)
-    const filtersToCount = { ...filters };
-    delete filtersToCount.locations; // Don't count locations in main filter count
-    
-    return Object.values(filtersToCount).filter(value => 
-      value !== undefined && value !== null && value !== ''
-    ).length;
-  }, [filters]);
 
   // Get filter display text - memoized to prevent re-renders
   const getFilterDisplayText = useCallback((filterType: FilterType): string => {
@@ -562,9 +593,8 @@ export default function AdvancedSearchPage() {
         if (filters.maxMileage) return `${t('search.upTo', 'Up to')} ${filters.maxMileage}`;
         return t('search.mileage', 'Mileage');
       case 'transmission':
-        return filters.transmissionId ? getTransmissionDisplayName(filters.transmissionId) : t('search.gearbox', 'Gearbox');
-      case 'condition':
-        return filters.conditionId ? getConditionDisplayName(filters.conditionId) : t('search.condition', 'Condition');
+        return filters.transmissionId ? getTransmissionDisplayName(filters.transmissionId) : t('search.transmission', 'Transmission');
+
       case 'fuelType':
         return filters.fuelTypeId ? getFuelTypeDisplayName(filters.fuelTypeId) : t('search.fuelType', 'Fuel type');
       case 'bodyStyle':
@@ -574,7 +604,7 @@ export default function AdvancedSearchPage() {
       default:
         return '';
     }
-  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getConditionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getSellerTypeDisplayName]);
+  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getSellerTypeDisplayName]);
 
   // Check if filter has active values - memoized to prevent re-renders
   const isFilterActive = useCallback((filterType: FilterType): boolean => {
@@ -592,8 +622,7 @@ export default function AdvancedSearchPage() {
         return !!(filters.minMileage || filters.maxMileage);
       case 'transmission':
         return !!filters.transmissionId;
-      case 'condition':
-        return !!filters.conditionId;
+
       case 'fuelType':
         return !!filters.fuelTypeId;
       case 'bodyStyle':
@@ -767,7 +796,7 @@ export default function AdvancedSearchPage() {
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.yearRange', 'Year range')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-600 mb-2">From</label>
+                    <label className="block text-sm text-gray-600 mb-2">{t('search.from', 'From')}</label>
                     <select
                       value={filters.minYear || ''}
                       onChange={(e) => handleInputChange('minYear', e.target.value ? parseInt(e.target.value) : undefined)}
@@ -787,7 +816,7 @@ export default function AdvancedSearchPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">{t('search.any', 'Any')}</option>
-                      {YEARS.map(year => (
+                      {YEARS.filter(year => !filters.minYear || year >= filters.minYear).map(year => (
                         <option key={year} value={year}>{year}</option>
                       ))}
                     </select>
@@ -804,7 +833,7 @@ export default function AdvancedSearchPage() {
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.mileageRange', 'Mileage range')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-600 mb-2">From</label>
+                    <label className="block text-sm text-gray-600 mb-2">{t('search.from', 'From')}</label>
                     <input
                       type="number"
                       value={filters.minMileage || ''}
@@ -850,27 +879,7 @@ export default function AdvancedSearchPage() {
             </div>
           );
 
-        case 'condition':
-          return (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.condition', 'Condition')}</h3>
-                <select
-                  value={filters.conditionId || ''}
-                  onChange={(e) => handleInputChange('conditionId', e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  disabled={isLoadingReferenceData}
-                >
-                  <option value="">{t('search.any', 'Any')}</option>
-                  {referenceData?.carConditions?.map(condition => (
-                    <option key={condition.id} value={condition.id}>
-                      {currentLanguage === 'ar' ? condition.displayNameAr : condition.displayNameEn}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          );
+
 
         case 'fuelType':
           return (
@@ -899,19 +908,45 @@ export default function AdvancedSearchPage() {
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.bodyStyle', 'Body style')}</h3>
-                <select
-                  value={filters.bodyStyleId || ''}
-                  onChange={(e) => handleInputChange('bodyStyleId', e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  disabled={isLoadingReferenceData}
-                >
-                  <option value="">{t('search.any', 'Any')}</option>
-                  {referenceData?.bodyStyles?.map(bodyStyle => (
-                    <option key={bodyStyle.id} value={bodyStyle.id}>
-                      {currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn}
-                    </option>
-                  ))}
-                </select>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {referenceData?.bodyStyles?.map(bodyStyle => {
+                    const isSelected = filters.bodyStyleId === bodyStyle.id;
+                    const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
+                    
+                    return (
+                      <div
+                        key={bodyStyle.id}
+                        className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all hover:border-blue-300 hover:bg-blue-50 ${
+                          isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                        }`}
+                        onClick={() => handleInputChange('bodyStyleId', isSelected ? undefined : bodyStyle.id)}
+                      >
+                        <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                          <div className="w-12 h-8 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
+                            {/* Professional car silhouette icon */}
+                            {getCarIcon(bodyStyle.name.toLowerCase())}
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900">{displayName}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center">
+                          <div className={`w-5 h-5 border-2 rounded transition-all ${
+                            isSelected 
+                              ? 'border-blue-500 bg-blue-500' 
+                              : 'border-gray-300 hover:border-blue-400'
+                          }`}>
+                            {isSelected && (
+                              <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           );
@@ -1002,13 +1037,6 @@ export default function AdvancedSearchPage() {
       </div>
     );
   };
-
-  // Handle done button - close any open modals since filters apply automatically
-  const handleCloseFilters = useCallback(() => {
-    // Close any open filter modals
-    setActiveFilterModal(null);
-  }, []);
-
   // Loading skeleton component for better UX
   const LoadingSkeleton = React.memo(() => (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden animate-pulse">
@@ -1059,25 +1087,43 @@ export default function AdvancedSearchPage() {
                   {t('search.searchLabel', 'Search for cars by make, model, or location')}
                 </label>
                 <div className="flex gap-2 sm:relative">
-                  <input
-                    id="car-search-input"
-                    type="text"
-                    placeholder={t('search:placeholder', 'Search for cars... (e.g. "Toyota Camry", "BMW X3", "تويوتا كامري")')}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleSearch();
-                      }
-                    }}
-                    className={`flex-1 sm:w-full py-2.5 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
-                      currentLanguage === 'ar' ? 'text-right dir-rtl sm:pr-20 pr-3 pl-3' : 'text-left pl-3 sm:pr-20 pr-3'
-                    }`}
-                    dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}
-                    aria-label={t('search.searchLabel', 'Search for cars by make, model, or location')}
-                    aria-describedby="search-help"
-                  />
+                  <div className="flex-1 relative">
+                    <input
+                      id="car-search-input"
+                      type="text"
+                      placeholder={t('search:placeholder', 'Search for cars... (e.g. "Toyota Camry", "BMW X3", "تويوتا كامري")')}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSearch();
+                        }
+                      }}
+                      className={`w-full py-2.5 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
+                        currentLanguage === 'ar' ? 'text-right dir-rtl pr-3 pl-3 sm:pl-28' : 'text-left pl-3 pr-3 sm:pr-28'
+                      }`}
+                      dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}
+                      aria-label={t('search.searchLabel', 'Search for cars by make, model, or location')}
+                      aria-describedby="search-help"
+                    />
+                    
+                    {/* Clear button when there's text */}
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchQuery('');
+                        }}
+                        className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded p-1 z-10 ${
+                          currentLanguage === 'ar' ? 'left-2 sm:left-20' : 'right-2 sm:right-20'
+                        }`}
+                        aria-label={t('search.clearSearch', 'Clear search')}
+                      >
+                        <MdClose className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
                   
                   {/* Search Button - separate on mobile, inside on desktop */}
                   <button
@@ -1111,22 +1157,6 @@ export default function AdvancedSearchPage() {
                   <div id="search-help" className="sr-only">
                     {t('search.searchHelp', 'Enter car make, model, or location and press Enter or click Search button')}
                   </div>
-                  {/* Clear button when there's text */}
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSearchQuery('');
-                        handleSearch();
-                      }}
-                      className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded p-1 ${
-                        currentLanguage === 'ar' ? 'right-2' : 'left-2'
-                      }`}
-                      aria-label={t('search.clearSearch', 'Clear search')}
-                    >
-                      <MdClose className="h-4 w-4" aria-hidden="true" />
-                    </button>
-                  )}
                 </div>
               </div>
               
@@ -1265,30 +1295,142 @@ export default function AdvancedSearchPage() {
           </div>
         </div>
 
-        {/* Filter Pills Row - AutoTrader UK Style */}
+        {/* Filter Pills Row - AutoTrader UK Style with Individual Clear Buttons */}
         <div className="mb-6">
           <div className="flex flex-wrap gap-3 items-center">
-            <FilterPill filterType="makeModel" onClick={() => setActiveFilterModal('makeModel')} />
-            <FilterPill filterType="price" onClick={() => setActiveFilterModal('price')} />
-            <FilterPill filterType="year" onClick={() => setActiveFilterModal('year')} />
-            <FilterPill filterType="mileage" onClick={() => setActiveFilterModal('mileage')} />
-            <FilterPill filterType="transmission" onClick={() => setActiveFilterModal('transmission')} />
-            <FilterPill filterType="condition" onClick={() => setActiveFilterModal('condition')} />
-            <FilterPill filterType="fuelType" onClick={() => setActiveFilterModal('fuelType')} />
-            <FilterPill filterType="bodyStyle" onClick={() => setActiveFilterModal('bodyStyle')} />
-            <FilterPill filterType="sellerType" onClick={() => setActiveFilterModal('sellerType')} />
+            {/* Active Filters with X buttons */}
+            {(filters.minYear || filters.maxYear) && (
+              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
+                <span>{getFilterDisplayText('year')}</span>
+                <button
+                  onClick={() => clearSpecificFilter('year')}
+                  className="ml-2 text-blue-600 hover:text-blue-800"
+                  aria-label={t('search.removeYearFilter', 'Remove year filter')}
+                >
+                  <MdClose className="h-4 w-4" />
+                </button>
+              </div>
+            )}
             
-            {/* Filter and Sort Button */}
-            <button
-              onClick={() => {
-                // Simply close any open modals since filters apply automatically
-                handleCloseFilters();
-              }}
-              className="inline-flex items-center px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 bg-blue-600 text-white hover:bg-blue-700"
-            >
-              <MdTune className="mr-2 h-4 w-4" />
-              {t('search.filterAndSort', 'Filters')}
-            </button>
+            {(filters.brands && filters.brands.length > 0) && (
+              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
+                <span>{getFilterDisplayText('makeModel')}</span>
+                <button
+                  onClick={() => clearSpecificFilter('makeModel')}
+                  className="ml-2 text-blue-600 hover:text-blue-800"
+                  aria-label={t('search.removeMakeModelFilter', 'Remove make and model filter')}
+                >
+                  <MdClose className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+            
+            {(filters.minPrice || filters.maxPrice) && (
+              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
+                <span>{getFilterDisplayText('price')}</span>
+                <button
+                  onClick={() => clearSpecificFilter('price')}
+                  className="ml-2 text-blue-600 hover:text-blue-800"
+                  aria-label={t('search.removePriceFilter', 'Remove price filter')}
+                >
+                  <MdClose className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+            
+            {(filters.minMileage || filters.maxMileage) && (
+              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
+                <span>{getFilterDisplayText('mileage')}</span>
+                <button
+                  onClick={() => clearSpecificFilter('mileage')}
+                  className="ml-2 text-blue-600 hover:text-blue-800"
+                  aria-label={t('search.removeMileageFilter', 'Remove mileage filter')}
+                >
+                  <MdClose className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+            
+            {filters.transmissionId && (
+              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
+                <span>{getFilterDisplayText('transmission')}</span>
+                <button
+                  onClick={() => clearSpecificFilter('transmission')}
+                  className="ml-2 text-blue-600 hover:text-blue-800"
+                  aria-label={t('search.removeTransmissionFilter', 'Remove transmission filter')}
+                >
+                  <MdClose className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+            
+
+            
+            {filters.fuelTypeId && (
+              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
+                <span>{getFilterDisplayText('fuelType')}</span>
+                <button
+                  onClick={() => clearSpecificFilter('fuelType')}
+                  className="ml-2 text-blue-600 hover:text-blue-800"
+                  aria-label={t('search.removeFuelTypeFilter', 'Remove fuel type filter')}
+                >
+                  <MdClose className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+            
+            {filters.bodyStyleId && (
+              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
+                <span>{getFilterDisplayText('bodyStyle')}</span>
+                <button
+                  onClick={() => clearSpecificFilter('bodyStyle')}
+                  className="ml-2 text-blue-600 hover:text-blue-800"
+                  aria-label={t('search.removeBodyStyleFilter', 'Remove body style filter')}
+                >
+                  <MdClose className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+            
+            {filters.sellerTypeId && (
+              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
+                <span>{getFilterDisplayText('sellerType')}</span>
+                <button
+                  onClick={() => clearSpecificFilter('sellerType')}
+                  className="ml-2 text-blue-600 hover:text-blue-800"
+                  aria-label={t('search.removeSellerTypeFilter', 'Remove seller type filter')}
+                >
+                  <MdClose className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+            
+            {/* Add filter buttons (only show if not already active) */}
+            {!isFilterActive('makeModel') && (
+              <FilterPill filterType="makeModel" onClick={() => setActiveFilterModal('makeModel')} />
+            )}
+            {!isFilterActive('price') && (
+              <FilterPill filterType="price" onClick={() => setActiveFilterModal('price')} />
+            )}
+            {!isFilterActive('year') && (
+              <FilterPill filterType="year" onClick={() => setActiveFilterModal('year')} />
+            )}
+            {!isFilterActive('mileage') && (
+              <FilterPill filterType="mileage" onClick={() => setActiveFilterModal('mileage')} />
+            )}
+            {!isFilterActive('transmission') && (
+              <FilterPill filterType="transmission" onClick={() => setActiveFilterModal('transmission')} />
+            )}
+
+            {!isFilterActive('fuelType') && (
+              <FilterPill filterType="fuelType" onClick={() => setActiveFilterModal('fuelType')} />
+            )}
+            {!isFilterActive('bodyStyle') && (
+              <FilterPill filterType="bodyStyle" onClick={() => setActiveFilterModal('bodyStyle')} />
+            )}
+            {!isFilterActive('sellerType') && (
+              <FilterPill filterType="sellerType" onClick={() => setActiveFilterModal('sellerType')} />
+            )}
           </div>
         </div>
 
@@ -1298,15 +1440,6 @@ export default function AdvancedSearchPage() {
             <p className="text-lg font-medium text-gray-900 dark:text-white">
               {carListings?.totalElements ? `${carListings.totalElements.toLocaleString()} ${t('search.results', 'results')}` : t('search.loading', 'Loading...')}
             </p>
-            {activeFiltersCount > 0 && (
-              <button
-                onClick={clearAllFilters}
-                className="text-sm text-gray-600 hover:text-gray-800 flex items-center"
-              >
-                <MdClear className="mr-1 h-4 w-4" />
-                {t('search.clearAll', 'Clear all filters')}
-              </button>
-            )}
           </div>
           
           <button className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium">

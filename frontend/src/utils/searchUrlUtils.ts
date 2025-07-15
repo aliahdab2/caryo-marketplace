@@ -13,7 +13,6 @@ export interface FilterUrlParams {
   minMileage?: number;
   maxMileage?: number;
   location?: string;
-  conditionId?: number;
   transmissionId?: number;
   fuelTypeId?: number;
   bodyStyleId?: number;
@@ -69,9 +68,7 @@ export function buildSearchParams(filters: FilterUrlParams): URLSearchParams {
   }
   
   // Entity ID filters
-  if (filters.conditionId && filters.conditionId > 0) {
-    params.append('conditionId', filters.conditionId.toString());
-  }
+
   if (filters.transmissionId && filters.transmissionId > 0) {
     params.append('transmissionId', filters.transmissionId.toString());
   }
@@ -160,12 +157,6 @@ export function parseSearchParams(searchParams: URLSearchParams): FilterUrlParam
   }
   
   // Parse entity ID filters
-  const conditionId = searchParams.get('conditionId');
-  if (conditionId) {
-    const id = parseInt(conditionId, 10);
-    if (id > 0) filters.conditionId = id;
-  }
-  
   const transmissionId = searchParams.get('transmissionId');
   if (transmissionId) {
     const id = parseInt(transmissionId, 10);
@@ -278,7 +269,6 @@ export function countActiveFilters(filters: FilterUrlParams): number {
   if (filters.minYear || filters.maxYear) count++;
   if (filters.minPrice || filters.maxPrice) count++;
   if (filters.minMileage || filters.maxMileage) count++;
-  if (filters.conditionId) count++;
   if (filters.transmissionId) count++;
   if (filters.fuelTypeId) count++;
   if (filters.bodyStyleId) count++;

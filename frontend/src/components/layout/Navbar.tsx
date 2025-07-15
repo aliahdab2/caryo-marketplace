@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
-import DropdownLanguageSwitcher from "@/components/DropdownLanguageSwitcher";
+import ToggleLanguageSwitcher from "@/components/ToggleLanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
 import { useAuthUser } from "@/hooks/useAuthSession";
-import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdDirectionsCar, MdSearch } from "react-icons/md";
+import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdSearch } from "react-icons/md";
 import { NAVIGATION_ROUTES } from "@/utils/navigationUtils";
 import type { ComponentProps } from "@/types/components";
 
@@ -85,15 +85,6 @@ export default function Navbar({ className }: ComponentProps) {
                 <span className="text-sm font-medium whitespace-nowrap">{t('header.postAd')}</span>
               </Link>
               
-              {/* Listings - Larger style like Blocket */}
-              <Link 
-                href={NAVIGATION_ROUTES.SEARCH} 
-                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
-              >
-                <MdDirectionsCar className="h-5 w-5 mb-1 flex-shrink-0" />
-                <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('header.listings')}</span>
-              </Link>
-              
               {/* Messages - Larger style like Blocket */}
               <Link 
                 href={user ? "/dashboard/messages" : "/auth/signin"}
@@ -112,13 +103,13 @@ export default function Navbar({ className }: ComponentProps) {
                 <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('header.savedSearches')}</span>
               </Link>
               
-              {/* Advanced Search - Larger style like Blocket */}
+              {/* Search - Simplified */}
               <Link 
                 href={NAVIGATION_ROUTES.SEARCH}
                 className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
               >
                 <MdSearch className="h-5 w-5 mb-1 flex-shrink-0" />
-                <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('header.advancedSearch')}</span>
+                <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('search.search')}</span>
               </Link>
             </div>
             
@@ -226,7 +217,7 @@ export default function Navbar({ className }: ComponentProps) {
                     
                     {/* Language Switcher in user menu */}
                     <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-600">
-                      <DropdownLanguageSwitcher />
+                      <ToggleLanguageSwitcher />
                     </div>
                   </div>
                   
@@ -327,16 +318,8 @@ export default function Navbar({ className }: ComponentProps) {
               className="mobile-nav-link flex flex-col items-center px-3 py-3 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <MdDirectionsCar className="h-6 w-6 mb-1.5" />
-              <span className="text-xs text-center leading-tight font-medium">{t('header.listings')}</span>
-            </Link>
-            <Link 
-              href={NAVIGATION_ROUTES.SEARCH}
-              className="mobile-nav-link flex flex-col items-center px-3 py-3 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
               <MdSearch className="h-6 w-6 mb-1.5" />
-              <span className="text-xs text-center leading-tight font-medium">{t('header.advancedSearch')}</span>
+              <span className="text-xs text-center leading-tight font-medium">{t('search.search')}</span>
             </Link>
             <Link 
               href={user ? "/dashboard/messages" : "/auth/signin"}
@@ -409,7 +392,7 @@ export default function Navbar({ className }: ComponentProps) {
                 
                 {/* Language Switcher in mobile menu for logged-in users */}
                 <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-700">
-                  <DropdownLanguageSwitcher />
+                  <ToggleLanguageSwitcher />
                 </div>
                 
                 <button
