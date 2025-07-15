@@ -303,7 +303,6 @@ public class CarListingControllerTest {
             () -> carListingController.getFilteredListingsByParams(
                 null, // brandSlugs
                 null, // modelSlugs
-                null, // brand (legacy)
                 null, // minYear
                 null, // maxYear
                 null, // location
