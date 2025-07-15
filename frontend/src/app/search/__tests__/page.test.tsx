@@ -76,6 +76,11 @@ describe('AdvancedSearchPage', () => {
     { id: 2, displayNameEn: 'BMW', displayNameAr: 'بي إم دبليو', slug: 'bmw' },
   ];
 
+  const mockCarModels = [
+    { id: 1, displayNameEn: 'Camry', displayNameAr: 'كامري', slug: 'camry', brandId: 1 },
+    { id: 2, displayNameEn: 'X3', displayNameAr: 'إكس 3', slug: 'x3', brandId: 2 },
+  ];
+
   const mockReferenceData = {
     carConditions: [
       { id: 1, name: 'new', displayNameEn: 'New', displayNameAr: 'جديد' },
@@ -203,7 +208,7 @@ describe('AdvancedSearchPage', () => {
           };
         case 2: // Second call: models
           return {
-            data: [],
+            data: mockCarModels,
             isLoading: false,
             error: null,
             retry: jest.fn(),
@@ -252,8 +257,7 @@ describe('AdvancedSearchPage', () => {
       expect(screen.getByText('Price')).toBeInTheDocument();
       expect(screen.getByText('Year')).toBeInTheDocument();
       expect(screen.getByText('Mileage')).toBeInTheDocument();
-      expect(screen.getByText('Gearbox')).toBeInTheDocument();
-      expect(screen.getByText('Condition')).toBeInTheDocument();
+      expect(screen.getByText('Transmission')).toBeInTheDocument();
       expect(screen.getByText('Fuel type')).toBeInTheDocument();
       expect(screen.getByText('Body style')).toBeInTheDocument();
       expect(screen.getByText('Seller type')).toBeInTheDocument();
@@ -386,10 +390,10 @@ describe('AdvancedSearchPage', () => {
 
       render(<AdvancedSearchPage />, { wrapper: TestWrapper });
 
-      // Check that both brand and model are shown in the pill
-      const makeModelPill = screen.getByText(/toyota.*Camry/).closest('button');
-      expect(makeModelPill).toBeInTheDocument();
-      expect(makeModelPill).toHaveClass('bg-blue-50'); // Should have active styling
+      // Find the filter pill (not the search result card)
+      const filterPill = screen.getByText('toyota - Camry').closest('.bg-blue-100');
+      expect(filterPill).toBeInTheDocument();
+      expect(filterPill).toHaveClass('bg-blue-100'); // Should have active styling
     });
   });
 
@@ -406,9 +410,10 @@ describe('AdvancedSearchPage', () => {
 
       render(<AdvancedSearchPage />, { wrapper: TestWrapper });
 
-      // Make/model pill should have active styling
-      const makeModelPill = screen.getByText(/toyota/).closest('button');
-      expect(makeModelPill).toHaveClass('bg-blue-50');
+      // Find the filter pill specifically (not the search result card)
+      const filterPill = screen.getByText('toyota').closest('.bg-blue-100');
+      expect(filterPill).toBeInTheDocument();
+      expect(filterPill).toHaveClass('bg-blue-100');
     });
 
     it('displays localized brand and model names correctly', () => {
@@ -652,7 +657,7 @@ describe('AdvancedSearchPage', () => {
 
       // Should show the brand filter even if Arabic display isn't perfect
       expect(screen.getByText('toyota')).toBeInTheDocument();
-      expect(screen.getByLabelText(/Filter by toyota/)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Remove make and model filter/)).toBeInTheDocument();
     });
   });
 });

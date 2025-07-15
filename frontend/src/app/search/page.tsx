@@ -428,7 +428,6 @@ export default function AdvancedSearchPage() {
     }
   }, [filters.models, availableModels]); // Removed selectedModel from dependencies
 
-  // Fetch body style counts when body style modal is opened
   // Function to update URL when filters change
   // URLs use clean singular form (brand/model) for SEO and UX
   // Backend API expects plural form (brandSlugs/modelSlugs)
@@ -575,17 +574,6 @@ export default function AdvancedSearchPage() {
       return newFilters;
     });
   }, [updateUrlFromFilters]);
-
-  // Count active filters with memoization
-  // const activeFiltersCount = useMemo(() => {
-  //   // Count filters excluding locations (locations have their own clear button)
-  //   const filtersToCount = { ...filters };
-  //   delete filtersToCount.locations; // Don't count locations in main filter count
-  //   
-  //   return Object.values(filtersToCount).filter(value => 
-  //     value !== undefined && value !== null && value !== ''
-  //   ).length;
-  // }, [filters]);
 
   // Get filter display text - memoized to prevent re-renders
   const getFilterDisplayText = useCallback((filterType: FilterType): string => {

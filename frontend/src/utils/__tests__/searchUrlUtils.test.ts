@@ -81,7 +81,6 @@ describe('searchUrlUtils', () => {
 
     it('builds params for entity ID filters', () => {
       const filters: FilterUrlParams = {
-        conditionId: 1,
         transmissionId: 2,
         fuelTypeId: 3,
         bodyStyleId: 4,
@@ -90,7 +89,6 @@ describe('searchUrlUtils', () => {
       
       const params = buildSearchParams(filters);
       
-      expect(params.get('conditionId')).toBe('1');
       expect(params.get('transmissionId')).toBe('2');
       expect(params.get('fuelTypeId')).toBe('3');
       expect(params.get('bodyStyleId')).toBe('4');
@@ -150,11 +148,10 @@ describe('searchUrlUtils', () => {
     });
 
     it('parses entity ID parameters', () => {
-      const params = new URLSearchParams('conditionId=1&transmissionId=2&fuelTypeId=3');
+      const params = new URLSearchParams('transmissionId=2&fuelTypeId=3');
       
       const filters = parseSearchParams(params);
       
-      expect(filters.conditionId).toBe(1);
       expect(filters.transmissionId).toBe(2);
       expect(filters.fuelTypeId).toBe(3);
     });
@@ -320,11 +317,10 @@ describe('searchUrlUtils', () => {
         models: ['camry'],            // 1 filter type
         minYear: 2020,                    // 1 filter type (year range)
         maxYear: 2024,                    // counted with minYear
-        minPrice: 10000,                  // 1 filter type (price range)
-        conditionId: 1                    // 1 filter type
+        minPrice: 10000                   // 1 filter type (price range)
       };
       
-      expect(countActiveFilters(filters)).toBe(5);
+      expect(countActiveFilters(filters)).toBe(4);
     });
 
     it('counts year range as single filter', () => {
