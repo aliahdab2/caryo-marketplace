@@ -107,16 +107,7 @@ export default function AdvancedSearchPage() {
 
     return params;
   }, [
-    filters.brands, 
-    filters.models, 
-    filters.minYear, 
-    filters.maxYear, 
-    filters.minPrice, 
-    filters.maxPrice, 
-    filters.minMileage, 
-    filters.maxMileage, 
-    filters.location, 
-    filters.sellerTypeId
+    filters
   ]);
 
   // Car listings state using optimized filtering
@@ -268,7 +259,7 @@ export default function AdvancedSearchPage() {
 
     const initialFilters: AdvancedSearchFilters = {};
     
-    // Handle slug-based URL parameters (AutoTrader UK pattern)
+    // Handle URL parameters with clean singular form
     const brands = searchParams.getAll('brand');
     const models = searchParams.getAll('model');
     
@@ -278,20 +269,6 @@ export default function AdvancedSearchPage() {
     
     if (models.length > 0) {
       initialFilters.models = models;
-    }
-    
-    // Handle single slug parameters (clean URLs from HomeSearchBar)
-    const brandParam = searchParams.get('brand'); // Clean URL: ?brand=toyota
-    const modelParam = searchParams.get('model'); // Clean URL: ?model=camry
-    
-    if (brandParam && brands.length === 0) {
-      // Convert single brand slug to array for API
-      initialFilters.brands = [brandParam];
-    }
-    
-    if (modelParam && models.length === 0) {
-      // Convert single model slug to array for API
-      initialFilters.models = [modelParam];
     }
     
     // Handle location parameters
@@ -315,9 +292,9 @@ export default function AdvancedSearchPage() {
     setHasInitialized(true);
   }, [hasInitialized, searchParams]);
 
-  // Trigger search after filters are initialized from URL parameters
+  // Trigger search after filters are initialized - always search to show results
   useEffect(() => {
-    if (hasInitialized && (filters.brands?.length || filters.models?.length)) {
+    if (hasInitialized) {
       // Delay search slightly to ensure all state is updated
       const timeoutId = setTimeout(() => {
         executeSearch(false);
@@ -325,7 +302,7 @@ export default function AdvancedSearchPage() {
       
       return () => clearTimeout(timeoutId);
     }
-  }, [hasInitialized, filters.brands, filters.models, executeSearch]);
+  }, [hasInitialized, listingFilters, executeSearch]);
 
   // Convert brand slugs to selectedMake ID when carMakes loads
   useEffect(() => {
@@ -368,23 +345,25 @@ export default function AdvancedSearchPage() {
   }, [filters.models, availableModels]); // Removed selectedModel from dependencies
 
   // Function to update URL when filters change
+  // URLs use clean singular form (brand/model) for SEO and UX
+  // Backend API expects plural form (brandSlugs/modelSlugs)
   const updateUrlFromFilters = useCallback((newFilters: AdvancedSearchFilters) => {
     const params = new URLSearchParams();
     
     // Location first for SEO - local relevance is primary
     if (newFilters.location) params.append('location', newFilters.location);
     
-    // Add brand slugs
+    // Add brand slugs - use singular form for clean URLs
     if (newFilters.brands && newFilters.brands.length > 0) {
       newFilters.brands.forEach(brand => {
-        params.append('brands', brand);
+        params.append('brand', brand);
       });
     }
     
-    // Add model slugs
+    // Add model slugs - use singular form for clean URLs
     if (newFilters.models && newFilters.models.length > 0) {
       newFilters.models.forEach(model => {
-        params.append('models', model);
+        params.append('model', model);
       });
     }
     if (newFilters.minYear) params.append('minYear', newFilters.minYear.toString());

@@ -380,11 +380,11 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
   const queryParams = new URLSearchParams();
   
   if (filters) {
-    // Slug-based filtering
+    // Slug-based filtering - backend expects brandSlugs/modelSlugs parameters
     if (filters.brands && filters.brands.length > 0) {
       filters.brands.forEach(brandSlug => {
         if (brandSlug.trim()) { // Validate non-empty slugs
-          queryParams.append('brand', brandSlug);
+          queryParams.append('brandSlugs', brandSlug);
         }
       });
     }
@@ -392,7 +392,7 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
     if (filters.models && filters.models.length > 0) {
       filters.models.forEach(modelSlug => {
         if (modelSlug.trim()) { // Validate non-empty slugs
-          queryParams.append('model', modelSlug);
+          queryParams.append('modelSlugs', modelSlug);
         }
       });
     }
