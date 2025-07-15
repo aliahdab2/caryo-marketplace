@@ -354,7 +354,7 @@ export default function AdvancedSearchPage() {
       
       return () => clearTimeout(timeoutId);
     }
-  }, [hasInitialized, listingFilters, executeSearch, filters]);
+  }, [hasInitialized, listingFilters, executeSearch]);
 
   // Convert brand slugs to selectedMake ID when carMakes loads
   useEffect(() => {

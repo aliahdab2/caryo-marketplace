@@ -64,7 +64,7 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({ listing }) 
       aria-label={t('breadcrumbNavigation', { defaultValue: 'Breadcrumb navigation' })}
     >
       {breadcrumbs.map((breadcrumb, index) => (
-        <React.Fragment key={`breadcrumb-${index}`}>
+        <React.Fragment key={breadcrumb.href}>
           {index > 0 && (
             <svg 
               className={`flex-shrink-0 w-4 h-4 text-gray-400 ${isArabic ? 'rotate-180' : ''}`}
