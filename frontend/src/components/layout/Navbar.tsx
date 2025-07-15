@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
-import DropdownLanguageSwitcher from "@/components/DropdownLanguageSwitcher";
+import ToggleLanguageSwitcher from "@/components/ToggleLanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
 import { useAuthUser } from "@/hooks/useAuthSession";
 import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdDirectionsCar, MdSearch } from "react-icons/md";
@@ -226,7 +226,7 @@ export default function Navbar({ className }: ComponentProps) {
                     
                     {/* Language Switcher in user menu */}
                     <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-600">
-                      <DropdownLanguageSwitcher />
+                      <ToggleLanguageSwitcher />
                     </div>
                   </div>
                   
@@ -409,7 +409,7 @@ export default function Navbar({ className }: ComponentProps) {
                 
                 {/* Language Switcher in mobile menu for logged-in users */}
                 <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-700">
-                  <DropdownLanguageSwitcher />
+                  <ToggleLanguageSwitcher />
                 </div>
                 
                 <button
