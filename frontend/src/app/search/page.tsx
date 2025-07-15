@@ -314,13 +314,16 @@ export default function AdvancedSearchPage() {
       initialFilters.models = models;
     }
     
-    // Handle location parameters - support multiple locations
-    const locationParams = searchParams.getAll('location');
-    const locationsParams = searchParams.getAll('locations'); // Backward compatibility
-    if (locationParams.length > 0) {
+    // Handle location parameters - support comma-separated values
+    const locationParams = searchParams.getAll('location'); // Legacy support
+    const locationsParam = searchParams.get('locations'); // New format
+    
+    if (locationsParam) {
+      // Parse dash-separated locations (maximum SEO-friendly format)
+      initialFilters.locations = locationsParam.split('-').map(loc => loc.trim()).filter(loc => loc);
+    } else if (locationParams.length > 0) {
+      // Backward compatibility for old multiple location parameters
       initialFilters.locations = locationParams;
-    } else if (locationsParams.length > 0) {
-      initialFilters.locations = locationsParams;
     }
     
     // Other simple filters
@@ -402,9 +405,8 @@ export default function AdvancedSearchPage() {
     // Location first for SEO - local relevance is primary
     if (newFilters.locations && newFilters.locations.length > 0) {
       console.log('Adding locations to URL:', newFilters.locations);
-      newFilters.locations.forEach(location => {
-        params.append('location', location);
-      });
+      // Use dash-separated values for maximum SEO-friendliness (no encoding ever)
+      params.set('locations', newFilters.locations.join('-'));
     }
     
     // Add brand slugs - use singular form for clean URLs
