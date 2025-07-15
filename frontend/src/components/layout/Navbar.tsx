@@ -103,13 +103,13 @@ export default function Navbar({ className }: ComponentProps) {
                 <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('header.savedSearches')}</span>
               </Link>
               
-              {/* Advanced Search - Larger style like Blocket */}
+              {/* Search - Simplified */}
               <Link 
                 href={NAVIGATION_ROUTES.SEARCH}
                 className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
               >
                 <MdSearch className="h-5 w-5 mb-1 flex-shrink-0" />
-                <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('header.advancedSearch')}</span>
+                <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('search.search')}</span>
               </Link>
             </div>
             
@@ -319,7 +319,7 @@ export default function Navbar({ className }: ComponentProps) {
               onClick={() => setMobileMenuOpen(false)}
             >
               <MdSearch className="h-6 w-6 mb-1.5" />
-              <span className="text-xs text-center leading-tight font-medium">{t('header.advancedSearch')}</span>
+              <span className="text-xs text-center leading-tight font-medium">{t('search.search')}</span>
             </Link>
             <Link 
               href={user ? "/dashboard/messages" : "/auth/signin"}
