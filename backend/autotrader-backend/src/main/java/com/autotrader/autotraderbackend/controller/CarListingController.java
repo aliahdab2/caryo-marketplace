@@ -284,22 +284,18 @@ public class CarListingController {
     @GetMapping("/filter")
     @Operation(
         summary = "Filter car listings by query parameters (GET)",
-        description = "Returns a paginated list of car listings matching the provided filter criteria as query parameters. Supports both new slug-based filtering (brandSlugs, modelSlugs) and legacy hierarchical brand filtering. By default, only listings with approved=true, sold=false, and archived=false are returned unless explicitly overridden in the request. Each listing includes an array of its associated media items.",
+        description = "Returns a paginated list of car listings matching the provided filter criteria as query parameters. Supports slug-based filtering (brandSlugs, modelSlugs). By default, only listings with approved=true, sold=false, and archived=false are returned unless explicitly overridden in the request. Each listing includes an array of its associated media items.",
         responses = {
             @ApiResponse(responseCode = "200", description = "Filtered list of car listings, including media details", content = @Content(schema = @Schema(implementation = PageResponse.class)))
         }
     )
     public ResponseEntity<PageResponse<CarListingResponse>> getFilteredListingsByParams(
-            // NEW: Slug-based parameters (AutoTrader UK pattern)
+            // Slug-based parameters
             @Parameter(description = "Brand slugs (can be repeated for multiple brands)", example = "toyota") 
             @RequestParam(required = false) List<String> brandSlugs,
             
             @Parameter(description = "Model slugs (can be repeated for multiple models)", example = "camry") 
             @RequestParam(required = false) List<String> modelSlugs,
-            
-            // LEGACY: Keep for backward compatibility
-            @Parameter(description = "Brand filter. Supports hierarchical syntax: 'Toyota' (all Toyota), 'Toyota:Camry' (only Camry), 'Toyota:Camry;Corolla' (Camry and Corolla), 'Toyota:Camry,Honda' (Toyota Camry and all Honda)") 
-            @RequestParam(required = false) String brand,
             
             @Parameter(description = "Minimum year") @RequestParam(required = false) Integer minYear,
             @Parameter(description = "Maximum year") @RequestParam(required = false) Integer maxYear,
@@ -314,17 +310,14 @@ public class CarListingController {
             @Parameter(description = "Filter by seller type ID") @RequestParam(required = false) Long sellerTypeId,
             @PageableDefault(size = 10, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
         
-        log.info("Filtering listings: brandSlugs={}, modelSlugs={}, legacyBrand={}", 
-                 brandSlugs, modelSlugs, brand);
+        log.info("Filtering listings: brandSlugs={}, modelSlugs={}", 
+                 brandSlugs, modelSlugs);
         
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         
-        // Set slug-based filters (new approach)
+        // Set slug-based filters
         filterRequest.setBrandSlugs(brandSlugs);
         filterRequest.setModelSlugs(modelSlugs);
-        
-        // Set legacy brand filter for backward compatibility
-        // Legacy brand parameter is deprecated - use brandSlugs instead
         
         // Set existing filters (unchanged)
         filterRequest.setMinYear(minYear);

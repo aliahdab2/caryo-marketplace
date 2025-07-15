@@ -18,7 +18,7 @@ Last updated: July 14, 2025
 
 ## Overview
 
-The Caryo Marketplace API provides endpoints for managing car listings, user accounts, and reference data. The API follows REST principles and supports both modern slug-based filtering (AutoTrader UK pattern) and legacy hierarchical filtering for backward compatibility.
+The Caryo Marketplace API provides endpoints for managing car listings, user accounts, and reference data. The API follows REST principles and supports slug-based filtering for clean, SEO-friendly URLs.
 
 ### Base URLs
 - **Production**: `https://api.caryomarketplace.com`
@@ -342,13 +342,6 @@ Alternative filtering method using POST with request body.
   "sellerTypeId": 1
 }
 ```
-
-### Legacy Filtering (Deprecated)
-
-The API still supports legacy hierarchical brand filtering for backward compatibility, but slug-based filtering is recommended for new implementations.
-
-**Legacy Parameter:**
-- `brand`: Hierarchical syntax (e.g., `Toyota:Camry;Corolla` or `Toyota:Camry,Honda`)
 
 ## Admin Endpoints
 
