@@ -359,3 +359,5 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [Testing Plan](docs/testing_plan.md) - Testing approach and coverage goals
 - [Frontend Development Plan](docs/frontend_development_plan.md) - Detailed frontend implementation roadmap
 - [Translation Guide for Developers](docs/translation_guide_for_developers.md) - Internationalization best practices for bilingual support
+- [SEO-Friendly URLs Implementation](FRONTEND_SLUG_FILTERING_IMPLEMENTATION.md) - SEO URLs implementation and URL structure for car marketplace
+- [SEO Strategy & Implementation](docs/seo_strategy.md) - Comprehensive SEO strategy, current progress, and implementation roadmap

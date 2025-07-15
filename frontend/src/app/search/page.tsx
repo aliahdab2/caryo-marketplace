@@ -1026,11 +1026,6 @@ export default function AdvancedSearchPage() {
   LoadingSkeleton.displayName = 'LoadingSkeleton';
 
   const handleSearch = () => {
-    // Don't search if the search query is empty
-    if (!searchQuery.trim()) {
-      return;
-    }
-    
     setSearchLoading(true);
     
     // Close location dropdown if open
@@ -1055,62 +1050,94 @@ export default function AdvancedSearchPage() {
         {/* Compact Search Bar */}
         <div className="mb-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-            <div className="flex flex-col md:flex-row gap-3">
-              {/* Text Search Input with integrated search button */}
+            {/* Mobile-first layout */}
+            <div className="space-y-3 sm:space-y-0 sm:flex sm:flex-row sm:gap-3">
+              {/* Text Search Input */}
               <div className="flex-1">
-                <div className="relative">
+                <label htmlFor="car-search-input" className="sr-only">
+                  {t('search.searchLabel', 'Search for cars by make, model, or location')}
+                </label>
+                <div className="flex gap-2 sm:relative">
                   <input
+                    id="car-search-input"
                     type="text"
-                    placeholder={t('search.placeholder', 'Search for cars... (e.g. "Toyota Camry", "BMW X3", "تويوتا كامري")')}
+                    placeholder={t('search:placeholder', 'Search for cars... (e.g. "Toyota Camry", "BMW X3", "تويوتا كامري")')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
+                        e.preventDefault();
                         handleSearch();
                       }
                     }}
-                    className={`w-full py-2.5 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
-                      currentLanguage === 'ar' ? 'text-right dir-rtl pr-12 pl-3' : 'text-left pl-3 pr-12'
+                    className={`flex-1 sm:w-full py-2.5 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
+                      currentLanguage === 'ar' ? 'text-right dir-rtl sm:pr-20 pr-3 pl-3' : 'text-left pl-3 sm:pr-20 pr-3'
                     }`}
                     dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}
+                    aria-label={t('search.searchLabel', 'Search for cars by make, model, or location')}
+                    aria-describedby="search-help"
                   />
-                  {/* Search Button inside input - with margin */}
+                  
+                  {/* Search Button - separate on mobile, inside on desktop */}
                   <button
-                    onClick={handleSearch}
-                    className={`absolute top-1 bottom-1 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium flex items-center justify-center ${
-                      currentLanguage === 'ar' ? 'left-1 rounded-md' : 'right-1 rounded-md'
-                    }`}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleSearch();
+                    }}
+                    disabled={searchLoading}
+                    className={`
+                      px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed 
+                      text-white rounded text-sm font-medium flex items-center justify-center transition-colors 
+                      min-w-[80px] touch-manipulation
+                      sm:absolute sm:top-1 sm:bottom-1 sm:px-4 sm:text-xs sm:min-w-0
+                      ${currentLanguage === 'ar' ? 'sm:left-1 sm:rounded-md' : 'sm:right-1 sm:rounded-md'}
+                    `}
+                    aria-label={t('search.searchButton', 'Search for cars')}
                   >
                     {searchLoading ? (
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                      <>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                        <span className="sr-only">{t('search.searching', 'Searching...')}</span>
+                      </>
                     ) : (
-                      t('search.search', 'Search')
+                      <span className="whitespace-nowrap">{t('search.search', 'Search')}</span>
                     )}
                   </button>
+                  
+                  <div id="search-help" className="sr-only">
+                    {t('search.searchHelp', 'Enter car make, model, or location and press Enter or click Search button')}
+                  </div>
                   {/* Clear button when there's text */}
                   {searchQuery && (
                     <button
+                      type="button"
                       onClick={() => {
                         setSearchQuery('');
                         handleSearch();
                       }}
-                      className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 ${
+                      className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded p-1 ${
                         currentLanguage === 'ar' ? 'right-2' : 'left-2'
                       }`}
+                      aria-label={t('search.clearSearch', 'Clear search')}
                     >
-                      <MdClose className="h-4 w-4" />
+                      <MdClose className="h-4 w-4" aria-hidden="true" />
                     </button>
                   )}
                 </div>
               </div>
               
               {/* Multi-Location Filter */}
-              <div className="md:w-56 relative location-dropdown-container">
+              <div className="w-full sm:w-auto sm:min-w-[200px] md:w-56 relative location-dropdown-container">
                 <div className="relative">
                   <button
                     type="button"
                     onClick={() => setShowLocationDropdown(!showLocationDropdown)}
                     className="w-full px-3 py-2.5 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-left flex items-center justify-between"
+                    aria-label={t('search.locationFilterLabel', 'Filter by location')}
+                    aria-expanded={showLocationDropdown}
+                    aria-haspopup="listbox"
+                    id="location-filter-button"
                   >
                     <span>
                       {filters.locations && filters.locations.length > 0
@@ -1126,26 +1153,36 @@ export default function AdvancedSearchPage() {
                                 : selectedLocationSlug;
                             })()
                           : t('search.locationsSelected', { count: filters.locations.length })
-                        : t('search.allLocations', 'All Locations')
+                        : t('search:allLocations', 'All Governorates')
                       }
                     </span>
-                    <MdKeyboardArrowDown className={`h-4 w-4 transition-transform ${showLocationDropdown ? 'rotate-180' : ''}`} />
+                    <MdKeyboardArrowDown 
+                      className={`h-4 w-4 transition-transform ${showLocationDropdown ? 'rotate-180' : ''}`} 
+                      aria-hidden="true"
+                    />
                   </button>
                   
                   {/* Dropdown */}
                   {showLocationDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg z-50 max-h-72 flex flex-col">
+                    <div 
+                      className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg z-50 max-h-72 flex flex-col"
+                      role="listbox"
+                      aria-labelledby="location-filter-button"
+                    >
                       {/* Scrollable location list */}
-                      <div className="flex-1 overflow-y-auto p-1.5 max-h-56">
+                      <div className="flex-1 overflow-y-auto p-1.5 max-h-56" role="group" aria-label={t('search.locationOptions', 'Location options')}>
                         {/* Location Options */}
                         {locationDropdownOptions.map((gov) => {
                           const isSelected = filters.locations?.includes(gov.slug) || false;
                           const locationValue = gov.slug;
+                          const locationDisplayName = currentLanguage === 'ar' ? gov.displayNameAr : gov.displayNameEn;
                           
                           return (
                             <label
                               key={gov.id}
-                              className="flex items-center px-2.5 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 rounded cursor-pointer"
+                              className="flex items-center px-2.5 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 rounded cursor-pointer focus-within:ring-2 focus-within:ring-blue-500"
+                              role="option"
+                              aria-selected={isSelected}
                             >
                               <input
                                 type="checkbox"
@@ -1170,9 +1207,13 @@ export default function AdvancedSearchPage() {
                                   // Don't update URL or search immediately - wait for "Show" button
                                 }}
                                 className="mr-2.5 h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                aria-describedby={`location-${gov.id}-label`}
                               />
-                              <span className="text-sm">
-                                {currentLanguage === 'ar' ? gov.displayNameAr : gov.displayNameEn}
+                              <span 
+                                className="text-sm" 
+                                id={`location-${gov.id}-label`}
+                              >
+                                {locationDisplayName}
                               </span>
                             </label>
                           );
@@ -1209,10 +1250,7 @@ export default function AdvancedSearchPage() {
                           }}
                           className="flex-1 px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
                         >
-                          {filters.locations && filters.locations.length > 0 
-                            ? `${t('search.show', 'Show')} ${filters.locations.length} ${t('search.results', 'results')}`
-                            : t('search.showAll', 'Show all')
-                          }
+                          {t('search:show', 'Show')}
                         </button>
                       </div>
                     </div>

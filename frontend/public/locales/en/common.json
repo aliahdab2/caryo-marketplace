@@ -438,5 +438,14 @@
   "search.sellerType": "Seller type",
   "search.clearFilter": "Clear filter",
   "search.done": "Done",
-  "search.placeholder": "Search by make, model, or location..."
+  "search.searchLabel": "Search for cars by make, model, or governorate",
+  "search.searchHelp": "Enter car make, model, or governorate and press Enter or click Search button",
+  "search.locationFilterLabel": "Filter by governorate",
+  "search.locationsSelected_zero": "No governorates selected",
+  "search.locationsSelected_one": "1 governorate selected",
+  "search.locationsSelected_two": "2 governorates selected",
+  "search.locationsSelected_few": "{{count}} governorates selected",
+  "search.locationsSelected_many": "{{count}} governorates selected",
+  "search.locationsSelected_other": "{{count}} governorates selected",
+  "search.placeholder": "Search by make, model, or governorate..."
 }
