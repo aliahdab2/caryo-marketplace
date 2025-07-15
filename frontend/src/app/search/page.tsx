@@ -12,7 +12,6 @@ import {
   MdClose,
   MdDirectionsCar,
   MdFavoriteBorder,
-  MdSearch,
   MdKeyboardArrowDown
 } from 'react-icons/md';
 import { CarMake, CarModel } from '@/types/car';
@@ -1051,11 +1050,11 @@ export default function AdvancedSearchPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-6">
-        {/* Main Search Bar - Blocket Style */}
-        <div className="mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Text Search Input */}
+        {/* Compact Search Bar */}
+        <div className="mb-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+            <div className="flex flex-col md:flex-row gap-3">
+              {/* Text Search Input with integrated search button */}
               <div className="flex-1">
                 <div className="relative">
                   <input
@@ -1063,16 +1062,30 @@ export default function AdvancedSearchPage() {
                     placeholder={t('search.placeholder', 'Search for cars... (e.g. "Toyota Camry", "BMW X3", "تويوتا كامري")')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => {
+                    onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         handleSearch();
                       }
                     }}
-                    className={`w-full py-3 text-lg border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
-                      currentLanguage === 'ar' ? 'text-right dir-rtl pr-4 pl-12' : 'text-left pl-4 pr-12'
+                    className={`w-full py-2.5 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
+                      currentLanguage === 'ar' ? 'text-right dir-rtl pr-12 pl-3' : 'text-left pl-3 pr-12'
                     }`}
                     dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}
                   />
+                  {/* Search Button inside input - with margin */}
+                  <button
+                    onClick={handleSearch}
+                    className={`absolute top-1 bottom-1 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium flex items-center justify-center ${
+                      currentLanguage === 'ar' ? 'left-1 rounded-md' : 'right-1 rounded-md'
+                    }`}
+                  >
+                    {searchLoading ? (
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                    ) : (
+                      t('search.search', 'Search')
+                    )}
+                  </button>
+                  {/* Clear button when there's text */}
                   {searchQuery && (
                     <button
                       onClick={() => {
@@ -1080,22 +1093,22 @@ export default function AdvancedSearchPage() {
                         handleSearch();
                       }}
                       className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 ${
-                        currentLanguage === 'ar' ? 'left-3' : 'right-3'
+                        currentLanguage === 'ar' ? 'right-2' : 'left-2'
                       }`}
                     >
-                      <MdClose className="h-5 w-5" />
+                      <MdClose className="h-4 w-4" />
                     </button>
                   )}
                 </div>
               </div>
               
               {/* Multi-Location Filter */}
-              <div className="md:w-64 relative location-dropdown-container">
+              <div className="md:w-56 relative location-dropdown-container">
                 <div className="relative">
                   <button
                     type="button"
                     onClick={() => setShowLocationDropdown(!showLocationDropdown)}
-                    className="w-full px-4 py-3 text-lg border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-left flex items-center justify-between"
+                    className="w-full px-3 py-2.5 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-left flex items-center justify-between"
                   >
                     <span>
                       {filters.locations && filters.locations.length > 0
@@ -1114,14 +1127,14 @@ export default function AdvancedSearchPage() {
                         : t('search.allLocations', 'All Locations')
                       }
                     </span>
-                    <MdKeyboardArrowDown className={`h-5 w-5 transition-transform ${showLocationDropdown ? 'rotate-180' : ''}`} />
+                    <MdKeyboardArrowDown className={`h-4 w-4 transition-transform ${showLocationDropdown ? 'rotate-180' : ''}`} />
                   </button>
                   
                   {/* Dropdown */}
                   {showLocationDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-80 flex flex-col">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg z-50 max-h-72 flex flex-col">
                       {/* Scrollable location list */}
-                      <div className="flex-1 overflow-y-auto p-2 max-h-60">
+                      <div className="flex-1 overflow-y-auto p-1.5 max-h-56">
                         {/* Location Options */}
                         {locationDropdownOptions.map((gov) => {
                           const isSelected = filters.locations?.includes(gov.slug) || false;
@@ -1130,7 +1143,7 @@ export default function AdvancedSearchPage() {
                           return (
                             <label
                               key={gov.id}
-                              className="flex items-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded cursor-pointer"
+                              className="flex items-center px-2.5 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 rounded cursor-pointer"
                             >
                               <input
                                 type="checkbox"
@@ -1154,7 +1167,7 @@ export default function AdvancedSearchPage() {
                                   setFilters(updatedFilters);
                                   // Don't update URL or search immediately - wait for "Show" button
                                 }}
-                                className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                className="mr-2.5 h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                               />
                               <span className="text-sm">
                                 {currentLanguage === 'ar' ? gov.displayNameAr : gov.displayNameEn}
@@ -1164,15 +1177,15 @@ export default function AdvancedSearchPage() {
                         })}
                       </div>
                       
-                      {/* Bottom buttons - Blocket style */}
-                      <div className="border-t border-gray-200 dark:border-gray-600 p-3 flex gap-2">
+                      {/* Bottom buttons - Compact */}
+                      <div className="border-t border-gray-200 dark:border-gray-600 p-2 flex gap-1.5">
                         <button
                           onClick={() => {
                             const updatedFilters = { ...filters };
                             delete updatedFilters.locations;
                             setFilters(updatedFilters);
                           }}
-                          className="flex-1 px-4 py-2 text-sm text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
+                          className="flex-1 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
                         >
                           {t('search.clear', 'Clear')}
                         </button>
@@ -1192,7 +1205,7 @@ export default function AdvancedSearchPage() {
                             // Close the dropdown
                             setShowLocationDropdown(false);
                           }}
-                          className="flex-1 px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                          className="flex-1 px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
                         >
                           {filters.locations && filters.locations.length > 0 
                             ? `${t('search.show', 'Show')} ${filters.locations.length} ${t('search.results', 'results')}`
@@ -1204,26 +1217,6 @@ export default function AdvancedSearchPage() {
                   )}
                 </div>
               </div>
-              
-              {/* Search Button */}
-              <button
-                onClick={handleSearch}
-                disabled={!searchQuery.trim() || searchLoading}
-                className={`px-8 py-3 font-medium rounded-lg transition-colors duration-200 flex items-center justify-center ${
-                  !searchQuery.trim() || searchLoading
-                    ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
-              >
-                {searchLoading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <MdSearch className="mr-2 h-5 w-5" />
-                    {t('search.search', 'Search')}
-                  </>
-                )}
-              </button>
             </div>
             
           </div>
