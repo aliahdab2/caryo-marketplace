@@ -34,5 +34,16 @@
   "selectModel": "اختر الموديل",
   "selectGovernorate": "اختر المحافظة",
   "loadingError": "خطأ في تحميل خيارات التصفية. يرجى تحديث الصفحة.",
-  "errorTitle": "حدث خطأ ما"
+  "errorTitle": "حدث خطأ ما",
+  "placeholder": "ابحث عن السيارات...",
+  "locationsSelected_zero": "لم يتم اختيار أي محافظة",
+  "locationsSelected_one": "محافظة واحدة محددة",
+  "locationsSelected_two": "محافظتان محددتان", 
+  "locationsSelected_few": "{{count}} محافظات محددة",
+  "locationsSelected_many": "{{count}} محافظة محددة",
+  "locationsSelected_other": "{{count}} محافظة محددة",
+  "allLocations": "جميع المحافظات",
+  "clear": "مسح",
+  "show": "عرض",
+  "showAll": "عرض الكل"
 }

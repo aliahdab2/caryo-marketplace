@@ -314,6 +314,7 @@ public class CarListingControllerTest {
                 null, // isSold
                 null, // isArchived
                 null, // sellerTypeId
+                null, // searchQuery
                 pageable
             )
         );

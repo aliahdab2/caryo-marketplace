@@ -29,5 +29,18 @@
   "apply": "Apply",
   "selectBrand": "Select brand",
   "selectModel": "Select model",
-  "selectGovernorate": "Select governorate"
+  "selectGovernorate": "Select governorate",
+  "loadingError": "Error loading filter options. Please refresh the page.",
+  "errorTitle": "Something went wrong",
+  "placeholder": "Search for cars...",
+  "locationsSelected_zero": "No locations selected",
+  "locationsSelected_one": "1 location selected",
+  "locationsSelected_two": "2 locations selected",
+  "locationsSelected_few": "{{count}} locations selected",
+  "locationsSelected_many": "{{count}} locations selected",
+  "locationsSelected_other": "{{count}} locations selected",
+  "allLocations": "All Governorates",
+  "clear": "Clear",
+  "show": "Show",
+  "showAll": "Show All"
 }

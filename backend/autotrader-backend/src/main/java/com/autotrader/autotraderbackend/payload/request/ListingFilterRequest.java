@@ -9,6 +9,8 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,10 +47,11 @@ public class ListingFilterRequest {
 
 
     /**
-     * Filter by location slug (string). Optional.
-     * This is typically a human-readable identifier for the location (e.g., "new-york-ny").
+     * Filter by location slugs (list of strings). Optional.
+     * This is typically a list of human-readable identifiers for locations (e.g., ["damascus", "aleppo"]).
+     * Allows filtering by multiple locations simultaneously.
      */
-    private String location;
+    private List<String> locations;
 
     /**
      * Filter by location ID. Optional.
@@ -98,6 +101,13 @@ public class ListingFilterRequest {
      */
     @Schema(description = "Filter by seller type ID (e.g., 1 for dealer, 2 for private seller)", example = "1")
     private Long sellerTypeId;
+
+    /**
+     * Search query for filtering by title, description, or brand/model names.
+     * Supports both English and Arabic text search.
+     */
+    @Schema(description = "Search query for text-based search in title, description, brand, and model names", example = "Toyota Camry")
+    private String searchQuery;
 
     // Helper methods for slug-based filtering
     

@@ -141,10 +141,13 @@ export interface CarListingFilterParams {
   brands?: string[]; // Array of brand slugs: ["toyota", "honda", "bmw"]  
   models?: string[]; // Array of model slugs: ["camry", "civic", "x3"]
   
+  // Search query parameter
+  searchQuery?: string; // Text search in title, description, brand and model names (supports Arabic)
+  
   // Filter parameters
   minYear?: number;
   maxYear?: number;
-  location?: string;
+  locations?: string[]; // Multiple location slugs
   locationId?: number;
   minPrice?: number;
   maxPrice?: number;
@@ -376,6 +379,8 @@ export async function fetchGovernorates(): Promise<Governorate[]> {
  * Uses slug-based filtering for brands and models
  */
 export async function fetchCarListings(filters?: CarListingFilterParams): Promise<PageResponse<CarListing>> {
+  console.log('fetchCarListings called with filters:', filters);
+  
   // Build query parameters
   const queryParams = new URLSearchParams();
   
@@ -407,9 +412,20 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
     if (filters.minMileage && filters.minMileage >= 0) queryParams.append('minMileage', filters.minMileage.toString());
     if (filters.maxMileage && filters.maxMileage >= 0) queryParams.append('maxMileage', filters.maxMileage.toString());
     
-    // Location filters
-    if (filters.location) queryParams.append('location', filters.location);
+    // Location filters - support multiple locations
+    if (filters.locations && filters.locations.length > 0) {
+      filters.locations.forEach(location => {
+        if (location.trim()) { // Validate non-empty locations
+          queryParams.append('location', location);
+        }
+      });
+    }
     if (filters.locationId && filters.locationId > 0) queryParams.append('locationId', filters.locationId.toString());
+    
+    // Search query filter
+    if (filters.searchQuery && filters.searchQuery.trim()) {
+      queryParams.append('searchQuery', filters.searchQuery.trim());
+    }
     
     // Entity ID filters
     if (filters.conditionId && filters.conditionId > 0) queryParams.append('conditionId', filters.conditionId.toString());

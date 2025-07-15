@@ -108,7 +108,7 @@
   "listings.location": "الموقع",
   "listings.selectLocation": "اختر الموقع",
   "listings.viewDetails": "عرض التفاصيل",
-  "listings.allLocations": "كل المواقع",
+  "listings.allLocations": "كل المحافظات",
   "listings.governorate": "المحافظة",
   "listings.selectGovernorate": "اختر المحافظة",
   "listings.allGovernorates": "كل المحافظات",
@@ -455,5 +455,16 @@
   "search.clearFilter": "مسح الفلتر",
   "search.done": "تم",
   "search.noResultsFound": "لم يتم العثور على سيارات",
-  "search.tryDifferentFilters": "جرّب تعديل فلاتر البحث لرؤية المزيد من النتائج."
+  "search.tryDifferentFilters": "جرّب تعديل فلاتر البحث لرؤية المزيد من النتائج.",
+  "search.placeholder": "ابحث بالماركة أو الطراز أو الموقع...",
+  "search.locationsSelected_zero": "لم يتم اختيار أي محافظة",
+  "search.locationsSelected_one": "محافظة واحدة محددة",
+  "search.locationsSelected_two": "محافظتان محددتان",
+  "search.locationsSelected_few": "{{count}} محافظات محددة",
+  "search.locationsSelected_many": "{{count}} محافظة محددة",
+  "search.locationsSelected_other": "{{count}} محافظة محددة",
+  "search.clear": "مسح",
+  "search.show": "إظهار",
+  "search.showAll": "إظهار الكل",
+  "search.allLocations": "جميع المحافظات"
 }
