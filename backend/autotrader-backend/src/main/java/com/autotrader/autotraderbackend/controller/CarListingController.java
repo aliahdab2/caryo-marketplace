@@ -299,7 +299,8 @@ public class CarListingController {
             
             @Parameter(description = "Minimum year") @RequestParam(required = false) Integer minYear,
             @Parameter(description = "Maximum year") @RequestParam(required = false) Integer maxYear,
-            @Parameter(description = "Location (slug or name)") @RequestParam(required = false) String location,
+            @Parameter(description = "Location slugs (can be repeated for multiple locations)", example = "damascus") 
+            @RequestParam(required = false) List<String> location,
             @Parameter(description = "Location ID") @RequestParam(required = false) Long locationId,
             @Parameter(description = "Minimum price") @RequestParam(required = false) BigDecimal minPrice,
             @Parameter(description = "Maximum price") @RequestParam(required = false) BigDecimal maxPrice,
@@ -308,6 +309,7 @@ public class CarListingController {
             @Parameter(description = "Show sold listings") @RequestParam(required = false) Boolean isSold,
             @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
             @Parameter(description = "Filter by seller type ID") @RequestParam(required = false) Long sellerTypeId,
+            @Parameter(description = "Search query for text-based search (supports English and Arabic)") @RequestParam(required = false) String searchQuery,
             @PageableDefault(size = 10, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
         
         log.info("Filtering listings: brandSlugs={}, modelSlugs={}", 
@@ -322,7 +324,7 @@ public class CarListingController {
         // Set existing filters (unchanged)
         filterRequest.setMinYear(minYear);
         filterRequest.setMaxYear(maxYear);
-        filterRequest.setLocation(location);
+        filterRequest.setLocations(location);
         filterRequest.setLocationId(locationId);
         filterRequest.setMinPrice(minPrice);
         filterRequest.setMaxPrice(maxPrice);
@@ -331,6 +333,7 @@ public class CarListingController {
         filterRequest.setIsSold(isSold);
         filterRequest.setIsArchived(isArchived);
         filterRequest.setSellerTypeId(sellerTypeId);
+        filterRequest.setSearchQuery(searchQuery);
         
         // Validate input
         validateFilterRequest(filterRequest);

@@ -32,6 +32,18 @@ public class CarListingSpecification {
      * @throws IllegalArgumentException if filter parameters are invalid
      */
     public static Specification<CarListing> fromFilter(ListingFilterRequest filter, Governorate governorateEntity) {
+        return fromFilter(filter, governorateEntity != null ? List.of(governorateEntity) : null);
+    }
+
+    /**
+     * Creates a specification for filtering car listings based on the provided filter criteria with multiple governorates.
+     * 
+     * @param filter The filter request containing search criteria
+     * @param governorateEntities Optional list of governorate entities for location filtering
+     * @return Specification for filtering car listings
+     * @throws IllegalArgumentException if filter parameters are invalid
+     */
+    public static Specification<CarListing> fromFilter(ListingFilterRequest filter, List<Governorate> governorateEntities) {
         if (filter == null) {
             throw new IllegalArgumentException("Filter request cannot be null");
         }
@@ -51,9 +63,13 @@ public class CarListingSpecification {
             addMileageRangePredicates(filter, root, criteriaBuilder, predicates);
 
             // Add entity-based filters
-            addGovernorateFilter(governorateEntity, root, criteriaBuilder, predicates);
+            addGovernorateFilter(governorateEntities, root, criteriaBuilder, predicates);
             addStatusFilters(filter, root, criteriaBuilder, predicates);
             addSellerTypeFilter(filter, root, criteriaBuilder, predicates);
+            
+            
+            // Add text search filter
+            addSearchQueryFilter(filter, root, criteriaBuilder, predicates);
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
@@ -229,6 +245,27 @@ public class CarListingSpecification {
     }
 
     /**
+     * Adds governorate filtering predicate for multiple governorates.
+     */
+    private static void addGovernorateFilter(List<Governorate> governorateEntities,
+                                           jakarta.persistence.criteria.Root<CarListing> root,
+                                           jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
+                                           List<Predicate> predicates) {
+        if (governorateEntities != null && !governorateEntities.isEmpty()) {
+            if (governorateEntities.size() == 1) {
+                // Single governorate - use equality
+                predicates.add(criteriaBuilder.equal(root.get("governorate").get("id"), governorateEntities.get(0).getId()));
+            } else {
+                // Multiple governorates - use IN clause
+                List<Long> governorateIds = governorateEntities.stream()
+                    .map(Governorate::getId)
+                    .collect(java.util.stream.Collectors.toList());
+                predicates.add(root.get("governorate").get("id").in(governorateIds));
+            }
+        }
+    }
+
+    /**
      * Adds status filtering predicates (sold, archived).
      */
     private static void addStatusFilters(ListingFilterRequest filter,
@@ -290,5 +327,42 @@ public class CarListingSpecification {
      */
     public static Specification<CarListing> isUserActive() {
         return (root, query, criteriaBuilder) -> criteriaBuilder.isTrue(root.get("isUserActive"));
+    }
+
+    /**
+     * Adds text search filtering predicate.
+     * Searches in title, description, brand names (English and Arabic), and model names (English and Arabic).
+     */
+    private static void addSearchQueryFilter(ListingFilterRequest filter,
+                                           jakarta.persistence.criteria.Root<CarListing> root,
+                                           jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
+                                           List<Predicate> predicates) {
+        if (filter.getSearchQuery() != null && !filter.getSearchQuery().trim().isEmpty()) {
+            String searchTerm = "%" + filter.getSearchQuery().trim().toLowerCase() + "%";
+            
+            // Create predicates for searching in different fields
+            List<Predicate> searchPredicates = new ArrayList<>();
+            
+            // Search in listing title and description
+            searchPredicates.add(criteriaBuilder.like(
+                criteriaBuilder.lower(root.get("title")), searchTerm));
+            searchPredicates.add(criteriaBuilder.like(
+                criteriaBuilder.lower(root.get("description")), searchTerm));
+            
+            // Search in brand names (English and Arabic)
+            searchPredicates.add(criteriaBuilder.like(
+                criteriaBuilder.lower(root.get("brandNameEn")), searchTerm));
+            searchPredicates.add(criteriaBuilder.like(
+                criteriaBuilder.lower(root.get("brandNameAr")), searchTerm));
+            
+            // Search in model names (English and Arabic)
+            searchPredicates.add(criteriaBuilder.like(
+                criteriaBuilder.lower(root.get("modelNameEn")), searchTerm));
+            searchPredicates.add(criteriaBuilder.like(
+                criteriaBuilder.lower(root.get("modelNameAr")), searchTerm));
+            
+            // Combine all search predicates with OR (any field match is valid)
+            predicates.add(criteriaBuilder.or(searchPredicates.toArray(new Predicate[0])));
+        }
     }
 }

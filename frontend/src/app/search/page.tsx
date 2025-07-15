@@ -11,7 +11,9 @@ import {
   MdAdd,
   MdClose,
   MdDirectionsCar,
-  MdFavoriteBorder
+  MdFavoriteBorder,
+  MdSearch,
+  MdKeyboardArrowDown
 } from 'react-icons/md';
 import { CarMake, CarModel } from '@/types/car';
 import CarListingCard, { CarListingCardData } from '@/components/listings/CarListingCard';
@@ -42,8 +44,8 @@ interface AdvancedSearchFilters {
   minMileage?: number;
   maxMileage?: number;
   
-  // Location filters
-  location?: string;
+  // Location filters - support multiple locations
+  locations?: string[];
   
   // Entity ID filters (for dropdown selections)
   conditionId?: number;
@@ -58,7 +60,7 @@ interface AdvancedSearchFilters {
   cylinders?: number;
 }
 
-type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'condition' | 'fuelType' | 'bodyStyle' | 'location' | 'sellerType';
+type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'condition' | 'fuelType' | 'bodyStyle' | 'sellerType';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
@@ -79,6 +81,43 @@ export default function AdvancedSearchPage() {
   const [selectedMake, setSelectedMake] = useState<number | null>(null);
   const [selectedModel, setSelectedModel] = useState<number | null>(null);
   const [activeFilterModal, setActiveFilterModal] = useState<FilterType | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  
+  // Handle clicking outside the dropdown to close it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      const dropdown = document.querySelector('.location-dropdown-container');
+      
+      // Only close if clicking outside the entire dropdown container
+      // Don't close immediately to allow for checkbox interactions
+      if (dropdown && !dropdown.contains(target)) {
+        setShowLocationDropdown(false);
+      }
+    };
+
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowLocationDropdown(false);
+      }
+    };
+
+    if (showLocationDropdown) {
+      // Use a slight delay to register the click handler
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleEscapeKey);
+      }, 100);
+
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('keydown', handleEscapeKey);
+      };
+    }
+  }, [showLocationDropdown]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   // Memoize listing filters to prevent unnecessary re-creation
   const listingFilters = useMemo<CarListingFilterParams>(() => {
@@ -89,8 +128,9 @@ export default function AdvancedSearchPage() {
       maxPrice: filters.maxPrice,
       minMileage: filters.minMileage,
       maxMileage: filters.maxMileage,
-      location: filters.location,
+      locations: filters.locations,
       sellerTypeId: filters.sellerTypeId,
+      searchQuery: searchQuery.trim() || undefined, // Include search query
       size: 20, // Default page size
       page: 0, // Default to first page
       sort: 'createdAt,desc' // Default sort
@@ -107,7 +147,8 @@ export default function AdvancedSearchPage() {
 
     return params;
   }, [
-    filters
+    filters,
+    searchQuery
   ]);
 
   // Car listings state using optimized filtering
@@ -172,13 +213,23 @@ export default function AdvancedSearchPage() {
 
   const {
     data: governorates = [],
-    isLoading: isLoadingGovernorates,
+    isLoading: _isLoadingGovernorates,
     error: _governoratesError
   } = useApiData<Governorate[]>(
     fetchGovernorates,
     '/api/reference-data/governorates',
     [] // No dependencies needed - governorates don't change
   );
+
+  // Memoized location dropdown options
+  const locationDropdownOptions = useMemo(() => {
+    return governorates?.map(gov => ({
+      id: gov.id,
+      slug: gov.slug || gov.displayNameEn.toLowerCase().replace(/\s+/g, '-'),
+      displayNameEn: gov.displayNameEn,
+      displayNameAr: gov.displayNameAr
+    })) || [];
+  }, [governorates]);
 
   // Helper functions to get display names for reference data - memoized to prevent re-renders
   const getConditionDisplayName = useMemo(() => 
@@ -218,13 +269,6 @@ export default function AdvancedSearchPage() {
       }
       return '';
     }, [referenceData?.sellerTypes, currentLanguage]
-  );
-
-  const getLocationDisplayNameFromSlug = useMemo(() => 
-    (locationSlug: string): string => {
-      const governorate = governorates?.find(g => g.slug === locationSlug);
-      return governorate ? (currentLanguage === 'ar' ? governorate.displayNameAr : governorate.displayNameEn) : locationSlug;
-    }, [governorates, currentLanguage]
   );
 
   // Helper functions to convert slugs to display names
@@ -271,9 +315,14 @@ export default function AdvancedSearchPage() {
       initialFilters.models = models;
     }
     
-    // Handle location parameters
-    const location = searchParams.get('location');
-    if (location) initialFilters.location = location;
+    // Handle location parameters - support multiple locations
+    const locationParams = searchParams.getAll('location');
+    const locationsParams = searchParams.getAll('locations'); // Backward compatibility
+    if (locationParams.length > 0) {
+      initialFilters.locations = locationParams;
+    } else if (locationsParams.length > 0) {
+      initialFilters.locations = locationsParams;
+    }
     
     // Other simple filters
     const minYear = searchParams.get('minYear');
@@ -348,10 +397,16 @@ export default function AdvancedSearchPage() {
   // URLs use clean singular form (brand/model) for SEO and UX
   // Backend API expects plural form (brandSlugs/modelSlugs)
   const updateUrlFromFilters = useCallback((newFilters: AdvancedSearchFilters) => {
+    console.log('updateUrlFromFilters called with:', newFilters);
     const params = new URLSearchParams();
     
     // Location first for SEO - local relevance is primary
-    if (newFilters.location) params.append('location', newFilters.location);
+    if (newFilters.locations && newFilters.locations.length > 0) {
+      console.log('Adding locations to URL:', newFilters.locations);
+      newFilters.locations.forEach(location => {
+        params.append('location', location);
+      });
+    }
     
     // Add brand slugs - use singular form for clean URLs
     if (newFilters.brands && newFilters.brands.length > 0) {
@@ -399,14 +454,19 @@ export default function AdvancedSearchPage() {
     });
   }, [updateUrlFromFilters]);
 
-  // Clear all filters - simplified to prevent loops
+  // Clear all filters - simplified to prevent loops (excludes locations)
   const clearAllFilters = useCallback(() => {
-    const emptyFilters = {};
+    const emptyFilters: Partial<AdvancedSearchFilters> = {};
+    // Preserve locations when clearing other filters
+    if (filters.locations) {
+      emptyFilters.locations = filters.locations;
+    }
     setFilters(emptyFilters);
     setSelectedMake(null);
     setSelectedModel(null);
+    setSearchQuery('');
     updateUrlFromFilters(emptyFilters);
-  }, [updateUrlFromFilters]);
+  }, [updateUrlFromFilters, filters.locations]);
 
   // Clear filter - simplified to prevent loops  
   const clearSpecificFilter = useCallback((filterType: FilterType) => {
@@ -445,9 +505,6 @@ export default function AdvancedSearchPage() {
         case 'bodyStyle':
           delete newFilters.bodyStyleId;
           break;
-        case 'location':
-          delete newFilters.location;
-          break;
         case 'sellerType':
           delete newFilters.sellerTypeId;
           break;
@@ -461,12 +518,15 @@ export default function AdvancedSearchPage() {
   }, [updateUrlFromFilters]);
 
   // Count active filters with memoization
-  const activeFiltersCount = useMemo(() => 
-    Object.values(filters).filter(value => 
+  const activeFiltersCount = useMemo(() => {
+    // Count filters excluding locations (locations have their own clear button)
+    const filtersToCount = { ...filters };
+    delete filtersToCount.locations; // Don't count locations in main filter count
+    
+    return Object.values(filtersToCount).filter(value => 
       value !== undefined && value !== null && value !== ''
-    ).length,
-    [filters]
-  );
+    ).length;
+  }, [filters]);
 
   // Get filter display text - memoized to prevent re-renders
   const getFilterDisplayText = useCallback((filterType: FilterType): string => {
@@ -507,14 +567,12 @@ export default function AdvancedSearchPage() {
         return filters.fuelTypeId ? getFuelTypeDisplayName(filters.fuelTypeId) : t('search.fuelType', 'Fuel type');
       case 'bodyStyle':
         return filters.bodyStyleId ? getBodyStyleDisplayName(filters.bodyStyleId) : t('search.bodyStyle', 'Body style');
-      case 'location':
-        return filters.location ? getLocationDisplayNameFromSlug(filters.location) : t('search.location', 'Location');
       case 'sellerType':
         return filters.sellerTypeId ? getSellerTypeDisplayName(filters.sellerTypeId) : t('search.sellerType', 'Seller type');
       default:
         return '';
     }
-  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getConditionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getLocationDisplayNameFromSlug, getSellerTypeDisplayName]);
+  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getConditionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getSellerTypeDisplayName]);
 
   // Check if filter has active values - memoized to prevent re-renders
   const isFilterActive = useCallback((filterType: FilterType): boolean => {
@@ -538,8 +596,6 @@ export default function AdvancedSearchPage() {
         return !!filters.fuelTypeId;
       case 'bodyStyle':
         return !!filters.bodyStyleId;
-      case 'location':
-        return !!filters.location;
       case 'sellerType':
         return !!filters.sellerTypeId;
       default:
@@ -858,31 +914,6 @@ export default function AdvancedSearchPage() {
             </div>
           );
 
-        case 'location':
-          return (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.location', 'Location')}</h3>
-                <select
-                  value={filters.location || ''}
-                  onChange={(e) => {
-                    const location = e.target.value || undefined;
-                    handleInputChange('location', location);
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  disabled={isLoadingGovernorates}
-                >
-                  <option value="">{t('search.any', 'Any')}</option>
-                  {governorates?.map(governorate => (
-                    <option key={governorate.id} value={governorate.slug}>
-                      {currentLanguage === 'ar' ? governorate.displayNameAr : governorate.displayNameEn}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          );
-
         case 'sellerType':
           return (
             <div className="space-y-6">
@@ -993,14 +1024,215 @@ export default function AdvancedSearchPage() {
   ));
   LoadingSkeleton.displayName = 'LoadingSkeleton';
 
+  const handleSearch = () => {
+    // Don't search if the search query is empty
+    if (!searchQuery.trim()) {
+      return;
+    }
+    
+    setSearchLoading(true);
+    
+    // Close location dropdown if open
+    setShowLocationDropdown(false);
+    
+    // The URL is already updated by the filters, so just execute search
+    // The search query will be sent to the backend which will handle both English and Arabic text search
+    // No need to manually parse brands/models here - the backend will search in all relevant fields
+    
+    // Simply trigger a search with the current search query
+    // The listingFilters already includes the searchQuery, so executeSearch will use it
+    executeSearch(false);
+    
+    setTimeout(() => {
+      setSearchLoading(false);
+    }, 1000);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-6">
+        {/* Main Search Bar - Blocket Style */}
+        <div className="mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Text Search Input */}
+              <div className="flex-1">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder={t('search.placeholder', 'Search for cars... (e.g. "Toyota Camry", "BMW X3", "تويوتا كامري")')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSearch();
+                      }
+                    }}
+                    className={`w-full py-3 text-lg border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
+                      currentLanguage === 'ar' ? 'text-right dir-rtl pr-4 pl-12' : 'text-left pl-4 pr-12'
+                    }`}
+                    dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => {
+                        setSearchQuery('');
+                        handleSearch();
+                      }}
+                      className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 ${
+                        currentLanguage === 'ar' ? 'left-3' : 'right-3'
+                      }`}
+                    >
+                      <MdClose className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              {/* Multi-Location Filter */}
+              <div className="md:w-64 relative location-dropdown-container">
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+                    className="w-full px-4 py-3 text-lg border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-left flex items-center justify-between"
+                  >
+                    <span>
+                      {filters.locations && filters.locations.length > 0
+                        ? filters.locations.length === 1
+                          ? (() => {
+                              // Find the governorate that matches the selected location
+                              const selectedLocationSlug = filters.locations[0];
+                              const selectedGov = governorates?.find(gov => 
+                                (gov.slug || gov.displayNameEn.toLowerCase().replace(/\s+/g, '-')) === selectedLocationSlug
+                              );
+                              return selectedGov 
+                                ? (currentLanguage === 'ar' ? selectedGov.displayNameAr : selectedGov.displayNameEn)
+                                : selectedLocationSlug;
+                            })()
+                          : t('search.locationsSelected', { count: filters.locations.length })
+                        : t('search.allLocations', 'All Locations')
+                      }
+                    </span>
+                    <MdKeyboardArrowDown className={`h-5 w-5 transition-transform ${showLocationDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {/* Dropdown */}
+                  {showLocationDropdown && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-80 flex flex-col">
+                      {/* Scrollable location list */}
+                      <div className="flex-1 overflow-y-auto p-2 max-h-60">
+                        {/* Location Options */}
+                        {locationDropdownOptions.map((gov) => {
+                          const isSelected = filters.locations?.includes(gov.slug) || false;
+                          const locationValue = gov.slug;
+                          
+                          return (
+                            <label
+                              key={gov.id}
+                              className="flex items-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  const updatedFilters = { ...filters };
+                                  
+                                  if (e.target.checked) {
+                                    // Add location
+                                    updatedFilters.locations = [...(filters.locations || []), locationValue];
+                                    console.log('Added location:', locationValue, 'New locations:', updatedFilters.locations);
+                                  } else {
+                                    // Remove location
+                                    updatedFilters.locations = filters.locations?.filter(loc => loc !== locationValue) || [];
+                                    if (updatedFilters.locations.length === 0) {
+                                      delete updatedFilters.locations;
+                                    }
+                                    console.log('Removed location:', locationValue, 'New locations:', updatedFilters.locations);
+                                  }
+                                  
+                                  setFilters(updatedFilters);
+                                  // Don't update URL or search immediately - wait for "Show" button
+                                }}
+                                className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              />
+                              <span className="text-sm">
+                                {currentLanguage === 'ar' ? gov.displayNameAr : gov.displayNameEn}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Bottom buttons - Blocket style */}
+                      <div className="border-t border-gray-200 dark:border-gray-600 p-3 flex gap-2">
+                        <button
+                          onClick={() => {
+                            const updatedFilters = { ...filters };
+                            delete updatedFilters.locations;
+                            setFilters(updatedFilters);
+                          }}
+                          className="flex-1 px-4 py-2 text-sm text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
+                        >
+                          {t('search.clear', 'Clear')}
+                        </button>
+                        <button
+                          onClick={() => {
+                            console.log('Show button clicked, current filters:', filters);
+                            
+                            // Apply the current filter selections
+                            updateUrlFromFilters(filters);
+                            
+                            // Trigger search after a short delay to ensure URL is updated
+                            setTimeout(() => {
+                              console.log('Executing search after URL update');
+                              executeSearch(false);
+                            }, 100);
+                            
+                            // Close the dropdown
+                            setShowLocationDropdown(false);
+                          }}
+                          className="flex-1 px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                          {filters.locations && filters.locations.length > 0 
+                            ? `${t('search.show', 'Show')} ${filters.locations.length} ${t('search.results', 'results')}`
+                            : t('search.showAll', 'Show all')
+                          }
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Search Button */}
+              <button
+                onClick={handleSearch}
+                disabled={!searchQuery.trim() || searchLoading}
+                className={`px-8 py-3 font-medium rounded-lg transition-colors duration-200 flex items-center justify-center ${
+                  !searchQuery.trim() || searchLoading
+                    ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+              >
+                {searchLoading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                ) : (
+                  <>
+                    <MdSearch className="mr-2 h-5 w-5" />
+                    {t('search.search', 'Search')}
+                  </>
+                )}
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
         {/* Filter Pills Row - AutoTrader UK Style */}
         <div className="mb-6">
           <div className="flex flex-wrap gap-3 items-center">
             <FilterPill filterType="makeModel" onClick={() => setActiveFilterModal('makeModel')} />
-            <FilterPill filterType="location" onClick={() => setActiveFilterModal('location')} />
             <FilterPill filterType="price" onClick={() => setActiveFilterModal('price')} />
             <FilterPill filterType="year" onClick={() => setActiveFilterModal('year')} />
             <FilterPill filterType="mileage" onClick={() => setActiveFilterModal('mileage')} />

@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.repository.specification;
 
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +29,7 @@ class SlugBasedFilteringTest {
             filter.setBrandSlugs(Arrays.asList("toyota"));
             
             // When
-            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
             
             // Then
             assertThat(spec).isNotNull();
@@ -43,7 +44,7 @@ class SlugBasedFilteringTest {
             filter.setBrandSlugs(Arrays.asList("toyota", "honda", "bmw"));
             
             // When
-            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
             
             // Then
             assertThat(spec).isNotNull();
@@ -58,7 +59,7 @@ class SlugBasedFilteringTest {
             filter.setBrandSlugs(Collections.emptyList());
             
             // When
-            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
             
             // Then
             assertThat(spec).isNotNull();
@@ -73,7 +74,7 @@ class SlugBasedFilteringTest {
             filter.setBrandSlugs(Arrays.asList("  TOYOTA  ", "honda", "TOYOTA", "BMW ", null, ""));
             
             // When
-            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
             
             // Then
             assertThat(spec).isNotNull();
@@ -93,7 +94,7 @@ class SlugBasedFilteringTest {
             filter.setModelSlugs(Arrays.asList("camry"));
             
             // When
-            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
             
             // Then
             assertThat(spec).isNotNull();
@@ -108,7 +109,7 @@ class SlugBasedFilteringTest {
             filter.setModelSlugs(Arrays.asList("camry", "corolla", "civic", "accord"));
             
             // When
-            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
             
             // Then
             assertThat(spec).isNotNull();
@@ -123,7 +124,7 @@ class SlugBasedFilteringTest {
             filter.setModelSlugs(Arrays.asList("  CAMRY  ", "corolla", "CAMRY", "Civic ", null, ""));
             
             // When
-            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
             
             // Then
             assertThat(spec).isNotNull();
@@ -144,7 +145,7 @@ class SlugBasedFilteringTest {
             filter.setModelSlugs(Arrays.asList("camry", "civic"));
             
             // When
-            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
             
             // Then
             assertThat(spec).isNotNull();
@@ -162,7 +163,7 @@ class SlugBasedFilteringTest {
             filter.setModelSlugs(Arrays.asList("camry", "civic", "accord"));
             
             // When
-            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, null);
+            Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
             
             // Then
             assertThat(spec).isNotNull();
@@ -188,7 +189,7 @@ class SlugBasedFilteringTest {
             filter.setBrandSlugs(Arrays.asList(manyBrands));
             
             // When & Then
-            assertThatThrownBy(() -> CarListingSpecification.fromFilter(filter, null))
+            assertThatThrownBy(() -> CarListingSpecification.fromFilter(filter, (Governorate) null))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Too many brand slugs provided (max 50)");
         }
@@ -206,7 +207,7 @@ class SlugBasedFilteringTest {
             filter.setModelSlugs(Arrays.asList(manyModels));
             
             // When & Then
-            assertThatThrownBy(() -> CarListingSpecification.fromFilter(filter, null))
+            assertThatThrownBy(() -> CarListingSpecification.fromFilter(filter, (Governorate) null))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Too many model slugs provided (max 50)");
         }
