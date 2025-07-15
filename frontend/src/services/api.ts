@@ -138,8 +138,8 @@ export interface PageResponse<T> {
 
 export interface CarListingFilterParams {
   // Slug-based filtering (AutoTrader UK pattern)
-  brandSlugs?: string[]; // Array of brand slugs: ["toyota", "honda", "bmw"]  
-  modelSlugs?: string[]; // Array of model slugs: ["camry", "civic", "x3"]
+  brands?: string[]; // Array of brand slugs: ["toyota", "honda", "bmw"]  
+  models?: string[]; // Array of model slugs: ["camry", "civic", "x3"]
   
   // Filter parameters
   minYear?: number;
@@ -381,18 +381,18 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
   
   if (filters) {
     // Slug-based filtering
-    if (filters.brandSlugs && filters.brandSlugs.length > 0) {
-      filters.brandSlugs.forEach(brandSlug => {
+    if (filters.brands && filters.brands.length > 0) {
+      filters.brands.forEach(brandSlug => {
         if (brandSlug.trim()) { // Validate non-empty slugs
-          queryParams.append('brandSlugs', brandSlug);
+          queryParams.append('brand', brandSlug);
         }
       });
     }
     
-    if (filters.modelSlugs && filters.modelSlugs.length > 0) {
-      filters.modelSlugs.forEach(modelSlug => {
+    if (filters.models && filters.models.length > 0) {
+      filters.models.forEach(modelSlug => {
         if (modelSlug.trim()) { // Validate non-empty slugs
-          queryParams.append('modelSlugs', modelSlug);
+          queryParams.append('model', modelSlug);
         }
       });
     }

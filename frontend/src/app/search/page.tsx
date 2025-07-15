@@ -31,8 +31,8 @@ import { useApiData } from '@/hooks/useApiData';
 
 interface AdvancedSearchFilters {
   // Slug-based filters (AutoTrader UK pattern)
-  brandSlugs?: string[];
-  modelSlugs?: string[];
+  brands?: string[];
+  models?: string[];
   
   // Basic filters
   minYear?: number;
@@ -44,7 +44,6 @@ interface AdvancedSearchFilters {
   
   // Location filters
   location?: string;
-  locationId?: number;
   
   // Entity ID filters (for dropdown selections)
   conditionId?: number;
@@ -91,7 +90,6 @@ export default function AdvancedSearchPage() {
       minMileage: filters.minMileage,
       maxMileage: filters.maxMileage,
       location: filters.location,
-      locationId: filters.locationId,
       sellerTypeId: filters.sellerTypeId,
       size: 20, // Default page size
       page: 0, // Default to first page
@@ -99,18 +97,18 @@ export default function AdvancedSearchPage() {
     };
 
     // Slug-based filtering
-    if (filters.brandSlugs && filters.brandSlugs.length > 0) {
-      params.brandSlugs = filters.brandSlugs;
+    if (filters.brands && filters.brands.length > 0) {
+      params.brands = filters.brands;
     }
     
-    if (filters.modelSlugs && filters.modelSlugs.length > 0) {
-      params.modelSlugs = filters.modelSlugs;
+    if (filters.models && filters.models.length > 0) {
+      params.models = filters.models;
     }
 
     return params;
   }, [
-    filters.brandSlugs, 
-    filters.modelSlugs, 
+    filters.brands, 
+    filters.models, 
     filters.minYear, 
     filters.maxYear, 
     filters.minPrice, 
@@ -118,7 +116,6 @@ export default function AdvancedSearchPage() {
     filters.minMileage, 
     filters.maxMileage, 
     filters.location, 
-    filters.locationId, 
     filters.sellerTypeId
   ]);
 
@@ -232,10 +229,10 @@ export default function AdvancedSearchPage() {
     }, [referenceData?.sellerTypes, currentLanguage]
   );
 
-  const getLocationDisplayName = useMemo(() => 
-    (locationId: number): string => {
-      const governorate = governorates?.find(g => g.id === locationId);
-      return governorate ? (currentLanguage === 'ar' ? governorate.displayNameAr : governorate.displayNameEn) : '';
+  const getLocationDisplayNameFromSlug = useMemo(() => 
+    (locationSlug: string): string => {
+      const governorate = governorates?.find(g => g.slug === locationSlug);
+      return governorate ? (currentLanguage === 'ar' ? governorate.displayNameAr : governorate.displayNameEn) : locationSlug;
     }, [governorates, currentLanguage]
   );
 
@@ -272,37 +269,34 @@ export default function AdvancedSearchPage() {
     const initialFilters: AdvancedSearchFilters = {};
     
     // Handle slug-based URL parameters (AutoTrader UK pattern)
-    const brandSlugs = searchParams.getAll('brandSlugs');
-    const modelSlugs = searchParams.getAll('modelSlugs');
+    const brands = searchParams.getAll('brand');
+    const models = searchParams.getAll('model');
     
-    if (brandSlugs.length > 0) {
-      initialFilters.brandSlugs = brandSlugs;
+    if (brands.length > 0) {
+      initialFilters.brands = brands;
     }
     
-    if (modelSlugs.length > 0) {
-      initialFilters.modelSlugs = modelSlugs;
+    if (models.length > 0) {
+      initialFilters.models = models;
     }
     
     // Handle single slug parameters (clean URLs from HomeSearchBar)
     const brandParam = searchParams.get('brand'); // Clean URL: ?brand=toyota
     const modelParam = searchParams.get('model'); // Clean URL: ?model=camry
     
-    if (brandParam && brandSlugs.length === 0) {
+    if (brandParam && brands.length === 0) {
       // Convert single brand slug to array for API
-      initialFilters.brandSlugs = [brandParam];
+      initialFilters.brands = [brandParam];
     }
     
-    if (modelParam && modelSlugs.length === 0) {
+    if (modelParam && models.length === 0) {
       // Convert single model slug to array for API
-      initialFilters.modelSlugs = [modelParam];
+      initialFilters.models = [modelParam];
     }
     
     // Handle location parameters
     const location = searchParams.get('location');
     if (location) initialFilters.location = location;
-    
-    const locationId = searchParams.get('locationId');
-    if (locationId) initialFilters.locationId = parseInt(locationId);
     
     // Other simple filters
     const minYear = searchParams.get('minYear');
@@ -323,7 +317,7 @@ export default function AdvancedSearchPage() {
 
   // Trigger search after filters are initialized from URL parameters
   useEffect(() => {
-    if (hasInitialized && (filters.brandSlugs?.length || filters.modelSlugs?.length)) {
+    if (hasInitialized && (filters.brands?.length || filters.models?.length)) {
       // Delay search slightly to ensure all state is updated
       const timeoutId = setTimeout(() => {
         executeSearch(false);
@@ -331,12 +325,12 @@ export default function AdvancedSearchPage() {
       
       return () => clearTimeout(timeoutId);
     }
-  }, [hasInitialized, filters.brandSlugs, filters.modelSlugs, executeSearch]);
+  }, [hasInitialized, filters.brands, filters.models, executeSearch]);
 
   // Convert brand slugs to selectedMake ID when carMakes loads
   useEffect(() => {
-    if (filters.brandSlugs && filters.brandSlugs.length > 0 && carMakes && carMakes.length > 0) {
-      const firstBrandSlug = filters.brandSlugs[0];
+    if (filters.brands && filters.brands.length > 0 && carMakes && carMakes.length > 0) {
+      const firstBrandSlug = filters.brands[0];
       const brand = carMakes.find(make => make.slug === firstBrandSlug);
       if (brand) {
         setSelectedMake(prevSelectedMake => {
@@ -344,19 +338,19 @@ export default function AdvancedSearchPage() {
           return prevSelectedMake !== brand.id ? brand.id : prevSelectedMake;
         });
       }
-    } else if (!filters.brandSlugs?.length) {
+    } else if (!filters.brands?.length) {
       // Clear selection when no brand filters
       setSelectedMake(prevSelectedMake => {
         // Only update if there was a previous selection
         return prevSelectedMake !== null ? null : prevSelectedMake;
       });
     }
-  }, [filters.brandSlugs, carMakes]); // Removed selectedMake from dependencies
+  }, [filters.brands, carMakes]); // Removed selectedMake from dependencies
 
   // Convert model slugs to selectedModel ID when availableModels loads
   useEffect(() => {
-    if (filters.modelSlugs && filters.modelSlugs.length > 0 && availableModels && availableModels.length > 0) {
-      const firstModelSlug = filters.modelSlugs[0];
+    if (filters.models && filters.models.length > 0 && availableModels && availableModels.length > 0) {
+      const firstModelSlug = filters.models[0];
       const model = availableModels.find(m => m.slug === firstModelSlug);
       if (model) {
         setSelectedModel(prevSelectedModel => {
@@ -364,36 +358,35 @@ export default function AdvancedSearchPage() {
           return prevSelectedModel !== model.id ? model.id : prevSelectedModel;
         });
       }
-    } else if (!filters.modelSlugs?.length) {
+    } else if (!filters.models?.length) {
       // Clear selection when no model filters
       setSelectedModel(prevSelectedModel => {
         // Only update if there was a previous selection
         return prevSelectedModel !== null ? null : prevSelectedModel;
       });
     }
-  }, [filters.modelSlugs, availableModels]); // Removed selectedModel from dependencies
+  }, [filters.models, availableModels]); // Removed selectedModel from dependencies
 
   // Function to update URL when filters change
   const updateUrlFromFilters = useCallback((newFilters: AdvancedSearchFilters) => {
     const params = new URLSearchParams();
     
+    // Location first for SEO - local relevance is primary
+    if (newFilters.location) params.append('location', newFilters.location);
+    
     // Add brand slugs
-    if (newFilters.brandSlugs && newFilters.brandSlugs.length > 0) {
-      newFilters.brandSlugs.forEach(brandSlug => {
-        params.append('brandSlugs', brandSlug);
+    if (newFilters.brands && newFilters.brands.length > 0) {
+      newFilters.brands.forEach(brand => {
+        params.append('brands', brand);
       });
     }
     
     // Add model slugs
-    if (newFilters.modelSlugs && newFilters.modelSlugs.length > 0) {
-      newFilters.modelSlugs.forEach(modelSlug => {
-        params.append('modelSlugs', modelSlug);
+    if (newFilters.models && newFilters.models.length > 0) {
+      newFilters.models.forEach(model => {
+        params.append('models', model);
       });
     }
-    
-    // Add other filters
-    if (newFilters.location) params.append('location', newFilters.location);
-    if (newFilters.locationId) params.append('locationId', newFilters.locationId.toString());
     if (newFilters.minYear) params.append('minYear', newFilters.minYear.toString());
     if (newFilters.maxYear) params.append('maxYear', newFilters.maxYear.toString());
     if (newFilters.minPrice) params.append('minPrice', newFilters.minPrice.toString());
@@ -444,8 +437,8 @@ export default function AdvancedSearchPage() {
       switch (filterType) {
         case 'makeModel':
           // Clear slug-based filters only
-          delete newFilters.brandSlugs;
-          delete newFilters.modelSlugs;
+          delete newFilters.brands;
+          delete newFilters.models;
           setSelectedMake(null);
           setSelectedModel(null);
           break;
@@ -475,7 +468,6 @@ export default function AdvancedSearchPage() {
           break;
         case 'location':
           delete newFilters.location;
-          delete newFilters.locationId;
           break;
         case 'sellerType':
           delete newFilters.sellerTypeId;
@@ -502,12 +494,12 @@ export default function AdvancedSearchPage() {
     switch (filterType) {
       case 'makeModel':
         // Display slug-based selections with proper localized names
-        if (filters.brandSlugs && filters.brandSlugs.length > 0) {
-          const brandNames = filters.brandSlugs.map(slug => getBrandDisplayNameFromSlug(slug));
+        if (filters.brands && filters.brands.length > 0) {
+          const brandNames = filters.brands.map(slug => getBrandDisplayNameFromSlug(slug));
           let display = brandNames.join(', ');
           
-          if (filters.modelSlugs && filters.modelSlugs.length > 0) {
-            const modelNames = filters.modelSlugs.map(slug => getModelDisplayNameFromSlug(slug));
+          if (filters.models && filters.models.length > 0) {
+            const modelNames = filters.models.map(slug => getModelDisplayNameFromSlug(slug));
             display += ` - ${modelNames.join(', ')}`;
           }
           return display;
@@ -537,21 +529,21 @@ export default function AdvancedSearchPage() {
       case 'bodyStyle':
         return filters.bodyStyleId ? getBodyStyleDisplayName(filters.bodyStyleId) : t('search.bodyStyle', 'Body style');
       case 'location':
-        return filters.locationId ? getLocationDisplayName(filters.locationId) : t('search.location', 'Location');
+        return filters.location ? getLocationDisplayNameFromSlug(filters.location) : t('search.location', 'Location');
       case 'sellerType':
         return filters.sellerTypeId ? getSellerTypeDisplayName(filters.sellerTypeId) : t('search.sellerType', 'Seller type');
       default:
         return '';
     }
-  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getConditionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getLocationDisplayName, getSellerTypeDisplayName]);
+  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getConditionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getLocationDisplayNameFromSlug, getSellerTypeDisplayName]);
 
   // Check if filter has active values - memoized to prevent re-renders
   const isFilterActive = useCallback((filterType: FilterType): boolean => {
     switch (filterType) {
       case 'makeModel':
         return !!(
-          (filters.brandSlugs && filters.brandSlugs.length > 0) ||
-          (filters.modelSlugs && filters.modelSlugs.length > 0)
+          (filters.brands && filters.brands.length > 0) ||
+          (filters.models && filters.models.length > 0)
         );
       case 'price':
         return !!(filters.minPrice || filters.maxPrice);
@@ -568,7 +560,7 @@ export default function AdvancedSearchPage() {
       case 'bodyStyle':
         return !!filters.bodyStyleId;
       case 'location':
-        return !!filters.locationId;
+        return !!filters.location;
       case 'sellerType':
         return !!filters.sellerTypeId;
       default:
@@ -623,8 +615,8 @@ export default function AdvancedSearchPage() {
                         if (brand) {
                           const newFilters = {
                             ...filters,
-                            brandSlugs: [brand.slug],
-                            modelSlugs: []
+                            brands: [brand.slug],
+                            models: []
                           };
                           setFilters(newFilters);
                           // Use requestAnimationFrame for better performance
@@ -633,8 +625,8 @@ export default function AdvancedSearchPage() {
                       } else {
                         const newFilters = {
                           ...filters,
-                          brandSlugs: [],
-                          modelSlugs: []
+                          brands: [],
+                          models: []
                         };
                         setFilters(newFilters);
                         requestAnimationFrame(() => updateUrlFromFilters(newFilters));
@@ -670,7 +662,7 @@ export default function AdvancedSearchPage() {
                         if (model) {
                           const newFilters = {
                             ...filters,
-                            modelSlugs: [model.slug]
+                            models: [model.slug]
                           };
                           setFilters(newFilters);
                           // Use requestAnimationFrame for better performance
@@ -679,7 +671,7 @@ export default function AdvancedSearchPage() {
                       } else {
                         const newFilters = {
                           ...filters,
-                          modelSlugs: []
+                          models: []
                         };
                         setFilters(newFilters);
                         requestAnimationFrame(() => updateUrlFromFilters(newFilters));
@@ -893,20 +885,17 @@ export default function AdvancedSearchPage() {
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.location', 'Location')}</h3>
                 <select
-                  value={filters.locationId || ''}
+                  value={filters.location || ''}
                   onChange={(e) => {
-                    const locationId = e.target.value ? parseInt(e.target.value) : undefined;
-                    const selectedGovernorate = governorates?.find(gov => gov.id === locationId);
-                    handleInputChange('locationId', locationId);
-                    // Send the slug to the backend for location filtering (backend searches by slug)
-                    handleInputChange('location', selectedGovernorate?.slug || undefined);
+                    const location = e.target.value || undefined;
+                    handleInputChange('location', location);
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={isLoadingGovernorates}
                 >
                   <option value="">{t('search.any', 'Any')}</option>
                   {governorates?.map(governorate => (
-                    <option key={governorate.id} value={governorate.id}>
+                    <option key={governorate.id} value={governorate.slug}>
                       {currentLanguage === 'ar' ? governorate.displayNameAr : governorate.displayNameEn}
                     </option>
                   ))}

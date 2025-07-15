@@ -273,7 +273,7 @@ describe('AdvancedSearchPage', () => {
   });
 
   describe('URL Parameter Initialization', () => {
-    it('initializes filters from brandSlugs URL parameter', () => {
+    it('initializes filters from brands URL parameter', () => {
       const mockSearchParams = {
         get: jest.fn((key) => {
           if (key === 'brand') return null;
@@ -281,8 +281,8 @@ describe('AdvancedSearchPage', () => {
           return null;
         }),
         getAll: jest.fn((key) => {
-          if (key === 'brandSlugs') return ['toyota'];
-          if (key === 'modelSlugs') return [];
+          if (key === 'brand') return ['toyota'];
+          if (key === 'model') return [];
           return [];
         }),
       };
@@ -306,8 +306,8 @@ describe('AdvancedSearchPage', () => {
           return null;
         }),
         getAll: jest.fn((key) => {
-          if (key === 'brandSlugs') return [];
-          if (key === 'modelSlugs') return [];
+          if (key === 'brand') return [];
+          if (key === 'model') return [];
           return [];
         }),
       };
@@ -377,8 +377,8 @@ describe('AdvancedSearchPage', () => {
       const mockSearchParams = {
         get: jest.fn(() => null),
         getAll: jest.fn((key) => {
-          if (key === 'brandSlugs') return ['toyota'];
-          if (key === 'modelSlugs') return ['camry'];
+          if (key === 'brand') return ['toyota'];
+          if (key === 'model') return ['camry'];
           return [];
         }),
       };
@@ -398,7 +398,7 @@ describe('AdvancedSearchPage', () => {
       const mockSearchParams = {
         get: jest.fn(() => null),
         getAll: jest.fn((key) => {
-          if (key === 'brandSlugs') return ['toyota'];
+          if (key === 'brand') return ['toyota'];
           return [];
         }),
       };
@@ -415,8 +415,8 @@ describe('AdvancedSearchPage', () => {
       const mockSearchParams = {
         get: jest.fn(() => null),
         getAll: jest.fn((key) => {
-          if (key === 'brandSlugs') return ['toyota'];
-          if (key === 'modelSlugs') return ['camry'];
+          if (key === 'brand') return ['toyota'];
+          if (key === 'model') return ['camry'];
           return [];
         }),
       };
@@ -434,7 +434,7 @@ describe('AdvancedSearchPage', () => {
       const mockSearchParams = {
         get: jest.fn(() => null),
         getAll: jest.fn((key) => {
-          if (key === 'brandSlugs') return ['unknown-brand'];
+          if (key === 'brand') return ['unknown-brand'];
           return [];
         }),
       };
@@ -534,7 +534,7 @@ describe('AdvancedSearchPage', () => {
       const mockSearchParams = {
         get: jest.fn(() => null),
         getAll: jest.fn((key) => {
-          if (key === 'brandSlugs') return ['toyota'];
+          if (key === 'brand') return ['toyota'];
           return [];
         }),
       };
@@ -642,7 +642,7 @@ describe('AdvancedSearchPage', () => {
       const mockSearchParams = {
         get: jest.fn(() => null),
         getAll: jest.fn((key) => {
-          if (key === 'brandSlugs') return ['toyota'];
+          if (key === 'brand') return ['toyota'];
           return [];
         }),
       };

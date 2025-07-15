@@ -109,7 +109,7 @@ const HomeSearchBar: React.FC = () => {
   // Form selections with reset capabilities
   const [selectedMake, setSelectedMake] = useFormSelection<number | null>(null, []);
   const [selectedModel, setSelectedModel] = useState<number | null>(null);
-  const [selectedGovernorate, setSelectedGovernorate] = useState<string>('');
+  const [selectedGovernorateSlug, setSelectedGovernorateSlug] = useState<string>('');
   
   // Reset model when make changes
   useEffect(() => {
@@ -175,12 +175,17 @@ const HomeSearchBar: React.FC = () => {
     
     const params = new URLSearchParams();
     
+    // Location first for SEO - local relevance is primary
+    if (selectedGovernorateSlug) {
+      params.append('location', selectedGovernorateSlug);
+    }
+    
     // NEW: AutoTrader UK style slug-based URLs
     // Add brand slugs if selected
     if (selectedMake !== null) {
       const selectedBrand = carMakes?.find(make => make.id === selectedMake);
       if (selectedBrand && selectedBrand.slug) {
-        params.append('brandSlugs', selectedBrand.slug); // Multiple brand support: ?brandSlugs=toyota&brandSlugs=honda
+        params.append('brand', selectedBrand.slug); // Multiple brand support: ?brand=toyota&brand=honda
       }
     }
     
@@ -188,27 +193,17 @@ const HomeSearchBar: React.FC = () => {
     if (selectedModel !== null) {
       const selectedCarModel = availableModels?.find(model => model.id === selectedModel);
       if (selectedCarModel && selectedCarModel.slug) {
-        params.append('modelSlugs', selectedCarModel.slug); // Multiple model support: ?modelSlugs=camry&modelSlugs=corolla
+        params.append('model', selectedCarModel.slug); // Multiple model support: ?model=camry&model=corolla
       }
     }
     
-    // Build location parameters
-    if (selectedGovernorate) {
-      const selectedGov = governorates?.find(gov => gov.displayNameEn === selectedGovernorate);
-      if (selectedGov) {
-        // Send the slug to the backend for location filtering (backend searches by slug)
-        if (selectedGov.slug) {
-          params.append('location', selectedGov.slug);
-        }
-        params.append('locationId', selectedGov.id.toString());
-      }
-    }
+    // Build location parameters - removed as location is now handled above
 
     // Use replace instead of push to avoid history stacking on quick searches
     const queryString = params.toString();
     const url = queryString ? `/search?${queryString}` : '/search';
     router.push(url, { scroll: false });
-  }, [selectedMake, selectedModel, selectedGovernorate, carMakes, availableModels, governorates, router]);
+  }, [selectedMake, selectedModel, selectedGovernorateSlug, carMakes, availableModels, router]);
 
   // Create a debounced search function
   const debouncedSearch = useMemo(() => debounce(handleSearch, 500), [handleSearch]);
@@ -305,15 +300,15 @@ const HomeSearchBar: React.FC = () => {
                 <select
                   id="governorate"
                   ref={govSelectRef}
-                  value={selectedGovernorate}
-                  onChange={(e) => setSelectedGovernorate(e.target.value)}
+                  value={selectedGovernorateSlug}
+                  onChange={(e) => setSelectedGovernorateSlug(e.target.value)}
                   className="appearance-none block w-full h-12 pl-3 xs:pl-4 pr-8 xs:pr-10 py-2 xs:py-3 text-sm xs:text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap mobile-select-dropdown select-fix"
                   disabled={isLoadingGovernorates}
                   aria-label={t('search.selectGovernorate', 'Select governorate')}
                 >
                   <option value="">{t('search.selectGovernorate', 'Any Governorate')}</option>
                   {!isLoadingGovernorates && sortedGovernorates.map((gov) => (
-                    <option key={gov.id} value={gov.displayNameEn}>
+                    <option key={gov.id} value={gov.slug}>
                       {getDisplayName(gov)}
                     </option>
                   ))}
