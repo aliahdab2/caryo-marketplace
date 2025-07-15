@@ -1084,14 +1084,16 @@ export default function AdvancedSearchPage() {
                     type="button"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleSearch();
+                      // Only execute search if there's actual content to search for
+                      if (searchQuery.trim()) {
+                        handleSearch();
+                      }
                     }}
-                    disabled={searchLoading}
                     className={`
-                      px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed 
-                      text-white rounded text-sm font-medium flex items-center justify-center transition-colors 
+                      px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800
+                      text-white rounded text-sm font-medium flex items-center justify-center transition-all duration-200 transform hover:scale-105
                       min-w-[80px] touch-manipulation
-                      sm:absolute sm:top-1 sm:bottom-1 sm:px-4 sm:text-xs sm:min-w-0
+                      sm:absolute sm:top-1 sm:bottom-1 sm:px-4 sm:text-xs sm:min-w-0 sm:hover:scale-100
                       ${currentLanguage === 'ar' ? 'sm:left-1 sm:rounded-md' : 'sm:right-1 sm:rounded-md'}
                     `}
                     aria-label={t('search.searchButton', 'Search for cars')}
