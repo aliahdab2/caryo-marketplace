@@ -833,7 +833,7 @@ export default function AdvancedSearchPage() {
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.yearRange', 'Year range')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-600 mb-2">From</label>
+                    <label className="block text-sm text-gray-600 mb-2">{t('search.from', 'From')}</label>
                     <select
                       value={filters.minYear || ''}
                       onChange={(e) => handleInputChange('minYear', e.target.value ? parseInt(e.target.value) : undefined)}
@@ -870,7 +870,7 @@ export default function AdvancedSearchPage() {
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.mileageRange', 'Mileage range')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-600 mb-2">From</label>
+                    <label className="block text-sm text-gray-600 mb-2">{t('search.from', 'From')}</label>
                     <input
                       type="number"
                       value={filters.minMileage || ''}
