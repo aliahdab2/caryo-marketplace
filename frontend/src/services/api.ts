@@ -457,6 +457,26 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
 }
 
 /**
+ * Fetches car listing count for a specific body style filter
+ * TODO: Implement this endpoint in the backend
+ * Expected endpoint: GET /api/listings/count?bodyStyleId={id}
+ * Expected response: { count: number }
+ */
+export async function fetchCarListingCountByBodyStyle(bodyStyleId: number): Promise<number> {
+  try {
+    const queryParams = new URLSearchParams();
+    queryParams.append('bodyStyleId', bodyStyleId.toString());
+    
+    const endpoint = `/api/listings/count?${queryParams.toString()}`;
+    const response = await api.get<{ count: number }>(endpoint);
+    return response.count || 0;
+  } catch (error) {
+    console.error('❌ Error fetching car count for body style:', error);
+    throw error; // Throw the error so the caller can handle it
+  }
+}
+
+/**
  * Creates cache key for any API request
  * @param endpoint API endpoint
  * @param params Additional parameters for cache key
