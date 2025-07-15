@@ -98,11 +98,11 @@ export default function AdvancedSearchPage() {
 
     // Slug-based filtering
     if (filters.brands && filters.brands.length > 0) {
-      params.brandSlugs = filters.brands;
+      params.brands = filters.brands;
     }
     
     if (filters.models && filters.models.length > 0) {
-      params.modelSlugs = filters.models;
+      params.models = filters.models;
     }
 
     return params;
@@ -269,8 +269,8 @@ export default function AdvancedSearchPage() {
     const initialFilters: AdvancedSearchFilters = {};
     
     // Handle slug-based URL parameters (AutoTrader UK pattern)
-    const brands = searchParams.getAll('brands');
-    const models = searchParams.getAll('models');
+    const brands = searchParams.getAll('brand');
+    const models = searchParams.getAll('model');
     
     if (brands.length > 0) {
       initialFilters.brands = brands;
@@ -371,6 +371,9 @@ export default function AdvancedSearchPage() {
   const updateUrlFromFilters = useCallback((newFilters: AdvancedSearchFilters) => {
     const params = new URLSearchParams();
     
+    // Location first for SEO - local relevance is primary
+    if (newFilters.location) params.append('location', newFilters.location);
+    
     // Add brand slugs
     if (newFilters.brands && newFilters.brands.length > 0) {
       newFilters.brands.forEach(brand => {
@@ -384,9 +387,6 @@ export default function AdvancedSearchPage() {
         params.append('models', model);
       });
     }
-    
-    // Add other filters
-    if (newFilters.location) params.append('location', newFilters.location);
     if (newFilters.minYear) params.append('minYear', newFilters.minYear.toString());
     if (newFilters.maxYear) params.append('maxYear', newFilters.maxYear.toString());
     if (newFilters.minPrice) params.append('minPrice', newFilters.minPrice.toString());

@@ -27,26 +27,26 @@ export interface FilterUrlParams {
 export function buildSearchParams(filters: FilterUrlParams): URLSearchParams {
   const params = new URLSearchParams();
   
-  // Brand slugs - multiple values: ?brands=toyota&brands=honda
+  // Location first for SEO - local relevance is primary
+  if (filters.location) params.append('location', filters.location);
+  
+  // Brand slugs - multiple values: ?brand=toyota&brand=honda
   if (filters.brands && filters.brands.length > 0) {
     filters.brands.forEach(brand => {
       if (brand.trim()) {
-        params.append('brands', brand);
+        params.append('brand', brand);
       }
     });
   }
   
-  // Model slugs - multiple values: ?models=camry&models=civic
+  // Model slugs - multiple values: ?model=camry&model=civic
   if (filters.models && filters.models.length > 0) {
     filters.models.forEach(model => {
       if (model.trim()) {
-        params.append('models', model);
+        params.append('model', model);
       }
     });
   }
-  
-  // Single value parameters
-  if (filters.location) params.append('location', filters.location);
   
   // Numeric filters with validation
   if (filters.minYear && filters.minYear > 1900) {
@@ -96,13 +96,13 @@ export function parseSearchParams(searchParams: URLSearchParams): FilterUrlParam
   const filters: FilterUrlParams = {};
   
   // Parse brand slugs (multiple values)
-  const brands = searchParams.getAll('brands').filter(slug => slug.trim());
+  const brands = searchParams.getAll('brand').filter(slug => slug.trim());
   if (brands.length > 0) {
     filters.brands = brands;
   }
   
   // Parse model slugs (multiple values)
-  const models = searchParams.getAll('models').filter(slug => slug.trim());
+  const models = searchParams.getAll('model').filter(slug => slug.trim());
   if (models.length > 0) {
     filters.models = models;
   }

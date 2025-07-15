@@ -175,12 +175,17 @@ const HomeSearchBar: React.FC = () => {
     
     const params = new URLSearchParams();
     
+    // Location first for SEO - local relevance is primary
+    if (selectedGovernorateSlug) {
+      params.append('location', selectedGovernorateSlug);
+    }
+    
     // NEW: AutoTrader UK style slug-based URLs
     // Add brand slugs if selected
     if (selectedMake !== null) {
       const selectedBrand = carMakes?.find(make => make.id === selectedMake);
       if (selectedBrand && selectedBrand.slug) {
-        params.append('brands', selectedBrand.slug); // Multiple brand support: ?brands=toyota&brands=honda
+        params.append('brand', selectedBrand.slug); // Multiple brand support: ?brand=toyota&brand=honda
       }
     }
     
@@ -188,14 +193,11 @@ const HomeSearchBar: React.FC = () => {
     if (selectedModel !== null) {
       const selectedCarModel = availableModels?.find(model => model.id === selectedModel);
       if (selectedCarModel && selectedCarModel.slug) {
-        params.append('models', selectedCarModel.slug); // Multiple model support: ?models=camry&models=corolla
+        params.append('model', selectedCarModel.slug); // Multiple model support: ?model=camry&model=corolla
       }
     }
     
-    // Build location parameters
-    if (selectedGovernorateSlug) {
-      params.append('location', selectedGovernorateSlug);
-    }
+    // Build location parameters - removed as location is now handled above
 
     // Use replace instead of push to avoid history stacking on quick searches
     const queryString = params.toString();

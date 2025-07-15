@@ -18,7 +18,7 @@ describe('searchUrlUtils', () => {
       const params = buildSearchParams(filters);
       const paramString = params.toString();
       
-      expect(paramString).toBe('brands=toyota&brands=honda');
+      expect(paramString).toBe('brand=toyota&brand=honda');
     });
 
     it('builds params for model slugs correctly', () => {
@@ -29,7 +29,7 @@ describe('searchUrlUtils', () => {
       const params = buildSearchParams(filters);
       const paramString = params.toString();
       
-      expect(paramString).toBe('models=camry&models=civic');
+      expect(paramString).toBe('model=camry&model=civic');
     });
 
     it('filters out empty brand/model slugs', () => {
@@ -41,7 +41,7 @@ describe('searchUrlUtils', () => {
       const params = buildSearchParams(filters);
       const paramString = params.toString();
       
-      expect(paramString).toBe('brands=toyota&brands=honda&models=camry&models=civic');
+      expect(paramString).toBe('brand=toyota&brand=honda&model=camry&model=civic');
     });
 
     it('builds params for numeric filters with validation', () => {
@@ -100,7 +100,7 @@ describe('searchUrlUtils', () => {
 
   describe('parseSearchParams', () => {
     it('parses brand and model slugs correctly', () => {
-      const params = new URLSearchParams('brands=toyota&brands=honda&models=camry&models=civic');
+      const params = new URLSearchParams('brand=toyota&brand=honda&model=camry&model=civic');
       
       const filters = parseSearchParams(params);
       
@@ -118,12 +118,12 @@ describe('searchUrlUtils', () => {
     });
 
     it('prioritizes slug arrays over single parameters', () => {
-      const params = new URLSearchParams('brands=honda&brand=toyota&models=civic&model=camry');
+      const params = new URLSearchParams('brand=honda&brand=toyota&model=civic&model=camry');
       
       const filters = parseSearchParams(params);
       
-      expect(filters.brands).toEqual(['honda']);
-      expect(filters.models).toEqual(['civic']);
+      expect(filters.brands).toEqual(['honda', 'toyota']);
+      expect(filters.models).toEqual(['civic', 'camry']);
     });
 
     it('parses numeric parameters with validation', () => {
@@ -161,11 +161,11 @@ describe('searchUrlUtils', () => {
 
     it('filters out empty brand/model slugs', () => {
       const params = new URLSearchParams();
-      params.append('brands', 'toyota');
-      params.append('brands', '');
-      params.append('brands', 'honda');
-      params.append('models', 'camry');
-      params.append('models', '   ');
+      params.append('brand', 'toyota');
+      params.append('brand', '');
+      params.append('brand', 'honda');
+      params.append('model', 'camry');
+      params.append('model', '   ');
       
       const filters = parseSearchParams(params);
       
@@ -260,6 +260,7 @@ describe('searchUrlUtils', () => {
   describe('buildSearchUrl', () => {
     it('builds URL with filters', () => {
       const filters: FilterUrlParams = {
+        location: 'damascus',
         brands: ['toyota'],
         minYear: 2020,
         maxYear: 2024
@@ -267,7 +268,7 @@ describe('searchUrlUtils', () => {
       
       const url = buildSearchUrl(filters);
       
-      expect(url).toBe('/search?brands=toyota&minYear=2020&maxYear=2024');
+      expect(url).toBe('/search?location=damascus&brand=toyota&minYear=2020&maxYear=2024');
     });
 
     it('builds URL without query string when no filters', () => {
