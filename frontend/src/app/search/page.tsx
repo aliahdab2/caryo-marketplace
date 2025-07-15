@@ -69,7 +69,7 @@ interface AdvancedSearchFilters {
   cylinders?: number;
 }
 
-type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'condition' | 'fuelType' | 'bodyStyle' | 'sellerType';
+type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'fuelType' | 'bodyStyle' | 'sellerType';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
@@ -270,13 +270,6 @@ export default function AdvancedSearchPage() {
   }, [governorates]);
 
   // Helper functions to get display names for reference data - memoized to prevent re-renders
-  const getConditionDisplayName = useMemo(() => 
-    (id: number): string => {
-      const condition = referenceData?.carConditions?.find(c => c.id === id);
-      return condition ? (currentLanguage === 'ar' ? condition.displayNameAr : condition.displayNameEn) : '';
-    }, [referenceData?.carConditions, currentLanguage]
-  );
-
   const getTransmissionDisplayName = useMemo(() => 
     (id: number): string => {
       const transmission = referenceData?.transmissions?.find(t => t.id === id);
@@ -469,7 +462,7 @@ export default function AdvancedSearchPage() {
     if (newFilters.maxPrice) params.append('maxPrice', newFilters.maxPrice.toString());
     if (newFilters.minMileage) params.append('minMileage', newFilters.minMileage.toString());
     if (newFilters.maxMileage) params.append('maxMileage', newFilters.maxMileage.toString());
-    if (newFilters.conditionId) params.append('conditionId', newFilters.conditionId.toString());
+
     if (newFilters.transmissionId) params.append('transmissionId', newFilters.transmissionId.toString());
     if (newFilters.fuelTypeId) params.append('fuelTypeId', newFilters.fuelTypeId.toString());
     if (newFilters.bodyStyleId) params.append('bodyStyleId', newFilters.bodyStyleId.toString());
@@ -564,9 +557,7 @@ export default function AdvancedSearchPage() {
         case 'transmission':
           delete newFilters.transmissionId;
           break;
-        case 'condition':
-          delete newFilters.conditionId;
-          break;
+
         case 'fuelType':
           delete newFilters.fuelTypeId;
           break;
@@ -629,8 +620,7 @@ export default function AdvancedSearchPage() {
         return t('search.mileage', 'Mileage');
       case 'transmission':
         return filters.transmissionId ? getTransmissionDisplayName(filters.transmissionId) : t('search.transmission', 'Transmission');
-      case 'condition':
-        return filters.conditionId ? getConditionDisplayName(filters.conditionId) : t('search.condition', 'Condition');
+
       case 'fuelType':
         return filters.fuelTypeId ? getFuelTypeDisplayName(filters.fuelTypeId) : t('search.fuelType', 'Fuel type');
       case 'bodyStyle':
@@ -640,7 +630,7 @@ export default function AdvancedSearchPage() {
       default:
         return '';
     }
-  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getConditionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getSellerTypeDisplayName]);
+  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getSellerTypeDisplayName]);
 
   // Check if filter has active values - memoized to prevent re-renders
   const isFilterActive = useCallback((filterType: FilterType): boolean => {
@@ -658,8 +648,7 @@ export default function AdvancedSearchPage() {
         return !!(filters.minMileage || filters.maxMileage);
       case 'transmission':
         return !!filters.transmissionId;
-      case 'condition':
-        return !!filters.conditionId;
+
       case 'fuelType':
         return !!filters.fuelTypeId;
       case 'bodyStyle':
@@ -916,27 +905,7 @@ export default function AdvancedSearchPage() {
             </div>
           );
 
-        case 'condition':
-          return (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.condition', 'Condition')}</h3>
-                <select
-                  value={filters.conditionId || ''}
-                  onChange={(e) => handleInputChange('conditionId', e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  disabled={isLoadingReferenceData}
-                >
-                  <option value="">{t('search.any', 'Any')}</option>
-                  {referenceData?.carConditions?.map(condition => (
-                    <option key={condition.id} value={condition.id}>
-                      {currentLanguage === 'ar' ? condition.displayNameAr : condition.displayNameEn}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          );
+
 
         case 'fuelType':
           return (
@@ -1151,25 +1120,43 @@ export default function AdvancedSearchPage() {
                   {t('search.searchLabel', 'Search for cars by make, model, or location')}
                 </label>
                 <div className="flex gap-2 sm:relative">
-                  <input
-                    id="car-search-input"
-                    type="text"
-                    placeholder={t('search:placeholder', 'Search for cars... (e.g. "Toyota Camry", "BMW X3", "تويوتا كامري")')}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleSearch();
-                      }
-                    }}
-                    className={`flex-1 sm:w-full py-2.5 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
-                      currentLanguage === 'ar' ? 'text-right dir-rtl sm:pr-20 pr-3 pl-3' : 'text-left pl-3 sm:pr-20 pr-3'
-                    }`}
-                    dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}
-                    aria-label={t('search.searchLabel', 'Search for cars by make, model, or location')}
-                    aria-describedby="search-help"
-                  />
+                  <div className="flex-1 relative">
+                    <input
+                      id="car-search-input"
+                      type="text"
+                      placeholder={t('search:placeholder', 'Search for cars... (e.g. "Toyota Camry", "BMW X3", "تويوتا كامري")')}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSearch();
+                        }
+                      }}
+                      className={`w-full py-2.5 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
+                        currentLanguage === 'ar' ? 'text-right dir-rtl pr-3 pl-3 sm:pl-28' : 'text-left pl-3 pr-3 sm:pr-28'
+                      }`}
+                      dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}
+                      aria-label={t('search.searchLabel', 'Search for cars by make, model, or location')}
+                      aria-describedby="search-help"
+                    />
+                    
+                    {/* Clear button when there's text */}
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchQuery('');
+                        }}
+                        className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded p-1 z-10 ${
+                          currentLanguage === 'ar' ? 'left-2 sm:left-20' : 'right-2 sm:right-20'
+                        }`}
+                        aria-label={t('search.clearSearch', 'Clear search')}
+                      >
+                        <MdClose className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
                   
                   {/* Search Button - separate on mobile, inside on desktop */}
                   <button
@@ -1203,22 +1190,6 @@ export default function AdvancedSearchPage() {
                   <div id="search-help" className="sr-only">
                     {t('search.searchHelp', 'Enter car make, model, or location and press Enter or click Search button')}
                   </div>
-                  {/* Clear button when there's text */}
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSearchQuery('');
-                        handleSearch();
-                      }}
-                      className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded p-1 ${
-                        currentLanguage === 'ar' ? 'right-2' : 'left-2'
-                      }`}
-                      aria-label={t('search.clearSearch', 'Clear search')}
-                    >
-                      <MdClose className="h-4 w-4" aria-hidden="true" />
-                    </button>
-                  )}
                 </div>
               </div>
               
@@ -1426,18 +1397,7 @@ export default function AdvancedSearchPage() {
               </div>
             )}
             
-            {filters.conditionId && (
-              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
-                <span>{getFilterDisplayText('condition')}</span>
-                <button
-                  onClick={() => clearSpecificFilter('condition')}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
-                  aria-label={t('search.removeConditionFilter', 'Remove condition filter')}
-                >
-                  <MdClose className="h-4 w-4" />
-                </button>
-              </div>
-            )}
+
             
             {filters.fuelTypeId && (
               <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
@@ -1494,9 +1454,7 @@ export default function AdvancedSearchPage() {
             {!isFilterActive('transmission') && (
               <FilterPill filterType="transmission" onClick={() => setActiveFilterModal('transmission')} />
             )}
-            {!isFilterActive('condition') && (
-              <FilterPill filterType="condition" onClick={() => setActiveFilterModal('condition')} />
-            )}
+
             {!isFilterActive('fuelType') && (
               <FilterPill filterType="fuelType" onClick={() => setActiveFilterModal('fuelType')} />
             )}

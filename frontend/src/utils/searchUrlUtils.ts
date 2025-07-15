@@ -69,9 +69,7 @@ export function buildSearchParams(filters: FilterUrlParams): URLSearchParams {
   }
   
   // Entity ID filters
-  if (filters.conditionId && filters.conditionId > 0) {
-    params.append('conditionId', filters.conditionId.toString());
-  }
+
   if (filters.transmissionId && filters.transmissionId > 0) {
     params.append('transmissionId', filters.transmissionId.toString());
   }
