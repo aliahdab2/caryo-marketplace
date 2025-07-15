@@ -248,7 +248,7 @@ describe('AdvancedSearchPage', () => {
       render(<AdvancedSearchPage />, { wrapper: TestWrapper });
 
       expect(screen.getByText('Make and model')).toBeInTheDocument();
-      expect(screen.getByText('All Locations')).toBeInTheDocument(); // Location dropdown shows "All Locations" by default
+      expect(screen.getByText('All Governorates')).toBeInTheDocument(); // Location dropdown shows "All Governorates" by default
       expect(screen.getByText('Price')).toBeInTheDocument();
       expect(screen.getByText('Year')).toBeInTheDocument();
       expect(screen.getByText('Mileage')).toBeInTheDocument();
@@ -495,7 +495,7 @@ describe('AdvancedSearchPage', () => {
 
       // The page should still render successfully even with API errors
       expect(screen.getByText('Make and model')).toBeInTheDocument();
-      expect(screen.getByText('All Locations')).toBeInTheDocument(); // Location dropdown shows "All Locations" by default
+      expect(screen.getByText('All Governorates')).toBeInTheDocument(); // Location dropdown shows "All Governorates" by default
       expect(screen.getByText('Price')).toBeInTheDocument();
     });
 

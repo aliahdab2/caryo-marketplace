@@ -379,7 +379,6 @@ export async function fetchGovernorates(): Promise<Governorate[]> {
  * Uses slug-based filtering for brands and models
  */
 export async function fetchCarListings(filters?: CarListingFilterParams): Promise<PageResponse<CarListing>> {
-  console.log('fetchCarListings called with filters:', filters);
   
   // Build query parameters
   const queryParams = new URLSearchParams();
@@ -449,9 +448,10 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
   const endpoint = `/api/listings/filter${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
   
   try {
-    return await api.get<PageResponse<CarListing>>(endpoint);
+    const result = await api.get<PageResponse<CarListing>>(endpoint);
+    return result;
   } catch (error) {
-    console.error('Error fetching car listings:', error);
+    console.error('❌ Error fetching car listings:', error);
     throw error;
   }
 }

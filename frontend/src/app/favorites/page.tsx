@@ -107,7 +107,7 @@ export default function FavoritesPage() {
           <h2 className="mt-4 font-medium text-lg">{t('favorites.empty.title', { ns: 'common' })}</h2>
           <p className="mt-2 text-gray-500">{t('favorites.empty.message', { ns: 'common' })}</p>
           <Link 
-            href="/listings"
+            href="/search"
             className="mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
           >
             {t('favorites.empty.browseListings', { ns: 'common' })}

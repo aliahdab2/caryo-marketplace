@@ -12,7 +12,6 @@ import {
   MdClose,
   MdDirectionsCar,
   MdFavoriteBorder,
-  MdSearch,
   MdKeyboardArrowDown
 } from 'react-icons/md';
 import { CarMake, CarModel } from '@/types/car';
@@ -315,13 +314,16 @@ export default function AdvancedSearchPage() {
       initialFilters.models = models;
     }
     
-    // Handle location parameters - support multiple locations
-    const locationParams = searchParams.getAll('location');
-    const locationsParams = searchParams.getAll('locations'); // Backward compatibility
-    if (locationParams.length > 0) {
+    // Handle location parameters - support comma-separated values
+    const locationParams = searchParams.getAll('location'); // Legacy support
+    const locationsParam = searchParams.get('locations'); // New format
+    
+    if (locationsParam) {
+      // Parse dash-separated locations (maximum SEO-friendly format)
+      initialFilters.locations = locationsParam.split('-').map(loc => loc.trim()).filter(loc => loc);
+    } else if (locationParams.length > 0) {
+      // Backward compatibility for old multiple location parameters
       initialFilters.locations = locationParams;
-    } else if (locationsParams.length > 0) {
-      initialFilters.locations = locationsParams;
     }
     
     // Other simple filters
@@ -344,6 +346,7 @@ export default function AdvancedSearchPage() {
   // Trigger search after filters are initialized - always search to show results
   useEffect(() => {
     if (hasInitialized) {
+
       // Delay search slightly to ensure all state is updated
       const timeoutId = setTimeout(() => {
         executeSearch(false);
@@ -397,15 +400,14 @@ export default function AdvancedSearchPage() {
   // URLs use clean singular form (brand/model) for SEO and UX
   // Backend API expects plural form (brandSlugs/modelSlugs)
   const updateUrlFromFilters = useCallback((newFilters: AdvancedSearchFilters) => {
-    console.log('updateUrlFromFilters called with:', newFilters);
+
     const params = new URLSearchParams();
     
     // Location first for SEO - local relevance is primary
     if (newFilters.locations && newFilters.locations.length > 0) {
-      console.log('Adding locations to URL:', newFilters.locations);
-      newFilters.locations.forEach(location => {
-        params.append('location', location);
-      });
+
+      // Use dash-separated values for maximum SEO-friendliness (no encoding ever)
+      params.set('locations', newFilters.locations.join('-'));
     }
     
     // Add brand slugs - use singular form for clean URLs
@@ -611,7 +613,7 @@ export default function AdvancedSearchPage() {
     return (
       <button
         onClick={onClick}
-        className={`inline-flex items-center px-4 py-2 rounded-full border text-sm font-medium transition-colors ${
+        className={`inline-flex items-center px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200 transform hover:scale-105 hover:shadow-md ${
           isActive
             ? 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100'
             : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -1025,11 +1027,6 @@ export default function AdvancedSearchPage() {
   LoadingSkeleton.displayName = 'LoadingSkeleton';
 
   const handleSearch = () => {
-    // Don't search if the search query is empty
-    if (!searchQuery.trim()) {
-      return;
-    }
-    
     setSearchLoading(true);
     
     // Close location dropdown if open
@@ -1051,51 +1048,99 @@ export default function AdvancedSearchPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-6">
-        {/* Main Search Bar - Blocket Style */}
-        <div className="mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex flex-col md:flex-row gap-4">
+        {/* Compact Search Bar */}
+        <div className="mb-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+            {/* Mobile-first layout */}
+            <div className="space-y-3 sm:space-y-0 sm:flex sm:flex-row sm:gap-3">
               {/* Text Search Input */}
               <div className="flex-1">
-                <div className="relative">
+                <label htmlFor="car-search-input" className="sr-only">
+                  {t('search.searchLabel', 'Search for cars by make, model, or location')}
+                </label>
+                <div className="flex gap-2 sm:relative">
                   <input
+                    id="car-search-input"
                     type="text"
-                    placeholder={t('search.placeholder', 'Search for cars... (e.g. "Toyota Camry", "BMW X3", "تويوتا كامري")')}
+                    placeholder={t('search:placeholder', 'Search for cars... (e.g. "Toyota Camry", "BMW X3", "تويوتا كامري")')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => {
+                    onKeyDown={(e) => {
                       if (e.key === 'Enter') {
+                        e.preventDefault();
                         handleSearch();
                       }
                     }}
-                    className={`w-full py-3 text-lg border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
-                      currentLanguage === 'ar' ? 'text-right dir-rtl pr-4 pl-12' : 'text-left pl-4 pr-12'
+                    className={`flex-1 sm:w-full py-2.5 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
+                      currentLanguage === 'ar' ? 'text-right dir-rtl sm:pr-20 pr-3 pl-3' : 'text-left pl-3 sm:pr-20 pr-3'
                     }`}
                     dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}
+                    aria-label={t('search.searchLabel', 'Search for cars by make, model, or location')}
+                    aria-describedby="search-help"
                   />
+                  
+                  {/* Search Button - separate on mobile, inside on desktop */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      // Only execute search if there's actual content to search for
+                      if (searchQuery.trim()) {
+                        handleSearch();
+                      }
+                    }}
+                    className={`
+                      px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800
+                      text-white rounded text-sm font-medium flex items-center justify-center transition-all duration-200 transform hover:scale-105
+                      min-w-[80px] touch-manipulation
+                      sm:absolute sm:top-1 sm:bottom-1 sm:px-4 sm:text-xs sm:min-w-0 sm:hover:scale-100
+                      ${currentLanguage === 'ar' ? 'sm:left-1 sm:rounded-md' : 'sm:right-1 sm:rounded-md'}
+                    `}
+                    aria-label={t('search.searchButton', 'Search for cars')}
+                  >
+                    {searchLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                        <span className="sr-only">{t('search.searching', 'Searching...')}</span>
+                      </>
+                    ) : (
+                      <span className="whitespace-nowrap">{t('search.search', 'Search')}</span>
+                    )}
+                  </button>
+                  
+                  <div id="search-help" className="sr-only">
+                    {t('search.searchHelp', 'Enter car make, model, or location and press Enter or click Search button')}
+                  </div>
+                  {/* Clear button when there's text */}
                   {searchQuery && (
                     <button
+                      type="button"
                       onClick={() => {
                         setSearchQuery('');
                         handleSearch();
                       }}
-                      className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 ${
-                        currentLanguage === 'ar' ? 'left-3' : 'right-3'
+                      className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded p-1 ${
+                        currentLanguage === 'ar' ? 'right-2' : 'left-2'
                       }`}
+                      aria-label={t('search.clearSearch', 'Clear search')}
                     >
-                      <MdClose className="h-5 w-5" />
+                      <MdClose className="h-4 w-4" aria-hidden="true" />
                     </button>
                   )}
                 </div>
               </div>
               
               {/* Multi-Location Filter */}
-              <div className="md:w-64 relative location-dropdown-container">
+              <div className="w-full sm:w-auto sm:min-w-[200px] md:w-56 relative location-dropdown-container">
                 <div className="relative">
                   <button
                     type="button"
                     onClick={() => setShowLocationDropdown(!showLocationDropdown)}
-                    className="w-full px-4 py-3 text-lg border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-left flex items-center justify-between"
+                    className="w-full px-3 py-2.5 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-left flex items-center justify-between"
+                    aria-label={t('search.locationFilterLabel', 'Filter by location')}
+                    aria-expanded={showLocationDropdown}
+                    aria-haspopup="listbox"
+                    id="location-filter-button"
                   >
                     <span>
                       {filters.locations && filters.locations.length > 0
@@ -1111,26 +1156,36 @@ export default function AdvancedSearchPage() {
                                 : selectedLocationSlug;
                             })()
                           : t('search.locationsSelected', { count: filters.locations.length })
-                        : t('search.allLocations', 'All Locations')
+                        : t('search:allLocations', 'All Governorates')
                       }
                     </span>
-                    <MdKeyboardArrowDown className={`h-5 w-5 transition-transform ${showLocationDropdown ? 'rotate-180' : ''}`} />
+                    <MdKeyboardArrowDown 
+                      className={`h-4 w-4 transition-transform ${showLocationDropdown ? 'rotate-180' : ''}`} 
+                      aria-hidden="true"
+                    />
                   </button>
                   
                   {/* Dropdown */}
                   {showLocationDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-80 flex flex-col">
+                    <div 
+                      className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg z-50 max-h-72 flex flex-col"
+                      role="listbox"
+                      aria-labelledby="location-filter-button"
+                    >
                       {/* Scrollable location list */}
-                      <div className="flex-1 overflow-y-auto p-2 max-h-60">
+                      <div className="flex-1 overflow-y-auto p-1.5 max-h-56" role="group" aria-label={t('search.locationOptions', 'Location options')}>
                         {/* Location Options */}
                         {locationDropdownOptions.map((gov) => {
                           const isSelected = filters.locations?.includes(gov.slug) || false;
                           const locationValue = gov.slug;
+                          const locationDisplayName = currentLanguage === 'ar' ? gov.displayNameAr : gov.displayNameEn;
                           
                           return (
                             <label
                               key={gov.id}
-                              className="flex items-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded cursor-pointer"
+                              className="flex items-center px-2.5 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 rounded cursor-pointer focus-within:ring-2 focus-within:ring-blue-500"
+                              role="option"
+                              aria-selected={isSelected}
                             >
                               <input
                                 type="checkbox"
@@ -1141,89 +1196,70 @@ export default function AdvancedSearchPage() {
                                   if (e.target.checked) {
                                     // Add location
                                     updatedFilters.locations = [...(filters.locations || []), locationValue];
-                                    console.log('Added location:', locationValue, 'New locations:', updatedFilters.locations);
+
                                   } else {
                                     // Remove location
                                     updatedFilters.locations = filters.locations?.filter(loc => loc !== locationValue) || [];
                                     if (updatedFilters.locations.length === 0) {
                                       delete updatedFilters.locations;
                                     }
-                                    console.log('Removed location:', locationValue, 'New locations:', updatedFilters.locations);
+
                                   }
                                   
                                   setFilters(updatedFilters);
                                   // Don't update URL or search immediately - wait for "Show" button
                                 }}
-                                className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                className="mr-2.5 h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                aria-describedby={`location-${gov.id}-label`}
                               />
-                              <span className="text-sm">
-                                {currentLanguage === 'ar' ? gov.displayNameAr : gov.displayNameEn}
+                              <span 
+                                className="text-sm" 
+                                id={`location-${gov.id}-label`}
+                              >
+                                {locationDisplayName}
                               </span>
                             </label>
                           );
                         })}
                       </div>
                       
-                      {/* Bottom buttons - Blocket style */}
-                      <div className="border-t border-gray-200 dark:border-gray-600 p-3 flex gap-2">
+                      {/* Bottom buttons - Compact */}
+                      <div className="border-t border-gray-200 dark:border-gray-600 p-2 flex gap-1.5">
                         <button
                           onClick={() => {
                             const updatedFilters = { ...filters };
                             delete updatedFilters.locations;
                             setFilters(updatedFilters);
                           }}
-                          className="flex-1 px-4 py-2 text-sm text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
+                          className="flex-1 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
                         >
                           {t('search.clear', 'Clear')}
                         </button>
                         <button
                           onClick={() => {
-                            console.log('Show button clicked, current filters:', filters);
+
                             
                             // Apply the current filter selections
                             updateUrlFromFilters(filters);
                             
                             // Trigger search after a short delay to ensure URL is updated
                             setTimeout(() => {
-                              console.log('Executing search after URL update');
+
                               executeSearch(false);
                             }, 100);
                             
                             // Close the dropdown
                             setShowLocationDropdown(false);
                           }}
-                          className="flex-1 px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                          className="flex-1 px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
                         >
-                          {filters.locations && filters.locations.length > 0 
-                            ? `${t('search.show', 'Show')} ${filters.locations.length} ${t('search.results', 'results')}`
-                            : t('search.showAll', 'Show all')
-                          }
+                          {t('search:show', 'Show')}
                         </button>
                       </div>
                     </div>
                   )}
                 </div>
               </div>
-              
-              {/* Search Button */}
-              <button
-                onClick={handleSearch}
-                disabled={!searchQuery.trim() || searchLoading}
-                className={`px-8 py-3 font-medium rounded-lg transition-colors duration-200 flex items-center justify-center ${
-                  !searchQuery.trim() || searchLoading
-                    ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
-              >
-                {searchLoading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <MdSearch className="mr-2 h-5 w-5" />
-                    {t('search.search', 'Search')}
-                  </>
-                )}
-              </button>
             </div>
             
           </div>
@@ -1341,14 +1377,15 @@ export default function AdvancedSearchPage() {
               };
 
               return (
-                <CarListingCard
-                  key={listing.id}
-                  listing={cardData}
-                  onFavoriteToggle={(_isFavorite) => {
-                    // Handle favorite toggle if needed
-                  }}
-                  initialFavorite={false}
-                />
+                <div key={listing.id} className="animate-fadeIn">
+                  <CarListingCard
+                    listing={cardData}
+                    onFavoriteToggle={(_isFavorite) => {
+                      // Handle favorite toggle if needed
+                    }}
+                    initialFavorite={false}
+                  />
+                </div>
               );
             })
           ) : (

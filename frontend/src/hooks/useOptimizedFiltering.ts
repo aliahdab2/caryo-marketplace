@@ -77,6 +77,7 @@ export function useOptimizedFiltering<TFilters, TResult>(
   }, []);
 
   const executeSearch = useCallback(async (showLoadingImmediately = false, isManual = false) => {
+    
     // Cancel any ongoing request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -196,7 +197,6 @@ export function useOptimizedFiltering<TFilters, TResult>(
     const hasChanged = filtersHaveChanged(filters, previousFiltersRef.current);
     
     if (!hasChanged && !isFirstLoad) {
-      console.log('Manual search skipped - no filter changes detected');
       return false; // Return false to indicate no search was performed
     }
 

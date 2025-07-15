@@ -439,9 +439,6 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       isArchived: false // Optional field - default to false
     };
 
-    console.log('[DEBUG] Frontend form data:', formData);
-    console.log('[DEBUG] API data being sent:', apiData);
-
     // Validate the API data before sending
     if (!apiData.modelId || apiData.modelId === 0) {
       throw new ApiError('Model ID is required and must be valid', 400);
@@ -475,12 +472,6 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
     if (hasImages) {
       // Send first image as the primary image with field name 'image'
       const imageFile = formData.images[0];
-      console.log('[DEBUG] Image file details:', {
-        name: imageFile.name,
-        size: imageFile.size,
-        type: imageFile.type,
-        lastModified: imageFile.lastModified
-      });
       formDataObj.append('image', imageFile, imageFile.name);
     }
     
@@ -488,24 +479,12 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
     const endpoint = hasImages ? '/with-image' : '';
     const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings${endpoint}`;
     
-    console.log('[DEBUG] Auth headers received:', headers);
-    console.log('[DEBUG] Has images:', hasImages);
-    
     // Prepare request options
     let requestOptions: RequestInit;
     
     if (hasImages) {
       // For multipart/form-data with images
       // DO NOT set Content-Type - let the browser set it with boundary
-      console.log('[DEBUG] FormData contents:');
-      for (const [key, value] of formDataObj.entries()) {
-        if (value instanceof File) {
-          console.log(`[DEBUG] FormData[${key}]: File(name="${value.name}", size=${value.size}, type="${value.type}")`);
-        } else {
-          console.log(`[DEBUG] FormData[${key}]: ${value}`);
-        }
-      }
-      
       requestOptions = {
         method: 'POST',
         headers: {
@@ -514,7 +493,6 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
         body: formDataObj,
         credentials: 'include'
       };
-      console.log('[DEBUG] Using FormData for request with images');
     } else {
       // For JSON data without images
       requestOptions = {
@@ -526,11 +504,7 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
         body: JSON.stringify(apiData),
         credentials: 'include'
       };
-      console.log('[DEBUG] Using JSON for request without images');
     }
-    
-    console.log('[DEBUG] Final request headers:', requestOptions.headers);
-    console.log('[DEBUG] Request URL:', url);
     
     // Using fetch directly since our api utility has type constraints
     const fetchResponse = await fetch(url, requestOptions);

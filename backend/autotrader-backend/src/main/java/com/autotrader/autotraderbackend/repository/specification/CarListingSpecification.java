@@ -331,7 +331,8 @@ public class CarListingSpecification {
 
     /**
      * Adds text search filtering predicate.
-     * Searches in title, description, brand names (English and Arabic), and model names (English and Arabic).
+     * Searches in title, description, brand names (English and Arabic), model names (English and Arabic),
+     * and governorate names (English and Arabic).
      */
     private static void addSearchQueryFilter(ListingFilterRequest filter,
                                            jakarta.persistence.criteria.Root<CarListing> root,
@@ -360,6 +361,12 @@ public class CarListingSpecification {
                 criteriaBuilder.lower(root.get("modelNameEn")), searchTerm));
             searchPredicates.add(criteriaBuilder.like(
                 criteriaBuilder.lower(root.get("modelNameAr")), searchTerm));
+            
+            // Search in governorate names (English and Arabic)
+            searchPredicates.add(criteriaBuilder.like(
+                criteriaBuilder.lower(root.get("governorateNameEn")), searchTerm));
+            searchPredicates.add(criteriaBuilder.like(
+                criteriaBuilder.lower(root.get("governorateNameAr")), searchTerm));
             
             // Combine all search predicates with OR (any field match is valid)
             predicates.add(criteriaBuilder.or(searchPredicates.toArray(new Predicate[0])));

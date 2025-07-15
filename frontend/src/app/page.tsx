@@ -78,7 +78,7 @@ export default function Home() {
             {t('featuredTitle', { ns: 'home'})}
           </h2>
           <Link
-            href="/listings"
+            href="/search"
             className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center"
           >
             {t('viewAllListings', { ns: 'home'})}
