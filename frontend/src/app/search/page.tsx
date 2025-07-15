@@ -1375,14 +1375,15 @@ export default function AdvancedSearchPage() {
               };
 
               return (
-                <CarListingCard
-                  key={listing.id}
-                  listing={cardData}
-                  onFavoriteToggle={(_isFavorite) => {
-                    // Handle favorite toggle if needed
-                  }}
-                  initialFavorite={false}
-                />
+                <div key={listing.id} className="animate-fadeIn">
+                  <CarListingCard
+                    listing={cardData}
+                    onFavoriteToggle={(_isFavorite) => {
+                      // Handle favorite toggle if needed
+                    }}
+                    initialFavorite={false}
+                  />
+                </div>
               );
             })
           ) : (
