@@ -613,7 +613,7 @@ export default function AdvancedSearchPage() {
     return (
       <button
         onClick={onClick}
-        className={`inline-flex items-center px-4 py-2 rounded-full border text-sm font-medium transition-colors ${
+        className={`inline-flex items-center px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200 transform hover:scale-105 hover:shadow-md ${
           isActive
             ? 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100'
             : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
