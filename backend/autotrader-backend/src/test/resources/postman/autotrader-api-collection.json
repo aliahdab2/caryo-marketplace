@@ -430,6 +430,311 @@
           }
         }
       ]
+    },
+    {
+      "name": "Listings Count",
+      "item": [
+        {
+          "name": "Get Total Listings Count",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has count property\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('count');",
+                  "    pm.expect(jsonData.count).to.be.a('number');",
+                  "    pm.expect(jsonData.count).to.be.at.least(0);",
+                  "});",
+                  "",
+                  "console.log('Total listings count:', pm.response.json().count);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/listings/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "listings", "count"]
+            }
+          }
+        },
+        {
+          "name": "Get Filtered Listings Count (Query Params)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has count property\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('count');",
+                  "    pm.expect(jsonData.count).to.be.a('number');",
+                  "    pm.expect(jsonData.count).to.be.at.least(0);",
+                  "});",
+                  "",
+                  "console.log('Filtered listings count:', pm.response.json().count);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/listings/count/filter?brandSlugs=toyota&minPrice=10000&maxPrice=50000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "listings", "count", "filter"],
+              "query": [
+                {
+                  "key": "brandSlugs",
+                  "value": "toyota"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "10000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "50000"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Filtered Listings Count (JSON Body)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has count property\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('count');",
+                  "    pm.expect(jsonData.count).to.be.a('number');",
+                  "    pm.expect(jsonData.count).to.be.at.least(0);",
+                  "});",
+                  "",
+                  "console.log('JSON filtered listings count:', pm.response.json().count);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brandSlugs\": [\"toyota\", \"honda\"],\n  \"minYear\": 2018,\n  \"maxYear\": 2023,\n  \"minPrice\": 15000,\n  \"maxPrice\": 45000,\n  \"locations\": [\"damascus\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/listings/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "listings", "count"]
+            }
+          }
+        },
+        {
+          "name": "Get Count Breakdown by Filters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has breakdown structure\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('total');",
+                  "    pm.expect(jsonData).to.have.property('byBrand');",
+                  "    pm.expect(jsonData).to.have.property('byYear');",
+                  "    pm.expect(jsonData).to.have.property('byLocation');",
+                  "    pm.expect(jsonData.total).to.be.a('number');",
+                  "});",
+                  "",
+                  "console.log('Count breakdown:', pm.response.json());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brandSlugs\": [\"toyota\"],\n  \"minYear\": 2020\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/listings/counts/breakdown",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "listings", "counts", "breakdown"]
+            }
+          }
+        },
+        {
+          "name": "Get Years with Counts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an object with year counts\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('object');",
+                  "    // Check that all keys are valid years and values are numbers",
+                  "    Object.entries(jsonData).forEach(([year, count]) => {",
+                  "        pm.expect(parseInt(year)).to.be.a('number').and.to.be.at.least(1900);",
+                  "        pm.expect(count).to.be.a('number').and.to.be.at.least(0);",
+                  "    });",
+                  "});",
+                  "",
+                  "console.log('Years with counts:', pm.response.json());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/listings/counts/years?brandSlugs=toyota",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "listings", "counts", "years"],
+              "query": [
+                {
+                  "key": "brandSlugs",
+                  "value": "toyota",
+                  "description": "Optional: filter by brand"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Brands with Counts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an object with brand counts\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('object');",
+                  "    // Check that all values are numbers >= 0",
+                  "    Object.values(jsonData).forEach(count => {",
+                  "        pm.expect(count).to.be.a('number').and.to.be.at.least(0);",
+                  "    });",
+                  "});",
+                  "",
+                  "console.log('Brands with counts:', pm.response.json());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/listings/counts/brands?minYear=2020",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "listings", "counts", "brands"],
+              "query": [
+                {
+                  "key": "minYear",
+                  "value": "2020",
+                  "description": "Optional: filter by minimum year"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Models with Counts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an object with model counts\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('object');",
+                  "    // Check that all values are numbers >= 0",
+                  "    Object.values(jsonData).forEach(count => {",
+                  "        pm.expect(count).to.be.a('number').and.to.be.at.least(0);",
+                  "    });",
+                  "});",
+                  "",
+                  "console.log('Models with counts:', pm.response.json());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/listings/counts/models?brandSlugs=toyota",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "listings", "counts", "models"],
+              "query": [
+                {
+                  "key": "brandSlugs",
+                  "value": "toyota",
+                  "description": "Optional: filter by brand"
+                }
+              ]
+            }
+          }
+        }
+      ]
     }
   ]
 }

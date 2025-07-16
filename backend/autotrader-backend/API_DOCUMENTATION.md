@@ -470,6 +470,214 @@ Authorization: Bearer <your_jwt_token>
   }
   ```
 
+### Listing Count Endpoints
+
+These endpoints provide efficient count information for car listings without fetching the full listing data. Perfect for pagination, filter indicators, and performance optimization.
+
+#### Get Total Approved Listings Count
+
+- **Endpoint**: `GET /api/listings/count`
+- **Access**: Public
+- **Description**: Returns the total count of approved, unsold, and unarchived car listings
+- **Response (200 OK)**:
+  ```json
+  {
+    "count": 150
+  }
+  ```
+- **Example**:
+  ```bash
+  curl http://localhost:8080/api/listings/count
+  ```
+
+#### Get Filtered Listings Count (Query Parameters)
+
+- **Endpoint**: `GET /api/listings/count/filter`
+- **Access**: Public
+- **Description**: Returns count of listings matching query parameter filters
+- **Query Parameters**:
+  - `brandSlugs` (array): Filter by brand slugs (e.g., `toyota`, `honda`)
+  - `modelSlugs` (array): Filter by model slugs (e.g., `camry`, `civic`)
+  - `minYear` (integer): Minimum model year
+  - `maxYear` (integer): Maximum model year
+  - `location` (array): Filter by location slugs
+  - `locationId` (integer): Filter by location ID
+  - `minPrice` (decimal): Minimum price
+  - `maxPrice` (decimal): Maximum price
+  - `minMileage` (integer): Minimum mileage
+  - `maxMileage` (integer): Maximum mileage
+  - `isSold` (boolean): Show sold listings
+  - `isArchived` (boolean): Show archived listings
+  - `sellerTypeId` (integer): Filter by seller type
+  - `searchQuery` (string): Text search in title/description
+- **Response (200 OK)**:
+  ```json
+  {
+    "count": 42
+  }
+  ```
+- **Examples**:
+  ```bash
+  # Count Toyota cars
+  curl "http://localhost:8080/api/listings/count/filter?brandSlugs=toyota"
+  
+  # Count cars in price range
+  curl "http://localhost:8080/api/listings/count/filter?minPrice=10000&maxPrice=50000"
+  
+  # Count Toyota and Honda cars from 2020 onwards
+  curl "http://localhost:8080/api/listings/count/filter?brandSlugs=toyota&brandSlugs=honda&minYear=2020"
+  ```
+
+#### Get Filtered Listings Count (JSON Body)
+
+- **Endpoint**: `POST /api/listings/count`
+- **Access**: Public
+- **Description**: Returns count of listings matching filter criteria in JSON body
+- **Request Body**:
+  ```json
+  {
+    "brandSlugs": ["toyota", "honda"],
+    "modelSlugs": ["camry", "civic"],
+    "minYear": 2018,
+    "maxYear": 2023,
+    "minPrice": 15000,
+    "maxPrice": 45000,
+    "locations": ["damascus", "aleppo"],
+    "maxMileage": 100000,
+    "searchQuery": "automatic"
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "count": 23
+  }
+  ```
+- **Example**:
+  ```bash
+  curl -X POST http://localhost:8080/api/listings/count \
+    -H "Content-Type: application/json" \
+    -d '{
+      "brandSlugs": ["toyota", "honda"],
+      "minYear": 2020,
+      "maxPrice": 30000
+    }'
+  ```
+
+#### Get Count Breakdown by Categories
+
+- **Endpoint**: `POST /api/listings/counts/breakdown`
+- **Access**: Public
+- **Description**: Returns detailed count breakdown by brands, years, and locations for given filters
+- **Request Body**:
+  ```json
+  {
+    "brandSlugs": ["toyota"],
+    "minYear": 2020
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "total": 45,
+    "byBrand": {
+      "toyota": 45
+    },
+    "byYear": {
+      "2020": 12,
+      "2021": 15,
+      "2022": 10,
+      "2023": 8
+    },
+    "byLocation": {
+      "damascus": 20,
+      "aleppo": 15,
+      "homs": 10
+    }
+  }
+  ```
+- **Example**:
+  ```bash
+  curl -X POST http://localhost:8080/api/listings/counts/breakdown \
+    -H "Content-Type: application/json" \
+    -d '{"brandSlugs": ["toyota"], "minYear": 2020}'
+  ```
+
+#### Get Years with Counts
+
+- **Endpoint**: `GET /api/listings/counts/years`
+- **Access**: Public
+- **Description**: Returns all model years with their listing counts, optionally filtered
+- **Query Parameters**: Same as filter endpoints
+- **Response (200 OK)**:
+  ```json
+  {
+    "2023": 45,
+    "2022": 78,
+    "2021": 92,
+    "2020": 105,
+    "2019": 87
+  }
+  ```
+- **Example**:
+  ```bash
+  # Get all years with counts
+  curl http://localhost:8080/api/listings/counts/years
+  
+  # Get years for Toyota only
+  curl "http://localhost:8080/api/listings/counts/years?brandSlugs=toyota"
+  ```
+
+#### Get Brands with Counts
+
+- **Endpoint**: `GET /api/listings/counts/brands`
+- **Access**: Public
+- **Description**: Returns all brands with their listing counts, optionally filtered
+- **Query Parameters**: Same as filter endpoints
+- **Response (200 OK)**:
+  ```json
+  {
+    "toyota": 120,
+    "honda": 95,
+    "nissan": 78,
+    "hyundai": 65,
+    "kia": 45
+  }
+  ```
+- **Example**:
+  ```bash
+  # Get all brands with counts
+  curl http://localhost:8080/api/listings/counts/brands
+  
+  # Get brands for cars from 2020 onwards
+  curl "http://localhost:8080/api/listings/counts/brands?minYear=2020"
+  ```
+
+#### Get Models with Counts
+
+- **Endpoint**: `GET /api/listings/counts/models`
+- **Access**: Public
+- **Description**: Returns all models with their listing counts, optionally filtered
+- **Query Parameters**: Same as filter endpoints
+- **Response (200 OK)**:
+  ```json
+  {
+    "camry": 35,
+    "civic": 28,
+    "accord": 22,
+    "corolla": 31,
+    "altima": 19
+  }
+  ```
+- **Example**:
+  ```bash
+  # Get all models with counts
+  curl http://localhost:8080/api/listings/counts/models
+  
+  # Get Toyota models only
+  curl "http://localhost:8080/api/listings/counts/models?brandSlugs=toyota"
+  ```
+
 ### Status Endpoints
 
 #### Check Service Status
