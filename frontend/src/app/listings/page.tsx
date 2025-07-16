@@ -25,6 +25,7 @@ interface Filters {
   location?: string;
   brand?: string;
   model?: string;
+  sellerTypeId?: number;
 }
 
 // Move namespaces outside component to prevent recreating on every render
@@ -51,6 +52,7 @@ const ListingsPage = () => {
     location: searchParams?.get('location') || undefined,
     brand: searchParams?.get('brand') || undefined,
     model: searchParams?.get('model') || undefined,
+    sellerTypeId: searchParams?.get('sellerTypeId') ? parseInt(searchParams?.get('sellerTypeId') || '', 10) : undefined,
   };
 
   const [filters, setFilters] = useState<Filters>(initialFilters);
@@ -73,6 +75,7 @@ const ListingsPage = () => {
       location: searchParams?.get('location') || undefined,
       brand: searchParams?.get('brand') || undefined,
       model: searchParams?.get('model') || undefined,
+      sellerTypeId: searchParams?.get('sellerTypeId') ? parseInt(searchParams?.get('sellerTypeId') || '', 10) : undefined,
     };
     
     setFilters(updatedFilters);
@@ -90,7 +93,8 @@ const ListingsPage = () => {
     maxYear: filters.maxYear?.toString(),
     location: filters.location,
     brand: filters.brand,
-    model: filters.model
+    model: filters.model,
+    sellerTypeId: filters.sellerTypeId
   };
 
   // Use optimized filtering hook with wrapper function
@@ -142,6 +146,7 @@ const ListingsPage = () => {
     if (filters.location) queryParams.set('location', filters.location);
     if (filters.brand) queryParams.set('brand', filters.brand);
     if (filters.model) queryParams.set('model', filters.model);
+    if (filters.sellerTypeId) queryParams.set('sellerTypeId', String(filters.sellerTypeId));
 
     const newUrl = `/listings?${queryParams.toString()}`;
     
