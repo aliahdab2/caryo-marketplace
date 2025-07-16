@@ -627,7 +627,7 @@ public class CarListingController {
         responses = {
             @ApiResponse(responseCode = "200", description = "Count of listings by seller type", 
                          content = @Content(mediaType = "application/json",
-                                            schema = @Schema(type = "object", example = "{\\\"BUSINESS\\\": 118102, \\\"PRIVATE\\\": 22771}")))
+                                            schema = @Schema(type = "object", example = "{\\\"private\\\": 22771, \\\"dealer\\\": 118102}")))
         }
     )
     public ResponseEntity<Map<String, Long>> getCountsBySellerType(

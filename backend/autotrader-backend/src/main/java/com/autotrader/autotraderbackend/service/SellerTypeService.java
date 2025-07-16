@@ -89,6 +89,22 @@ public class SellerTypeService {
     }
     
     /**
+     * Get a seller type entity by its name (for internal use)
+     * @param name Seller type name
+     * @return Seller type entity
+     * @throws ResourceNotFoundException if seller type not found
+     */
+    public SellerType getSellerTypeEntityByName(String name) {
+        if (!StringUtils.hasText(name)) {
+            throw new IllegalArgumentException("Seller type name cannot be null or empty");
+        }
+        
+        log.debug("Fetching seller type entity by name: {}", name);
+        return sellerTypeRepository.findByNameIgnoreCase(name.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("SellerType", "name", name));
+    }
+    
+    /**
      * Search for seller types by name (in English, Arabic, or system name)
      * @param query Search query
      * @return List of matching seller types

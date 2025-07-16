@@ -83,7 +83,7 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
            "FROM CarListing cl " +
            "JOIN cl.seller u " +
            "JOIN u.sellerType st " +
-           "WHERE cl.approved = true " +
+           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
            "GROUP BY st.name " +
            "ORDER BY st.name")
     List<Object[]> findDistinctSellerTypesWithCounts();

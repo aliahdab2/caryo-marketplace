@@ -1414,6 +1414,35 @@ public class CarListingControllerTest {
     }
 
     @Test
+    void getCountsBySellerType_ShouldReturnSellerTypeCounts() {
+        // Given
+        Map<String, Long> sellerTypeCounts = Map.of("BUSINESS", 118102L, "PRIVATE", 22771L);
+        when(carListingService.getCountsBySellerType(any(ListingFilterRequest.class))).thenReturn(sellerTypeCounts);
+
+        // When
+        ResponseEntity<Map<String, Long>> response = carListingController.getCountsBySellerType(
+            Arrays.asList("toyota"),
+            Arrays.asList("camry"),
+            2020,
+            2023,
+            Arrays.asList("damascus"),
+            BigDecimal.valueOf(10000),
+            BigDecimal.valueOf(50000),
+            10000,
+            100000
+        );
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        assertEquals(118102L, response.getBody().get("BUSINESS"));
+        assertEquals(22771L, response.getBody().get("PRIVATE"));
+
+        verify(carListingService).getCountsBySellerType(any(ListingFilterRequest.class));
+    }
+
+    @Test
     void getFilterBreakdown_ShouldReturnCompleteBreakdown() {
         // Given
         Map<String, Object> breakdown = Map.of(
