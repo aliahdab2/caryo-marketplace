@@ -79,6 +79,15 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
            "ORDER BY cl.modelYear DESC")
     List<Object[]> findDistinctYearsWithCounts();
     
+    @Query("SELECT st.name, COUNT(cl) " +
+           "FROM CarListing cl " +
+           "JOIN cl.seller u " +
+           "JOIN u.sellerType st " +
+           "WHERE cl.approved = true " +
+           "GROUP BY st.name " +
+           "ORDER BY st.name")
+    List<Object[]> findDistinctSellerTypesWithCounts();
+    
     // Count methods for specific filters
     @Query("SELECT COUNT(cl) FROM CarListing cl " +
            "JOIN cl.model m JOIN m.brand b " +
