@@ -990,4 +990,510 @@ public class CarListingControllerTest {
         assertTrue(errorBody.containsKey("message"));
         assertEquals(errorMessage, errorBody.get("message"));
     }
+
+    // === COUNT ENDPOINTS TESTS ===
+
+    @Test
+    void getApprovedListingsCount_ShouldReturnCount() {
+        // Arrange
+        Long expectedCount = 42L;
+        when(carListingService.getApprovedListingsCount()).thenReturn(expectedCount);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = carListingController.getApprovedListingsCount();
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedCount, response.getBody().get("count"));
+        verify(carListingService).getApprovedListingsCount();
+    }
+
+    @Test
+    void getFilteredListingsCount_WithPostRequest_ShouldReturnCount() {
+        // Arrange
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setBrandSlugs(Arrays.asList("toyota", "bmw"));
+        filterRequest.setMinPrice(new BigDecimal("10000"));
+        filterRequest.setMaxPrice(new BigDecimal("50000"));
+        
+        Long expectedCount = 15L;
+        when(carListingService.getFilteredListingsCount(any(ListingFilterRequest.class))).thenReturn(expectedCount);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCount(filterRequest);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedCount, response.getBody().get("count"));
+        verify(carListingService).getFilteredListingsCount(argThat(filter -> 
+            filter.getBrandSlugs() != null && 
+            filter.getBrandSlugs().containsAll(Arrays.asList("toyota", "bmw")) &&
+            filter.getMinPrice().equals(new BigDecimal("10000")) &&
+            filter.getMaxPrice().equals(new BigDecimal("50000"))
+        ));
+    }
+
+    @Test
+    void getFilteredListingsCount_WithEmptyFilter_ShouldReturnTotalCount() {
+        // Arrange
+        ListingFilterRequest emptyFilter = new ListingFilterRequest();
+        Long expectedCount = 100L;
+        when(carListingService.getFilteredListingsCount(any(ListingFilterRequest.class))).thenReturn(expectedCount);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCount(emptyFilter);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedCount, response.getBody().get("count"));
+        verify(carListingService).getFilteredListingsCount(any(ListingFilterRequest.class));
+    }
+
+    @Test
+    void getFilteredListingsCountByParams_ShouldReturnCount() {
+        // Arrange
+        List<String> brandSlugs = Arrays.asList("toyota");
+        List<String> modelSlugs = Arrays.asList("camry");
+        Integer minYear = 2020;
+        Integer maxYear = 2023;
+        List<String> locations = Arrays.asList("damascus");
+        BigDecimal minPrice = new BigDecimal("20000");
+        BigDecimal maxPrice = new BigDecimal("40000");
+        Integer minMileage = 0;
+        Integer maxMileage = 50000;
+        Boolean isSold = false;
+        Boolean isArchived = false;
+        Long sellerTypeId = 1L;
+        String searchQuery = "luxury";
+        
+        Long expectedCount = 25L;
+        when(carListingService.getFilteredListingsCount(any(ListingFilterRequest.class))).thenReturn(expectedCount);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
+            brandSlugs, modelSlugs, minYear, maxYear, locations, null, minPrice, maxPrice,
+            minMileage, maxMileage, isSold, isArchived, sellerTypeId, searchQuery
+        );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedCount, response.getBody().get("count"));
+        verify(carListingService).getFilteredListingsCount(argThat(filter -> 
+            filter.getBrandSlugs().equals(brandSlugs) &&
+            filter.getModelSlugs().equals(modelSlugs) &&
+            filter.getMinYear().equals(minYear) &&
+            filter.getMaxYear().equals(maxYear) &&
+            filter.getLocations().equals(locations) &&
+            filter.getMinPrice().equals(minPrice) &&
+            filter.getMaxPrice().equals(maxPrice) &&
+            filter.getMinMileage().equals(minMileage) &&
+            filter.getMaxMileage().equals(maxMileage) &&
+            filter.getIsSold().equals(isSold) &&
+            filter.getIsArchived().equals(isArchived) &&
+            filter.getSellerTypeId().equals(sellerTypeId) &&
+            filter.getSearchQuery().equals(searchQuery)
+        ));
+    }
+
+    @Test
+    void getFilteredListingsCountByParams_WithNullParams_ShouldReturnCount() {
+        // Arrange
+        Long expectedCount = 75L;
+        when(carListingService.getFilteredListingsCount(any(ListingFilterRequest.class))).thenReturn(expectedCount);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
+            null, null, null, null, null, null, null, null,
+            null, null, null, null, null, null
+        );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedCount, response.getBody().get("count"));
+        verify(carListingService).getFilteredListingsCount(any(ListingFilterRequest.class));
+    }
+
+    @Test
+    void getFilteredListingsCountByParams_WithLocationId_ShouldReturnCount() {
+        // Arrange
+        Long locationId = 5L;
+        Long expectedCount = 30L;
+        when(carListingService.getFilteredListingsCount(any(ListingFilterRequest.class))).thenReturn(expectedCount);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
+            null, null, null, null, null, locationId, null, null,
+            null, null, null, null, null, null
+        );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedCount, response.getBody().get("count"));
+        verify(carListingService).getFilteredListingsCount(argThat(filter -> 
+            filter.getLocationId().equals(locationId)
+        ));
+    }
+
+    @Test
+    void getFilteredListingsCountByParams_WithSoldFilter_ShouldReturnCount() {
+        // Arrange
+        Boolean isSold = true;
+        Long expectedCount = 12L;
+        when(carListingService.getFilteredListingsCount(any(ListingFilterRequest.class))).thenReturn(expectedCount);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
+            null, null, null, null, null, null, null, null,
+            null, null, isSold, null, null, null
+        );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedCount, response.getBody().get("count"));
+        verify(carListingService).getFilteredListingsCount(argThat(filter -> 
+            filter.getIsSold().equals(isSold)
+        ));
+    }
+
+    @Test
+    void getFilteredListingsCountByParams_WithArchivedFilter_ShouldReturnCount() {
+        // Arrange
+        Boolean isArchived = true;
+        Long expectedCount = 8L;
+        when(carListingService.getFilteredListingsCount(any(ListingFilterRequest.class))).thenReturn(expectedCount);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
+            null, null, null, null, null, null, null, null,
+            null, null, null, isArchived, null, null
+        );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedCount, response.getBody().get("count"));
+        verify(carListingService).getFilteredListingsCount(argThat(filter -> 
+            filter.getIsArchived().equals(isArchived)
+        ));
+    }
+
+    @Test
+    void getFilteredListingsCountByParams_WithComplexFilters_ShouldReturnCount() {
+        // Arrange
+        List<String> brandSlugs = Arrays.asList("mercedes-benz", "audi");
+        Integer minYear = 2018;
+        Integer maxYear = 2023;
+        BigDecimal minPrice = new BigDecimal("50000");
+        BigDecimal maxPrice = new BigDecimal("150000");
+        Boolean isSold = false;
+        Boolean isArchived = false;
+        Long sellerTypeId = 2L; // Premium dealer
+        String searchQuery = "AMG";
+        
+        Long expectedCount = 5L;
+        when(carListingService.getFilteredListingsCount(any(ListingFilterRequest.class))).thenReturn(expectedCount);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
+            brandSlugs, null, minYear, maxYear, null, null, minPrice, maxPrice,
+            null, null, isSold, isArchived, sellerTypeId, searchQuery
+        );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedCount, response.getBody().get("count"));
+        verify(carListingService).getFilteredListingsCount(argThat(filter -> 
+            filter.getBrandSlugs().equals(brandSlugs) &&
+            filter.getMinYear().equals(minYear) &&
+            filter.getMaxYear().equals(maxYear) &&
+            filter.getMinPrice().equals(minPrice) &&
+            filter.getMaxPrice().equals(maxPrice) &&
+            filter.getIsSold().equals(isSold) &&
+            filter.getIsArchived().equals(isArchived) &&
+            filter.getSellerTypeId().equals(sellerTypeId) &&
+            filter.getSearchQuery().equals(searchQuery)
+        ));
+    }
+
+    @Test
+    void getFilteredListingsCountByParams_WithMileageRange_ShouldReturnCount() {
+        // Arrange
+        Integer minMileage = 10000;
+        Integer maxMileage = 80000;
+        Long expectedCount = 35L;
+        when(carListingService.getFilteredListingsCount(any(ListingFilterRequest.class))).thenReturn(expectedCount);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
+            null, null, null, null, null, null, null, null,
+            minMileage, maxMileage, null, null, null, null
+        );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedCount, response.getBody().get("count"));
+        verify(carListingService).getFilteredListingsCount(argThat(filter -> 
+            filter.getMinMileage().equals(minMileage) &&
+            filter.getMaxMileage().equals(maxMileage)
+        ));
+    }
+
+    @Test
+    void getFilteredListingsCountByParams_WithModelSlugs_ShouldReturnCount() {
+        // Arrange
+        List<String> brandSlugs = Arrays.asList("bmw");
+        List<String> modelSlugs = Arrays.asList("x5", "x3", "m3");
+        Long expectedCount = 18L;
+        when(carListingService.getFilteredListingsCount(any(ListingFilterRequest.class))).thenReturn(expectedCount);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
+            brandSlugs, modelSlugs, null, null, null, null, null, null,
+            null, null, null, null, null, null
+        );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedCount, response.getBody().get("count"));
+        verify(carListingService).getFilteredListingsCount(argThat(filter -> 
+            filter.getBrandSlugs().equals(brandSlugs) &&
+            filter.getModelSlugs().equals(modelSlugs)
+        ));
+    }
+
+    @Test
+    void getFilteredListingsCountByParams_WithSearchQuery_ShouldReturnCount() {
+        // Arrange
+        String searchQuery = "sport package navigation";
+        Long expectedCount = 22L;
+        when(carListingService.getFilteredListingsCount(any(ListingFilterRequest.class))).thenReturn(expectedCount);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
+            null, null, null, null, null, null, null, null,
+            null, null, null, null, null, searchQuery
+        );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedCount, response.getBody().get("count"));
+        verify(carListingService).getFilteredListingsCount(argThat(filter -> 
+            filter.getSearchQuery().equals(searchQuery)
+        ));
+    }
+
+    @Test
+    void countEndpoints_ShouldHandleServiceExceptions() {
+        // Arrange
+        when(carListingService.getApprovedListingsCount())
+            .thenThrow(new RuntimeException("Database connection error"));
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = carListingController.getApprovedListingsCount();
+
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals(0L, response.getBody().get("count"));
+        verify(carListingService).getApprovedListingsCount();
+    }
+
+    @Test
+    void getFilteredListingsCount_ShouldHandleServiceExceptions() {
+        // Arrange
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        when(carListingService.getFilteredListingsCount(any(ListingFilterRequest.class)))
+            .thenThrow(new RuntimeException("Invalid filter criteria"));
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            carListingController.getFilteredListingsCount(filterRequest);
+        });
+
+        assertEquals("Invalid filter criteria", exception.getMessage());
+        verify(carListingService).getFilteredListingsCount(any(ListingFilterRequest.class));
+    }
+
+    @Test
+    void getFilteredListingsCountByParams_ShouldHandleServiceExceptions() {
+        // Arrange
+        when(carListingService.getFilteredListingsCount(any(ListingFilterRequest.class)))
+            .thenThrow(new IllegalArgumentException("Invalid parameter values"));
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            carListingController.getFilteredListingsCountByParams(
+                Arrays.asList("invalid-brand"), null, null, null, null, null, null, null,
+                null, null, null, null, null, null
+            );
+        });
+
+        assertEquals("Invalid parameter values", exception.getMessage());
+        verify(carListingService).getFilteredListingsCount(any(ListingFilterRequest.class));
+    }
+
+    // ==================== COUNT BREAKDOWN ENDPOINT TESTS ====================
+
+    @Test
+    void getCountsByYear_ShouldReturnYearCounts() {
+        // Given
+        Map<String, Long> yearCounts = Map.of("2023", 5L, "2022", 3L, "2021", 2L);
+        when(carListingService.getCountsByYear(any(ListingFilterRequest.class))).thenReturn(yearCounts);
+
+        List<String> brandSlugs = Arrays.asList("toyota");
+        BigDecimal minPrice = new BigDecimal("10000");
+
+        // When
+        ResponseEntity<Map<String, Long>> response = carListingController.getCountsByYear(
+            brandSlugs, null, null, minPrice, null, null, null
+        );
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(5L, response.getBody().get("2023"));
+        assertEquals(3L, response.getBody().get("2022"));
+        assertEquals(2L, response.getBody().get("2021"));
+
+        verify(carListingService).getCountsByYear(any(ListingFilterRequest.class));
+    }
+
+    @Test
+    void getCountsByBrand_ShouldReturnBrandCounts() {
+        // Given
+        Map<String, Long> brandCounts = Map.of("toyota", 10L, "honda", 8L, "nissan", 6L);
+        when(carListingService.getCountsByBrand(any(ListingFilterRequest.class))).thenReturn(brandCounts);
+
+        // When
+        ResponseEntity<Map<String, Long>> response = carListingController.getCountsByBrand(
+            null, 2020, 2023, null, null, null
+        );
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(10L, response.getBody().get("toyota"));
+        assertEquals(8L, response.getBody().get("honda"));
+        assertEquals(6L, response.getBody().get("nissan"));
+
+        verify(carListingService).getCountsByBrand(any(ListingFilterRequest.class));
+    }
+
+    @Test
+    void getCountsByModel_ShouldReturnModelCounts() {
+        // Given
+        Map<String, Long> modelCounts = Map.of("camry", 4L, "civic", 3L, "altima", 2L);
+        when(carListingService.getCountsByModel(any(ListingFilterRequest.class))).thenReturn(modelCounts);
+
+        List<String> brandSlugs = Arrays.asList("toyota");
+        BigDecimal minPrice = new BigDecimal("15000");
+
+        // When
+        ResponseEntity<Map<String, Long>> response = carListingController.getCountsByModel(
+            brandSlugs, null, null, null, minPrice, null
+        );
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(4L, response.getBody().get("camry"));
+        assertEquals(3L, response.getBody().get("civic"));
+        assertEquals(2L, response.getBody().get("altima"));
+
+        verify(carListingService).getCountsByModel(any(ListingFilterRequest.class));
+    }
+
+    @Test
+    void getFilterBreakdown_ShouldReturnCompleteBreakdown() {
+        // Given
+        Map<String, Object> breakdown = Map.of(
+            "years", Map.of("2023", 5L, "2022", 3L),
+            "brands", Map.of("toyota", 8L, "honda", 6L),
+            "models", Map.of("camry", 4L, "civic", 2L)
+        );
+        when(carListingService.getFilterBreakdown(any())).thenReturn(breakdown);
+
+        // When
+        ResponseEntity<Map<String, Object>> response = carListingController.getFilterBreakdown();
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().containsKey("years"));
+        assertTrue(response.getBody().containsKey("brands"));
+        assertTrue(response.getBody().containsKey("models"));
+
+        verify(carListingService).getFilterBreakdown(any());
+    }
+
+    @Test
+    void getFilterBreakdown_WithFilters_ShouldPassFilters() {
+        // Given
+        Map<String, Object> breakdown = Map.of("years", Map.of("2023", 2L));
+        when(carListingService.getFilterBreakdown(any(ListingFilterRequest.class))).thenReturn(breakdown);
+
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setBrandSlugs(Arrays.asList("toyota", "honda"));
+        filterRequest.setMinPrice(new BigDecimal("10000"));
+        filterRequest.setMaxPrice(new BigDecimal("50000"));
+        filterRequest.setMinYear(2020);
+
+        // When
+        ResponseEntity<Map<String, Object>> response = carListingController.getFilterBreakdownWithFilters(filterRequest);
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().containsKey("years"));
+
+        verify(carListingService).getFilterBreakdown(argThat(filter -> 
+            filter != null && 
+            filter.getBrandSlugs() != null && 
+            filter.getBrandSlugs().contains("toyota") &&
+            filter.getMinPrice() != null
+        ));
+    }
+
+    @Test
+    void getCountsByYear_WithComplexFilters_ShouldWork() {
+        // Given
+        Map<String, Long> yearCounts = Map.of("2023", 1L, "2022", 2L);
+        when(carListingService.getCountsByYear(any(ListingFilterRequest.class))).thenReturn(yearCounts);
+
+        List<String> brandSlugs = Arrays.asList("toyota", "honda");
+        List<String> location = Arrays.asList("damascus", "aleppo");
+        BigDecimal minPrice = new BigDecimal("15000");
+        BigDecimal maxPrice = new BigDecimal("45000");
+        Integer minMileage = 0;
+        Integer maxMileage = 100000;
+
+        // When
+        ResponseEntity<Map<String, Long>> response = carListingController.getCountsByYear(
+            brandSlugs, null, location, minPrice, maxPrice, minMileage, maxMileage
+        );
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1L, response.getBody().get("2023"));
+        assertEquals(2L, response.getBody().get("2022"));
+
+        verify(carListingService).getCountsByYear(argThat(filter ->
+            filter.getBrandSlugs() != null &&
+            filter.getBrandSlugs().size() == 2 &&
+            filter.getLocations() != null &&
+            filter.getLocations().size() == 2 &&
+            filter.getMinPrice().compareTo(new BigDecimal("15000")) == 0
+        ));
+    }
 }
