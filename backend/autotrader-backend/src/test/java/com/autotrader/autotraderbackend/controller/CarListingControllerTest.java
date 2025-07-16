@@ -183,7 +183,7 @@ public class CarListingControllerTest {
         listings.add(carListingResponse);
         Page<CarListingResponse> page = new PageImpl<>(listings);
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        filterRequest.setSellerTypeId(1L); // Filter by seller type
+        filterRequest.setSellerTypeIds(Arrays.asList(1L)); // Filter by seller type
         when(carListingService.getFilteredListings(any(ListingFilterRequest.class), any(Pageable.class))).thenReturn(page);
         Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("createdAt").descending());
         
@@ -198,7 +198,7 @@ public class CarListingControllerTest {
         
         // Verify that the service was called with the correct filter
         verify(carListingService).getFilteredListings(argThat(filter -> 
-            filter.getSellerTypeId() != null && filter.getSellerTypeId().equals(1L)
+            filter.getSellerTypeIds() != null && filter.getSellerTypeIds().contains(1L)
         ), eq(pageable));
     }
 
@@ -1066,7 +1066,7 @@ public class CarListingControllerTest {
         Integer maxMileage = 50000;
         Boolean isSold = false;
         Boolean isArchived = false;
-        Long sellerTypeId = 1L;
+        List<Long> sellerTypeIds = Arrays.asList(1L);
         String searchQuery = "luxury";
         
         Long expectedCount = 25L;
@@ -1075,7 +1075,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             brandSlugs, modelSlugs, minYear, maxYear, locations, null, minPrice, maxPrice,
-            minMileage, maxMileage, isSold, isArchived, sellerTypeId, searchQuery
+            minMileage, maxMileage, isSold, isArchived, sellerTypeIds, searchQuery
         );
 
         // Assert
@@ -1094,7 +1094,7 @@ public class CarListingControllerTest {
             filter.getMaxMileage().equals(maxMileage) &&
             filter.getIsSold().equals(isSold) &&
             filter.getIsArchived().equals(isArchived) &&
-            filter.getSellerTypeId().equals(sellerTypeId) &&
+            filter.getSellerTypeIds().equals(sellerTypeIds) &&
             filter.getSearchQuery().equals(searchQuery)
         ));
     }
@@ -1194,7 +1194,7 @@ public class CarListingControllerTest {
         BigDecimal maxPrice = new BigDecimal("150000");
         Boolean isSold = false;
         Boolean isArchived = false;
-        Long sellerTypeId = 2L; // Premium dealer
+        List<Long> sellerTypeIds = Arrays.asList(2L); // Premium dealer
         String searchQuery = "AMG";
         
         Long expectedCount = 5L;
@@ -1203,7 +1203,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             brandSlugs, null, minYear, maxYear, null, null, minPrice, maxPrice,
-            null, null, isSold, isArchived, sellerTypeId, searchQuery
+            null, null, isSold, isArchived, sellerTypeIds, searchQuery
         );
 
         // Assert
@@ -1218,7 +1218,7 @@ public class CarListingControllerTest {
             filter.getMaxPrice().equals(maxPrice) &&
             filter.getIsSold().equals(isSold) &&
             filter.getIsArchived().equals(isArchived) &&
-            filter.getSellerTypeId().equals(sellerTypeId) &&
+            filter.getSellerTypeIds().equals(sellerTypeIds) &&
             filter.getSearchQuery().equals(searchQuery)
         ));
     }

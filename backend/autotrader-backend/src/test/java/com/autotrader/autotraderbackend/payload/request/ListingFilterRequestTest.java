@@ -10,6 +10,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Year;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -118,30 +120,31 @@ public class ListingFilterRequestTest {
     }
 
     @Test
-    void shouldAllowValidSellerTypeId() {
+    void shouldAllowValidSellerTypeIds() {
         // Arrange
         ListingFilterRequest request = new ListingFilterRequest();
-        request.setSellerTypeId(1L);
+        List<Long> sellerTypeIds = Arrays.asList(1L, 2L);
+        request.setSellerTypeIds(sellerTypeIds);
         
         // Act
         Set<ConstraintViolation<ListingFilterRequest>> violations = validator.validate(request);
         
         // Assert
-        assertTrue(violations.isEmpty(), "Valid seller type ID should not cause validation errors");
-        assertEquals(1L, request.getSellerTypeId(), "Seller type ID should be set correctly");
+        assertTrue(violations.isEmpty(), "Valid seller type IDs should not cause validation errors");
+        assertEquals(sellerTypeIds, request.getSellerTypeIds(), "Seller type IDs should be set correctly");
     }
     
     @Test
-    void shouldAllowNullSellerTypeId() {
+    void shouldAllowNullSellerTypeIds() {
         // Arrange
         ListingFilterRequest request = new ListingFilterRequest();
-        request.setSellerTypeId(null);
+        request.setSellerTypeIds(null);
         
         // Act
         Set<ConstraintViolation<ListingFilterRequest>> violations = validator.validate(request);
         
         // Assert
-        assertTrue(violations.isEmpty(), "Null seller type ID should not cause validation errors");
-        assertEquals(null, request.getSellerTypeId(), "Seller type ID should be null");
+        assertTrue(violations.isEmpty(), "Null seller type IDs should not cause validation errors");
+        assertEquals(null, request.getSellerTypeIds(), "Seller type IDs should be null");
     }
 }

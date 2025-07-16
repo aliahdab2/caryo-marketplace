@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
-import { getSellerTypeCounts, SellerTypeCounts } from '@/services/sellerTypes';
+import { getSellerTypeCounts } from '@/services/sellerTypes';
+import { SellerTypeCounts } from '@/types/sellerTypes';
 import { ListingFilters } from '@/types/listings';
 
 interface SellerTypeFilterProps {

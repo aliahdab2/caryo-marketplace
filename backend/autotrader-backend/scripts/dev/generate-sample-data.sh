@@ -73,7 +73,7 @@ if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
     exit 1
 fi
 
-echo "Successfully logged in. Token: ${TOKEN:0:20}..."
+echo "Successfully logged in as admin."
 
 # Create regular test user
 echo "Creating test user..."

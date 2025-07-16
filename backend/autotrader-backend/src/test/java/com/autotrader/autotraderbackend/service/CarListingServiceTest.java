@@ -749,7 +749,7 @@ class CarListingServiceTest {
     void getCountsBySellerType_WithSellerTypeFilter_ShouldIgnoreSellerTypeFilter() {
         // Arrange
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        filterRequest.setSellerTypeId(1L); // This should be ignored
+        filterRequest.setSellerTypeIds(Arrays.asList(1L)); // This should be ignored
         filterRequest.setBrandSlugs(Arrays.asList("toyota")); // This should be applied
 
         CarListing businessListing = createTestListing();

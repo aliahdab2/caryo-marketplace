@@ -2,23 +2,7 @@
 import { api } from './api';
 import { ApiError } from '@/utils/apiErrorHandler';
 import { ListingFilters } from '@/types/listings';
-
-/**
- * Interface for seller type count response
- */
-export interface SellerTypeCounts {
-  [sellerType: string]: number;
-}
-
-/**
- * Interface for seller type details
- */
-export interface SellerType {
-  id: number;
-  name: string;
-  displayNameEn: string;
-  displayNameAr: string;
-}
+import { SellerTypeCounts, SellerType } from '@/types/sellerTypes';
 
 /**
  * Get seller type counts with optional filters
