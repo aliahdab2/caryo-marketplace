@@ -63,7 +63,7 @@ interface AdvancedSearchFilters {
   transmissionId?: number;
   fuelTypeId?: number;
   bodyStyleId?: number;
-  sellerTypeId?: number;
+  sellerTypeIds?: number[];
   
   // Direct field filters
   exteriorColor?: string;
@@ -170,7 +170,7 @@ export default function AdvancedSearchPage() {
       minMileage: filters.minMileage,
       maxMileage: filters.maxMileage,
       locations: filters.locations,
-      sellerTypeId: filters.sellerTypeId,
+      sellerTypeIds: filters.sellerTypeIds,
       searchQuery: searchQuery.trim() || undefined, // Include search query
       size: 20, // Default page size
       page: 0, // Default to first page
@@ -374,6 +374,12 @@ export default function AdvancedSearchPage() {
     const maxPrice = searchParams.get('maxPrice');
     if (maxPrice) initialFilters.maxPrice = parseFloat(maxPrice);
 
+    // Handle seller type IDs - support multiple values
+    const sellerTypeIds = searchParams.getAll('sellerTypeId');
+    if (sellerTypeIds.length > 0) {
+      initialFilters.sellerTypeIds = sellerTypeIds.map(id => parseInt(id)).filter(id => !isNaN(id));
+    }
+
     setFilters(initialFilters);
     setHasInitialized(true);
   }, [hasInitialized, searchParams]);
@@ -499,7 +505,9 @@ export default function AdvancedSearchPage() {
     if (newFilters.transmissionId) params.append('transmissionId', newFilters.transmissionId.toString());
     if (newFilters.fuelTypeId) params.append('fuelTypeId', newFilters.fuelTypeId.toString());
     if (newFilters.bodyStyleId) params.append('bodyStyleId', newFilters.bodyStyleId.toString());
-    if (newFilters.sellerTypeId) params.append('sellerTypeId', newFilters.sellerTypeId.toString());
+    if (newFilters.sellerTypeIds && newFilters.sellerTypeIds.length > 0) {
+      newFilters.sellerTypeIds.forEach(id => params.append('sellerTypeId', id.toString()));
+    }
     
     // Update URL without causing a page reload
     const newUrl = `/search${params.toString() ? `?${params.toString()}` : ''}`;
@@ -507,7 +515,7 @@ export default function AdvancedSearchPage() {
   }, [router]);
 
   // Handle input changes - simplified for slug-based filtering only
-  const handleInputChange = useCallback((field: keyof AdvancedSearchFilters, value: string | number | undefined) => {
+  const handleInputChange = useCallback((field: keyof AdvancedSearchFilters, value: string | number | string[] | number[] | undefined) => {
     setFilters(prev => {
       const newFilters = {
         ...prev,
@@ -584,7 +592,7 @@ export default function AdvancedSearchPage() {
           delete newFilters.bodyStyleId;
           break;
         case 'sellerType':
-          delete newFilters.sellerTypeId;
+          delete newFilters.sellerTypeIds;
           break;
       }
       
@@ -634,7 +642,11 @@ export default function AdvancedSearchPage() {
       case 'bodyStyle':
         return filters.bodyStyleId ? getBodyStyleDisplayName(filters.bodyStyleId) : t('search.bodyStyle', 'Body style');
       case 'sellerType':
-        return filters.sellerTypeId ? getSellerTypeDisplayName(filters.sellerTypeId) : t('search.sellerType', 'Seller type');
+        return filters.sellerTypeIds && filters.sellerTypeIds.length > 0 
+          ? filters.sellerTypeIds.length === 1 
+            ? getSellerTypeDisplayName(filters.sellerTypeIds[0])
+            : `${filters.sellerTypeIds.length} ${t('search.sellerType', 'Seller types')}`
+          : t('search.sellerType', 'Seller type');
       default:
         return '';
     }
@@ -662,7 +674,7 @@ export default function AdvancedSearchPage() {
       case 'bodyStyle':
         return !!filters.bodyStyleId;
       case 'sellerType':
-        return !!filters.sellerTypeId;
+        return !!(filters.sellerTypeIds && filters.sellerTypeIds.length > 0);
       default:
         return false;
     }
@@ -999,7 +1011,7 @@ export default function AdvancedSearchPage() {
                 {referenceData?.sellerTypes?.map(sellerType => {
                   const id = sellerType.id as number;
                   const typedSellerType = sellerType as { displayNameEn: string; displayNameAr: string; name: string };
-                  const isSelected = filters.sellerTypeId === id;
+                  const isSelected = filters.sellerTypeIds?.includes(id) || false;
                   
                   // Use proper English and Arabic display names from the database
                   const displayName = currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn;
@@ -1011,7 +1023,14 @@ export default function AdvancedSearchPage() {
                     <div
                       key={id}
                       className="flex items-center justify-between py-3 cursor-pointer hover:bg-gray-50 rounded-md px-2"
-                      onClick={() => handleInputChange('sellerTypeId', isSelected ? undefined : id)}
+                      onClick={() => {
+                        const currentSellerTypes = filters.sellerTypeIds || [];
+                        const newSellerTypes = isSelected 
+                          ? currentSellerTypes.filter(sellerTypeId => sellerTypeId !== id)
+                          : [...currentSellerTypes, id];
+                        
+                        handleInputChange('sellerTypeIds', newSellerTypes.length > 0 ? newSellerTypes : undefined);
+                      }}
                     >
                       <div className="flex items-center space-x-3">
                         {/* Blocket-style Checkbox */}
@@ -1457,7 +1476,7 @@ export default function AdvancedSearchPage() {
               </div>
             )}
             
-            {filters.sellerTypeId && (
+            {filters.sellerTypeIds && filters.sellerTypeIds.length > 0 && (
               <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
                 <span>{getFilterDisplayText('sellerType')}</span>
                 <button

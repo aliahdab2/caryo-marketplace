@@ -288,8 +288,8 @@ public class CarListingSpecification {
                                           jakarta.persistence.criteria.Root<CarListing> root,
                                           jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
                                           List<Predicate> predicates) {
-        if (filter.getSellerTypeId() != null) {
-            predicates.add(criteriaBuilder.equal(root.get("seller").get("sellerType").get("id"), filter.getSellerTypeId()));
+        if (filter.getSellerTypeIds() != null && !filter.getSellerTypeIds().isEmpty()) {
+            predicates.add(root.get("seller").get("sellerType").get("id").in(filter.getSellerTypeIds()));
         }
     }
 

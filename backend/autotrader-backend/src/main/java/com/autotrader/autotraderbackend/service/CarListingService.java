@@ -656,7 +656,7 @@ public class CarListingService {
                filterRequest.getMinMileage() != null || filterRequest.getMaxMileage() != null ||
                filterRequest.getLocations() != null && !filterRequest.getLocations().isEmpty() ||
                filterRequest.getLocationId() != null ||
-               filterRequest.getSellerTypeId() != null ||
+               filterRequest.getSellerTypeIds() != null && !filterRequest.getSellerTypeIds().isEmpty() ||
                filterRequest.getIsSold() != null ||
                filterRequest.getIsArchived() != null ||
                filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty();
@@ -679,7 +679,7 @@ public class CarListingService {
         modified.setMaxPrice(original.getMaxPrice());
         modified.setMinMileage(original.getMinMileage());
         modified.setMaxMileage(original.getMaxMileage());
-        modified.setSellerTypeId(original.getSellerTypeId());
+        modified.setSellerTypeIds(original.getSellerTypeIds());
         modified.setSearchQuery(original.getSearchQuery());
         modified.setIsSold(original.getIsSold());
         modified.setIsArchived(original.getIsArchived());
@@ -704,7 +704,7 @@ public class CarListingService {
         modified.setMaxPrice(original.getMaxPrice());
         modified.setMinMileage(original.getMinMileage());
         modified.setMaxMileage(original.getMaxMileage());
-        modified.setSellerTypeId(original.getSellerTypeId());
+        modified.setSellerTypeIds(original.getSellerTypeIds());
         modified.setSearchQuery(original.getSearchQuery());
         modified.setIsSold(original.getIsSold());
         modified.setIsArchived(original.getIsArchived());
@@ -760,7 +760,7 @@ public class CarListingService {
         modifiedFilter.setMaxPrice(filterRequest.getMaxPrice());
         modifiedFilter.setMinMileage(filterRequest.getMinMileage());
         modifiedFilter.setMaxMileage(filterRequest.getMaxMileage());
-        modifiedFilter.setSellerTypeId(filterRequest.getSellerTypeId());
+        modifiedFilter.setSellerTypeIds(filterRequest.getSellerTypeIds());
         modifiedFilter.setSearchQuery(filterRequest.getSearchQuery());
         
         // Handle location filtering similar to getFilteredListingsCount
@@ -1124,7 +1124,7 @@ public class CarListingService {
                filterRequest.getMinMileage() != null || filterRequest.getMaxMileage() != null ||
                filterRequest.getLocations() != null && !filterRequest.getLocations().isEmpty() ||
                filterRequest.getLocationId() != null ||
-               filterRequest.getSellerTypeId() != null ||
+               filterRequest.getSellerTypeIds() != null && !filterRequest.getSellerTypeIds().isEmpty() ||
                filterRequest.getIsSold() != null ||
                filterRequest.getIsArchived() != null ||
                filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty();
@@ -1144,7 +1144,7 @@ public class CarListingService {
                filterRequest.getMaxMileage() == null &&
                filterRequest.getLocations() == null && 
                filterRequest.getLocationId() == null &&
-               filterRequest.getSellerTypeId() == null && 
+               (filterRequest.getSellerTypeIds() == null || filterRequest.getSellerTypeIds().isEmpty()) && 
                filterRequest.getSearchQuery() == null &&
                filterRequest.getIsSold() == null && 
                filterRequest.getIsArchived() == null;
@@ -1166,7 +1166,7 @@ public class CarListingService {
         modified.setMaxPrice(original.getMaxPrice());
         modified.setMinMileage(original.getMinMileage());
         modified.setMaxMileage(original.getMaxMileage());
-        modified.setSellerTypeId(original.getSellerTypeId());
+        modified.setSellerTypeIds(original.getSellerTypeIds());
         modified.setSearchQuery(original.getSearchQuery());
         modified.setIsSold(original.getIsSold());
         modified.setIsArchived(original.getIsArchived());

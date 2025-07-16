@@ -159,7 +159,7 @@ export interface CarListingFilterParams {
   transmissionId?: number;
   fuelTypeId?: number;
   bodyStyleId?: number;
-  sellerTypeId?: number;
+  sellerTypeIds?: number[];
   
   // Status filters
   isSold?: boolean;
@@ -431,7 +431,9 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
     if (filters.transmissionId && filters.transmissionId > 0) queryParams.append('transmissionId', filters.transmissionId.toString());
     if (filters.fuelTypeId && filters.fuelTypeId > 0) queryParams.append('fuelTypeId', filters.fuelTypeId.toString());
     if (filters.bodyStyleId && filters.bodyStyleId > 0) queryParams.append('bodyStyleId', filters.bodyStyleId.toString());
-    if (filters.sellerTypeId && filters.sellerTypeId > 0) queryParams.append('sellerTypeId', filters.sellerTypeId.toString());
+    if (filters.sellerTypeIds && filters.sellerTypeIds.length > 0) {
+      filters.sellerTypeIds.forEach(id => queryParams.append('sellerTypeId', id.toString()));
+    }
     
     // Status filters
     if (filters.isSold !== undefined) queryParams.append('isSold', filters.isSold.toString());

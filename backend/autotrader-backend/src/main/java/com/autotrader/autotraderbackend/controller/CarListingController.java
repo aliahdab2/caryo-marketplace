@@ -308,7 +308,7 @@ public class CarListingController {
             @Parameter(description = "Maximum mileage") @RequestParam(required = false) Integer maxMileage,
             @Parameter(description = "Show sold listings") @RequestParam(required = false) Boolean isSold,
             @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
-            @Parameter(description = "Filter by seller type ID") @RequestParam(required = false) Long sellerTypeId,
+            @Parameter(description = "Filter by seller type IDs") @RequestParam(required = false) List<Long> sellerTypeId,
             @Parameter(description = "Search query for text-based search (supports English and Arabic)") @RequestParam(required = false) String searchQuery,
             @PageableDefault(size = 10, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
         
@@ -332,7 +332,7 @@ public class CarListingController {
         filterRequest.setMaxMileage(maxMileage);
         filterRequest.setIsSold(isSold);
         filterRequest.setIsArchived(isArchived);
-        filterRequest.setSellerTypeId(sellerTypeId);
+        filterRequest.setSellerTypeIds(sellerTypeId);
         filterRequest.setSearchQuery(searchQuery);
         
         // Validate input
@@ -445,7 +445,7 @@ public class CarListingController {
             @Parameter(description = "Maximum mileage") @RequestParam(required = false) Integer maxMileage,
             @Parameter(description = "Show sold listings") @RequestParam(required = false) Boolean isSold,
             @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
-            @Parameter(description = "Filter by seller type ID") @RequestParam(required = false) Long sellerTypeId,
+            @Parameter(description = "Filter by seller type IDs") @RequestParam(required = false) List<Long> sellerTypeId,
             @Parameter(description = "Search query for text-based search (supports English and Arabic)") @RequestParam(required = false) String searchQuery) {
         
         log.info("Counting listings: brandSlugs={}, modelSlugs={}", 
@@ -468,7 +468,7 @@ public class CarListingController {
         filterRequest.setMaxMileage(maxMileage);
         filterRequest.setIsSold(isSold);
         filterRequest.setIsArchived(isArchived);
-        filterRequest.setSellerTypeId(sellerTypeId);
+        filterRequest.setSellerTypeIds(sellerTypeId);
         filterRequest.setSearchQuery(searchQuery);
         
         // Validate input

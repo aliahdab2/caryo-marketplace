@@ -96,11 +96,11 @@ public class ListingFilterRequest {
     private Boolean isArchived;
 
     /**
-     * Filter by seller type ID. Optional.
-     * Use this to filter listings by the type of seller (e.g., dealer, private).
+     * Filter by seller type IDs. Optional.
+     * Use this to filter listings by multiple types of sellers (e.g., dealer and private).
      */
-    @Schema(description = "Filter by seller type ID (e.g., 1 for dealer, 2 for private seller)", example = "1")
-    private Long sellerTypeId;
+    @Schema(description = "Filter by seller type IDs (e.g., [1, 2] for dealer and private seller)", example = "[1, 2]")
+    private List<Long> sellerTypeIds;
 
     /**
      * Search query for filtering by title, description, or brand/model names.
