@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -439,16 +438,13 @@ public class CarListingService {
             
             // For simple cases without year filters, use optimized repository method
             if (isSimpleFilterExcludingYear(filterRequest)) {
-                List<Integer> distinctYears = carListingRepository.findDistinctYears();
-                // Sort years in descending order (newest first) 
-                distinctYears.sort(Collections.reverseOrder());
+                List<Object[]> distinctYearCounts = carListingRepository.findDistinctYearsWithCounts();
                 
-                for (Integer year : distinctYears) {
-                    if (year != null) {
-                        long count = carListingRepository.countByYear(year);
-                        if (count > 0) {
-                            yearCounts.put(year.toString(), count);
-                        }
+                for (Object[] entry : distinctYearCounts) {
+                    Integer year = (Integer) entry[0];
+                    Long count = (Long) entry[1];
+                    if (year != null && count != null && count > 0) {
+                        yearCounts.put(year.toString(), count);
                     }
                 }
             } else {
@@ -490,20 +486,34 @@ public class CarListingService {
         try {
             Map<String, Long> brandCounts = new LinkedHashMap<>();
             
-            // Always use specification approach to avoid HQL join issues with empty database
-            ListingFilterRequest modifiedFilter = createFilterWithoutBrands(filterRequest);
-            Specification<CarListing> baseSpec = buildBaseSpecification(modifiedFilter, false);
-            
-            List<CarListing> listings = carListingRepository.findAll(baseSpec);
-            brandCounts = listings.stream()
-                .filter(listing -> listing.getModel() != null && 
-                                 listing.getModel().getBrand() != null &&
-                                 StringUtils.isNotBlank(listing.getModel().getBrand().getSlug()))
-                .collect(Collectors.groupingBy(
-                    listing -> listing.getModel().getBrand().getSlug(),
-                    LinkedHashMap::new,
-                    Collectors.counting()
-                ));
+            // Check if we have any filters that would affect brand counts
+            if (hasNonBrandFilters(filterRequest)) {
+                // Use specification approach when filters are applied
+                ListingFilterRequest modifiedFilter = createFilterWithoutBrands(filterRequest);
+                Specification<CarListing> baseSpec = buildBaseSpecification(modifiedFilter, false);
+                
+                List<CarListing> listings = carListingRepository.findAll(baseSpec);
+                brandCounts = listings.stream()
+                    .filter(listing -> listing.getModel() != null && 
+                                     listing.getModel().getBrand() != null &&
+                                     StringUtils.isNotBlank(listing.getModel().getBrand().getSlug()))
+                    .collect(Collectors.groupingBy(
+                        listing -> listing.getModel().getBrand().getSlug(),
+                        LinkedHashMap::new,
+                        Collectors.counting()
+                    ));
+            } else {
+                // Use efficient database-level counting for unfiltered requests
+                List<Object[]> distinctBrandCounts = carListingRepository.findDistinctBrandSlugsWithCounts();
+                
+                for (Object[] entry : distinctBrandCounts) {
+                    String brandSlug = (String) entry[0];
+                    Long count = (Long) entry[1];
+                    if (StringUtils.isNotBlank(brandSlug) && count != null && count > 0) {
+                        brandCounts.put(brandSlug, count);
+                    }
+                }
+            }
             
             log.info("Found counts for {} brands", brandCounts.size());
             return brandCounts;
@@ -520,24 +530,58 @@ public class CarListingService {
     public Map<String, Long> getCountsByModel(ListingFilterRequest filterRequest) {
         log.debug("Getting counts by model with filters: {}", filterRequest);
         
-        // Build base specification (exclude model from filter since we're grouping by it)
-        ListingFilterRequest modifiedFilter = createFilterWithoutModels(filterRequest);
-        Specification<CarListing> baseSpec = buildBaseSpecification(modifiedFilter, false);
+        try {
+            Map<String, Long> modelCounts = new LinkedHashMap<>();
+            
+            // Check if we have any filters that would affect model counts
+            if (hasNonModelFilters(filterRequest)) {
+                // Use specification approach when filters are applied
+                ListingFilterRequest modifiedFilter = createFilterWithoutModels(filterRequest);
+                Specification<CarListing> baseSpec = buildBaseSpecification(modifiedFilter, false);
+                
+                List<CarListing> listings = carListingRepository.findAll(baseSpec);
+                modelCounts = listings.stream()
+                    .filter(listing -> listing.getModel() != null && 
+                                     StringUtils.isNotBlank(listing.getModel().getSlug()))
+                    .collect(Collectors.groupingBy(
+                        listing -> listing.getModel().getSlug(),
+                        LinkedHashMap::new,
+                        Collectors.counting()
+                    ));
+            } else {
+                // Use efficient database-level counting for unfiltered requests
+                List<Object[]> distinctModelCounts = carListingRepository.findDistinctModelSlugsWithCounts();
+                
+                for (Object[] entry : distinctModelCounts) {
+                    String modelSlug = (String) entry[0];
+                    Long count = (Long) entry[1];
+                    if (StringUtils.isNotBlank(modelSlug) && count != null && count > 0) {
+                        modelCounts.put(modelSlug, count);
+                    }
+                }
+            }
+            
+            log.info("Found counts for {} models", modelCounts.size());
+            return modelCounts;
+        } catch (Exception e) {
+            log.error("Error getting model counts", e);
+            return new LinkedHashMap<>();
+        }
+    }
+
+    private boolean hasNonModelFilters(ListingFilterRequest filterRequest) {
+        if (filterRequest == null) return false;
         
-        // Get all listings that match the base criteria
-        List<CarListing> listings = carListingRepository.findAll(baseSpec);
-        
-        // Group by model slug and count
-        Map<String, Long> modelCounts = listings.stream()
-            .filter(listing -> listing.getModel() != null)
-            .collect(Collectors.groupingBy(
-                listing -> listing.getModel().getSlug(),
-                LinkedHashMap::new,
-                Collectors.counting()
-            ));
-        
-        log.info("Found counts for {} models", modelCounts.size());
-        return modelCounts;
+        return filterRequest.getBrandSlugs() != null && !filterRequest.getBrandSlugs().isEmpty() ||
+               filterRequest.getMinYear() != null || filterRequest.getMaxYear() != null ||
+               filterRequest.getMinPrice() != null || filterRequest.getMaxPrice() != null ||
+               filterRequest.getMinMileage() != null || filterRequest.getMaxMileage() != null ||
+               filterRequest.getLocations() != null && !filterRequest.getLocations().isEmpty() ||
+               filterRequest.getLocationId() != null ||
+               filterRequest.getSellerTypeId() != null ||
+               filterRequest.getIsSold() != null ||
+               filterRequest.getIsArchived() != null ||
+               filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty();
     }
 
     /**
@@ -967,22 +1011,19 @@ public class CarListingService {
     /**
      * Check if a filter request is simple enough to use optimized repository methods (excluding brand filters).
      */
-    private boolean isSimpleFilterExcludingBrands(ListingFilterRequest filterRequest) {
-        if (filterRequest == null) return true;
+    private boolean hasNonBrandFilters(ListingFilterRequest filterRequest) {
+        if (filterRequest == null) return false;
         
-        return filterRequest.getModelSlugs() == null &&
-               filterRequest.getMinYear() == null && 
-               filterRequest.getMaxYear() == null &&
-               filterRequest.getMinPrice() == null && 
-               filterRequest.getMaxPrice() == null &&
-               filterRequest.getMinMileage() == null && 
-               filterRequest.getMaxMileage() == null &&
-               filterRequest.getLocations() == null && 
-               filterRequest.getLocationId() == null &&
-               filterRequest.getSellerTypeId() == null && 
-               filterRequest.getSearchQuery() == null &&
-               filterRequest.getIsSold() == null && 
-               filterRequest.getIsArchived() == null;
+        return filterRequest.getModelSlugs() != null && !filterRequest.getModelSlugs().isEmpty() ||
+               filterRequest.getMinYear() != null || filterRequest.getMaxYear() != null ||
+               filterRequest.getMinPrice() != null || filterRequest.getMaxPrice() != null ||
+               filterRequest.getMinMileage() != null || filterRequest.getMaxMileage() != null ||
+               filterRequest.getLocations() != null && !filterRequest.getLocations().isEmpty() ||
+               filterRequest.getLocationId() != null ||
+               filterRequest.getSellerTypeId() != null ||
+               filterRequest.getIsSold() != null ||
+               filterRequest.getIsArchived() != null ||
+               filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty();
     }
 
     /**

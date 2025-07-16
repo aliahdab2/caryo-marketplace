@@ -58,6 +58,27 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
            "ORDER BY m.displayNameEn")
     List<String> findDistinctModelSlugs(@Param("brandSlug") String brandSlug);
     
+    // Efficient count methods with database-level grouping
+    @Query("SELECT b.slug, COUNT(cl) FROM CarListing cl " +
+           "JOIN cl.model m JOIN m.brand b " +
+           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "GROUP BY b.slug, b.displayNameEn " +
+           "ORDER BY b.displayNameEn")
+    List<Object[]> findDistinctBrandSlugsWithCounts();
+    
+    @Query("SELECT m.slug, COUNT(cl) FROM CarListing cl " +
+           "JOIN cl.model m JOIN m.brand b " +
+           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "GROUP BY m.slug, m.displayNameEn " +
+           "ORDER BY m.displayNameEn")
+    List<Object[]> findDistinctModelSlugsWithCounts();
+    
+    @Query("SELECT cl.modelYear, COUNT(cl) FROM CarListing cl " +
+           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "GROUP BY cl.modelYear " +
+           "ORDER BY cl.modelYear DESC")
+    List<Object[]> findDistinctYearsWithCounts();
+    
     // Count methods for specific filters
     @Query("SELECT COUNT(cl) FROM CarListing cl " +
            "JOIN cl.model m JOIN m.brand b " +
