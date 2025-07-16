@@ -508,7 +508,7 @@ These endpoints provide efficient count information for car listings without fet
   - `maxMileage` (integer): Maximum mileage
   - `isSold` (boolean): Show sold listings
   - `isArchived` (boolean): Show archived listings
-  - `sellerTypeId` (integer): Filter by seller type
+  - `sellerTypeIds` (array of integers): Filter by seller type IDs (supports multiple selections)
   - `searchQuery` (string): Text search in title/description
 - **Response (200 OK)**:
   ```json
@@ -526,6 +526,12 @@ These endpoints provide efficient count information for car listings without fet
   
   # Count Toyota and Honda cars from 2020 onwards
   curl "http://localhost:8080/api/listings/count/filter?brandSlugs=toyota&brandSlugs=honda&minYear=2020"
+  
+  # Count cars from dealers and premium dealers (seller types 1 and 2)
+  curl "http://localhost:8080/api/listings/count/filter?sellerTypeIds=1&sellerTypeIds=2"
+  
+  # Count cars from private sellers only
+  curl "http://localhost:8080/api/listings/count/filter?sellerTypeIds=3"
   ```
 
 #### Get Filtered Listings Count (JSON Body)
@@ -1407,7 +1413,7 @@ To run all API tests automatically:
 - **Endpoint**: `GET /api/listings/filter`
 - **Access**: Public
 - **Description**: Returns filtered listings using query parameters
-- **Parameters**: brand, model, minYear, maxYear, location, locationId, minPrice, maxPrice, minMileage, maxMileage, isSold, isArchived
+- **Parameters**: brandSlugs, modelSlugs, minYear, maxYear, location, locationId, minPrice, maxPrice, minMileage, maxMileage, isSold, isArchived, sellerTypeIds, searchQuery
 - **Response**: Paginated list of listings
 
 #### Filter Listings (POST)
