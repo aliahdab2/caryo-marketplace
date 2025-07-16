@@ -308,7 +308,7 @@ public class CarListingController {
             @Parameter(description = "Maximum mileage") @RequestParam(required = false) Integer maxMileage,
             @Parameter(description = "Show sold listings") @RequestParam(required = false) Boolean isSold,
             @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
-            @Parameter(description = "Filter by seller type ID") @RequestParam(required = false) Long sellerTypeId,
+            @Parameter(description = "Filter by seller type IDs") @RequestParam(required = false) List<Long> sellerTypeIds,
             @Parameter(description = "Search query for text-based search (supports English and Arabic)") @RequestParam(required = false) String searchQuery,
             @PageableDefault(size = 10, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
         
@@ -332,7 +332,7 @@ public class CarListingController {
         filterRequest.setMaxMileage(maxMileage);
         filterRequest.setIsSold(isSold);
         filterRequest.setIsArchived(isArchived);
-        filterRequest.setSellerTypeId(sellerTypeId);
+        filterRequest.setSellerTypeIds(sellerTypeIds);
         filterRequest.setSearchQuery(searchQuery);
         
         // Validate input
@@ -445,7 +445,7 @@ public class CarListingController {
             @Parameter(description = "Maximum mileage") @RequestParam(required = false) Integer maxMileage,
             @Parameter(description = "Show sold listings") @RequestParam(required = false) Boolean isSold,
             @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
-            @Parameter(description = "Filter by seller type ID") @RequestParam(required = false) Long sellerTypeId,
+            @Parameter(description = "Filter by seller type IDs") @RequestParam(required = false) List<Long> sellerTypeIds,
             @Parameter(description = "Search query for text-based search (supports English and Arabic)") @RequestParam(required = false) String searchQuery) {
         
         log.info("Counting listings: brandSlugs={}, modelSlugs={}", 
@@ -468,7 +468,7 @@ public class CarListingController {
         filterRequest.setMaxMileage(maxMileage);
         filterRequest.setIsSold(isSold);
         filterRequest.setIsArchived(isArchived);
-        filterRequest.setSellerTypeId(sellerTypeId);
+        filterRequest.setSellerTypeIds(sellerTypeIds);
         filterRequest.setSearchQuery(searchQuery);
         
         // Validate input
@@ -618,6 +618,46 @@ public class CarListingController {
         Map<String, Long> modelCounts = carListingService.getCountsByModel(filterRequest);
         log.info("Returning model counts for {} models", modelCounts.size());
         return ResponseEntity.ok(modelCounts);
+    }
+
+    @GetMapping("/counts/seller-types")
+    @Operation(
+        summary = "Get count of listings by seller type",
+        description = "Returns count of listings for each seller type (Business/Private). Optionally accepts filter parameters to constrain the results.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Count of listings by seller type", 
+                         content = @Content(mediaType = "application/json",
+                                            schema = @Schema(type = "object", example = "{\\\"private\\\": 22771, \\\"dealer\\\": 118102}")))
+        }
+    )
+    public ResponseEntity<Map<String, Long>> getCountsBySellerType(
+            @Parameter(description = "Brand slugs to filter by") @RequestParam(required = false) List<String> brandSlugs,
+            @Parameter(description = "Model slugs to filter by") @RequestParam(required = false) List<String> modelSlugs,
+            @Parameter(description = "Minimum year") @RequestParam(required = false) Integer minYear,
+            @Parameter(description = "Maximum year") @RequestParam(required = false) Integer maxYear,
+            @Parameter(description = "Location slugs to filter by") @RequestParam(required = false) List<String> location,
+            @Parameter(description = "Minimum price") @RequestParam(required = false) BigDecimal minPrice,
+            @Parameter(description = "Maximum price") @RequestParam(required = false) BigDecimal maxPrice,
+            @Parameter(description = "Minimum mileage") @RequestParam(required = false) Integer minMileage,
+            @Parameter(description = "Maximum mileage") @RequestParam(required = false) Integer maxMileage) {
+        
+        log.info("Getting counts by seller type with filters: brands={}, models={}, years={}-{}", 
+                brandSlugs, modelSlugs, minYear, maxYear);
+        
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setBrandSlugs(brandSlugs);
+        filterRequest.setModelSlugs(modelSlugs);
+        filterRequest.setMinYear(minYear);
+        filterRequest.setMaxYear(maxYear);
+        filterRequest.setLocations(location);
+        filterRequest.setMinPrice(minPrice);
+        filterRequest.setMaxPrice(maxPrice);
+        filterRequest.setMinMileage(minMileage);
+        filterRequest.setMaxMileage(maxMileage);
+        
+        Map<String, Long> sellerTypeCounts = carListingService.getCountsBySellerType(filterRequest);
+        log.info("Returning seller type counts for {} seller types", sellerTypeCounts.size());
+        return ResponseEntity.ok(sellerTypeCounts);
     }
 
     @GetMapping("/{id:[0-9]+}")

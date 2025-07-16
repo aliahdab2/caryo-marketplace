@@ -135,6 +135,15 @@
   "verifyDocuments": "Verify all documents",
   "reportListing": "Report this listing",
   
+  "filters": {
+    "sellerType": "Seller Type",
+    "allSellers": "All",
+    "privateSellerShort": "Private Seller",
+    "dealerShort": "Dealer", 
+    "noSellerTypes": "No seller types available",
+    "loadingCounts": "Loading seller counts..."
+  },
+  
   "newListing": {
     "subtitle": "Share your car with potential buyers in a few simple steps",
     "step1Title": "Basic Information",

@@ -16,39 +16,30 @@ fi
 
 # Function to generate random data
 generate_random_car() {
-    local BRANDS=("Toyota" "Honda" "BMW" "Mercedes" "Audi" "Ford" "Chevrolet" "Hyundai" "Kia" "Nissan")
-    local MODELS=("Camry" "Civic" "3 Series" "C-Class" "A4" "Mustang" "Malibu" "Elantra" "Optima" "Altima")
-    local COLORS=("Red" "Blue" "Black" "White" "Silver" "Green" "Yellow" "Orange" "Purple" "Gray")
+    # Use actual model IDs from the reference data (1-16 based on the brands API we saw)
+    local MODEL_IDS=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16)
     local YEARS=(2018 2019 2020 2021 2022 2023 2024)
     local PRICES=(15000 18000 22000 25000 30000 35000 40000 45000 50000 60000)
     
-    local BRAND_INDEX=$((RANDOM % 10))
-    local MODEL_INDEX=$((RANDOM % 10))
-    local COLOR_INDEX=$((RANDOM % 10))
+    local MODEL_INDEX=$((RANDOM % 16))
     local YEAR_INDEX=$((RANDOM % 7))
     local PRICE_INDEX=$((RANDOM % 10))
     
-    local BRAND=${BRANDS[$BRAND_INDEX]}
-    local MODEL=${MODELS[$MODEL_INDEX]}
-    local COLOR=${COLORS[$COLOR_INDEX]}
+    local MODEL_ID=${MODEL_IDS[$MODEL_INDEX]}
     local YEAR=${YEARS[$YEAR_INDEX]}
     local PRICE=${PRICES[$PRICE_INDEX]}
     local MILEAGE=$((RANDOM % 100000 + 5000))
     
-    # Create JSON payload
+    # Create JSON payload with correct structure
     cat <<EOF
 {
-    "title": "$YEAR $BRAND $MODEL - $COLOR",
-    "description": "This is a beautiful $COLOR $YEAR $BRAND $MODEL with $MILEAGE miles. Well maintained and in excellent condition.",
-    "brand": "$BRAND",
-    "model": "$MODEL",
-    "year": $YEAR,
+    "title": "$YEAR Car Listing - Model ID $MODEL_ID",
+    "description": "This is a beautiful $YEAR car with $MILEAGE miles. Well maintained and in excellent condition.",
+    "modelId": $MODEL_ID,
+    "modelYear": $YEAR,
     "price": $PRICE,
     "mileage": $MILEAGE,
-    "color": "$COLOR",
-    "fuelType": "GASOLINE",
-    "transmission": "AUTOMATIC",
-    "bodyType": "SEDAN",
+    "currency": "USD",
     "locationId": 1
 }
 EOF
@@ -71,17 +62,18 @@ curl -s -X POST "$API_URL/auth/signup" \
 echo "Logging in as admin..."
 LOGIN_RESPONSE=$(curl -s -X POST "$API_URL/auth/signin" \
     -H "Content-Type: application/json" \
-    -d '{"username": "admin", "email": "admin@example.com", "password": "Admin123!"}')
+    -d '{"username": "admin", "password": "Admin123!"}')
 
-# Extract token
+# Extract token using proper JSON parsing
 TOKEN=$(echo $LOGIN_RESPONSE | grep -o '"token":"[^"]*' | sed 's/"token":"//')
 
-if [ -z "$TOKEN" ]; then
+if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
     echo "Error: Failed to get authentication token."
+    echo "Login response: $LOGIN_RESPONSE"
     exit 1
 fi
 
-echo "Successfully logged in."
+echo "Successfully logged in as admin."
 
 # Create regular test user
 echo "Creating test user..."

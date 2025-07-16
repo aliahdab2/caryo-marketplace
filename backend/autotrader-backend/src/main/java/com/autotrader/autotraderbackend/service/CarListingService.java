@@ -569,6 +569,84 @@ public class CarListingService {
         }
     }
 
+    /**
+     * Get count of listings by seller type with optimized approach.
+     * Uses direct database queries when possible, falls back to specification filtering when needed.
+     */
+    public Map<String, Long> getCountsBySellerType(ListingFilterRequest filterRequest) {
+        log.debug("Getting counts by seller type with filters: {}", filterRequest);
+        
+        try {
+            // Check if we have any filters that would affect seller type counts
+            if (hasNonSellerTypeFilters(filterRequest)) {
+                // Use specification approach but only fetch the seller type field to minimize memory usage
+                return getSellerTypeCountsWithSpecification(filterRequest);
+            } else {
+                // Use efficient direct query for unfiltered requests
+                List<Object[]> distinctSellerTypeCounts = carListingRepository.findDistinctSellerTypesWithCounts();
+                
+                Map<String, Long> sellerTypeCounts = new LinkedHashMap<>();
+                for (Object[] entry : distinctSellerTypeCounts) {
+                    String sellerTypeName = (String) entry[0];
+                    Long count = (Long) entry[1];
+                    if (StringUtils.isNotBlank(sellerTypeName) && count != null && count > 0) {
+                        sellerTypeCounts.put(sellerTypeName, count);
+                    }
+                }
+                
+                log.info("Found counts for {} seller types (unfiltered)", sellerTypeCounts.size());
+                return sellerTypeCounts;
+            }
+        } catch (Exception e) {
+            log.error("Error getting seller type counts", e);
+            return new LinkedHashMap<>();
+        }
+    }
+
+    /**
+     * Get seller type counts using specification filtering.
+     * Optimized to only fetch necessary fields and avoid loading full entities.
+     */
+    private Map<String, Long> getSellerTypeCountsWithSpecification(ListingFilterRequest filterRequest) {
+        // Remove seller type filter to get all seller types with their counts
+        ListingFilterRequest modifiedFilter = createFilterWithoutSellerType(filterRequest);
+        
+        // Build the specification for filtering
+        Specification<CarListing> baseSpec = buildBaseSpecification(modifiedFilter, false);
+        
+        // Fetch only IDs first to get the filtered listings efficiently
+        List<CarListing> filteredListings = carListingRepository.findAll(baseSpec);
+        
+        // Group by seller type name and count
+        Map<String, Long> sellerTypeCounts = filteredListings.stream()
+            .filter(listing -> listing.getSeller() != null && 
+                             listing.getSeller().getSellerType() != null &&
+                             StringUtils.isNotBlank(listing.getSeller().getSellerType().getName()))
+            .collect(Collectors.groupingBy(
+                listing -> listing.getSeller().getSellerType().getName(),
+                LinkedHashMap::new,
+                Collectors.counting()
+            ));
+        
+        log.info("Found counts for {} seller types (filtered)", sellerTypeCounts.size());
+        return sellerTypeCounts;
+    }
+
+    private boolean hasNonSellerTypeFilters(ListingFilterRequest filterRequest) {
+        if (filterRequest == null) return false;
+        
+        return filterRequest.getBrandSlugs() != null && !filterRequest.getBrandSlugs().isEmpty() ||
+               filterRequest.getModelSlugs() != null && !filterRequest.getModelSlugs().isEmpty() ||
+               filterRequest.getMinYear() != null || filterRequest.getMaxYear() != null ||
+               filterRequest.getMinPrice() != null || filterRequest.getMaxPrice() != null ||
+               filterRequest.getMinMileage() != null || filterRequest.getMaxMileage() != null ||
+               filterRequest.getLocations() != null && !filterRequest.getLocations().isEmpty() ||
+               filterRequest.getLocationId() != null ||
+               filterRequest.getIsSold() != null ||
+               filterRequest.getIsArchived() != null ||
+               filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty();
+    }
+
     private boolean hasNonModelFilters(ListingFilterRequest filterRequest) {
         if (filterRequest == null) return false;
         
@@ -578,7 +656,7 @@ public class CarListingService {
                filterRequest.getMinMileage() != null || filterRequest.getMaxMileage() != null ||
                filterRequest.getLocations() != null && !filterRequest.getLocations().isEmpty() ||
                filterRequest.getLocationId() != null ||
-               filterRequest.getSellerTypeId() != null ||
+               filterRequest.getSellerTypeIds() != null && !filterRequest.getSellerTypeIds().isEmpty() ||
                filterRequest.getIsSold() != null ||
                filterRequest.getIsArchived() != null ||
                filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty();
@@ -601,7 +679,7 @@ public class CarListingService {
         modified.setMaxPrice(original.getMaxPrice());
         modified.setMinMileage(original.getMinMileage());
         modified.setMaxMileage(original.getMaxMileage());
-        modified.setSellerTypeId(original.getSellerTypeId());
+        modified.setSellerTypeIds(original.getSellerTypeIds());
         modified.setSearchQuery(original.getSearchQuery());
         modified.setIsSold(original.getIsSold());
         modified.setIsArchived(original.getIsArchived());
@@ -626,10 +704,36 @@ public class CarListingService {
         modified.setMaxPrice(original.getMaxPrice());
         modified.setMinMileage(original.getMinMileage());
         modified.setMaxMileage(original.getMaxMileage());
-        modified.setSellerTypeId(original.getSellerTypeId());
+        modified.setSellerTypeIds(original.getSellerTypeIds());
         modified.setSearchQuery(original.getSearchQuery());
         modified.setIsSold(original.getIsSold());
         modified.setIsArchived(original.getIsArchived());
+        
+        return modified;
+    }
+
+    /**
+     * Create a filter request without seller type filters.
+     */
+    private ListingFilterRequest createFilterWithoutSellerType(ListingFilterRequest original) {
+        if (original == null) return new ListingFilterRequest();
+        
+        ListingFilterRequest modified = new ListingFilterRequest();
+        // Copy all filters except seller type
+        modified.setBrandSlugs(original.getBrandSlugs());
+        modified.setModelSlugs(original.getModelSlugs());
+        modified.setMinYear(original.getMinYear());
+        modified.setMaxYear(original.getMaxYear());
+        modified.setLocations(original.getLocations());
+        modified.setLocationId(original.getLocationId());
+        modified.setMinPrice(original.getMinPrice());
+        modified.setMaxPrice(original.getMaxPrice());
+        modified.setMinMileage(original.getMinMileage());
+        modified.setMaxMileage(original.getMaxMileage());
+        modified.setSearchQuery(original.getSearchQuery());
+        modified.setIsSold(original.getIsSold());
+        modified.setIsArchived(original.getIsArchived());
+        // Note: sellerTypeId is intentionally excluded
         
         return modified;
     }
@@ -656,7 +760,7 @@ public class CarListingService {
         modifiedFilter.setMaxPrice(filterRequest.getMaxPrice());
         modifiedFilter.setMinMileage(filterRequest.getMinMileage());
         modifiedFilter.setMaxMileage(filterRequest.getMaxMileage());
-        modifiedFilter.setSellerTypeId(filterRequest.getSellerTypeId());
+        modifiedFilter.setSellerTypeIds(filterRequest.getSellerTypeIds());
         modifiedFilter.setSearchQuery(filterRequest.getSearchQuery());
         
         // Handle location filtering similar to getFilteredListingsCount
@@ -1020,7 +1124,7 @@ public class CarListingService {
                filterRequest.getMinMileage() != null || filterRequest.getMaxMileage() != null ||
                filterRequest.getLocations() != null && !filterRequest.getLocations().isEmpty() ||
                filterRequest.getLocationId() != null ||
-               filterRequest.getSellerTypeId() != null ||
+               filterRequest.getSellerTypeIds() != null && !filterRequest.getSellerTypeIds().isEmpty() ||
                filterRequest.getIsSold() != null ||
                filterRequest.getIsArchived() != null ||
                filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty();
@@ -1040,7 +1144,7 @@ public class CarListingService {
                filterRequest.getMaxMileage() == null &&
                filterRequest.getLocations() == null && 
                filterRequest.getLocationId() == null &&
-               filterRequest.getSellerTypeId() == null && 
+               (filterRequest.getSellerTypeIds() == null || filterRequest.getSellerTypeIds().isEmpty()) && 
                filterRequest.getSearchQuery() == null &&
                filterRequest.getIsSold() == null && 
                filterRequest.getIsArchived() == null;
@@ -1062,7 +1166,7 @@ public class CarListingService {
         modified.setMaxPrice(original.getMaxPrice());
         modified.setMinMileage(original.getMinMileage());
         modified.setMaxMileage(original.getMaxMileage());
-        modified.setSellerTypeId(original.getSellerTypeId());
+        modified.setSellerTypeIds(original.getSellerTypeIds());
         modified.setSearchQuery(original.getSearchQuery());
         modified.setIsSold(original.getIsSold());
         modified.setIsArchived(original.getIsArchived());

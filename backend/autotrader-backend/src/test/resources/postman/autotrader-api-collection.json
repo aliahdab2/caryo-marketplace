@@ -732,6 +732,97 @@
               ]
             }
           }
+        },
+        {
+          "name": "Get Seller Types with Counts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an object with seller type counts\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('object');",
+                  "    // Check that all values are numbers >= 0",
+                  "    Object.values(jsonData).forEach(count => {",
+                  "        pm.expect(count).to.be.a('number').and.to.be.at.least(0);",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains expected seller types\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    // Check for common seller types",
+                  "    var hasBusinessOrPrivate = jsonData.hasOwnProperty('BUSINESS') || jsonData.hasOwnProperty('PRIVATE');",
+                  "    pm.expect(hasBusinessOrPrivate).to.be.true;",
+                  "});",
+                  "",
+                  "console.log('Seller types with counts:', pm.response.json());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/listings/counts/seller-types?brandSlugs=toyota&minYear=2020",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "listings", "counts", "seller-types"],
+              "query": [
+                {
+                  "key": "brandSlugs",
+                  "value": "toyota",
+                  "description": "Optional: filter by brand"
+                },
+                {
+                  "key": "minYear",
+                  "value": "2020",
+                  "description": "Optional: filter by minimum year"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Seller Types with Counts (No Filters)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an object with seller type counts\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('object');",
+                  "    // Check that all values are numbers >= 0",
+                  "    Object.values(jsonData).forEach(count => {",
+                  "        pm.expect(count).to.be.a('number').and.to.be.at.least(0);",
+                  "    });",
+                  "});",
+                  "",
+                  "console.log('All seller types with counts:', pm.response.json());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/listings/counts/seller-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "listings", "counts", "seller-types"]
+            }
+          }
         }
       ]
     }

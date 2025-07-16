@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.config;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.*;
 import com.autotrader.autotraderbackend.payload.request.SellerTypeRequest;
+import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
     private final FuelTypeService fuelTypeService;
     private final TransmissionService transmissionService;
     private final SellerTypeService sellerTypeService;
+    private final UserRepository userRepository;
 
     @Override
     public void run(String... args) {
@@ -39,6 +41,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
         initializeFuelTypes();
         initializeTransmissions();
         initializeSellerTypes();
+        initializeUserSellerTypes();
 
         log.info("Reference data initialization complete.");
     }
@@ -172,6 +175,64 @@ public class ReferenceDataInitializer implements CommandLineRunner {
             } catch (Exception e) {
                 log.error("Error checking seller type '{}': {}", sellerType.getName(), e.getMessage());
             }
+        }
+    }
+    
+    private void initializeUserSellerTypes() {
+        log.info("Initializing user seller types...");
+        
+        // Find all users that don't have seller types assigned
+        List<User> usersWithoutSellerType = userRepository.findBySellerTypeIsNull();
+        
+        if (usersWithoutSellerType.isEmpty()) {
+            log.info("All users already have seller types assigned");
+            return;
+        }
+        
+        try {
+            // Get the seller types
+            SellerType privateSellerType = null;
+            SellerType dealerSellerType = null;
+            
+            try {
+                privateSellerType = sellerTypeService.getSellerTypeEntityByName("PRIVATE");
+            } catch (Exception e) {
+                log.warn("PRIVATE seller type not found: {}", e.getMessage());
+            }
+            
+            try {
+                dealerSellerType = sellerTypeService.getSellerTypeEntityByName("DEALER");
+            } catch (Exception e) {
+                log.warn("DEALER seller type not found: {}", e.getMessage());
+            }
+            
+            if (privateSellerType == null && dealerSellerType == null) {
+                log.warn("No seller types available for assignment");
+                return;
+            }
+            
+            // Assign seller types to users (alternating between PRIVATE and DEALER)
+            for (int i = 0; i < usersWithoutSellerType.size(); i++) {
+                User user = usersWithoutSellerType.get(i);
+                
+                if (i % 2 == 0 && privateSellerType != null) {
+                    user.setSellerType(privateSellerType);
+                    log.info("Assigned PRIVATE seller type to user: {}", user.getUsername());
+                } else if (dealerSellerType != null) {
+                    user.setSellerType(dealerSellerType);
+                    log.info("Assigned DEALER seller type to user: {}", user.getUsername());
+                } else if (privateSellerType != null) {
+                    user.setSellerType(privateSellerType);
+                    log.info("Assigned PRIVATE seller type to user: {}", user.getUsername());
+                }
+                
+                userRepository.save(user);
+            }
+            
+            log.info("Successfully assigned seller types to {} users", usersWithoutSellerType.size());
+            
+        } catch (Exception e) {
+            log.error("Error initializing user seller types: {}", e.getMessage(), e);
         }
     }
 

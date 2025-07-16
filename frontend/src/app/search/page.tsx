@@ -38,6 +38,8 @@ import {
   CarListingFilterParams,
   Governorate
 } from '@/services/api';
+import { getSellerTypeCounts } from '@/services/sellerTypes';
+import { SellerTypeCounts } from '@/types/sellerTypes';
 import { useApiData } from '@/hooks/useApiData';
 
 interface AdvancedSearchFilters {
@@ -61,7 +63,7 @@ interface AdvancedSearchFilters {
   transmissionId?: number;
   fuelTypeId?: number;
   bodyStyleId?: number;
-  sellerTypeId?: number;
+  sellerTypeIds?: number[];
   
   // Direct field filters
   exteriorColor?: string;
@@ -121,6 +123,7 @@ export default function AdvancedSearchPage() {
   const [activeFilterModal, setActiveFilterModal] = useState<FilterType | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [sellerTypeCounts, setSellerTypeCounts] = useState<SellerTypeCounts>({});
   
   // Handle clicking outside the dropdown to close it
   useEffect(() => {
@@ -167,7 +170,7 @@ export default function AdvancedSearchPage() {
       minMileage: filters.minMileage,
       maxMileage: filters.maxMileage,
       locations: filters.locations,
-      sellerTypeId: filters.sellerTypeId,
+      sellerTypeIds: filters.sellerTypeIds,
       searchQuery: searchQuery.trim() || undefined, // Include search query
       size: 20, // Default page size
       page: 0, // Default to first page
@@ -371,6 +374,12 @@ export default function AdvancedSearchPage() {
     const maxPrice = searchParams.get('maxPrice');
     if (maxPrice) initialFilters.maxPrice = parseFloat(maxPrice);
 
+    // Handle seller type IDs - support multiple values
+    const sellerTypeIds = searchParams.getAll('sellerTypeId');
+    if (sellerTypeIds.length > 0) {
+      initialFilters.sellerTypeIds = sellerTypeIds.map(id => parseInt(id)).filter(id => !isNaN(id));
+    }
+
     setFilters(initialFilters);
     setHasInitialized(true);
   }, [hasInitialized, searchParams]);
@@ -428,6 +437,37 @@ export default function AdvancedSearchPage() {
     }
   }, [filters.models, availableModels]); // Removed selectedModel from dependencies
 
+  // Fetch seller type counts when filters change (Swedish marketplace style)
+  useEffect(() => {
+    const fetchSellerTypeCounts = async () => {
+      try {
+        // Convert filters to API format for count endpoint
+        const apiFilters = {
+          brandSlugs: filters.brands,
+          modelSlugs: filters.models,
+          minYear: filters.minYear?.toString(),
+          maxYear: filters.maxYear?.toString(),
+          minPrice: filters.minPrice?.toString(),
+          maxPrice: filters.maxPrice?.toString(),
+          minMileage: filters.minMileage?.toString(),
+          maxMileage: filters.maxMileage?.toString(),
+          transmissionId: filters.transmissionId,
+          fuelTypeId: filters.fuelTypeId,
+          bodyStyleId: filters.bodyStyleId,
+          // Don't include sellerTypeId in count queries
+        };
+        
+        const counts = await getSellerTypeCounts(apiFilters);
+        setSellerTypeCounts(counts);
+      } catch (error) {
+        console.error('Error fetching seller type counts:', error);
+        setSellerTypeCounts({}); // Reset to empty on error
+      }
+    };
+
+    fetchSellerTypeCounts();
+  }, [filters.brands, filters.models, filters.minYear, filters.maxYear, filters.minPrice, filters.maxPrice, filters.minMileage, filters.maxMileage, filters.transmissionId, filters.fuelTypeId, filters.bodyStyleId]);
+
   // Function to update URL when filters change
   // URLs use clean singular form (brand/model) for SEO and UX
   // Backend API expects plural form (brandSlugs/modelSlugs)
@@ -465,7 +505,9 @@ export default function AdvancedSearchPage() {
     if (newFilters.transmissionId) params.append('transmissionId', newFilters.transmissionId.toString());
     if (newFilters.fuelTypeId) params.append('fuelTypeId', newFilters.fuelTypeId.toString());
     if (newFilters.bodyStyleId) params.append('bodyStyleId', newFilters.bodyStyleId.toString());
-    if (newFilters.sellerTypeId) params.append('sellerTypeId', newFilters.sellerTypeId.toString());
+    if (newFilters.sellerTypeIds && newFilters.sellerTypeIds.length > 0) {
+      newFilters.sellerTypeIds.forEach(id => params.append('sellerTypeId', id.toString()));
+    }
     
     // Update URL without causing a page reload
     const newUrl = `/search${params.toString() ? `?${params.toString()}` : ''}`;
@@ -473,7 +515,7 @@ export default function AdvancedSearchPage() {
   }, [router]);
 
   // Handle input changes - simplified for slug-based filtering only
-  const handleInputChange = useCallback((field: keyof AdvancedSearchFilters, value: string | number | undefined) => {
+  const handleInputChange = useCallback((field: keyof AdvancedSearchFilters, value: string | number | string[] | number[] | undefined) => {
     setFilters(prev => {
       const newFilters = {
         ...prev,
@@ -550,7 +592,7 @@ export default function AdvancedSearchPage() {
           delete newFilters.bodyStyleId;
           break;
         case 'sellerType':
-          delete newFilters.sellerTypeId;
+          delete newFilters.sellerTypeIds;
           break;
       }
       
@@ -600,7 +642,11 @@ export default function AdvancedSearchPage() {
       case 'bodyStyle':
         return filters.bodyStyleId ? getBodyStyleDisplayName(filters.bodyStyleId) : t('search.bodyStyle', 'Body style');
       case 'sellerType':
-        return filters.sellerTypeId ? getSellerTypeDisplayName(filters.sellerTypeId) : t('search.sellerType', 'Seller type');
+        return filters.sellerTypeIds && filters.sellerTypeIds.length > 0 
+          ? filters.sellerTypeIds.length === 1 
+            ? getSellerTypeDisplayName(filters.sellerTypeIds[0])
+            : `${filters.sellerTypeIds.length} ${t('search.sellerType', 'Seller types')}`
+          : t('search.sellerType', 'Seller type');
       default:
         return '';
     }
@@ -628,7 +674,7 @@ export default function AdvancedSearchPage() {
       case 'bodyStyle':
         return !!filters.bodyStyleId;
       case 'sellerType':
-        return !!filters.sellerTypeId;
+        return !!(filters.sellerTypeIds && filters.sellerTypeIds.length > 0);
       default:
         return false;
     }
@@ -954,25 +1000,60 @@ export default function AdvancedSearchPage() {
         case 'sellerType':
           return (
             <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.sellerType', 'Seller type')}</h3>
-                <select
-                  value={filters.sellerTypeId || ''}
-                  onChange={(e) => handleInputChange('sellerTypeId', e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  disabled={isLoadingReferenceData}
-                >
-                  <option value="">{t('search.any', 'Any')}</option>
-                  {referenceData?.sellerTypes?.map(sellerType => {
-                    const id = sellerType.id as number;
-                    const typedSellerType = sellerType as { displayNameEn: string; displayNameAr: string };
-                    return (
-                      <option key={id} value={id}>
-                        {currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn}
-                      </option>
-                    );
-                  })}
-                </select>
+              {/* Header - Blocket style but in English/Arabic */}
+              <div className="text-center">
+                <h3 className="text-xl font-medium text-gray-900 mb-1">{t('search.sellerType', 'Seller Type')}</h3>
+              </div>
+              
+              {/* Blocket Style Filter with Checkboxes */}
+              <div className="space-y-2">
+                {/* Individual Seller Type Checkboxes - Blocket styling with English/Arabic content */}
+                {referenceData?.sellerTypes?.map(sellerType => {
+                  const id = sellerType.id as number;
+                  const typedSellerType = sellerType as { displayNameEn: string; displayNameAr: string; name: string };
+                  const isSelected = filters.sellerTypeIds?.includes(id) || false;
+                  
+                  // Use proper English and Arabic display names from the database
+                  const displayName = currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn;
+                  
+                  // Get count for this seller type from our counts data
+                  const count = sellerTypeCounts[typedSellerType.name] || 0;
+                  
+                  return (
+                    <div
+                      key={id}
+                      className="flex items-center justify-between py-3 cursor-pointer hover:bg-gray-50 rounded-md px-2"
+                      onClick={() => {
+                        const currentSellerTypes = filters.sellerTypeIds || [];
+                        const newSellerTypes = isSelected 
+                          ? currentSellerTypes.filter(sellerTypeId => sellerTypeId !== id)
+                          : [...currentSellerTypes, id];
+                        
+                        handleInputChange('sellerTypeIds', newSellerTypes.length > 0 ? newSellerTypes : undefined);
+                      }}
+                    >
+                      <div className="flex items-center space-x-3">
+                        {/* Blocket-style Checkbox */}
+                        <div className={`w-5 h-5 border-2 rounded transition-all ${
+                          isSelected 
+                            ? 'border-gray-400 bg-gray-400' 
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                            </svg>
+                          )}
+                        </div>
+                        
+                        {/* Label with Count - Blocket Style with English/Arabic */}
+                        <label className="text-gray-900 cursor-pointer text-base font-normal">
+                          {displayName} <span className="text-gray-500 font-normal">({count.toLocaleString()})</span>
+                        </label>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
@@ -1003,10 +1084,10 @@ export default function AdvancedSearchPage() {
             <div className="absolute right-0 top-0 pr-4 pt-4">
               <button
                 type="button"
-                className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none"
+                className="rounded-md bg-white text-gray-500 hover:text-gray-700 focus:outline-none text-sm font-medium"
                 onClick={onClose}
               >
-                <MdClose className="h-6 w-6" />
+                {filterType === 'sellerType' ? t('search:cancel', 'Cancel') : <MdClose className="h-6 w-6" />}
               </button>
             </div>
 
@@ -1016,7 +1097,7 @@ export default function AdvancedSearchPage() {
               <div className="mt-8 flex justify-between">
                 <button
                   onClick={() => clearSpecificFilter(filterType)}
-                  className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
+                  className="rounded-md bg-white px-6 py-2.5 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50"
                 >
                   {t('search.clearFilter', 'Clear filter')}
                 </button>
@@ -1026,9 +1107,12 @@ export default function AdvancedSearchPage() {
                     // Close the modal since filters apply automatically
                     onClose();
                   }}
-                  className="rounded-md bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  className="rounded-md bg-blue-600 px-8 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
                 >
-                  {t('search.done', 'Done')}
+                  {filterType === 'sellerType' 
+                    ? t('search:showResults', 'Show {{count}} results', { count: carListings?.totalElements || 0 })
+                    : t('search:done', 'Done')
+                  }
                 </button>
               </div>
             </div>
@@ -1392,7 +1476,7 @@ export default function AdvancedSearchPage() {
               </div>
             )}
             
-            {filters.sellerTypeId && (
+            {filters.sellerTypeIds && filters.sellerTypeIds.length > 0 && (
               <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
                 <span>{getFilterDisplayText('sellerType')}</span>
                 <button

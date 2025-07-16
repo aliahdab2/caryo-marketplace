@@ -67,5 +67,7 @@
   "removeFuelTypeFilter": "Remove fuel type filter",
   "removeBodyStyleFilter": "Remove body style filter",
   "removeSellerTypeFilter": "Remove seller type filter",
-  "cars": "cars"
+  "cars": "cars",
+  "cancel": "Cancel",
+  "showResults": "Show {{count}} results"
 }

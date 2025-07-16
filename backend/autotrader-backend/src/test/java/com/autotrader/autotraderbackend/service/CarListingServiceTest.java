@@ -645,4 +645,220 @@ class CarListingServiceTest {
         verify(carListingRepository).findBySeller(testUser);
         verify(carListingMapper, times(2)).toCarListingResponse(any());
     }
+
+    // --- Tests for seller type count functionality ---
+
+    @Test
+    void getCountsBySellerType_WithNoFilters_ShouldUseDirectDatabaseQuery() {
+        // Arrange
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        Object[] businessResult = {"BUSINESS", 100L};
+        Object[] privateResult = {"PRIVATE", 50L};
+        List<Object[]> mockResults = Arrays.asList(businessResult, privateResult);
+
+        when(carListingRepository.findDistinctSellerTypesWithCounts()).thenReturn(mockResults);
+
+        // Act
+        var result = carListingService.getCountsBySellerType(filterRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(100L, result.get("BUSINESS"));
+        assertEquals(50L, result.get("PRIVATE"));
+        
+        verify(carListingRepository).findDistinctSellerTypesWithCounts();
+        verify(carListingRepository, never()).findAll(any(Specification.class));
+    }
+
+    @Test
+    void getCountsBySellerType_WithBrandFilter_ShouldUseSpecificationQuery() {
+        // Arrange
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setBrandSlugs(Arrays.asList("toyota"));
+
+        // Mock filtered listings with different seller types
+        CarListing businessListing = createTestListing();
+        CarListing privateListing = createTestListing();
+        
+        // Create mock users with different seller types
+        User businessUser = createTestUser();
+        User privateUser = createTestUser();
+        businessUser.setSellerType(createSellerType("BUSINESS"));
+        privateUser.setSellerType(createSellerType("PRIVATE"));
+        
+        businessListing.setSeller(businessUser);
+        privateListing.setSeller(privateUser);
+        
+        List<CarListing> filteredListings = Arrays.asList(businessListing, privateListing);
+
+        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(filteredListings);
+
+        // Act
+        var result = carListingService.getCountsBySellerType(filterRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(1L, result.get("BUSINESS"));
+        assertEquals(1L, result.get("PRIVATE"));
+        
+        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any());
+        verify(carListingRepository, never()).findDistinctSellerTypesWithCounts();
+    }
+
+    @Test
+    void getCountsBySellerType_WithMultipleFilters_ShouldGroupCorrectly() {
+        // Arrange
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setBrandSlugs(Arrays.asList("toyota"));
+        filterRequest.setMinYear(2020);
+        filterRequest.setMaxPrice(BigDecimal.valueOf(50000));
+
+        // Create multiple listings with same seller type
+        CarListing businessListing1 = createTestListing();
+        CarListing businessListing2 = createTestListing();
+        CarListing privateListing = createTestListing();
+        
+        User businessUser = createTestUser();
+        User privateUser = createTestUser();
+        businessUser.setSellerType(createSellerType("BUSINESS"));
+        privateUser.setSellerType(createSellerType("PRIVATE"));
+        
+        businessListing1.setSeller(businessUser);
+        businessListing2.setSeller(businessUser);
+        privateListing.setSeller(privateUser);
+        
+        List<CarListing> filteredListings = Arrays.asList(businessListing1, businessListing2, privateListing);
+
+        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(filteredListings);
+
+        // Act
+        var result = carListingService.getCountsBySellerType(filterRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(2L, result.get("BUSINESS")); // Two business listings
+        assertEquals(1L, result.get("PRIVATE"));  // One private listing
+        
+        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any());
+    }
+
+    @Test
+    void getCountsBySellerType_WithSellerTypeFilter_ShouldIgnoreSellerTypeFilter() {
+        // Arrange
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setSellerTypeIds(Arrays.asList(1L)); // This should be ignored
+        filterRequest.setBrandSlugs(Arrays.asList("toyota")); // This should be applied
+
+        CarListing businessListing = createTestListing();
+        CarListing privateListing = createTestListing();
+        
+        User businessUser = createTestUser();
+        User privateUser = createTestUser();
+        businessUser.setSellerType(createSellerType("BUSINESS"));
+        privateUser.setSellerType(createSellerType("PRIVATE"));
+        
+        businessListing.setSeller(businessUser);
+        privateListing.setSeller(privateUser);
+        
+        List<CarListing> filteredListings = Arrays.asList(businessListing, privateListing);
+
+        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(filteredListings);
+
+        // Act
+        var result = carListingService.getCountsBySellerType(filterRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(1L, result.get("BUSINESS"));
+        assertEquals(1L, result.get("PRIVATE"));
+        
+        // Verify that both seller types are returned despite sellerTypeId filter
+        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any());
+    }
+
+    @Test
+    void getCountsBySellerType_WithNullSellerType_ShouldFilterOutNullSellerTypes() {
+        // Arrange
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setBrandSlugs(Arrays.asList("toyota"));
+
+        CarListing validListing = createTestListing();
+        CarListing invalidListing = createTestListing();
+        
+        User validUser = createTestUser();
+        User invalidUser = createTestUser();
+        validUser.setSellerType(createSellerType("BUSINESS"));
+        invalidUser.setSellerType(null); // Null seller type
+        
+        validListing.setSeller(validUser);
+        invalidListing.setSeller(invalidUser);
+        
+        List<CarListing> filteredListings = Arrays.asList(validListing, invalidListing);
+
+        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(filteredListings);
+
+        // Act
+        var result = carListingService.getCountsBySellerType(filterRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size()); // Only valid seller type should be counted
+        assertEquals(1L, result.get("BUSINESS"));
+        assertNull(result.get("null"));
+        
+        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any());
+    }
+
+    @Test
+    void getCountsBySellerType_WithException_ShouldReturnEmptyMap() {
+        // Arrange
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        
+        when(carListingRepository.findDistinctSellerTypesWithCounts())
+            .thenThrow(new RuntimeException("Database error"));
+
+        // Act
+        var result = carListingService.getCountsBySellerType(filterRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        
+        verify(carListingRepository).findDistinctSellerTypesWithCounts();
+    }
+
+    // Helper method to create seller type for testing
+    private com.autotrader.autotraderbackend.model.SellerType createSellerType(String name) {
+        com.autotrader.autotraderbackend.model.SellerType sellerType = 
+            new com.autotrader.autotraderbackend.model.SellerType();
+        sellerType.setId(1L);
+        sellerType.setName(name);
+        sellerType.setDisplayNameEn(name);
+        sellerType.setDisplayNameAr(name);
+        return sellerType;
+    }
+
+    // Helper method to create test user
+    private User createTestUser() {
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("testuser");
+        user.setEmail("test@example.com");
+        return user;
+    }
+
+    // Helper method to create test listing
+    private CarListing createTestListing() {
+        CarListing listing = new CarListing();
+        listing.setId(1L);
+        listing.setApproved(true);
+        listing.setModelYear(2020);
+        listing.setPrice(BigDecimal.valueOf(25000));
+        listing.setMileage(50000);
+        return listing;
+    }
 }

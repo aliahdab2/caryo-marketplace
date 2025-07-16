@@ -58,7 +58,6 @@
   "locationsSelected_other": "{{count}} محافظة محددة",
   "allLocations": "جميع المحافظات",
   "clear": "مسح",
-  "show": "عرض",
   "removeYearFilter": "إزالة فلتر السنة",
   "removeMakeModelFilter": "إزالة فلتر الماركة والموديل",
   "removePriceFilter": "إزالة فلتر السعر",
@@ -68,5 +67,8 @@
   "removeFuelTypeFilter": "إزالة فلتر نوع الوقود",
   "removeBodyStyleFilter": "إزالة فلتر نوع الهيكل",
   "removeSellerTypeFilter": "إزالة فلتر نوع البائع",
-  "cars": "سيارة"
+  "cars": "سيارة",
+  "cancel": "إلغاء",
+  "show": "عرض",
+  "showResults": "عرض {{count}} نتائج"
 }
