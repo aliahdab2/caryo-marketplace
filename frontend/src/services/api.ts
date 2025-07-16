@@ -432,7 +432,7 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
     if (filters.fuelTypeId && filters.fuelTypeId > 0) queryParams.append('fuelTypeId', filters.fuelTypeId.toString());
     if (filters.bodyStyleId && filters.bodyStyleId > 0) queryParams.append('bodyStyleId', filters.bodyStyleId.toString());
     if (filters.sellerTypeIds && filters.sellerTypeIds.length > 0) {
-      filters.sellerTypeIds.forEach(id => queryParams.append('sellerTypeId', id.toString()));
+      filters.sellerTypeIds.forEach(id => queryParams.append('sellerTypeIds', id.toString()));
     }
     
     // Status filters
