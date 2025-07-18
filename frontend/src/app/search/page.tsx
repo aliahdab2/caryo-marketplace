@@ -384,13 +384,6 @@ export default function AdvancedSearchPage() {
     setHasInitialized(true);
   }, [hasInitialized, searchParams]);
 
-  // Trigger search after filters are initialized - always search to show results
-  useEffect(() => {
-    if (hasInitialized) {
-      executeSearch(false);
-    }
-  }, [hasInitialized, listingFilters, executeSearch]);
-
   // Function to update URL when filters change
   // URLs use clean singular form (brand/model) for SEO and UX
   // Backend API expects plural form (brandSlugs/modelSlugs)
@@ -436,6 +429,20 @@ export default function AdvancedSearchPage() {
     const newUrl = `/search${params.toString() ? `?${params.toString()}` : ''}`;
     router.replace(newUrl, { scroll: false });
   }, [router]);
+
+  // Trigger search after filters are initialized - always search to show results
+  useEffect(() => {
+    if (hasInitialized) {
+      executeSearch(false);
+    }
+  }, [hasInitialized, listingFilters, executeSearch]);
+
+  // Update URL when filters change (but not during initial load)
+  useEffect(() => {
+    if (hasInitialized) {
+      updateUrlFromFilters(filters);
+    }
+  }, [filters, hasInitialized, updateUrlFromFilters]);
 
   // Convert brand/model slugs to selected IDs when data loads (optimized)
   useEffect(() => {
@@ -530,13 +537,9 @@ export default function AdvancedSearchPage() {
     
     setFilters(prev => {
       const newFilters = { ...prev, ...updates };
-      
-      // Update URL immediately with the new filters
-      updateUrlFromFilters(newFilters);
-      
       return newFilters;
     });
-  }, [updateUrlFromFilters]);
+  }, []);
 
   // Handle input changes - simplified for slug-based filtering only
   const handleInputChange = useCallback((field: keyof AdvancedSearchFilters, value: string | number | string[] | number[] | undefined) => {
@@ -571,13 +574,10 @@ export default function AdvancedSearchPage() {
         // If new maxMileage is less than current minMileage, clear minMileage
         newFilters.minMileage = undefined;
       }
-
-      // Update URL with the new filters
-      updateUrlFromFilters(newFilters);
       
       return newFilters;
     });
-  }, [updateUrlFromFilters]);
+  }, []);
 
   // Clear filter - simplified to prevent loops  
   const clearSpecificFilter = useCallback((filterType: FilterType) => {
@@ -1346,19 +1346,11 @@ export default function AdvancedSearchPage() {
                         </button>
                         <button
                           onClick={() => {
-
-                            
-                            // Apply the current filter selections
-                            updateUrlFromFilters(filters);
-                            
-                            // Trigger search after a short delay to ensure URL is updated
-                            setTimeout(() => {
-
-                              executeSearch(false);
-                            }, 100);
-                            
                             // Close the dropdown
                             setShowLocationDropdown(false);
+                            
+                            // The filters are already set by the checkboxes above
+                            // The useEffect will handle updating the URL and triggering the search
                           }}
                           className="flex-1 px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
                         >
