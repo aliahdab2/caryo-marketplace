@@ -9,6 +9,7 @@ import {
   MdAdd,
   MdClose,
   MdDirectionsCar,
+  MdEdit,
   MdFavoriteBorder,
   MdKeyboardArrowDown
 } from 'react-icons/md';
@@ -174,7 +175,13 @@ export default function AdvancedSearchPage() {
       searchQuery: searchQuery.trim() || undefined, // Include search query
       size: 20, // Default page size
       page: 0, // Default to first page
-      sort: 'createdAt,desc' // Default sort
+      sort: 'createdAt,desc', // Default sort
+      
+      // Add missing filter fields that are defined in CarListingFilterParams
+      transmissionId: filters.transmissionId,
+      fuelTypeId: filters.fuelTypeId,
+      bodyStyleId: filters.bodyStyleId,
+      conditionId: filters.conditionId
     };
 
     // Slug-based filtering - ensure we have valid arrays
@@ -186,6 +193,7 @@ export default function AdvancedSearchPage() {
       params.models = filters.models.filter(model => model && model.trim());
     }
 
+    console.log('API Filter params:', params); // Debug log
     return params;
   }, [
     filters,
@@ -705,7 +713,11 @@ export default function AdvancedSearchPage() {
         }`}
         aria-label={`Filter by ${displayText}`}
       >
-        <MdAdd className="mr-2 h-4 w-4" />
+        {isActive ? (
+          <MdEdit className="mr-2 h-4 w-4" />
+        ) : (
+          <MdAdd className="mr-2 h-4 w-4" />
+        )}
         {displayText}
       </button>
     );
@@ -960,7 +972,15 @@ export default function AdvancedSearchPage() {
                         className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all hover:border-blue-300 hover:bg-blue-50 ${
                           isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                         }`}
-                        onClick={() => handleInputChange('bodyStyleId', isSelected ? undefined : bodyStyle.id)}
+                        onClick={() => {
+                          handleInputChange('bodyStyleId', isSelected ? undefined : bodyStyle.id);
+                          // Auto-close modal after selection for better UX
+                          if (!isSelected) {
+                            setTimeout(() => {
+                              setActiveFilterModal(null);
+                            }, 100);
+                          }
+                        }}
                       >
                         <div className="flex items-center space-x-3 rtl:space-x-reverse">
                           <div className="w-12 h-8 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
@@ -1383,19 +1403,6 @@ export default function AdvancedSearchPage() {
               </div>
             )}
             
-            {(filters.brands && filters.brands.length > 0) && (
-              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
-                <span>{getFilterDisplayText('makeModel')}</span>
-                <button
-                  onClick={() => clearSpecificFilter('makeModel')}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
-                  aria-label={t('search.removeMakeModelFilter', 'Remove make and model filter')}
-                >
-                  <MdClose className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-            
             {(filters.minPrice || filters.maxPrice) && (
               <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
                 <span>{getFilterDisplayText('price')}</span>
@@ -1476,34 +1483,239 @@ export default function AdvancedSearchPage() {
               </div>
             )}
             
-            {/* Add filter buttons (only show if not already active) */}
-            {!isFilterActive('makeModel') && (
-              <FilterPill filterType="makeModel" onClick={() => setActiveFilterModal('makeModel')} />
-            )}
-            {!isFilterActive('price') && (
-              <FilterPill filterType="price" onClick={() => setActiveFilterModal('price')} />
-            )}
-            {!isFilterActive('year') && (
-              <FilterPill filterType="year" onClick={() => setActiveFilterModal('year')} />
-            )}
-            {!isFilterActive('mileage') && (
-              <FilterPill filterType="mileage" onClick={() => setActiveFilterModal('mileage')} />
-            )}
-            {!isFilterActive('transmission') && (
-              <FilterPill filterType="transmission" onClick={() => setActiveFilterModal('transmission')} />
-            )}
-
-            {!isFilterActive('fuelType') && (
-              <FilterPill filterType="fuelType" onClick={() => setActiveFilterModal('fuelType')} />
-            )}
-            {!isFilterActive('bodyStyle') && (
-              <FilterPill filterType="bodyStyle" onClick={() => setActiveFilterModal('bodyStyle')} />
-            )}
-            {!isFilterActive('sellerType') && (
-              <FilterPill filterType="sellerType" onClick={() => setActiveFilterModal('sellerType')} />
-            )}
+            {/* Add filter buttons (show all filters, active ones will be styled differently) */}
+            <FilterPill filterType="makeModel" onClick={() => setActiveFilterModal('makeModel')} />
+            <FilterPill filterType="price" onClick={() => setActiveFilterModal('price')} />
+            <FilterPill filterType="year" onClick={() => setActiveFilterModal('year')} />
+            <FilterPill filterType="mileage" onClick={() => setActiveFilterModal('mileage')} />
+            <FilterPill filterType="transmission" onClick={() => setActiveFilterModal('transmission')} />
+            <FilterPill filterType="fuelType" onClick={() => setActiveFilterModal('fuelType')} />
+            <FilterPill filterType="bodyStyle" onClick={() => setActiveFilterModal('bodyStyle')} />
+            <FilterPill filterType="sellerType" onClick={() => setActiveFilterModal('sellerType')} />
           </div>
         </div>
+
+        {/* All Filter Chips */}
+        {(isFilterActive('makeModel') || isFilterActive('price') || isFilterActive('year') || isFilterActive('mileage') || isFilterActive('transmission') || isFilterActive('fuelType') || isFilterActive('bodyStyle') || isFilterActive('sellerType')) && (
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-2 items-center">
+              {/* Clear All Button - positioned first */}
+              <button
+                onClick={() => {
+                  // Clear all filters
+                  updateFiltersAndState({ 
+                    brands: undefined,
+                    models: undefined,
+                    minPrice: undefined,
+                    maxPrice: undefined,
+                    minYear: undefined,
+                    maxYear: undefined,
+                    minMileage: undefined,
+                    maxMileage: undefined,
+                    transmissionId: undefined,
+                    fuelTypeId: undefined,
+                    bodyStyleId: undefined,
+                    sellerTypeIds: undefined
+                  }, {
+                    selectedMake: null,
+                    selectedModel: null
+                  });
+                }}
+                className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full border border-gray-200 transition-colors"
+                aria-label={t('search.clearAllFilters', 'Clear all filters')}
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                {t('search:clear', 'Clear')} ({
+                  (filters.brands?.length || 0) + 
+                  (filters.models?.length || 0) + 
+                  (filters.minPrice || filters.maxPrice ? 1 : 0) +
+                  (filters.minYear || filters.maxYear ? 1 : 0) +
+                  (filters.minMileage || filters.maxMileage ? 1 : 0) +
+                  (filters.transmissionId ? 1 : 0) +
+                  (filters.fuelTypeId ? 1 : 0) +
+                  (filters.bodyStyleId ? 1 : 0) +
+                  (filters.sellerTypeIds?.length || 0)
+                })
+              </button>
+
+              {/* Brand Chips */}
+              {filters.brands && filters.brands.map((brandSlug) => (
+                <div
+                  key={`brand-${brandSlug}`}
+                  className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                >
+                  <span>{getBrandDisplayNameFromSlug(brandSlug)}</span>
+                  <button
+                    onClick={() => {
+                      const updatedBrands = filters.brands?.filter(b => b !== brandSlug) || [];
+                      updateFiltersAndState({ 
+                        brands: updatedBrands.length > 0 ? updatedBrands : undefined,
+                        models: updatedBrands.length === 0 ? undefined : filters.models
+                      }, {
+                        selectedMake: updatedBrands.length === 0 ? null : selectedMake,
+                        selectedModel: updatedBrands.length === 0 ? null : selectedModel
+                      });
+                    }}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removeBrand', 'Remove {{brand}} brand', { brand: getBrandDisplayNameFromSlug(brandSlug) })}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+              
+              {/* Model Chips */}
+              {filters.models && filters.models.map((modelSlug) => (
+                <div
+                  key={`model-${modelSlug}`}
+                  className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                >
+                  <span>{getModelDisplayNameFromSlug(modelSlug)}</span>
+                  <button
+                    onClick={() => {
+                      const updatedModels = filters.models?.filter(m => m !== modelSlug) || [];
+                      updateFiltersAndState({ 
+                        models: updatedModels.length > 0 ? updatedModels : undefined
+                      }, {
+                        selectedModel: updatedModels.length === 0 ? null : selectedModel
+                      });
+                    }}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removeModel', 'Remove {{model}} model', { model: getModelDisplayNameFromSlug(modelSlug) })}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+
+              {/* Price Chip */}
+              {(filters.minPrice || filters.maxPrice) && (
+                <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+                  <span>{getFilterDisplayText('price')}</span>
+                  <button
+                    onClick={() => updateFiltersAndState({ minPrice: undefined, maxPrice: undefined })}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removePriceFilter', 'Remove price filter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Year Chip */}
+              {(filters.minYear || filters.maxYear) && (
+                <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+                  <span>{getFilterDisplayText('year')}</span>
+                  <button
+                    onClick={() => updateFiltersAndState({ minYear: undefined, maxYear: undefined })}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removeYearFilter', 'Remove year filter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Mileage Chip */}
+              {(filters.minMileage || filters.maxMileage) && (
+                <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+                  <span>{getFilterDisplayText('mileage')}</span>
+                  <button
+                    onClick={() => updateFiltersAndState({ minMileage: undefined, maxMileage: undefined })}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removeMileageFilter', 'Remove mileage filter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Transmission Chip */}
+              {filters.transmissionId && (
+                <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+                  <span>{getTransmissionDisplayName(filters.transmissionId)}</span>
+                  <button
+                    onClick={() => updateFiltersAndState({ transmissionId: undefined })}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removeTransmissionFilter', 'Remove transmission filter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Fuel Type Chip */}
+              {filters.fuelTypeId && (
+                <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+                  <span>{getFuelTypeDisplayName(filters.fuelTypeId)}</span>
+                  <button
+                    onClick={() => updateFiltersAndState({ fuelTypeId: undefined })}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removeFuelTypeFilter', 'Remove fuel type filter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Body Style Chip */}
+              {filters.bodyStyleId && (
+                <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+                  <span>{getBodyStyleDisplayName(filters.bodyStyleId)}</span>
+                  <button
+                    onClick={() => updateFiltersAndState({ bodyStyleId: undefined })}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removeBodyStyleFilter', 'Remove body style filter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Seller Type Chips */}
+              {filters.sellerTypeIds && filters.sellerTypeIds.map((sellerTypeId) => (
+                <div
+                  key={`seller-${sellerTypeId}`}
+                  className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                >
+                  <span>{getSellerTypeDisplayName(sellerTypeId)}</span>
+                  <button
+                    onClick={() => {
+                      const updatedSellerTypes = filters.sellerTypeIds?.filter(id => id !== sellerTypeId) || [];
+                      updateFiltersAndState({ 
+                        sellerTypeIds: updatedSellerTypes.length > 0 ? updatedSellerTypes : undefined
+                      });
+                    }}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removeSellerTypeFilter', 'Remove seller type filter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Results Info */}
         <div className="flex items-center justify-between mb-6">
