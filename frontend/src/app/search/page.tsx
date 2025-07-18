@@ -177,13 +177,13 @@ export default function AdvancedSearchPage() {
       sort: 'createdAt,desc' // Default sort
     };
 
-    // Slug-based filtering
+    // Slug-based filtering - ensure we have valid arrays
     if (filters.brands && filters.brands.length > 0) {
-      params.brands = filters.brands;
+      params.brands = filters.brands.filter(brand => brand && brand.trim());
     }
     
     if (filters.models && filters.models.length > 0) {
-      params.models = filters.models;
+      params.models = filters.models.filter(model => model && model.trim());
     }
 
     return params;
@@ -387,86 +387,9 @@ export default function AdvancedSearchPage() {
   // Trigger search after filters are initialized - always search to show results
   useEffect(() => {
     if (hasInitialized) {
-
-      // Delay search slightly to ensure all state is updated
-      const timeoutId = setTimeout(() => {
-        executeSearch(false);
-      }, 100);
-      
-      return () => clearTimeout(timeoutId);
+      executeSearch(false);
     }
   }, [hasInitialized, listingFilters, executeSearch]);
-
-  // Convert brand slugs to selectedMake ID when carMakes loads
-  useEffect(() => {
-    if (filters.brands && filters.brands.length > 0 && carMakes && carMakes.length > 0) {
-      const firstBrandSlug = filters.brands[0];
-      const brand = carMakes.find(make => make.slug === firstBrandSlug);
-      if (brand) {
-        setSelectedMake(prevSelectedMake => {
-          // Only update if the value actually changed
-          return prevSelectedMake !== brand.id ? brand.id : prevSelectedMake;
-        });
-      }
-    } else if (!filters.brands?.length) {
-      // Clear selection when no brand filters
-      setSelectedMake(prevSelectedMake => {
-        // Only update if there was a previous selection
-        return prevSelectedMake !== null ? null : prevSelectedMake;
-      });
-    }
-  }, [filters.brands, carMakes]); // Removed selectedMake from dependencies
-
-  // Convert model slugs to selectedModel ID when availableModels loads
-  useEffect(() => {
-    if (filters.models && filters.models.length > 0 && availableModels && availableModels.length > 0) {
-      const firstModelSlug = filters.models[0];
-      const model = availableModels.find(m => m.slug === firstModelSlug);
-      if (model) {
-        setSelectedModel(prevSelectedModel => {
-          // Only update if the value actually changed
-          return prevSelectedModel !== model.id ? model.id : prevSelectedModel;
-        });
-      }
-    } else if (!filters.models?.length) {
-      // Clear selection when no model filters
-      setSelectedModel(prevSelectedModel => {
-        // Only update if there was a previous selection
-        return prevSelectedModel !== null ? null : prevSelectedModel;
-      });
-    }
-  }, [filters.models, availableModels]); // Removed selectedModel from dependencies
-
-  // Fetch seller type counts when filters change (Swedish marketplace style)
-  useEffect(() => {
-    const fetchSellerTypeCounts = async () => {
-      try {
-        // Convert filters to API format for count endpoint
-        const apiFilters = {
-          brandSlugs: filters.brands,
-          modelSlugs: filters.models,
-          minYear: filters.minYear?.toString(),
-          maxYear: filters.maxYear?.toString(),
-          minPrice: filters.minPrice?.toString(),
-          maxPrice: filters.maxPrice?.toString(),
-          minMileage: filters.minMileage?.toString(),
-          maxMileage: filters.maxMileage?.toString(),
-          transmissionId: filters.transmissionId,
-          fuelTypeId: filters.fuelTypeId,
-          bodyStyleId: filters.bodyStyleId,
-          // Don't include sellerTypeId in count queries
-        };
-        
-        const counts = await getSellerTypeCounts(apiFilters);
-        setSellerTypeCounts(counts);
-      } catch (error) {
-        console.error('Error fetching seller type counts:', error);
-        setSellerTypeCounts({}); // Reset to empty on error
-      }
-    };
-
-    fetchSellerTypeCounts();
-  }, [filters.brands, filters.models, filters.minYear, filters.maxYear, filters.minPrice, filters.maxPrice, filters.minMileage, filters.maxMileage, filters.transmissionId, filters.fuelTypeId, filters.bodyStyleId]);
 
   // Function to update URL when filters change
   // URLs use clean singular form (brand/model) for SEO and UX
@@ -514,6 +437,107 @@ export default function AdvancedSearchPage() {
     router.replace(newUrl, { scroll: false });
   }, [router]);
 
+  // Convert brand/model slugs to selected IDs when data loads (optimized)
+  useEffect(() => {
+    if (!carMakes || carMakes.length === 0) return;
+    
+    if (filters.brands && filters.brands.length > 0) {
+      const firstBrandSlug = filters.brands[0];
+      const brand = carMakes.find(make => make.slug === firstBrandSlug);
+      if (brand && selectedMake !== brand.id) {
+        setSelectedMake(brand.id);
+      }
+    } else if (filters.brands?.length === 0 && selectedMake !== null) {
+      setSelectedMake(null);
+    }
+  }, [filters.brands, carMakes, selectedMake]);
+
+  useEffect(() => {
+    if (!availableModels || availableModels.length === 0) return;
+    
+    if (filters.models && filters.models.length > 0) {
+      const firstModelSlug = filters.models[0];
+      const model = availableModels.find(m => m.slug === firstModelSlug);
+      if (model && selectedModel !== model.id) {
+        setSelectedModel(model.id);
+      }
+    } else if (filters.models?.length === 0 && selectedModel !== null) {
+      setSelectedModel(null);
+    }
+  }, [filters.models, availableModels, selectedModel]);
+
+  // Memoize seller type fetch dependencies to prevent unnecessary API calls
+  const sellerTypeCountDependencies = useMemo(() => ({
+    brands: filters.brands,
+    models: filters.models,
+    minYear: filters.minYear,
+    maxYear: filters.maxYear,
+    minPrice: filters.minPrice,
+    maxPrice: filters.maxPrice,
+    minMileage: filters.minMileage,
+    maxMileage: filters.maxMileage,
+    transmissionId: filters.transmissionId,
+    fuelTypeId: filters.fuelTypeId,
+    bodyStyleId: filters.bodyStyleId
+  }), [filters.brands, filters.models, filters.minYear, filters.maxYear, filters.minPrice, filters.maxPrice, filters.minMileage, filters.maxMileage, filters.transmissionId, filters.fuelTypeId, filters.bodyStyleId]);
+
+  // Fetch seller type counts when filters change (Swedish marketplace style)
+  useEffect(() => {
+    const fetchSellerTypeCounts = async () => {
+      try {
+        // Convert filters to API format for count endpoint
+        const apiFilters = {
+          brandSlugs: sellerTypeCountDependencies.brands,
+          modelSlugs: sellerTypeCountDependencies.models,
+          minYear: sellerTypeCountDependencies.minYear?.toString(),
+          maxYear: sellerTypeCountDependencies.maxYear?.toString(),
+          minPrice: sellerTypeCountDependencies.minPrice?.toString(),
+          maxPrice: sellerTypeCountDependencies.maxPrice?.toString(),
+          minMileage: sellerTypeCountDependencies.minMileage?.toString(),
+          maxMileage: sellerTypeCountDependencies.maxMileage?.toString(),
+          transmissionId: sellerTypeCountDependencies.transmissionId,
+          fuelTypeId: sellerTypeCountDependencies.fuelTypeId,
+          bodyStyleId: sellerTypeCountDependencies.bodyStyleId,
+          // Don't include sellerTypeId in count queries
+        };
+        
+        const counts = await getSellerTypeCounts(apiFilters);
+        setSellerTypeCounts(counts);
+      } catch (error) {
+        console.error('Error fetching seller type counts:', error);
+        setSellerTypeCounts({}); // Reset to empty on error
+      }
+    };
+
+    fetchSellerTypeCounts();
+  }, [sellerTypeCountDependencies]);
+
+  // Consolidated filter update function to prevent race conditions
+  const updateFiltersAndState = useCallback((
+    updates: Partial<AdvancedSearchFilters>,
+    stateUpdates?: {
+      selectedMake?: number | null;
+      selectedModel?: number | null;
+    }
+  ) => {
+    // Update all states in a single batch to prevent race conditions
+    if (stateUpdates?.selectedMake !== undefined) {
+      setSelectedMake(stateUpdates.selectedMake);
+    }
+    if (stateUpdates?.selectedModel !== undefined) {
+      setSelectedModel(stateUpdates.selectedModel);
+    }
+    
+    setFilters(prev => {
+      const newFilters = { ...prev, ...updates };
+      
+      // Update URL immediately with the new filters
+      updateUrlFromFilters(newFilters);
+      
+      return newFilters;
+    });
+  }, [updateUrlFromFilters]);
+
   // Handle input changes - simplified for slug-based filtering only
   const handleInputChange = useCallback((field: keyof AdvancedSearchFilters, value: string | number | string[] | number[] | undefined) => {
     setFilters(prev => {
@@ -548,9 +572,8 @@ export default function AdvancedSearchPage() {
         newFilters.minMileage = undefined;
       }
 
-      // Update URL with the new filters after state update
-      // Use requestAnimationFrame for better performance
-      requestAnimationFrame(() => updateUrlFromFilters(newFilters));
+      // Update URL with the new filters
+      updateUrlFromFilters(newFilters);
       
       return newFilters;
     });
@@ -558,50 +581,37 @@ export default function AdvancedSearchPage() {
 
   // Clear filter - simplified to prevent loops  
   const clearSpecificFilter = useCallback((filterType: FilterType) => {
-    setFilters(prev => {
-      const newFilters = { ...prev };
-      
-      switch (filterType) {
-        case 'makeModel':
-          // Clear slug-based filters only
-          delete newFilters.brands;
-          delete newFilters.models;
-          setSelectedMake(null);
-          setSelectedModel(null);
-          break;
-        case 'price':
-          delete newFilters.minPrice;
-          delete newFilters.maxPrice;
-          break;
-        case 'year':
-          delete newFilters.minYear;
-          delete newFilters.maxYear;
-          break;
-        case 'mileage':
-          delete newFilters.minMileage;
-          delete newFilters.maxMileage;
-          break;
-        case 'transmission':
-          delete newFilters.transmissionId;
-          break;
-
-        case 'fuelType':
-          delete newFilters.fuelTypeId;
-          break;
-        case 'bodyStyle':
-          delete newFilters.bodyStyleId;
-          break;
-        case 'sellerType':
-          delete newFilters.sellerTypeIds;
-          break;
-      }
-      
-      // Update URL with cleared filters - use requestAnimationFrame for better performance
-      requestAnimationFrame(() => updateUrlFromFilters(newFilters));
-      
-      return newFilters;
-    });
-  }, [updateUrlFromFilters]);
+    switch (filterType) {
+      case 'makeModel':
+        // Clear slug-based filters only
+        updateFiltersAndState(
+          { brands: undefined, models: undefined },
+          { selectedMake: null, selectedModel: null }
+        );
+        break;
+      case 'price':
+        updateFiltersAndState({ minPrice: undefined, maxPrice: undefined });
+        break;
+      case 'year':
+        updateFiltersAndState({ minYear: undefined, maxYear: undefined });
+        break;
+      case 'mileage':
+        updateFiltersAndState({ minMileage: undefined, maxMileage: undefined });
+        break;
+      case 'transmission':
+        updateFiltersAndState({ transmissionId: undefined });
+        break;
+      case 'fuelType':
+        updateFiltersAndState({ fuelTypeId: undefined });
+        break;
+      case 'bodyStyle':
+        updateFiltersAndState({ bodyStyleId: undefined });
+        break;
+      case 'sellerType':
+        updateFiltersAndState({ sellerTypeIds: undefined });
+        break;
+    }
+  }, [updateFiltersAndState]);
 
   // Get filter display text - memoized to prevent re-renders
   const getFilterDisplayText = useCallback((filterType: FilterType): string => {
@@ -718,30 +728,21 @@ export default function AdvancedSearchPage() {
                     
                     // Only update if the value actually changed
                     if (selectedMake !== makeId) {
-                      setSelectedMake(makeId);
-                      setSelectedModel(null); // Reset model when brand changes
-                      
-                      // Find the brand and update filters with slug
                       if (makeId && carMakes) {
                         const brand = carMakes.find(make => make.id === makeId);
-                        if (brand) {
-                          const newFilters = {
-                            ...filters,
-                            brands: [brand.slug],
-                            models: []
-                          };
-                          setFilters(newFilters);
-                          // Use requestAnimationFrame for better performance
-                          requestAnimationFrame(() => updateUrlFromFilters(newFilters));
+                        if (brand && brand.slug) {
+                          updateFiltersAndState(
+                            { brands: [brand.slug], models: [] },
+                            { selectedMake: makeId, selectedModel: null }
+                          );
+                        } else {
+                          console.warn('Brand not found or missing slug for ID:', makeId);
                         }
                       } else {
-                        const newFilters = {
-                          ...filters,
-                          brands: [],
-                          models: []
-                        };
-                        setFilters(newFilters);
-                        requestAnimationFrame(() => updateUrlFromFilters(newFilters));
+                        updateFiltersAndState(
+                          { brands: [], models: [] },
+                          { selectedMake: null, selectedModel: null }
+                        );
                       }
                     }
                   }}
@@ -766,27 +767,21 @@ export default function AdvancedSearchPage() {
                     
                     // Only update if the value actually changed
                     if (selectedModel !== modelId) {
-                      setSelectedModel(modelId);
-                      
-                      // Find the model and update filters with slug
                       if (modelId && availableModels) {
                         const model = availableModels.find(m => m.id === modelId);
-                        if (model) {
-                          const newFilters = {
-                            ...filters,
-                            models: [model.slug]
-                          };
-                          setFilters(newFilters);
-                          // Use requestAnimationFrame for better performance
-                          requestAnimationFrame(() => updateUrlFromFilters(newFilters));
+                        if (model && model.slug) {
+                          updateFiltersAndState(
+                            { models: [model.slug] },
+                            { selectedModel: modelId }
+                          );
+                        } else {
+                          console.warn('Model not found or missing slug for ID:', modelId);
                         }
                       } else {
-                        const newFilters = {
-                          ...filters,
-                          models: []
-                        };
-                        setFilters(newFilters);
-                        requestAnimationFrame(() => updateUrlFromFilters(newFilters));
+                        updateFiltersAndState(
+                          { models: [] },
+                          { selectedModel: null }
+                        );
                       }
                     }
                   }}
