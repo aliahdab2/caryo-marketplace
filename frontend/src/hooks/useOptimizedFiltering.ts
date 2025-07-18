@@ -19,7 +19,7 @@ export function useOptimizedFiltering<TFilters, TResult>(
   options: UseOptimizedFilteringOptions = {}
 ) {
   const {
-    debounceMs = 300,
+    debounceMs = 500, // Increased from 300ms to 500ms for better debouncing
     minLoadingDelayMs = 150,
     immediate = false
   } = options;
