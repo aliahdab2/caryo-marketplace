@@ -70,5 +70,6 @@
   "cars": "سيارة",
   "cancel": "إلغاء",
   "show": "عرض",
-  "showResults": "عرض {{count}} نتائج"
+  "showResults": "عرض {{count}} نتائج",
+  "showAllFilters": "إظهار جميع الفلاتر"
 }

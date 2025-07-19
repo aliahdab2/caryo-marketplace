@@ -6,11 +6,13 @@ import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useOptimizedFiltering } from '@/hooks/useOptimizedFiltering';
 import SmoothTransition from '@/components/ui/SmoothTransition';
 import { 
-  MdAdd,
   MdClose,
   MdDirectionsCar,
+  MdKeyboardArrowDown,
+  MdSearch,
   MdFavoriteBorder,
-  MdKeyboardArrowDown
+  MdDeleteSweep,
+  MdFilterList
 } from 'react-icons/md';
 import { 
   ConvertibleIcon,
@@ -71,7 +73,7 @@ interface AdvancedSearchFilters {
   cylinders?: number;
 }
 
-type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'fuelType' | 'bodyStyle' | 'sellerType';
+type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'fuelType' | 'bodyStyle' | 'sellerType' | 'allFilters';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
@@ -174,7 +176,13 @@ export default function AdvancedSearchPage() {
       searchQuery: searchQuery.trim() || undefined, // Include search query
       size: 20, // Default page size
       page: 0, // Default to first page
-      sort: 'createdAt,desc' // Default sort
+      sort: 'createdAt,desc', // Default sort
+      
+      // Add missing filter fields that are defined in CarListingFilterParams
+      transmissionId: filters.transmissionId,
+      fuelTypeId: filters.fuelTypeId,
+      bodyStyleId: filters.bodyStyleId,
+      conditionId: filters.conditionId
     };
 
     // Slug-based filtering - ensure we have valid arrays
@@ -304,6 +312,34 @@ export default function AdvancedSearchPage() {
       return '';
     }, [referenceData?.sellerTypes, currentLanguage]
   );
+
+  // Memoized filter count for UI display
+  const filterCount = useMemo(() => {
+    return (
+      (filters.brands?.length || 0) + 
+      (filters.models?.length || 0) + 
+      (filters.minPrice || filters.maxPrice ? 1 : 0) +
+      (filters.minYear || filters.maxYear ? 1 : 0) +
+      (filters.minMileage || filters.maxMileage ? 1 : 0) +
+      (filters.transmissionId ? 1 : 0) +
+      (filters.fuelTypeId ? 1 : 0) +
+      (filters.bodyStyleId ? 1 : 0) +
+      (filters.sellerTypeIds?.length || 0)
+    );
+  }, [
+    filters.brands,
+    filters.models,
+    filters.minPrice,
+    filters.maxPrice,
+    filters.minYear,
+    filters.maxYear,
+    filters.minMileage,
+    filters.maxMileage,
+    filters.transmissionId,
+    filters.fuelTypeId,
+    filters.bodyStyleId,
+    filters.sellerTypeIds
+  ]);
 
   // Helper functions to convert slugs to display names
   const getBrandDisplayNameFromSlug = useCallback((slug: string): string => {
@@ -519,6 +555,25 @@ export default function AdvancedSearchPage() {
     fetchSellerTypeCounts();
   }, [sellerTypeCountDependencies]);
 
+  // ESC key handler to close modals
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setActiveFilterModal(null);
+      }
+    };
+
+    // Only add listener if a modal is open
+    if (activeFilterModal) {
+      document.addEventListener('keydown', handleEscKey);
+    }
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [activeFilterModal]);
+
   // Consolidated filter update function to prevent race conditions
   const updateFiltersAndState = useCallback((
     updates: Partial<AdvancedSearchFilters>,
@@ -698,15 +753,25 @@ export default function AdvancedSearchPage() {
     return (
       <button
         onClick={onClick}
-        className={`inline-flex items-center px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200 transform hover:scale-105 hover:shadow-md ${
+        className={`group relative inline-flex items-center px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99] ${
           isActive
-            ? 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100'
-            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+            ? 'bg-gradient-to-r from-blue-600 to-blue-700 border-2 border-blue-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 hover:from-blue-700 hover:to-blue-800'
+            : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400'
         }`}
         aria-label={`Filter by ${displayText}`}
       >
-        <MdAdd className="mr-2 h-4 w-4" />
-        {displayText}
+        <span className="relative z-10 flex items-center">
+          {displayText}
+        </span>
+
+        {/* Animated background for active state */}
+        {isActive && (
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400 to-blue-600 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+        )}
+        {/* Ripple effect */}
+        <div className="absolute inset-0 rounded-xl overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-700" />
+        </div>
       </button>
     );
   });
@@ -960,7 +1025,15 @@ export default function AdvancedSearchPage() {
                         className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all hover:border-blue-300 hover:bg-blue-50 ${
                           isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                         }`}
-                        onClick={() => handleInputChange('bodyStyleId', isSelected ? undefined : bodyStyle.id)}
+                        onClick={() => {
+                          handleInputChange('bodyStyleId', isSelected ? undefined : bodyStyle.id);
+                          // Auto-close modal after selection for better UX
+                          if (!isSelected) {
+                            setTimeout(() => {
+                              setActiveFilterModal(null);
+                            }, 100);
+                          }
+                        }}
                       >
                         <div className="flex items-center space-x-3 rtl:space-x-reverse">
                           <div className="w-12 h-8 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
@@ -1049,6 +1122,228 @@ export default function AdvancedSearchPage() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          );
+
+        case 'allFilters':
+          return (
+            <div className="space-y-6 max-h-[70vh] overflow-y-auto">
+              <div className="text-center">
+                <h3 className="text-xl font-medium text-gray-900 mb-4">{t('search:allFilters', 'All Filters')}</h3>
+              </div>
+              
+              {/* Make and Model */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.makeAndModel', 'Make and Model')}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-2">{t('search.make', 'Make')}</label>
+                    <select
+                      value={selectedMake || ''}
+                      onChange={(e) => {
+                        const makeId = e.target.value ? Number(e.target.value) : null;
+                        if (selectedMake !== makeId) {
+                          if (makeId && carMakes) {
+                            const brand = carMakes.find(make => make.id === makeId);
+                            if (brand && brand.slug) {
+                              updateFiltersAndState(
+                                { brands: [brand.slug], models: [] },
+                                { selectedMake: makeId, selectedModel: null }
+                              );
+                            }
+                          } else {
+                            updateFiltersAndState(
+                              { brands: [], models: [] },
+                              { selectedMake: null, selectedModel: null }
+                            );
+                          }
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      disabled={isLoadingBrands}
+                    >
+                      <option value="">{t('search.any', 'Any')}</option>
+                      {carMakes?.map(make => (
+                        <option key={make.id} value={make.id}>
+                          {currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-2">{t('search.model', 'Model')}</label>
+                    <select
+                      value={selectedModel || ''}
+                      onChange={(e) => {
+                        const modelId = e.target.value ? Number(e.target.value) : null;
+                        if (selectedModel !== modelId) {
+                          if (modelId && availableModels) {
+                            const model = availableModels.find(m => m.id === modelId);
+                            if (model && model.slug) {
+                              updateFiltersAndState(
+                                { models: [model.slug] },
+                                { selectedModel: modelId }
+                              );
+                            }
+                          } else {
+                            updateFiltersAndState(
+                              { models: [] },
+                              { selectedModel: null }
+                            );
+                          }
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      disabled={!selectedMake || isLoadingModels}
+                    >
+                      <option value="">{t('search.any', 'Any')}</option>
+                      {availableModels?.map(model => (
+                        <option key={model.id} value={model.id}>
+                          {currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Price and Year */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.priceRange', 'Price Range')}</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="number"
+                      value={filters.minPrice || ''}
+                      onChange={(e) => handleInputChange('minPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
+                      placeholder={t('search.from', 'From')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="number"
+                      value={filters.maxPrice || ''}
+                      onChange={(e) => handleInputChange('maxPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
+                      placeholder={t('search.to', 'To')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.yearRange', 'Year Range')}</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <select
+                      value={filters.minYear || ''}
+                      onChange={(e) => handleInputChange('minYear', e.target.value ? parseInt(e.target.value) : undefined)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">{t('search.from', 'From')}</option>
+                      {YEARS.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={filters.maxYear || ''}
+                      onChange={(e) => handleInputChange('maxYear', e.target.value ? parseInt(e.target.value) : undefined)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">{t('search.to', 'To')}</option>
+                      {YEARS.filter(year => !filters.minYear || year >= filters.minYear).map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Technical Specs */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.transmission', 'Transmission')}</h4>
+                  <select
+                    value={filters.transmissionId || ''}
+                    onChange={(e) => handleInputChange('transmissionId', e.target.value ? parseInt(e.target.value) : undefined)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    disabled={isLoadingReferenceData}
+                  >
+                    <option value="">{t('search.any', 'Any')}</option>
+                    {referenceData?.transmissions?.map(transmission => (
+                      <option key={transmission.id} value={transmission.id}>
+                        {currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.fuelType', 'Fuel Type')}</h4>
+                  <select
+                    value={filters.fuelTypeId || ''}
+                    onChange={(e) => handleInputChange('fuelTypeId', e.target.value ? parseInt(e.target.value) : undefined)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    disabled={isLoadingReferenceData}
+                  >
+                    <option value="">{t('search.any', 'Any')}</option>
+                    {referenceData?.fuelTypes?.map(fuelType => (
+                      <option key={fuelType.id} value={fuelType.id}>
+                        {currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.sellerType', 'Seller Type')}</h4>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {referenceData?.sellerTypes?.map(sellerType => {
+                      const id = sellerType.id as number;
+                      const typedSellerType = sellerType as { displayNameEn: string; displayNameAr: string; name: string };
+                      const isSelected = filters.sellerTypeIds?.includes(id) || false;
+                      const displayName = currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn;
+                      
+                      return (
+                        <label key={id} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              const currentSellerTypes = filters.sellerTypeIds || [];
+                              const newSellerTypes = e.target.checked 
+                                ? [...currentSellerTypes, id]
+                                : currentSellerTypes.filter(sellerTypeId => sellerTypeId !== id);
+                              
+                              handleInputChange('sellerTypeIds', newSellerTypes.length > 0 ? newSellerTypes : undefined);
+                            }}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">{displayName}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Mileage */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.mileageRange', 'Mileage Range')}</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="number"
+                    value={filters.minMileage || ''}
+                    onChange={(e) => handleInputChange('minMileage', e.target.value ? parseInt(e.target.value) : undefined)}
+                    placeholder={t('search.from', 'From')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="number"
+                    value={filters.maxMileage || ''}
+                    onChange={(e) => handleInputChange('maxMileage', e.target.value ? parseInt(e.target.value) : undefined)}
+                    placeholder={t('search.to', 'To')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
             </div>
           );
@@ -1216,7 +1511,7 @@ export default function AdvancedSearchPage() {
                     }}
                     className={`
                       px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800
-                      text-white rounded text-sm font-medium flex items-center justify-center transition-all duration-200 transform hover:scale-105
+                      text-white rounded text-sm font-medium flex items-center justify-center transition-all duration-200 transform hover:scale-[1.02]
                       min-w-[80px] touch-manipulation
                       sm:absolute sm:top-1 sm:bottom-1 sm:px-4 sm:text-xs sm:min-w-0 sm:hover:scale-100
                       ${currentLanguage === 'ar' ? 'sm:left-1 sm:rounded-md' : 'sm:right-1 sm:rounded-md'}
@@ -1229,7 +1524,10 @@ export default function AdvancedSearchPage() {
                         <span className="sr-only">{t('search.searching', 'Searching...')}</span>
                       </>
                     ) : (
-                      <span className="whitespace-nowrap">{t('search.search', 'Search')}</span>
+                      <div className="flex items-center">
+                        <MdSearch className="mr-1.5 h-4 w-4" />
+                        <span className="whitespace-nowrap">{t('search.search', 'Search')}</span>
+                      </div>
                     )}
                   </button>
                   
@@ -1245,13 +1543,17 @@ export default function AdvancedSearchPage() {
                   <button
                     type="button"
                     onClick={() => setShowLocationDropdown(!showLocationDropdown)}
-                    className="w-full px-3 py-2.5 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-left flex items-center justify-between"
+                    className={`group w-full px-4 py-3 text-base border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-left flex items-center justify-between font-medium transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] ${
+                      showLocationDropdown
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 shadow-lg shadow-blue-500/10'
+                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-blue-300 dark:hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm hover:shadow-md'
+                    }`}
                     aria-label={t('search.locationFilterLabel', 'Filter by location')}
                     aria-expanded={showLocationDropdown}
                     aria-haspopup="listbox"
                     id="location-filter-button"
                   >
-                    <span>
+                    <span className="truncate">
                       {filters.locations && filters.locations.length > 0
                         ? filters.locations.length === 1
                           ? (() => {
@@ -1269,7 +1571,9 @@ export default function AdvancedSearchPage() {
                       }
                     </span>
                     <MdKeyboardArrowDown 
-                      className={`h-4 w-4 transition-transform ${showLocationDropdown ? 'rotate-180' : ''}`} 
+                      className={`h-5 w-5 transition-all duration-300 group-hover:scale-105 ${
+                        showLocationDropdown ? 'rotate-180 text-blue-500' : 'text-gray-400 group-hover:text-blue-500'
+                      }`} 
                       aria-hidden="true"
                     />
                   </button>
@@ -1277,12 +1581,12 @@ export default function AdvancedSearchPage() {
                   {/* Dropdown */}
                   {showLocationDropdown && (
                     <div 
-                      className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg z-50 max-h-72 flex flex-col"
+                      className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl z-50 max-h-72 flex flex-col backdrop-blur-sm animate-in slide-in-from-top-2 duration-300"
                       role="listbox"
                       aria-labelledby="location-filter-button"
                     >
                       {/* Scrollable location list */}
-                      <div className="flex-1 overflow-y-auto p-1.5 max-h-56" role="group" aria-label={t('search.locationOptions', 'Location options')}>
+                      <div className="flex-1 overflow-y-auto p-2 max-h-56" role="group" aria-label={t('search.locationOptions', 'Location options')}>
                         {/* Location Options */}
                         {locationDropdownOptions.map((gov) => {
                           const isSelected = filters.locations?.includes(gov.slug) || false;
@@ -1292,7 +1596,11 @@ export default function AdvancedSearchPage() {
                           return (
                             <label
                               key={gov.id}
-                              className="flex items-center px-2.5 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 rounded cursor-pointer focus-within:ring-2 focus-within:ring-blue-500"
+                              className={`group flex items-center px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] ${
+                                isSelected 
+                                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
+                                  : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                              }`}
                               role="option"
                               aria-selected={isSelected}
                             >
@@ -1318,11 +1626,13 @@ export default function AdvancedSearchPage() {
                                   setFilters(updatedFilters);
                                   // Don't update URL or search immediately - wait for "Show" button
                                 }}
-                                className="mr-2.5 h-3.5 w-3.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 focus:ring-2 border-2 border-gray-300 rounded-md transition-all duration-200 group-hover:scale-105"
                                 aria-describedby={`location-${gov.id}-label`}
                               />
                               <span 
-                                className="text-sm" 
+                                className={`text-sm font-medium transition-colors ${
+                                  isSelected ? 'text-blue-700 dark:text-blue-300' : 'group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                                }`}
                                 id={`location-${gov.id}-label`}
                               >
                                 {locationDisplayName}
@@ -1332,15 +1642,15 @@ export default function AdvancedSearchPage() {
                         })}
                       </div>
                       
-                      {/* Bottom buttons - Compact */}
-                      <div className="border-t border-gray-200 dark:border-gray-600 p-2 flex gap-1.5">
+                      {/* Bottom buttons - Enhanced */}
+                      <div className="border-t-2 border-gray-100 dark:border-gray-700 p-3 flex gap-2 bg-gray-50 dark:bg-gray-900/50 rounded-b-xl">
                         <button
                           onClick={() => {
                             const updatedFilters = { ...filters };
                             delete updatedFilters.locations;
                             setFilters(updatedFilters);
                           }}
-                          className="flex-1 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
+                          className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.99]"
                         >
                           {t('search.clear', 'Clear')}
                         </button>
@@ -1352,7 +1662,7 @@ export default function AdvancedSearchPage() {
                             // The filters are already set by the checkboxes above
                             // The useEffect will handle updating the URL and triggering the search
                           }}
-                          className="flex-1 px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                          className="flex-1 px-4 py-2 text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.99]"
                         >
                           {t('search:show', 'Show')}
                         </button>
@@ -1366,144 +1676,247 @@ export default function AdvancedSearchPage() {
           </div>
         </div>
 
-        {/* Filter Pills Row - AutoTrader UK Style with Individual Clear Buttons */}
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-3 items-center">
-            {/* Active Filters with X buttons */}
-            {(filters.minYear || filters.maxYear) && (
-              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
-                <span>{getFilterDisplayText('year')}</span>
+        {/* Enhanced Filter Bar */}
+        <div className="mb-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 shadow-sm">
+          <div className="flex flex-col space-y-2">
+            {/* Filter Pills Section */}
+            <div className="flex flex-col space-y-2">
+              <div className="flex flex-wrap gap-2">
+                {/* Show All Filters Button */}
                 <button
-                  onClick={() => clearSpecificFilter('year')}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
-                  aria-label={t('search.removeYearFilter', 'Remove year filter')}
+                  onClick={() => setActiveFilterModal('allFilters')}
+                  className="group relative inline-flex items-center px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
+                  aria-label="Show all filters"
                 >
-                  <MdClose className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-            
-            {(filters.brands && filters.brands.length > 0) && (
-              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
-                <span>{getFilterDisplayText('makeModel')}</span>
-                <button
-                  onClick={() => clearSpecificFilter('makeModel')}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
-                  aria-label={t('search.removeMakeModelFilter', 'Remove make and model filter')}
-                >
-                  <MdClose className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-            
-            {(filters.minPrice || filters.maxPrice) && (
-              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
-                <span>{getFilterDisplayText('price')}</span>
-                <button
-                  onClick={() => clearSpecificFilter('price')}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
-                  aria-label={t('search.removePriceFilter', 'Remove price filter')}
-                >
-                  <MdClose className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-            
-            {(filters.minMileage || filters.maxMileage) && (
-              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
-                <span>{getFilterDisplayText('mileage')}</span>
-                <button
-                  onClick={() => clearSpecificFilter('mileage')}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
-                  aria-label={t('search.removeMileageFilter', 'Remove mileage filter')}
-                >
-                  <MdClose className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-            
-            {filters.transmissionId && (
-              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
-                <span>{getFilterDisplayText('transmission')}</span>
-                <button
-                  onClick={() => clearSpecificFilter('transmission')}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
-                  aria-label={t('search.removeTransmissionFilter', 'Remove transmission filter')}
-                >
-                  <MdClose className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-            
+                  <span className="relative z-10 flex items-center space-x-2">
+                    <MdFilterList className="w-4 h-4" />
+                    <span>{t('search:showAllFilters', 'Show all filters')}</span>
+                  </span>
 
-            
-            {filters.fuelTypeId && (
-              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
-                <span>{getFilterDisplayText('fuelType')}</span>
-                <button
-                  onClick={() => clearSpecificFilter('fuelType')}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
-                  aria-label={t('search.removeFuelTypeFilter', 'Remove fuel type filter')}
-                >
-                  <MdClose className="h-4 w-4" />
+                  {/* Ripple effect */}
+                  <div className="absolute inset-0 rounded-xl overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-700" />
+                  </div>
                 </button>
+                
+                <FilterPill filterType="makeModel" onClick={() => setActiveFilterModal('makeModel')} />
+                <FilterPill filterType="price" onClick={() => setActiveFilterModal('price')} />
+                <FilterPill filterType="year" onClick={() => setActiveFilterModal('year')} />
+                <FilterPill filterType="mileage" onClick={() => setActiveFilterModal('mileage')} />
+                <FilterPill filterType="transmission" onClick={() => setActiveFilterModal('transmission')} />
+                <FilterPill filterType="fuelType" onClick={() => setActiveFilterModal('fuelType')} />
+                <FilterPill filterType="bodyStyle" onClick={() => setActiveFilterModal('bodyStyle')} />
+                <FilterPill filterType="sellerType" onClick={() => setActiveFilterModal('sellerType')} />
               </div>
-            )}
-            
-            {filters.bodyStyleId && (
-              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
-                <span>{getFilterDisplayText('bodyStyle')}</span>
-                <button
-                  onClick={() => clearSpecificFilter('bodyStyle')}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
-                  aria-label={t('search.removeBodyStyleFilter', 'Remove body style filter')}
-                >
-                  <MdClose className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-            
-            {filters.sellerTypeIds && filters.sellerTypeIds.length > 0 && (
-              <div className="inline-flex items-center bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium text-blue-800">
-                <span>{getFilterDisplayText('sellerType')}</span>
-                <button
-                  onClick={() => clearSpecificFilter('sellerType')}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
-                  aria-label={t('search.removeSellerTypeFilter', 'Remove seller type filter')}
-                >
-                  <MdClose className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-            
-            {/* Add filter buttons (only show if not already active) */}
-            {!isFilterActive('makeModel') && (
-              <FilterPill filterType="makeModel" onClick={() => setActiveFilterModal('makeModel')} />
-            )}
-            {!isFilterActive('price') && (
-              <FilterPill filterType="price" onClick={() => setActiveFilterModal('price')} />
-            )}
-            {!isFilterActive('year') && (
-              <FilterPill filterType="year" onClick={() => setActiveFilterModal('year')} />
-            )}
-            {!isFilterActive('mileage') && (
-              <FilterPill filterType="mileage" onClick={() => setActiveFilterModal('mileage')} />
-            )}
-            {!isFilterActive('transmission') && (
-              <FilterPill filterType="transmission" onClick={() => setActiveFilterModal('transmission')} />
-            )}
-
-            {!isFilterActive('fuelType') && (
-              <FilterPill filterType="fuelType" onClick={() => setActiveFilterModal('fuelType')} />
-            )}
-            {!isFilterActive('bodyStyle') && (
-              <FilterPill filterType="bodyStyle" onClick={() => setActiveFilterModal('bodyStyle')} />
-            )}
-            {!isFilterActive('sellerType') && (
-              <FilterPill filterType="sellerType" onClick={() => setActiveFilterModal('sellerType')} />
-            )}
+            </div>
           </div>
         </div>
+
+        {/* All Filter Chips */}
+        {(isFilterActive('makeModel') || isFilterActive('price') || isFilterActive('year') || isFilterActive('mileage') || isFilterActive('transmission') || isFilterActive('fuelType') || isFilterActive('bodyStyle') || isFilterActive('sellerType')) && (
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-2 items-center">
+              {/* Clear All Button - positioned first */}
+              <button
+                onClick={() => {
+                  // Clear all filters
+                  updateFiltersAndState({ 
+                    brands: undefined,
+                    models: undefined,
+                    minPrice: undefined,
+                    maxPrice: undefined,
+                    minYear: undefined,
+                    maxYear: undefined,
+                    minMileage: undefined,
+                    maxMileage: undefined,
+                    transmissionId: undefined,
+                    fuelTypeId: undefined,
+                    bodyStyleId: undefined,
+                    sellerTypeIds: undefined
+                  }, {
+                    selectedMake: null,
+                    selectedModel: null
+                  });
+                }}
+                className="group inline-flex items-center px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99] shadow-sm hover:shadow-md"
+                aria-label={t('search.clearAllFilters', 'Clear all filters')}
+              >
+                <MdDeleteSweep className="w-4 h-4 mr-2 transition-transform group-hover:rotate-6" />
+                {t('search:clear', 'Clear')} ({filterCount})
+              </button>
+
+              {/* Brand Chips */}
+              {filters.brands && filters.brands.map((brandSlug) => (
+                <div
+                  key={`brand-${brandSlug}`}
+                  className="group inline-flex items-center bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 border-2 border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600 dark:hover:to-gray-500 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99] shadow-sm hover:shadow-md"
+                >
+                  <span>{getBrandDisplayNameFromSlug(brandSlug)}</span>
+                  <button
+                    onClick={() => {
+                      const updatedBrands = filters.brands?.filter(b => b !== brandSlug) || [];
+                      updateFiltersAndState({ 
+                        brands: updatedBrands.length > 0 ? updatedBrands : undefined,
+                        models: updatedBrands.length === 0 ? undefined : filters.models
+                      }, {
+                        selectedMake: updatedBrands.length === 0 ? null : selectedMake,
+                        selectedModel: updatedBrands.length === 0 ? null : selectedModel
+                      });
+                    }}
+                    className="ml-3 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-1 transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-800/50 transform hover:scale-105 active:scale-95"
+                    aria-label={t('search.removeBrand', 'Remove {{brand}} brand', { brand: getBrandDisplayNameFromSlug(brandSlug) })}
+                  >
+                    <MdClose className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              
+              {/* Model Chips */}
+              {filters.models && filters.models.map((modelSlug) => (
+                <div
+                  key={`model-${modelSlug}`}
+                  className="group inline-flex items-center bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 border-2 border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600 dark:hover:to-gray-500 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99] shadow-sm hover:shadow-md"
+                >
+                  <span>{getModelDisplayNameFromSlug(modelSlug)}</span>
+                  <button
+                    onClick={() => {
+                      const updatedModels = filters.models?.filter(m => m !== modelSlug) || [];
+                      updateFiltersAndState({ 
+                        models: updatedModels.length > 0 ? updatedModels : undefined
+                      }, {
+                        selectedModel: updatedModels.length === 0 ? null : selectedModel
+                      });
+                    }}
+                    className="ml-3 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-1 transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-800/50 transform hover:scale-105 active:scale-95"
+                    aria-label={t('search.removeModel', 'Remove {{model}} model', { model: getModelDisplayNameFromSlug(modelSlug) })}
+                  >
+                    <MdClose className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+
+              {/* Price Chip */}
+              {(filters.minPrice || filters.maxPrice) && (
+                <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+                  <span>{getFilterDisplayText('price')}</span>
+                  <button
+                    onClick={() => updateFiltersAndState({ minPrice: undefined, maxPrice: undefined })}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removePriceFilter', 'Remove price filter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Year Chip */}
+              {(filters.minYear || filters.maxYear) && (
+                <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+                  <span>{getFilterDisplayText('year')}</span>
+                  <button
+                    onClick={() => updateFiltersAndState({ minYear: undefined, maxYear: undefined })}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removeYearFilter', 'Remove year filter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Mileage Chip */}
+              {(filters.minMileage || filters.maxMileage) && (
+                <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+                  <span>{getFilterDisplayText('mileage')}</span>
+                  <button
+                    onClick={() => updateFiltersAndState({ minMileage: undefined, maxMileage: undefined })}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removeMileageFilter', 'Remove mileage filter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Transmission Chip */}
+              {filters.transmissionId && (
+                <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+                  <span>{getTransmissionDisplayName(filters.transmissionId)}</span>
+                  <button
+                    onClick={() => updateFiltersAndState({ transmissionId: undefined })}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removeTransmissionFilter', 'Remove transmission filter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Fuel Type Chip */}
+              {filters.fuelTypeId && (
+                <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+                  <span>{getFuelTypeDisplayName(filters.fuelTypeId)}</span>
+                  <button
+                    onClick={() => updateFiltersAndState({ fuelTypeId: undefined })}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removeFuelTypeFilter', 'Remove fuel type filter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Body Style Chip */}
+              {filters.bodyStyleId && (
+                <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+                  <span>{getBodyStyleDisplayName(filters.bodyStyleId)}</span>
+                  <button
+                    onClick={() => updateFiltersAndState({ bodyStyleId: undefined })}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removeBodyStyleFilter', 'Remove body style filter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Seller Type Chips */}
+              {filters.sellerTypeIds && filters.sellerTypeIds.map((sellerTypeId) => (
+                <div
+                  key={`seller-${sellerTypeId}`}
+                  className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                >
+                  <span>{getSellerTypeDisplayName(sellerTypeId)}</span>
+                  <button
+                    onClick={() => {
+                      const updatedSellerTypes = filters.sellerTypeIds?.filter(id => id !== sellerTypeId) || [];
+                      updateFiltersAndState({ 
+                        sellerTypeIds: updatedSellerTypes.length > 0 ? updatedSellerTypes : undefined
+                      });
+                    }}
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+                    aria-label={t('search.removeSellerTypeFilter', 'Remove seller type filter')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Results Info */}
         <div className="flex items-center justify-between mb-6">

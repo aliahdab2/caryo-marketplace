@@ -69,5 +69,6 @@
   "removeSellerTypeFilter": "Remove seller type filter",
   "cars": "cars",
   "cancel": "Cancel",
-  "showResults": "Show {{count}} results"
+  "showResults": "Show {{count}} results",
+  "showAllFilters": "Show all filters"
 }
