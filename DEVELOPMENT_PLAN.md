@@ -361,3 +361,64 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [Translation Guide for Developers](docs/translation_guide_for_developers.md) - Internationalization best practices for bilingual support
 - [SEO-Friendly URLs Implementation](FRONTEND_SLUG_FILTERING_IMPLEMENTATION.md) - SEO URLs implementation and URL structure for car marketplace
 - [SEO Strategy & Implementation](docs/seo_strategy.md) - Comprehensive SEO strategy, current progress, and implementation roadmap
+- [Voice Search Implementation Plan](docs/voice_search_implementation_plan.md) - Comprehensive plan for implementing voice search functionality
+
+## Future Enhancements Roadmap 🚀
+
+### Phase 9: Advanced Search & Voice Features (Planned)
+
+- [ ] **Voice Search Integration**
+  - [ ] Implement speech recognition API integration
+  - [ ] Add microphone button to search interface
+  - [ ] Support both English and Arabic voice input
+  - [ ] Voice-to-text conversion with auto-search functionality
+  - [ ] Cross-browser compatibility (Chrome, Safari, Firefox)
+  - [ ] Mobile voice search optimization
+  - [ ] Voice feedback and accessibility announcements
+  - [ ] Error handling for voice recognition failures
+
+- [ ] **Advanced Search Features**
+  - [ ] Search suggestions and auto-complete
+  - [ ] Voice-activated filter selection
+  - [ ] Search history and saved searches
+  - [ ] Smart search with typo correction
+  - [ ] Semantic search capabilities
+
+- [ ] **Enhanced User Experience**
+  - [ ] Progressive Web App (PWA) features
+  - [ ] Offline search capabilities
+  - [ ] Real-time search results
+  - [ ] Advanced filtering with voice commands
+  - [ ] Search analytics and recommendations
+
+### Phase 10: AI & Machine Learning (Future)
+
+- [ ] **Intelligent Recommendations**
+  - [ ] Car recommendation engine based on user preferences
+  - [ ] Price prediction algorithms
+  - [ ] Similar car suggestions
+  - [ ] Market trend analysis
+
+- [ ] **Computer Vision Features**
+  - [ ] Automatic car damage detection in uploaded images
+  - [ ] Car model identification from photos
+  - [ ] Image quality assessment
+  - [ ] Virtual car inspection tools
+
+### Phase 11: Advanced Analytics & Insights (Future)
+
+- [ ] **Business Intelligence**
+  - [ ] Advanced analytics dashboard
+  - [ ] Market trends and pricing insights
+  - [ ] User behavior analytics
+  - [ ] Performance optimization recommendations
+
+- [ ] **API & Integration Features**
+  - [ ] Third-party car valuation API integration
+  - [ ] External inventory management systems
+  - [ ] Social media integration for listings
+  - [ ] WhatsApp/Telegram integration for inquiries
+
+---
+
+**Note**: The voice search feature was initially implemented but removed to maintain code simplicity. It can be re-implemented in Phase 9 with enhanced features and better user experience design.
