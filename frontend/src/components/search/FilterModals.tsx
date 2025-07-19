@@ -24,6 +24,173 @@ const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
 const SEARCH_NAMESPACES = ['common', 'search'];
 
+// Memoized car icon function to prevent recreation
+const getCarIcon = React.memo<{ bodyStyleName: string }>(({ bodyStyleName }) => {
+  const normalizedName = bodyStyleName.toLowerCase();
+  const iconMap: Record<string, React.ReactNode> = {
+    'sedan': <SedanIcon className="w-8 h-6 text-gray-600" />,
+    'saloon': <SedanIcon className="w-8 h-6 text-gray-600" />,
+    'hatchback': <HatchbackIcon className="w-8 h-6 text-gray-600" />,
+    'suv': <SUVIcon className="w-8 h-6 text-gray-600" />,
+    'coupe': <CoupeIcon className="w-8 h-6 text-gray-600" />,
+    'convertible': <ConvertibleIcon className="w-8 h-6 text-gray-600" />,
+    'wagon': <EstateIcon className="w-8 h-6 text-gray-600" />,
+    'estate': <EstateIcon className="w-8 h-6 text-gray-600" />,
+    'truck': <PickupIcon className="w-8 h-6 text-gray-600" />,
+    'pickup': <PickupIcon className="w-8 h-6 text-gray-600" />,
+    'van': <VanIcon className="w-8 h-6 text-gray-600" />,
+    'minivan': <MPVIcon className="w-8 h-6 text-gray-600" />,
+    'mpv': <MPVIcon className="w-8 h-6 text-gray-600" />,
+    'motorcycle': <MotorcycleIcon className="w-8 h-6 text-gray-600" />,
+    'crossover': <SUVIcon className="w-8 h-6 text-gray-600" />,
+    'taxi': <SedanIcon className="w-8 h-6 text-gray-600" />,
+    'ambulance': <VanIcon className="w-8 h-6 text-gray-600" />,
+    'rv': <VanIcon className="w-8 h-6 text-gray-600" />,
+    'camper': <VanIcon className="w-8 h-6 text-gray-600" />,
+    'other': <SedanIcon className="w-8 h-6 text-gray-600" />
+  };
+
+  return iconMap[normalizedName] || <SedanIcon className="w-8 h-6 text-gray-600" />;
+});
+getCarIcon.displayName = 'CarIcon';
+
+// Memoized sub-components for expensive operations
+const MakeModelSelector = React.memo<{
+  carMakes: CarMake[];
+  availableModels: CarModel[];
+  filters: AdvancedSearchFilters;
+  selectedMake: number | null;
+  onBrandToggle: (slug: string, makeId: number) => void;
+  onModelToggle: (slug: string, modelId: number) => void;
+  isLoadingBrands: boolean;
+  isLoadingModels: boolean;
+  t: (key: string, fallback?: string) => string;
+}>(({ 
+  carMakes, 
+  availableModels, 
+  filters, 
+  selectedMake, 
+  onBrandToggle, 
+  onModelToggle, 
+  isLoadingBrands, 
+  isLoadingModels, 
+  t 
+}) => {
+  const filteredMakes = useMemo(() => carMakes.filter(make => make.isActive), [carMakes]);
+  const filteredModels = useMemo(() => availableModels.filter(model => model.isActive), [availableModels]);
+
+  return (
+    <div className="space-y-6">
+      {/* Brands Section */}
+      <div>
+        <h4 className="text-lg font-semibold text-gray-900 mb-4">
+          {t('search.filters.brands', 'Brands')}
+        </h4>
+        {isLoadingBrands ? (
+          <div className="text-center py-4">
+            <div className="text-gray-500">{t('common.loading', 'Loading...')}</div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+            {filteredMakes.map((make) => (
+              <button
+                key={make.id}
+                onClick={() => onBrandToggle(make.slug, make.id)}
+                className={`p-3 text-sm rounded-lg border transition-colors text-left ${
+                  filters.brands?.includes(make.slug)
+                    ? 'bg-blue-50 border-blue-200 text-blue-800'
+                    : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {make.displayNameEn}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Models Section */}
+      {selectedMake && (
+        <div>
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">
+            {t('search.filters.models', 'Models')}
+          </h4>
+          {isLoadingModels ? (
+            <div className="text-center py-4">
+              <div className="text-gray-500">{t('common.loading', 'Loading...')}</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+              {filteredModels.map((model) => (
+                <button
+                  key={model.id}
+                  onClick={() => onModelToggle(model.slug, model.id)}
+                  className={`p-3 text-sm rounded-lg border transition-colors text-left ${
+                    filters.models?.includes(model.slug)
+                      ? 'bg-blue-50 border-blue-200 text-blue-800'
+                      : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {model.displayNameEn}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+});
+MakeModelSelector.displayName = 'MakeModelSelector';
+
+// Memoized year selector with expensive computation
+const YearSelector = React.memo<{
+  filters: AdvancedSearchFilters;
+  onMinYearChange: (year: number | undefined) => void;
+  onMaxYearChange: (year: number | undefined) => void;
+  t: (key: string, fallback?: string) => string;
+}>(({ filters, onMinYearChange, onMaxYearChange, t }) => {
+  const years = useMemo(() => YEARS, []); // Already computed, but ensures it's memoized
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('search.filters.minYear', 'Min Year')}
+          </label>
+          <select
+            value={filters.minYear || ''}
+            onChange={(e) => onMinYearChange(e.target.value ? parseInt(e.target.value) : undefined)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">{t('search.filters.any', 'Any')}</option>
+            {years.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('search.filters.maxYear', 'Max Year')}
+          </label>
+          <select
+            value={filters.maxYear || ''}
+            onChange={(e) => onMaxYearChange(e.target.value ? parseInt(e.target.value) : undefined)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">{t('search.filters.any', 'Any')}</option>
+            {years.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+});
+YearSelector.displayName = 'YearSelector';
+
 export interface AdvancedSearchFilters {
   // Slug-based filters (AutoTrader UK pattern)
   brands?: string[];
@@ -82,35 +249,6 @@ interface FilterModalsProps {
   // UI state
   carListingsCount?: number;
 }
-
-// Function to get appropriate car icon based on body style
-const getCarIcon = (bodyStyleName: string) => {
-  const normalizedName = bodyStyleName.toLowerCase();
-  const iconMap: Record<string, React.ReactNode> = {
-    'sedan': <SedanIcon className="w-8 h-6 text-gray-600" />,
-    'saloon': <SedanIcon className="w-8 h-6 text-gray-600" />,
-    'hatchback': <HatchbackIcon className="w-8 h-6 text-gray-600" />,
-    'suv': <SUVIcon className="w-8 h-6 text-gray-600" />,
-    'coupe': <CoupeIcon className="w-8 h-6 text-gray-600" />,
-    'convertible': <ConvertibleIcon className="w-8 h-6 text-gray-600" />,
-    'wagon': <EstateIcon className="w-8 h-6 text-gray-600" />,
-    'estate': <EstateIcon className="w-8 h-6 text-gray-600" />,
-    'truck': <PickupIcon className="w-8 h-6 text-gray-600" />,
-    'pickup': <PickupIcon className="w-8 h-6 text-gray-600" />,
-    'van': <VanIcon className="w-8 h-6 text-gray-600" />,
-    'minivan': <MPVIcon className="w-8 h-6 text-gray-600" />,
-    'mpv': <MPVIcon className="w-8 h-6 text-gray-600" />,
-    'motorcycle': <MotorcycleIcon className="w-8 h-6 text-gray-600" />,
-    'crossover': <SUVIcon className="w-8 h-6 text-gray-600" />,
-    'taxi': <SedanIcon className="w-8 h-6 text-gray-600" />,
-    'ambulance': <VanIcon className="w-8 h-6 text-gray-600" />,
-    'rv': <VanIcon className="w-8 h-6 text-gray-600" />,
-    'camper': <VanIcon className="w-8 h-6 text-gray-600" />,
-    'other': <SedanIcon className="w-8 h-6 text-gray-600" />
-  };
-
-  return iconMap[normalizedName] || <SedanIcon className="w-8 h-6 text-gray-600" />;
-};
 
 const FilterModals = React.memo<FilterModalsProps>(({
   activeFilterModal,
@@ -449,7 +587,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                     >
                       <div className="flex items-center space-x-3 rtl:space-x-reverse">
                         <div className="w-12 h-8 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
-                          {getCarIcon(bodyStyle.name.toLowerCase())}
+                          {React.createElement(getCarIcon, { bodyStyleName: bodyStyle.name.toLowerCase() })}
                         </div>
                         <div>
                           <div className="font-medium text-gray-900">{displayName}</div>

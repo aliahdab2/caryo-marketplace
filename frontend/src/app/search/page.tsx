@@ -43,37 +43,7 @@ import {
 import { getSellerTypeCounts } from '@/services/sellerTypes';
 import { SellerTypeCounts } from '@/types/sellerTypes';
 import { useApiData } from '@/hooks/useApiData';
-
-interface AdvancedSearchFilters {
-  // Slug-based filters (AutoTrader UK pattern)
-  brands?: string[];
-  models?: string[];
-  
-  // Basic filters
-  minYear?: number;
-  maxYear?: number;
-  minPrice?: number;
-  maxPrice?: number;
-  minMileage?: number;
-  maxMileage?: number;
-  
-  // Location filters - support multiple locations
-  locations?: string[];
-  
-  // Entity ID filters (for dropdown selections)
-  conditionId?: number;
-  transmissionId?: number;
-  fuelTypeId?: number;
-  bodyStyleId?: number;
-  sellerTypeIds?: number[];
-  
-  // Direct field filters
-  exteriorColor?: string;
-  doors?: number;
-  cylinders?: number;
-}
-
-type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'fuelType' | 'bodyStyle' | 'sellerType' | 'allFilters';
+import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
