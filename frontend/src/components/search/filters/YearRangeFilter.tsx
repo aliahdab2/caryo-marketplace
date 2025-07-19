@@ -36,19 +36,19 @@ const YearRangeFilter: React.FC<YearRangeFilterProps> = ({
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">
-          {t('search.yearRange', 'Year range')}
+          {t('search:yearRange', 'Year range')}
         </h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm text-gray-600 mb-2">
-              {t('search.from', 'From')}
+              {t('search:from', 'From')}
             </label>
             <select
               value={filters.minYear || ''}
               onChange={(e) => onMinYearChange(e.target.value ? parseInt(e.target.value) : undefined)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">{t('search.any', 'Any')}</option>
+              <option value="">{t('search:any', 'Any')}</option>
               {minYearOptions.map(year => (
                 <option key={year} value={year}>{year}</option>
               ))}
@@ -56,14 +56,14 @@ const YearRangeFilter: React.FC<YearRangeFilterProps> = ({
           </div>
           <div>
             <label className="block text-sm text-gray-600 mb-2">
-              {t('search.to', 'To')}
+              {t('search:to', 'To')}
             </label>
             <select
               value={filters.maxYear || ''}
               onChange={(e) => onMaxYearChange(e.target.value ? parseInt(e.target.value) : undefined)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">{t('search.any', 'Any')}</option>
+              <option value="">{t('search:any', 'Any')}</option>
               {maxYearOptions.map(year => (
                 <option key={year} value={year}>{year}</option>
               ))}

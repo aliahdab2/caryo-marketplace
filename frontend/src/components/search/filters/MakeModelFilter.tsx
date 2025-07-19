@@ -46,7 +46,7 @@ const MakeModelFilter: React.FC<MakeModelFilterProps> = ({
       {/* Make Selection Dropdown */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">
-          {t('search.make', 'Make')}
+          {t('search:make', 'Make')}
         </h3>
         <select
           value={selectedMake || ''}
@@ -68,7 +68,7 @@ const MakeModelFilter: React.FC<MakeModelFilterProps> = ({
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           disabled={isLoadingBrands}
         >
-          <option value="">{t('search.selectMake', 'Select a make')}</option>
+          <option value="">{t('search:selectMake', 'Select a make')}</option>
           {filteredMakes.map(make => (
             <option key={make.id} value={make.id}>
               {make.displayNameEn}
@@ -81,7 +81,7 @@ const MakeModelFilter: React.FC<MakeModelFilterProps> = ({
       {selectedMake && (
         <div>
           <h3 className="text-lg font-medium text-gray-900 mb-4">
-            {t('search.model', 'Model')}
+            {t('search:model', 'Model')}
           </h3>
           {isLoadingModels ? (
             <div className="text-center py-4">

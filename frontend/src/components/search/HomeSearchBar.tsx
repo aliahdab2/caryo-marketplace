@@ -95,7 +95,7 @@ const useSelectDropdownFix = (selectRefs: React.RefObject<HTMLSelectElement>[]) 
 };
 
 const HomeSearchBar: React.FC = () => {
-  const { t, i18n } = useTranslation('common');
+  const { t, i18n } = useTranslation('search');
   const router = useRouter();
   const currentLanguage = i18n.language;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -224,7 +224,7 @@ const HomeSearchBar: React.FC = () => {
             <div className="h-12 flex items-center">
               {/* Label hidden as requested */}
               <label htmlFor="brand" className="sr-only">
-                {t('search.selectBrand', 'Brand')}
+                {t('selectBrand', 'Brand')}
               </label>
               <div className="relative w-full h-12">
                 <select
@@ -234,9 +234,9 @@ const HomeSearchBar: React.FC = () => {
                   onChange={(e) => setSelectedMake(e.target.value ? Number(e.target.value) : null)}
                   className="appearance-none block w-full h-12 pl-3 xs:pl-4 pr-8 xs:pr-10 py-2 xs:py-3 text-sm xs:text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap mobile-select-dropdown select-fix"
                   disabled={isLoadingBrands}
-                  aria-label={t('search.selectBrand', 'Select brand')}
+                  aria-label={t('selectBrand', 'Select brand')}
                 >
-                  <option value="">{t('search.selectBrand', 'Any Brand')}</option>
+                  <option value="">{t('selectBrand', 'Any Brand')}</option>
                   {!isLoadingBrands && carMakes?.map((make) => (
                     <option key={make.id} value={make.id}>{getDisplayName(make)}</option>
                   ))}
@@ -258,7 +258,7 @@ const HomeSearchBar: React.FC = () => {
             <div className="h-12 flex items-center">
               {/* Label hidden as requested */}
               <label htmlFor="model" className="sr-only">
-                {t('search.selectModel', 'Model')}
+                {t('selectModel', 'Model')}
               </label>
               <div className="relative w-full h-12">
                 <select
@@ -268,10 +268,10 @@ const HomeSearchBar: React.FC = () => {
                   onChange={(e) => setSelectedModel(e.target.value ? Number(e.target.value) : null)}
                   className="appearance-none block w-full h-12 pl-3 xs:pl-4 pr-8 xs:pr-10 py-2 xs:py-3 text-sm xs:text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap mobile-select-dropdown select-fix"
                   disabled={!selectedMake || isLoadingModels}
-                  aria-label={t('search.selectModel', 'Select model')}
+                  aria-label={t('selectModel', 'Select model')}
                 >
                   <option value="">
-                    {t('search.selectModel', 'Any Model')}
+                    {t('selectModel', 'Any Model')}
                   </option>
                   {selectedMake && !isLoadingModels && availableModels?.map((model) => (
                     <option key={model.id} value={model.id}>{getDisplayName(model)}</option>
@@ -294,7 +294,7 @@ const HomeSearchBar: React.FC = () => {
             <div className="h-12 flex items-center">
               {/* Label hidden as requested */}
               <label htmlFor="governorate" className="sr-only">
-                {t('search.governorate', 'Governorate')}
+                {t('location', 'Governorate')}
               </label>
               <div className="relative w-full h-12">
                 <select
@@ -304,9 +304,9 @@ const HomeSearchBar: React.FC = () => {
                   onChange={(e) => setSelectedGovernorateSlug(e.target.value)}
                   className="appearance-none block w-full h-12 pl-3 xs:pl-4 pr-8 xs:pr-10 py-2 xs:py-3 text-sm xs:text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap mobile-select-dropdown select-fix"
                   disabled={isLoadingGovernorates}
-                  aria-label={t('search.selectGovernorate', 'Select governorate')}
+                  aria-label={t('selectGovernorate', 'Select governorate')}
                 >
-                  <option value="">{t('search.selectGovernorate', 'Any Governorate')}</option>
+                  <option value="">{t('selectGovernorate', 'Any Governorate')}</option>
                   {!isLoadingGovernorates && sortedGovernorates.map((gov) => (
                     <option key={gov.id} value={gov.slug}>
                       {getDisplayName(gov)}
@@ -332,7 +332,7 @@ const HomeSearchBar: React.FC = () => {
                 type="submit"
                 onClick={handleSearch}
                 className="w-full h-12 px-4 xs:px-6 bg-blue-600 text-white text-sm xs:text-base font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors whitespace-nowrap flex items-center justify-center"
-                aria-label={t('search.searchButton', 'Search Cars')}
+                aria-label={t('searchButton', 'Search Cars')}
               >
                 <svg 
                   className="w-4 xs:w-5 h-4 xs:h-5 mr-1.5 xs:mr-2 rtl:ml-1.5 rtl:xs:ml-2 rtl:mr-0" 
@@ -348,8 +348,8 @@ const HomeSearchBar: React.FC = () => {
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
                   />
                 </svg>
-                <span className="hidden xs:inline">{t('search.searchButton', 'Search Cars')}</span>
-                <span className="xs:hidden">{t('search.search', 'Search')}</span>
+                <span className="hidden xs:inline">{t('searchButton', 'Search Cars')}</span>
+                <span className="xs:hidden">{t('search', 'Search')}</span>
               </button>
             </div>
           </div>
@@ -365,7 +365,7 @@ const HomeSearchBar: React.FC = () => {
                     onClick={retryLoadingBrands}
                     className="text-blue-600 hover:text-blue-700 text-sm font-medium ml-3 rtl:mr-3 rtl:ml-0"
                   >
-                    {t('search.tryAgain', 'Try Again')}
+                    {t('tryAgain', 'Try Again')}
                   </button>
                 </div>
               )}
@@ -378,7 +378,7 @@ const HomeSearchBar: React.FC = () => {
                     onClick={retryLoadingModels}
                     className="text-blue-600 hover:text-blue-700 text-sm font-medium ml-3 rtl:mr-3 rtl:ml-0"
                   >
-                    {t('search.tryAgain', 'Try Again')}
+                    {t('tryAgain', 'Try Again')}
                   </button>
                 </div>
               )}
@@ -391,7 +391,7 @@ const HomeSearchBar: React.FC = () => {
                     onClick={retryLoadingGovernorates}
                     className="text-blue-600 hover:text-blue-700 text-sm font-medium ml-3 rtl:mr-3 rtl:ml-0"
                   >
-                    {t('search.tryAgain', 'Try Again')}
+                    {t('tryAgain', 'Try Again')}
                   </button>
                 </div>
               )}

@@ -63,7 +63,7 @@ const SearchBar = React.memo<SearchBarProps>(({
   // 🚀 UX Enhancement: Announce search results
   useEffect(() => {
     if (!isLoading && searchQuery) {
-      announce(t('search.searchCompleted', `Search completed for "${searchQuery}"`));
+      announce(t('search:searchCompleted', `Search completed for "${searchQuery}"`));
     }
   }, [isLoading, searchQuery, announce, t]);
 
@@ -117,7 +117,7 @@ const SearchBar = React.memo<SearchBarProps>(({
     setShowSuggestions(false);
     setSelectedSuggestionIndex(-1);
     inputRef.current?.focus();
-    announce(t('search.searchCleared', 'Search cleared'));
+    announce(t('search:searchCleared', 'Search cleared'));
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -130,11 +130,12 @@ const SearchBar = React.memo<SearchBarProps>(({
     <div ref={containerRef} className={`relative ${className}`}>
       <div className="flex gap-2 sm:relative">
         <div className="flex-1 relative">
-          <label htmlFor="car-search-input" className="sr-only">
-            {t('search.searchLabel', 'Search for cars by make, model, or location')}
-          </label>
-          
-          <input
+        <label 
+          htmlFor="car-search-input"
+          className="sr-only"
+        >
+          {t('search:searchLabel', 'Search for cars by make, model, or location')}
+        </label>          <input
             ref={inputRef}
             id="car-search-input"
             type="text"
@@ -160,7 +161,7 @@ const SearchBar = React.memo<SearchBarProps>(({
               currentLanguage === 'ar' ? 'text-right dir-rtl pr-3 pl-3 sm:pl-40' : 'text-left pl-3 pr-3 sm:pr-40'
             }`}
             dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}
-            aria-label={t('search.searchLabel', 'Search for cars by make, model, or location')}
+            aria-label={t('search:searchLabel', 'Search for cars by make, model, or location')}
             aria-describedby={error ? "search-error" : "search-help"}
             aria-controls="search-suggestions"
             aria-expanded={showSuggestions}
@@ -177,7 +178,7 @@ const SearchBar = React.memo<SearchBarProps>(({
               className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded p-1 z-10 ${
                 currentLanguage === 'ar' ? 'left-2 sm:left-20' : 'right-2 sm:right-20'
               }`}
-              aria-label={t('search.clearSearch', 'Clear search')}
+              aria-label={t('search:clearSearch', 'Clear search')}
             >
               <MdClose className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -202,14 +203,14 @@ const SearchBar = React.memo<SearchBarProps>(({
             ${currentLanguage === 'ar' ? 'sm:left-1 sm:rounded-md' : 'sm:right-1 sm:rounded-md'}
             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
           `}
-          aria-label={t('search.searchButton', 'Search for cars')}
+          aria-label={t('search:searchButton', 'Search for cars')}
         >
           {isLoading ? (
             <EnhancedLoadingState type="spinner" size="sm" className="p-0" />
           ) : (
             <div className="flex items-center">
               <MdSearch className="mr-1.5 h-4 w-4" aria-hidden="true" />
-              <span className="whitespace-nowrap">{t('search.search', 'Search')}</span>
+              <span className="whitespace-nowrap">{t('search:search', 'Search')}</span>
             </div>
           )}
         </button>
@@ -229,7 +230,7 @@ const SearchBar = React.memo<SearchBarProps>(({
           ref={suggestionsRef}
           className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
           role="listbox"
-          aria-label={t('search.suggestions', 'Search suggestions')}
+          aria-label={t('search:suggestions', 'Search suggestions')}
         >
           {suggestions.map((suggestion, index) => (
             <li
@@ -251,7 +252,7 @@ const SearchBar = React.memo<SearchBarProps>(({
       )}
       
       <div id="search-help" className="sr-only">
-        {t('search.searchHelp', 'Enter car make, model, or location and press Enter or click Search button. Use arrow keys to navigate suggestions.')}
+        {t('search:searchHelp', 'Enter car make, model, or location and press Enter or click Search button. Use arrow keys to navigate suggestions.')}
       </div>
     </div>
   );

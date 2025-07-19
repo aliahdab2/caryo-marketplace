@@ -387,7 +387,7 @@ describe('AdvancedSearchPage', () => {
 
       // Price filter should show the range in the filter chip section
       expect(screen.getAllByLabelText(/Remove price filter/)).toHaveLength(1);
-      expect(screen.getAllByText('£10000 - £50000')).toHaveLength(2); // FilterPill component and filter chip
+      expect(screen.getAllByText('$10,000 - $50,000')).toHaveLength(2); // FilterPill component and filter chip
     });
   });
 

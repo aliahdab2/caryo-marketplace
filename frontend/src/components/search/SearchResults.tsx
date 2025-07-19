@@ -84,11 +84,11 @@ const SearchResults = React.memo<SearchResultsProps>(({
       const resultCount = carListings.content.length;
       const totalCount = carListings.totalElements;
       const message = searchQuery
-        ? t('search.resultsAnnouncement', `Found ${totalCount} cars for "${searchQuery}", showing ${resultCount}`)
-        : t('search.resultsAnnouncementNoQuery', `Found ${totalCount} cars, showing ${resultCount}`);
+        ? t('search:resultsAnnouncement', `Found ${totalCount} cars for "${searchQuery}", showing ${resultCount}`)
+        : t('search:resultsAnnouncementNoQuery', `Found ${totalCount} cars, showing ${resultCount}`);
       announce(message);
     } else if (!isLoading && carListings?.content?.length === 0 && searchQuery) {
-      announce(t('search.noResultsAnnouncement', `No cars found for "${searchQuery}"`));
+      announce(t('search:noResultsAnnouncement', `No cars found for "${searchQuery}"`));
     }
   }, [carListings?.content?.length, carListings?.totalElements, isLoading, searchQuery, announce, t]);
 
@@ -96,8 +96,8 @@ const SearchResults = React.memo<SearchResultsProps>(({
   useEffect(() => {
     if (viewMode) {
       const viewModeText = viewMode === 'grid' 
-        ? t('search.gridViewSelected', 'Grid view selected') 
-        : t('search.listViewSelected', 'List view selected');
+        ? t('search:gridViewSelected', 'Grid view selected') 
+        : t('search:listViewSelected', 'List view selected');
       announce(viewModeText);
     }
   }, [viewMode, announce, t]);
@@ -108,9 +108,9 @@ const SearchResults = React.memo<SearchResultsProps>(({
     
     try {
       await onRetry();
-      announce(t('search.retrySuccess', 'Retry successful, results reloaded'));
+      announce(t('search:retrySuccess', 'Retry successful, results reloaded'));
     } catch (_err) {
-      announce(t('search.retryFailed', 'Retry failed, please try again'));
+      announce(t('search:retryFailed', 'Retry failed, please try again'));
     }
   };
 
@@ -127,25 +127,25 @@ const SearchResults = React.memo<SearchResultsProps>(({
           <div className="flex items-center space-x-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               {searchQuery 
-                ? t('search.resultsTitle', `Search Results for "${searchQuery}"`)
-                : t('search.allCarsTitle', 'All Cars')
+                ? t('search:resultsTitle', `Search Results for "${searchQuery}"`)
+                : t('search:allCarsTitle', 'All Cars')
               }
             </h2>
             
             {/* Save Search Button */}
             <button 
               className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
-              aria-label={t('search.saveSearch', 'Save search')}
+              aria-label={t('search:saveSearch', 'Save search')}
             >
               <MdFavoriteBorder className="mr-1 h-4 w-4" />
-              <span className="hidden sm:inline">{t('search.saveSearch', 'Save search')}</span>
+              <span className="hidden sm:inline">{t('search:saveSearch', 'Save search')}</span>
             </button>
           </div>
           
           {/* Progress Bar for pagination */}
           {carListings && carListings.totalPages > 1 && (
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span>{t('search.page', `Page ${carListings.page + 1} of ${carListings.totalPages}`)}</span>
+              <span>{t('search:page', `Page ${carListings.page + 1} of ${carListings.totalPages}`)}</span>
               <ProgressBar 
                 progress={progressPercentage} 
                 className="flex-1 max-w-32"
@@ -156,9 +156,9 @@ const SearchResults = React.memo<SearchResultsProps>(({
           
           <p className="text-lg font-medium text-gray-900 dark:text-white">
             {carListings?.totalElements 
-              ? `${carListings.totalElements.toLocaleString()} ${t('search.results', 'results')}` 
+              ? `${carListings.totalElements.toLocaleString()} ${t('search:results', 'results')}` 
               : isLoading 
-                ? t('search.loading', 'Loading...')
+                ? t('search:loading', 'Loading...')
                 : ''
             }
           </p>
@@ -182,7 +182,7 @@ const SearchResults = React.memo<SearchResultsProps>(({
               }}
             >
               <span id="view-mode-label" className="sr-only">
-                {t('search.viewModeControls', 'View mode controls')}
+                {t('search:viewModeControls', 'View mode controls')}
               </span>
               <button
                 onClick={() => onViewModeChange('grid')}
@@ -191,10 +191,10 @@ const SearchResults = React.memo<SearchResultsProps>(({
                     ? 'bg-white dark:bg-gray-600 shadow-sm'
                     : 'hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
-                aria-label={t('search.gridView', 'Grid view')}
+                aria-label={t('search:gridView', 'Grid view')}
                 aria-pressed={viewMode === 'grid'}
                 aria-describedby="current-view-mode"
-                title={t('search.gridViewTooltip', 'Switch to grid view layout')}
+                title={t('search:gridViewTooltip', 'Switch to grid view layout')}
                 tabIndex={viewMode === 'grid' ? 0 : -1}
               >
                 <MdViewModule className="w-4 h-4" />
@@ -206,16 +206,16 @@ const SearchResults = React.memo<SearchResultsProps>(({
                     ? 'bg-white dark:bg-gray-600 shadow-sm'
                     : 'hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
-                aria-label={t('search.listView', 'List view')}
+                aria-label={t('search:listView', 'List view')}
                 aria-pressed={viewMode === 'list'}
                 aria-describedby="current-view-mode"
-                title={t('search.listViewTooltip', 'Switch to list view layout')}
+                title={t('search:listViewTooltip', 'Switch to list view layout')}
                 tabIndex={viewMode === 'list' ? 0 : -1}
               >
                 <MdViewList className="w-4 h-4" />
               </button>
               <span id="current-view-mode" className="sr-only">
-                {t('search.currentViewMode', `Current view mode: ${viewMode === 'grid' ? 'Grid' : 'List'}`)}
+                {t('search:currentViewMode', `Current view mode: ${viewMode === 'grid' ? 'Grid' : 'List'}`)}
               </span>
             </div>
           )}
@@ -228,15 +228,15 @@ const SearchResults = React.memo<SearchResultsProps>(({
                 value={sortBy}
                 onChange={(e) => onSortChange(e.target.value)}
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                aria-label={t('search.sortBy', 'Sort by')}
+                aria-label={t('search:sortBy', 'Sort by')}
               >
-                <option value="relevance">{t('search.sortRelevance', 'Most Relevant')}</option>
-                <option value="price_low">{t('search.sortPriceLow', 'Price: Low to High')}</option>
-                <option value="price_high">{t('search.sortPriceHigh', 'Price: High to Low')}</option>
-                <option value="year_new">{t('search.sortYearNew', 'Year: Newest First')}</option>
-                <option value="year_old">{t('search.sortYearOld', 'Year: Oldest First')}</option>
-                <option value="mileage_low">{t('search.sortMileageLow', 'Mileage: Low to High')}</option>
-                <option value="date_new">{t('search.sortDateNew', 'Recently Added')}</option>
+                <option value="relevance">{t('search:sortRelevance', 'Most Relevant')}</option>
+                <option value="price_low">{t('search:sortPriceLow', 'Price: Low to High')}</option>
+                <option value="price_high">{t('search:sortPriceHigh', 'Price: High to Low')}</option>
+                <option value="year_new">{t('search:sortYearNew', 'Year: Newest First')}</option>
+                <option value="year_old">{t('search:sortYearOld', 'Year: Oldest First')}</option>
+                <option value="mileage_low">{t('search:sortMileageLow', 'Mileage: Low to High')}</option>
+                <option value="date_new">{t('search:sortDateNew', 'Recently Added')}</option>
               </select>
             </div>
           )}
@@ -260,7 +260,7 @@ const SearchResults = React.memo<SearchResultsProps>(({
             <div className="col-span-full flex items-center justify-center py-8">
               <EnhancedLoadingState 
                 type="dots"
-                message={t('search.searching', 'Searching...')}
+                message={t('search:searching', 'Searching...')}
                 size="sm"
               />
             </div>
@@ -278,8 +278,8 @@ const SearchResults = React.memo<SearchResultsProps>(({
           <div className="col-span-full">
             <EnhancedErrorState
               type="network"
-              title={t('search.errorLoadingResults', 'Error loading results')}
-              message={typeof error === 'string' ? error : t('search.genericError', 'An error occurred')}
+              title={t('search:errorLoadingResults', 'Error loading results')}
+              message={typeof error === 'string' ? error : t('search:genericError', 'An error occurred')}
               onRetry={retryCount < 3 ? handleRetry : undefined}
             />
           </div>
@@ -328,10 +328,10 @@ const SearchResults = React.memo<SearchResultsProps>(({
           <div className="col-span-full">
             <EnhancedErrorState
               type="not-found"
-              title={t('search.noResultsFound', 'No cars found')}
+              title={t('search:noResultsFound', 'No cars found')}
               message={searchQuery 
-                ? t('search.noResultsMessage', `No cars match your search for "${searchQuery}". Try adjusting your filters or search terms.`)
-                : t('search.tryDifferentFilters', 'Try adjusting your search filters to see more results.')
+                ? t('search:noResultsMessage', `No cars match your search for "${searchQuery}". Try adjusting your filters or search terms.`)
+                : t('search:tryDifferentFilters', 'Try adjusting your search filters to see more results.')
               }
             />
           </div>
@@ -345,19 +345,19 @@ const SearchResults = React.memo<SearchResultsProps>(({
             <button
               disabled={carListings.page === 0}
               className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              aria-label={t('search.previousPage', 'Previous page')}
+              aria-label={t('search:previousPage', 'Previous page')}
             >
-              {t('search.previous', 'Previous')}
+              {t('search:previous', 'Previous')}
             </button>
             <span className="px-3 py-2 text-sm text-gray-700 bg-gray-50 rounded-md">
-              {t('search.pageInfo', `Page ${carListings.page + 1} of ${carListings.totalPages}`)}
+              {t('search:pageInfo', `Page ${carListings.page + 1} of ${carListings.totalPages}`)}
             </span>
             <button
               disabled={carListings.last}
               className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              aria-label={t('search.nextPage', 'Next page')}
+              aria-label={t('search:nextPage', 'Next page')}
             >
-              {t('search.next', 'Next')}
+              {t('search:next', 'Next')}
             </button>
           </div>
         </div>
@@ -367,11 +367,11 @@ const SearchResults = React.memo<SearchResultsProps>(({
       {carListings && (
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            {t('search.showingResults', `Showing ${carListings.content.length} of ${carListings.totalElements} cars`)}
+            {t('search:showingResults', `Showing ${carListings.content.length} of ${carListings.totalElements} cars`)}
           </p>
           {carListings.totalElements > carListings.content.length && (
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-              {t('search.useFilters', 'Use filters to narrow down your search')}
+              {t('search:useFilters', 'Use filters to narrow down your search')}
             </p>
           )}
         </div>
