@@ -656,35 +656,35 @@ export default function AdvancedSearchPage() {
           }
           return display;
         }
-        return t('search.makeAndModel', 'Make and model');
+        return t('makeAndModel', 'Make and model');
       case 'price':
         if (filters.minPrice && filters.maxPrice) return `${formatNumber(filters.minPrice, currentLanguage, { style: 'currency', currency: DEFAULT_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 0 })} - ${formatNumber(filters.maxPrice, currentLanguage, { style: 'currency', currency: DEFAULT_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-        if (filters.minPrice) return `${t('search.from', 'From')} ${formatNumber(filters.minPrice, currentLanguage, { style: 'currency', currency: DEFAULT_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-        if (filters.maxPrice) return `${t('search.upTo', 'Up to')} ${formatNumber(filters.maxPrice, currentLanguage, { style: 'currency', currency: DEFAULT_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-        return t('search.price', 'Price');
+        if (filters.minPrice) return `${t('from', 'From')} ${formatNumber(filters.minPrice, currentLanguage, { style: 'currency', currency: DEFAULT_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+        if (filters.maxPrice) return `${t('upTo', 'Up to')} ${formatNumber(filters.maxPrice, currentLanguage, { style: 'currency', currency: DEFAULT_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+        return t('price', 'Price');
       case 'year':
         if (filters.minYear && filters.maxYear) return `${filters.minYear} - ${filters.maxYear}`;
-        if (filters.minYear) return `${t('search.from', 'From')} ${filters.minYear}`;
-        if (filters.maxYear) return `${t('search.upTo', 'Up to')} ${filters.maxYear}`;
-        return t('search.year', 'Year');
+        if (filters.minYear) return `${t('from', 'From')} ${filters.minYear}`;
+        if (filters.maxYear) return `${t('upTo', 'Up to')} ${filters.maxYear}`;
+        return t('year', 'Year');
       case 'mileage':
         if (filters.minMileage && filters.maxMileage) return `${filters.minMileage} - ${filters.maxMileage}`;
-        if (filters.minMileage) return `${t('search.from', 'From')} ${filters.minMileage}`;
-        if (filters.maxMileage) return `${t('search.upTo', 'Up to')} ${filters.maxMileage}`;
-        return t('search.mileage', 'Mileage');
+        if (filters.minMileage) return `${t('from', 'From')} ${filters.minMileage}`;
+        if (filters.maxMileage) return `${t('upTo', 'Up to')} ${filters.maxMileage}`;
+        return t('mileage', 'Mileage');
       case 'transmission':
-        return filters.transmissionId ? getTransmissionDisplayName(filters.transmissionId) : t('search.transmission', 'Transmission');
+        return filters.transmissionId ? getTransmissionDisplayName(filters.transmissionId) : t('transmission', 'Transmission');
 
       case 'fuelType':
-        return filters.fuelTypeId ? getFuelTypeDisplayName(filters.fuelTypeId) : t('search.fuelType', 'Fuel type');
+        return filters.fuelTypeId ? getFuelTypeDisplayName(filters.fuelTypeId) : t('fuelType', 'Fuel type');
       case 'bodyStyle':
-        return filters.bodyStyleId ? getBodyStyleDisplayName(filters.bodyStyleId) : t('search.bodyStyle', 'Body style');
+        return filters.bodyStyleId ? getBodyStyleDisplayName(filters.bodyStyleId) : t('bodyStyle', 'Body style');
       case 'sellerType':
         return filters.sellerTypeIds && filters.sellerTypeIds.length > 0 
           ? filters.sellerTypeIds.length === 1 
             ? getSellerTypeDisplayName(filters.sellerTypeIds[0])
-            : `${filters.sellerTypeIds.length} ${t('search.sellerType', 'Seller types')}`
-          : t('search.sellerType', 'Seller type');
+            : `${filters.sellerTypeIds.length} ${t('sellerType', 'Seller types')}`
+          : t('sellerType', 'Seller type');
       default:
         return '';
     }
@@ -767,7 +767,7 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.make', 'Make')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('make', 'Make')}</h3>
                 <select
                   value={selectedMake || ''}
                   onChange={(e) => {
@@ -796,7 +796,7 @@ export default function AdvancedSearchPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={isLoadingBrands}
                 >
-                  <option value="">{t('search.any', 'Any')}</option>
+                  <option value="">{t('any', 'Any')}</option>
                   {carMakes?.map(make => (
                     <option key={make.id} value={make.id}>
                       {currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn}
@@ -806,7 +806,7 @@ export default function AdvancedSearchPage() {
               </div>
               
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.model', 'Model')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('model', 'Model')}</h3>
                 <select
                   value={selectedModel || ''}
                   onChange={(e) => {
@@ -835,7 +835,7 @@ export default function AdvancedSearchPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={!selectedMake || isLoadingModels}
                 >
-                  <option value="">{t('search.any', 'Any')}</option>
+                  <option value="">{t('any', 'Any')}</option>
                   {availableModels?.map(model => (
                     <option key={model.id} value={model.id}>
                       {currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn}
@@ -850,7 +850,7 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-6">{t('search.priceRange', 'Price range')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-6">{t('price', 'Price')}</h3>
                 <PriceSlider
                   minPrice={filters.minPrice}
                   maxPrice={filters.maxPrice}
@@ -871,29 +871,29 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.yearRange', 'Year range')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('yearRange', 'Year range')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('search.from', 'From')}</label>
+                    <label className="block text-sm text-gray-600 mb-2">{t('from', 'From')}</label>
                     <select
                       value={filters.minYear || ''}
                       onChange={(e) => handleInputChange('minYear', e.target.value ? parseInt(e.target.value) : undefined)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">{t('search.any', 'Any')}</option>
+                      <option value="">{t('any', 'Any')}</option>
                       {YEARS.map(year => (
                         <option key={year} value={year}>{year}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('search.to', 'To')}</label>
+                    <label className="block text-sm text-gray-600 mb-2">{t('to', 'To')}</label>
                     <select
                       value={filters.maxYear || ''}
                       onChange={(e) => handleInputChange('maxYear', e.target.value ? parseInt(e.target.value) : undefined)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">{t('search.any', 'Any')}</option>
+                      <option value="">{t('any', 'Any')}</option>
                       {YEARS.filter(year => !filters.minYear || year >= filters.minYear).map(year => (
                         <option key={year} value={year}>{year}</option>
                       ))}
@@ -908,25 +908,25 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.mileageRange', 'Mileage range')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('mileageRange', 'Mileage range')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('search.from', 'From')}</label>
+                    <label className="block text-sm text-gray-600 mb-2">{t('from', 'From')}</label>
                     <input
                       type="number"
                       value={filters.minMileage || ''}
                       onChange={(e) => handleInputChange('minMileage', e.target.value ? parseInt(e.target.value) : undefined)}
-                      placeholder={t('search.any', 'Any')}
+                      placeholder={t('any', 'Any')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('search.to', 'To')}</label>
+                    <label className="block text-sm text-gray-600 mb-2">{t('to', 'To')}</label>
                     <input
                       type="number"
                       value={filters.maxMileage || ''}
                       onChange={(e) => handleInputChange('maxMileage', e.target.value ? parseInt(e.target.value) : undefined)}
-                      placeholder={t('search.any', 'Any')}
+                      placeholder={t('any', 'Any')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -939,14 +939,14 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.gearbox', 'Gearbox')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('gearbox', 'Gearbox')}</h3>
                 <select
                   value={filters.transmissionId || ''}
                   onChange={(e) => handleInputChange('transmissionId', e.target.value ? parseInt(e.target.value) : undefined)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={isLoadingReferenceData}
                 >
-                  <option value="">{t('search.any', 'Any')}</option>
+                  <option value="">{t('any', 'Any')}</option>
                   {referenceData?.transmissions?.map(transmission => (
                     <option key={transmission.id} value={transmission.id}>
                       {currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn}
@@ -963,14 +963,14 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.fuelType', 'Fuel type')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('fuelType', 'Fuel type')}</h3>
                 <select
                   value={filters.fuelTypeId || ''}
                   onChange={(e) => handleInputChange('fuelTypeId', e.target.value ? parseInt(e.target.value) : undefined)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={isLoadingReferenceData}
                 >
-                  <option value="">{t('search.any', 'Any')}</option>
+                  <option value="">{t('any', 'Any')}</option>
                   {referenceData?.fuelTypes?.map(fuelType => (
                     <option key={fuelType.id} value={fuelType.id}>
                       {currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn}
@@ -985,7 +985,7 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.bodyStyle', 'Body style')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('bodyStyle', 'Body style')}</h3>
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {referenceData?.bodyStyles?.map(bodyStyle => {
                     const isSelected = filters.bodyStyleId === bodyStyle.id;
@@ -1042,7 +1042,7 @@ export default function AdvancedSearchPage() {
             <div className="space-y-6">
               {/* Header - Blocket style but in English/Arabic */}
               <div className="text-center">
-                <h3 className="text-xl font-medium text-gray-900 mb-1">{t('search.sellerType', 'Seller Type')}</h3>
+                <h3 className="text-xl font-medium text-gray-900 mb-1">{t('sellerType', 'Seller Type')}</h3>
               </div>
               
               {/* Blocket Style Filter with Checkboxes */}
@@ -1102,15 +1102,15 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6 max-h-[70vh] overflow-y-auto">
               <div className="text-center">
-                <h3 className="text-xl font-medium text-gray-900 mb-4">{t('search:allFilters', 'All Filters')}</h3>
+                <h3 className="text-xl font-medium text-gray-900 mb-4">{t('allFilters', 'All Filters')}</h3>
               </div>
               
               {/* Make and Model */}
               <div className="border border-gray-200 rounded-lg p-4">
-                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.makeAndModel', 'Make and Model')}</h4>
+                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('makeAndModel', 'Make and Model')}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('search.make', 'Make')}</label>
+                    <label className="block text-sm text-gray-600 mb-2">{t('make', 'Make')}</label>
                     <select
                       value={selectedMake || ''}
                       onChange={(e) => {
@@ -1135,7 +1135,7 @@ export default function AdvancedSearchPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                       disabled={isLoadingBrands}
                     >
-                      <option value="">{t('search.any', 'Any')}</option>
+                      <option value="">{t('any', 'Any')}</option>
                       {carMakes?.map(make => (
                         <option key={make.id} value={make.id}>
                           {currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn}
@@ -1144,7 +1144,7 @@ export default function AdvancedSearchPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('search.model', 'Model')}</label>
+                    <label className="block text-sm text-gray-600 mb-2">{t('model', 'Model')}</label>
                     <select
                       value={selectedModel || ''}
                       onChange={(e) => {
@@ -1169,7 +1169,7 @@ export default function AdvancedSearchPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                       disabled={!selectedMake || isLoadingModels}
                     >
-                      <option value="">{t('search.any', 'Any')}</option>
+                      <option value="">{t('any', 'Any')}</option>
                       {availableModels?.map(model => (
                         <option key={model.id} value={model.id}>
                           {currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn}
@@ -1182,7 +1182,7 @@ export default function AdvancedSearchPage() {
 
               {/* Price - Full Width */}
               <div className="border border-gray-200 rounded-lg p-4">
-                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.price', 'Price')}</h4>
+                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('price', 'Price')}</h4>
                 <PriceSlider
                   minPrice={filters.minPrice}
                   maxPrice={filters.maxPrice}
@@ -1199,14 +1199,14 @@ export default function AdvancedSearchPage() {
 
               {/* Year */}
               <div className="border border-gray-200 rounded-lg p-4">
-                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.yearRange', 'Year Range')}</h4>
+                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('yearRange', 'Year Range')}</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <select
                     value={filters.minYear || ''}
                     onChange={(e) => handleInputChange('minYear', e.target.value ? parseInt(e.target.value) : undefined)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">{t('search.from', 'From')}</option>
+                    <option value="">{t('from', 'From')}</option>
                     {YEARS.map(year => (
                       <option key={year} value={year}>{year}</option>
                     ))}
@@ -1216,7 +1216,7 @@ export default function AdvancedSearchPage() {
                     onChange={(e) => handleInputChange('maxYear', e.target.value ? parseInt(e.target.value) : undefined)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">{t('search.to', 'To')}</option>
+                    <option value="">{t('to', 'To')}</option>
                     {YEARS.filter(year => !filters.minYear || year >= filters.minYear).map(year => (
                       <option key={year} value={year}>{year}</option>
                     ))}
@@ -1227,14 +1227,14 @@ export default function AdvancedSearchPage() {
               {/* Technical Specs */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.transmission', 'Transmission')}</h4>
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('transmission', 'Transmission')}</h4>
                   <select
                     value={filters.transmissionId || ''}
                     onChange={(e) => handleInputChange('transmissionId', e.target.value ? parseInt(e.target.value) : undefined)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                     disabled={isLoadingReferenceData}
                   >
-                    <option value="">{t('search.any', 'Any')}</option>
+                    <option value="">{t('any', 'Any')}</option>
                     {referenceData?.transmissions?.map(transmission => (
                       <option key={transmission.id} value={transmission.id}>
                         {currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn}
@@ -1244,14 +1244,14 @@ export default function AdvancedSearchPage() {
                 </div>
                 
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.fuelType', 'Fuel Type')}</h4>
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('fuelType', 'Fuel Type')}</h4>
                   <select
                     value={filters.fuelTypeId || ''}
                     onChange={(e) => handleInputChange('fuelTypeId', e.target.value ? parseInt(e.target.value) : undefined)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                     disabled={isLoadingReferenceData}
                   >
-                    <option value="">{t('search.any', 'Any')}</option>
+                    <option value="">{t('any', 'Any')}</option>
                     {referenceData?.fuelTypes?.map(fuelType => (
                       <option key={fuelType.id} value={fuelType.id}>
                         {currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn}
@@ -1261,7 +1261,7 @@ export default function AdvancedSearchPage() {
                 </div>
                 
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.sellerType', 'Seller Type')}</h4>
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('sellerType', 'Seller Type')}</h4>
                   <div className="space-y-2 max-h-32 overflow-y-auto">
                     {referenceData?.sellerTypes?.map(sellerType => {
                       const id = sellerType.id as number;
@@ -1294,20 +1294,20 @@ export default function AdvancedSearchPage() {
 
               {/* Mileage */}
               <div className="border border-gray-200 rounded-lg p-4">
-                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.mileageRange', 'Mileage Range')}</h4>
+                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('mileageRange', 'Mileage Range')}</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <input
                     type="number"
                     value={filters.minMileage || ''}
                     onChange={(e) => handleInputChange('minMileage', e.target.value ? parseInt(e.target.value) : undefined)}
-                    placeholder={t('search.from', 'From')}
+                    placeholder={t('from', 'From')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <input
                     type="number"
                     value={filters.maxMileage || ''}
                     onChange={(e) => handleInputChange('maxMileage', e.target.value ? parseInt(e.target.value) : undefined)}
-                    placeholder={t('search.to', 'To')}
+                    placeholder={t('to', 'To')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -1344,7 +1344,7 @@ export default function AdvancedSearchPage() {
                 className="rounded-md bg-white text-gray-500 hover:text-gray-700 focus:outline-none text-sm font-medium"
                 onClick={onClose}
               >
-                {filterType === 'sellerType' ? t('search:cancel', 'Cancel') : <MdClose className="h-6 w-6" />}
+                {filterType === 'sellerType' ? t('cancel', 'Cancel') : <MdClose className="h-6 w-6" />}
               </button>
             </div>
 
@@ -1356,7 +1356,7 @@ export default function AdvancedSearchPage() {
                   onClick={() => clearSpecificFilter(filterType)}
                   className="rounded-md bg-white px-6 py-2.5 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50"
                 >
-                  {t('search.clearFilter', 'Clear filter')}
+                  {t('clearFilter', 'Clear filter')}
                 </button>
                 
                 <button
@@ -1367,8 +1367,8 @@ export default function AdvancedSearchPage() {
                   className="rounded-md bg-blue-600 px-8 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
                 >
                   {filterType === 'sellerType' 
-                    ? t('search:showResults', 'Show {{count}} results', { count: carListings?.totalElements || 0 })
-                    : t('search:done', 'Done')
+                    ? t('showResults', 'Show {{count}} results', { count: carListings?.totalElements || 0 })
+                    : t('done', 'Done')
                   }
                 </button>
               </div>
@@ -1425,14 +1425,14 @@ export default function AdvancedSearchPage() {
               {/* Text Search Input */}
               <div className="flex-1">
                 <label htmlFor="car-search-input" className="sr-only">
-                  {t('search.searchLabel', 'Search for cars by make, model, or location')}
+                  {t('searchLabel', 'Search for cars by make, model, or location')}
                 </label>
                 <div className="flex gap-2 sm:relative">
                   <div className="flex-1 relative">
                     <input
                       id="car-search-input"
                       type="text"
-                      placeholder={t('search:placeholder', 'Search for cars... (e.g. "Toyota Camry", "BMW X3", "تويوتا كامري")')}
+                      placeholder={t('placeholder', 'Search for cars... (e.g. "Toyota Camry", "BMW X3", "تويوتا كامري")')}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => {
@@ -1445,7 +1445,7 @@ export default function AdvancedSearchPage() {
                         currentLanguage === 'ar' ? 'text-right dir-rtl pr-3 pl-3 sm:pl-28' : 'text-left pl-3 pr-3 sm:pr-28'
                       }`}
                       dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}
-                      aria-label={t('search.searchLabel', 'Search for cars by make, model, or location')}
+                      aria-label={t('searchLabel', 'Search for cars by make, model, or location')}
                       aria-describedby="search-help"
                     />
                     
@@ -1459,7 +1459,7 @@ export default function AdvancedSearchPage() {
                         className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded p-1 z-10 ${
                           currentLanguage === 'ar' ? 'left-2 sm:left-20' : 'right-2 sm:right-20'
                         }`}
-                        aria-label={t('search.clearSearch', 'Clear search')}
+                        aria-label={t('clearSearch', 'Clear search')}
                       >
                         <MdClose className="h-4 w-4" aria-hidden="true" />
                       </button>
@@ -1483,23 +1483,23 @@ export default function AdvancedSearchPage() {
                       sm:absolute sm:top-1 sm:bottom-1 sm:px-4 sm:text-xs sm:min-w-0 sm:hover:scale-100
                       ${currentLanguage === 'ar' ? 'sm:left-1 sm:rounded-md' : 'sm:right-1 sm:rounded-md'}
                     `}
-                    aria-label={t('search.searchButton', 'Search for cars')}
+                    aria-label={t('searchButton', 'Search for cars')}
                   >
                     {searchLoading ? (
                       <>
                         <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                        <span className="sr-only">{t('search.searching', 'Searching...')}</span>
+                        <span className="sr-only">{t('searching', 'Searching...')}</span>
                       </>
                     ) : (
                       <div className="flex items-center">
                         <MdSearch className="mr-1.5 h-4 w-4" />
-                        <span className="whitespace-nowrap">{t('search.search', 'Search')}</span>
+                        <span className="whitespace-nowrap">{t('search', 'Search')}</span>
                       </div>
                     )}
                   </button>
                   
                   <div id="search-help" className="sr-only">
-                    {t('search.searchHelp', 'Enter car make, model, or location and press Enter or click Search button')}
+                    {t('searchHelp', 'Enter car make, model, or location and press Enter or click Search button')}
                   </div>
                 </div>
               </div>
@@ -1515,7 +1515,7 @@ export default function AdvancedSearchPage() {
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 shadow-lg shadow-blue-500/10'
                         : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-blue-300 dark:hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm hover:shadow-md'
                     }`}
-                    aria-label={t('search.locationFilterLabel', 'Filter by location')}
+                    aria-label={t('locationFilterLabel', 'Filter by location')}
                     aria-expanded={showLocationDropdown}
                     aria-haspopup="listbox"
                     id="location-filter-button"
@@ -1533,8 +1533,8 @@ export default function AdvancedSearchPage() {
                                 ? (currentLanguage === 'ar' ? selectedGov.displayNameAr : selectedGov.displayNameEn)
                                 : selectedLocationSlug;
                             })()
-                          : t('search.locationsSelected', { count: filters.locations.length })
-                        : t('search:allLocations', 'All Governorates')
+                          : t('locationsSelected', { count: filters.locations.length })
+                        : t('allLocations', 'All Governorates')
                       }
                     </span>
                     <MdKeyboardArrowDown 
@@ -1553,7 +1553,7 @@ export default function AdvancedSearchPage() {
                       aria-labelledby="location-filter-button"
                     >
                       {/* Scrollable location list */}
-                      <div className="flex-1 overflow-y-auto p-2 max-h-56" role="group" aria-label={t('search.locationOptions', 'Location options')}>
+                      <div className="flex-1 overflow-y-auto p-2 max-h-56" role="group" aria-label={t('locationOptions', 'Location options')}>
                         {/* Location Options */}
                         {locationDropdownOptions.map((gov) => {
                           const isSelected = filters.locations?.includes(gov.slug) || false;
@@ -1619,7 +1619,7 @@ export default function AdvancedSearchPage() {
                           }}
                           className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.99]"
                         >
-                          {t('search.clear', 'Clear')}
+                          {t('clear', 'Clear')}
                         </button>
                         <button
                           onClick={() => {
@@ -1631,7 +1631,7 @@ export default function AdvancedSearchPage() {
                           }}
                           className="flex-1 px-4 py-2 text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.99]"
                         >
-                          {t('search:show', 'Show')}
+                          {t('show', 'Show')}
                         </button>
                       </div>
                     </div>
@@ -1657,7 +1657,7 @@ export default function AdvancedSearchPage() {
                 >
                   <span className="relative z-10 flex items-center space-x-2">
                     <MdFilterList className="w-4 h-4" />
-                    <span>{t('search:showAllFilters', 'Show all filters')}</span>
+                    <span>{t('showAllFilters', 'Show all filters')}</span>
                   </span>
 
                   {/* Ripple effect */}
@@ -1706,10 +1706,10 @@ export default function AdvancedSearchPage() {
                   });
                 }}
                 className="group inline-flex items-center px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99] shadow-sm hover:shadow-md"
-                aria-label={t('search.clearAllFilters', 'Clear all filters')}
+                aria-label={t('clearAllFilters', 'Clear all filters')}
               >
                 <MdDeleteSweep className="w-4 h-4 mr-2 transition-transform group-hover:rotate-6" />
-                {t('search:clear', 'Clear')} ({filterCount})
+                {t('clear', 'Clear')} ({filterCount})
               </button>
 
               {/* Brand Chips */}
@@ -1731,7 +1731,7 @@ export default function AdvancedSearchPage() {
                       });
                     }}
                     className="ml-3 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-1 transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-800/50 transform hover:scale-105 active:scale-95"
-                    aria-label={t('search.removeBrand', 'Remove {{brand}} brand', { brand: getBrandDisplayNameFromSlug(brandSlug) })}
+                    aria-label={t('removeBrand', 'Remove {{brand}} brand', { brand: getBrandDisplayNameFromSlug(brandSlug) })}
                   >
                     <MdClose className="w-4 h-4" />
                   </button>
@@ -1755,7 +1755,7 @@ export default function AdvancedSearchPage() {
                       });
                     }}
                     className="ml-3 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-1 transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-800/50 transform hover:scale-105 active:scale-95"
-                    aria-label={t('search.removeModel', 'Remove {{model}} model', { model: getModelDisplayNameFromSlug(modelSlug) })}
+                    aria-label={t('removeModel', 'Remove {{model}} model', { model: getModelDisplayNameFromSlug(modelSlug) })}
                   >
                     <MdClose className="w-4 h-4" />
                   </button>
@@ -1769,7 +1769,7 @@ export default function AdvancedSearchPage() {
                   <button
                     onClick={() => updateFiltersAndState({ minPrice: undefined, maxPrice: undefined })}
                     className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
-                    aria-label={t('search.removePriceFilter', 'Remove price filter')}
+                    aria-label={t('removePriceFilter', 'Remove price filter')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1785,7 +1785,7 @@ export default function AdvancedSearchPage() {
                   <button
                     onClick={() => updateFiltersAndState({ minYear: undefined, maxYear: undefined })}
                     className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
-                    aria-label={t('search.removeYearFilter', 'Remove year filter')}
+                    aria-label={t('removeYearFilter', 'Remove year filter')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1801,7 +1801,7 @@ export default function AdvancedSearchPage() {
                   <button
                     onClick={() => updateFiltersAndState({ minMileage: undefined, maxMileage: undefined })}
                     className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
-                    aria-label={t('search.removeMileageFilter', 'Remove mileage filter')}
+                    aria-label={t('removeMileageFilter', 'Remove mileage filter')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1817,7 +1817,7 @@ export default function AdvancedSearchPage() {
                   <button
                     onClick={() => updateFiltersAndState({ transmissionId: undefined })}
                     className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
-                    aria-label={t('search.removeTransmissionFilter', 'Remove transmission filter')}
+                    aria-label={t('removeTransmissionFilter', 'Remove transmission filter')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1833,7 +1833,7 @@ export default function AdvancedSearchPage() {
                   <button
                     onClick={() => updateFiltersAndState({ fuelTypeId: undefined })}
                     className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
-                    aria-label={t('search.removeFuelTypeFilter', 'Remove fuel type filter')}
+                    aria-label={t('removeFuelTypeFilter', 'Remove fuel type filter')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1849,7 +1849,7 @@ export default function AdvancedSearchPage() {
                   <button
                     onClick={() => updateFiltersAndState({ bodyStyleId: undefined })}
                     className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
-                    aria-label={t('search.removeBodyStyleFilter', 'Remove body style filter')}
+                    aria-label={t('removeBodyStyleFilter', 'Remove body style filter')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1873,7 +1873,7 @@ export default function AdvancedSearchPage() {
                       });
                     }}
                     className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
-                    aria-label={t('search.removeSellerTypeFilter', 'Remove seller type filter')}
+                    aria-label={t('removeSellerTypeFilter', 'Remove seller type filter')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1889,13 +1889,13 @@ export default function AdvancedSearchPage() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
             <p className="text-lg font-medium text-gray-900 dark:text-white">
-              {carListings?.totalElements ? `${carListings.totalElements.toLocaleString()} ${t('search.results', 'results')}` : t('search.loading', 'Loading...')}
+              {carListings?.totalElements ? `${carListings.totalElements.toLocaleString()} ${t('results', 'results')}` : t('loading', 'Loading...')}
             </p>
           </div>
           
           <button className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium">
             <MdFavoriteBorder className="mr-2 h-4 w-4" />
-            {t('search.saveSearch', 'Save search')}
+            {t('saveSearch', 'Save search')}
           </button>
         </div>
 
@@ -1925,7 +1925,7 @@ export default function AdvancedSearchPage() {
             <div className="col-span-full flex items-center justify-center py-12">
               <div className="text-center">
                 <div className="text-red-500 text-lg mb-2">
-                  {t('search.errorLoadingResults', 'Error loading results')}
+                  {t('errorLoadingResults', 'Error loading results')}
                 </div>
                 <div className="text-gray-600 text-sm">
                   {typeof listingsError === 'string' ? listingsError : 'An error occurred'}
@@ -1934,7 +1934,7 @@ export default function AdvancedSearchPage() {
                   onClick={() => executeSearch(false)}
                   className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  {t('search.tryAgain', 'Try again')}
+                  {t('tryAgain', 'Try again')}
                 </button>
               </div>
             </div>
@@ -1976,8 +1976,8 @@ export default function AdvancedSearchPage() {
             // No results state
             <div className="col-span-full text-center py-12">
               <MdDirectionsCar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('search.noResultsFound', 'No cars found')}</h3>
-              <p className="text-gray-600">{t('search.tryDifferentFilters', 'Try adjusting your search filters to see more results.')}</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noResultsFound', 'No cars found')}</h3>
+              <p className="text-gray-600">{t('tryDifferentFilters', 'Try adjusting your search filters to see more results.')}</p>
             </div>
           )}
         </SmoothTransition>
@@ -2031,10 +2031,10 @@ export default function AdvancedSearchPage() {
               </div>
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800 dark:text-red-400">
-                  {t('search.errorTitle', 'Something went wrong')}
+                  {t('errorTitle', 'Something went wrong')}
                 </h3>
                 <p className="mt-1 text-sm text-red-700 dark:text-red-300">
-                  {listingsError || t('search.loadingError', 'Error loading filter options. Please refresh the page.')}
+                  {listingsError || t('loadingError', 'Error loading filter options. Please refresh the page.')}
                 </p>
               </div>
             </div>
