@@ -73,7 +73,7 @@ interface AdvancedSearchFilters {
   cylinders?: number;
 }
 
-type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'fuelType' | 'bodyStyle' | 'sellerType';
+type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'fuelType' | 'bodyStyle' | 'sellerType' | 'allFilters';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
@@ -126,7 +126,6 @@ export default function AdvancedSearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [sellerTypeCounts, setSellerTypeCounts] = useState<SellerTypeCounts>({});
-  const [_filtersExpanded, setFiltersExpanded] = useState(false);
   
   // Handle clicking outside the dropdown to close it
   useEffect(() => {
@@ -195,7 +194,6 @@ export default function AdvancedSearchPage() {
       params.models = filters.models.filter(model => model && model.trim());
     }
 
-    console.log('API Filter params:', params); // Debug log
     return params;
   }, [
     filters,
@@ -314,6 +312,34 @@ export default function AdvancedSearchPage() {
       return '';
     }, [referenceData?.sellerTypes, currentLanguage]
   );
+
+  // Memoized filter count for UI display
+  const filterCount = useMemo(() => {
+    return (
+      (filters.brands?.length || 0) + 
+      (filters.models?.length || 0) + 
+      (filters.minPrice || filters.maxPrice ? 1 : 0) +
+      (filters.minYear || filters.maxYear ? 1 : 0) +
+      (filters.minMileage || filters.maxMileage ? 1 : 0) +
+      (filters.transmissionId ? 1 : 0) +
+      (filters.fuelTypeId ? 1 : 0) +
+      (filters.bodyStyleId ? 1 : 0) +
+      (filters.sellerTypeIds?.length || 0)
+    );
+  }, [
+    filters.brands,
+    filters.models,
+    filters.minPrice,
+    filters.maxPrice,
+    filters.minYear,
+    filters.maxYear,
+    filters.minMileage,
+    filters.maxMileage,
+    filters.transmissionId,
+    filters.fuelTypeId,
+    filters.bodyStyleId,
+    filters.sellerTypeIds
+  ]);
 
   // Helper functions to convert slugs to display names
   const getBrandDisplayNameFromSlug = useCallback((slug: string): string => {
@@ -1100,6 +1126,228 @@ export default function AdvancedSearchPage() {
             </div>
           );
 
+        case 'allFilters':
+          return (
+            <div className="space-y-6 max-h-[70vh] overflow-y-auto">
+              <div className="text-center">
+                <h3 className="text-xl font-medium text-gray-900 mb-4">{t('search:allFilters', 'All Filters')}</h3>
+              </div>
+              
+              {/* Make and Model */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.makeAndModel', 'Make and Model')}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-2">{t('search.make', 'Make')}</label>
+                    <select
+                      value={selectedMake || ''}
+                      onChange={(e) => {
+                        const makeId = e.target.value ? Number(e.target.value) : null;
+                        if (selectedMake !== makeId) {
+                          if (makeId && carMakes) {
+                            const brand = carMakes.find(make => make.id === makeId);
+                            if (brand && brand.slug) {
+                              updateFiltersAndState(
+                                { brands: [brand.slug], models: [] },
+                                { selectedMake: makeId, selectedModel: null }
+                              );
+                            }
+                          } else {
+                            updateFiltersAndState(
+                              { brands: [], models: [] },
+                              { selectedMake: null, selectedModel: null }
+                            );
+                          }
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      disabled={isLoadingBrands}
+                    >
+                      <option value="">{t('search.any', 'Any')}</option>
+                      {carMakes?.map(make => (
+                        <option key={make.id} value={make.id}>
+                          {currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-2">{t('search.model', 'Model')}</label>
+                    <select
+                      value={selectedModel || ''}
+                      onChange={(e) => {
+                        const modelId = e.target.value ? Number(e.target.value) : null;
+                        if (selectedModel !== modelId) {
+                          if (modelId && availableModels) {
+                            const model = availableModels.find(m => m.id === modelId);
+                            if (model && model.slug) {
+                              updateFiltersAndState(
+                                { models: [model.slug] },
+                                { selectedModel: modelId }
+                              );
+                            }
+                          } else {
+                            updateFiltersAndState(
+                              { models: [] },
+                              { selectedModel: null }
+                            );
+                          }
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      disabled={!selectedMake || isLoadingModels}
+                    >
+                      <option value="">{t('search.any', 'Any')}</option>
+                      {availableModels?.map(model => (
+                        <option key={model.id} value={model.id}>
+                          {currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Price and Year */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.priceRange', 'Price Range')}</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="number"
+                      value={filters.minPrice || ''}
+                      onChange={(e) => handleInputChange('minPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
+                      placeholder={t('search.from', 'From')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="number"
+                      value={filters.maxPrice || ''}
+                      onChange={(e) => handleInputChange('maxPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
+                      placeholder={t('search.to', 'To')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.yearRange', 'Year Range')}</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <select
+                      value={filters.minYear || ''}
+                      onChange={(e) => handleInputChange('minYear', e.target.value ? parseInt(e.target.value) : undefined)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">{t('search.from', 'From')}</option>
+                      {YEARS.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={filters.maxYear || ''}
+                      onChange={(e) => handleInputChange('maxYear', e.target.value ? parseInt(e.target.value) : undefined)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">{t('search.to', 'To')}</option>
+                      {YEARS.filter(year => !filters.minYear || year >= filters.minYear).map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Technical Specs */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.transmission', 'Transmission')}</h4>
+                  <select
+                    value={filters.transmissionId || ''}
+                    onChange={(e) => handleInputChange('transmissionId', e.target.value ? parseInt(e.target.value) : undefined)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    disabled={isLoadingReferenceData}
+                  >
+                    <option value="">{t('search.any', 'Any')}</option>
+                    {referenceData?.transmissions?.map(transmission => (
+                      <option key={transmission.id} value={transmission.id}>
+                        {currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.fuelType', 'Fuel Type')}</h4>
+                  <select
+                    value={filters.fuelTypeId || ''}
+                    onChange={(e) => handleInputChange('fuelTypeId', e.target.value ? parseInt(e.target.value) : undefined)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    disabled={isLoadingReferenceData}
+                  >
+                    <option value="">{t('search.any', 'Any')}</option>
+                    {referenceData?.fuelTypes?.map(fuelType => (
+                      <option key={fuelType.id} value={fuelType.id}>
+                        {currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.sellerType', 'Seller Type')}</h4>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {referenceData?.sellerTypes?.map(sellerType => {
+                      const id = sellerType.id as number;
+                      const typedSellerType = sellerType as { displayNameEn: string; displayNameAr: string; name: string };
+                      const isSelected = filters.sellerTypeIds?.includes(id) || false;
+                      const displayName = currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn;
+                      
+                      return (
+                        <label key={id} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              const currentSellerTypes = filters.sellerTypeIds || [];
+                              const newSellerTypes = e.target.checked 
+                                ? [...currentSellerTypes, id]
+                                : currentSellerTypes.filter(sellerTypeId => sellerTypeId !== id);
+                              
+                              handleInputChange('sellerTypeIds', newSellerTypes.length > 0 ? newSellerTypes : undefined);
+                            }}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">{displayName}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Mileage */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.mileageRange', 'Mileage Range')}</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="number"
+                    value={filters.minMileage || ''}
+                    onChange={(e) => handleInputChange('minMileage', e.target.value ? parseInt(e.target.value) : undefined)}
+                    placeholder={t('search.from', 'From')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="number"
+                    value={filters.maxMileage || ''}
+                    onChange={(e) => handleInputChange('maxMileage', e.target.value ? parseInt(e.target.value) : undefined)}
+                    placeholder={t('search.to', 'To')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+          );
+
         default:
           return null;
       }
@@ -1436,7 +1684,7 @@ export default function AdvancedSearchPage() {
               <div className="flex flex-wrap gap-2">
                 {/* Show All Filters Button */}
                 <button
-                  onClick={() => setFiltersExpanded(true)}
+                  onClick={() => setActiveFilterModal('allFilters')}
                   className="group relative inline-flex items-center px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
                   aria-label="Show all filters"
                 >
@@ -1494,17 +1742,7 @@ export default function AdvancedSearchPage() {
                 aria-label={t('search.clearAllFilters', 'Clear all filters')}
               >
                 <MdDeleteSweep className="w-4 h-4 mr-2 transition-transform group-hover:rotate-6" />
-                {t('search:clear', 'Clear')} ({
-                  (filters.brands?.length || 0) + 
-                  (filters.models?.length || 0) + 
-                  (filters.minPrice || filters.maxPrice ? 1 : 0) +
-                  (filters.minYear || filters.maxYear ? 1 : 0) +
-                  (filters.minMileage || filters.maxMileage ? 1 : 0) +
-                  (filters.transmissionId ? 1 : 0) +
-                  (filters.fuelTypeId ? 1 : 0) +
-                  (filters.bodyStyleId ? 1 : 0) +
-                  (filters.sellerTypeIds?.length || 0)
-                })
+                {t('search:clear', 'Clear')} ({filterCount})
               </button>
 
               {/* Brand Chips */}
