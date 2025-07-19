@@ -4,7 +4,7 @@
   "any": "الكل",
   "makeAndModel": "الماركة والموديل",
   "price": "السعر",
-  "priceRange": "نطاق السعر",
+  "priceRange": "السعر",
   "from": "من",
   "to": "إلى",
   "upTo": "حتى",
@@ -26,6 +26,23 @@
   "results": "النتائج",
   "loading": "جارٍ التحميل...",
   "clearAll": "إزالة جميع الفلاتر",
+  "clearAllFilters": "إزالة جميع الفلاتر",
+  "minPrice": "أقل سعر",
+  "maxPrice": "أعلى سعر",
+  "minimumPrice": "السعر الأدنى",
+  "maximumPrice": "السعر الأقصى",
+  "@minPrice": {
+    "description": "تسمية لحقل إدخال السعر الأدنى في شريط تمرير الأسعار"
+  },
+  "@maxPrice": {
+    "description": "تسمية لحقل إدخال السعر الأقصى في شريط تمرير الأسعار"
+  },
+  "@minimumPrice": {
+    "description": "تسمية ARIA للمقبض الأدنى في شريط تمرير السعر لقارئات الشاشة"
+  },
+  "@maximumPrice": {
+    "description": "تسمية ARIA للمقبض الأقصى في شريط تمرير السعر لقارئات الشاشة"
+  },
   "clearFilter": "إزالة الفلتر",
   "saveSearch": "حفظ البحث",
   "searchCars": "البحث عن السيارات",

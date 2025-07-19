@@ -447,5 +447,7 @@
   "search.locationsSelected_few": "{{count}} governorates selected",
   "search.locationsSelected_many": "{{count}} governorates selected",
   "search.locationsSelected_other": "{{count}} governorates selected",
-  "search.placeholder": "Search by make, model, or governorate..."
+  "search.placeholder": "Search by make, model, or governorate...",
+  "search.clearAllFilters": "Clear all filters",
+  "search.removePriceFilter": "Remove price filter"
 }

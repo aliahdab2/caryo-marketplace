@@ -4,7 +4,7 @@
   "any": "Any",
   "makeAndModel": "Make and model",
   "price": "Price",
-  "priceRange": "Price range",
+  "priceRange": "Price",
   "from": "From",
   "to": "To",
   "upTo": "Up to",
@@ -24,6 +24,23 @@
   "results": "results",
   "loading": "Loading...",
   "clearAll": "Clear all filters",
+  "clearAllFilters": "Clear all filters",
+  "minPrice": "Min Price",
+  "maxPrice": "Max Price",
+  "minimumPrice": "Minimum price",
+  "maximumPrice": "Maximum price",
+  "@minPrice": {
+    "description": "Label for minimum price input field in price slider"
+  },
+  "@maxPrice": {
+    "description": "Label for maximum price input field in price slider"
+  },
+  "@minimumPrice": {
+    "description": "ARIA label for minimum price slider thumb for screen readers"
+  },
+  "@maximumPrice": {
+    "description": "ARIA label for maximum price slider thumb for screen readers"
+  },
   "saveSearch": "Save search",
   "searchCars": "Search cars",
   "apply": "Apply",

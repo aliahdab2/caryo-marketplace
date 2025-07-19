@@ -44,6 +44,9 @@ import { getSellerTypeCounts } from '@/services/sellerTypes';
 import { SellerTypeCounts } from '@/types/sellerTypes';
 import { useApiData } from '@/hooks/useApiData';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
+import PriceSlider from '@/components/ui/PriceSlider';
+import { DEFAULT_CURRENCY } from '@/utils/currency';
+import { formatNumber } from '@/utils/localization';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
@@ -655,9 +658,9 @@ export default function AdvancedSearchPage() {
         }
         return t('search.makeAndModel', 'Make and model');
       case 'price':
-        if (filters.minPrice && filters.maxPrice) return `£${filters.minPrice} - £${filters.maxPrice}`;
-        if (filters.minPrice) return `${t('search.from', 'From')} £${filters.minPrice}`;
-        if (filters.maxPrice) return `${t('search.upTo', 'Up to')} £${filters.maxPrice}`;
+        if (filters.minPrice && filters.maxPrice) return `${formatNumber(filters.minPrice, currentLanguage, { style: 'currency', currency: DEFAULT_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 0 })} - ${formatNumber(filters.maxPrice, currentLanguage, { style: 'currency', currency: DEFAULT_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+        if (filters.minPrice) return `${t('search.from', 'From')} ${formatNumber(filters.minPrice, currentLanguage, { style: 'currency', currency: DEFAULT_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+        if (filters.maxPrice) return `${t('search.upTo', 'Up to')} ${formatNumber(filters.maxPrice, currentLanguage, { style: 'currency', currency: DEFAULT_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
         return t('search.price', 'Price');
       case 'year':
         if (filters.minYear && filters.maxYear) return `${filters.minYear} - ${filters.maxYear}`;
@@ -685,7 +688,7 @@ export default function AdvancedSearchPage() {
       default:
         return '';
     }
-  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getSellerTypeDisplayName]);
+  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getSellerTypeDisplayName, currentLanguage]);
 
   // Check if filter has active values - memoized to prevent re-renders
   const isFilterActive = useCallback((filterType: FilterType): boolean => {
@@ -749,6 +752,15 @@ export default function AdvancedSearchPage() {
 
   // Modal component
   const FilterModal = ({ filterType, onClose }: { filterType: FilterType; onClose: () => void }) => {
+    // Stable price change handler to prevent infinite loops
+    const handlePriceChange = useCallback((minPrice: number | undefined, maxPrice: number | undefined) => {
+      setFilters(prev => ({
+        ...prev,
+        minPrice: minPrice || undefined,
+        maxPrice: maxPrice || undefined
+      }));
+    }, []);
+
     const renderModalContent = () => {
       switch (filterType) {
         case 'makeModel':
@@ -838,29 +850,19 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.priceRange', 'Price range')}</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('search.from', 'From')}</label>
-                    <input
-                      type="number"
-                      value={filters.minPrice || ''}
-                      onChange={(e) => handleInputChange('minPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      placeholder={t('search.any', 'Any')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('search.to', 'To')}</label>
-                    <input
-                      type="number"
-                      value={filters.maxPrice || ''}
-                      onChange={(e) => handleInputChange('maxPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      placeholder={t('search.any', 'Any')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-6">{t('search.priceRange', 'Price range')}</h3>
+                <PriceSlider
+                  minPrice={filters.minPrice}
+                  maxPrice={filters.maxPrice}
+                  minRange={0}
+                  maxRange={150000}
+                  step={1000}
+                  currency={DEFAULT_CURRENCY}
+                  onChange={handlePriceChange}
+                  t={t}
+                  locale={currentLanguage}
+                  className="mb-4"
+                />
               </div>
             </div>
           );
@@ -1178,52 +1180,47 @@ export default function AdvancedSearchPage() {
                 </div>
               </div>
 
-              {/* Price and Year */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.priceRange', 'Price Range')}</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <input
-                      type="number"
-                      value={filters.minPrice || ''}
-                      onChange={(e) => handleInputChange('minPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      placeholder={t('search.from', 'From')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                      type="number"
-                      value={filters.maxPrice || ''}
-                      onChange={(e) => handleInputChange('maxPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      placeholder={t('search.to', 'To')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-                
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.yearRange', 'Year Range')}</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <select
-                      value={filters.minYear || ''}
-                      onChange={(e) => handleInputChange('minYear', e.target.value ? parseInt(e.target.value) : undefined)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">{t('search.from', 'From')}</option>
-                      {YEARS.map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
-                    <select
-                      value={filters.maxYear || ''}
-                      onChange={(e) => handleInputChange('maxYear', e.target.value ? parseInt(e.target.value) : undefined)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">{t('search.to', 'To')}</option>
-                      {YEARS.filter(year => !filters.minYear || year >= filters.minYear).map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
-                  </div>
+              {/* Price - Full Width */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.price', 'Price')}</h4>
+                <PriceSlider
+                  minPrice={filters.minPrice}
+                  maxPrice={filters.maxPrice}
+                  minRange={0}
+                  maxRange={150000}
+                  step={1000}
+                  currency={DEFAULT_CURRENCY}
+                  onChange={handlePriceChange}
+                  t={t}
+                  locale={currentLanguage}
+                  className="mb-2"
+                />
+              </div>
+
+              {/* Year */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('search.yearRange', 'Year Range')}</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <select
+                    value={filters.minYear || ''}
+                    onChange={(e) => handleInputChange('minYear', e.target.value ? parseInt(e.target.value) : undefined)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">{t('search.from', 'From')}</option>
+                    {YEARS.map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={filters.maxYear || ''}
+                    onChange={(e) => handleInputChange('maxYear', e.target.value ? parseInt(e.target.value) : undefined)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">{t('search.to', 'To')}</option>
+                    {YEARS.filter(year => !filters.minYear || year >= filters.minYear).map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

@@ -464,5 +464,7 @@
   "search.locationsSelected_many": "{{count}} محافظة محددة",
   "search.locationsSelected_other": "{{count}} محافظة محددة",
   "search.noResultsFound": "لم يتم العثور على سيارات",
-  "search.tryDifferentFilters": "جرّب تعديل فلاتر البحث لرؤية المزيد من النتائج."
+  "search.tryDifferentFilters": "جرّب تعديل فلاتر البحث لرؤية المزيد من النتائج.",
+  "search.clearAllFilters": "إزالة جميع الفلاتر",
+  "search.removePriceFilter": "إزالة فلتر السعر"
 }
