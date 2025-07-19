@@ -20,7 +20,7 @@ describe('PriceSlider', () => {
     
     expect(screen.getByLabelText('Min Price')).toBeInTheDocument();
     expect(screen.getByLabelText('Max Price')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('')).toBeInTheDocument(); // min input
+    expect(screen.getAllByDisplayValue('')).toHaveLength(2); // Both min and max inputs start empty
   });
 
   it('displays initial price values correctly', () => {
@@ -47,7 +47,9 @@ describe('PriceSlider', () => {
     await user.type(minInput, '15000');
     
     await waitFor(() => {
-      expect(onChange).toHaveBeenCalledWith(15000, 100000);
+      // onChange is called for each keystroke, so check that final call has correct values
+      const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1];
+      expect(lastCall).toEqual([15000, undefined]); // maxVal should be undefined when at maxRange
     });
   });
 
@@ -79,7 +81,9 @@ describe('PriceSlider', () => {
     
     // Should be constrained to maxRange - step
     await waitFor(() => {
-      expect(onChange).toHaveBeenCalledWith(99000, 100000);
+      // onChange is called for each keystroke, check the final call
+      const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1];
+      expect(lastCall).toEqual([99000, undefined]); // Constrained to maxRange - step
     });
   });
 
@@ -93,7 +97,7 @@ describe('PriceSlider', () => {
     );
     
     expect(screen.queryByLabelText('Min Price')).not.toBeInTheDocument();
-    expect(screen.queryByText('$0')).not.toBeInTheDocument();
+    expect(screen.queryByText('$0')).not.toBeInTheDocument(); // Value displays should be hidden when showLabels=false
   });
 
   it('applies custom styling props', () => {

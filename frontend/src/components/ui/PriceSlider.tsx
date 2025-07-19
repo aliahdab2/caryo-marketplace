@@ -237,18 +237,20 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
   return (
     <div className={`price-slider ${className}`}>
       {/* Value Display */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="text-center">
-          <div className="text-lg font-semibold text-gray-900">
-            {formatValue(minVal)}
+      {showLabels && (
+        <div className="flex justify-between items-center mb-6">
+          <div className="text-center">
+            <div className="text-lg font-semibold text-gray-900">
+              {formatValue(minVal)}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-lg font-semibold text-gray-900">
+              {formatValue(maxVal)}
+            </div>
           </div>
         </div>
-        <div className="text-center">
-          <div className="text-lg font-semibold text-gray-900">
-            {formatValue(maxVal)}
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Slider */}
       <div className="relative px-2 py-6">
