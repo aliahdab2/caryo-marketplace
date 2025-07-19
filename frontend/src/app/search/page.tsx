@@ -11,7 +11,8 @@ import {
   MdKeyboardArrowDown,
   MdSearch,
   MdFavoriteBorder,
-  MdDeleteSweep
+  MdDeleteSweep,
+  MdFilterList
 } from 'react-icons/md';
 import { 
   ConvertibleIcon,
@@ -125,6 +126,7 @@ export default function AdvancedSearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [sellerTypeCounts, setSellerTypeCounts] = useState<SellerTypeCounts>({});
+  const [_filtersExpanded, setFiltersExpanded] = useState(false);
   
   // Handle clicking outside the dropdown to close it
   useEffect(() => {
@@ -1432,6 +1434,23 @@ export default function AdvancedSearchPage() {
             {/* Filter Pills Section */}
             <div className="flex flex-col space-y-2">
               <div className="flex flex-wrap gap-2">
+                {/* Show All Filters Button */}
+                <button
+                  onClick={() => setFiltersExpanded(true)}
+                  className="group relative inline-flex items-center px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
+                  aria-label="Show all filters"
+                >
+                  <span className="relative z-10 flex items-center space-x-2">
+                    <MdFilterList className="w-4 h-4" />
+                    <span>{t('search:showAllFilters', 'Show all filters')}</span>
+                  </span>
+
+                  {/* Ripple effect */}
+                  <div className="absolute inset-0 rounded-xl overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-700" />
+                  </div>
+                </button>
+                
                 <FilterPill filterType="makeModel" onClick={() => setActiveFilterModal('makeModel')} />
                 <FilterPill filterType="price" onClick={() => setActiveFilterModal('price')} />
                 <FilterPill filterType="year" onClick={() => setActiveFilterModal('year')} />
