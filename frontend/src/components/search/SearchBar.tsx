@@ -1,46 +1,13 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from 'react';
-import { MdClose, MdSearch, MdMic, MdMicOff } from 'react-icons/md';
+import { MdClose, MdSearch } from 'react-icons/md';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useAnnouncements } from '@/hooks/useAccessibility';
 import { EnhancedLoadingState } from '@/components/ui/EnhancedUX';
 
 // Move namespaces outside component to prevent recreation on every render
 const SEARCH_NAMESPACES = ['common', 'search'];
-
-// Speech Recognition types
-interface SpeechRecognitionEvent {
-  results: {
-    [index: number]: {
-      [index: number]: {
-        transcript: string;
-      };
-    };
-    length: number;
-  };
-}
-
-interface SpeechRecognitionConstructor {
-  new (): SpeechRecognition;
-}
-
-interface SpeechRecognition {
-  lang: string;
-  onstart: () => void;
-  onresult: (event: SpeechRecognitionEvent) => void;
-  onerror: () => void;
-  onend: () => void;
-  start: () => void;
-  stop: () => void;
-}
-
-declare global {
-  interface Window {
-    webkitSpeechRecognition?: SpeechRecognitionConstructor;
-    SpeechRecognition?: SpeechRecognitionConstructor;
-  }
-}
 
 interface SearchBarProps {
   searchQuery: string;
@@ -81,7 +48,6 @@ const SearchBar = React.memo<SearchBarProps>(({
   const [isFocused, setIsFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
-  const [isListening, setIsListening] = useState(false);
   
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLUListElement>(null);
@@ -100,48 +66,6 @@ const SearchBar = React.memo<SearchBarProps>(({
       announce(t('search.searchCompleted', `Search completed for "${searchQuery}"`));
     }
   }, [isLoading, searchQuery, announce, t]);
-
-  // 🚀 UX Enhancement: Handle voice input (if supported)
-  const toggleVoiceInput = () => {
-    if (!window.webkitSpeechRecognition && !window.SpeechRecognition) {
-      announce(t('search.voiceNotSupported', 'Voice input is not supported in this browser'));
-      return;
-    }
-
-    if (isListening) {
-      setIsListening(false);
-      return;
-    }
-
-    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-    if (!SpeechRecognition) return;
-    
-    const recognition = new SpeechRecognition();
-    
-    recognition.lang = currentLanguage === 'ar' ? 'ar-SA' : 'en-US';
-    recognition.onstart = () => {
-      setIsListening(true);
-      announce(t('search.voiceListening', 'Voice input started, speak now'));
-    };
-    
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const transcript = event.results[0][0].transcript;
-      onSearchQueryChange(transcript);
-      setIsListening(false);
-      announce(t('search.voiceRecognized', `Voice input recognized: ${transcript}`));
-    };
-    
-    recognition.onerror = () => {
-      setIsListening(false);
-      announce(t('search.voiceError', 'Voice input error occurred'));
-    };
-    
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-    
-    recognition.start();
-  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -244,28 +168,6 @@ const SearchBar = React.memo<SearchBarProps>(({
             aria-activedescendant={selectedSuggestionIndex >= 0 ? `suggestion-${selectedSuggestionIndex}` : undefined}
             autoComplete="off"
           />
-          
-          {/* Voice Input Button */}
-          {(window.webkitSpeechRecognition || window.SpeechRecognition) && (
-            <button
-              type="button"
-              onClick={toggleVoiceInput}
-              className={`absolute top-1/2 transform -translate-y-1/2 p-1 rounded transition-colors ${
-                isListening 
-                  ? 'text-red-500 animate-pulse' 
-                  : 'text-gray-400 hover:text-gray-600'
-              } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                currentLanguage === 'ar' ? 'left-8 sm:left-32' : 'right-8 sm:right-32'
-              }`}
-              aria-label={isListening ? t('search.stopVoice', 'Stop voice input') : t('search.startVoice', 'Start voice input')}
-            >
-              {isListening ? (
-                <MdMicOff className="h-4 w-4" aria-hidden="true" />
-              ) : (
-                <MdMic className="h-4 w-4" aria-hidden="true" />
-              )}
-            </button>
-          )}
           
           {/* Clear button when there's text */}
           {searchQuery && (

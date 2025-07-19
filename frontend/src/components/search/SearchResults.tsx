@@ -28,7 +28,7 @@ interface SearchResultsProps {
   searchQuery?: string;
 }
 
-// Enhanced Loading skeleton component for better UX
+// Enhanced Loading skeleton component for better UX - Memoized for performance
 const LoadingSkeleton = React.memo(() => (
   <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden animate-pulse">
     <div className="aspect-w-16 aspect-h-12 bg-gray-300 h-48"></div>
