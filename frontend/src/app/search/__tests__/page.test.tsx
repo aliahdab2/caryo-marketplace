@@ -385,9 +385,9 @@ describe('AdvancedSearchPage', () => {
 
       render(<AdvancedSearchPage />, { wrapper: TestWrapper });
 
-      // Price filter should show the range in both active filter pills and filter chips sections
-      expect(screen.getAllByLabelText(/Remove price filter/)).toHaveLength(2);
-      expect(screen.getAllByText('£10000 - £50000')).toHaveLength(3); // Active filter pill, FilterPill component, and filter chip
+      // Price filter should show the range in the filter chip section
+      expect(screen.getAllByLabelText(/Remove price filter/)).toHaveLength(1);
+      expect(screen.getAllByText('£10000 - £50000')).toHaveLength(2); // FilterPill component and filter chip
     });
   });
 
@@ -436,7 +436,7 @@ describe('AdvancedSearchPage', () => {
       // Find the filter pill (not the search result card) - look for the brand chip specifically
       const brandChip = screen.getByLabelText(/Remove.*brand/);
       expect(brandChip).toBeInTheDocument();
-      expect(brandChip.closest('.bg-gray-100')).toHaveClass('bg-gray-100'); // Brand chips have gray background
+      expect(brandChip.closest('.bg-gradient-to-r')).toHaveClass('bg-gradient-to-r'); // Brand chips have gradient background
     });
   });
 
@@ -456,7 +456,7 @@ describe('AdvancedSearchPage', () => {
       // Find the filter pill specifically (not the search result card) - look for the brand chip
       const brandChip = screen.getByLabelText(/Remove.*brand/);
       expect(brandChip).toBeInTheDocument();
-      expect(brandChip.closest('.bg-gray-100')).toHaveClass('bg-gray-100');
+      expect(brandChip.closest('.bg-gradient-to-r')).toHaveClass('bg-gradient-to-r');
     });
 
     it('displays localized brand and model names correctly', () => {
