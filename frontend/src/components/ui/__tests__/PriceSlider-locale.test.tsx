@@ -4,7 +4,12 @@ import PriceSlider from '../PriceSlider';
 
 // Mock the utilities
 jest.mock('../../../utils/currency', () => ({
-  DEFAULT_CURRENCY: 'USD'
+  DEFAULT_CURRENCY: 'USD',
+  getOptimalLocale: jest.fn((locale: string) => {
+    if (locale.startsWith('ar')) return 'ar-SY';
+    if (locale.startsWith('en')) return 'en-US';
+    return locale;
+  })
 }));
 
 jest.mock('../../../utils/localization', () => ({

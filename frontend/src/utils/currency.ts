@@ -88,6 +88,18 @@ export function getCurrency(currencyCode: string): Currency | undefined {
 }
 
 /**
+ * Get the optimal locale for currency formatting
+ * Maps generic language codes to specific locales with good currency support
+ * @param locale The input locale string
+ * @returns Optimized locale string for better currency formatting
+ */
+export function getOptimalLocale(locale: string): string {
+  if (locale.startsWith('ar')) return 'ar-SY'; // Arabic (Syria)
+  if (locale.startsWith('en')) return 'en-US'; // English (United States)
+  return locale;
+}
+
+/**
  * Advanced currency formatting with Syrian marketplace customizations
  * Enhanced with proper Arabic locale support
  * @param amount The amount to format
@@ -112,15 +124,7 @@ export function formatCurrency(
   }
 
   // Enhanced locale handling for bilingual support
-/**
- * Get the optimal locale for currency formatting
- * Maps generic language codes to specific locales with good currency support
- */
-const getOptimalLocale = (locale: string): string => {
-  if (locale.startsWith('ar')) return 'ar-SY'; // Arabic (Syria)
-  if (locale.startsWith('en')) return 'en-US'; // English (United States)
-  return locale;
-};  const formattingLocale = getOptimalLocale(locale);
+  const formattingLocale = getOptimalLocale(locale);
 
   // Syrian marketplace-specific formatting
   const defaultOptions: Intl.NumberFormatOptions = {
@@ -192,17 +196,7 @@ export function formatCurrencyCompact(
   const currencyInfo = getCurrency(currency);
   if (!currencyInfo) return formatAmount(num, DEFAULT_CURRENCY, locale);
 
-  // Enhanced locale handling for compact formatting
-  const getOptimalLocale = (inputLocale: string): string => {
-    if (inputLocale.startsWith('ar')) {
-      return 'ar-EG';
-    } else if (inputLocale.startsWith('en')) {
-      return 'en-US';
-    } else {
-      return inputLocale.includes('-') ? inputLocale : 'en-US';
-    }
-  };
-
+  // Use the standardized locale optimization
   const formattingLocale = getOptimalLocale(locale);
 
   const compactOptions: Intl.NumberFormatOptions = {

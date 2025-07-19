@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DEFAULT_CURRENCY } from '../../utils/currency';
+import { DEFAULT_CURRENCY, getOptimalLocale } from '../../utils/currency';
 import { formatNumber } from '../../utils/localization';
 import type { PriceSliderProps } from '../../types/ui';
 
@@ -19,7 +19,7 @@ import type { PriceSliderProps } from '../../types/ui';
  * @param currency - Currency code for formatting (default: DEFAULT_CURRENCY)
  * @param onChange - Callback fired when price range changes
  * @param t - Translation function for i18n support
- * @param locale - Locale for number formatting (optional, auto-detects from i18n context)
+ * @param locale - Locale for currency/number formatting. When undefined, automatically detects from i18n context (i18n.language) with fallback to 'en-US'. Supports Syrian marketplace locales (ar-SY, en-US)
  * @param className - Additional CSS classes
  * @param trackColor - Custom track color (default: 'bg-blue-500')
  * @param thumbColor - Custom thumb color (default: 'bg-blue-600')
@@ -40,7 +40,7 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
   showInputs = true,
   showLabels = true,
   t = (key: string, fallback: string) => fallback,
-  locale // Remove default value - will be computed below
+  locale
 }) => {
   // Auto-detect locale from i18n context if not provided
   const { i18n } = useTranslation();
@@ -235,21 +235,8 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
    * Maps language codes to appropriate locale strings for number formatting
    */
   const formatValue = useCallback((value: number) => {
-    // Map language codes to proper locale strings for currency formatting
-    const getLocaleForCurrency = (lang: string): string => {
-      if (lang.startsWith('ar')) {
-        // Use Arabic locale for Arabic language - Syria for this marketplace
-        return 'ar-SY';
-      } else if (lang.startsWith('en')) {
-        // Use US locale for English language
-        return 'en-US';
-      } else {
-        // Fallback to exact locale or default to en-US
-        return lang.includes('-') ? lang : 'en-US';
-      }
-    };
-
-    const formattingLocale = getLocaleForCurrency(currentLocale);
+    // Use the standardized locale optimization function
+    const formattingLocale = getOptimalLocale(currentLocale);
     
     return formatNumber(value, formattingLocale, { 
       style: 'currency', 
