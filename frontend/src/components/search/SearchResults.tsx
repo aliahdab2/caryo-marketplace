@@ -9,6 +9,18 @@ import CarListingCard, { CarListingCardData } from '@/components/listings/CarLis
 import { CarListing, PageResponse } from '@/services/api';
 import { EnhancedLoadingState, EnhancedErrorState, ProgressBar } from '@/components/ui/EnhancedUX';
 
+/**
+ * Enhanced SearchResults component with improved accessibility
+ * 
+ * Key accessibility improvements:
+ * - View mode toggle buttons have proper ARIA labels and role attributes
+ * - Screen reader announcements for view mode changes
+ * - Enhanced keyboard navigation with arrow key support
+ * - Proper focus management and tabindex handling
+ * - ARIA-describedby attributes to indicate current state
+ * - Tooltip support for better user guidance
+ */
+
 // Move namespaces outside component to prevent recreation on every render
 const SEARCH_NAMESPACES = ['common', 'search'];
 
@@ -80,6 +92,16 @@ const SearchResults = React.memo<SearchResultsProps>(({
     }
   }, [carListings?.content?.length, carListings?.totalElements, isLoading, searchQuery, announce, t]);
 
+  // 🚀 Accessibility Enhancement: Announce view mode changes
+  useEffect(() => {
+    if (viewMode) {
+      const viewModeText = viewMode === 'grid' 
+        ? t('search.gridViewSelected', 'Grid view selected') 
+        : t('search.listViewSelected', 'List view selected');
+      announce(viewModeText);
+    }
+  }, [viewMode, announce, t]);
+
   // 🚀 UX Enhancement: Enhanced retry functionality
   const handleRetry = async () => {
     setRetryCount(prev => prev + 1);
@@ -144,33 +166,57 @@ const SearchResults = React.memo<SearchResultsProps>(({
 
         {/* View Mode and Sort Controls */}
         <div className="flex items-center gap-3">
-          {/* View Mode Toggle */}
+          {/* View Mode Toggle with Enhanced Accessibility */}
           {onViewModeChange && (
-            <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <div 
+              className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg"
+              role="group"
+              aria-labelledby="view-mode-label"
+              onKeyDown={(e) => {
+                // Enhanced keyboard navigation for view mode toggle
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                  e.preventDefault();
+                  const newMode = viewMode === 'grid' ? 'list' : 'grid';
+                  onViewModeChange(newMode);
+                }
+              }}
+            >
+              <span id="view-mode-label" className="sr-only">
+                {t('search.viewModeControls', 'View mode controls')}
+              </span>
               <button
                 onClick={() => onViewModeChange('grid')}
-                className={`p-2 rounded transition-colors ${
+                className={`p-2 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   viewMode === 'grid'
                     ? 'bg-white dark:bg-gray-600 shadow-sm'
                     : 'hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
                 aria-label={t('search.gridView', 'Grid view')}
                 aria-pressed={viewMode === 'grid'}
+                aria-describedby="current-view-mode"
+                title={t('search.gridViewTooltip', 'Switch to grid view layout')}
+                tabIndex={viewMode === 'grid' ? 0 : -1}
               >
                 <MdViewModule className="w-4 h-4" />
               </button>
               <button
                 onClick={() => onViewModeChange('list')}
-                className={`p-2 rounded transition-colors ${
+                className={`p-2 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   viewMode === 'list'
                     ? 'bg-white dark:bg-gray-600 shadow-sm'
                     : 'hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
                 aria-label={t('search.listView', 'List view')}
                 aria-pressed={viewMode === 'list'}
+                aria-describedby="current-view-mode"
+                title={t('search.listViewTooltip', 'Switch to list view layout')}
+                tabIndex={viewMode === 'list' ? 0 : -1}
               >
                 <MdViewList className="w-4 h-4" />
               </button>
+              <span id="current-view-mode" className="sr-only">
+                {t('search.currentViewMode', `Current view mode: ${viewMode === 'grid' ? 'Grid' : 'List'}`)}
+              </span>
             </div>
           )}
 

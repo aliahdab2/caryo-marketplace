@@ -1,11 +1,16 @@
 /**
  * Enhanced logger utility for Caryo Marketplace
  * Provides conditional logging based on environment and debug flags
+ * 
+ * Design pattern:
+ * - Export pre-configured logger instances for common use cases
+ * - Export factory function for creating custom logger instances
+ * - No default export to avoid confusion between class and instances
  */
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-interface LoggerConfig {
+export interface LoggerConfig {
   enabled: boolean;
   level: LogLevel;
   prefix?: string;
@@ -81,4 +86,22 @@ export const filterLogger = new Logger({
   prefix: 'FILTERS'
 });
 
-export default Logger;
+/**
+ * Factory function to create new logger instances
+ * 
+ * @example
+ * // Use pre-configured loggers for common cases
+ * import { searchLogger, apiLogger } from '@/utils/logger';
+ * searchLogger.info('Search query executed');
+ * 
+ * // Create custom logger for specific modules
+ * import { createLogger } from '@/utils/logger';
+ * const myLogger = createLogger({
+ *   enabled: true,
+ *   level: 'debug',
+ *   prefix: 'CUSTOM_MODULE'
+ * });
+ */
+export function createLogger(config: LoggerConfig): Logger {
+  return new Logger(config);
+}

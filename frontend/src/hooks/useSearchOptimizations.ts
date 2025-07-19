@@ -24,7 +24,6 @@ interface UseSearchOptimizationsReturn {
     transmission?: string;
     fuelType?: string;
     description?: string;
-    isFeatured?: boolean;
     createdAt: string;
     updatedAt: string;
   }>;
@@ -106,7 +105,6 @@ export function useSearchOptimizations({
       transmission: listing.transmission || undefined,
       fuelType: listing.fuelType || undefined,
       description: listing.description || undefined,
-      isFeatured: false, // This property doesn't exist in CarListing interface
       createdAt: listing.createdAt || new Date().toISOString(),
       updatedAt: listing.createdAt || new Date().toISOString() // Use createdAt as fallback
     }));

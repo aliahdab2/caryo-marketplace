@@ -1,9 +1,20 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useReducer } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { CarMake, CarModel } from '@/types/car';
 import { CarReferenceData } from '@/services/api';
 import { SellerTypeCounts } from '@/types/sellerTypes';
+
+/**
+ * Enhanced search filters hook with improved state management
+ * 
+ * Key improvements:
+ * - Uses useReducer for complex state management instead of nested useState calls
+ * - Simplified update functions with clear action types
+ * - Better separation of concerns between filter types
+ * - Type-safe state updates with focused action handlers
+ * - Maintains backward compatibility with existing API
+ */
 
 export interface AdvancedSearchFilters {
   // Slug-based filters (AutoTrader UK pattern)
@@ -35,6 +46,143 @@ export interface AdvancedSearchFilters {
 }
 
 export type FilterType = 'makeModel' | 'price' | 'year' | 'mileage' | 'transmission' | 'fuelType' | 'bodyStyle' | 'sellerType' | 'allFilters';
+
+// Reducer action types for better state management
+type FilterAction = 
+  | { type: 'UPDATE_BRANDS'; payload: { brands?: string[]; makeId?: number | null } }
+  | { type: 'UPDATE_MODELS'; payload: { models?: string[]; modelId?: number | null } }
+  | { type: 'UPDATE_FILTERS'; payload: Partial<AdvancedSearchFilters> }
+  | { type: 'UPDATE_FIELD'; payload: { field: keyof AdvancedSearchFilters; value: string | number | string[] | number[] | undefined } }
+  | { type: 'CLEAR_FILTER'; payload: FilterType }
+  | { type: 'RESET_FILTERS' };
+
+interface FilterState {
+  filters: AdvancedSearchFilters;
+  selectedMake: number | null;
+  selectedModel: number | null;
+}
+
+// Reducer for complex filter state management
+function filterReducer(state: FilterState, action: FilterAction): FilterState {
+  switch (action.type) {
+    case 'UPDATE_BRANDS':
+      return {
+        ...state,
+        filters: { ...state.filters, brands: action.payload.brands },
+        selectedMake: action.payload.makeId ?? state.selectedMake
+      };
+      
+    case 'UPDATE_MODELS':
+      return {
+        ...state,
+        filters: { ...state.filters, models: action.payload.models },
+        selectedModel: action.payload.modelId ?? state.selectedModel
+      };
+      
+    case 'UPDATE_FILTERS':
+      return {
+        ...state,
+        filters: { ...state.filters, ...action.payload }
+      };
+      
+    case 'UPDATE_FIELD': {
+      const { field, value } = action.payload;
+      const newFilters = { ...state.filters };
+      
+      if (value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
+        delete newFilters[field];
+      } else {
+        // Type-safe assignment using field-specific logic
+        switch (field) {
+          case 'brands':
+          case 'models':
+          case 'locations':
+            newFilters[field] = value as string[];
+            break;
+          case 'sellerTypeIds':
+            newFilters[field] = value as number[];
+            break;
+          case 'minYear':
+          case 'maxYear':
+          case 'minPrice':
+          case 'maxPrice':
+          case 'minMileage':
+          case 'maxMileage':
+          case 'conditionId':
+          case 'transmissionId':
+          case 'fuelTypeId':
+          case 'bodyStyleId':
+          case 'doors':
+          case 'cylinders':
+            newFilters[field] = value as number;
+            break;
+          case 'exteriorColor':
+            newFilters[field] = value as string;
+            break;
+        }
+      }
+      
+      return { ...state, filters: newFilters };
+    }
+    
+    case 'CLEAR_FILTER': {
+      const newState = { ...state };
+      const newFilters = { ...state.filters };
+      
+      switch (action.payload) {
+        case 'makeModel':
+          delete newFilters.brands;
+          delete newFilters.models;
+          newState.selectedMake = null;
+          newState.selectedModel = null;
+          break;
+        case 'price':
+          delete newFilters.minPrice;
+          delete newFilters.maxPrice;
+          break;
+        case 'year':
+          delete newFilters.minYear;
+          delete newFilters.maxYear;
+          break;
+        case 'mileage':
+          delete newFilters.minMileage;
+          delete newFilters.maxMileage;
+          break;
+        case 'transmission':
+          delete newFilters.transmissionId;
+          break;
+        case 'fuelType':
+          delete newFilters.fuelTypeId;
+          break;
+        case 'bodyStyle':
+          delete newFilters.bodyStyleId;
+          break;
+        case 'sellerType':
+          delete newFilters.sellerTypeIds;
+          break;
+        case 'allFilters':
+          return {
+            filters: {},
+            selectedMake: null,
+            selectedModel: null
+          };
+      }
+      
+      newState.filters = newFilters;
+      return newState;
+    }
+    
+    case 'RESET_FILTERS':
+      return {
+        filters: {},
+        selectedMake: null,
+        selectedModel: null
+      };
+      
+    default:
+      return state;
+  }
+}
 
 interface UseSearchFiltersProps {
   carMakes?: CarMake[];
@@ -93,10 +241,13 @@ export function useSearchFilters({
   const { t } = useLazyTranslation(['common', 'search']);
   const router = useRouter();
   
-  // Core state
-  const [filters, setFilters] = useState<AdvancedSearchFilters>({});
-  const [selectedMake, setSelectedMake] = useState<number | null>(null);
-  const [selectedModel, setSelectedModel] = useState<number | null>(null);
+  // Core state with reducer for complex filter management
+  const [state, dispatch] = useReducer(filterReducer, {
+    filters: {},
+    selectedMake: null,
+    selectedModel: null
+  });
+  
   const [activeFilterModal, setActiveFilterModal] = useState<FilterType | null>(null);
 
   // Memoized display name functions
@@ -211,7 +362,7 @@ export function useSearchFilters({
     router.push(`${url.pathname}?${searchParams.toString()}`, { scroll: false });
   }, [router]);
 
-  // Complex state update function
+  // Simplified update functions using dispatch
   const updateFiltersAndState = useCallback((
     updateType: 'brands' | 'models' | 'filters',
     data: {
@@ -222,111 +373,38 @@ export function useSearchFilters({
       modelId?: number | null;
     }
   ) => {
-    setFilters(prevFilters => {
-      const newFilters = { ...prevFilters };
-      
-      if (updateType === 'brands') {
-        newFilters.brands = data.brands;
-        if (data.makeId !== undefined) {
-          setSelectedMake(data.makeId);
+    switch (updateType) {
+      case 'brands':
+        dispatch({ 
+          type: 'UPDATE_BRANDS', 
+          payload: { brands: data.brands, makeId: data.makeId } 
+        });
+        break;
+      case 'models':
+        dispatch({ 
+          type: 'UPDATE_MODELS', 
+          payload: { models: data.models, modelId: data.modelId } 
+        });
+        break;
+      case 'filters':
+        if (data.filters) {
+          dispatch({ type: 'UPDATE_FILTERS', payload: data.filters });
         }
-      } else if (updateType === 'models') {
-        newFilters.models = data.models;
-        if (data.modelId !== undefined) {
-          setSelectedModel(data.modelId);
-        }
-      } else if (updateType === 'filters' && data.filters) {
-        Object.assign(newFilters, data.filters);
-      }
-
-      return newFilters;
-    });
+        break;
+    }
   }, []);
 
-  // Simple input change handler
-  const handleInputChange = useCallback((field: keyof AdvancedSearchFilters, value: string | number | string[] | number[] | undefined) => {
-    setFilters(prevFilters => {
-      const newFilters = { ...prevFilters };
-      
-      if (value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
-        delete newFilters[field];
-      } else {
-        // Safe assignment with proper type handling
-        switch (field) {
-          case 'brands':
-          case 'models':
-          case 'locations':
-            newFilters[field] = value as string[];
-            break;
-          case 'sellerTypeIds':
-            newFilters[field] = value as number[];
-            break;
-          case 'minYear':
-          case 'maxYear':
-          case 'minPrice':
-          case 'maxPrice':
-          case 'minMileage':
-          case 'maxMileage':
-          case 'conditionId':
-          case 'transmissionId':
-          case 'fuelTypeId':
-          case 'bodyStyleId':
-          case 'doors':
-          case 'cylinders':
-            newFilters[field] = value as number;
-            break;
-          case 'exteriorColor':
-            newFilters[field] = value as string;
-            break;
-        }
-      }
-      
-      return newFilters;
-    });
+  // Simplified input change handler
+  const handleInputChange = useCallback((
+    field: keyof AdvancedSearchFilters, 
+    value: string | number | string[] | number[] | undefined
+  ) => {
+    dispatch({ type: 'UPDATE_FIELD', payload: { field, value } });
   }, []);
 
-  // Clear specific filter
+  // Simplified clear filter function
   const clearSpecificFilter = useCallback((filterType: FilterType) => {
-    setFilters(prevFilters => {
-      const newFilters = { ...prevFilters };
-      
-      switch (filterType) {
-        case 'makeModel':
-          delete newFilters.brands;
-          delete newFilters.models;
-          setSelectedMake(null);
-          setSelectedModel(null);
-          break;
-        case 'price':
-          delete newFilters.minPrice;
-          delete newFilters.maxPrice;
-          break;
-        case 'year':
-          delete newFilters.minYear;
-          delete newFilters.maxYear;
-          break;
-        case 'mileage':
-          delete newFilters.minMileage;
-          delete newFilters.maxMileage;
-          break;
-        case 'transmission':
-          delete newFilters.transmissionId;
-          break;
-        case 'fuelType':
-          delete newFilters.fuelTypeId;
-          break;
-        case 'bodyStyle':
-          delete newFilters.bodyStyleId;
-          break;
-        case 'sellerType':
-          delete newFilters.sellerTypeIds;
-          break;
-        case 'allFilters':
-          return {};
-      }
-      
-      return newFilters;
-    });
+    dispatch({ type: 'CLEAR_FILTER', payload: filterType });
   }, []);
 
   // Filter display text generator
@@ -334,17 +412,17 @@ export function useSearchFilters({
     switch (filterType) {
       case 'makeModel':
         const parts = [];
-        if (filters.brands && filters.brands.length > 0) {
-          parts.push(filters.brands.map(getBrandDisplayNameFromSlug).join(', '));
+        if (state.filters.brands && state.filters.brands.length > 0) {
+          parts.push(state.filters.brands.map(getBrandDisplayNameFromSlug).join(', '));
         }
-        if (filters.models && filters.models.length > 0) {
-          parts.push(filters.models.map(getModelDisplayNameFromSlug).join(', '));
+        if (state.filters.models && state.filters.models.length > 0) {
+          parts.push(state.filters.models.map(getModelDisplayNameFromSlug).join(', '));
         }
         return parts.join(' - ') || t('search.filters.makeModel', 'Make & Model');
 
       case 'price':
-        const minPrice = filters.minPrice;
-        const maxPrice = filters.maxPrice;
+        const minPrice = state.filters.minPrice;
+        const maxPrice = state.filters.maxPrice;
         if (minPrice && maxPrice) {
           return `$${minPrice.toLocaleString()} - $${maxPrice.toLocaleString()}`;
         } else if (minPrice) {
@@ -355,8 +433,8 @@ export function useSearchFilters({
         return t('search.filters.price', 'Price');
 
       case 'year':
-        const minYear = filters.minYear;
-        const maxYear = filters.maxYear;
+        const minYear = state.filters.minYear;
+        const maxYear = state.filters.maxYear;
         if (minYear && maxYear) {
           return `${minYear} - ${maxYear}`;
         } else if (minYear) {
@@ -367,8 +445,8 @@ export function useSearchFilters({
         return t('search.filters.year', 'Year');
 
       case 'mileage':
-        const minMileage = filters.minMileage;
-        const maxMileage = filters.maxMileage;
+        const minMileage = state.filters.minMileage;
+        const maxMileage = state.filters.maxMileage;
         if (minMileage && maxMileage) {
           return `${minMileage.toLocaleString()} - ${maxMileage.toLocaleString()} km`;
         } else if (minMileage) {
@@ -379,90 +457,108 @@ export function useSearchFilters({
         return t('search.filters.mileage', 'Mileage');
 
       case 'transmission':
-        return filters.transmissionId ? getTransmissionDisplayName(filters.transmissionId) : t('search.filters.transmission', 'Transmission');
+        return state.filters.transmissionId ? getTransmissionDisplayName(state.filters.transmissionId) : t('search.filters.transmission', 'Transmission');
 
       case 'fuelType':
-        return filters.fuelTypeId ? getFuelTypeDisplayName(filters.fuelTypeId) : t('search.filters.fuelType', 'Fuel Type');
+        return state.filters.fuelTypeId ? getFuelTypeDisplayName(state.filters.fuelTypeId) : t('search.filters.fuelType', 'Fuel Type');
 
       case 'bodyStyle':
-        return filters.bodyStyleId ? getBodyStyleDisplayName(filters.bodyStyleId) : t('search.filters.bodyStyle', 'Body Style');
+        return state.filters.bodyStyleId ? getBodyStyleDisplayName(state.filters.bodyStyleId) : t('search.filters.bodyStyle', 'Body Style');
 
       case 'sellerType':
-        return filters.sellerTypeIds && filters.sellerTypeIds.length > 0 
-          ? getSellerTypeDisplayName(filters.sellerTypeIds)
+        return state.filters.sellerTypeIds && state.filters.sellerTypeIds.length > 0 
+          ? getSellerTypeDisplayName(state.filters.sellerTypeIds)
           : t('search.filters.sellerType', 'Seller Type');
 
       default:
         return '';
     }
-  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getSellerTypeDisplayName]);
+  }, [state.filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getSellerTypeDisplayName]);
 
   // Check if filter is active
   const isFilterActive = useCallback((filterType: FilterType): boolean => {
     switch (filterType) {
       case 'makeModel':
-        return Boolean((filters.brands && filters.brands.length > 0) || (filters.models && filters.models.length > 0));
+        return Boolean((state.filters.brands && state.filters.brands.length > 0) || (state.filters.models && state.filters.models.length > 0));
       case 'price':
-        return filters.minPrice !== undefined || filters.maxPrice !== undefined;
+        return state.filters.minPrice !== undefined || state.filters.maxPrice !== undefined;
       case 'year':
-        return filters.minYear !== undefined || filters.maxYear !== undefined;
+        return state.filters.minYear !== undefined || state.filters.maxYear !== undefined;
       case 'mileage':
-        return filters.minMileage !== undefined || filters.maxMileage !== undefined;
+        return state.filters.minMileage !== undefined || state.filters.maxMileage !== undefined;
       case 'transmission':
-        return filters.transmissionId !== undefined;
+        return state.filters.transmissionId !== undefined;
       case 'fuelType':
-        return filters.fuelTypeId !== undefined;
+        return state.filters.fuelTypeId !== undefined;
       case 'bodyStyle':
-        return filters.bodyStyleId !== undefined;
+        return state.filters.bodyStyleId !== undefined;
       case 'sellerType':
-        return filters.sellerTypeIds !== undefined && filters.sellerTypeIds.length > 0;
+        return state.filters.sellerTypeIds !== undefined && state.filters.sellerTypeIds.length > 0;
       default:
         return false;
     }
-  }, [filters]);
+  }, [state.filters]);
 
   // Update selectedMake when brands change
   useEffect(() => {
-    if (filters.brands && filters.brands.length === 1) {
-      const brand = carMakes.find(b => b.slug === filters.brands![0]);
-      if (brand && brand.id !== selectedMake) {
-        setSelectedMake(brand.id);
+    if (state.filters.brands && state.filters.brands.length === 1) {
+      const brand = carMakes.find(b => b.slug === state.filters.brands![0]);
+      if (brand && brand.id !== state.selectedMake) {
+        dispatch({ type: 'UPDATE_BRANDS', payload: { brands: state.filters.brands, makeId: brand.id } });
       }
-    } else if (!filters.brands || filters.brands.length === 0) {
-      setSelectedMake(null);
+    } else if (!state.filters.brands || state.filters.brands.length === 0) {
+      if (state.selectedMake !== null) {
+        dispatch({ type: 'UPDATE_BRANDS', payload: { brands: undefined, makeId: null } });
+      }
     }
-  }, [filters.brands, carMakes, selectedMake]);
+  }, [state.filters.brands, carMakes, state.selectedMake]);
 
   // Update selectedModel when models change
   useEffect(() => {
-    if (filters.models && filters.models.length === 1) {
-      const model = availableModels.find(m => m.slug === filters.models![0]);
-      if (model && model.id !== selectedModel) {
-        setSelectedModel(model.id);
+    if (state.filters.models && state.filters.models.length === 1) {
+      const model = availableModels.find(m => m.slug === state.filters.models![0]);
+      if (model && model.id !== state.selectedModel) {
+        dispatch({ type: 'UPDATE_MODELS', payload: { models: state.filters.models, modelId: model.id } });
       }
-    } else if (!filters.models || filters.models.length === 0) {
-      setSelectedModel(null);
+    } else if (!state.filters.models || state.filters.models.length === 0) {
+      if (state.selectedModel !== null) {
+        dispatch({ type: 'UPDATE_MODELS', payload: { models: undefined, modelId: null } });
+      }
     }
-  }, [filters.models, availableModels, selectedModel]);
+  }, [state.filters.models, availableModels, state.selectedModel]);
 
   // Call external filter change handler
   useEffect(() => {
     if (onFiltersChange) {
-      onFiltersChange(filters);
+      onFiltersChange(state.filters);
     }
-  }, [filters, onFiltersChange]);
+  }, [state.filters, onFiltersChange]);
 
   return {
     // State
-    filters,
-    selectedMake,
-    selectedModel,
+    filters: state.filters,
+    selectedMake: state.selectedMake,
+    selectedModel: state.selectedModel,
     activeFilterModal,
     
-    // Setters
-    setFilters,
-    setSelectedMake,
-    setSelectedModel,
+    // Setters - legacy compatibility
+    setFilters: (newFilters: React.SetStateAction<AdvancedSearchFilters>) => {
+      if (typeof newFilters === 'function') {
+        // For function updates, get current state and apply function
+        dispatch({ type: 'UPDATE_FILTERS', payload: newFilters(state.filters) });
+      } else {
+        // For direct updates
+        dispatch({ type: 'UPDATE_FILTERS', payload: newFilters });
+      }
+    },
+    setSelectedMake: (makeId: React.SetStateAction<number | null>) => {
+      const newMakeId = typeof makeId === 'function' ? makeId(state.selectedMake) : makeId;
+      dispatch({ type: 'UPDATE_BRANDS', payload: { brands: state.filters.brands, makeId: newMakeId } });
+    },
+    setSelectedModel: (modelId: React.SetStateAction<number | null>) => {
+      const newModelId = typeof modelId === 'function' ? modelId(state.selectedModel) : modelId;
+      dispatch({ type: 'UPDATE_MODELS', payload: { models: state.filters.models, modelId: newModelId } });
+    },
     setActiveFilterModal,
     
     // Callbacks
