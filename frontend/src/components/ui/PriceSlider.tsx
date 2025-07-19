@@ -66,10 +66,47 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   
+  // Add flag to prevent external updates during critical state changes
+  const isUpdatingRef = useRef(false);
+  // Store the last values we sent to parent to avoid feedback loops
+  const lastSentValuesRef = useRef<{ min?: number; max?: number }>({});
+  
   const sliderRef = useRef<HTMLDivElement>(null);
   const minThumbRef = useRef<HTMLDivElement>(null);
   const maxThumbRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+
+  // Prevent external prop updates from interfering during dragging or immediate post-drag
+  useEffect(() => {
+    if (isDragging || isUpdatingRef.current) return;
+    
+    // Only update from props if the values are significantly different from what we have
+    // and they're not the same as what we just sent to the parent (to prevent feedback loops)
+    const normalizeValue = (val: number | undefined, defaultVal: number) => val || defaultVal;
+    const propsMin = normalizeValue(minPrice, minRange);
+    const propsMax = normalizeValue(maxPrice, maxRange);
+    
+    const lastSentMin = lastSentValuesRef.current.min || minRange;
+    const lastSentMax = lastSentValuesRef.current.max || maxRange;
+    
+    // Only update if props are different from current state AND different from last sent values
+    const shouldUpdateMin = Math.abs(propsMin - minVal) > step/2 && Math.abs(propsMin - lastSentMin) > step/2;
+    const shouldUpdateMax = Math.abs(propsMax - maxVal) > step/2 && Math.abs(propsMax - lastSentMax) > step/2;
+    
+    if (shouldUpdateMin || shouldUpdateMax) {
+      if (shouldUpdateMin) {
+        const validMinPrice = Math.max(minRange, Math.min(propsMin, maxRange - step));
+        setMinVal(validMinPrice);
+      }
+      if (shouldUpdateMax) {
+        const validMaxPrice = Math.min(maxRange, Math.max(propsMax, minRange + step));
+        setMaxVal(validMaxPrice);
+      }
+      
+      // Reset user interaction flag since this is an external update
+      setHasUserInteracted(false);
+    }
+  }, [minPrice, maxPrice, minRange, maxRange, step, isDragging, minVal, maxVal]);
 
   // Calculate percentage for positioning
   const getPercent = useCallback((value: number) => {
@@ -84,21 +121,32 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
 
   // Update visual positions of thumbs and track
   const updatePositions = useCallback(() => {
-    if (!minThumbRef.current || !maxThumbRef.current || !trackRef.current) return;
+    // Use requestAnimationFrame for smoother visual updates
+    requestAnimationFrame(() => {
+      if (!minThumbRef.current || !maxThumbRef.current || !trackRef.current) return;
 
-    const minPercent = getPercent(minVal);
-    const maxPercent = getPercent(maxVal);
+      const minPercent = getPercent(minVal);
+      const maxPercent = getPercent(maxVal);
 
-    minThumbRef.current.style.left = `${minPercent}%`;
-    maxThumbRef.current.style.left = `${maxPercent}%`;
-    
-    trackRef.current.style.left = `${minPercent}%`;
-    trackRef.current.style.width = `${maxPercent - minPercent}%`;
+      // Update positions atomically to prevent visual glitches
+      const minThumb = minThumbRef.current;
+      const maxThumb = maxThumbRef.current;
+      const track = trackRef.current;
+
+      minThumb.style.left = `${minPercent}%`;
+      maxThumb.style.left = `${maxPercent}%`;
+      track.style.left = `${minPercent}%`;
+      track.style.width = `${maxPercent - minPercent}%`;
+    });
   }, [minVal, maxVal, getPercent]);
 
   // Handle mouse/touch down on thumbs
   const handleMouseDown = useCallback((type: 'min' | 'max') => (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
+    
+    // Clear any pending updates
+    isUpdatingRef.current = false;
+    
     setIsDragging(type);
     setHasUserInteracted(true);
   }, []);
@@ -144,35 +192,59 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
   const handleMouseMove = useCallback((e: MouseEvent | TouchEvent) => {
     if (!isDragging || !sliderRef.current) return;
 
+    // Prevent any external updates during move
+    isUpdatingRef.current = true;
+
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const rect = sliderRef.current.getBoundingClientRect();
     const percent = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
     const value = getValueFromPercent(percent);
 
+    // Update state and let the visual updates happen through updatePositions
     if (isDragging === 'min') {
       const newMin = Math.min(value, maxVal - step);
-      setMinVal(Math.max(minRange, newMin));
+      const validMin = Math.max(minRange, newMin);
+      setMinVal(validMin);
     } else {
       const newMax = Math.max(value, minVal + step);
-      setMaxVal(Math.min(maxRange, newMax));
+      const validMax = Math.min(maxRange, newMax);
+      setMaxVal(validMax);
     }
   }, [isDragging, maxVal, minVal, step, minRange, maxRange, getValueFromPercent]);
 
   // Handle mouse/touch up
   const handleMouseUp = useCallback(() => {
+    if (!isDragging) return;
+    
+    // Set updating flag to prevent external interference
+    isUpdatingRef.current = true;
+    
     setIsDragging(null);
-    // Trigger change when dragging stops to avoid shaking during drag
+    
+    // Call onChange immediately with current values, then clean up
     if (hasUserInteracted) {
-      onChange(
-        minVal === minRange ? undefined : minVal,
-        maxVal === maxRange ? undefined : maxVal
-      );
+      const currentMin = minVal === minRange ? undefined : minVal;
+      const currentMax = maxVal === maxRange ? undefined : maxVal;
+      
+      // Store the values we're sending to prevent feedback loops
+      lastSentValuesRef.current = {
+        min: currentMin || minRange,
+        max: currentMax || maxRange
+      };
+      
+      onChange(currentMin, currentMax);
     }
-  }, [hasUserInteracted, minVal, maxVal, minRange, maxRange, onChange]);
+    
+    // Clean up the updating flag after a brief moment
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+      updatePositions(); // Ensure final position is correct
+    }, 100); // Increased timeout to give parent more time to process
+  }, [isDragging, minVal, maxVal, minRange, maxRange, hasUserInteracted, onChange, updatePositions]);
 
   // Handle click on slider track
   const handleSliderClick = useCallback((e: React.MouseEvent) => {
-    if (isDragging) return;
+    if (isDragging || isUpdatingRef.current) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
     const percent = ((e.clientX - rect.left) / rect.width) * 100;
@@ -185,9 +257,11 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
     const maxDistance = Math.abs(value - maxVal);
 
     if (minDistance <= maxDistance) {
-      setMinVal(Math.max(minRange, Math.min(value, maxVal - step)));
+      const newMinVal = Math.max(minRange, Math.min(value, maxVal - step));
+      setMinVal(newMinVal);
     } else {
-      setMaxVal(Math.min(maxRange, Math.max(value, minVal + step)));
+      const newMaxVal = Math.min(maxRange, Math.max(value, minVal + step));
+      setMaxVal(newMaxVal);
     }
   }, [isDragging, minVal, maxVal, step, minRange, maxRange, getValueFromPercent]);
 
@@ -216,18 +290,26 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
     updatePositions();
   }, [updatePositions]);
 
-  // Notify parent of changes - ONLY when user has interacted and NOT dragging
-  // Remove internal debounce since useOptimizedFiltering already provides 300ms debouncing
+  // Notify parent of changes - ONLY for non-dragging interactions (keyboard, input fields, clicks)
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
   useEffect(() => {
+    // Only notify for non-dragging interactions to avoid conflicts with handleMouseUp
+    // Note: Don't block input field changes with isUpdatingRef check since those are direct user interactions
     if (!hasUserInteracted || isDragging) return;
 
-    onChangeRef.current(
-      minVal === minRange ? undefined : minVal,
-      maxVal === maxRange ? undefined : maxVal
-    );
+    // This handles keyboard navigation, input field changes, and slider clicks
+    const currentMin = minVal === minRange ? undefined : minVal;
+    const currentMax = maxVal === maxRange ? undefined : maxVal;
+    
+    // Store the values we're sending to prevent feedback loops
+    lastSentValuesRef.current = {
+      min: currentMin || minRange,
+      max: currentMax || maxRange
+    };
+    
+    onChangeRef.current(currentMin, currentMax);
   }, [minVal, maxVal, minRange, maxRange, hasUserInteracted, isDragging]);
 
   /**
@@ -337,13 +419,13 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
               onChange={(e) => {
                 const value = e.target.value ? parseInt(e.target.value) : minRange;
                 setHasUserInteracted(true);
-                setMinVal(Math.max(minRange, Math.min(value, maxVal - step)));
+                const constrainedValue = Math.max(minRange, Math.min(value, maxVal - step));
+                setMinVal(constrainedValue);
               }}
               placeholder={minVal === minRange ? t('any', 'Any') : formatValue(minRange)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               step={step}
               min={minRange}
-              max={maxVal - step}
             />
           </div>
           <div>
@@ -363,7 +445,6 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               step={step}
               min={minVal + step}
-              max={maxRange}
             />
           </div>
         </div>

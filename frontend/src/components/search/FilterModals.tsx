@@ -103,7 +103,7 @@ const MakeModelSelector = React.memo<{
       {/* Brands Section */}
       <div>
         <h4 className="text-lg font-semibold text-gray-900 mb-4">
-          {t('search.filters.brands', 'Brands')}
+          {t('search:brands', 'Brands')}
         </h4>
         {isLoadingBrands ? (
           <div className="text-center py-4">
@@ -132,7 +132,7 @@ const MakeModelSelector = React.memo<{
       {selectedMake && (
         <div>
           <h4 className="text-lg font-semibold text-gray-900 mb-4">
-            {t('search.filters.models', 'Models')}
+            {t('search:models', 'Models')}
           </h4>
           {isLoadingModels ? (
             <div className="text-center py-4">
@@ -176,14 +176,14 @@ const YearSelector = React.memo<{
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t('search.filters.minYear', 'Min Year')}
+            {t('search:minYear', 'Min Year')}
           </label>
           <select
             value={filters.minYear || ''}
             onChange={(e) => onMinYearChange(e.target.value ? parseInt(e.target.value) : undefined)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="">{t('search.filters.any', 'Any')}</option>
+            <option value="">{t('search:any', 'Any')}</option>
             {years.map(year => (
               <option key={year} value={year}>{year}</option>
             ))}
@@ -191,14 +191,14 @@ const YearSelector = React.memo<{
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t('search.filters.maxYear', 'Max Year')}
+            {t('search:maxYear', 'Max Year')}
           </label>
           <select
             value={filters.maxYear || ''}
             onChange={(e) => onMaxYearChange(e.target.value ? parseInt(e.target.value) : undefined)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="">{t('search.filters.any', 'Any')}</option>
+            <option value="">{t('search:any', 'Any')}</option>
             {years.map(year => (
               <option key={year} value={year}>{year}</option>
             ))}
@@ -298,14 +298,14 @@ const FilterModals = React.memo<FilterModalsProps>(({
   // Helper function to get modal title
   const getModalTitle = useCallback((filterType: FilterType): string => {
     switch (filterType) {
-      case 'makeModel': return t('search.makeModel', 'Make & Model');
-      case 'price': return t('search.priceRange', 'Price Range');
-      case 'year': return t('search.yearRange', 'Year Range');
-      case 'mileage': return t('search.mileageRange', 'Mileage Range');
-      case 'transmission': return t('search.gearbox', 'Gearbox');
-      case 'fuelType': return t('search.fuelType', 'Fuel Type');
-      case 'bodyStyle': return t('search.bodyStyle', 'Body Style');
-      case 'sellerType': return t('search.sellerType', 'Seller Type');
+      case 'makeModel': return t('search:makeModel', 'Make & Model');
+      case 'price': return t('search:priceRange', 'Price Range');
+      case 'year': return t('search:yearRange', 'Year Range');
+      case 'mileage': return t('search:mileageRange', 'Mileage Range');
+      case 'transmission': return t('search:gearbox', 'Gearbox');
+      case 'fuelType': return t('search:fuelType', 'Fuel Type');
+      case 'bodyStyle': return t('search:bodyStyle', 'Body Style');
+      case 'sellerType': return t('search:sellerType', 'Seller Type');
       default: return '';
     }
   }, [t]);
@@ -401,7 +401,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.make', 'Make')}</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:make', 'Make')}</h3>
               <select
                 value={selectedMake || ''}
                 onChange={(e) => {
@@ -425,7 +425,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 disabled={isLoadingBrands}
               >
-                <option value="">{t('search.any', 'Any')}</option>
+                <option value="">{t('search:any', 'Any')}</option>
                 {carMakes?.map(make => (
                   <option key={make.id} value={make.id}>
                     {currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn}
@@ -435,7 +435,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
             </div>
             
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.model', 'Model')}</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:model', 'Model')}</h3>
               <select
                 value={selectedModel || ''}
                 onChange={(e) => {
@@ -457,7 +457,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 disabled={!selectedMake || isLoadingModels}
               >
-                <option value="">{t('search.any', 'Any')}</option>
+                <option value="">{t('search:any', 'Any')}</option>
                 {availableModels?.map(model => (
                   <option key={model.id} value={model.id}>
                     {currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn}
@@ -472,25 +472,25 @@ const FilterModals = React.memo<FilterModalsProps>(({
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.priceRange', 'Price range')}</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:priceRange', 'Price range')}</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">{t('search.from', 'From')}</label>
+                  <label className="block text-sm text-gray-600 mb-2">{t('search:from', 'From')}</label>
                   <input
                     type="number"
                     value={filters.minPrice || ''}
                     onChange={(e) => handleInputChange('minPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
-                    placeholder={t('search.any', 'Any')}
+                    placeholder={t('search:any', 'Any')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">{t('search.to', 'To')}</label>
+                  <label className="block text-sm text-gray-600 mb-2">{t('search:to', 'To')}</label>
                   <input
                     type="number"
                     value={filters.maxPrice || ''}
                     onChange={(e) => handleInputChange('maxPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
-                    placeholder={t('search.any', 'Any')}
+                    placeholder={t('search:any', 'Any')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -503,29 +503,29 @@ const FilterModals = React.memo<FilterModalsProps>(({
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.yearRange', 'Year range')}</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:yearRange', 'Year range')}</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">{t('search.from', 'From')}</label>
+                  <label className="block text-sm text-gray-600 mb-2">{t('search:from', 'From')}</label>
                   <select
                     value={filters.minYear || ''}
                     onChange={(e) => handleInputChange('minYear', e.target.value ? parseInt(e.target.value) : undefined)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">{t('search.any', 'Any')}</option>
+                    <option value="">{t('search:any', 'Any')}</option>
                     {YEARS.map(year => (
                       <option key={year} value={year}>{year}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">{t('search.to', 'To')}</label>
+                  <label className="block text-sm text-gray-600 mb-2">{t('search:to', 'To')}</label>
                   <select
                     value={filters.maxYear || ''}
                     onChange={(e) => handleInputChange('maxYear', e.target.value ? parseInt(e.target.value) : undefined)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">{t('search.any', 'Any')}</option>
+                    <option value="">{t('search:any', 'Any')}</option>
                     {YEARS.filter(year => !filters.minYear || year >= filters.minYear).map(year => (
                       <option key={year} value={year}>{year}</option>
                     ))}
@@ -540,25 +540,25 @@ const FilterModals = React.memo<FilterModalsProps>(({
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.mileageRange', 'Mileage range')}</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:mileageRange', 'Mileage range')}</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">{t('search.from', 'From')}</label>
+                  <label className="block text-sm text-gray-600 mb-2">{t('search:from', 'From')}</label>
                   <input
                     type="number"
                     value={filters.minMileage || ''}
                     onChange={(e) => handleInputChange('minMileage', e.target.value ? parseInt(e.target.value) : undefined)}
-                    placeholder={t('search.any', 'Any')}
+                    placeholder={t('search:any', 'Any')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">{t('search.to', 'To')}</label>
+                  <label className="block text-sm text-gray-600 mb-2">{t('search:to', 'To')}</label>
                   <input
                     type="number"
                     value={filters.maxMileage || ''}
                     onChange={(e) => handleInputChange('maxMileage', e.target.value ? parseInt(e.target.value) : undefined)}
-                    placeholder={t('search.any', 'Any')}
+                    placeholder={t('search:any', 'Any')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -571,14 +571,14 @@ const FilterModals = React.memo<FilterModalsProps>(({
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.gearbox', 'Gearbox')}</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:gearbox', 'Gearbox')}</h3>
               <select
                 value={filters.transmissionId || ''}
                 onChange={(e) => handleInputChange('transmissionId', e.target.value ? parseInt(e.target.value) : undefined)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 disabled={isLoadingReferenceData}
               >
-                <option value="">{t('search.any', 'Any')}</option>
+                <option value="">{t('search:any', 'Any')}</option>
                 {referenceData?.transmissions?.map(transmission => (
                   <option key={transmission.id} value={transmission.id}>
                     {currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn}
@@ -593,14 +593,14 @@ const FilterModals = React.memo<FilterModalsProps>(({
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.fuelType', 'Fuel type')}</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:fuelType', 'Fuel type')}</h3>
               <select
                 value={filters.fuelTypeId || ''}
                 onChange={(e) => handleInputChange('fuelTypeId', e.target.value ? parseInt(e.target.value) : undefined)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 disabled={isLoadingReferenceData}
               >
-                <option value="">{t('search.any', 'Any')}</option>
+                <option value="">{t('search:any', 'Any')}</option>
                 {referenceData?.fuelTypes?.map(fuelType => (
                   <option key={fuelType.id} value={fuelType.id}>
                     {currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn}
@@ -615,7 +615,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search.bodyStyle', 'Body style')}</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:bodyStyle', 'Body style')}</h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {referenceData?.bodyStyles?.map(bodyStyle => {
                   const isSelected = filters.bodyStyleId === bodyStyle.id;
@@ -669,7 +669,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h3 className="text-xl font-medium text-gray-900 mb-1">{t('search.sellerType', 'Seller Type')}</h3>
+              <h3 className="text-xl font-medium text-gray-900 mb-1">{t('search:sellerType', 'Seller Type')}</h3>
             </div>
             
             <div className="space-y-2">
@@ -772,7 +772,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                 aria-label={t('filters.clearFilterLabel', `Clear ${getModalTitle(activeFilterModal)} filter`)}
               >
                 <MdClear className="h-4 w-4" />
-                {t('search.clearFilter', 'Clear filter')}
+                {t('search:clearFilter', 'Clear filter')}
               </button>
               
               <button

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import PriceSlider from '../PriceSlider';
 
@@ -70,18 +70,18 @@ describe('PriceSlider', () => {
   });
 
   it('respects min and max constraints', async () => {
-    const user = userEvent.setup();
     const onChange = jest.fn();
     
     render(<PriceSlider {...defaultProps} onChange={onChange} />);
     
     const minInput = screen.getByLabelText('Min Price');
-    await user.clear(minInput);
-    await user.type(minInput, '150000'); // Above maxRange
+    
+    // Instead of typing character by character, simulate pasting the full value
+    fireEvent.change(minInput, { target: { value: '150000' } });
     
     // Should be constrained to maxRange - step
     await waitFor(() => {
-      // onChange is called for each keystroke, check the final call
+      // onChange should be called with the constrained value
       const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1];
       expect(lastCall).toEqual([99000, undefined]); // Constrained to maxRange - step
     });

@@ -18,7 +18,7 @@ export default function Navbar({ className }: ComponentProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [logoSrc] = useState("/images/logo.svg");
   const [logoError, setLogoError] = useState(false);
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['common', 'search']);
   
   // Ref for user dropdown menu to handle clicks outside
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -109,7 +109,7 @@ export default function Navbar({ className }: ComponentProps) {
                 className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
               >
                 <MdSearch className="h-5 w-5 mb-1 flex-shrink-0" />
-                <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('search.search')}</span>
+                <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('search:search')}</span>
               </Link>
             </div>
             
@@ -319,7 +319,7 @@ export default function Navbar({ className }: ComponentProps) {
               onClick={() => setMobileMenuOpen(false)}
             >
               <MdSearch className="h-6 w-6 mb-1.5" />
-              <span className="text-xs text-center leading-tight font-medium">{t('search.search')}</span>
+              <span className="text-xs text-center leading-tight font-medium">{t('search:search')}</span>
             </Link>
             <Link 
               href={user ? "/dashboard/messages" : "/auth/signin"}
