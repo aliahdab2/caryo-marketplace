@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DEFAULT_CURRENCY } from '../../utils/currency';
 import { formatNumber } from '../../utils/localization';
 import type { PriceSliderProps } from '../../types/ui';
@@ -8,6 +9,7 @@ import type { PriceSliderProps } from '../../types/ui';
 /**
  * Interactive dual-range price slider component with touch/mouse support
  * Features: visual feedback, keyboard navigation, accessibility, and customizable styling
+ * Supports bilingual formatting for English and Arabic locales
  * 
  * @param minPrice - Initial minimum price value
  * @param maxPrice - Initial maximum price value  
@@ -17,7 +19,7 @@ import type { PriceSliderProps } from '../../types/ui';
  * @param currency - Currency code for formatting (default: DEFAULT_CURRENCY)
  * @param onChange - Callback fired when price range changes
  * @param t - Translation function for i18n support
- * @param locale - Locale for number formatting (default: 'en-US')
+ * @param locale - Locale for number formatting (optional, auto-detects from i18n context)
  * @param className - Additional CSS classes
  * @param trackColor - Custom track color (default: 'bg-blue-500')
  * @param thumbColor - Custom thumb color (default: 'bg-blue-600')
@@ -38,8 +40,12 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
   showInputs = true,
   showLabels = true,
   t = (key: string, fallback: string) => fallback,
-  locale = 'en-US'
+  locale // Remove default value - will be computed below
 }) => {
+  // Auto-detect locale from i18n context if not provided
+  const { i18n } = useTranslation();
+  const currentLocale = locale || i18n.language || 'en-US';
+  
   // Validate props
   if (minRange >= maxRange) {
     console.warn('PriceSlider: minRange should be less than maxRange');
@@ -224,15 +230,34 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
     );
   }, [minVal, maxVal, minRange, maxRange, hasUserInteracted, isDragging]);
 
+  /**
+   * Formats currency values with proper locale support for bilingual display
+   * Maps language codes to appropriate locale strings for number formatting
+   */
   const formatValue = useCallback((value: number) => {
-    // Use provided locale or default to 'en-US' for consistent formatting
-    return formatNumber(value, locale, { 
+    // Map language codes to proper locale strings for currency formatting
+    const getLocaleForCurrency = (lang: string): string => {
+      if (lang.startsWith('ar')) {
+        // Use Arabic locale for Arabic language - Syria for this marketplace
+        return 'ar-SY';
+      } else if (lang.startsWith('en')) {
+        // Use US locale for English language
+        return 'en-US';
+      } else {
+        // Fallback to exact locale or default to en-US
+        return lang.includes('-') ? lang : 'en-US';
+      }
+    };
+
+    const formattingLocale = getLocaleForCurrency(currentLocale);
+    
+    return formatNumber(value, formattingLocale, { 
       style: 'currency', 
       currency: currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     });
-  }, [currency, locale]);
+  }, [currency, currentLocale]);
 
   return (
     <div className={`price-slider ${className}`}>
@@ -327,7 +352,7 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
                 setHasUserInteracted(true);
                 setMinVal(Math.max(minRange, Math.min(value, maxVal - step)));
               }}
-              placeholder={formatValue(minRange)}
+              placeholder={minVal === minRange ? t('any', 'Any') : formatValue(minRange)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               step={step}
               min={minRange}
@@ -347,7 +372,7 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
                 setHasUserInteracted(true);
                 setMaxVal(Math.min(maxRange, Math.max(value, minVal + step)));
               }}
-              placeholder={formatValue(maxRange)}
+              placeholder={maxVal === maxRange ? t('any', 'Any') : formatValue(maxRange)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               step={step}
               min={minVal + step}

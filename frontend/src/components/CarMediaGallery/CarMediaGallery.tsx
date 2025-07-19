@@ -11,10 +11,10 @@ import { Dialog } from '@headlessui/react';
 import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 
 /**
- * A Blocket-inspired responsive gallery for displaying car images and videos
+ * Enhanced car media gallery component for Caryo Marketplace
+ * Supports images and videos with optimized loading and responsive design
+ * Features touch gestures, keyboard navigation, and accessibility support
  * with swipe navigation in both main view and modal
- *
- * Test link: http://localhost:3001/test-gallery
  */
 const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
   media,

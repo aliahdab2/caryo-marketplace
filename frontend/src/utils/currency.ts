@@ -89,6 +89,7 @@ export function getCurrency(currencyCode: string): Currency | undefined {
 
 /**
  * Advanced currency formatting with Syrian marketplace customizations
+ * Enhanced with proper Arabic locale support
  * @param amount The amount to format
  * @param currency The currency code (default: USD)
  * @param locale The locale to use for formatting
@@ -110,6 +111,17 @@ export function formatCurrency(
     return formatCurrency(num, DEFAULT_CURRENCY, locale, options);
   }
 
+  // Enhanced locale handling for bilingual support
+/**
+ * Get the optimal locale for currency formatting
+ * Maps generic language codes to specific locales with good currency support
+ */
+const getOptimalLocale = (locale: string): string => {
+  if (locale.startsWith('ar')) return 'ar-SY'; // Arabic (Syria)
+  if (locale.startsWith('en')) return 'en-US'; // English (United States)
+  return locale;
+};  const formattingLocale = getOptimalLocale(locale);
+
   // Syrian marketplace-specific formatting
   const defaultOptions: Intl.NumberFormatOptions = {
     style: 'currency',
@@ -120,18 +132,28 @@ export function formatCurrency(
   };
 
   try {
-    return new Intl.NumberFormat(locale, defaultOptions).format(num);
+    return new Intl.NumberFormat(formattingLocale, defaultOptions).format(num);
   } catch (error) {
-    console.warn(`Error formatting currency: ${error}. Falling back to simple format.`);
-    return `${currencyInfo.symbol}${num.toLocaleString(locale)}`;
+    console.warn(`Error formatting currency with locale ${formattingLocale}: ${error}. Falling back to simple format.`);
+    // Enhanced fallback with proper RTL symbol placement for Arabic
+    const isArabic = locale.startsWith('ar');
+    const formattedNumber = num.toLocaleString(formattingLocale);
+    
+    if (isArabic) {
+      // For Arabic, place currency symbol after the number (RTL consideration)
+      return `${formattedNumber} ${currencyInfo.symbol}`;
+    } else {
+      // For English, place currency symbol before the number
+      return `${currencyInfo.symbol}${formattedNumber}`;
+    }
   }
 }
 
 /**
- * Format currency amount for display with enhanced error handling
+ * Format currency amount for display with enhanced error handling and bilingual support
  * @param amount The amount to format
  * @param currency The currency code
- * @param locale The locale for formatting
+ * @param locale The locale for formatting (supports 'en', 'ar', full locales)
  * @returns Formatted amount with currency symbol or error fallback
  */
 export function formatAmount(
@@ -153,10 +175,10 @@ export function formatAmount(
 }
 
 /**
- * Format currency for compact display (K, M abbreviations)
+ * Format currency for compact display (K, M abbreviations) with bilingual support
  * @param amount The amount to format
  * @param currency The currency code
- * @param locale The locale for formatting
+ * @param locale The locale for formatting (supports 'en', 'ar', full locales)
  * @returns Compact formatted amount
  */
 export function formatCurrencyCompact(
@@ -170,6 +192,19 @@ export function formatCurrencyCompact(
   const currencyInfo = getCurrency(currency);
   if (!currencyInfo) return formatAmount(num, DEFAULT_CURRENCY, locale);
 
+  // Enhanced locale handling for compact formatting
+  const getOptimalLocale = (inputLocale: string): string => {
+    if (inputLocale.startsWith('ar')) {
+      return 'ar-EG';
+    } else if (inputLocale.startsWith('en')) {
+      return 'en-US';
+    } else {
+      return inputLocale.includes('-') ? inputLocale : 'en-US';
+    }
+  };
+
+  const formattingLocale = getOptimalLocale(locale);
+
   const compactOptions: Intl.NumberFormatOptions = {
     style: 'currency',
     currency: currencyInfo.code,
@@ -179,7 +214,7 @@ export function formatCurrencyCompact(
   };
 
   try {
-    return new Intl.NumberFormat(locale, compactOptions).format(num);
+    return new Intl.NumberFormat(formattingLocale, compactOptions).format(num);
   } catch (_error) {
     return formatAmount(num, currency, locale);
   }
