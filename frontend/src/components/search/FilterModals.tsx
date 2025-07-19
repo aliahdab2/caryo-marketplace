@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useCallback, useMemo } from 'react';
-import { MdClose } from 'react-icons/md';
+import React, { useCallback, useMemo, useRef, useEffect, useState } from 'react';
+import { MdClose, MdFilterList, MdClear } from 'react-icons/md';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
+import { useAnnouncements } from '@/hooks/useAccessibility';
+import { EnhancedLoadingState } from '@/components/ui/EnhancedUX';
 import { CarMake, CarModel } from '@/types/car';
 import { CarReferenceData } from '@/services/api';
 import { SellerTypeCounts } from '@/types/sellerTypes';
@@ -271,6 +273,60 @@ const FilterModals = React.memo<FilterModalsProps>(({
 }) => {
   const { t, i18n } = useLazyTranslation(SEARCH_NAMESPACES);
   const currentLanguage = i18n.language;
+  
+  // 🚀 UX Enhancement: Accessibility and feedback
+  const { announce } = useAnnouncements();
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // 🚀 UX Enhancement: Focus management when modal opens
+  useEffect(() => {
+    if (activeFilterModal && modalRef.current) {
+      modalRef.current.focus();
+      announce(t('filters.modalOpened', `${getModalTitle(activeFilterModal)} filter opened`));
+    }
+  }, [activeFilterModal, announce, t]);
+
+  // 🚀 UX Enhancement: Keyboard navigation
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  }, [onClose]);
+
+    // Helper function to get modal title
+  const getModalTitle = useCallback((filterType: FilterType): string => {
+    switch (filterType) {
+      case 'makeModel': return t('search.makeModel', 'Make & Model');
+      case 'price': return t('search.priceRange', 'Price Range');
+      case 'year': return t('search.yearRange', 'Year Range');
+      case 'mileage': return t('search.mileageRange', 'Mileage Range');
+      case 'transmission': return t('search.gearbox', 'Gearbox');
+      case 'fuelType': return t('search.fuelType', 'Fuel Type');
+      case 'bodyStyle': return t('search.bodyStyle', 'Body Style');
+      case 'sellerType': return t('search.sellerType', 'Seller Type');
+      default: return '';
+    }
+  }, [t]);
+
+  // 🚀 UX Enhancement: Focus management when modal opens
+  useEffect(() => {
+    if (activeFilterModal && modalRef.current) {
+      modalRef.current.focus();
+      announce(t('filters.modalOpened', `${getModalTitle(activeFilterModal)} filter opened`));
+    }
+  }, [activeFilterModal, announce, t, getModalTitle]);
+
+  // 🚀 UX Enhancement: Enhanced close function with feedback
+  const handleEnhancedClose = useCallback(() => {
+    announce(t('filters.modalClosed', 'Filter modal closed'));
+    onClose();
+  }, [onClose, announce, t]);
+
+  // 🚀 UX Enhancement: Enhanced clear filter with feedback
+  const handleEnhancedClearFilter = useCallback((filterType: FilterType) => {
+    onClearFilter(filterType);
+    announce(t('filters.filterCleared', `${getModalTitle(filterType)} filter cleared`));
+  }, [onClearFilter, announce, t, getModalTitle]);
 
   // Helper functions to get display names for reference data - memoized to prevent re-renders
   const _getTransmissionDisplayName = useMemo(() => 
@@ -334,13 +390,6 @@ const FilterModals = React.memo<FilterModalsProps>(({
     
     onFiltersChange(newFilters);
   }, [filters, onFiltersChange]);
-
-  // Handle keyboard navigation for modals
-  const handleModalKeyDown = useCallback((e: React.KeyboardEvent, onCloseModal: () => void) => {
-    if (e.key === 'Escape') {
-      onCloseModal();
-    }
-  }, []);
 
   const renderModalContent = () => {
     if (!activeFilterModal) return null;
@@ -580,7 +629,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                         handleInputChange('bodyStyleId', isSelected ? undefined : bodyStyle.id);
                         if (!isSelected) {
                           setTimeout(() => {
-                            onClose();
+                            handleEnhancedClose();
                           }, 100);
                         }
                       }}
@@ -675,21 +724,40 @@ const FilterModals = React.memo<FilterModalsProps>(({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto pointer-events-none">
       <div className="flex min-h-full items-start justify-center p-4 pt-16 text-center sm:items-start sm:pt-20 sm:p-0">
-        <div className="fixed inset-0 bg-black/3 transition-opacity pointer-events-auto" onClick={onClose} />
+        <div className="fixed inset-0 bg-black/3 transition-opacity pointer-events-auto" onClick={handleEnhancedClose} />
         
         <div 
+          ref={modalRef}
           className="relative transform overflow-hidden rounded-xl bg-white px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 border border-gray-100 pointer-events-auto"
-          onKeyDown={(e) => handleModalKeyDown(e, onClose)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              handleEnhancedClose();
+            }
+          }}
           tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="filter-modal-title"
         >
           <div className="absolute right-0 top-0 pr-4 pt-4">
             <button
               type="button"
-              className="rounded-md bg-white text-gray-500 hover:text-gray-700 focus:outline-none text-sm font-medium"
-              onClick={onClose}
+              className="rounded-md bg-white text-gray-500 hover:text-gray-700 focus:outline-none text-sm font-medium transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              onClick={handleEnhancedClose}
+              aria-label={t('filters.closeModal', 'Close filter modal')}
             >
               {activeFilterModal === 'sellerType' ? t('search:cancel', 'Cancel') : <MdClose className="h-6 w-6" />}
             </button>
+          </div>
+
+          {/* Enhanced Header */}
+          <div className="mb-4">
+            <div className="flex items-center gap-3">
+              <MdFilterList className="h-5 w-5 text-blue-600" />
+              <h2 id="filter-modal-title" className="text-lg font-semibold text-gray-900">
+                {getModalTitle(activeFilterModal)}
+              </h2>
+            </div>
           </div>
 
           <div className="mt-3">
@@ -697,15 +765,17 @@ const FilterModals = React.memo<FilterModalsProps>(({
             
             <div className="mt-8 flex justify-between">
               <button
-                onClick={() => onClearFilter(activeFilterModal)}
-                className="rounded-md bg-white px-6 py-2.5 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50"
+                onClick={() => handleEnhancedClearFilter(activeFilterModal)}
+                className="rounded-md bg-white px-6 py-2.5 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center gap-2"
+                aria-label={t('filters.clearFilterLabel', `Clear ${getModalTitle(activeFilterModal)} filter`)}
               >
+                <MdClear className="h-4 w-4" />
                 {t('search.clearFilter', 'Clear filter')}
               </button>
               
               <button
-                onClick={onClose}
-                className="rounded-md bg-blue-600 px-8 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+                onClick={handleEnhancedClose}
+                className="rounded-md bg-blue-600 px-8 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 {activeFilterModal === 'sellerType' 
                   ? t('search:showResults', 'Show {{count}} results', { count: carListingsCount })
