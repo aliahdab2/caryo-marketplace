@@ -45,6 +45,9 @@ import { SellerTypeCounts } from '@/types/sellerTypes';
 import { useApiData } from '@/hooks/useApiData';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import PriceSlider from '@/components/ui/PriceSlider';
+import MileageSlider from '@/components/ui/MileageSlider';
+import YearSlider from '@/components/ui/YearSlider';
+import { FilterModalContainer } from '@/components/ui/FilterModalContainer';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
 import { formatNumber } from '@/utils/localization';
 import { useLanguageDirection } from '@/utils/languageDirection';
@@ -866,95 +869,65 @@ export default function AdvancedSearchPage() {
 
         case 'price':
           return (
-            <div className="space-y-4">
-              <div>
-                <h3 
-                  id="filter-modal-title"
-                  className={`text-base font-medium text-gray-900 mb-3 text-center ${dirClass}`}
-                >
-                  {t('search:priceRange', 'Price Range')}
-                </h3>
-                {/* Separator line after title */}
-                <div className={`${MODAL_CLASSES.SEPARATOR} mb-4`}></div>
-                <PriceSlider
-                  minPrice={filters.minPrice}
-                  maxPrice={filters.maxPrice}
-                  currency={DEFAULT_CURRENCY}
-                  onChange={handlePriceChange}
-                  t={t}
-                  locale={currentLanguage}
-                  className="mb-2"
-                />
-              </div>
-            </div>
+            <FilterModalContainer 
+              title={t('search:priceRange', 'Price Range')}
+              dirClass={dirClass}
+              showSeparator={true}
+            >
+              <PriceSlider
+                minPrice={filters.minPrice}
+                maxPrice={filters.maxPrice}
+                currency={DEFAULT_CURRENCY}
+                onChange={handlePriceChange}
+                t={t}
+                locale={currentLanguage}
+                className="mb-2"
+              />
+            </FilterModalContainer>
           );
 
         case 'year':
           return (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{t('yearRange', 'Year range')}</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('from', 'From')}</label>
-                    <select
-                      value={filters.minYear || ''}
-                      onChange={(e) => handleInputChange('minYear', e.target.value ? parseInt(e.target.value) : undefined)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">{t('any', 'Any')}</option>
-                      {YEARS.map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('to', 'To')}</label>
-                    <select
-                      value={filters.maxYear || ''}
-                      onChange={(e) => handleInputChange('maxYear', e.target.value ? parseInt(e.target.value) : undefined)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">{t('any', 'Any')}</option>
-                      {YEARS.filter(year => !filters.minYear || year >= filters.minYear).map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <FilterModalContainer 
+              title={t('search:yearRange', 'Year range')}
+              dirClass={dirClass}
+            >
+              <YearSlider
+                minYear={filters.minYear}
+                maxYear={filters.maxYear}
+                onChange={(min, max) => {
+                  updateFiltersAndState({
+                    minYear: min,
+                    maxYear: max
+                  });
+                }}
+                t={t}
+                locale={currentLanguage}
+                className="w-full"
+              />
+            </FilterModalContainer>
           );
 
         case 'mileage':
           return (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{t('mileageRange', 'Mileage range')}</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('from', 'From')}</label>
-                    <input
-                      type="number"
-                      value={filters.minMileage || ''}
-                      onChange={(e) => handleInputChange('minMileage', e.target.value ? parseInt(e.target.value) : undefined)}
-                      placeholder={t('any', 'Any')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-2">{t('to', 'To')}</label>
-                    <input
-                      type="number"
-                      value={filters.maxMileage || ''}
-                      onChange={(e) => handleInputChange('maxMileage', e.target.value ? parseInt(e.target.value) : undefined)}
-                      placeholder={t('any', 'Any')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <FilterModalContainer 
+              title={t('search:mileageRange', 'Mileage range')}
+              dirClass={dirClass}
+            >
+              <MileageSlider
+                minMileage={filters.minMileage}
+                maxMileage={filters.maxMileage}
+                onChange={(min, max) => {
+                  updateFiltersAndState({
+                    minMileage: min,
+                    maxMileage: max
+                  });
+                }}
+                t={t}
+                locale={currentLanguage}
+                className="w-full"
+              />
+            </FilterModalContainer>
           );
 
         case 'transmission':
