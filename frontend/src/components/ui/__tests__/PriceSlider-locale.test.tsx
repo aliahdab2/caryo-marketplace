@@ -45,12 +45,11 @@ describe('PriceSlider Locale Auto-Detection', () => {
         minPrice={10000}
         maxPrice={25000}
         onChange={mockOnChange}
-        showLabels={true}
       />
     );
 
-    // Should format numbers using English locale
-    expect(screen.getAllByText(/\$25,000/).length).toBeGreaterThan(0);
+    // Should format numbers using English locale (check aria-valuetext)
+    expect(screen.getByRole('slider', { name: /minimum price/i })).toHaveAttribute('aria-valuetext', '$25,000');
   });
 
   test('should auto-detect Arabic locale from i18n context', () => {
@@ -64,12 +63,11 @@ describe('PriceSlider Locale Auto-Detection', () => {
         minPrice={10000}
         maxPrice={25000}
         onChange={mockOnChange}
-        showLabels={true}
       />
     );
 
-    // Should format numbers using Arabic locale with Arabic numerals
-    expect(screen.getAllByText(/٢٥٬٠٠٠/).length).toBeGreaterThan(0);
+    // Should format numbers using Arabic locale with Arabic numerals (check aria-valuetext)
+    expect(screen.getByRole('slider', { name: /minimum price/i })).toHaveAttribute('aria-valuetext', '٢٥٬٠٠٠ $');
   });
 
   test('should allow manual locale override', () => {
@@ -83,13 +81,12 @@ describe('PriceSlider Locale Auto-Detection', () => {
         minPrice={10000}
         maxPrice={25000}
         onChange={mockOnChange}
-        showLabels={true}
         locale="ar-SY" // Manual override to Arabic (Syria)
       />
     );
 
-    // Should use the manually specified Arabic locale despite English i18n context
-    expect(screen.getAllByText(/٢٥٬٠٠٠/).length).toBeGreaterThan(0);
+    // Should use the manually specified Arabic locale despite English i18n context (check aria-valuetext)
+    expect(screen.getByRole('slider', { name: /minimum price/i })).toHaveAttribute('aria-valuetext', '٢٥٬٠٠٠ $');
   });
 
   test('should fallback to en-US when i18n language is not available', () => {
@@ -103,11 +100,10 @@ describe('PriceSlider Locale Auto-Detection', () => {
         minPrice={10000}
         maxPrice={25000}
         onChange={mockOnChange}
-        showLabels={true}
       />
     );
 
-    // Should fallback to English formatting
-    expect(screen.getAllByText(/\$25,000/).length).toBeGreaterThan(0);
+    // Should fallback to English formatting (check aria-valuetext)
+    expect(screen.getByRole('slider', { name: /minimum price/i })).toHaveAttribute('aria-valuetext', '$25,000');
   });
 });

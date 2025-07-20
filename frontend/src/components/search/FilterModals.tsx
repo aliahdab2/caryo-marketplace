@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo, useRef, useEffect, useState } from 'react';
-import { MdClose, MdFilterList, MdClear } from 'react-icons/md';
+import { MdClose, MdFilterList } from 'react-icons/md';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useAnnouncements } from '@/hooks/useAccessibility';
 import { EnhancedLoadingState } from '@/components/ui/EnhancedUX';
@@ -481,7 +481,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                     value={filters.minPrice || ''}
                     onChange={(e) => handleInputChange('minPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
                     placeholder={t('search:any', 'Any')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
                 <div>
@@ -491,7 +491,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                     value={filters.maxPrice || ''}
                     onChange={(e) => handleInputChange('maxPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
                     placeholder={t('search:any', 'Any')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
               </div>
@@ -549,7 +549,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                     value={filters.minMileage || ''}
                     onChange={(e) => handleInputChange('minMileage', e.target.value ? parseInt(e.target.value) : undefined)}
                     placeholder={t('search:any', 'Any')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
                 <div>
@@ -559,7 +559,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                     value={filters.maxMileage || ''}
                     onChange={(e) => handleInputChange('maxMileage', e.target.value ? parseInt(e.target.value) : undefined)}
                     placeholder={t('search:any', 'Any')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
               </div>
@@ -765,24 +765,20 @@ const FilterModals = React.memo<FilterModalsProps>(({
           <div className="mt-3">
             {renderModalContent()}
             
-            <div className="mt-8 flex justify-between">
+            <div className="mt-8 flex gap-3">
               <button
                 onClick={() => handleEnhancedClearFilter(activeFilterModal)}
-                className="rounded-md bg-white px-6 py-2.5 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center gap-2"
+                className="w-1/4 rounded-lg bg-white px-4 py-4 text-base font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 whitespace-nowrap"
                 aria-label={t('filters.clearFilterLabel', `Clear ${getModalTitle(activeFilterModal)} filter`)}
               >
-                <MdClear className="h-4 w-4" />
                 {t('search:clearFilter', 'Clear filter')}
               </button>
               
               <button
                 onClick={handleEnhancedClose}
-                className="rounded-md bg-blue-600 px-8 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="w-3/4 rounded-lg bg-blue-600 px-6 py-4 text-lg font-semibold text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm"
               >
-                {activeFilterModal === 'sellerType' 
-                  ? t('search:showResults', 'Show {{count}} results', { count: carListingsCount })
-                  : t('search:done', 'Done')
-                }
+                {t('search:showResults', 'Show {{count}} results', { count: carListingsCount || 0 })}
               </button>
             </div>
           </div>

@@ -73,11 +73,7 @@ export interface PriceSliderProps {
   currency?: string;
   onChange: (minPrice: number | undefined, maxPrice: number | undefined) => void;
   className?: string;
-  // Theme customization
-  trackColor?: string;
-  thumbColor?: string;
   showInputs?: boolean;
-  showLabels?: boolean;
   // Translation function
   t?: (key: string, fallback: string) => string;
   // Locale for number formatting

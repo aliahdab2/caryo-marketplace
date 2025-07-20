@@ -26,10 +26,12 @@
   "loading": "Loading...",
   "clearAll": "Clear all filters",
   "clearAllFilters": "Clear all filters",
-  "minPrice": "Min Price",
-  "maxPrice": "Max Price",
+  "lowestPrice": "Lowest price",
+  "highestPrice": "Highest price",
   "minimumPrice": "Minimum price",
   "maximumPrice": "Maximum price",
+  "lowestPricePlaceholder": "Lowest price",
+  "highestPricePlaceholder": "Highest price",
   "@minPrice": {
     "description": "Label for minimum price input field in price slider"
   },
@@ -63,6 +65,13 @@
   "sellerType": "Seller type",
   "clearFilter": "Clear filter",
   "done": "Done",
+  "showResults": "Show {{count}} results",
+  "showResults_zero": "Show {{count}} results",
+  "showResults_one": "Show {{count}} result", 
+  "showResults_two": "Show {{count}} results",
+  "showResults_few": "Show {{count}} results",
+  "showResults_many": "Show {{count}} results",
+  "showResults_other": "Show {{count}} results",
   "errorLoadingResults": "Error loading results",
   "tryAgain": "Try again",
   "noResultsFound": "No cars found",
@@ -87,6 +96,5 @@
   "removeSellerTypeFilter": "Remove seller type filter",
   "cars": "cars",
   "cancel": "Cancel",
-  "showResults": "Show {{count}} results",
   "showAllFilters": "Show all filters"
 }

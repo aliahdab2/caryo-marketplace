@@ -47,6 +47,7 @@ import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import PriceSlider from '@/components/ui/PriceSlider';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
 import { formatNumber } from '@/utils/localization';
+import { useLanguageDirection } from '@/utils/languageDirection';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
@@ -87,6 +88,7 @@ export default function AdvancedSearchPage() {
   const { t, i18n } = useLazyTranslation(SEARCH_NAMESPACES);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { dirClass, isRTL } = useLanguageDirection();
   
   // Extract language to prevent i18n object recreation causing re-renders
   const currentLanguage = i18n.language;
@@ -750,6 +752,22 @@ export default function AdvancedSearchPage() {
   });
   FilterPill.displayName = 'FilterPill';
 
+  // Modal styling constants for better maintainability
+  const MODAL_CLASSES = {
+    OVERLAY: "fixed inset-0 z-50 overflow-y-auto pointer-events-none",
+    CONTAINER: "flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-6",
+    BACKDROP: "fixed inset-0 bg-black/3 transition-opacity pointer-events-auto",
+    MODAL: "relative transform overflow-hidden rounded-xl bg-white px-5 py-4 text-left shadow-2xl transition-all w-full max-w-lg border border-gray-100 pointer-events-auto",
+    CLOSE_BUTTON: "rounded-md bg-white text-gray-500 hover:text-gray-700 focus:outline-none text-sm font-medium transition-colors",
+    SEPARATOR: "border-t border-gray-200",
+    BUTTON_CONTAINER: "flex gap-3"
+  } as const;
+
+  const BUTTON_CLASSES = {
+    CLEAR: "flex-none w-28 rounded-lg bg-white px-3 py-3 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 whitespace-nowrap",
+    PRIMARY: "flex-1 rounded-lg bg-blue-600 px-4 py-3 text-base font-semibold text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm"
+  } as const;
+
   // Modal component
   const FilterModal = ({ filterType, onClose }: { filterType: FilterType; onClose: () => void }) => {
     // Stable price change handler to prevent infinite loops
@@ -767,7 +785,7 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('make', 'Make')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{t('make', 'Make')}</h3>
                 <select
                   value={selectedMake || ''}
                   onChange={(e) => {
@@ -806,7 +824,7 @@ export default function AdvancedSearchPage() {
               </div>
               
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('model', 'Model')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{t('model', 'Model')}</h3>
                 <select
                   value={selectedModel || ''}
                   onChange={(e) => {
@@ -847,21 +865,26 @@ export default function AdvancedSearchPage() {
           );
 
         case 'price':
+        case 'price':
           return (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-6">{t('price', 'Price')}</h3>
+                <h3 
+                  id="filter-modal-title"
+                  className={`text-base font-medium text-gray-900 mb-3 text-center ${dirClass}`}
+                >
+                  {t('search:priceRange', 'Price Range')}
+                </h3>
+                {/* Separator line after title */}
+                <div className={`${MODAL_CLASSES.SEPARATOR} mb-4`}></div>
                 <PriceSlider
                   minPrice={filters.minPrice}
                   maxPrice={filters.maxPrice}
-                  minRange={0}
-                  maxRange={150000}
-                  step={1000}
                   currency={DEFAULT_CURRENCY}
                   onChange={handlePriceChange}
                   t={t}
                   locale={currentLanguage}
-                  className="mb-4"
+                  className="mb-2"
                 />
               </div>
             </div>
@@ -871,7 +894,7 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('yearRange', 'Year range')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{t('yearRange', 'Year range')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-600 mb-2">{t('from', 'From')}</label>
@@ -908,7 +931,7 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('mileageRange', 'Mileage range')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{t('mileageRange', 'Mileage range')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-600 mb-2">{t('from', 'From')}</label>
@@ -939,7 +962,7 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('gearbox', 'Gearbox')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{t('gearbox', 'Gearbox')}</h3>
                 <select
                   value={filters.transmissionId || ''}
                   onChange={(e) => handleInputChange('transmissionId', e.target.value ? parseInt(e.target.value) : undefined)}
@@ -963,7 +986,7 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('fuelType', 'Fuel type')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{t('fuelType', 'Fuel type')}</h3>
                 <select
                   value={filters.fuelTypeId || ''}
                   onChange={(e) => handleInputChange('fuelTypeId', e.target.value ? parseInt(e.target.value) : undefined)}
@@ -985,7 +1008,7 @@ export default function AdvancedSearchPage() {
           return (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('bodyStyle', 'Body style')}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{t('bodyStyle', 'Body style')}</h3>
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {referenceData?.bodyStyles?.map(bodyStyle => {
                     const isSelected = filters.bodyStyleId === bodyStyle.id;
@@ -1107,7 +1130,7 @@ export default function AdvancedSearchPage() {
               
               {/* Make and Model */}
               <div className="border border-gray-200 rounded-lg p-4">
-                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('makeAndModel', 'Make and Model')}</h4>
+                <h4 className="text-lg font-medium text-gray-900 mb-3 text-center">{t('makeAndModel', 'Make and Model')}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-600 mb-2">{t('make', 'Make')}</label>
@@ -1182,13 +1205,10 @@ export default function AdvancedSearchPage() {
 
               {/* Price - Full Width */}
               <div className="border border-gray-200 rounded-lg p-4">
-                <h4 className="text-lg font-medium text-gray-900 mb-3">{t('price', 'Price')}</h4>
+                <h4 className="text-lg font-medium text-gray-900 mb-3 text-center">{t('price', 'Price')}</h4>
                 <PriceSlider
                   minPrice={filters.minPrice}
                   maxPrice={filters.maxPrice}
-                  minRange={0}
-                  maxRange={150000}
-                  step={1000}
                   currency={DEFAULT_CURRENCY}
                   onChange={handlePriceChange}
                   t={t}
@@ -1328,21 +1348,25 @@ export default function AdvancedSearchPage() {
     }, []);
 
     return (
-      <div className="fixed inset-0 z-50 overflow-y-auto pointer-events-none">
-        <div className="flex min-h-full items-start justify-center p-4 pt-16 text-center sm:items-start sm:pt-20 sm:p-0">
+      <div className={MODAL_CLASSES.OVERLAY}>
+        <div className={MODAL_CLASSES.CONTAINER}>
           {/* Extremely subtle overlay that barely affects background visibility */}
-          <div className="fixed inset-0 bg-black/3 transition-opacity pointer-events-auto" onClick={onClose} />
+          <div className={MODAL_CLASSES.BACKDROP} onClick={onClose} />
           
           <div 
-            className="relative transform overflow-hidden rounded-xl bg-white px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 border border-gray-100 pointer-events-auto"
+            className={MODAL_CLASSES.MODAL}
             onKeyDown={(e) => handleModalKeyDown(e, onClose)}
             tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="filter-modal-title"
           >
-            <div className="absolute right-0 top-0 pr-4 pt-4">
+            <div className={`absolute top-0 pt-4 ${isRTL ? 'left-0 pl-4' : 'right-0 pr-4'}`}>
               <button
                 type="button"
-                className="rounded-md bg-white text-gray-500 hover:text-gray-700 focus:outline-none text-sm font-medium"
+                className={MODAL_CLASSES.CLOSE_BUTTON}
                 onClick={onClose}
+                aria-label="Close filter modal"
               >
                 {filterType === 'sellerType' ? t('cancel', 'Cancel') : <MdClose className="h-6 w-6" />}
               </button>
@@ -1351,10 +1375,14 @@ export default function AdvancedSearchPage() {
             <div className="mt-3">
               {renderModalContent()}
               
-              <div className="mt-8 flex justify-between">
+              {/* Separator line before buttons */}
+              <div className={`${MODAL_CLASSES.SEPARATOR} mt-4 mb-4`}></div>
+              
+              <div className={MODAL_CLASSES.BUTTON_CONTAINER}>
                 <button
                   onClick={() => clearSpecificFilter(filterType)}
-                  className="rounded-md bg-white px-6 py-2.5 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50"
+                  className={BUTTON_CLASSES.CLEAR}
+                  aria-label={`Clear ${filterType} filter`}
                 >
                   {t('clearFilter', 'Clear filter')}
                 </button>
@@ -1364,12 +1392,9 @@ export default function AdvancedSearchPage() {
                     // Close the modal since filters apply automatically
                     onClose();
                   }}
-                  className="rounded-md bg-blue-600 px-8 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+                  className={BUTTON_CLASSES.PRIMARY}
                 >
-                  {filterType === 'sellerType' 
-                    ? t('showResults', 'Show {{count}} results', { count: carListings?.totalElements || 0 })
-                    : t('done', 'Done')
-                  }
+                  {t('showResults', 'Show {{count}} results', { count: carListings?.totalElements || 0 })}
                 </button>
               </div>
             </div>

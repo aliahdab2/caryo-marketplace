@@ -18,8 +18,8 @@ describe('PriceSlider', () => {
   it('renders with default values', () => {
     render(<PriceSlider {...defaultProps} />);
     
-    expect(screen.getByLabelText('Min Price')).toBeInTheDocument();
-    expect(screen.getByLabelText('Max Price')).toBeInTheDocument();
+    expect(screen.getByLabelText('Lowest price')).toBeInTheDocument();
+    expect(screen.getByLabelText('Highest price')).toBeInTheDocument();
     expect(screen.getAllByDisplayValue('')).toHaveLength(2); // Both min and max inputs start empty
   });
 
@@ -42,7 +42,7 @@ describe('PriceSlider', () => {
     
     render(<PriceSlider {...defaultProps} onChange={onChange} />);
     
-    const minInput = screen.getByLabelText('Min Price');
+    const minInput = screen.getByLabelText('Lowest price');
     await user.clear(minInput);
     await user.type(minInput, '15000');
     
@@ -74,7 +74,7 @@ describe('PriceSlider', () => {
     
     render(<PriceSlider {...defaultProps} onChange={onChange} />);
     
-    const minInput = screen.getByLabelText('Min Price');
+    const minInput = screen.getByLabelText('Lowest price');
     
     // Instead of typing character by character, simulate pasting the full value
     fireEvent.change(minInput, { target: { value: '150000' } });
@@ -87,25 +87,21 @@ describe('PriceSlider', () => {
     });
   });
 
-  it('can be configured without inputs or labels', () => {
+  it('can be configured without inputs', () => {
     render(
       <PriceSlider 
         {...defaultProps} 
         showInputs={false} 
-        showLabels={false} 
       />
     );
     
-    expect(screen.queryByLabelText('Min Price')).not.toBeInTheDocument();
-    expect(screen.queryByText('$0')).not.toBeInTheDocument(); // Value displays should be hidden when showLabels=false
+    expect(screen.queryByLabelText('Lowest price')).not.toBeInTheDocument();
   });
 
   it('applies custom styling props', () => {
     render(
       <PriceSlider 
         {...defaultProps} 
-        trackColor="bg-red-500"
-        thumbColor="bg-red-600"
         className="custom-slider"
       />
     );
@@ -115,7 +111,12 @@ describe('PriceSlider', () => {
   });
 
   it('validates props and shows warnings', () => {
-    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+    // Store the current (modified) console.warn and get access to original
+    const currentWarn = console.warn;
+    const originalWarn = jest.fn();
+    
+    // Temporarily replace with our spy that captures the call
+    console.warn = originalWarn;
     
     render(
       <PriceSlider 
@@ -125,10 +126,11 @@ describe('PriceSlider', () => {
       />
     );
     
-    expect(consoleSpy).toHaveBeenCalledWith(
+    expect(originalWarn).toHaveBeenCalledWith(
       'PriceSlider: minRange should be less than maxRange'
     );
     
-    consoleSpy.mockRestore();
+    // Restore the modified console.warn
+    console.warn = currentWarn;
   });
 });
