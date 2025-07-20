@@ -30,6 +30,13 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
   const { i18n } = useTranslation();
   const currentLocale = locale || i18n.language || 'en-US';
 
+  // Validate props
+  React.useEffect(() => {
+    if (minRange >= maxRange) {
+      console.warn('PriceSlider: minRange should be less than maxRange');
+    }
+  }, [minRange, maxRange]);
+
   // Format currency values
   const formatValue = React.useCallback((value: number) => {
     const formattingLocale = getOptimalLocale(currentLocale);
@@ -62,7 +69,7 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
       thumbColor={thumbColor}
       showInputs={showInputs}
       showLabels={showLabels}
-      showRangeLabels={true}
+      showRangeLabels={showLabels}
       formatValue={formatValue}
       locale={currentLocale}
       minLabel={minLabel}
