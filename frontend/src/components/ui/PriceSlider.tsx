@@ -49,6 +49,7 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
 
   // Dragging state
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
+  const [hoveredThumb, setHoveredThumb] = useState<'min' | 'max' | null>(null);
   
   // Refs
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -102,6 +103,7 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
   const handleThumbMouseDown = useCallback((thumb: 'min' | 'max') => (e: React.MouseEvent) => {
     e.preventDefault();
     setIsDragging(thumb);
+    setHoveredThumb(null); // Clear hover state when dragging starts
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const value = getValueFromPosition(moveEvent.clientX);
@@ -209,13 +211,23 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
 
           {/* Min thumb */}
           <div
-            className={`absolute w-6 h-6 bg-blue-600 border-2 border-white rounded-full shadow-lg cursor-pointer transition-transform ${
-              isDragging === 'min' ? 'scale-110 shadow-xl' : 'hover:scale-105'
+            className={`absolute w-6 h-6 bg-blue-600 border-2 border-white rounded-full shadow-lg cursor-pointer transition-all duration-150 ease-out ${
+              isDragging === 'min' 
+                ? 'shadow-xl' 
+                : hoveredThumb === 'min' 
+                  ? 'shadow-xl' 
+                  : ''
             }`}
             style={{
               left: `${minPercent}%`,
               top: '50%',
-              transform: 'translate(-50%, -50%)'
+              transform: `translate(-50%, -50%) ${
+                isDragging === 'min' 
+                  ? 'scale(1.1)' 
+                  : hoveredThumb === 'min' 
+                    ? 'scale(1.05)' 
+                    : 'scale(1)'
+              }`
             }}
             role="slider"
             aria-label="Minimum price"
@@ -225,6 +237,8 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
             aria-valuetext={formatValue(minValue)}
             tabIndex={0}
             onMouseDown={handleThumbMouseDown('min')}
+            onMouseEnter={() => !isDragging && setHoveredThumb('min')}
+            onMouseLeave={() => setHoveredThumb(null)}
             onKeyDown={(e) => {
               if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
                 e.preventDefault();
@@ -242,13 +256,23 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
 
           {/* Max thumb */}
           <div
-            className={`absolute w-6 h-6 bg-blue-600 border-2 border-white rounded-full shadow-lg cursor-pointer transition-transform ${
-              isDragging === 'max' ? 'scale-110 shadow-xl' : 'hover:scale-105'
+            className={`absolute w-6 h-6 bg-blue-600 border-2 border-white rounded-full shadow-lg cursor-pointer transition-all duration-150 ease-out ${
+              isDragging === 'max' 
+                ? 'shadow-xl' 
+                : hoveredThumb === 'max' 
+                  ? 'shadow-xl' 
+                  : ''
             }`}
             style={{
               left: `${maxPercent}%`,
               top: '50%',
-              transform: 'translate(-50%, -50%)'
+              transform: `translate(-50%, -50%) ${
+                isDragging === 'max' 
+                  ? 'scale(1.1)' 
+                  : hoveredThumb === 'max' 
+                    ? 'scale(1.05)' 
+                    : 'scale(1)'
+              }`
             }}
             role="slider"
             aria-label="Maximum price"
@@ -258,6 +282,8 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
             aria-valuetext={formatValue(maxValue)}
             tabIndex={0}
             onMouseDown={handleThumbMouseDown('max')}
+            onMouseEnter={() => !isDragging && setHoveredThumb('max')}
+            onMouseLeave={() => setHoveredThumb(null)}
             onKeyDown={(e) => {
               if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
                 e.preventDefault();
