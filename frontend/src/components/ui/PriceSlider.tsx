@@ -26,6 +26,13 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
   t = (key: string, fallback: string) => fallback,
   locale
 }) => {
+  // Validation
+  useEffect(() => {
+    if (minRange >= maxRange) {
+      console.warn('PriceSlider: minRange should be less than maxRange');
+    }
+  }, [minRange, maxRange]);
+
   // Auto-detect locale from i18n context if not provided
   const { i18n } = useTranslation();
   const currentLocale = locale || i18n.language || 'en-US';
@@ -210,7 +217,27 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
               top: '50%',
               transform: 'translate(-50%, -50%)'
             }}
+            role="slider"
+            aria-label="Minimum price"
+            aria-valuemin={minRange}
+            aria-valuemax={maxValue - step}
+            aria-valuenow={minValue}
+            aria-valuetext={formatValue(minValue)}
+            tabIndex={0}
             onMouseDown={handleThumbMouseDown('min')}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                const newValue = Math.max(minRange, minValue - step);
+                setMinValue(newValue);
+                debouncedOnChange(newValue, maxValue);
+              } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                const newValue = Math.min(maxValue - step, minValue + step);
+                setMinValue(newValue);
+                debouncedOnChange(newValue, maxValue);
+              }
+            }}
           />
 
           {/* Max thumb */}
@@ -223,7 +250,27 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
               top: '50%',
               transform: 'translate(-50%, -50%)'
             }}
+            role="slider"
+            aria-label="Maximum price"
+            aria-valuemin={minValue + step}
+            aria-valuemax={maxRange}
+            aria-valuenow={maxValue}
+            aria-valuetext={formatValue(maxValue)}
+            tabIndex={0}
             onMouseDown={handleThumbMouseDown('max')}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                const newValue = Math.max(minValue + step, maxValue - step);
+                setMaxValue(newValue);
+                debouncedOnChange(minValue, newValue);
+              } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                const newValue = Math.min(maxRange, maxValue + step);
+                setMaxValue(newValue);
+                debouncedOnChange(minValue, newValue);
+              }
+            }}
           />
         </div>
 
