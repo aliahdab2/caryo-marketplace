@@ -26,6 +26,13 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
   t = (key: string, fallback: string) => fallback,
   locale
 }) => {
+  // Validation
+  useEffect(() => {
+    if (minRange >= maxRange) {
+      console.warn(t('priceSlider.minRangeError', 'PriceSlider: minRange should be less than maxRange'));
+    }
+  }, [minRange, maxRange, t]);
+
   // Auto-detect locale from i18n context if not provided
   const { i18n } = useTranslation();
   const currentLocale = locale || i18n.language || 'en-US';
@@ -42,10 +49,14 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
 
   // Dragging state
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
+  const [hoveredThumb, setHoveredThumb] = useState<'min' | 'max' | null>(null);
   
   // Refs
   const sliderRef = useRef<HTMLDivElement>(null);
   const debounceTimer = useRef<NodeJS.Timeout>();
+  const minInputRef = useRef<HTMLInputElement>(null);
+  const maxInputRef = useRef<HTMLInputElement>(null);
+  const isUserTyping = useRef<{ min: boolean; max: boolean }>({ min: false, max: false });
 
   // Update internal state when props change
   useEffect(() => {
@@ -61,6 +72,15 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
       setMaxValue(newMax);
     }
   }, [maxPrice, minRange, maxRange, step]);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
 
   // Debounced onChange - reduced delay for more responsive updates
   const debouncedOnChange = useCallback((min: number, max: number) => {
@@ -95,6 +115,7 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
   const handleThumbMouseDown = useCallback((thumb: 'min' | 'max') => (e: React.MouseEvent) => {
     e.preventDefault();
     setIsDragging(thumb);
+    setHoveredThumb(null); // Clear hover state when dragging starts
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const value = getValueFromPosition(moveEvent.clientX);
@@ -151,19 +172,55 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
     });
   }, [currency, currentLocale]);
 
-  // Handle input field changes
-  const handleInputChange = useCallback((type: 'min' | 'max', value: string) => {
-    const numValue = value ? parseInt(value) : (type === 'min' ? minRange : maxRange);
-    
-    if (type === 'min') {
-      const constrainedValue = Math.max(minRange, Math.min(numValue, maxValue - step));
-      setMinValue(constrainedValue);
-      debouncedOnChange(constrainedValue, maxValue);
-    } else {
-      const constrainedValue = Math.min(maxRange, Math.max(numValue, minValue + step));
-      setMaxValue(constrainedValue);
-      debouncedOnChange(minValue, constrainedValue);
+  // Sync input values when state changes (but NEVER during typing)
+  useEffect(() => {
+    if (minInputRef.current && !isUserTyping.current.min && document.activeElement !== minInputRef.current) {
+      minInputRef.current.value = minValue === minRange ? '' : minValue.toString();
     }
+    if (maxInputRef.current && !isUserTyping.current.max && document.activeElement !== maxInputRef.current) {
+      maxInputRef.current.value = maxValue === maxRange ? '' : maxValue.toString();
+    }
+  }, [minValue, maxValue, minRange, maxRange]);
+
+  // Handle input field changes with zero interference (React best practice for focus preservation)
+  const handleInputChange = useCallback((type: 'min' | 'max', inputValue: string) => {
+    // Mark that user is actively typing to prevent ANY interference
+    isUserTyping.current[type] = true;
+    
+    // Clear any existing timeout
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    
+    // Only update state after user stops typing for a longer period
+    debounceTimer.current = setTimeout(() => {
+      // Parse and validate the input
+      if (inputValue === '') {
+        if (type === 'min') {
+          setMinValue(minRange);
+          debouncedOnChange(minRange, maxValue);
+        } else {
+          setMaxValue(maxRange);
+          debouncedOnChange(minValue, maxRange);
+        }
+      } else {
+        const numValue = parseInt(inputValue);
+        if (!isNaN(numValue)) {
+          if (type === 'min') {
+            const constrainedValue = Math.max(minRange, Math.min(numValue, maxValue - step));
+            setMinValue(constrainedValue);
+            debouncedOnChange(constrainedValue, maxValue);
+          } else {
+            const constrainedValue = Math.min(maxRange, Math.max(numValue, minValue + step));
+            setMaxValue(constrainedValue);
+            debouncedOnChange(minValue, constrainedValue);
+          }
+        }
+      }
+      
+      // Clear typing flag after processing
+      isUserTyping.current[type] = false;
+    }, 800); // Longer delay to ensure user has finished typing
   }, [minValue, maxValue, minRange, maxRange, step, debouncedOnChange]);
 
   return (
@@ -202,28 +259,92 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
 
           {/* Min thumb */}
           <div
-            className={`absolute w-6 h-6 bg-blue-600 border-2 border-white rounded-full shadow-lg cursor-pointer transition-transform ${
-              isDragging === 'min' ? 'scale-110 shadow-xl' : 'hover:scale-105'
+            className={`absolute w-6 h-6 bg-blue-600 border-2 border-white rounded-full shadow-lg cursor-pointer transition-all duration-150 ease-out ${
+              isDragging === 'min' 
+                ? 'shadow-xl' 
+                : hoveredThumb === 'min' 
+                  ? 'shadow-xl' 
+                  : ''
             }`}
             style={{
               left: `${minPercent}%`,
               top: '50%',
-              transform: 'translate(-50%, -50%)'
+              transform: `translate(-50%, -50%) ${
+                isDragging === 'min' 
+                  ? 'scale(1.1)' 
+                  : hoveredThumb === 'min' 
+                    ? 'scale(1.05)' 
+                    : 'scale(1)'
+              }`
             }}
+            role="slider"
+            aria-label={t('priceSlider.minPrice', 'Minimum price')}
+            aria-valuemin={minRange}
+            aria-valuemax={maxValue - step}
+            aria-valuenow={minValue}
+            aria-valuetext={formatValue(minValue)}
+            tabIndex={0}
             onMouseDown={handleThumbMouseDown('min')}
+            onMouseEnter={() => !isDragging && setHoveredThumb('min')}
+            onMouseLeave={() => setHoveredThumb(null)}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                const newValue = Math.max(minRange, minValue - step);
+                setMinValue(newValue);
+                debouncedOnChange(newValue, maxValue);
+              } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                const newValue = Math.min(maxValue - step, minValue + step);
+                setMinValue(newValue);
+                debouncedOnChange(newValue, maxValue);
+              }
+            }}
           />
 
           {/* Max thumb */}
           <div
-            className={`absolute w-6 h-6 bg-blue-600 border-2 border-white rounded-full shadow-lg cursor-pointer transition-transform ${
-              isDragging === 'max' ? 'scale-110 shadow-xl' : 'hover:scale-105'
+            className={`absolute w-6 h-6 bg-blue-600 border-2 border-white rounded-full shadow-lg cursor-pointer transition-all duration-150 ease-out ${
+              isDragging === 'max' 
+                ? 'shadow-xl' 
+                : hoveredThumb === 'max' 
+                  ? 'shadow-xl' 
+                  : ''
             }`}
             style={{
               left: `${maxPercent}%`,
               top: '50%',
-              transform: 'translate(-50%, -50%)'
+              transform: `translate(-50%, -50%) ${
+                isDragging === 'max' 
+                  ? 'scale(1.1)' 
+                  : hoveredThumb === 'max' 
+                    ? 'scale(1.05)' 
+                    : 'scale(1)'
+              }`
             }}
+            role="slider"
+            aria-label={t('priceSlider.maxPrice', 'Maximum price')}
+            aria-valuemin={minValue + step}
+            aria-valuemax={maxRange}
+            aria-valuenow={maxValue}
+            aria-valuetext={formatValue(maxValue)}
+            tabIndex={0}
             onMouseDown={handleThumbMouseDown('max')}
+            onMouseEnter={() => !isDragging && setHoveredThumb('max')}
+            onMouseLeave={() => setHoveredThumb(null)}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                const newValue = Math.max(minValue + step, maxValue - step);
+                setMaxValue(newValue);
+                debouncedOnChange(minValue, newValue);
+              } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                const newValue = Math.min(maxRange, maxValue + step);
+                setMaxValue(newValue);
+                debouncedOnChange(minValue, newValue);
+              }
+            }}
           />
         </div>
 
@@ -244,11 +365,16 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
               {t('minPrice', 'Min Price')}
             </label>
             <input
+              ref={minInputRef}
               id="min-price-input"
               type="number"
-              value={minValue === minRange ? '' : minValue}
+              defaultValue={minValue === minRange ? '' : minValue.toString()}
               onChange={(e) => handleInputChange('min', e.target.value)}
-              placeholder={minValue === minRange ? t('any', 'Any') : formatValue(minRange)}
+              onBlur={() => {
+                // Clear typing flag when user leaves the field
+                isUserTyping.current.min = false;
+              }}
+              placeholder={t('any', 'Any')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               step={step}
               min={minRange}
@@ -258,15 +384,20 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
             <label htmlFor="max-price-input" className="block text-sm text-gray-600 mb-2">
               {t('maxPrice', 'Max Price')}
             </label>
-            <input
+                        <input
+              ref={maxInputRef}
               id="max-price-input"
               type="number"
-              value={maxValue === maxRange ? '' : maxValue}
+              defaultValue={maxValue === maxRange ? '' : maxValue.toString()}
               onChange={(e) => handleInputChange('max', e.target.value)}
-              placeholder={maxValue === maxRange ? t('any', 'Any') : formatValue(maxRange)}
+              onBlur={() => {
+                // Clear typing flag when user leaves the field
+                isUserTyping.current.max = false;
+              }}
+              placeholder={t('any', 'Any')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               step={step}
-              min={minValue + step}
+              max={maxRange}
             />
           </div>
         </div>
