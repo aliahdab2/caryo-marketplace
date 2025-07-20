@@ -12,8 +12,7 @@ import type { PriceSliderProps } from '../../types/ui';
 /**
  * Currency Input Component for Price Fields
  */
-const CurrencyInput: React.FC<{
-  ref: React.RefObject<HTMLInputElement>;
+interface CurrencyInputProps {
   id: string;
   defaultValue: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -26,7 +25,9 @@ const CurrencyInput: React.FC<{
   min?: number;
   max?: number;
   currency: string;
-}> = React.forwardRef<HTMLInputElement, any>(({
+}
+
+const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(({
   id,
   defaultValue,
   onChange,

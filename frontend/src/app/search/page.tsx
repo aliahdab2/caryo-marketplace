@@ -865,7 +865,6 @@ export default function AdvancedSearchPage() {
           );
 
         case 'price':
-        case 'price':
           return (
             <div className="space-y-4">
               <div>

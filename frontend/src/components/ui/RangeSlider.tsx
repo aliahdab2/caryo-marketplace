@@ -61,6 +61,21 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
   const { dirClass, dir } = useLanguageDirection();
   const isRTL = dir === 'rtl';
 
+  // Helper function for input field className
+  const getInputFieldClassName = (hasUnit: boolean): string => {
+    const baseClasses = `${SLIDER_CLASSES.INPUT_FIELD} ${INPUT_CLASSES.NO_SPINNER}`;
+    if (!hasUnit) return baseClasses;
+    const paddingClass = isRTL ? 'pl-16' : 'pr-16';
+    return `${baseClasses} ${paddingClass}`;
+  };
+
+  // Helper function for unit display positioning
+  const getUnitDisplayClassName = (): string => {
+    const baseClasses = 'absolute top-1/2 transform -translate-y-1/2';
+    const positionClass = isRTL ? 'left-3' : 'right-3';
+    return `${baseClasses} ${positionClass}`;
+  };
+
   // Internal state
   const [minVal, setMinVal] = useState(() => {
     const initial = minValue || minRange;
@@ -283,7 +298,7 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
                 }}
                 placeholder={minPlaceholder || anyPlaceholder}
                 disabled={disabled}
-                className={`${SLIDER_CLASSES.INPUT_FIELD} ${INPUT_CLASSES.NO_SPINNER} ${unit ? (isRTL ? 'pl-16' : 'pr-16') : ''}`}
+                className={getInputFieldClassName(!!unit)}
                 style={{
                   /* Remove spinner arrows completely */
                   WebkitAppearance: 'none',
@@ -294,7 +309,7 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
               />
               {/* Unit display (currency, km, years, etc.) */}
               {unit && (
-                <div className={`absolute top-1/2 transform -translate-y-1/2 ${isRTL ? 'left-3' : 'right-3'}`}>
+                <div className={getUnitDisplayClassName()}>
                   <span className="text-gray-600 font-medium">{unit}</span>
                 </div>
               )}
@@ -316,7 +331,7 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
                 }}
                 placeholder={maxPlaceholder || anyPlaceholder}
                 disabled={disabled}
-                className={`${SLIDER_CLASSES.INPUT_FIELD} ${INPUT_CLASSES.NO_SPINNER} ${unit ? (isRTL ? 'pl-16' : 'pr-16') : ''}`}
+                className={getInputFieldClassName(!!unit)}
                 style={{
                   /* Remove spinner arrows completely */
                   WebkitAppearance: 'none',
@@ -327,7 +342,7 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
               />
               {/* Unit display (currency, km, years, etc.) */}
               {unit && (
-                <div className={`absolute top-1/2 transform -translate-y-1/2 ${isRTL ? 'left-3' : 'right-3'}`}>
+                <div className={getUnitDisplayClassName()}>
                   <span className="text-gray-600 font-medium">{unit}</span>
                 </div>
               )}
