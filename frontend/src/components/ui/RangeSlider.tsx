@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLanguageDirection } from '@/utils/languageDirection';
 import { formatNumber } from '@/utils/localization';
+import { SLIDER_CLASSES, INPUT_CLASSES, LAYOUT_CLASSES } from './PriceSlider.constants';
 
 export interface RangeSliderProps {
   minValue?: number;
@@ -12,21 +13,20 @@ export interface RangeSliderProps {
   step?: number;
   onChange: (min: number | undefined, max: number | undefined) => void;
   className?: string;
-  trackColor?: string;
-  thumbColor?: string;
   showInputs?: boolean;
-  showLabels?: boolean;
-  showRangeLabels?: boolean;
   disabled?: boolean;
   
   // Formatting options
   formatValue?: (value: number) => string;
   locale?: string;
+  unit?: string; // Unit display (currency, km, years, etc.)
   
   // Labels
   minLabel?: string;
   maxLabel?: string;
   anyPlaceholder?: string;
+  minPlaceholder?: string;
+  maxPlaceholder?: string;
   
   // Accessibility
   ariaLabelMin?: string;
@@ -45,21 +45,36 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
   step = 1,
   onChange,
   className = '',
-  trackColor = 'bg-blue-500',
-  thumbColor = 'bg-blue-600',
   showInputs = true,
-  showLabels = true,
-  showRangeLabels = true,
   disabled = false,
   formatValue,
   locale = 'en-US',
+  unit,
   minLabel = 'Min',
   maxLabel = 'Max',
   anyPlaceholder = 'Any',
+  minPlaceholder,
+  maxPlaceholder,
   ariaLabelMin = 'Minimum value',
   ariaLabelMax = 'Maximum value'
 }) => {
   const { dirClass, dir } = useLanguageDirection();
+  const isRTL = dir === 'rtl';
+
+  // Helper function for input field className
+  const getInputFieldClassName = (hasUnit: boolean): string => {
+    const baseClasses = `${SLIDER_CLASSES.INPUT_FIELD} ${INPUT_CLASSES.NO_SPINNER}`;
+    if (!hasUnit) return baseClasses;
+    const paddingClass = isRTL ? 'pl-16' : 'pr-16';
+    return `${baseClasses} ${paddingClass}`;
+  };
+
+  // Helper function for unit display positioning
+  const getUnitDisplayClassName = (): string => {
+    const baseClasses = 'absolute top-1/2 transform -translate-y-1/2';
+    const positionClass = isRTL ? 'left-3' : 'right-3';
+    return `${baseClasses} ${positionClass}`;
+  };
 
   // Internal state
   const [minVal, setMinVal] = useState(() => {
@@ -106,7 +121,7 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
     };
   }, []);
 
-  // Debounced onChange
+  // Debounced onChange with optimized timing
   const debouncedOnChange = useCallback((min: number, max: number) => {
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
@@ -116,23 +131,35 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
       const currentMin = min === minRange ? undefined : min;
       const currentMax = max === maxRange ? undefined : max;
       onChange(currentMin, currentMax);
-    }, 100);
+    }, 50); // Reduced from 100ms for better responsiveness
   }, [minRange, maxRange, onChange]);
 
   // Calculate percentages
   const minPercent = ((minVal - minRange) / (maxRange - minRange)) * 100;
   const maxPercent = ((maxVal - minRange) / (maxRange - minRange)) * 100;
 
-  // Get value from mouse position
+  // RTL-aware positioning
+  const minPosition = dir === 'rtl' ? 100 - minPercent : minPercent;
+  const maxPosition = dir === 'rtl' ? 100 - maxPercent : maxPercent;
+  const trackLeft = dir === 'rtl' ? 100 - maxPercent : minPercent;
+  const trackWidth = maxPercent - minPercent;
+
+  // Get value from mouse position with RTL support
   const getValueFromPosition = useCallback((clientX: number) => {
     if (!sliderRef.current) return minRange;
     
     const rect = sliderRef.current.getBoundingClientRect();
-    const percent = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+    let percent = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+    
+    // Flip percentage for RTL
+    if (dir === 'rtl') {
+      percent = 100 - percent;
+    }
+    
     const value = (percent / 100) * (maxRange - minRange) + minRange;
     
     return Math.round(value / step) * step;
-  }, [minRange, maxRange, step]);
+  }, [minRange, maxRange, step, dir]);
 
   // Handle mouse down on thumbs
   const handleThumbMouseDown = useCallback((thumb: 'min' | 'max') => (e: React.MouseEvent) => {
@@ -224,11 +251,13 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
         const numValue = parseInt(inputValue);
         if (!isNaN(numValue)) {
           if (type === 'min') {
-            const constrainedValue = Math.max(minRange, Math.min(numValue, maxVal - step));
+            // Constrain value to valid range and ensure it doesn't exceed max - step
+            const constrainedValue = Math.max(minRange, Math.min(numValue, Math.min(maxRange, maxVal - step)));
             setMinVal(constrainedValue);
             debouncedOnChange(constrainedValue, maxVal);
           } else {
-            const constrainedValue = Math.min(maxRange, Math.max(numValue, minVal + step));
+            // Constrain value to valid range and ensure it doesn't go below min + step
+            const constrainedValue = Math.min(maxRange, Math.max(numValue, Math.max(minRange, minVal + step)));
             setMaxVal(constrainedValue);
             debouncedOnChange(minVal, constrainedValue);
           }
@@ -236,44 +265,105 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
       }
       
       isUserTyping.current[type] = false;
-    }, 800);
+    }, 500); // Reduced from 800ms for better UX
   }, [minVal, maxVal, minRange, maxRange, step, debouncedOnChange]);
 
-  const thumbClassName = `absolute w-6 h-6 ${thumbColor} border-2 border-white rounded-full shadow-lg cursor-pointer transition-all duration-150 ease-out ${
-    disabled ? 'opacity-50 cursor-not-allowed' : ''
+  const thumbClassName = `${SLIDER_CLASSES.THUMB_BASE} ${
+    disabled ? SLIDER_CLASSES.THUMB_DISABLED : ''
   }`;
 
   return (
-    <div className={`range-slider ${className}`} dir={dir}>
-      {/* Value Display */}
-      {showLabels && (
-        <div className="flex justify-between items-center mb-6">
-          <div className={`text-center ${dirClass}`}>
-            <div className="text-lg font-semibold text-gray-900">
-              {formatVal(minVal)}
+    <div 
+      className={`${SLIDER_CLASSES.CONTAINER} ${className} ${LAYOUT_CLASSES.MODAL_COMPATIBLE}`} 
+      dir={dir}
+      role="group"
+      aria-label="Price range selector"
+    >
+      {/* Input fields - MOVED TO TOP like Blocket design */}
+      {showInputs && (
+        <div className={SLIDER_CLASSES.INPUT_GRID}>
+          <div className={SLIDER_CLASSES.INPUT_WRAPPER}>
+            <label htmlFor="min-value-input" className={`${SLIDER_CLASSES.INPUT_LABEL} ${dirClass}`} dir={dir}>
+              {minLabel}
+            </label>
+            <div className="relative">
+              <input
+                ref={minInputRef}
+                id="min-value-input"
+                type="number"
+                defaultValue={minVal === minRange ? '' : minVal.toString()}
+                onChange={(e) => handleInputChange('min', e.target.value)}
+                onBlur={() => {
+                  isUserTyping.current.min = false;
+                }}
+                placeholder={minPlaceholder || anyPlaceholder}
+                disabled={disabled}
+                className={getInputFieldClassName(!!unit)}
+                style={{
+                  /* Remove spinner arrows completely */
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'textfield'
+                }}
+                step={step}
+                min={minRange}
+              />
+              {/* Unit display (currency, km, years, etc.) */}
+              {unit && (
+                <div className={getUnitDisplayClassName()}>
+                  <span className="text-gray-600 font-medium">{unit}</span>
+                </div>
+              )}
             </div>
           </div>
-          <div className={`text-center ${dirClass}`}>
-            <div className="text-lg font-semibold text-gray-900">
-              {formatVal(maxVal)}
+          <div className={SLIDER_CLASSES.INPUT_WRAPPER}>
+            <label htmlFor="max-value-input" className={`${SLIDER_CLASSES.INPUT_LABEL} ${dirClass}`} dir={dir}>
+              {maxLabel}
+            </label>
+            <div className="relative">
+              <input
+                ref={maxInputRef}
+                id="max-value-input"
+                type="number"
+                defaultValue={maxVal === maxRange ? '' : maxVal.toString()}
+                onChange={(e) => handleInputChange('max', e.target.value)}
+                onBlur={() => {
+                  isUserTyping.current.max = false;
+                }}
+                placeholder={maxPlaceholder || anyPlaceholder}
+                disabled={disabled}
+                className={getInputFieldClassName(!!unit)}
+                style={{
+                  /* Remove spinner arrows completely */
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'textfield'
+                }}
+                step={step}
+                max={maxRange}
+              />
+              {/* Unit display (currency, km, years, etc.) */}
+              {unit && (
+                <div className={getUnitDisplayClassName()}>
+                  <span className="text-gray-600 font-medium">{unit}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* Slider */}
-      <div className="relative px-3 py-6">
+      {/* Slider - MOVED BELOW INPUTS like Blocket design */}
+      <div className={SLIDER_CLASSES.TRACK_CONTAINER}>
         <div 
           ref={sliderRef}
-          className={`relative h-2 bg-gray-200 rounded-full ${disabled ? 'opacity-50' : 'cursor-pointer'}`}
+          className={`${SLIDER_CLASSES.TRACK_BASE} ${disabled ? SLIDER_CLASSES.DISABLED : ''}`}
           onClick={handleTrackClick}
         >
           {/* Active track */}
           <div 
-            className={`absolute h-2 ${trackColor} rounded-full`}
+            className={SLIDER_CLASSES.TRACK_ACTIVE}
             style={{
-              left: `${minPercent}%`,
-              width: `${maxPercent - minPercent}%`
+              left: `${trackLeft}%`,
+              width: `${trackWidth}%`
             }}
           />
 
@@ -281,13 +371,13 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
           <div
             className={`${thumbClassName} ${
               isDragging === 'min' 
-                ? 'shadow-xl' 
+                ? SLIDER_CLASSES.THUMB_ACTIVE
                 : hoveredThumb === 'min' 
-                  ? 'shadow-xl' 
+                  ? SLIDER_CLASSES.THUMB_HOVER
                   : ''
             }`}
             style={{
-              left: `${minPercent}%`,
+              left: `${minPosition}%`,
               top: '50%',
               transform: `translate(-50%, -50%) ${
                 isDragging === 'min' 
@@ -311,12 +401,20 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
             onKeyDown={(e) => {
               if (disabled) return;
               
-              if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+              // In RTL, left arrow should increase and right arrow should decrease
+              const isDecrease = dir === 'rtl' 
+                ? (e.key === 'ArrowRight' || e.key === 'ArrowDown')
+                : (e.key === 'ArrowLeft' || e.key === 'ArrowDown');
+              const isIncrease = dir === 'rtl'
+                ? (e.key === 'ArrowLeft' || e.key === 'ArrowUp')
+                : (e.key === 'ArrowRight' || e.key === 'ArrowUp');
+              
+              if (isDecrease) {
                 e.preventDefault();
                 const newValue = Math.max(minRange, minVal - step);
                 setMinVal(newValue);
                 debouncedOnChange(newValue, maxVal);
-              } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+              } else if (isIncrease) {
                 e.preventDefault();
                 const newValue = Math.min(maxVal - step, minVal + step);
                 setMinVal(newValue);
@@ -329,13 +427,13 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
           <div
             className={`${thumbClassName} ${
               isDragging === 'max' 
-                ? 'shadow-xl' 
+                ? SLIDER_CLASSES.THUMB_ACTIVE
                 : hoveredThumb === 'max' 
-                  ? 'shadow-xl' 
+                  ? SLIDER_CLASSES.THUMB_HOVER
                   : ''
             }`}
             style={{
-              left: `${maxPercent}%`,
+              left: `${maxPosition}%`,
               top: '50%',
               transform: `translate(-50%, -50%) ${
                 isDragging === 'max' 
@@ -359,12 +457,20 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
             onKeyDown={(e) => {
               if (disabled) return;
               
-              if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+              // In RTL, left arrow should increase and right arrow should decrease
+              const isDecrease = dir === 'rtl' 
+                ? (e.key === 'ArrowRight' || e.key === 'ArrowDown')
+                : (e.key === 'ArrowLeft' || e.key === 'ArrowDown');
+              const isIncrease = dir === 'rtl'
+                ? (e.key === 'ArrowLeft' || e.key === 'ArrowUp')
+                : (e.key === 'ArrowRight' || e.key === 'ArrowUp');
+              
+              if (isDecrease) {
                 e.preventDefault();
                 const newValue = Math.max(minVal + step, maxVal - step);
                 setMaxVal(newValue);
                 debouncedOnChange(minVal, newValue);
-              } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+              } else if (isIncrease) {
                 e.preventDefault();
                 const newValue = Math.min(maxRange, maxVal + step);
                 setMaxVal(newValue);
@@ -373,61 +479,14 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
             }}
           />
         </div>
-
-        {/* Range labels */}
-        {showRangeLabels && (
-          <div className="flex justify-between mt-3 text-sm text-gray-500">
-            <span className={dirClass}>{formatVal(minRange)}</span>
-            <span className={dirClass}>{formatVal(maxRange)}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Input fields */}
-      {showInputs && (
-        <div className="grid grid-cols-2 gap-4 mt-6">
-          <div>
-            <label htmlFor="min-value-input" className={`block text-sm text-gray-600 mb-2 ${dirClass}`} dir={dir}>
-              {minLabel}
-            </label>
-            <input
-              ref={minInputRef}
-              id="min-value-input"
-              type="number"
-              defaultValue={minVal === minRange ? '' : minVal.toString()}
-              onChange={(e) => handleInputChange('min', e.target.value)}
-              onBlur={() => {
-                isUserTyping.current.min = false;
-              }}
-              placeholder={anyPlaceholder}
-              disabled={disabled}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              step={step}
-              min={minRange}
-            />
-          </div>
-          <div>
-            <label htmlFor="max-value-input" className={`block text-sm text-gray-600 mb-2 ${dirClass}`} dir={dir}>
-              {maxLabel}
-            </label>
-            <input
-              ref={maxInputRef}
-              id="max-value-input"
-              type="number"
-              defaultValue={maxVal === maxRange ? '' : maxVal.toString()}
-              onChange={(e) => handleInputChange('max', e.target.value)}
-              onBlur={() => {
-                isUserTyping.current.max = false;
-              }}
-              placeholder={anyPlaceholder}
-              disabled={disabled}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              step={step}
-              max={maxRange}
-            />
-          </div>
+        
+        {/* Range labels aligned with slider track */}
+        <div className="flex justify-between text-sm text-gray-500 mt-2 px-3">
+          <span>{minRange.toLocaleString()}{unit ? ` ${unit}` : ''}</span>
+          <span>{maxRange.toLocaleString()}{unit ? ` ${unit}` : ''}</span>
         </div>
-      )}
+      </div>
+      
     </div>
   );
 });

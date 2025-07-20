@@ -27,10 +27,12 @@
   "loading": "جارٍ التحميل...",
   "clearAll": "إزالة جميع الفلاتر",
   "clearAllFilters": "إزالة جميع الفلاتر",
-  "minPrice": "أقل سعر",
-  "maxPrice": "أعلى سعر",
+  "lowestPrice": "أقل سعر",
+  "highestPrice": "أعلى سعر",
   "minimumPrice": "السعر الأدنى",
   "maximumPrice": "السعر الأقصى",
+  "lowestPricePlaceholder": "أقل سعر",
+  "highestPricePlaceholder": "أعلى سعر",
   "@minPrice": {
     "description": "تسمية لحقل إدخال السعر الأدنى في شريط تمرير الأسعار"
   },
@@ -63,6 +65,13 @@
   "locationOptions": "خيارات المحافظة",
   "sellerType": "نوع البائع",
   "done": "تم",
+  "showResults": "عرض {{count}} نتيجة",
+  "showResults_zero": "عرض {{count}} نتيجة",
+  "showResults_one": "عرض نتيجة واحدة", 
+  "showResults_two": "عرض نتيجتين",
+  "showResults_few": "عرض {{count}} نتائج",
+  "showResults_many": "عرض {{count}} نتيجة",
+  "showResults_other": "عرض {{count}} نتيجة",
   "errorLoadingResults": "خطأ في تحميل النتائج",
   "tryAgain": "حاول مرة أخرى",
   "noResultsFound": "لم يتم العثور على سيارات",
@@ -87,6 +96,5 @@
   "cars": "سيارة",
   "cancel": "إلغاء",
   "show": "عرض",
-  "showResults": "عرض {{count}} نتائج",
   "showAllFilters": "إظهار جميع الفلاتر"
 }
