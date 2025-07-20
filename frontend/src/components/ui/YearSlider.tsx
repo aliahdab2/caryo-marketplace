@@ -9,7 +9,7 @@ import type { TFunction } from 'i18next';
 // Year slider defaults
 const YEAR_SLIDER_DEFAULTS = {
   MIN_RANGE: 1980,
-  MAX_RANGE: new Date().getFullYear() + 1,
+  MAX_RANGE: () => new Date().getFullYear() + 1,
   STEP: 1
 } as const;
 
@@ -35,7 +35,7 @@ const YearSlider: React.FC<YearSliderProps> = React.memo(({
   minYear,
   maxYear,
   minRange = YEAR_SLIDER_DEFAULTS.MIN_RANGE,
-  maxRange = YEAR_SLIDER_DEFAULTS.MAX_RANGE,
+  maxRange = YEAR_SLIDER_DEFAULTS.MAX_RANGE(),
   step = YEAR_SLIDER_DEFAULTS.STEP,
   onChange,
   className = '',

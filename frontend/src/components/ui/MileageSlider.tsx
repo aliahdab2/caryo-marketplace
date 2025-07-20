@@ -79,9 +79,9 @@ const MileageSlider: React.FC<MileageSliderProps> = React.memo(({
   const maxLabel = t ? t('search:highestMileage', 'Highest mileage') : 'Highest mileage';
   const anyPlaceholder = t ? t('search:any', 'Any') : 'Any';
   
-  // Placeholders: "0" for min, highest mileage for max
-  const minPlaceholder = "0";
-  const maxPlaceholder = maxRange.toLocaleString();
+  // Placeholders: formatted "0" for min, highest mileage for max
+  const minPlaceholder = formatValue(0);
+  const maxPlaceholder = formatValue(maxRange);
   
   const ariaLabelMin = t ? t('search:minimumMileage', 'Minimum mileage') : 'Minimum mileage';
   const ariaLabelMax = t ? t('search:maximumMileage', 'Maximum mileage') : 'Maximum mileage';
