@@ -29,9 +29,9 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
   // Validation
   useEffect(() => {
     if (minRange >= maxRange) {
-      console.warn('PriceSlider: minRange should be less than maxRange');
+      console.warn(t('priceSlider.minRangeError', 'PriceSlider: minRange should be less than maxRange'));
     }
-  }, [minRange, maxRange]);
+  }, [minRange, maxRange, t]);
 
   // Auto-detect locale from i18n context if not provided
   const { i18n } = useTranslation();
@@ -230,7 +230,7 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
               }`
             }}
             role="slider"
-            aria-label="Minimum price"
+            aria-label={t('priceSlider.minPrice', 'Minimum price')}
             aria-valuemin={minRange}
             aria-valuemax={maxValue - step}
             aria-valuenow={minValue}
@@ -275,7 +275,7 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
               }`
             }}
             role="slider"
-            aria-label="Maximum price"
+            aria-label={t('priceSlider.maxPrice', 'Maximum price')}
             aria-valuemin={minValue + step}
             aria-valuemax={maxRange}
             aria-valuenow={maxValue}
