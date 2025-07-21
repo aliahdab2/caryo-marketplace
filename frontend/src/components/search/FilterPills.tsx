@@ -3,7 +3,7 @@ import { MdFilterList } from 'react-icons/md';
 import { FilterType } from '@/hooks/useSearchFilters';
 
 interface FilterPillsProps {
-  setActiveFilterModal: (filterType: FilterType | 'allFilters') => void;
+  setActiveFilterModal: (filterType: FilterType) => void;
   isFilterActive: (filterType: FilterType) => boolean;
   getFilterDisplayText: (filterType: FilterType) => string;
   t: (key: string, fallback?: string) => string;

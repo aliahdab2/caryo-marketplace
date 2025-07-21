@@ -482,64 +482,53 @@ const FilterModal: React.FC<FilterModalProps> = ({
             {/* Price Range */}
             <div className="border border-gray-200 rounded-lg p-4">
               <h4 className="text-lg font-medium text-gray-900 mb-3">{t('priceRange', 'Price Range')}</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  type="number"
-                  value={filters.minPrice || ''}
-                  onChange={(e) => handleInputChange('minPrice', e.target.value ? parseInt(e.target.value) : undefined)}
-                  placeholder={t('from', 'From')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="number"
-                  value={filters.maxPrice || ''}
-                  onChange={(e) => handleInputChange('maxPrice', e.target.value ? parseInt(e.target.value) : undefined)}
-                  placeholder={t('to', 'To')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              <PriceSlider
+                minPrice={filters.minPrice}
+                maxPrice={filters.maxPrice}
+                currency={DEFAULT_CURRENCY}
+                onChange={handlePriceChange}
+                t={t}
+                locale={currentLanguage}
+                className="mb-2"
+              />
             </div>
             
             {/* Year Range */}
             <div className="border border-gray-200 rounded-lg p-4">
               <h4 className="text-lg font-medium text-gray-900 mb-3">{t('yearRange', 'Year Range')}</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  type="number"
-                  value={filters.minYear || ''}
-                  onChange={(e) => handleInputChange('minYear', e.target.value ? parseInt(e.target.value) : undefined)}
-                  placeholder={t('from', 'From')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="number"
-                  value={filters.maxYear || ''}
-                  onChange={(e) => handleInputChange('maxYear', e.target.value ? parseInt(e.target.value) : undefined)}
-                  placeholder={t('to', 'To')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              <YearSlider
+                minYear={filters.minYear}
+                maxYear={filters.maxYear}
+                onChange={(min, max) => {
+                  updateFiltersAndState({
+                    minYear: min,
+                    maxYear: max
+                  });
+                }}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                t={t as any}
+                locale={currentLanguage}
+                className="w-full"
+              />
             </div>
             
             {/* Mileage Range */}
             <div className="border border-gray-200 rounded-lg p-4">
               <h4 className="text-lg font-medium text-gray-900 mb-3">{t('mileageRange', 'Mileage Range')}</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  type="number"
-                  value={filters.minMileage || ''}
-                  onChange={(e) => handleInputChange('minMileage', e.target.value ? parseInt(e.target.value) : undefined)}
-                  placeholder={t('from', 'From')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="number"
-                  value={filters.maxMileage || ''}
-                  onChange={(e) => handleInputChange('maxMileage', e.target.value ? parseInt(e.target.value) : undefined)}
-                  placeholder={t('to', 'To')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              <MileageSlider
+                minMileage={filters.minMileage}
+                maxMileage={filters.maxMileage}
+                onChange={(min, max) => {
+                  updateFiltersAndState({
+                    minMileage: min,
+                    maxMileage: max
+                  });
+                }}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                t={t as any}
+                locale={currentLanguage}
+                className="w-full"
+              />
             </div>
           </div>
         );

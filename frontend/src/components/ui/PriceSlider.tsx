@@ -6,7 +6,7 @@ import { useLanguageDirection } from '@/utils/languageDirection';
 import RangeSlider from './RangeSlider';
 import { DEFAULT_CURRENCY, getOptimalLocale } from '../../utils/currency';
 import { formatNumber } from '../../utils/localization';
-import { PRICE_SLIDER_DEFAULTS, SLIDER_CLASSES, INPUT_CLASSES } from './PriceSlider.constants';
+import { PRICE_SLIDER_DEFAULTS } from './PriceSlider.constants';
 import type { PriceSliderProps } from '../../types/ui';
 
 /**

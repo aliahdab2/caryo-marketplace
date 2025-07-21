@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef, useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useEffect } from 'react';
 import { MdClose, MdFilterList } from 'react-icons/md';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useAnnouncements } from '@/hooks/useAccessibility';
-import { EnhancedLoadingState } from '@/components/ui/EnhancedUX';
 import { CarMake, CarModel } from '@/types/car';
 import { CarReferenceData } from '@/services/api';
 import { SellerTypeCounts } from '@/types/sellerTypes';
