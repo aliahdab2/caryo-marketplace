@@ -62,12 +62,13 @@ const YearSlider: React.FC<YearSliderProps> = React.memo(({
     }
   }, [minRange, maxRange, step, minYear, maxYear]);
 
-  // Format year values (no decimal places)
+  // Format year values (no decimal places, no thousands separators)
   const formatValue = React.useCallback((value: number) => {
     return formatNumber(value, currentLocale, { 
       style: 'decimal',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
+      useGrouping: false  // This removes thousands separators (commas)
     });
   }, [currentLocale]);
 
