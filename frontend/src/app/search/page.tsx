@@ -4,14 +4,10 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useOptimizedFiltering } from '@/hooks/useOptimizedFiltering';
-import SmoothTransition from '@/components/ui/SmoothTransition';
 import { 
-  MdDirectionsCar,
-  MdFavoriteBorder,
-  MdFilterList
+  MdFavoriteBorder
 } from 'react-icons/md';
 import { CarMake, CarModel } from '@/types/car';
-import CarListingCard, { CarListingCardData } from '@/components/listings/CarListingCard';
 import { 
   fetchCarBrands, 
   fetchCarModels,
@@ -31,10 +27,11 @@ import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
 import { formatNumber } from '@/utils/localization';
 import { useLanguageDirection } from '@/utils/languageDirection';
-import CarListingSkeleton from '@/components/ui/CarListingSkeleton';
 import FilterModal from '@/components/search/FilterModal';
 import FilterChips from '@/components/search/FilterChips';
 import SearchBar from '@/components/search/SearchBar';
+import FilterPills from '@/components/search/FilterPills';
+import CarListingsGrid from '@/components/search/CarListingsGrid';
 
 // Move namespaces outside component to prevent recreation on every render
 const SEARCH_NAMESPACES = ['common', 'search'];
@@ -666,37 +663,6 @@ export default function AdvancedSearchPage() {
   }, [filters]);
 
   // Filter pill component with memo for performance
-  const FilterPill = React.memo(({ filterType, onClick }: { filterType: FilterType; onClick: () => void }) => {
-    const isActive = isFilterActive(filterType);
-    const displayText = getFilterDisplayText(filterType);
-    
-    return (
-      <button
-        onClick={onClick}
-        className={`group relative inline-flex items-center px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99] ${
-          isActive
-            ? 'bg-gradient-to-r from-blue-600 to-blue-700 border-2 border-blue-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 hover:from-blue-700 hover:to-blue-800'
-            : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400'
-        }`}
-        aria-label={`Filter by ${displayText}`}
-      >
-        <span className="relative z-10 flex items-center">
-          {displayText}
-        </span>
-
-        {/* Animated background for active state */}
-        {isActive && (
-          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400 to-blue-600 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-        )}
-        {/* Ripple effect */}
-        <div className="absolute inset-0 rounded-xl overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-700" />
-        </div>
-      </button>
-    );
-  });
-  FilterPill.displayName = 'FilterPill';
-
   const handleSearch = () => {
     setSearchLoading(true);
     
@@ -736,40 +702,13 @@ export default function AdvancedSearchPage() {
         />
 
         {/* Enhanced Filter Bar */}
-        <div className="mb-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 shadow-sm">
-          <div className="flex flex-col space-y-2">
-            {/* Filter Pills Section */}
-            <div className="flex flex-col space-y-2">
-              <div className="flex flex-wrap gap-2">
-                {/* Show All Filters Button */}
-                <button
-                  onClick={() => setActiveFilterModal('allFilters')}
-                  className="group relative inline-flex items-center px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
-                  aria-label="Show all filters"
-                >
-                  <span className="relative z-10 flex items-center space-x-2">
-                    <MdFilterList className="w-4 h-4" />
-                    <span>{t('showAllFilters', 'Show all filters')}</span>
-                  </span>
-
-                  {/* Ripple effect */}
-                  <div className="absolute inset-0 rounded-xl overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-700" />
-                  </div>
-                </button>
-                
-                <FilterPill filterType="makeModel" onClick={() => setActiveFilterModal('makeModel')} />
-                <FilterPill filterType="price" onClick={() => setActiveFilterModal('price')} />
-                <FilterPill filterType="year" onClick={() => setActiveFilterModal('year')} />
-                <FilterPill filterType="mileage" onClick={() => setActiveFilterModal('mileage')} />
-                <FilterPill filterType="transmission" onClick={() => setActiveFilterModal('transmission')} />
-                <FilterPill filterType="fuelType" onClick={() => setActiveFilterModal('fuelType')} />
-                <FilterPill filterType="bodyStyle" onClick={() => setActiveFilterModal('bodyStyle')} />
-                <FilterPill filterType="sellerType" onClick={() => setActiveFilterModal('sellerType')} />
-              </div>
-            </div>
-          </div>
-        </div>
+        <FilterPills
+          setActiveFilterModal={setActiveFilterModal}
+          isFilterActive={isFilterActive}
+          getFilterDisplayText={getFilterDisplayText}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          t={t as any}
+        />
 
         {/* Filter Chips */}
         <FilterChips
@@ -805,87 +744,15 @@ export default function AdvancedSearchPage() {
         </div>
 
         {/* Car Listings Grid with Smooth Transitions */}
-        <SmoothTransition
-          isLoading={isLoadingListings}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-          loadingType={isManualSearch ? 'overlay' : 'full'}
-          minimumLoadingTime={isManualSearch ? 100 : 200}
-          loadingComponent={
-            isManualSearch ? (
-              // Subtle spinner for manual searches
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            ) : (
-              // Full skeleton loading for automatic changes
-              <>
-                {Array.from({ length: 8 }).map((_, index) => (
-                  <CarListingSkeleton key={index} />
-                ))}
-              </>
-            )
-          }
-        >
-          {listingsError ? (
-            <div className="col-span-full flex items-center justify-center py-12">
-              <div className="text-center">
-                <div className="text-red-500 text-lg mb-2">
-                  {t('errorLoadingResults', 'Error loading results')}
-                </div>
-                <div className="text-gray-600 text-sm">
-                  {typeof listingsError === 'string' ? listingsError : 'An error occurred'}
-                </div>
-                <button
-                  onClick={() => executeSearch(false)}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  {t('tryAgain', 'Try again')}
-                </button>
-              </div>
-            </div>
-          ) : carListings && carListings.content.length > 0 ? (
-            carListings.content.map((listing) => {
-              // Transform backend CarListing to CarListingCardData format
-              const cardData: CarListingCardData = {
-                id: listing.id,
-                title: listing.title,
-                price: listing.price,
-                year: listing.modelYear,
-                mileage: listing.mileage,
-                transmission: listing.transmission,
-                fuelType: listing.fuelType,
-                createdAt: listing.createdAt,
-                sellerUsername: listing.sellerUsername,
-                governorateNameEn: listing.governorateNameEn,
-                governorateNameAr: listing.governorateNameAr,
-                media: listing.media?.map(m => ({
-                  url: m.url,
-                  isPrimary: m.isPrimary,
-                  contentType: m.contentType
-                }))
-              };
-
-              return (
-                <div key={listing.id} className="animate-fadeIn">
-                  <CarListingCard
-                    listing={cardData}
-                    onFavoriteToggle={(_isFavorite) => {
-                      // Handle favorite toggle if needed
-                    }}
-                    initialFavorite={false}
-                  />
-                </div>
-              );
-            })
-          ) : (
-            // No results state
-            <div className="col-span-full text-center py-12">
-              <MdDirectionsCar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noResultsFound', 'No cars found')}</h3>
-              <p className="text-gray-600">{t('tryDifferentFilters', 'Try adjusting your search filters to see more results.')}</p>
-            </div>
-          )}
-        </SmoothTransition>
+        <CarListingsGrid
+          carListings={carListings}
+          isLoadingListings={isLoadingListings}
+          isManualSearch={isManualSearch}
+          listingsError={listingsError}
+          executeSearch={executeSearch}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          t={t as any}
+        />
 
         {/* Pagination */}
         {carListings && carListings.totalPages > 1 && (
