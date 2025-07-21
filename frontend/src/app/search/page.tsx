@@ -40,6 +40,7 @@ import { DEFAULT_CURRENCY } from '@/utils/currency';
 import { formatNumber } from '@/utils/localization';
 import { useLanguageDirection } from '@/utils/languageDirection';
 import { getCarIcon } from '@/utils/carIcons';
+import CarListingSkeleton from '@/components/ui/CarListingSkeleton';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
@@ -1335,22 +1336,7 @@ export default function AdvancedSearchPage() {
       </div>
     );
   };
-  // Loading skeleton component for better UX
-  const LoadingSkeleton = React.memo(() => (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden animate-pulse">
-      <div className="aspect-w-16 aspect-h-12 bg-gray-300 h-48"></div>
-      <div className="p-4 space-y-3">
-        <div className="h-4 bg-gray-300 rounded"></div>
-        <div className="h-3 bg-gray-300 rounded w-3/4"></div>
-        <div className="h-5 bg-gray-300 rounded w-1/2"></div>
-        <div className="flex justify-between items-center">
-          <div className="h-3 bg-gray-300 rounded w-1/4"></div>
-          <div className="h-3 bg-gray-300 rounded w-1/4"></div>
-        </div>
-      </div>
-    </div>
-  ));
-  LoadingSkeleton.displayName = 'LoadingSkeleton';
+
 
   const handleSearch = () => {
     setSearchLoading(true);
@@ -1872,7 +1858,7 @@ export default function AdvancedSearchPage() {
               // Full skeleton loading for automatic changes
               <>
                 {Array.from({ length: 8 }).map((_, index) => (
-                  <LoadingSkeleton key={index} />
+                  <CarListingSkeleton key={index} />
                 ))}
               </>
             )
