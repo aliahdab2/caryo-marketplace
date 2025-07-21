@@ -14,18 +14,6 @@ import {
   MdDeleteSweep,
   MdFilterList
 } from 'react-icons/md';
-import { 
-  ConvertibleIcon,
-  CoupeIcon,
-  EstateIcon,
-  HatchbackIcon,
-  MPVIcon,
-  PickupIcon,
-  SedanIcon,
-  SUVIcon,
-  VanIcon,
-  MotorcycleIcon
-} from '@/components/icons/CarIcons';
 import { CarMake, CarModel } from '@/types/car';
 import CarListingCard, { CarListingCardData } from '@/components/listings/CarListingCard';
 import { 
@@ -51,41 +39,13 @@ import { FilterModalContainer } from '@/components/ui/FilterModalContainer';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
 import { formatNumber } from '@/utils/localization';
 import { useLanguageDirection } from '@/utils/languageDirection';
+import { getCarIcon } from '@/utils/carIcons';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1980 + 1 }, (_, i) => CURRENT_YEAR - i);
 
 // Move namespaces outside component to prevent recreation on every render
 const SEARCH_NAMESPACES = ['common', 'search'];
-
-// Function to get appropriate car icon based on body style
-const getCarIcon = (bodyStyleName: string) => {
-  const normalizedName = bodyStyleName.toLowerCase();
-  const iconMap: Record<string, React.ReactNode> = {
-    'sedan': <SedanIcon className="w-8 h-6 text-gray-600" />,
-    'saloon': <SedanIcon className="w-8 h-6 text-gray-600" />,
-    'hatchback': <HatchbackIcon className="w-8 h-6 text-gray-600" />,
-    'suv': <SUVIcon className="w-8 h-6 text-gray-600" />,
-    'coupe': <CoupeIcon className="w-8 h-6 text-gray-600" />,
-    'convertible': <ConvertibleIcon className="w-8 h-6 text-gray-600" />,
-    'wagon': <EstateIcon className="w-8 h-6 text-gray-600" />,
-    'estate': <EstateIcon className="w-8 h-6 text-gray-600" />,
-    'truck': <PickupIcon className="w-8 h-6 text-gray-600" />,
-    'pickup': <PickupIcon className="w-8 h-6 text-gray-600" />,
-    'van': <VanIcon className="w-8 h-6 text-gray-600" />,
-    'minivan': <MPVIcon className="w-8 h-6 text-gray-600" />,
-    'mpv': <MPVIcon className="w-8 h-6 text-gray-600" />,
-    'motorcycle': <MotorcycleIcon className="w-8 h-6 text-gray-600" />,
-    'crossover': <SUVIcon className="w-8 h-6 text-gray-600" />,
-    'taxi': <SedanIcon className="w-8 h-6 text-gray-600" />,
-    'ambulance': <VanIcon className="w-8 h-6 text-gray-600" />,
-    'rv': <VanIcon className="w-8 h-6 text-gray-600" />,
-    'camper': <VanIcon className="w-8 h-6 text-gray-600" />,
-    'other': <SedanIcon className="w-8 h-6 text-gray-600" />
-  };
-
-  return iconMap[normalizedName] || <SedanIcon className="w-8 h-6 text-gray-600" />;
-};
 
 export default function AdvancedSearchPage() {
   const { t, i18n } = useLazyTranslation(SEARCH_NAMESPACES);
