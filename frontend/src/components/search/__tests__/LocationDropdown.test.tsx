@@ -9,30 +9,55 @@ jest.mock('react-icons/md', () => ({
   MdKeyboardArrowDown: () => <div data-testid="arrow-down-icon" />
 }));
 
-const mockGovernorate: Governorate = {
-  id: 1,
-  displayNameEn: 'Cairo',
-  displayNameAr: 'القاهرة',
-  slug: 'cairo'
-};
+const mockGovernorates: Governorate[] = [
+  {
+    id: 1,
+    displayNameEn: 'Cairo',
+    displayNameAr: 'القاهرة',
+    slug: 'cairo'
+  },
+  {
+    id: 2,
+    displayNameEn: 'Alexandria',
+    displayNameAr: 'الإسكندرية',
+    slug: 'alexandria'
+  },
+  {
+    id: 3,
+    displayNameEn: 'Giza',
+    displayNameAr: 'الجيزة',
+    slug: 'giza'
+  }
+];
 
 const mockProps = {
   filters: {} as AdvancedSearchFilters,
   setFilters: jest.fn(),
   showLocationDropdown: false,
   setShowLocationDropdown: jest.fn(),
-  governorates: [mockGovernorate],
+  governorates: mockGovernorates,
   currentLanguage: 'en',
   t: jest.fn((key: string, fallback?: string, options?: { count?: number }) => {
-    const translations: Record<string, string> = {
-      'locationFilterLabel': 'Filter by location',
-      'allLocations': 'All Governorates',
-      'locationOptions': 'Location options',
-      'clear': 'Clear',
-      'show': 'Show',
-      'locationsSelected': `${options?.count || 0} locations selected`
+    const translations: Record<string, Record<string, string>> = {
+      en: {
+        'locationFilterLabel': 'Filter by location',
+        'allLocations': 'All Governorates',
+        'locationOptions': 'Location options',
+        'clear': 'Clear',
+        'show': 'Show',
+        'locationsSelected': `${options?.count || 0} locations selected`
+      },
+      ar: {
+        'locationFilterLabel': 'تصفية حسب الموقع',
+        'allLocations': 'جميع المحافظات',
+        'locationOptions': 'خيارات الموقع',
+        'clear': 'مسح',
+        'show': 'عرض',
+        'locationsSelected': `${options?.count || 0} مواقع محددة`
+      }
     };
-    return translations[key] || fallback || key;
+    const currentTranslations = translations['en']; // Default to English for tests
+    return currentTranslations[key] || fallback || key;
   })
 };
 
@@ -69,6 +94,55 @@ describe('LocationDropdown', () => {
     expect(screen.getByText('2 locations selected')).toBeInTheDocument();
   });
 
+  it('shows Arabic location names when currentLanguage is ar', () => {
+    const propsWithArabic = {
+      ...mockProps,
+      currentLanguage: 'ar',
+      showLocationDropdown: true,
+      t: jest.fn((key: string, fallback?: string, options?: { count?: number }) => {
+        const translations: Record<string, Record<string, string>> = {
+          ar: {
+            'locationFilterLabel': 'تصفية حسب الموقع',
+            'allLocations': 'جميع المحافظات',
+            'locationOptions': 'خيارات الموقع',
+            'clear': 'مسح',
+            'show': 'عرض',
+            'locationsSelected': `${options?.count || 0} مواقع محددة`
+          }
+        };
+        const currentTranslations = translations['ar'];
+        return currentTranslations[key] || fallback || key;
+      })
+    };
+    render(<LocationDropdown {...propsWithArabic} />);
+    
+    // Should display Arabic names for all governorates
+    expect(screen.getByText('القاهرة')).toBeInTheDocument();
+    expect(screen.getByText('الإسكندرية')).toBeInTheDocument();
+    expect(screen.getByText('الجيزة')).toBeInTheDocument();
+  });
+
+  it('displays selected Arabic location name when language is Arabic', () => {
+    const propsWithArabicSelection = {
+      ...mockProps,
+      currentLanguage: 'ar',
+      filters: { locations: ['alexandria'] } as AdvancedSearchFilters,
+      t: jest.fn((key: string, fallback?: string, options?: { count?: number }) => {
+        const translations: Record<string, Record<string, string>> = {
+          ar: {
+            'locationFilterLabel': 'تصفية حسب الموقع',
+            'allLocations': 'جميع المحافظات',
+            'locationsSelected': `${options?.count || 0} مواقع محددة`
+          }
+        };
+        const currentTranslations = translations['ar'];
+        return currentTranslations[key] || fallback || key;
+      })
+    };
+    render(<LocationDropdown {...propsWithArabicSelection} />);
+    expect(screen.getByText('الإسكندرية')).toBeInTheDocument();
+  });
+
   it('toggles dropdown when button is clicked', () => {
     render(<LocationDropdown {...mockProps} />);
     const button = screen.getByRole('button', { name: /filter by location/i });
@@ -85,7 +159,12 @@ describe('LocationDropdown', () => {
     render(<LocationDropdown {...propsWithDropdownOpen} />);
     
     expect(screen.getByText('Cairo')).toBeInTheDocument();
-    expect(screen.getByRole('checkbox')).toBeInTheDocument();
+    expect(screen.getByText('Alexandria')).toBeInTheDocument();
+    expect(screen.getByText('Giza')).toBeInTheDocument();
+    
+    // Check that all checkboxes are present
+    const checkboxes = screen.getAllByRole('checkbox');
+    expect(checkboxes).toHaveLength(3);
   });
 
   it('handles location selection', () => {
@@ -95,8 +174,9 @@ describe('LocationDropdown', () => {
     };
     render(<LocationDropdown {...propsWithDropdownOpen} />);
     
-    const checkbox = screen.getByRole('checkbox');
-    fireEvent.click(checkbox);
+    // Select the Cairo checkbox specifically
+    const cairoCheckbox = screen.getByLabelText('Cairo');
+    fireEvent.click(cairoCheckbox);
     
     expect(mockProps.setFilters).toHaveBeenCalledWith({
       locations: ['cairo']
@@ -111,8 +191,9 @@ describe('LocationDropdown', () => {
     };
     render(<LocationDropdown {...propsWithSelection} />);
     
-    const checkbox = screen.getByRole('checkbox');
-    fireEvent.click(checkbox);
+    // Deselect the Cairo checkbox specifically
+    const cairoCheckbox = screen.getByRole('checkbox', { name: 'Cairo' });
+    fireEvent.click(cairoCheckbox);
     
     expect(mockProps.setFilters).toHaveBeenCalledWith({});
   });
@@ -143,18 +224,31 @@ describe('LocationDropdown', () => {
     expect(mockProps.setShowLocationDropdown).toHaveBeenCalledWith(false);
   });
 
-  it('displays Arabic names when currentLanguage is ar', () => {
-    const propsWithArabic = {
-      ...mockProps,
-      currentLanguage: 'ar',
-      showLocationDropdown: true
-    };
-    render(<LocationDropdown {...propsWithArabic} />);
-    
-    expect(screen.getByText('القاهرة')).toBeInTheDocument();
-  });
-
   it('has correct displayName', () => {
     expect(LocationDropdown.displayName).toBe('LocationDropdown');
+  });
+
+  it('handles bilingual functionality correctly', () => {
+    // Test English display
+    const englishProps = { ...mockProps, showLocationDropdown: true };
+    const { rerender } = render(<LocationDropdown {...englishProps} />);
+    expect(screen.getByText('Cairo')).toBeInTheDocument();
+
+    // Test Arabic display
+    const arabicProps = {
+      ...mockProps,
+      currentLanguage: 'ar',
+      showLocationDropdown: true,
+      t: jest.fn((key: string, fallback?: string) => {
+        const arabicTranslations: Record<string, string> = {
+          'allLocations': 'جميع المحافظات',
+          'clear': 'مسح',
+          'show': 'عرض'
+        };
+        return arabicTranslations[key] || fallback || key;
+      })
+    };
+    rerender(<LocationDropdown {...arabicProps} />);
+    expect(screen.getByText('القاهرة')).toBeInTheDocument();
   });
 });
