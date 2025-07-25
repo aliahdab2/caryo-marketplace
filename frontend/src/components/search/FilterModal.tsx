@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { CarMake, CarModel } from '@/types/car';
 import { CarReferenceData, CarListing, PageResponse } from '@/services/api';
 import { SellerTypeCounts } from '@/types/sellerTypes';
@@ -77,6 +77,70 @@ const FilterModal: React.FC<FilterModalProps> = ({
   clearSpecificFilter
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  
+  // State for managing collapsible sections in allFilters modal
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    makeModel: true,
+    price: true,
+    year: true,
+    mileage: true,
+    bodyStyle: true,
+    transmission: true,
+    fuelType: true,
+    sellerType: true
+  });
+
+  const toggleSection = (sectionName: string) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [sectionName]: !prev[sectionName]
+    }));
+  };
+
+  // Collapsible section component
+  const CollapsibleSection = ({ 
+    title, 
+    sectionName, 
+    children, 
+    icon 
+  }: { 
+    title: string; 
+    sectionName: string; 
+    children: React.ReactNode; 
+    icon: React.ReactNode;
+  }) => {
+    const isCollapsed = collapsedSections[sectionName];
+    
+    return (
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <button
+          onClick={() => toggleSection(sectionName)}
+          className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+        >
+          <div className="flex items-center space-x-3 rtl:space-x-reverse">
+            <div className="w-5 h-5 text-gray-600">
+              {icon}
+            </div>
+            <span className="font-medium text-gray-900">{title}</span>
+          </div>
+          <div className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
+            isCollapsed ? 'rotate-0' : 'rotate-180'
+          }`}>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
+        <div className={`transition-all duration-300 ease-in-out ${
+          isCollapsed ? 'max-h-0 opacity-0' : 'max-h-96 opacity-100'
+        } overflow-hidden`}>
+          <div className="p-4">
+            {children}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const getModalTitle = (filterType: FilterType) => {
     switch (filterType) {
@@ -435,14 +499,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
       case 'allFilters':
         return (
-          <div className="space-y-6 max-h-[70vh] overflow-y-auto">
-            <div className="text-center">
-              <h3 className="text-xl font-medium text-gray-900 mb-4">{t('allFilters', 'All Filters')}</h3>
-            </div>
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto">
             
             {/* Make and Model */}
-            <div className="border border-gray-200 rounded-lg p-4">
-              <h4 className="text-lg font-medium text-gray-900 mb-3 text-center">{t('makeAndModel', 'Make and Model')}</h4>
+            <CollapsibleSection
+              title={t('makeAndModel', 'Make and Model')}
+              sectionName="makeModel"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              }
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-gray-600 mb-2">{t('make', 'Make')}</label>
@@ -514,11 +582,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
                   </select>
                 </div>
               </div>
-            </div>
+            </CollapsibleSection>
             
             {/* Price Range */}
-            <div className="border border-gray-200 rounded-lg p-4">
-              <h4 className="text-lg font-medium text-gray-900 mb-3">{t('priceRange', 'Price Range')}</h4>
+            <CollapsibleSection
+              title={t('priceRange', 'Price Range')}
+              sectionName="price"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+              }
+            >
               <PriceSlider
                 minPrice={filters.minPrice}
                 maxPrice={filters.maxPrice}
@@ -528,11 +603,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 locale={currentLanguage}
                 className="mb-2"
               />
-            </div>
+            </CollapsibleSection>
             
             {/* Year Range */}
-            <div className="border border-gray-200 rounded-lg p-4">
-              <h4 className="text-lg font-medium text-gray-900 mb-3">{t('yearRange', 'Year Range')}</h4>
+            <CollapsibleSection
+              title={t('yearRange', 'Year Range')}
+              sectionName="year"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              }
+            >
               <YearSlider
                 minYear={filters.minYear}
                 maxYear={filters.maxYear}
@@ -547,11 +629,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 locale={currentLanguage}
                 className="w-full"
               />
-            </div>
+            </CollapsibleSection>
             
             {/* Mileage Range */}
-            <div className="border border-gray-200 rounded-lg p-4">
-              <h4 className="text-lg font-medium text-gray-900 mb-3">{t('mileageRange', 'Mileage Range')}</h4>
+            <CollapsibleSection
+              title={t('mileageRange', 'Mileage Range')}
+              sectionName="mileage"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              }
+            >
               <MileageSlider
                 minMileage={filters.minMileage}
                 maxMileage={filters.maxMileage}
@@ -566,7 +655,74 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 locale={currentLanguage}
                 className="w-full"
               />
-            </div>
+            </CollapsibleSection>
+            
+            {/* Body Style */}
+            <CollapsibleSection
+              title={t('bodyStyle', 'Body Style')}
+              sectionName="bodyStyle"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              }
+            >
+              <div className="grid gap-3 max-h-60 overflow-y-auto">
+                {referenceData?.bodyStyles?.map(bodyStyle => {
+                  const isSelected = filters.bodyStyleIds?.includes(bodyStyle.id) || false;
+                  const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
+                  const count = bodyStyleCounts[bodyStyle.name.toLowerCase()] || 0;
+                  
+                  return (
+                    <div
+                      key={bodyStyle.id}
+                      className={`group relative flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                        isSelected 
+                          ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
+                      }`}
+                      onClick={() => {
+                        const currentBodyStyleIds = filters.bodyStyleIds || [];
+                        const newBodyStyleIds = isSelected 
+                          ? currentBodyStyleIds.filter(id => id !== bodyStyle.id)
+                          : [...currentBodyStyleIds, bodyStyle.id];
+                        
+                        handleInputChange('bodyStyleIds', newBodyStyleIds.length > 0 ? newBodyStyleIds : undefined);
+                      }}
+                    >
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className="transition-transform group-hover:scale-105">
+                          {getCarIcon(bodyStyle.name.toLowerCase(), "w-8 h-8")}
+                        </div>
+                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                          <span className="text-gray-900 font-medium">{displayName}</span>
+                          <span className="text-gray-500 text-sm">({count.toLocaleString()})</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
+                          isSelected 
+                            ? 'border-blue-500 bg-blue-500 scale-110' 
+                            : 'border-gray-300 group-hover:border-blue-400'
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Selection indicator */}
+                      {isSelected && (
+                        <div className="absolute inset-0 border-2 border-blue-500 rounded-lg pointer-events-none animate-pulse"></div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CollapsibleSection>
           </div>
         );
 

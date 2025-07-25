@@ -741,6 +741,7 @@ export default function AdvancedSearchPage() {
           getSellerTypeDisplayName={getSellerTypeDisplayName}
           selectedMake={selectedMake}
           selectedModel={selectedModel}
+          referenceData={referenceData || undefined}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           t={t as any}
         />

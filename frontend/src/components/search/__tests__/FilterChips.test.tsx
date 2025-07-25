@@ -36,6 +36,11 @@ const mockProps = {
   getSellerTypeDisplayName: jest.fn(() => 'Dealer'),
   selectedMake: null,
   selectedModel: null,
+  referenceData: {
+    bodyStyles: [
+      { id: 3, name: 'sedan', displayNameEn: 'Sedan', displayNameAr: 'سيدان' }
+    ]
+  },
   t: jest.fn((key: string, fallback?: string) => fallback || key)
 };
 
@@ -162,6 +167,18 @@ describe('FilterChips', () => {
     
     const dealerChips = screen.getAllByText('Dealer');
     expect(dealerChips).toHaveLength(2);
+  });
+
+  it('renders body style chips with icons when body style filters are set', () => {
+    const propsWithBodyStyles = {
+      ...mockProps,
+      filters: { bodyStyleIds: [3] },
+      isFilterActive: jest.fn((filterType: FilterType) => filterType === 'bodyStyle')
+    };
+    
+    render(<FilterChips {...propsWithBodyStyles} />);
+    
+    expect(screen.getByText('Sedan')).toBeInTheDocument();
   });
 
   it('has correct displayName', () => {

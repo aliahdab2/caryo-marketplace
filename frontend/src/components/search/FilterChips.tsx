@@ -1,6 +1,7 @@
 import React from 'react';
 import { MdClose, MdDeleteSweep } from 'react-icons/md';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
+import { getCarIcon } from '@/utils/carIcons';
 
 interface FilterChipsProps {
   filters: AdvancedSearchFilters;
@@ -20,6 +21,14 @@ interface FilterChipsProps {
   selectedMake: number | null;
   selectedModel: number | null;
   t: (key: string, fallback?: string, options?: { brand?: string; model?: string }) => string;
+  referenceData?: {
+    bodyStyles?: Array<{
+      id: number;
+      name: string;
+      displayNameEn: string;
+      displayNameAr: string;
+    }>;
+  };
 }
 
 export default function FilterChips({
@@ -36,8 +45,15 @@ export default function FilterChips({
   getSellerTypeDisplayName,
   selectedMake,
   selectedModel,
-  t
+  t,
+  referenceData
 }: FilterChipsProps) {
+  // Helper function to get body style name by ID
+  const getBodyStyleNameById = (id: number): string => {
+    const bodyStyle = referenceData?.bodyStyles?.find(b => b.id === id);
+    return bodyStyle?.name || '';
+  };
+
   // Show filter chips only when there are active filters
   const hasActiveFilters = isFilterActive('makeModel') || isFilterActive('price') || isFilterActive('year') || 
     isFilterActive('mileage') || isFilterActive('transmission') || isFilterActive('fuelType') || 
@@ -213,9 +229,12 @@ export default function FilterChips({
         {filters.bodyStyleIds && filters.bodyStyleIds.map((bodyStyleId) => (
           <div
             key={`body-${bodyStyleId}`}
-            className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+            className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
           >
-            <span>{getBodyStyleDisplayName(bodyStyleId)}</span>
+            <span className="mr-1">{getBodyStyleDisplayName(bodyStyleId)}</span>
+            <div className="w-8 h-8 mr-1 flex-shrink-0">
+              {getCarIcon(getBodyStyleNameById(bodyStyleId), "w-8 h-8")}
+            </div>
             <button
               onClick={() => {
                 const updatedBodyStyles = filters.bodyStyleIds?.filter(id => id !== bodyStyleId) || [];
@@ -223,7 +242,7 @@ export default function FilterChips({
                   bodyStyleIds: updatedBodyStyles.length > 0 ? updatedBodyStyles : undefined
                 });
               }}
-              className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+              className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
               aria-label={t('removeBodyStyleFilter', 'Remove body style filter')}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
