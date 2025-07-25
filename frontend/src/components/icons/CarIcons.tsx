@@ -1,60 +1,129 @@
 import React from 'react';
-import { 
-  FaCar, 
-  FaCaravan,
-  FaBus
-} from 'react-icons/fa';
-import { 
-  RiCarFill
-} from 'react-icons/ri';
-import { 
-  TbCar,
-  TbCarSuv,
-  TbTruck,
-  TbMotorbike
-} from 'react-icons/tb';
+import Image from 'next/image';
 
 interface CarIconProps {
   className?: string;
 }
 
-// Professional automotive icons using popular icon libraries
-export const ConvertibleIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
-  <TbCar className={className} />
+// Professional car silhouette icons using real PNG images from autotrader.co.uk
+// Clean, minimalist, realistic side-profile car silhouettes
+
+export const ConvertibleIcon: React.FC<CarIconProps> = ({ className = "w-16 h-12" }) => (
+  <div className={className} style={{ position: 'relative', width: '67px', height: '50px' }}>
+    <Image
+      src="/images/body-types/convertible.png"
+      alt="Convertible"
+      width={67}
+      height={50}
+      style={{ objectFit: 'contain' }}
+    />
+  </div>
 );
 
-export const CoupeIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
-  <FaCar className={className} />
+export const CoupeIcon: React.FC<CarIconProps> = ({ className = "w-16 h-12" }) => (
+  <div className={className} style={{ position: 'relative', width: '67px', height: '50px' }}>
+    <Image
+      src="/images/body-types/coupe.png"
+      alt="Coupe"
+      width={67}
+      height={50}
+      style={{ objectFit: 'contain' }}
+    />
+  </div>
 );
 
-export const EstateIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
-  <FaCaravan className={className} />
+export const EstateIcon: React.FC<CarIconProps> = ({ className = "w-16 h-12" }) => (
+  <div className={className} style={{ position: 'relative', width: '67px', height: '50px' }}>
+    <Image
+      src="/images/body-types/estate.png"
+      alt="Estate"
+      width={67}
+      height={50}
+      style={{ objectFit: 'contain' }}
+    />
+  </div>
 );
 
-export const HatchbackIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
-  <RiCarFill className={className} />
+export const HatchbackIcon: React.FC<CarIconProps> = ({ className = "w-16 h-12" }) => (
+  <div className={className} style={{ position: 'relative', width: '67px', height: '50px' }}>
+    <Image
+      src="/images/body-types/hatchback.png"
+      alt="Hatchback"
+      width={67}
+      height={50}
+      style={{ objectFit: 'contain' }}
+    />
+  </div>
 );
 
-export const MPVIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
-  <FaBus className={className} />
+export const MPVIcon: React.FC<CarIconProps> = ({ className = "w-16 h-12" }) => (
+  <div className={className} style={{ position: 'relative', width: '67px', height: '50px' }}>
+    <Image
+      src="/images/body-types/mpv.png"
+      alt="MPV"
+      width={67}
+      height={50}
+      style={{ objectFit: 'contain' }}
+    />
+  </div>
 );
 
-export const PickupIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
-  <TbTruck className={className} />
+export const PickupIcon: React.FC<CarIconProps> = ({ className = "w-16 h-12" }) => (
+  <div className={className} style={{ position: 'relative', width: '67px', height: '50px' }}>
+    <Image
+      src="/images/body-types/pickup.png"
+      alt="Pickup"
+      width={67}
+      height={50}
+      style={{ objectFit: 'contain' }}
+    />
+  </div>
 );
 
-export const SedanIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
-  <TbCar className={className} />
+export const SedanIcon: React.FC<CarIconProps> = ({ className = "w-16 h-12" }) => (
+  <div className={className} style={{ position: 'relative', width: '67px', height: '50px' }}>
+    <Image
+      src="/images/body-types/saloon.png"
+      alt="Sedan"
+      width={67}
+      height={50}
+      style={{ objectFit: 'contain' }}
+    />
+  </div>
 );
 
-export const SUVIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
-  <TbCarSuv className={className} />
+export const SUVIcon: React.FC<CarIconProps> = ({ className = "w-16 h-12" }) => (
+  <div className={className} style={{ position: 'relative', width: '67px', height: '50px' }}>
+    <Image
+      src="/images/body-types/suv.png"
+      alt="SUV"
+      width={67}
+      height={50}
+      style={{ objectFit: 'contain' }}
+    />
+  </div>
 );
 
-export const VanIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
-  <FaBus className={className} />
+export const VanIcon: React.FC<CarIconProps> = ({ className = "w-16 h-12" }) => (
+  <div className={className} style={{ position: 'relative', width: '67px', height: '50px' }}>
+    <Image
+      src="/images/body-types/mpv.png"
+      alt="Van"
+      width={67}
+      height={50}
+      style={{ objectFit: 'contain' }}
+    />
+  </div>
 );
 
-export const MotorcycleIcon: React.FC<CarIconProps> = ({ className = "w-8 h-8" }) => (
-  <TbMotorbike className={className} />
+export const MotorcycleIcon: React.FC<CarIconProps> = ({ className = "w-16 h-12" }) => (
+  <div className={className} style={{ position: 'relative', width: '67px', height: '50px' }}>
+    <Image
+      src="/images/body-types/coupe.png"
+      alt="Motorcycle"
+      width={67}
+      height={50}
+      style={{ objectFit: 'contain' }}
+    />
+  </div>
 );

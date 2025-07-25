@@ -22,6 +22,7 @@ import {
 } from '@/services/api';
 import { getSellerTypeCounts } from '@/services/sellerTypes';
 import { SellerTypeCounts } from '@/types/sellerTypes';
+import { useBodyStyleCounts } from '@/hooks/useBodyStyleCounts';
 import { useApiData } from '@/hooks/useApiData';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
@@ -143,6 +144,9 @@ export default function AdvancedSearchPage() {
       immediate: false
     }
   );
+
+  // Body style counts hook
+  const { bodyStyleCounts } = useBodyStyleCounts(listingFilters);
 
   // API data hooks - with stable dependencies to prevent loops
   const {
@@ -800,6 +804,7 @@ export default function AdvancedSearchPage() {
             referenceData={referenceData}
             isLoadingReferenceData={isLoadingReferenceData}
             sellerTypeCounts={sellerTypeCounts}
+            bodyStyleCounts={bodyStyleCounts}
             carListings={carListings}
             currentLanguage={currentLanguage}
             isRTL={isRTL}

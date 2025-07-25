@@ -4,6 +4,7 @@ import { FilterType, AdvancedSearchFilters } from '@/hooks/useSearchFilters';
 import { CarMake, CarModel } from '@/types/car';
 import { CarReferenceData, CarListing, PageResponse } from '@/services/api';
 import { SellerTypeCounts } from '@/types/sellerTypes';
+import { BodyStyleCounts } from '@/hooks/useBodyStyleCounts';
 import PriceSlider from '@/components/ui/PriceSlider';
 import MileageSlider from '@/components/ui/MileageSlider';
 import YearSlider from '@/components/ui/YearSlider';
@@ -25,6 +26,7 @@ interface FilterModalProps {
   referenceData: CarReferenceData | null;
   isLoadingReferenceData: boolean;
   sellerTypeCounts: SellerTypeCounts;
+  bodyStyleCounts: BodyStyleCounts;
   carListings: PageResponse<CarListing> | null;
   currentLanguage: string;
   isRTL: boolean;
@@ -67,6 +69,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
   referenceData,
   isLoadingReferenceData,
   sellerTypeCounts,
+  bodyStyleCounts,
   carListings,
   currentLanguage,
   isRTL,
@@ -284,16 +287,20 @@ const FilterModal: React.FC<FilterModalProps> = ({
           <div className="space-y-6">
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{t('bodyStyle', 'Body style')}</h3>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
+              
+              <div className="space-y-2 max-h-96 overflow-y-auto">
                 {referenceData?.bodyStyles?.map(bodyStyle => {
                   const isSelected = filters.bodyStyleId === bodyStyle.id;
                   const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
+                  const count = bodyStyleCounts[bodyStyle.name.toLowerCase()] || 0;
                   
                   return (
                     <div
                       key={bodyStyle.id}
-                      className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all hover:border-blue-300 hover:bg-blue-50 ${
-                        isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                      className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${
+                        isSelected 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                       onClick={() => {
                         handleInputChange('bodyStyleId', isSelected ? undefined : bodyStyle.id);
@@ -306,19 +313,21 @@ const FilterModal: React.FC<FilterModalProps> = ({
                       }}
                     >
                       <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                        <div className="w-12 h-8 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="w-16 h-12 flex items-center justify-center">
                           {/* Professional car silhouette icon */}
                           {getCarIcon(bodyStyle.name.toLowerCase())}
                         </div>
-                        <div>
-                          <div className="font-medium text-gray-900">{displayName}</div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-gray-900 font-normal">{displayName}</span>
+                          <span className="text-gray-500 font-normal">({count.toLocaleString()})</span>
                         </div>
                       </div>
+                      
                       <div className="flex items-center">
                         <div className={`w-5 h-5 border-2 rounded transition-all ${
                           isSelected 
-                            ? 'border-blue-500 bg-blue-500' 
-                            : 'border-gray-300 hover:border-blue-400'
+                            ? 'border-gray-400 bg-gray-400' 
+                            : 'border-gray-300 hover:border-gray-400'
                         }`}>
                           {isSelected && (
                             <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
