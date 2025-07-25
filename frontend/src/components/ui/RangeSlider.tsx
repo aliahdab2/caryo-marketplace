@@ -482,8 +482,8 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
         
         {/* Range labels aligned with slider track */}
         <div className="flex justify-between text-sm text-gray-500 mt-2 px-3">
-          <span>{minRange.toLocaleString()}{unit ? ` ${unit}` : ''}</span>
-          <span>{maxRange.toLocaleString()}{unit ? ` ${unit}` : ''}</span>
+          <span>{formatValue ? formatValue(minRange) : minRange.toLocaleString()}{unit ? ` ${unit}` : ''}</span>
+          <span>{formatValue ? formatValue(maxRange) : maxRange.toLocaleString()}{unit ? ` ${unit}` : ''}</span>
         </div>
       </div>
       
