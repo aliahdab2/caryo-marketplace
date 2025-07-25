@@ -18,7 +18,7 @@ const mockFilters: AdvancedSearchFilters = {
   maxYear: 2024,
   transmissionId: 1,
   fuelTypeId: 2,
-  bodyStyleId: 3,
+  bodyStyleIds: [3],
   sellerTypeIds: [1, 2]
 };
 
@@ -36,6 +36,11 @@ const mockProps = {
   getSellerTypeDisplayName: jest.fn(() => 'Dealer'),
   selectedMake: null,
   selectedModel: null,
+  referenceData: {
+    bodyStyles: [
+      { id: 3, name: 'sedan', displayNameEn: 'Sedan', displayNameAr: 'سيدان' }
+    ]
+  },
   t: jest.fn((key: string, fallback?: string) => fallback || key)
 };
 
@@ -88,7 +93,7 @@ describe('FilterChips', () => {
       maxMileage: undefined,
       transmissionId: undefined,
       fuelTypeId: undefined,
-      bodyStyleId: undefined,
+      bodyStyleIds: undefined,
       sellerTypeIds: undefined
     }, {
       selectedMake: null,
@@ -162,6 +167,18 @@ describe('FilterChips', () => {
     
     const dealerChips = screen.getAllByText('Dealer');
     expect(dealerChips).toHaveLength(2);
+  });
+
+  it('renders body style chips with icons when body style filters are set', () => {
+    const propsWithBodyStyles = {
+      ...mockProps,
+      filters: { bodyStyleIds: [3] },
+      isFilterActive: jest.fn((filterType: FilterType) => filterType === 'bodyStyle')
+    };
+    
+    render(<FilterChips {...propsWithBodyStyles} />);
+    
+    expect(screen.getByText('Sedan')).toBeInTheDocument();
   });
 
   it('has correct displayName', () => {

@@ -48,7 +48,7 @@ const mockProps = {
     maxMileage: undefined,
     transmissionId: undefined,
     fuelTypeId: undefined,
-    bodyStyleId: undefined,
+    bodyStyleIds: undefined,
     sellerTypeIds: undefined,
     location: undefined
   },
@@ -85,6 +85,7 @@ const mockProps = {
   },
   isLoadingReferenceData: false,
   sellerTypeCounts: { dealer: 5 },
+  bodyStyleCounts: { sedan: 3 },
   carListings: { 
     totalElements: 10, 
     content: [], 
@@ -143,7 +144,7 @@ describe('FilterModal', () => {
 
   it('displays correct button text with listing count', () => {
     render(<FilterModal {...mockProps} />);
-    expect(screen.getByText('Show {{count}} results')).toBeInTheDocument();
+    expect(screen.getByText('Search cars')).toBeInTheDocument();
   });
 
   it('has correct displayName', () => {

@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { MdClose, MdFilterList } from 'react-icons/md';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useAnnouncements } from '@/hooks/useAccessibility';
 import { CarMake, CarModel } from '@/types/car';
 import { CarReferenceData } from '@/services/api';
 import { SellerTypeCounts } from '@/types/sellerTypes';
+import { BodyStyleCounts } from '@/hooks/useBodyStyleCounts';
 import { 
   ConvertibleIcon,
   CoupeIcon,
@@ -37,26 +38,26 @@ const SEARCH_NAMESPACES = ['common', 'search'];
 
 // Memoized car icon mapping with direct JSX for better performance
 const carIconMap = {
-  'sedan': <SedanIcon className="w-8 h-6 text-gray-600" />,
-  'saloon': <SedanIcon className="w-8 h-6 text-gray-600" />,
-  'hatchback': <HatchbackIcon className="w-8 h-6 text-gray-600" />,
-  'suv': <SUVIcon className="w-8 h-6 text-gray-600" />,
-  'coupe': <CoupeIcon className="w-8 h-6 text-gray-600" />,
-  'convertible': <ConvertibleIcon className="w-8 h-6 text-gray-600" />,
-  'wagon': <EstateIcon className="w-8 h-6 text-gray-600" />,
-  'estate': <EstateIcon className="w-8 h-6 text-gray-600" />,
-  'truck': <PickupIcon className="w-8 h-6 text-gray-600" />,
-  'pickup': <PickupIcon className="w-8 h-6 text-gray-600" />,
-  'van': <VanIcon className="w-8 h-6 text-gray-600" />,
-  'minivan': <MPVIcon className="w-8 h-6 text-gray-600" />,
-  'mpv': <MPVIcon className="w-8 h-6 text-gray-600" />,
-  'motorcycle': <MotorcycleIcon className="w-8 h-6 text-gray-600" />,
-  'crossover': <SUVIcon className="w-8 h-6 text-gray-600" />,
-  'taxi': <SedanIcon className="w-8 h-6 text-gray-600" />,
-  'ambulance': <VanIcon className="w-8 h-6 text-gray-600" />,
-  'rv': <VanIcon className="w-8 h-6 text-gray-600" />,
-  'camper': <VanIcon className="w-8 h-6 text-gray-600" />,
-  'other': <SedanIcon className="w-8 h-6 text-gray-600" />
+  'sedan': <SedanIcon className="w-16 h-12" />,
+  'saloon': <SedanIcon className="w-16 h-12" />,
+  'hatchback': <HatchbackIcon className="w-16 h-12" />,
+  'suv': <SUVIcon className="w-16 h-12" />,
+  'coupe': <CoupeIcon className="w-16 h-12" />,
+  'convertible': <ConvertibleIcon className="w-16 h-12" />,
+  'wagon': <EstateIcon className="w-16 h-12" />,
+  'estate': <EstateIcon className="w-16 h-12" />,
+  'truck': <PickupIcon className="w-16 h-12" />,
+  'pickup': <PickupIcon className="w-16 h-12" />,
+  'van': <VanIcon className="w-16 h-12" />,
+  'minivan': <MPVIcon className="w-16 h-12" />,
+  'mpv': <MPVIcon className="w-16 h-12" />,
+  'motorcycle': <MotorcycleIcon className="w-16 h-12" />,
+  'crossover': <SUVIcon className="w-16 h-12" />,
+  'taxi': <SedanIcon className="w-16 h-12" />,
+  'ambulance': <VanIcon className="w-16 h-12" />,
+  'rv': <VanIcon className="w-16 h-12" />,
+  'camper': <VanIcon className="w-16 h-12" />,
+  'other': <SedanIcon className="w-16 h-12" />
 } as const;
 
 // Optimized function to get car icon with memoization
@@ -252,6 +253,7 @@ interface FilterModalsProps {
   availableModels?: CarModel[];
   referenceData?: CarReferenceData;
   sellerTypeCounts: SellerTypeCounts;
+  bodyStyleCounts: BodyStyleCounts;
   
   // Loading states
   isLoadingBrands?: boolean;
@@ -278,6 +280,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
   availableModels = [],
   referenceData,
   sellerTypeCounts,
+  bodyStyleCounts,
   isLoadingBrands = false,
   isLoadingModels = false,
   isLoadingReferenceData = false,
@@ -619,6 +622,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                 {referenceData?.bodyStyles?.map(bodyStyle => {
                   const isSelected = filters.bodyStyleId === bodyStyle.id;
                   const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
+                  const count = bodyStyleCounts[bodyStyle.name.toLowerCase()];
                   
                   return (
                     <div
@@ -636,11 +640,12 @@ const FilterModals = React.memo<FilterModalsProps>(({
                       }}
                     >
                       <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                        <div className="w-12 h-8 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="w-20 h-14 flex items-center justify-center">
                           <CarIconDisplay bodyStyleName={bodyStyle.name.toLowerCase()} />
                         </div>
                         <div>
                           <div className="font-medium text-gray-900">{displayName}</div>
+                          <div className="text-sm text-gray-500">{count ? `${count.toLocaleString()} listings` : 'No listings'}</div>
                         </div>
                       </div>
                       <div className="flex items-center">

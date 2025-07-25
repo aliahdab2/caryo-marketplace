@@ -1,15 +1,15 @@
-import React, { useCallback } from 'react';
-import { MdClose } from 'react-icons/md';
-import { FilterType, AdvancedSearchFilters } from '@/hooks/useSearchFilters';
+import React, { useCallback, useRef, useState } from 'react';
 import { CarMake, CarModel } from '@/types/car';
 import { CarReferenceData, CarListing, PageResponse } from '@/services/api';
 import { SellerTypeCounts } from '@/types/sellerTypes';
+import { BodyStyleCounts } from '@/hooks/useBodyStyleCounts';
 import PriceSlider from '@/components/ui/PriceSlider';
 import MileageSlider from '@/components/ui/MileageSlider';
 import YearSlider from '@/components/ui/YearSlider';
+import { getCarIcon } from '@/utils/carIcons';
+import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { FilterModalContainer } from '@/components/ui/FilterModalContainer';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
-import { getCarIcon } from '@/utils/carIcons';
 
 interface FilterModalProps {
   filterType: FilterType;
@@ -25,6 +25,7 @@ interface FilterModalProps {
   referenceData: CarReferenceData | null;
   isLoadingReferenceData: boolean;
   sellerTypeCounts: SellerTypeCounts;
+  bodyStyleCounts: BodyStyleCounts;
   carListings: PageResponse<CarListing> | null;
   currentLanguage: string;
   isRTL: boolean;
@@ -41,16 +42,16 @@ interface FilterModalProps {
 const MODAL_CLASSES = {
   OVERLAY: "fixed inset-0 z-50 overflow-y-auto pointer-events-none",
   CONTAINER: "flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-6",
-  BACKDROP: "fixed inset-0 bg-black/3 transition-opacity pointer-events-auto",
-  MODAL: "relative transform overflow-hidden rounded-xl bg-white px-5 py-4 text-left shadow-2xl transition-all w-full max-w-lg border border-gray-100 pointer-events-auto",
-  CLOSE_BUTTON: "rounded-md bg-white text-gray-500 hover:text-gray-700 focus:outline-none text-sm font-medium transition-colors",
+  BACKDROP: "fixed inset-0 bg-black/20 backdrop-blur-sm transition-opacity pointer-events-auto",
+  MODAL: "relative transform overflow-hidden rounded-2xl bg-white px-6 py-6 text-left shadow-2xl transition-all w-full max-w-lg border border-gray-100 pointer-events-auto",
+  CLOSE_BUTTON: "rounded-full p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all",
   SEPARATOR: "border-t border-gray-200",
-  BUTTON_CONTAINER: "flex gap-3"
+  BUTTON_CONTAINER: "flex gap-3 mt-6"
 } as const;
 
 const BUTTON_CLASSES = {
-  CLEAR: "flex-none w-28 rounded-lg bg-white px-3 py-3 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 whitespace-nowrap",
-  PRIMARY: "flex-1 rounded-lg bg-blue-600 px-4 py-3 text-base font-semibold text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm"
+  CLEAR: "flex-none px-4 py-3 rounded-xl bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 transition-all focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 font-medium",
+  PRIMARY: "flex-1 px-6 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-semibold shadow-sm"
 } as const;
 
 const FilterModal: React.FC<FilterModalProps> = ({
@@ -67,15 +68,105 @@ const FilterModal: React.FC<FilterModalProps> = ({
   referenceData,
   isLoadingReferenceData,
   sellerTypeCounts,
-  carListings,
+  bodyStyleCounts,
   currentLanguage,
-  isRTL,
   dirClass,
   t,
   updateFiltersAndState,
   handleInputChange,
   clearSpecificFilter
 }) => {
+  const modalRef = useRef<HTMLDivElement>(null);
+  
+  // State for managing collapsible sections in allFilters modal
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    makeModel: true,
+    price: true,
+    year: true,
+    mileage: true,
+    bodyStyle: true,
+    transmission: true,
+    fuelType: true,
+    sellerType: true
+  });
+
+  const toggleSection = (sectionName: string) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [sectionName]: !prev[sectionName]
+    }));
+  };
+
+  // Collapsible section component
+  const CollapsibleSection = ({ 
+    title, 
+    sectionName, 
+    children, 
+    icon 
+  }: { 
+    title: string; 
+    sectionName: string; 
+    children: React.ReactNode; 
+    icon: React.ReactNode;
+  }) => {
+    const isCollapsed = collapsedSections[sectionName];
+    
+    return (
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <button
+          onClick={() => toggleSection(sectionName)}
+          className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+        >
+          <div className="flex items-center space-x-3 rtl:space-x-reverse">
+            <div className="w-5 h-5 text-gray-600">
+              {icon}
+            </div>
+            <span className="font-medium text-gray-900">{title}</span>
+          </div>
+          <div className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
+            isCollapsed ? 'rotate-0' : 'rotate-180'
+          }`}>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
+        <div className={`transition-all duration-300 ease-in-out ${
+          isCollapsed ? 'max-h-0 opacity-0' : 'max-h-96 opacity-100'
+        } overflow-hidden`}>
+          <div className="p-4">
+            {children}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const getModalTitle = (filterType: FilterType) => {
+    switch (filterType) {
+      case 'makeModel':
+        return t('make', 'Make');
+      case 'price':
+        return t('search:priceRange', 'Price Range');
+      case 'year':
+        return t('search:yearRange', 'Year range');
+      case 'mileage':
+        return t('search:mileageRange', 'Mileage range');
+      case 'transmission':
+        return t('gearbox', 'Gearbox');
+      case 'fuelType':
+        return t('fuelType', 'Fuel type');
+      case 'bodyStyle':
+        return t('bodyStyle', 'Body style');
+      case 'sellerType':
+        return t('sellerType', 'Seller Type');
+      case 'allFilters':
+        return t('allFilters', 'All Filters');
+      default:
+        return '';
+    }
+  };
+
   // Stable price change handler to prevent infinite loops
   const handlePriceChange = useCallback((minPrice: number | undefined, maxPrice: number | undefined) => {
     setFilters(prev => ({
@@ -281,56 +372,66 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
       case 'bodyStyle':
         return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{t('bodyStyle', 'Body style')}</h3>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {referenceData?.bodyStyles?.map(bodyStyle => {
-                  const isSelected = filters.bodyStyleId === bodyStyle.id;
-                  const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
-                  
-                  return (
-                    <div
-                      key={bodyStyle.id}
-                      className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all hover:border-blue-300 hover:bg-blue-50 ${
-                        isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                      }`}
-                      onClick={() => {
-                        handleInputChange('bodyStyleId', isSelected ? undefined : bodyStyle.id);
-                        // Auto-close modal after selection for better UX
-                        if (!isSelected) {
-                          setTimeout(() => {
-                            onClose();
-                          }, 100);
-                        }
-                      }}
-                    >
-                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                        <div className="w-12 h-8 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
-                          {/* Professional car silhouette icon */}
-                          {getCarIcon(bodyStyle.name.toLowerCase())}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">{displayName}</div>
-                        </div>
+          <div className="space-y-4">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('bodyStyle', 'Body style')}</h3>
+            </div>
+            
+            <div className="grid gap-3 max-h-80 overflow-y-auto pr-2 rtl:pr-0 rtl:pl-2">
+              {referenceData?.bodyStyles?.map(bodyStyle => {
+                const isSelected = filters.bodyStyleIds?.includes(bodyStyle.id) || false;
+                const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
+                const count = bodyStyleCounts[bodyStyle.name.toLowerCase()] || 0;
+                
+                return (
+                  <div
+                    key={bodyStyle.id}
+                    className={`group relative flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                      isSelected 
+                        ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
+                    }`}
+                    onClick={() => {
+                      const currentBodyStyleIds = filters.bodyStyleIds || [];
+                      const newBodyStyleIds = isSelected 
+                        ? currentBodyStyleIds.filter(id => id !== bodyStyle.id)
+                        : [...currentBodyStyleIds, bodyStyle.id];
+                      
+                      handleInputChange('bodyStyleIds', newBodyStyleIds.length > 0 ? newBodyStyleIds : undefined);
+                    }}
+                  >
+                    <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                      <div className="transition-transform group-hover:scale-105">
+                        {/* Professional car silhouette icon - now self-centering */}
+                        {getCarIcon(bodyStyle.name.toLowerCase())}
                       </div>
-                      <div className="flex items-center">
-                        <div className={`w-5 h-5 border-2 rounded transition-all ${
-                          isSelected 
-                            ? 'border-blue-500 bg-blue-500' 
-                            : 'border-gray-300 hover:border-blue-400'
-                        }`}>
-                          {isSelected && (
-                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                            </svg>
-                          )}
-                        </div>
+                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                        <span className="text-gray-900 font-medium">{displayName}</span>
+                        <span className="text-gray-500 text-sm">({count.toLocaleString()})</span>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                    
+                    <div className="flex items-center">
+                      <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
+                        isSelected 
+                          ? 'border-blue-500 bg-blue-500 scale-110' 
+                          : 'border-gray-300 group-hover:border-blue-400'
+                      }`}>
+                        {isSelected && (
+                          <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Selection indicator */}
+                    {isSelected && (
+                      <div className="absolute inset-0 border-2 border-blue-500 rounded-xl pointer-events-none animate-pulse"></div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         );
@@ -370,7 +471,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                       handleInputChange('sellerTypeIds', newSellerTypes.length > 0 ? newSellerTypes : undefined);
                     }}
                   >
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-3 rtl:space-x-reverse">
                       {/* Blocket-style Checkbox */}
                       <div className={`w-5 h-5 border-2 rounded transition-all ${
                         isSelected 
@@ -398,14 +499,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
       case 'allFilters':
         return (
-          <div className="space-y-6 max-h-[70vh] overflow-y-auto">
-            <div className="text-center">
-              <h3 className="text-xl font-medium text-gray-900 mb-4">{t('allFilters', 'All Filters')}</h3>
-            </div>
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto">
             
             {/* Make and Model */}
-            <div className="border border-gray-200 rounded-lg p-4">
-              <h4 className="text-lg font-medium text-gray-900 mb-3 text-center">{t('makeAndModel', 'Make and Model')}</h4>
+            <CollapsibleSection
+              title={t('makeAndModel', 'Make and Model')}
+              sectionName="makeModel"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              }
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-gray-600 mb-2">{t('make', 'Make')}</label>
@@ -477,11 +582,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
                   </select>
                 </div>
               </div>
-            </div>
+            </CollapsibleSection>
             
             {/* Price Range */}
-            <div className="border border-gray-200 rounded-lg p-4">
-              <h4 className="text-lg font-medium text-gray-900 mb-3">{t('priceRange', 'Price Range')}</h4>
+            <CollapsibleSection
+              title={t('priceRange', 'Price Range')}
+              sectionName="price"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+              }
+            >
               <PriceSlider
                 minPrice={filters.minPrice}
                 maxPrice={filters.maxPrice}
@@ -491,11 +603,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 locale={currentLanguage}
                 className="mb-2"
               />
-            </div>
+            </CollapsibleSection>
             
             {/* Year Range */}
-            <div className="border border-gray-200 rounded-lg p-4">
-              <h4 className="text-lg font-medium text-gray-900 mb-3">{t('yearRange', 'Year Range')}</h4>
+            <CollapsibleSection
+              title={t('yearRange', 'Year Range')}
+              sectionName="year"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              }
+            >
               <YearSlider
                 minYear={filters.minYear}
                 maxYear={filters.maxYear}
@@ -510,11 +629,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 locale={currentLanguage}
                 className="w-full"
               />
-            </div>
+            </CollapsibleSection>
             
             {/* Mileage Range */}
-            <div className="border border-gray-200 rounded-lg p-4">
-              <h4 className="text-lg font-medium text-gray-900 mb-3">{t('mileageRange', 'Mileage Range')}</h4>
+            <CollapsibleSection
+              title={t('mileageRange', 'Mileage Range')}
+              sectionName="mileage"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              }
+            >
               <MileageSlider
                 minMileage={filters.minMileage}
                 maxMileage={filters.maxMileage}
@@ -529,7 +655,74 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 locale={currentLanguage}
                 className="w-full"
               />
-            </div>
+            </CollapsibleSection>
+            
+            {/* Body Style */}
+            <CollapsibleSection
+              title={t('bodyStyle', 'Body Style')}
+              sectionName="bodyStyle"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              }
+            >
+              <div className="grid gap-3 max-h-60 overflow-y-auto">
+                {referenceData?.bodyStyles?.map(bodyStyle => {
+                  const isSelected = filters.bodyStyleIds?.includes(bodyStyle.id) || false;
+                  const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
+                  const count = bodyStyleCounts[bodyStyle.name.toLowerCase()] || 0;
+                  
+                  return (
+                    <div
+                      key={bodyStyle.id}
+                      className={`group relative flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                        isSelected 
+                          ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
+                      }`}
+                      onClick={() => {
+                        const currentBodyStyleIds = filters.bodyStyleIds || [];
+                        const newBodyStyleIds = isSelected 
+                          ? currentBodyStyleIds.filter(id => id !== bodyStyle.id)
+                          : [...currentBodyStyleIds, bodyStyle.id];
+                        
+                        handleInputChange('bodyStyleIds', newBodyStyleIds.length > 0 ? newBodyStyleIds : undefined);
+                      }}
+                    >
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className="transition-transform group-hover:scale-105">
+                          {getCarIcon(bodyStyle.name.toLowerCase(), "w-8 h-8")}
+                        </div>
+                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                          <span className="text-gray-900 font-medium">{displayName}</span>
+                          <span className="text-gray-500 text-sm">({count.toLocaleString()})</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
+                          isSelected 
+                            ? 'border-blue-500 bg-blue-500 scale-110' 
+                            : 'border-gray-300 group-hover:border-blue-400'
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Selection indicator */}
+                      {isSelected && (
+                        <div className="absolute inset-0 border-2 border-blue-500 rounded-lg pointer-events-none animate-pulse"></div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CollapsibleSection>
           </div>
         );
 
@@ -538,63 +731,75 @@ const FilterModal: React.FC<FilterModalProps> = ({
     }
   };
 
-  // Handle keyboard navigation for modals
-  const handleModalKeyDown = useCallback((e: React.KeyboardEvent, onClose: () => void) => {
-    if (e.key === 'Escape') {
-      onClose();
-    }
-  }, []);
-
   return (
     <div className={MODAL_CLASSES.OVERLAY}>
       <div className={MODAL_CLASSES.CONTAINER}>
-        {/* Extremely subtle overlay that barely affects background visibility */}
         <div className={MODAL_CLASSES.BACKDROP} onClick={onClose} />
         
         <div 
+          ref={modalRef}
           className={MODAL_CLASSES.MODAL}
-          onKeyDown={(e) => handleModalKeyDown(e, onClose)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              onClose();
+            }
+          }}
           tabIndex={-1}
           role="dialog"
           aria-modal="true"
           aria-labelledby="filter-modal-title"
+          dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}
         >
-          <div className={`absolute top-0 pt-4 ${isRTL ? 'left-0 pl-4' : 'right-0 pr-4'}`}>
+          {/* Enhanced Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3 rtl:space-x-reverse">
+              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
+                </svg>
+              </div>
+              <div>
+                <h2 id="filter-modal-title" className="text-xl font-semibold text-gray-900">
+                  {currentLanguage === 'ar' ? 'تصفية وترتيب' : 'Filter and sort'}
+                </h2>
+              </div>
+            </div>
+            
             <button
               type="button"
               className={MODAL_CLASSES.CLOSE_BUTTON}
               onClick={onClose}
-              aria-label="Close filter modal"
+              aria-label={currentLanguage === 'ar' ? 'إغلاق نافذة التصفية' : 'Close filter modal'}
             >
-              {filterType === 'sellerType' ? t('cancel', 'Cancel') : <MdClose className="h-6 w-6" />}
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
 
-          <div className="mt-3">
+          {/* Filter Content */}
+          <div className="space-y-6">
             {renderModalContent()}
-            
-            {/* Separator line before buttons */}
-            <div className={`${MODAL_CLASSES.SEPARATOR} mt-4 mb-4`}></div>
-            
-            <div className={MODAL_CLASSES.BUTTON_CONTAINER}>
-              <button
-                onClick={() => clearSpecificFilter(filterType)}
-                className={BUTTON_CLASSES.CLEAR}
-                aria-label={`Clear ${filterType} filter`}
-              >
-                {t('clearFilter', 'Clear filter')}
-              </button>
-              
-              <button
-                onClick={() => {
-                  // Close the modal since filters apply automatically
-                  onClose();
-                }}
-                className={BUTTON_CLASSES.PRIMARY}
-              >
-                {t('showResults', 'Show {{count}} results', { count: carListings?.totalElements || 0 })}
-              </button>
-            </div>
+          </div>
+
+          {/* Enhanced Footer */}
+          <div className={MODAL_CLASSES.SEPARATOR} />
+          <div className={MODAL_CLASSES.BUTTON_CONTAINER}>
+            <button
+              type="button"
+              className={BUTTON_CLASSES.CLEAR}
+              onClick={() => clearSpecificFilter(filterType)}
+              aria-label={currentLanguage === 'ar' ? `مسح تصفية ${getModalTitle(filterType)}` : `Clear ${getModalTitle(filterType)} filter`}
+            >
+              {currentLanguage === 'ar' ? 'مسح الكل' : 'Clear all'}
+            </button>
+            <button
+              type="button"
+              className={BUTTON_CLASSES.PRIMARY}
+              onClick={onClose}
+            >
+              {currentLanguage === 'ar' ? 'البحث عن السيارات' : 'Search cars'}
+            </button>
           </div>
         </div>
       </div>

@@ -22,6 +22,7 @@ import {
 } from '@/services/api';
 import { getSellerTypeCounts } from '@/services/sellerTypes';
 import { SellerTypeCounts } from '@/types/sellerTypes';
+import { useBodyStyleCounts } from '@/hooks/useBodyStyleCounts';
 import { useApiData } from '@/hooks/useApiData';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
@@ -108,7 +109,7 @@ export default function AdvancedSearchPage() {
       // Add missing filter fields that are defined in CarListingFilterParams
       transmissionId: filters.transmissionId,
       fuelTypeId: filters.fuelTypeId,
-      bodyStyleId: filters.bodyStyleId,
+      bodyStyleIds: filters.bodyStyleIds,
       conditionId: filters.conditionId
     };
 
@@ -143,6 +144,9 @@ export default function AdvancedSearchPage() {
       immediate: false
     }
   );
+
+  // Body style counts hook
+  const { bodyStyleCounts } = useBodyStyleCounts(listingFilters);
 
   // API data hooks - with stable dependencies to prevent loops
   const {
@@ -240,7 +244,7 @@ export default function AdvancedSearchPage() {
       (filters.minMileage || filters.maxMileage ? 1 : 0) +
       (filters.transmissionId ? 1 : 0) +
       (filters.fuelTypeId ? 1 : 0) +
-      (filters.bodyStyleId ? 1 : 0) +
+      (filters.bodyStyleIds?.length || 0) +
       (filters.sellerTypeIds?.length || 0)
     );
   }, [
@@ -254,7 +258,7 @@ export default function AdvancedSearchPage() {
     filters.maxMileage,
     filters.transmissionId,
     filters.fuelTypeId,
-    filters.bodyStyleId,
+    filters.bodyStyleIds,
     filters.sellerTypeIds
   ]);
 
@@ -333,6 +337,12 @@ export default function AdvancedSearchPage() {
       initialFilters.sellerTypeIds = sellerTypeIds.map(id => parseInt(id)).filter(id => !isNaN(id));
     }
 
+    // Handle body style IDs - support multiple values
+    const bodyStyleIds = searchParams.getAll('bodyStyleId');
+    if (bodyStyleIds.length > 0) {
+      initialFilters.bodyStyleIds = bodyStyleIds.map(id => parseInt(id)).filter(id => !isNaN(id));
+    }
+
     setFilters(initialFilters);
     setHasInitialized(true);
   }, [hasInitialized, searchParams]);
@@ -373,7 +383,9 @@ export default function AdvancedSearchPage() {
 
     if (newFilters.transmissionId) params.append('transmissionId', newFilters.transmissionId.toString());
     if (newFilters.fuelTypeId) params.append('fuelTypeId', newFilters.fuelTypeId.toString());
-    if (newFilters.bodyStyleId) params.append('bodyStyleId', newFilters.bodyStyleId.toString());
+    if (newFilters.bodyStyleIds && newFilters.bodyStyleIds.length > 0) {
+      newFilters.bodyStyleIds.forEach(id => params.append('bodyStyleId', id.toString()));
+    }
     if (newFilters.sellerTypeIds && newFilters.sellerTypeIds.length > 0) {
       newFilters.sellerTypeIds.forEach(id => params.append('sellerTypeId', id.toString()));
     }
@@ -438,8 +450,8 @@ export default function AdvancedSearchPage() {
     maxMileage: filters.maxMileage,
     transmissionId: filters.transmissionId,
     fuelTypeId: filters.fuelTypeId,
-    bodyStyleId: filters.bodyStyleId
-  }), [filters.brands, filters.models, filters.minYear, filters.maxYear, filters.minPrice, filters.maxPrice, filters.minMileage, filters.maxMileage, filters.transmissionId, filters.fuelTypeId, filters.bodyStyleId]);
+    bodyStyleIds: filters.bodyStyleIds
+  }), [filters.brands, filters.models, filters.minYear, filters.maxYear, filters.minPrice, filters.maxPrice, filters.minMileage, filters.maxMileage, filters.transmissionId, filters.fuelTypeId, filters.bodyStyleIds]);
 
   // Fetch seller type counts when filters change (Swedish marketplace style)
   useEffect(() => {
@@ -457,7 +469,7 @@ export default function AdvancedSearchPage() {
           maxMileage: sellerTypeCountDependencies.maxMileage?.toString(),
           transmissionId: sellerTypeCountDependencies.transmissionId,
           fuelTypeId: sellerTypeCountDependencies.fuelTypeId,
-          bodyStyleId: sellerTypeCountDependencies.bodyStyleId,
+          bodyStyleIds: sellerTypeCountDependencies.bodyStyleIds,
           // Don't include sellerTypeId in count queries
         };
         
@@ -577,7 +589,7 @@ export default function AdvancedSearchPage() {
         updateFiltersAndState({ fuelTypeId: undefined });
         break;
       case 'bodyStyle':
-        updateFiltersAndState({ bodyStyleId: undefined });
+        updateFiltersAndState({ bodyStyleIds: undefined });
         break;
       case 'sellerType':
         updateFiltersAndState({ sellerTypeIds: undefined });
@@ -622,7 +634,11 @@ export default function AdvancedSearchPage() {
       case 'fuelType':
         return filters.fuelTypeId ? getFuelTypeDisplayName(filters.fuelTypeId) : t('fuelType', 'Fuel type');
       case 'bodyStyle':
-        return filters.bodyStyleId ? getBodyStyleDisplayName(filters.bodyStyleId) : t('bodyStyle', 'Body style');
+        return filters.bodyStyleIds && filters.bodyStyleIds.length > 0 
+          ? filters.bodyStyleIds.length === 1 
+            ? getBodyStyleDisplayName(filters.bodyStyleIds[0])
+            : `${filters.bodyStyleIds.length} ${t('bodyStyles', 'Body styles')}`
+          : t('bodyStyle', 'Body style');
       case 'sellerType':
         return filters.sellerTypeIds && filters.sellerTypeIds.length > 0 
           ? filters.sellerTypeIds.length === 1 
@@ -654,7 +670,7 @@ export default function AdvancedSearchPage() {
       case 'fuelType':
         return !!filters.fuelTypeId;
       case 'bodyStyle':
-        return !!filters.bodyStyleId;
+        return !!(filters.bodyStyleIds && filters.bodyStyleIds.length > 0);
       case 'sellerType':
         return !!(filters.sellerTypeIds && filters.sellerTypeIds.length > 0);
       default:
@@ -725,6 +741,7 @@ export default function AdvancedSearchPage() {
           getSellerTypeDisplayName={getSellerTypeDisplayName}
           selectedMake={selectedMake}
           selectedModel={selectedModel}
+          referenceData={referenceData || undefined}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           t={t as any}
         />
@@ -800,6 +817,7 @@ export default function AdvancedSearchPage() {
             referenceData={referenceData}
             isLoadingReferenceData={isLoadingReferenceData}
             sellerTypeCounts={sellerTypeCounts}
+            bodyStyleCounts={bodyStyleCounts}
             carListings={carListings}
             currentLanguage={currentLanguage}
             isRTL={isRTL}

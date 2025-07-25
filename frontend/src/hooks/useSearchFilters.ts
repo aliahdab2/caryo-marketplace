@@ -36,7 +36,7 @@ export interface AdvancedSearchFilters {
   conditionId?: number;
   transmissionId?: number;
   fuelTypeId?: number;
-  bodyStyleId?: number;
+  bodyStyleIds?: number[]; // Changed from bodyStyleId to support multiple selections
   sellerTypeIds?: number[];
   
   // Direct field filters
@@ -111,10 +111,12 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
           case 'conditionId':
           case 'transmissionId':
           case 'fuelTypeId':
-          case 'bodyStyleId':
           case 'doors':
           case 'cylinders':
             newFilters[field] = value as number;
+            break;
+          case 'bodyStyleIds':
+            newFilters[field] = value as number[];
             break;
           case 'exteriorColor':
             newFilters[field] = value as string;
@@ -155,7 +157,7 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
           delete newFilters.fuelTypeId;
           break;
         case 'bodyStyle':
-          delete newFilters.bodyStyleId;
+          delete newFilters.bodyStyleIds;
           break;
         case 'sellerType':
           delete newFilters.sellerTypeIds;
@@ -349,8 +351,8 @@ export function useSearchFilters({
     if (newFilters.fuelTypeId) {
       searchParams.set('fuelType', newFilters.fuelTypeId.toString());
     }
-    if (newFilters.bodyStyleId) {
-      searchParams.set('bodyStyle', newFilters.bodyStyleId.toString());
+    if (newFilters.bodyStyleIds && newFilters.bodyStyleIds.length > 0) {
+      searchParams.set('bodyStyle', newFilters.bodyStyleIds.join(','));
     }
     if (newFilters.sellerTypeIds && newFilters.sellerTypeIds.length > 0) {
       searchParams.set('sellerTypes', newFilters.sellerTypeIds.join(','));
@@ -463,7 +465,11 @@ export function useSearchFilters({
         return state.filters.fuelTypeId ? getFuelTypeDisplayName(state.filters.fuelTypeId) : t('search.filters.fuelType', 'Fuel Type');
 
       case 'bodyStyle':
-        return state.filters.bodyStyleId ? getBodyStyleDisplayName(state.filters.bodyStyleId) : t('search.filters.bodyStyle', 'Body Style');
+        return state.filters.bodyStyleIds && state.filters.bodyStyleIds.length > 0 
+          ? state.filters.bodyStyleIds.length === 1 
+            ? getBodyStyleDisplayName(state.filters.bodyStyleIds[0])
+            : `${state.filters.bodyStyleIds.length} ${t('search.filters.bodyStyles', 'Body styles')}`
+          : t('search.filters.bodyStyle', 'Body Style');
 
       case 'sellerType':
         return state.filters.sellerTypeIds && state.filters.sellerTypeIds.length > 0 
@@ -491,7 +497,7 @@ export function useSearchFilters({
       case 'fuelType':
         return state.filters.fuelTypeId !== undefined;
       case 'bodyStyle':
-        return state.filters.bodyStyleId !== undefined;
+        return state.filters.bodyStyleIds !== undefined && state.filters.bodyStyleIds.length > 0;
       case 'sellerType':
         return state.filters.sellerTypeIds !== undefined && state.filters.sellerTypeIds.length > 0;
       default:
