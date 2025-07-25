@@ -65,7 +65,7 @@ export default function FilterChips({
               maxMileage: undefined,
               transmissionId: undefined,
               fuelTypeId: undefined,
-              bodyStyleId: undefined,
+              bodyStyleIds: undefined,
               sellerTypeIds: undefined
             }, {
               selectedMake: null,
@@ -209,12 +209,20 @@ export default function FilterChips({
           </div>
         )}
 
-        {/* Body Style Chip */}
-        {filters.bodyStyleId && (
-          <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
-            <span>{getBodyStyleDisplayName(filters.bodyStyleId)}</span>
+        {/* Body Style Chips */}
+        {filters.bodyStyleIds && filters.bodyStyleIds.map((bodyStyleId) => (
+          <div
+            key={`body-${bodyStyleId}`}
+            className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+          >
+            <span>{getBodyStyleDisplayName(bodyStyleId)}</span>
             <button
-              onClick={() => updateFiltersAndState({ bodyStyleId: undefined })}
+              onClick={() => {
+                const updatedBodyStyles = filters.bodyStyleIds?.filter(id => id !== bodyStyleId) || [];
+                updateFiltersAndState({ 
+                  bodyStyleIds: updatedBodyStyles.length > 0 ? updatedBodyStyles : undefined
+                });
+              }}
               className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
               aria-label={t('removeBodyStyleFilter', 'Remove body style filter')}
             >
@@ -223,7 +231,7 @@ export default function FilterChips({
               </svg>
             </button>
           </div>
-        )}
+        ))}
 
         {/* Seller Type Chips */}
         {filters.sellerTypeIds && filters.sellerTypeIds.map((sellerTypeId) => (

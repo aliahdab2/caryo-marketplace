@@ -44,12 +44,14 @@ export const useBodyStyleCounts = (filters?: CarListingFilterParams) => {
               ...(filters?.locations && { locations: filters.locations }),
               ...(filters?.sellerTypeIds && { sellerTypeIds: filters.sellerTypeIds }),
               ...(filters?.searchQuery && { searchQuery: filters.searchQuery }),
-              bodyStyleId: bodyStyle.id,
+              bodyStyleIds: [bodyStyle.id],
             };
 
             // Build query string for the count endpoint
             const params = new URLSearchParams();
-            if (countFilters.bodyStyleId) params.append('bodyStyleId', countFilters.bodyStyleId.toString());
+            if (countFilters.bodyStyleIds && countFilters.bodyStyleIds.length > 0) {
+              countFilters.bodyStyleIds.forEach(id => params.append('bodyStyleId', id.toString()));
+            }
             if (countFilters.brands) countFilters.brands.forEach((slug: string) => params.append('brandSlugs', slug));
             if (countFilters.models) countFilters.models.forEach((slug: string) => params.append('modelSlugs', slug));
             if (countFilters.minYear) params.append('minYear', countFilters.minYear.toString());

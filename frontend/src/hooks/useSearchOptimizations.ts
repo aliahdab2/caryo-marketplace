@@ -60,7 +60,7 @@ export function useSearchOptimizations({
       sort: 'createdAt,desc',
       transmissionId: filters.transmissionId,
       fuelTypeId: filters.fuelTypeId,
-      bodyStyleId: filters.bodyStyleId,
+      bodyStyleIds: filters.bodyStyleIds,
       conditionId: filters.conditionId
     };
 
@@ -85,7 +85,7 @@ export function useSearchOptimizations({
     filters.sellerTypeIds,
     filters.transmissionId,
     filters.fuelTypeId,
-    filters.bodyStyleId,
+    filters.bodyStyleIds,
     filters.conditionId,
     filters.brands,
     filters.models,
@@ -124,7 +124,7 @@ export function useSearchOptimizations({
       filters.locations?.length ||
       filters.transmissionId ||
       filters.fuelTypeId ||
-      filters.bodyStyleId ||
+      filters.bodyStyleIds?.length ||
       filters.conditionId ||
       filters.sellerTypeIds?.length
     );
@@ -140,7 +140,7 @@ export function useSearchOptimizations({
     if (filters.locations?.length) count++;
     if (filters.transmissionId) count++;
     if (filters.fuelTypeId) count++;
-    if (filters.bodyStyleId) count++;
+    if (filters.bodyStyleIds?.length) count++;
     if (filters.conditionId) count++;
     if (filters.sellerTypeIds?.length) count++;
     return count;

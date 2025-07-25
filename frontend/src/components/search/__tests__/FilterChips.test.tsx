@@ -18,7 +18,7 @@ const mockFilters: AdvancedSearchFilters = {
   maxYear: 2024,
   transmissionId: 1,
   fuelTypeId: 2,
-  bodyStyleId: 3,
+  bodyStyleIds: [3],
   sellerTypeIds: [1, 2]
 };
 
@@ -88,7 +88,7 @@ describe('FilterChips', () => {
       maxMileage: undefined,
       transmissionId: undefined,
       fuelTypeId: undefined,
-      bodyStyleId: undefined,
+      bodyStyleIds: undefined,
       sellerTypeIds: undefined
     }, {
       selectedMake: null,

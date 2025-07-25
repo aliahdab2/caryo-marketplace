@@ -315,7 +315,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
             
             <div className="grid gap-3 max-h-80 overflow-y-auto pr-2 rtl:pr-0 rtl:pl-2">
               {referenceData?.bodyStyles?.map(bodyStyle => {
-                const isSelected = filters.bodyStyleId === bodyStyle.id;
+                const isSelected = filters.bodyStyleIds?.includes(bodyStyle.id) || false;
                 const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
                 const count = bodyStyleCounts[bodyStyle.name.toLowerCase()] || 0;
                 
@@ -328,13 +328,12 @@ const FilterModal: React.FC<FilterModalProps> = ({
                         : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
                     }`}
                     onClick={() => {
-                      handleInputChange('bodyStyleId', isSelected ? undefined : bodyStyle.id);
-                      // Auto-close modal after selection for better UX
-                      if (!isSelected) {
-                        setTimeout(() => {
-                          onClose();
-                        }, 300);
-                      }
+                      const currentBodyStyleIds = filters.bodyStyleIds || [];
+                      const newBodyStyleIds = isSelected 
+                        ? currentBodyStyleIds.filter(id => id !== bodyStyle.id)
+                        : [...currentBodyStyleIds, bodyStyle.id];
+                      
+                      handleInputChange('bodyStyleIds', newBodyStyleIds.length > 0 ? newBodyStyleIds : undefined);
                     }}
                   >
                     <div className="flex items-center space-x-4 rtl:space-x-reverse">
