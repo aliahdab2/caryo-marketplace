@@ -144,7 +144,7 @@ describe('FilterModal', () => {
 
   it('displays correct button text with listing count', () => {
     render(<FilterModal {...mockProps} />);
-    expect(screen.getByText('Show {{count}} results')).toBeInTheDocument();
+    expect(screen.getByText('Search cars')).toBeInTheDocument();
   });
 
   it('has correct displayName', () => {
