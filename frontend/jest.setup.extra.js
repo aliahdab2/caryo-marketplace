@@ -63,3 +63,38 @@ class MockIntersectionObserver {
 }
 
 window.IntersectionObserver = window.IntersectionObserver || MockIntersectionObserver;
+
+// Mock fetch for API calls to prevent network errors in tests
+global.fetch = jest.fn((url) => {
+  // Mock different API endpoints
+  if (url.includes('/api/reference-data')) {
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({
+        bodyStyles: [
+          { id: 1, name: 'Sedan', displayNameEn: 'Sedan', displayNameAr: 'سيدان' },
+          { id: 2, name: 'SUV', displayNameEn: 'SUV', displayNameAr: 'سيارة رياضية' },
+          { id: 3, name: 'Hatchback', displayNameEn: 'Hatchback', displayNameAr: 'هاتشباك' }
+        ],
+        carConditions: [],
+        driveTypes: [],
+        fuelTypes: [],
+        transmissions: [],
+        sellerTypes: []
+      })
+    });
+  }
+  
+  if (url.includes('/api/listings/count/filter')) {
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ count: 0 })
+    });
+  }
+  
+  // Default mock for other fetch calls
+  return Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({})
+  });
+});
