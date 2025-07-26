@@ -17,6 +17,20 @@ const config: Config = {
       '2xl': '1536px',
     },
     extend: {
+      colors: {
+        primary: {
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
+        },
+      },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":
@@ -51,12 +65,15 @@ const config: Config = {
           '100%': { transform: 'scale(1)' },
         },
       },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
     },
   },
   plugins: [
     // Add custom plugin to handle RTL spacing 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function({ addUtilities, theme, config: _config }: { addUtilities: (utilities: any) => void, theme: (path: string) => any, config: (path: string) => any }) {
+    function({ addUtilities, theme }: { addUtilities: (utilities: any) => void, theme: (path: string) => any }) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const spacingUtilities: Record<string, any> = {};
       const spacing: Record<string, string> = theme('spacing');
