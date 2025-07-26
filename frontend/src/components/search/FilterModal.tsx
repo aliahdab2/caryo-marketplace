@@ -421,7 +421,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
             <div className="flex-1 overflow-y-auto min-h-0 space-y-2">
               {isLoadingBrands || isLoadingCounts || isLoadingAllModels ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                  <div data-testid="loading-spinner" className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
                 </div>
               ) : filteredBrands.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
