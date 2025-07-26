@@ -19,7 +19,15 @@ export const useBodyStyleCounts = (filters?: CarListingFilterParams) => {
       try {
         // Get all body styles from reference data
         const referenceData = await fetchCarReferenceData();
-        const bodyStyles = referenceData.bodyStyles || [];
+        
+        // Add null check to prevent TypeError in test environments
+        if (!referenceData || !referenceData.bodyStyles) {
+          console.warn('Reference data or body styles not available');
+          setBodyStyleCounts({});
+          return;
+        }
+        
+        const bodyStyles = referenceData.bodyStyles;
 
         // First, get the total count without body style filter
         const totalCountResponse = await fetch(`http://localhost:8080/api/listings/count/filter`);

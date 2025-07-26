@@ -103,5 +103,9 @@
   "removeSellerTypeFilter": "Remove seller type filter",
   "cars": "cars",
   "cancel": "Cancel",
-  "showAllFilters": "Show all filters"
+  "showAllFilters": "Show all filters",
+  "searchMakeModel": "Search for make or model",
+  "showAllBrands": "Show all brands",
+  "brands": "Brands",
+  "models": "Models"
 }

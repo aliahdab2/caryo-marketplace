@@ -37,6 +37,12 @@ console.warn = function() {
     return;
   }
   
+  // Suppress reference data warnings in tests
+  if (arguments[0] && typeof arguments[0] === 'string' && 
+      arguments[0].includes('Reference data or body styles not available')) {
+    return;
+  }
+  
   return originalWarn.apply(console, arguments);
 };
 
@@ -46,6 +52,12 @@ console.error = function() {
   if (arguments[0] && typeof arguments[0] === 'string' && 
       (arguments[0].includes('was not wrapped in act') || 
        arguments[0].includes('Warning: ReactDOM.render'))) {
+    return;
+  }
+  
+  // Suppress body style counts errors in tests
+  if (arguments[0] && typeof arguments[0] === 'string' && 
+      arguments[0].includes('Failed to fetch body style counts')) {
     return;
   }
   
