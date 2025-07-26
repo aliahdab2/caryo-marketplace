@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface FilterModalContainerProps {
-  title: string;
+  title?: string;
   dirClass: string;
   children: React.ReactNode;
   showSeparator?: boolean;
@@ -20,12 +20,14 @@ export const FilterModalContainer: React.FC<FilterModalContainerProps> = ({
   return (
     <div className="space-y-4">
       <div>
-        <h3 
-          id="filter-modal-title"
-          className={`text-base font-medium text-gray-900 mb-3 text-center ${dirClass}`}
-        >
-          {title}
-        </h3>
+        {title && (
+          <h3 
+            id="filter-modal-title"
+            className={`text-base font-medium text-gray-900 mb-3 text-center ${dirClass}`}
+          >
+            {title}
+          </h3>
+        )}
         {showSeparator && (
           <div className="w-full h-px bg-gray-200 mb-4"></div>
         )}

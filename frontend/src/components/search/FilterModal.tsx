@@ -8,7 +8,6 @@ import MileageSlider from '@/components/ui/MileageSlider';
 import YearSlider from '@/components/ui/YearSlider';
 import { getCarIcon } from '@/utils/carIcons';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
-import { FilterModalContainer } from '@/components/ui/FilterModalContainer';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
 
 interface FilterModalProps {
@@ -45,7 +44,7 @@ const MODAL_CLASSES = {
   OVERLAY: "fixed inset-0 z-50 overflow-y-auto pointer-events-none",
   CONTAINER: "flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-6",
   BACKDROP: "fixed inset-0 bg-black/20 backdrop-blur-sm transition-opacity pointer-events-auto",
-  MODAL: "relative transform overflow-hidden rounded-2xl bg-white px-6 py-6 text-left shadow-2xl transition-all w-full max-w-lg h-[700px] border border-gray-100 pointer-events-auto",
+  MODAL: "relative transform overflow-hidden rounded-2xl bg-white px-6 py-6 text-left shadow-2xl transition-all w-full max-w-lg border border-gray-100 pointer-events-auto",
   CLOSE_BUTTON: "rounded-full p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all",
   SEPARATOR: "border-t border-gray-200",
   BUTTON_CONTAINER: "flex gap-3 mt-6"
@@ -75,7 +74,6 @@ const FilterModal: React.FC<FilterModalProps> = ({
   bodyStyleCounts,
   carListings,
   currentLanguage,
-  dirClass,
   t,
   updateFiltersAndState,
   handleInputChange,
@@ -159,7 +157,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
       case 'price': return t('search:priceRange', 'Price Range');
       case 'year': return t('search:yearRange', 'Year Range');
       case 'mileage': return t('search:mileageRange', 'Mileage Range');
-      case 'transmission': return t('search:gearbox', 'Gearbox');
+      case 'transmission': return t('search:transmission', 'Transmission');
       case 'fuelType': return t('search:fuelType', 'Fuel Type');
       case 'bodyStyle': return t('search:bodyStyle', 'Body Style');
       case 'sellerType': return t('search:sellerType', 'Seller Type');
@@ -532,11 +530,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
       case 'price':
         return (
-          <FilterModalContainer 
-            title={t('search:priceRange', 'Price Range')}
-            dirClass={dirClass}
-            showSeparator={true}
-          >
+          <div className="w-full [&_.range-slider]:pt-0 [&_.range-slider]:pb-0 [&_.range-slider_.grid]:mt-0">
             <PriceSlider
               minPrice={filters.minPrice}
               maxPrice={filters.maxPrice}
@@ -544,17 +538,14 @@ const FilterModal: React.FC<FilterModalProps> = ({
               onChange={handlePriceChange}
               t={t}
               locale={currentLanguage}
-              className="mb-2"
+              className="w-full"
             />
-          </FilterModalContainer>
+          </div>
         );
 
       case 'year':
         return (
-          <FilterModalContainer 
-            title={t('search:yearRange', 'Year range')}
-            dirClass={dirClass}
-          >
+          <div className="w-full [&_.range-slider]:pt-0 [&_.range-slider]:pb-0 [&_.range-slider_.grid]:mt-0">
             <YearSlider
               minYear={filters.minYear}
               maxYear={filters.maxYear}
@@ -569,15 +560,12 @@ const FilterModal: React.FC<FilterModalProps> = ({
               locale={currentLanguage}
               className="w-full"
             />
-          </FilterModalContainer>
+          </div>
         );
 
       case 'mileage':
         return (
-          <FilterModalContainer 
-            title={t('search:mileageRange', 'Mileage range')}
-            dirClass={dirClass}
-          >
+          <div className="w-full [&_.range-slider]:pt-0 [&_.range-slider]:pb-0 [&_.range-slider_.grid]:mt-0">
             <MileageSlider
               minMileage={filters.minMileage}
               maxMileage={filters.maxMileage}
@@ -592,14 +580,12 @@ const FilterModal: React.FC<FilterModalProps> = ({
               locale={currentLanguage}
               className="w-full"
             />
-          </FilterModalContainer>
+          </div>
         );
 
-      case 'transmission':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{t('gearbox', 'Gearbox')}</h3>
+              case 'transmission':
+          return (
+            <div className="w-full">
               <select
                 value={filters.transmissionId || ''}
                 onChange={(e) => handleInputChange('transmissionId', e.target.value ? parseInt(e.target.value) : undefined)}
@@ -614,14 +600,11 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 ))}
               </select>
             </div>
-          </div>
-        );
+          );
 
-      case 'fuelType':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{t('fuelType', 'Fuel type')}</h3>
+              case 'fuelType':
+          return (
+            <div className="w-full">
               <select
                 value={filters.fuelTypeId || ''}
                 onChange={(e) => handleInputChange('fuelTypeId', e.target.value ? parseInt(e.target.value) : undefined)}
@@ -636,17 +619,13 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 ))}
               </select>
             </div>
-          </div>
-        );
+          );
 
-      case 'bodyStyle':
-        return (
-          <div className="space-y-4">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('bodyStyle', 'Body style')}</h3>
-            </div>
-            
-            <div className="grid gap-3 max-h-80 overflow-y-auto pr-2 rtl:pr-0 rtl:pl-2">
+              case 'bodyStyle':
+          return (
+            <div className="space-y-4">
+              
+            <div className="grid gap-3 max-h-96 overflow-y-auto pr-2 rtl:pr-0 rtl:pl-2">
               {referenceData?.bodyStyles?.map(bodyStyle => {
                 const isSelected = filters.bodyStyleIds?.includes(bodyStyle.id) || false;
                 const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
@@ -705,13 +684,9 @@ const FilterModal: React.FC<FilterModalProps> = ({
           </div>
         );
 
-      case 'sellerType':
-        return (
-          <div className="space-y-6">
-            {/* Header - Blocket style but in English/Arabic */}
-            <div className="text-center">
-              <h3 className="text-xl font-medium text-gray-900 mb-1">{t('sellerType', 'Seller Type')}</h3>
-            </div>
+              case 'sellerType':
+          return (
+            <div className="space-y-6">
             
             {/* Blocket Style Filter with Checkboxes */}
             <div className="space-y-2">
@@ -1007,7 +982,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
         
         <div 
           ref={modalRef}
-          className={`${MODAL_CLASSES.MODAL} ${filterType === 'makeModel' ? 'flex flex-col' : ''}`}
+          className={`${MODAL_CLASSES.MODAL} max-h-[90vh] overflow-hidden flex flex-col`}
           onKeyDown={(e) => {
             if (e.key === 'Escape') {
               onClose();
@@ -1022,9 +997,9 @@ const FilterModal: React.FC<FilterModalProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 id="filter-modal-title" className="text-xl font-semibold text-gray-900">
-              {filterType === 'makeModel' 
-                ? (currentLanguage === 'ar' ? 'الماركة والموديل' : 'Make & Model')
-                : (currentLanguage === 'ar' ? 'تصفية وترتيب' : 'Filter and sort')
+              {filterType === 'allFilters' 
+                ? (currentLanguage === 'ar' ? 'تصفية وترتيب' : 'Filter and sort')
+                : getModalTitle(filterType)
               }
             </h2>
             
@@ -1038,8 +1013,11 @@ const FilterModal: React.FC<FilterModalProps> = ({
             </button>
           </div>
 
+          {/* Title Separator */}
+          <div className="w-full h-px bg-gray-200 mb-4"></div>
+
           {/* Filter Content */}
-          <div className={`${filterType === 'makeModel' ? 'flex-1 min-h-0' : 'space-y-6'}`}>
+          <div className="flex-1 min-h-0 overflow-y-auto pb-4">
             {renderModalContent()}
           </div>
 

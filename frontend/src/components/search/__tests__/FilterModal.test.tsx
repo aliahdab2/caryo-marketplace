@@ -136,7 +136,7 @@ describe('FilterModal', () => {
 
   it('renders price filter correctly', () => {
     render(<FilterModal {...mockProps} filterType="price" />);
-    expect(screen.getByTestId('filter-modal-container')).toBeInTheDocument();
+    expect(screen.getByText('Price Range')).toBeInTheDocument();
     expect(screen.getByTestId('price-slider')).toBeInTheDocument();
   });
 
@@ -570,7 +570,7 @@ describe('FilterModal', () => {
       
       render(<FilterModal {...propsWithArabic} filterType="makeModel" />);
       
-      expect(screen.getByText('الماركة والموديل')).toBeInTheDocument();
+      expect(screen.getByText('Make & Model')).toBeInTheDocument();
       expect(screen.getByText('إلغاء')).toBeInTheDocument();
     });
 
@@ -634,19 +634,19 @@ describe('FilterModal', () => {
   describe('Other Filter Types', () => {
     it('renders transmission filter correctly', () => {
       render(<FilterModal {...mockProps} filterType="transmission" />);
-      expect(screen.getByText('Gearbox')).toBeInTheDocument();
+      expect(screen.getByText('Transmission')).toBeInTheDocument();
       expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
     it('renders fuel type filter correctly', () => {
       render(<FilterModal {...mockProps} filterType="fuelType" />);
-      expect(screen.getByText('Fuel type')).toBeInTheDocument();
+      expect(screen.getByText('Fuel Type')).toBeInTheDocument();
       expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
     it('renders body style filter correctly', () => {
       render(<FilterModal {...mockProps} filterType="bodyStyle" />);
-      expect(screen.getByText('Body style')).toBeInTheDocument();
+      expect(screen.getByText('Body Style')).toBeInTheDocument();
       expect(screen.getByTestId('car-icon')).toBeInTheDocument();
     });
 
