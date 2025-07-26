@@ -788,7 +788,37 @@ const FilterModal: React.FC<FilterModalProps> = ({
             <button
               type="button"
               className={BUTTON_CLASSES.CLEAR}
-              onClick={() => clearSpecificFilter(filterType)}
+              onClick={() => {
+                if (filterType === 'allFilters') {
+                  // Clear all filters for the "Show all filters" modal
+                  setFilters({});
+                  updateFiltersAndState(
+                    {
+                      brands: undefined,
+                      models: undefined,
+                      minPrice: undefined,
+                      maxPrice: undefined,
+                      minYear: undefined,
+                      maxYear: undefined,
+                      minMileage: undefined,
+                      maxMileage: undefined,
+                      transmissionId: undefined,
+                      fuelTypeId: undefined,
+                      bodyStyleIds: undefined,
+                      sellerTypeIds: undefined,
+                      locations: undefined,
+                      conditionId: undefined,
+                      exteriorColor: undefined,
+                      doors: undefined,
+                      cylinders: undefined
+                    },
+                    { selectedMake: null, selectedModel: null }
+                  );
+                } else {
+                  // Clear specific filter for individual modals
+                  clearSpecificFilter(filterType);
+                }
+              }}
               aria-label={currentLanguage === 'ar' ? `مسح تصفية ${getModalTitle(filterType)}` : `Clear ${getModalTitle(filterType)} filter`}
             >
               {currentLanguage === 'ar' ? 'مسح الكل' : 'Clear all'}

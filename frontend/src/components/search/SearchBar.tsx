@@ -71,7 +71,7 @@ export default function SearchBar({
                       setSearchQuery('');
                     }}
                     className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded p-1 z-10 ${
-                      currentLanguage === 'ar' ? 'left-2 sm:left-20' : 'right-2 sm:right-20'
+                      currentLanguage === 'ar' ? 'left-2 sm:left-20' : 'right-2 sm:right-24'
                     }`}
                     aria-label={t('clearSearch', 'Clear search')}
                   >
