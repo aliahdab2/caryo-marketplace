@@ -103,5 +103,7 @@
   "cars": "سيارة",
   "cancel": "إلغاء",
   "show": "عرض",
-  "showAllFilters": "إظهار جميع الفلاتر"
+  "showAllFilters": "إظهار جميع الفلاتر",
+  "searchMakeModel": "البحث عن الماركة أو الموديل",
+  "showAllBrands": "إظهار جميع الماركات"
 }

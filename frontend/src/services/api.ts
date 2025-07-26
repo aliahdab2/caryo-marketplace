@@ -481,6 +481,70 @@ export async function fetchCarListingCountByBodyStyle(bodyStyleId: number): Prom
 }
 
 /**
+ * Fetches brand counts with optional filters
+ * @param filters Optional filters to apply
+ * @returns Object with brand slugs as keys and counts as values
+ */
+export async function fetchBrandCounts(filters?: Partial<CarListingFilterParams>): Promise<Record<string, number>> {
+  try {
+    const params = new URLSearchParams();
+    
+    // Add filters to query parameters
+    if (filters?.models) {
+      filters.models.forEach(model => params.append('modelSlugs', model));
+    }
+    if (filters?.minYear) params.append('minYear', filters.minYear.toString());
+    if (filters?.maxYear) params.append('maxYear', filters.maxYear.toString());
+    if (filters?.locations) {
+      filters.locations.forEach(location => params.append('location', location));
+    }
+    if (filters?.minPrice) params.append('minPrice', filters.minPrice.toString());
+    if (filters?.maxPrice) params.append('maxPrice', filters.maxPrice.toString());
+    
+    const queryString = params.toString();
+    const url = `/api/listings/counts/brands${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await api.get<Record<string, number>>(url);
+    return response || {};
+  } catch (error) {
+    console.error('Error fetching brand counts:', error);
+    return {};
+  }
+}
+
+/**
+ * Fetches model counts with optional filters
+ * @param filters Optional filters to apply
+ * @returns Object with model slugs as keys and counts as values
+ */
+export async function fetchModelCounts(filters?: Partial<CarListingFilterParams>): Promise<Record<string, number>> {
+  try {
+    const params = new URLSearchParams();
+    
+    // Add filters to query parameters
+    if (filters?.brands) {
+      filters.brands.forEach(brand => params.append('brandSlugs', brand));
+    }
+    if (filters?.minYear) params.append('minYear', filters.minYear.toString());
+    if (filters?.maxYear) params.append('maxYear', filters.maxYear.toString());
+    if (filters?.locations) {
+      filters.locations.forEach(location => params.append('location', location));
+    }
+    if (filters?.minPrice) params.append('minPrice', filters.minPrice.toString());
+    if (filters?.maxPrice) params.append('maxPrice', filters.maxPrice.toString());
+    
+    const queryString = params.toString();
+    const url = `/api/listings/counts/models${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await api.get<Record<string, number>>(url);
+    return response || {};
+  } catch (error) {
+    console.error('Error fetching model counts:', error);
+    return {};
+  }
+}
+
+/**
  * Creates cache key for any API request
  * @param endpoint API endpoint
  * @param params Additional parameters for cache key

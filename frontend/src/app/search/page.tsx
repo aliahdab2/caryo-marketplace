@@ -55,6 +55,10 @@ export default function AdvancedSearchPage() {
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [sellerTypeCounts, setSellerTypeCounts] = useState<SellerTypeCounts>({});
   
+  // New state for all models (for makeModel filter modal)
+  const [allModels, setAllModels] = useState<CarModel[]>([]);
+  const [isLoadingAllModels, setIsLoadingAllModels] = useState(false);
+
   // Handle clicking outside the dropdown to close it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -158,6 +162,35 @@ export default function AdvancedSearchPage() {
     '/api/reference-data/brands',
     [] // No dependencies needed - brands don't change
   );
+
+  // Fetch all models when makeModel filter modal is opened
+  useEffect(() => {
+    if (activeFilterModal === 'makeModel' && carMakes && carMakes.length > 0) {
+      const fetchAllModels = async () => {
+        setIsLoadingAllModels(true);
+        try {
+          const allModelsPromises = carMakes.map(async (make) => {
+            const models = await fetchCarModels(make.id);
+            // Add the brand relationship to each model
+            return models.map(model => ({
+              ...model,
+              brand: make
+            }));
+          });
+          const allModelsArrays = await Promise.all(allModelsPromises);
+          const flatAllModels = allModelsArrays.flat();
+          setAllModels(flatAllModels);
+        } catch (error) {
+          console.error('Error fetching all models:', error);
+          setAllModels([]);
+        } finally {
+          setIsLoadingAllModels(false);
+        }
+      };
+      
+      fetchAllModels();
+    }
+  }, [activeFilterModal, carMakes]);
 
   // Stable dependency for models to prevent loops
   const modelsFetchKey = useMemo(() => 
@@ -827,6 +860,8 @@ export default function AdvancedSearchPage() {
             updateFiltersAndState={updateFiltersAndState}
             handleInputChange={handleInputChange}
             clearSpecificFilter={clearSpecificFilter}
+            allModels={allModels} // Pass allModels to the modal
+            isLoadingAllModels={isLoadingAllModels} // Pass isLoadingAllModels to the modal
           />
         )}
 
