@@ -105,5 +105,7 @@
   "show": "عرض",
   "showAllFilters": "إظهار جميع الفلاتر",
   "searchMakeModel": "البحث عن الماركة أو الموديل",
-  "showAllBrands": "إظهار جميع الماركات"
+  "showAllBrands": "إظهار جميع الماركات",
+  "brands": "الماركات",
+  "models": "الموديلات"
 }

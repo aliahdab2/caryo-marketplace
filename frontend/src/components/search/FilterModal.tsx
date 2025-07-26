@@ -249,15 +249,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
           let showBrand = false;
           let filteredModels = brandModels;
           if (searchQuery) {
-            // If brand matches, show all its models
-            const brandName = currentLanguage === 'ar' ? brand.displayNameAr : brand.displayNameEn;
-            if (brandName.toLowerCase().includes(searchQuery.toLowerCase())) {
+            // Check if brand matches in either English or Arabic
+            const brandMatchesEn = brand.displayNameEn.toLowerCase().includes(searchQuery.toLowerCase());
+            const brandMatchesAr = brand.displayNameAr.includes(searchQuery);
+            
+            if (brandMatchesEn || brandMatchesAr) {
               showBrand = true;
             } else {
-              // Otherwise, only show models that match
+              // Otherwise, only show models that match in either language
               filteredModels = brandModels.filter(model => {
-                const modelName = currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn;
-                return modelName.toLowerCase().includes(searchQuery.toLowerCase());
+                const modelMatchesEn = model.displayNameEn.toLowerCase().includes(searchQuery.toLowerCase());
+                const modelMatchesAr = model.displayNameAr.includes(searchQuery);
+                return modelMatchesEn || modelMatchesAr;
               });
               if (filteredModels.length > 0) showBrand = true;
             }
@@ -318,10 +321,25 @@ const FilterModal: React.FC<FilterModalProps> = ({
         // Remove chip handler
         const handleRemoveChip = (chip: Chip) => {
           if (chip.type === 'brand') {
-            // Remove brand from filters
+            // Remove brand and all its associated models from filters
             const updatedBrands = filters.brands?.filter(b => b !== chip.slug) || [];
+            
+            // Find all models that belong to this brand and remove them
+            const brandToRemove = carMakes?.find(b => b.slug === chip.slug);
+            let updatedModels = filters.models || [];
+            
+            if (brandToRemove) {
+              // Get all models that belong to this brand
+              const brandModels = modelsToUse.filter(model => model.brand?.id === brandToRemove.id);
+              const brandModelSlugs = brandModels.map(model => model.slug);
+              
+              // Remove all models that belong to this brand
+              updatedModels = updatedModels.filter(modelSlug => !brandModelSlugs.includes(modelSlug));
+            }
+            
             updateFiltersAndState({ 
-              brands: updatedBrands.length > 0 ? updatedBrands : undefined
+              brands: updatedBrands.length > 0 ? updatedBrands : undefined,
+              models: updatedModels.length > 0 ? updatedModels : undefined
             });
           } else {
             // Remove model from filters
@@ -338,10 +356,20 @@ const FilterModal: React.FC<FilterModalProps> = ({
           const updatedBrands = filters.brands || [];
           
           if (isSelected) {
-            // Remove brand
+            // Remove brand and all its associated models
             const newBrands = updatedBrands.filter(b => b !== brand.slug);
+            
+            // Find all models that belong to this brand and remove them
+            let updatedModels = filters.models || [];
+            const brandModels = modelsToUse.filter(model => model.brand?.id === brand.id);
+            const brandModelSlugs = brandModels.map(model => model.slug);
+            
+            // Remove all models that belong to this brand
+            updatedModels = updatedModels.filter(modelSlug => !brandModelSlugs.includes(modelSlug));
+            
             updateFiltersAndState({ 
-              brands: newBrands.length > 0 ? newBrands : undefined
+              brands: newBrands.length > 0 ? newBrands : undefined,
+              models: updatedModels.length > 0 ? updatedModels : undefined
             });
           } else {
             // Add brand

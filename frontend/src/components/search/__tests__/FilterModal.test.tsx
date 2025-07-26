@@ -206,6 +206,102 @@ describe('FilterModal', () => {
       expect(screen.getByText('Toyota')).toBeInTheDocument();
       expect(screen.getByText('Honda')).toBeInTheDocument();
     });
+
+    it('filters brands when searching in Arabic', async () => {
+      const propsWithArabic = {
+        ...mockProps,
+        currentLanguage: 'ar',
+        isRTL: true,
+        dirClass: 'rtl'
+      };
+      
+      render(<FilterModal {...propsWithArabic} filterType="makeModel" />);
+      
+      const searchInput = screen.getByPlaceholderText('Search for make or model');
+      await userEvent.type(searchInput, 'تويوتا');
+      
+      expect(screen.getByText('تويوتا')).toBeInTheDocument();
+      expect(screen.queryByText('هوندا')).not.toBeInTheDocument();
+    });
+
+    it('filters models when searching in Arabic', async () => {
+      const propsWithArabic = {
+        ...mockProps,
+        currentLanguage: 'ar',
+        isRTL: true,
+        dirClass: 'rtl'
+      };
+      
+      render(<FilterModal {...propsWithArabic} filterType="makeModel" />);
+      
+      // Wait for brands to load
+      await waitFor(() => {
+        expect(screen.getByText('تويوتا')).toBeInTheDocument();
+      });
+      
+      // Expand Toyota to show models
+      const expandButtons = screen.getAllByLabelText('Expand models');
+      fireEvent.click(expandButtons[0]);
+      
+      // Wait for models to appear
+      await waitFor(() => {
+        expect(screen.getByText('كامري')).toBeInTheDocument();
+      });
+      
+      const searchInput = screen.getByPlaceholderText('Search for make or model');
+      await userEvent.type(searchInput, 'كامري');
+      
+      expect(screen.getByText('كامري')).toBeInTheDocument();
+      expect(screen.queryByText('كورولا')).not.toBeInTheDocument();
+    });
+
+    it('filters brands when searching in English while in Arabic mode', async () => {
+      const propsWithArabic = {
+        ...mockProps,
+        currentLanguage: 'ar',
+        isRTL: true,
+        dirClass: 'rtl'
+      };
+      
+      render(<FilterModal {...propsWithArabic} filterType="makeModel" />);
+      
+      const searchInput = screen.getByPlaceholderText('Search for make or model');
+      await userEvent.type(searchInput, 'Toyota');
+      
+      expect(screen.getByText('تويوتا')).toBeInTheDocument();
+      expect(screen.queryByText('هوندا')).not.toBeInTheDocument();
+    });
+
+    it('filters models when searching in English while in Arabic mode', async () => {
+      const propsWithArabic = {
+        ...mockProps,
+        currentLanguage: 'ar',
+        isRTL: true,
+        dirClass: 'rtl'
+      };
+      
+      render(<FilterModal {...propsWithArabic} filterType="makeModel" />);
+      
+      // Wait for brands to load
+      await waitFor(() => {
+        expect(screen.getByText('تويوتا')).toBeInTheDocument();
+      });
+      
+      // Expand Toyota to show models
+      const expandButtons = screen.getAllByLabelText('Expand models');
+      fireEvent.click(expandButtons[0]);
+      
+      // Wait for models to appear
+      await waitFor(() => {
+        expect(screen.getByText('كامري')).toBeInTheDocument();
+      });
+      
+      const searchInput = screen.getByPlaceholderText('Search for make or model');
+      await userEvent.type(searchInput, 'Camry');
+      
+      expect(screen.getByText('كامري')).toBeInTheDocument();
+      expect(screen.queryByText('كورولا')).not.toBeInTheDocument();
+    });
   });
 
   describe('Chip Management', () => {
@@ -258,6 +354,59 @@ describe('FilterModal', () => {
       
       expect(mockProps.updateFiltersAndState).toHaveBeenCalledWith({
         models: undefined
+      });
+    });
+
+    it('removes brand chip and all associated model chips when brand chip is removed', () => {
+      const propsWithBrandAndModels = {
+        ...mockProps,
+        filters: { 
+          ...mockProps.filters, 
+          brands: ['toyota'], 
+          models: ['camry', 'corolla', 'civic'] // camry and corolla belong to Toyota, civic to Honda
+        }
+      };
+      
+      render(<FilterModal {...propsWithBrandAndModels} filterType="makeModel" />);
+      
+      // Find and click the remove button for the Toyota brand chip
+      const removeButtons = screen.getAllByLabelText('Remove');
+      fireEvent.click(removeButtons[0]); // First remove button should be for Toyota
+      
+      // Should remove Toyota brand and its associated models (camry, corolla)
+      // but keep civic since it belongs to Honda
+      expect(mockProps.updateFiltersAndState).toHaveBeenCalledWith({
+        brands: undefined,
+        models: ['civic'] // Only civic should remain
+      });
+    });
+
+    it('removes brand chip and all associated model chips when brand checkbox is unchecked', async () => {
+      const propsWithBrandAndModels = {
+        ...mockProps,
+        filters: { 
+          ...mockProps.filters, 
+          brands: ['toyota'], 
+          models: ['camry', 'corolla', 'civic'] // camry and corolla belong to Toyota, civic to Honda
+        }
+      };
+      
+      render(<FilterModal {...propsWithBrandAndModels} filterType="makeModel" />);
+      
+      // Wait for brands to load
+      await waitFor(() => {
+        expect(screen.getByText('Toyota')).toBeInTheDocument();
+      });
+      
+      // Find and click the Toyota checkbox to uncheck it
+      const checkboxes = screen.getAllByRole('checkbox');
+      fireEvent.click(checkboxes[0]); // First checkbox should be Toyota
+      
+      // Should remove Toyota brand and its associated models (camry, corolla)
+      // but keep civic since it belongs to Honda
+      expect(mockProps.updateFiltersAndState).toHaveBeenCalledWith({
+        brands: undefined,
+        models: ['civic'] // Only civic should remain
       });
     });
   });

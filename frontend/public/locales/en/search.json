@@ -105,5 +105,7 @@
   "cancel": "Cancel",
   "showAllFilters": "Show all filters",
   "searchMakeModel": "Search for make or model",
-  "showAllBrands": "Show all brands"
+  "showAllBrands": "Show all brands",
+  "brands": "Brands",
+  "models": "Models"
 }

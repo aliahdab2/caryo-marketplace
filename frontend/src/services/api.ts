@@ -317,6 +317,20 @@ export async function fetchCarModels(brandId: number): Promise<CarModel[]> {
   return api.get<CarModel[]>(`/api/reference-data/brands/${brandId}/models`);
 }
 
+
+
+
+
+/**
+ * Searches for car models within a specific brand (supports both English and Arabic)
+ */
+export async function searchCarModelsByBrand(brandId: number, query: string): Promise<CarModel[]> {
+  if (!query || query.trim().length === 0) {
+    return fetchCarModels(brandId); // Return all models for brand if no query
+  }
+  return api.get<CarModel[]>(`/api/reference-data/brands/${brandId}/models/search?q=${encodeURIComponent(query.trim())}`);
+}
+
 /**
  * Fetches trims for a specific model
  */
