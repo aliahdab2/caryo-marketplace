@@ -1528,4 +1528,70 @@ public class CarListingControllerTest {
             filter.getMinPrice().compareTo(new BigDecimal("15000")) == 0
         ));
     }
+
+    @Test
+    void filterListings_WithTransmissionIds_ShouldReturnFilteredListings() {
+        // Arrange
+        List<CarListingResponse> listings = new ArrayList<>();
+        listings.add(carListingResponse);
+        Page<CarListingResponse> page = new PageImpl<>(listings);
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setTransmissionIds(Arrays.asList(5L, 4L)); // Filter by transmissions (e.g., Automatic, Manual)
+        when(carListingService.getFilteredListings(any(ListingFilterRequest.class), any(Pageable.class))).thenReturn(page);
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10);
+        // Act
+        ResponseEntity<PageResponse<CarListingResponse>> response = carListingController.getFilteredListings(filterRequest, pageable);
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(listings, Objects.requireNonNull(response.getBody()).getContent());
+        verify(carListingService).getFilteredListings(argThat(filter ->
+            filter.getTransmissionIds() != null && filter.getTransmissionIds().containsAll(Arrays.asList(5L, 4L))
+        ), eq(pageable));
+    }
+
+    @Test
+    void filterListings_WithFuelTypeIds_ShouldReturnFilteredListings() {
+        // Arrange
+        List<CarListingResponse> listings = new ArrayList<>();
+        listings.add(carListingResponse);
+        Page<CarListingResponse> page = new PageImpl<>(listings);
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setFuelTypeIds(Arrays.asList(1L, 2L)); // Filter by fuel types (e.g., Gasoline, Diesel)
+        when(carListingService.getFilteredListings(any(ListingFilterRequest.class), any(Pageable.class))).thenReturn(page);
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10);
+        // Act
+        ResponseEntity<PageResponse<CarListingResponse>> response = carListingController.getFilteredListings(filterRequest, pageable);
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(listings, Objects.requireNonNull(response.getBody()).getContent());
+        verify(carListingService).getFilteredListings(argThat(filter ->
+            filter.getFuelTypeIds() != null && filter.getFuelTypeIds().containsAll(Arrays.asList(1L, 2L))
+        ), eq(pageable));
+    }
+
+    @Test
+    void filterListings_WithBodyStyleIds_ShouldReturnFilteredListings() {
+        // Arrange
+        List<CarListingResponse> listings = new ArrayList<>();
+        listings.add(carListingResponse);
+        Page<CarListingResponse> page = new PageImpl<>(listings);
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setBodyStyleIds(Arrays.asList(2L, 3L)); // Filter by body styles
+        when(carListingService.getFilteredListings(any(ListingFilterRequest.class), any(Pageable.class))).thenReturn(page);
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10);
+        // Act
+        ResponseEntity<PageResponse<CarListingResponse>> response = carListingController.getFilteredListings(filterRequest, pageable);
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(listings, Objects.requireNonNull(response.getBody()).getContent());
+        verify(carListingService).getFilteredListings(argThat(filter ->
+            filter.getBodyStyleIds() != null && filter.getBodyStyleIds().containsAll(Arrays.asList(2L, 3L))
+        ), eq(pageable));
+    }
 }
