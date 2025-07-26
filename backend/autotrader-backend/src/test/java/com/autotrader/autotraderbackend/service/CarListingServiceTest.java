@@ -668,7 +668,7 @@ class CarListingServiceTest {
         assertEquals(50L, result.get("PRIVATE"));
         
         verify(carListingRepository).findDistinctSellerTypesWithCounts();
-        verify(carListingRepository, never()).findAll(any(Specification.class));
+        verify(carListingRepository, never()).findAll(ArgumentMatchers.<Specification<CarListing>>any());
     }
 
     @Test

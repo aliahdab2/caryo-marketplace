@@ -823,6 +823,358 @@
               "path": ["api", "listings", "counts", "seller-types"]
             }
           }
+        },
+        {
+          "name": "Multiple Filter Tests",
+          "item": [
+            {
+              "name": "Filter by Multiple Transmission Types",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response has count property\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('count');",
+                      "    pm.expect(jsonData.count).to.be.a('number');",
+                      "    pm.expect(jsonData.count).to.be.at.least(0);",
+                      "});",
+                      "",
+                      "console.log('Multiple transmission filter count:', pm.response.json().count);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/listings/count/filter?transmissionIds=5&transmissionIds=4",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "listings", "count", "filter"],
+                  "query": [
+                    {
+                      "key": "transmissionIds",
+                      "value": "5",
+                      "description": "Automatic transmission"
+                    },
+                    {
+                      "key": "transmissionIds",
+                      "value": "4",
+                      "description": "Manual transmission"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Filter by Multiple Fuel Types",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response has count property\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('count');",
+                      "    pm.expect(jsonData.count).to.be.a('number');",
+                      "    pm.expect(jsonData.count).to.be.at.least(0);",
+                      "});",
+                      "",
+                      "console.log('Multiple fuel type filter count:', pm.response.json().count);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/listings/count/filter?fuelTypeIds=1&fuelTypeIds=2",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "listings", "count", "filter"],
+                  "query": [
+                    {
+                      "key": "fuelTypeIds",
+                      "value": "1",
+                      "description": "Gasoline fuel type"
+                    },
+                    {
+                      "key": "fuelTypeIds",
+                      "value": "2",
+                      "description": "Diesel fuel type"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Filter by Multiple Body Styles",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response has count property\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('count');",
+                      "    pm.expect(jsonData.count).to.be.a('number');",
+                      "    pm.expect(jsonData.count).to.be.at.least(0);",
+                      "});",
+                      "",
+                      "console.log('Multiple body style filter count:', pm.response.json().count);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/listings/count/filter?bodyStyleIds=1&bodyStyleIds=2",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "listings", "count", "filter"],
+                  "query": [
+                    {
+                      "key": "bodyStyleIds",
+                      "value": "1",
+                      "description": "Sedan body style"
+                    },
+                    {
+                      "key": "bodyStyleIds",
+                      "value": "2",
+                      "description": "SUV body style"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Combined Multiple Filters (JSON Body)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response has count property\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('count');",
+                      "    pm.expect(jsonData.count).to.be.a('number');",
+                      "    pm.expect(jsonData.count).to.be.at.least(0);",
+                      "});",
+                      "",
+                      "console.log('Combined multiple filters count:', pm.response.json().count);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"brandSlugs\": [\"toyota\", \"honda\"],\n  \"transmissionIds\": [5, 4],\n  \"fuelTypeIds\": [1, 2],\n  \"bodyStyleIds\": [1, 2],\n  \"minYear\": 2020,\n  \"maxPrice\": 50000\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/listings/count",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "listings", "count"]
+                }
+              }
+            },
+            {
+              "name": "Single Transmission Filter",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response has count property\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('count');",
+                      "    pm.expect(jsonData.count).to.be.a('number');",
+                      "    pm.expect(jsonData.count).to.be.at.least(0);",
+                      "});",
+                      "",
+                      "console.log('Single transmission filter count:', pm.response.json().count);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/listings/count/filter?transmissionIds=5",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "listings", "count", "filter"],
+                  "query": [
+                    {
+                      "key": "transmissionIds",
+                      "value": "5",
+                      "description": "Automatic transmission only"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Single Fuel Type Filter",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response has count property\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('count');",
+                      "    pm.expect(jsonData.count).to.be.a('number');",
+                      "    pm.expect(jsonData.count).to.be.at.least(0);",
+                      "});",
+                      "",
+                      "console.log('Single fuel type filter count:', pm.response.json().count);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/listings/count/filter?fuelTypeIds=1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "listings", "count", "filter"],
+                  "query": [
+                    {
+                      "key": "fuelTypeIds",
+                      "value": "1",
+                      "description": "Gasoline fuel type only"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Single Body Style Filter",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response has count property\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('count');",
+                      "    pm.expect(jsonData.count).to.be.a('number');",
+                      "    pm.expect(jsonData.count).to.be.at.least(0);",
+                      "});",
+                      "",
+                      "console.log('Single body style filter count:', pm.response.json().count);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/listings/count/filter?bodyStyleIds=1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "listings", "count", "filter"],
+                  "query": [
+                    {
+                      "key": "bodyStyleIds",
+                      "value": "1",
+                      "description": "Sedan body style only"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Empty Filter Arrays (JSON Body)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response has count property\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('count');",
+                      "    pm.expect(jsonData.count).to.be.a('number');",
+                      "    pm.expect(jsonData.count).to.be.at.least(0);",
+                      "});",
+                      "",
+                      "console.log('Empty filter arrays count:', pm.response.json().count);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"transmissionIds\": [],\n  \"fuelTypeIds\": [],\n  \"bodyStyleIds\": []\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/listings/count",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "listings", "count"]
+                }
+              }
+            }
+          ]
         }
       ]
     }

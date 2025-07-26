@@ -303,14 +303,8 @@ public class CarListingSpecification {
                                             jakarta.persistence.criteria.Root<CarListing> root,
                                             jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
                                             List<Predicate> predicates) {
-<<<<<<< HEAD
-        if (filter.getTransmissionId() != null) {
-            System.out.println("DEBUG: Adding transmission filter with ID: " + filter.getTransmissionId());
-            predicates.add(criteriaBuilder.equal(root.get("transmissionType").get("id"), filter.getTransmissionId()));
-=======
         if (filter.getTransmissionIds() != null && !filter.getTransmissionIds().isEmpty()) {
             predicates.add(root.get("transmissionType").get("id").in(filter.getTransmissionIds()));
->>>>>>> 78c5d03 (feat: add filtering capabilities for transmission, fuel type, and body style in car listings; update related request and response models, specifications, and controller methods)
         }
     }
 
@@ -321,13 +315,8 @@ public class CarListingSpecification {
                                         jakarta.persistence.criteria.Root<CarListing> root,
                                         jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
                                         List<Predicate> predicates) {
-<<<<<<< HEAD
-        if (filter.getFuelTypeId() != null) {
-            predicates.add(criteriaBuilder.equal(root.get("fuelType").get("id"), filter.getFuelTypeId()));
-=======
         if (filter.getFuelTypeIds() != null && !filter.getFuelTypeIds().isEmpty()) {
             predicates.add(root.get("fuelType").get("id").in(filter.getFuelTypeIds()));
->>>>>>> 78c5d03 (feat: add filtering capabilities for transmission, fuel type, and body style in car listings; update related request and response models, specifications, and controller methods)
         }
     }
 

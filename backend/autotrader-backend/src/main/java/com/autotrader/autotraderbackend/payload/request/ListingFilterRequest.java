@@ -110,20 +110,6 @@ public class ListingFilterRequest {
     private String searchQuery;
 
     /**
-<<<<<<< HEAD
-     * Filter by transmission ID. Optional.
-     * Use this to filter listings by transmission type (e.g., automatic, manual).
-     */
-    @Schema(description = "Filter by transmission ID", example = "1")
-    private Long transmissionId;
-
-    /**
-     * Filter by fuel type ID. Optional.
-     * Use this to filter listings by fuel type (e.g., gasoline, diesel, electric).
-     */
-    @Schema(description = "Filter by fuel type ID", example = "1")
-    private Long fuelTypeId;
-=======
      * Filter by transmission IDs. Optional.
      * Use this to filter listings by multiple transmission types (e.g., automatic, manual).
      */
@@ -136,7 +122,6 @@ public class ListingFilterRequest {
      */
     @Schema(description = "Filter by fuel type IDs (e.g., [1, 2] for gasoline and diesel)", example = "[1, 2]")
     private List<Long> fuelTypeIds;
->>>>>>> 78c5d03 (feat: add filtering capabilities for transmission, fuel type, and body style in car listings; update related request and response models, specifications, and controller methods)
 
     /**
      * Filter by body style IDs. Optional.
