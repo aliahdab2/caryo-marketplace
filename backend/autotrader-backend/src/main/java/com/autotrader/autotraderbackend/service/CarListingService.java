@@ -8,6 +8,9 @@ import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.model.Governorate; // Added
 import com.autotrader.autotraderbackend.model.ListingMedia;
 import com.autotrader.autotraderbackend.model.Location;
+import com.autotrader.autotraderbackend.model.Transmission;
+import com.autotrader.autotraderbackend.model.FuelType;
+import com.autotrader.autotraderbackend.model.BodyStyle;
 import java.util.ArrayList;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
@@ -21,6 +24,9 @@ import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.specification.CarListingSpecification;
 import com.autotrader.autotraderbackend.service.storage.StorageKeyGenerator;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
+import com.autotrader.autotraderbackend.service.TransmissionService;
+import com.autotrader.autotraderbackend.service.FuelTypeService;
+import com.autotrader.autotraderbackend.service.BodyStyleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +60,9 @@ public class CarListingService {
     private final StorageKeyGenerator storageKeyGenerator;
     private final CarListingMapper carListingMapper;
     private final CarModelService carModelService;
+    private final TransmissionService transmissionService;
+    private final FuelTypeService fuelTypeService;
+    private final BodyStyleService bodyStyleService;
 
     /**
      * Create a new car listing.
@@ -1071,6 +1080,20 @@ public class CarListingService {
         carListing.setCurrency(request.getCurrency() != null ? request.getCurrency() : "USD");
         carListing.setMileage(request.getMileage());
         carListing.setDescription(request.getDescription());
+        
+        // Set transmission, fuel type, and body style if provided
+        if (request.getTransmissionId() != null) {
+            Transmission transmission = transmissionService.getTransmissionById(request.getTransmissionId());
+            carListing.setTransmissionType(transmission);
+        }
+        if (request.getFuelTypeId() != null) {
+            FuelType fuelType = fuelTypeService.getFuelTypeById(request.getFuelTypeId());
+            carListing.setFuelType(fuelType);
+        }
+        if (request.getBodyStyleId() != null) {
+            BodyStyle bodyStyle = bodyStyleService.getBodyStyleById(request.getBodyStyleId());
+            carListing.setBodyStyle(bodyStyle);
+        }
         
         // Set denormalized fields from the CarModel and CarBrand entities
         carListing.setBrandNameEn(carModel.getBrand().getDisplayNameEn());

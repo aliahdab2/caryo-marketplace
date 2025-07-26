@@ -109,6 +109,27 @@ public class ListingFilterRequest {
     @Schema(description = "Search query for text-based search in title, description, brand, and model names", example = "Toyota Camry")
     private String searchQuery;
 
+    /**
+     * Filter by transmission ID. Optional.
+     * Use this to filter listings by transmission type (e.g., automatic, manual).
+     */
+    @Schema(description = "Filter by transmission ID", example = "1")
+    private Long transmissionId;
+
+    /**
+     * Filter by fuel type ID. Optional.
+     * Use this to filter listings by fuel type (e.g., gasoline, diesel, electric).
+     */
+    @Schema(description = "Filter by fuel type ID", example = "1")
+    private Long fuelTypeId;
+
+    /**
+     * Filter by body style IDs. Optional.
+     * Use this to filter listings by multiple body styles (e.g., sedan, SUV, hatchback).
+     */
+    @Schema(description = "Filter by body style IDs (e.g., [1, 2] for sedan and SUV)", example = "[1, 2]")
+    private List<Long> bodyStyleIds;
+
     // Helper methods for slug-based filtering
     
     /**

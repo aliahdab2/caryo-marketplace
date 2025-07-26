@@ -309,6 +309,9 @@ public class CarListingController {
             @Parameter(description = "Show sold listings") @RequestParam(required = false) Boolean isSold,
             @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
             @Parameter(description = "Filter by seller type IDs") @RequestParam(required = false) List<Long> sellerTypeIds,
+            @Parameter(description = "Filter by transmission ID") @RequestParam(required = false) Long transmissionId,
+            @Parameter(description = "Filter by fuel type ID") @RequestParam(required = false) Long fuelTypeId,
+            @Parameter(description = "Filter by body style IDs") @RequestParam(required = false) List<Long> bodyStyleIds,
             @Parameter(description = "Search query for text-based search (supports English and Arabic)") @RequestParam(required = false) String searchQuery,
             @PageableDefault(size = 10, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
         
@@ -333,6 +336,9 @@ public class CarListingController {
         filterRequest.setIsSold(isSold);
         filterRequest.setIsArchived(isArchived);
         filterRequest.setSellerTypeIds(sellerTypeIds);
+        filterRequest.setTransmissionId(transmissionId);
+        filterRequest.setFuelTypeId(fuelTypeId);
+        filterRequest.setBodyStyleIds(bodyStyleIds);
         filterRequest.setSearchQuery(searchQuery);
         
         // Validate input
@@ -446,6 +452,9 @@ public class CarListingController {
             @Parameter(description = "Show sold listings") @RequestParam(required = false) Boolean isSold,
             @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
             @Parameter(description = "Filter by seller type IDs") @RequestParam(required = false) List<Long> sellerTypeIds,
+            @Parameter(description = "Filter by transmission ID") @RequestParam(required = false) Long transmissionId,
+            @Parameter(description = "Filter by fuel type ID") @RequestParam(required = false) Long fuelTypeId,
+            @Parameter(description = "Filter by body style IDs") @RequestParam(required = false) List<Long> bodyStyleIds,
             @Parameter(description = "Search query for text-based search (supports English and Arabic)") @RequestParam(required = false) String searchQuery) {
         
         log.info("Counting listings: brandSlugs={}, modelSlugs={}", 
@@ -469,6 +478,9 @@ public class CarListingController {
         filterRequest.setIsSold(isSold);
         filterRequest.setIsArchived(isArchived);
         filterRequest.setSellerTypeIds(sellerTypeIds);
+        filterRequest.setTransmissionId(transmissionId);
+        filterRequest.setFuelTypeId(fuelTypeId);
+        filterRequest.setBodyStyleIds(bodyStyleIds);
         filterRequest.setSearchQuery(searchQuery);
         
         // Validate input

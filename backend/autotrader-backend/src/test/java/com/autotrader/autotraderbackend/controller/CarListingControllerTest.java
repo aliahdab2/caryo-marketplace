@@ -313,7 +313,10 @@ public class CarListingControllerTest {
                 null, // maxMileage
                 null, // isSold
                 null, // isArchived
-                null, // sellerTypeId
+                null, // sellerTypeIds
+                null, // transmissionId
+                null, // fuelTypeId
+                null, // bodyStyleIds
                 null, // searchQuery
                 pageable
             )
@@ -1075,7 +1078,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             brandSlugs, modelSlugs, minYear, maxYear, locations, null, minPrice, maxPrice,
-            minMileage, maxMileage, isSold, isArchived, sellerTypeIds, searchQuery
+            minMileage, maxMileage, isSold, isArchived, sellerTypeIds, null, null, null, searchQuery
         );
 
         // Assert
@@ -1108,7 +1111,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             null, null, null, null, null, null, null, null,
-            null, null, null, null, null, null
+            null, null, null, null, null, null, null, null, null
         );
 
         // Assert
@@ -1128,7 +1131,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             null, null, null, null, null, locationId, null, null,
-            null, null, null, null, null, null
+            null, null, null, null, null, null, null, null, null
         );
 
         // Assert
@@ -1150,7 +1153,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             null, null, null, null, null, null, null, null,
-            null, null, isSold, null, null, null
+            null, null, isSold, null, null, null, null, null, null
         );
 
         // Assert
@@ -1172,7 +1175,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             null, null, null, null, null, null, null, null,
-            null, null, null, isArchived, null, null
+            null, null, null, isArchived, null, null, null, null, null
         );
 
         // Assert
@@ -1203,7 +1206,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             brandSlugs, null, minYear, maxYear, null, null, minPrice, maxPrice,
-            null, null, isSold, isArchived, sellerTypeIds, searchQuery
+            null, null, isSold, isArchived, sellerTypeIds, null, null, null, searchQuery
         );
 
         // Assert
@@ -1234,7 +1237,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             null, null, null, null, null, null, null, null,
-            minMileage, maxMileage, null, null, null, null
+            minMileage, maxMileage, null, null, null, null, null, null, null
         );
 
         // Assert
@@ -1258,7 +1261,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             brandSlugs, modelSlugs, null, null, null, null, null, null,
-            null, null, null, null, null, null
+            null, null, null, null, null, null, null, null, null
         );
 
         // Assert
@@ -1281,7 +1284,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             null, null, null, null, null, null, null, null,
-            null, null, null, null, null, searchQuery
+            null, null, null, null, null, null, null, null, searchQuery
         );
 
         // Assert
@@ -1334,7 +1337,7 @@ public class CarListingControllerTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             carListingController.getFilteredListingsCountByParams(
                 Arrays.asList("invalid-brand"), null, null, null, null, null, null, null,
-                null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null
             );
         });
 

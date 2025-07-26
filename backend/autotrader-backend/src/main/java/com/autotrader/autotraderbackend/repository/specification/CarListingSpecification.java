@@ -66,6 +66,9 @@ public class CarListingSpecification {
             addGovernorateFilter(governorateEntities, root, criteriaBuilder, predicates);
             addStatusFilters(filter, root, criteriaBuilder, predicates);
             addSellerTypeFilter(filter, root, criteriaBuilder, predicates);
+            addTransmissionFilter(filter, root, criteriaBuilder, predicates);
+            addFuelTypeFilter(filter, root, criteriaBuilder, predicates);
+            addBodyStyleFilter(filter, root, criteriaBuilder, predicates);
             
             
             // Add text search filter
@@ -290,6 +293,43 @@ public class CarListingSpecification {
                                           List<Predicate> predicates) {
         if (filter.getSellerTypeIds() != null && !filter.getSellerTypeIds().isEmpty()) {
             predicates.add(root.get("seller").get("sellerType").get("id").in(filter.getSellerTypeIds()));
+        }
+    }
+
+    /**
+     * Adds transmission filtering predicate.
+     */
+    private static void addTransmissionFilter(ListingFilterRequest filter,
+                                            jakarta.persistence.criteria.Root<CarListing> root,
+                                            jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
+                                            List<Predicate> predicates) {
+        if (filter.getTransmissionId() != null) {
+            System.out.println("DEBUG: Adding transmission filter with ID: " + filter.getTransmissionId());
+            predicates.add(criteriaBuilder.equal(root.get("transmissionType").get("id"), filter.getTransmissionId()));
+        }
+    }
+
+    /**
+     * Adds fuel type filtering predicate.
+     */
+    private static void addFuelTypeFilter(ListingFilterRequest filter,
+                                        jakarta.persistence.criteria.Root<CarListing> root,
+                                        jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
+                                        List<Predicate> predicates) {
+        if (filter.getFuelTypeId() != null) {
+            predicates.add(criteriaBuilder.equal(root.get("fuelType").get("id"), filter.getFuelTypeId()));
+        }
+    }
+
+    /**
+     * Adds body style filtering predicate.
+     */
+    private static void addBodyStyleFilter(ListingFilterRequest filter,
+                                         jakarta.persistence.criteria.Root<CarListing> root,
+                                         jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
+                                         List<Predicate> predicates) {
+        if (filter.getBodyStyleIds() != null && !filter.getBodyStyleIds().isEmpty()) {
+            predicates.add(root.get("bodyStyle").get("id").in(filter.getBodyStyleIds()));
         }
     }
 

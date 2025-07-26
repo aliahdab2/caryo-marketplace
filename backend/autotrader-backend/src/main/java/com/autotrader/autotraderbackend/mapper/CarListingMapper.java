@@ -50,6 +50,14 @@ public class CarListingMapper {
             response.setMileage(carListing.getMileage());
             response.setDescription(carListing.getDescription());
             
+            // Set transmission and fuel type information
+            if (Objects.nonNull(carListing.getTransmissionType())) {
+                response.setTransmission(carListing.getTransmissionType().getDisplayNameEn());
+            }
+            if (Objects.nonNull(carListing.getFuelType())) {
+                response.setFuelType(carListing.getFuelType().getDisplayNameEn());
+            }
+            
             // Set denormalized brand and model name fields
             response.setBrandNameEn(carListing.getBrandNameEn());
             response.setBrandNameAr(carListing.getBrandNameAr());
@@ -160,6 +168,23 @@ public class CarListingMapper {
             
             try { response.setDescription(carListing.getDescription()); } 
             catch (Exception e) { log.warn("Error setting description for listing ID {}", carListing.getId()); }
+            
+            // Set transmission and fuel type information safely
+            try {
+                if (Objects.nonNull(carListing.getTransmissionType())) {
+                    response.setTransmission(carListing.getTransmissionType().getDisplayNameEn());
+                }
+            } catch (Exception e) {
+                log.warn("Error setting transmission for listing ID {}", carListing.getId());
+            }
+            
+            try {
+                if (Objects.nonNull(carListing.getFuelType())) {
+                    response.setFuelType(carListing.getFuelType().getDisplayNameEn());
+                }
+            } catch (Exception e) {
+                log.warn("Error setting fuel type for listing ID {}", carListing.getId());
+            }
             
             // Set location safely
             try {
