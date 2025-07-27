@@ -25,12 +25,12 @@ export const SLIDER_CLASSES = {
   VALUE_TEXT: 'text-lg font-semibold text-gray-900',
   
   // Slider track container
-  TRACK_CONTAINER: 'relative px-3 py-6',
-  TRACK_BASE: 'relative h-2 bg-gray-200 rounded-full cursor-pointer',
-  TRACK_ACTIVE: 'absolute h-2 bg-blue-500 rounded-full',
+  TRACK_CONTAINER: 'relative px-3 py-4',
+  TRACK_BASE: 'relative h-2 bg-gray-200 rounded-full cursor-pointer border-0',
+  TRACK_ACTIVE: 'absolute h-2 bg-blue-500 rounded-full border-0',
   
-  // Thumb styles (Blocket-style)
-  THUMB_BASE: 'absolute w-6 h-6 bg-blue-600 border-2 border-white rounded-full shadow-lg cursor-pointer transition-all duration-150 ease-out',
+  // Thumb styles (Blocket-style) - Fixed positioning to prevent modal shaking
+  THUMB_BASE: 'absolute w-6 h-6 bg-blue-600 border-2 border-white rounded-full shadow-lg cursor-pointer transition-all duration-150 ease-out will-change-transform',
   THUMB_HOVER: 'shadow-xl',
   THUMB_ACTIVE: 'shadow-xl',
   THUMB_DISABLED: 'opacity-50 cursor-not-allowed',
@@ -55,6 +55,6 @@ export const INPUT_CLASSES = {
 
 export const LAYOUT_CLASSES = {
   // Layout utilities that work well with modal integration
-  MODAL_COMPATIBLE: 'w-full',
+  MODAL_COMPATIBLE: 'w-full overflow-hidden',
   RESPONSIVE_PADDING: 'px-1 sm:px-0'
 } as const;

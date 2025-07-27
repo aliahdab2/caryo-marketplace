@@ -138,11 +138,20 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
   const minPercent = ((minVal - minRange) / (maxRange - minRange)) * 100;
   const maxPercent = ((maxVal - minRange) / (maxRange - minRange)) * 100;
 
-  // RTL-aware positioning
+  // RTL-aware positioning with edge case handling
   const minPosition = dir === 'rtl' ? 100 - minPercent : minPercent;
   const maxPosition = dir === 'rtl' ? 100 - maxPercent : maxPercent;
   const trackLeft = dir === 'rtl' ? 100 - maxPercent : minPercent;
   const trackWidth = maxPercent - minPercent;
+
+  // Handle edge cases to prevent layout shifts
+  const getThumbPosition = (position: number) => {
+    // Ensure thumbs don't go beyond track boundaries
+    return Math.max(0, Math.min(100, position));
+  };
+
+  const adjustedMinPosition = getThumbPosition(minPosition);
+  const adjustedMaxPosition = getThumbPosition(maxPosition);
 
   // Get value from mouse position with RTL support
   const getValueFromPosition = useCallback((clientX: number) => {
@@ -352,10 +361,10 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
       )}
 
       {/* Slider - MOVED BELOW INPUTS like Blocket design */}
-      <div className={SLIDER_CLASSES.TRACK_CONTAINER}>
+      <div className={`${SLIDER_CLASSES.TRACK_CONTAINER} overflow-visible`}>
         <div 
           ref={sliderRef}
-          className={`${SLIDER_CLASSES.TRACK_BASE} ${disabled ? SLIDER_CLASSES.DISABLED : ''}`}
+          className={`${SLIDER_CLASSES.TRACK_BASE} ${disabled ? SLIDER_CLASSES.DISABLED : ''} relative`}
           onClick={handleTrackClick}
         >
           {/* Active track */}
@@ -377,7 +386,7 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
                   : ''
             }`}
             style={{
-              left: `${minPosition}%`,
+              left: `${adjustedMinPosition}%`,
               top: '50%',
               transform: `translate(-50%, -50%) ${
                 isDragging === 'min' 
@@ -385,7 +394,10 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
                   : hoveredThumb === 'min' 
                     ? 'scale(1.05)' 
                     : 'scale(1)'
-              }`
+              }`,
+              // Prevent layout shifts by ensuring consistent positioning
+              transformOrigin: 'center center',
+              backfaceVisibility: 'hidden'
             }}
             role="slider"
             aria-label={ariaLabelMin}
@@ -396,8 +408,16 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
             aria-disabled={disabled}
             tabIndex={disabled ? -1 : 0}
             onMouseDown={handleThumbMouseDown('min')}
-            onMouseEnter={() => !isDragging && !disabled && setHoveredThumb('min')}
-            onMouseLeave={() => setHoveredThumb(null)}
+            onMouseEnter={() => {
+              if (!isDragging && !disabled) {
+                setHoveredThumb('min');
+              }
+            }}
+            onMouseLeave={() => {
+              if (!isDragging) {
+                setHoveredThumb(null);
+              }
+            }}
             onKeyDown={(e) => {
               if (disabled) return;
               
@@ -433,7 +453,7 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
                   : ''
             }`}
             style={{
-              left: `${maxPosition}%`,
+              left: `${adjustedMaxPosition}%`,
               top: '50%',
               transform: `translate(-50%, -50%) ${
                 isDragging === 'max' 
@@ -441,7 +461,10 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
                   : hoveredThumb === 'max' 
                     ? 'scale(1.05)' 
                     : 'scale(1)'
-              }`
+              }`,
+              // Prevent layout shifts by ensuring consistent positioning
+              transformOrigin: 'center center',
+              backfaceVisibility: 'hidden'
             }}
             role="slider"
             aria-label={ariaLabelMax}
@@ -452,8 +475,16 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
             aria-disabled={disabled}
             tabIndex={disabled ? -1 : 0}
             onMouseDown={handleThumbMouseDown('max')}
-            onMouseEnter={() => !isDragging && !disabled && setHoveredThumb('max')}
-            onMouseLeave={() => setHoveredThumb(null)}
+            onMouseEnter={() => {
+              if (!isDragging && !disabled) {
+                setHoveredThumb('max');
+              }
+            }}
+            onMouseLeave={() => {
+              if (!isDragging) {
+                setHoveredThumb(null);
+              }
+            }}
             onKeyDown={(e) => {
               if (disabled) return;
               
