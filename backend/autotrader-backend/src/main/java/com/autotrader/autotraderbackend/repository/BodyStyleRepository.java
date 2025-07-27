@@ -13,6 +13,8 @@ public interface BodyStyleRepository extends JpaRepository<BodyStyle, Long> {
     
     Optional<BodyStyle> findByName(String name);
     
+    Optional<BodyStyle> findBySlug(String slug);
+    
     @Query("SELECT b FROM BodyStyle b WHERE " +
            "LOWER(b.displayNameEn) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(b.displayNameAr) LIKE LOWER(CONCAT('%', :query, '%'))")

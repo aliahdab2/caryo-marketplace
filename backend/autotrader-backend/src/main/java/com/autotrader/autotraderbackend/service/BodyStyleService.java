@@ -51,6 +51,17 @@ public class BodyStyleService {
     }
     
     /**
+     * Get a body style by its slug
+     * @param slug Body style slug
+     * @return Body style
+     * @throws ResourceNotFoundException if body style not found
+     */
+    public BodyStyle getBodyStyleBySlug(String slug) {
+        return bodyStyleRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("BodyStyle", "slug", slug));
+    }
+    
+    /**
      * Search for body styles by name (in English or Arabic)
      * @param query Search query
      * @return List of matching body styles
@@ -87,6 +98,7 @@ public class BodyStyleService {
         bodyStyle.setName(bodyStyleDetails.getName());
         bodyStyle.setDisplayNameEn(bodyStyleDetails.getDisplayNameEn());
         bodyStyle.setDisplayNameAr(bodyStyleDetails.getDisplayNameAr());
+        bodyStyle.setSlug(bodyStyleDetails.getSlug());
         
         log.info("Updated body style with id: {}", id);
         return bodyStyleRepository.save(bodyStyle);

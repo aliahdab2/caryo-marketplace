@@ -327,8 +327,14 @@ public class CarListingSpecification {
                                          jakarta.persistence.criteria.Root<CarListing> root,
                                          jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
                                          List<Predicate> predicates) {
+        // Handle ID-based filtering
         if (filter.getBodyStyleIds() != null && !filter.getBodyStyleIds().isEmpty()) {
             predicates.add(root.get("bodyStyle").get("id").in(filter.getBodyStyleIds()));
+        }
+        
+        // Handle slug-based filtering
+        if (filter.getBodyStyleSlugs() != null && !filter.getBodyStyleSlugs().isEmpty()) {
+            predicates.add(root.get("bodyStyle").get("slug").in(filter.getBodyStyleSlugs()));
         }
     }
 

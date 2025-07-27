@@ -15,7 +15,7 @@ export interface FilterUrlParams {
   location?: string;
   transmissionId?: number;
   fuelTypeId?: number;
-  bodyStyleId?: number;
+  bodyStyleIds?: number[];
   sellerTypeId?: number;
 }
 
@@ -75,8 +75,8 @@ export function buildSearchParams(filters: FilterUrlParams): URLSearchParams {
   if (filters.fuelTypeId && filters.fuelTypeId > 0) {
     params.append('fuelTypeId', filters.fuelTypeId.toString());
   }
-  if (filters.bodyStyleId && filters.bodyStyleId > 0) {
-    params.append('bodyStyleId', filters.bodyStyleId.toString());
+  if (filters.bodyStyleIds && filters.bodyStyleIds.length > 0) {
+    filters.bodyStyleIds.forEach(id => params.append('bodyStyleIds', id.toString()));
   }
   if (filters.sellerTypeId && filters.sellerTypeId > 0) {
     params.append('sellerTypeId', filters.sellerTypeId.toString());
@@ -169,10 +169,10 @@ export function parseSearchParams(searchParams: URLSearchParams): FilterUrlParam
     if (id > 0) filters.fuelTypeId = id;
   }
   
-  const bodyStyleId = searchParams.get('bodyStyleId');
-  if (bodyStyleId) {
-    const id = parseInt(bodyStyleId, 10);
-    if (id > 0) filters.bodyStyleId = id;
+  const bodyStyleIds = searchParams.getAll('bodyStyleIds');
+  if (bodyStyleIds.length > 0) {
+    const ids = bodyStyleIds.map(id => parseInt(id, 10)).filter(id => id > 0);
+    if (ids.length > 0) filters.bodyStyleIds = ids;
   }
   
   const sellerTypeId = searchParams.get('sellerTypeId');
@@ -271,7 +271,7 @@ export function countActiveFilters(filters: FilterUrlParams): number {
   if (filters.minMileage || filters.maxMileage) count++;
   if (filters.transmissionId) count++;
   if (filters.fuelTypeId) count++;
-  if (filters.bodyStyleId) count++;
+  if (filters.bodyStyleIds && filters.bodyStyleIds.length > 0) count++;
   if (filters.sellerTypeId) count++;
   
   return count;

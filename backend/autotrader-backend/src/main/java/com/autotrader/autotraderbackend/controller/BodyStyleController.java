@@ -78,6 +78,24 @@ public class BodyStyleController {
         return ResponseEntity.ok(bodyStyle);
     }
 
+    @GetMapping("/slug/{slug}")
+    @Operation(
+        summary = "Get body style by slug",
+        description = "Returns a specific body style by its slug.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Body style retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Body style not found")
+        }
+    )
+    public ResponseEntity<BodyStyle> getBodyStyleBySlug(
+            @Parameter(description = "Body style slug", required = true)
+            @PathVariable String slug) {
+        log.debug("Request received to get body style with slug: {}", slug);
+        BodyStyle bodyStyle = bodyStyleService.getBodyStyleBySlug(slug);
+        log.debug("Returning body style with slug: {}", slug);
+        return ResponseEntity.ok(bodyStyle);
+    }
+
     @GetMapping("/search")
     @Operation(
         summary = "Search body styles",

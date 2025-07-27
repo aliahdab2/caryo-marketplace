@@ -36,7 +36,7 @@ export interface AdvancedSearchFilters {
   conditionId?: number;
   transmissionId?: number;
   fuelTypeId?: number;
-  bodyStyleIds?: number[]; // Changed from bodyStyleId to support multiple selections
+  bodyType?: string[]; // Body type filtering
   sellerTypeIds?: number[];
   
   // Direct field filters
@@ -115,8 +115,8 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
           case 'cylinders':
             newFilters[field] = value as number;
             break;
-          case 'bodyStyleIds':
-            newFilters[field] = value as number[];
+          case 'bodyType':
+            newFilters[field] = value as string[];
             break;
           case 'exteriorColor':
             newFilters[field] = value as string;
@@ -157,7 +157,7 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
           delete newFilters.fuelTypeId;
           break;
         case 'bodyStyle':
-          delete newFilters.bodyStyleIds;
+          delete newFilters.bodyType;
           break;
         case 'sellerType':
           delete newFilters.sellerTypeIds;
@@ -229,7 +229,7 @@ interface UseSearchFiltersReturn {
   getModelDisplayNameFromSlug: (slug: string) => string;
   getTransmissionDisplayName: (id: number) => string;
   getFuelTypeDisplayName: (id: number) => string;
-  getBodyStyleDisplayName: (id: number) => string;
+  getBodyStyleDisplayName: (slug: string) => string;
   getSellerTypeDisplayName: (ids: number[]) => string;
 }
 
@@ -278,8 +278,8 @@ export function useSearchFilters({
   );
 
   const getBodyStyleDisplayName = useMemo(() => 
-    (id: number): string => {
-      const bodyStyle = carReferenceData?.bodyStyles.find(b => b.id === id);
+    (slug: string): string => {
+      const bodyStyle = carReferenceData?.bodyStyles.find(b => b.slug === slug);
       return bodyStyle ? bodyStyle.displayNameEn : '';
     }, [carReferenceData?.bodyStyles]
   );
@@ -351,9 +351,9 @@ export function useSearchFilters({
     if (newFilters.fuelTypeId) {
       searchParams.set('fuelType', newFilters.fuelTypeId.toString());
     }
-    if (newFilters.bodyStyleIds && newFilters.bodyStyleIds.length > 0) {
-      searchParams.set('bodyStyle', newFilters.bodyStyleIds.join(','));
-    }
+            if (newFilters.bodyType && newFilters.bodyType.length > 0) {
+          searchParams.set('bodyType', newFilters.bodyType.join('-'));
+        }
     if (newFilters.sellerTypeIds && newFilters.sellerTypeIds.length > 0) {
       searchParams.set('sellerTypes', newFilters.sellerTypeIds.join(','));
     }
@@ -465,10 +465,10 @@ export function useSearchFilters({
         return state.filters.fuelTypeId ? getFuelTypeDisplayName(state.filters.fuelTypeId) : t('search.filters.fuelType', 'Fuel Type');
 
       case 'bodyStyle':
-        return state.filters.bodyStyleIds && state.filters.bodyStyleIds.length > 0 
-          ? state.filters.bodyStyleIds.length === 1 
-            ? getBodyStyleDisplayName(state.filters.bodyStyleIds[0])
-            : `${state.filters.bodyStyleIds.length} ${t('search.filters.bodyStyles', 'Body styles')}`
+                return state.filters.bodyType && state.filters.bodyType.length > 0
+          ? state.filters.bodyType.length === 1
+            ? getBodyStyleDisplayName(state.filters.bodyType[0])
+            : `${state.filters.bodyType.length} ${t('search.filters.bodyStyles', 'Body types')}`
           : t('search.filters.bodyStyle', 'Body Style');
 
       case 'sellerType':
@@ -497,7 +497,7 @@ export function useSearchFilters({
       case 'fuelType':
         return state.filters.fuelTypeId !== undefined;
       case 'bodyStyle':
-        return state.filters.bodyStyleIds !== undefined && state.filters.bodyStyleIds.length > 0;
+        return state.filters.bodyType !== undefined && state.filters.bodyType.length > 0;
       case 'sellerType':
         return state.filters.sellerTypeIds !== undefined && state.filters.sellerTypeIds.length > 0;
       default:
