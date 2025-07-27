@@ -802,7 +802,9 @@ export default function AdvancedSearchPage() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
             <p className="text-lg font-medium text-gray-900 dark:text-white">
-              {carListings?.totalElements ? `${carListings.totalElements.toLocaleString()} ${t('results', 'results')}` : t('loading', 'Loading...')}
+              {isLoadingListings ? t('loading', 'Loading...') : 
+               carListings?.totalElements ? `${carListings.totalElements.toLocaleString()} ${t('results', 'results')}` : 
+               '0 results'}
             </p>
           </div>
           
@@ -819,6 +821,7 @@ export default function AdvancedSearchPage() {
           isManualSearch={isManualSearch}
           listingsError={listingsError}
           executeSearch={executeSearch}
+
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           t={t as any}
         />
