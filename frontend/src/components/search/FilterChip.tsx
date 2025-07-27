@@ -27,7 +27,7 @@ export const FilterChip: React.FC<FilterChipProps> = ({
   return (
     <div className={`${baseClasses} ${variantClasses} ${className}`}>
       {icon && (
-        <div className="w-5 h-5 mr-2 flex-shrink-0">
+        <div className="mr-2 flex-shrink-0 flex items-center">
           {icon}
         </div>
       )}
