@@ -1132,7 +1132,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             null, null, null, null, null, locationId, null, null,
-            null, null, null, null, null, null, null, null, null
+            null, null, null, null, null, null, null, null, null, null
         );
 
         // Assert
@@ -1154,7 +1154,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             null, null, null, null, null, null, null, null,
-            null, null, isSold, null, null, null, null, null, null
+            null, null, isSold, null, null, null, null, null, null, null
         );
 
         // Assert
@@ -1176,7 +1176,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             null, null, null, null, null, null, null, null,
-            null, null, null, isArchived, null, null, null, null, null
+            null, null, null, isArchived, null, null, null, null, null, null
         );
 
         // Assert
