@@ -113,6 +113,7 @@ export default function FilterChips({
               });
             }}
             removeButtonLabel={t('removeBrand', 'Remove {{brand}} brand', { brand: getBrandDisplayNameFromSlug(brandSlug) })}
+            variant="brand"
           />
         ))}
         
