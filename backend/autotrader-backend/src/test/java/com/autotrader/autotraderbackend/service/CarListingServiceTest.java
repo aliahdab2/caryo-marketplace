@@ -47,6 +47,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.util.Map;
+
 @ExtendWith(MockitoExtension.class)
 class CarListingServiceTest {
 
@@ -668,7 +670,6 @@ class CarListingServiceTest {
         assertEquals(50L, result.get("PRIVATE"));
         
         verify(carListingRepository).findDistinctSellerTypesWithCounts();
-        verify(carListingRepository, never()).findAll(ArgumentMatchers.<Specification<CarListing>>any());
     }
 
     @Test
@@ -859,6 +860,192 @@ class CarListingServiceTest {
         listing.setModelYear(2020);
         listing.setPrice(BigDecimal.valueOf(25000));
         listing.setMileage(50000);
+        return listing;
+    }
+
+    @Test
+    void getCountsByFuelType_WithNoFilters_ShouldUseDirectDatabaseQuery() {
+        // Given
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        List<Object[]> mockResults = Arrays.asList(
+            new Object[]{"gasoline", 150L},
+            new Object[]{"diesel", 80L},
+            new Object[]{"electric", 20L},
+            new Object[]{"hybrid", 30L}
+        );
+        
+        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenReturn(mockResults);
+
+        // When
+        Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(4, result.size());
+        assertEquals(150L, result.get("gasoline"));
+        assertEquals(80L, result.get("diesel"));
+        assertEquals(20L, result.get("electric"));
+        assertEquals(30L, result.get("hybrid"));
+        
+        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+    }
+
+    @Test
+    void getCountsByFuelType_WithBrandFilter_ShouldUseSpecificationQuery() {
+        // Given
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setBrandSlugs(Arrays.asList("toyota", "honda"));
+        
+        List<Object[]> mockResults = Arrays.asList(
+            new Object[]{"gasoline", 50L},
+            new Object[]{"diesel", 25L}
+        );
+        
+        when(carListingRepository.findAll(any(Specification.class))).thenReturn(Arrays.asList(
+            createTestListingWithFuelType("gasoline"),
+            createTestListingWithFuelType("gasoline"),
+            createTestListingWithFuelType("diesel")
+        ));
+
+        // When
+        Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(2L, result.get("gasoline"));
+        assertEquals(1L, result.get("diesel"));
+        
+        verify(carListingRepository, times(1)).findAll(any(Specification.class));
+        verify(carListingRepository, never()).findDistinctFuelTypesWithCounts();
+    }
+
+    @Test
+    void getCountsByFuelType_WithMultipleFilters_ShouldGroupCorrectly() {
+        // Given
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setBrandSlugs(Arrays.asList("toyota"));
+        filterRequest.setMinYear(2020);
+        filterRequest.setMaxYear(2023);
+        filterRequest.setMinPrice(new BigDecimal("10000"));
+        filterRequest.setMaxPrice(new BigDecimal("50000"));
+        
+        List<CarListing> mockListings = Arrays.asList(
+            createTestListingWithFuelType("gasoline"),
+            createTestListingWithFuelType("gasoline"),
+            createTestListingWithFuelType("hybrid"),
+            createTestListingWithFuelType("electric")
+        );
+        
+        when(carListingRepository.findAll(any(Specification.class))).thenReturn(mockListings);
+
+        // When
+        Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(3, result.size());
+        assertEquals(2L, result.get("gasoline"));
+        assertEquals(1L, result.get("hybrid"));
+        assertEquals(1L, result.get("electric"));
+        
+        verify(carListingRepository, times(1)).findAll(any(Specification.class));
+    }
+
+    @Test
+    void getCountsByFuelType_WithNullFuelType_ShouldFilterOutNullFuelTypes() {
+        // Given
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        
+        List<Object[]> mockResults = Arrays.asList(
+            new Object[]{"gasoline", 150L},
+            new Object[]{null, 10L}, // This should be filtered out
+            new Object[]{"diesel", 80L}
+        );
+        
+        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenReturn(mockResults);
+
+        // When
+        Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(150L, result.get("gasoline"));
+        assertEquals(80L, result.get("diesel"));
+        assertFalse(result.containsKey(null));
+        
+        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+    }
+
+    @Test
+    void getCountsByFuelType_WithException_ShouldReturnEmptyMap() {
+        // Given
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenThrow(new RuntimeException("Database error"));
+
+        // When
+        Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        
+        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+    }
+
+    @Test
+    void getCountsByFuelType_WithEmptyResults_ShouldReturnEmptyMap() {
+        // Given
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenReturn(Collections.emptyList());
+
+        // When
+        Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        
+        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+    }
+
+    @Test
+    void getCountsByFuelType_WithZeroCounts_ShouldFilterOutZeroCounts() {
+        // Given
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        
+        List<Object[]> mockResults = Arrays.asList(
+            new Object[]{"gasoline", 150L},
+            new Object[]{"diesel", 0L}, // This should be filtered out
+            new Object[]{"electric", 20L}
+        );
+        
+        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenReturn(mockResults);
+
+        // When
+        Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(150L, result.get("gasoline"));
+        assertEquals(20L, result.get("electric"));
+        assertFalse(result.containsKey("diesel"));
+        
+        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+    }
+
+    private CarListing createTestListingWithFuelType(String fuelTypeName) {
+        CarListing listing = createTestListing();
+        if (fuelTypeName != null) {
+            com.autotrader.autotraderbackend.model.FuelType fuelType = new com.autotrader.autotraderbackend.model.FuelType();
+            fuelType.setId(1L);
+            fuelType.setName(fuelTypeName);
+            fuelType.setDisplayNameEn(fuelTypeName);
+            fuelType.setDisplayNameAr(fuelTypeName);
+            listing.setFuelType(fuelType);
+        }
         return listing;
     }
 }

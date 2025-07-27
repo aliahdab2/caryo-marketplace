@@ -26,10 +26,10 @@ export const DieselIcon: React.FC<FuelTypeIconProps> = ({ className = "w-12 h-8"
 export const HybridIcon: React.FC<FuelTypeIconProps> = ({ className = "w-12 h-8" }) => (
   <div className={`${className} flex items-center justify-center text-purple-600`}>
     <div className="relative">
-             <div className="flex items-center space-x-1">
-         <Battery className="w-6 h-6" />
-         <Leaf className="w-4 h-4" />
-       </div>
+      <div className="flex items-center space-x-1">
+        <Battery className="w-6 h-6" />
+        <Leaf className="w-4 h-4" />
+      </div>
     </div>
   </div>
 );
@@ -37,10 +37,10 @@ export const HybridIcon: React.FC<FuelTypeIconProps> = ({ className = "w-12 h-8"
 export const ElectricIcon: React.FC<FuelTypeIconProps> = ({ className = "w-12 h-8" }) => (
   <div className={`${className} flex items-center justify-center text-yellow-600`}>
     <div className="relative">
-             <div className="flex items-center space-x-1">
-         <Zap className="w-6 h-6" />
-         <Battery className="w-4 h-4" />
-       </div>
+      <div className="flex items-center space-x-1">
+        <Zap className="w-6 h-6" />
+        <Battery className="w-4 h-4" />
+      </div>
     </div>
   </div>
 );
@@ -48,10 +48,10 @@ export const ElectricIcon: React.FC<FuelTypeIconProps> = ({ className = "w-12 h-
 export const CNGIcon: React.FC<FuelTypeIconProps> = ({ className = "w-12 h-8" }) => (
   <div className={`${className} flex items-center justify-center text-orange-600`}>
     <div className="relative">
-             <div className="flex items-center space-x-1">
-         <Flame className="w-6 h-6" />
-         <Atom className="w-4 h-4" />
-       </div>
+      <div className="flex items-center space-x-1">
+        <Flame className="w-6 h-6" />
+        <Atom className="w-4 h-4" />
+      </div>
     </div>
   </div>
 );
@@ -59,10 +59,10 @@ export const CNGIcon: React.FC<FuelTypeIconProps> = ({ className = "w-12 h-8" })
 export const LPGIcon: React.FC<FuelTypeIconProps> = ({ className = "w-12 h-8" }) => (
   <div className={`${className} flex items-center justify-center text-red-600`}>
     <div className="relative">
-             <div className="flex items-center space-x-1">
-         <Fuel className="w-6 h-6" />
-         <Flame className="w-4 h-4" />
-       </div>
+      <div className="flex items-center space-x-1">
+        <Fuel className="w-6 h-6" />
+        <Flame className="w-4 h-4" />
+      </div>
     </div>
   </div>
 ); 

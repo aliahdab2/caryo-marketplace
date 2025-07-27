@@ -1846,4 +1846,149 @@ public class CarListingControllerTest {
             filter.getBodyStyleIds() != null && filter.getBodyStyleIds().containsAll(Arrays.asList(1L, 2L))
         ), eq(pageable));
     }
+
+    @Test
+    void getCountsByFuelType_ShouldReturnFuelTypeCounts() {
+        // Given
+        Map<String, Long> expectedCounts = Map.of(
+            "gasoline", 150L,
+            "diesel", 80L,
+            "electric", 20L,
+            "hybrid", 30L
+        );
+        
+        when(carListingService.getCountsByFuelType(any(ListingFilterRequest.class)))
+            .thenReturn(expectedCounts);
+
+        // When
+        ResponseEntity<Map<String, Long>> response = carListingController.getCountsByFuelType(
+            null, null, null, null, null, null, null, null, null
+        );
+
+        // Then
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(expectedCounts, response.getBody());
+        verify(carListingService, times(1)).getCountsByFuelType(any(ListingFilterRequest.class));
+    }
+
+    @Test
+    void getCountsByFuelType_WithFilters_ShouldReturnFilteredCounts() {
+        // Given
+        List<String> brandSlugs = Arrays.asList("toyota", "honda");
+        List<String> modelSlugs = Arrays.asList("camry", "civic");
+        Integer minYear = 2020;
+        Integer maxYear = 2023;
+        List<String> locations = Arrays.asList("damascus", "aleppo");
+        BigDecimal minPrice = new BigDecimal("10000");
+        BigDecimal maxPrice = new BigDecimal("50000");
+        Integer minMileage = 0;
+        Integer maxMileage = 100000;
+
+        Map<String, Long> expectedCounts = Map.of(
+            "gasoline", 50L,
+            "diesel", 25L
+        );
+        
+        when(carListingService.getCountsByFuelType(any(ListingFilterRequest.class)))
+            .thenReturn(expectedCounts);
+
+        // When
+        ResponseEntity<Map<String, Long>> response = carListingController.getCountsByFuelType(
+            brandSlugs, modelSlugs, minYear, maxYear, locations, minPrice, maxPrice, minMileage, maxMileage
+        );
+
+        // Then
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(expectedCounts, response.getBody());
+        
+        // Verify that the service was called with the correct filter request
+        verify(carListingService, times(1)).getCountsByFuelType(argThat(filterRequest -> 
+            filterRequest.getBrandSlugs().equals(brandSlugs) &&
+            filterRequest.getModelSlugs().equals(modelSlugs) &&
+            filterRequest.getMinYear().equals(minYear) &&
+            filterRequest.getMaxYear().equals(maxYear) &&
+            filterRequest.getLocations().equals(locations) &&
+            filterRequest.getMinPrice().equals(minPrice) &&
+            filterRequest.getMaxPrice().equals(maxPrice) &&
+            filterRequest.getMinMileage().equals(minMileage) &&
+            filterRequest.getMaxMileage().equals(maxMileage)
+        ));
+    }
+
+    @Test
+    void getCountsByFuelType_WithEmptyFilters_ShouldReturnAllCounts() {
+        // Given
+        Map<String, Long> expectedCounts = Map.of(
+            "gasoline", 150L,
+            "diesel", 80L,
+            "electric", 20L,
+            "hybrid", 30L,
+            "cng", 10L,
+            "lpg", 5L
+        );
+        
+        when(carListingService.getCountsByFuelType(any(ListingFilterRequest.class)))
+            .thenReturn(expectedCounts);
+
+        // When
+        ResponseEntity<Map<String, Long>> response = carListingController.getCountsByFuelType(
+            new ArrayList<>(), new ArrayList<>(), null, null, new ArrayList<>(), null, null, null, null
+        );
+
+        // Then
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(expectedCounts, response.getBody());
+        verify(carListingService, times(1)).getCountsByFuelType(any(ListingFilterRequest.class));
+    }
+
+    @Test
+    void getCountsByFuelType_WithServiceException_ShouldHandleGracefully() {
+        // Given
+        when(carListingService.getCountsByFuelType(any(ListingFilterRequest.class)))
+            .thenThrow(new RuntimeException("Database error"));
+
+        // When & Then
+        assertThrows(RuntimeException.class, () -> {
+            carListingController.getCountsByFuelType(
+                null, null, null, null, null, null, null, null, null
+            );
+        });
+        
+        verify(carListingService, times(1)).getCountsByFuelType(any(ListingFilterRequest.class));
+    }
+
+    @Test
+    void getCountsByFuelType_WithNullValues_ShouldHandleGracefully() {
+        // Given
+        Map<String, Long> expectedCounts = Map.of("gasoline", 150L);
+        
+        when(carListingService.getCountsByFuelType(any(ListingFilterRequest.class)))
+            .thenReturn(expectedCounts);
+
+        // When
+        ResponseEntity<Map<String, Long>> response = carListingController.getCountsByFuelType(
+            null, null, null, null, null, null, null, null, null
+        );
+
+        // Then
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(expectedCounts, response.getBody());
+        
+        // Verify that the service was called with a filter request that has null values
+        verify(carListingService, times(1)).getCountsByFuelType(argThat(filterRequest -> 
+            filterRequest.getBrandSlugs() == null &&
+            filterRequest.getModelSlugs() == null &&
+            filterRequest.getMinYear() == null &&
+            filterRequest.getMaxYear() == null &&
+            filterRequest.getLocations() == null &&
+            filterRequest.getMinPrice() == null &&
+            filterRequest.getMaxPrice() == null &&
+            filterRequest.getMinMileage() == null &&
+            filterRequest.getMaxMileage() == null
+        ));
+    }
 }
