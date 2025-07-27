@@ -90,4 +90,40 @@ describe('FilterChip', () => {
     const removeButton = screen.getByRole('button');
     expect(removeButton.querySelector('svg')).toBeInTheDocument();
   });
+
+  it('applies brand variant styling when variant is brand', () => {
+    const { container } = render(
+      <FilterChip 
+        label="Brand Filter" 
+        onRemove={mockOnRemove} 
+        variant="brand"
+      />
+    );
+    
+    const chip = container.firstChild as HTMLElement;
+    expect(chip).toHaveClass(
+      'bg-gradient-to-r',
+      'from-blue-600',
+      'to-blue-700',
+      'border-blue-600',
+      'text-white'
+    );
+  });
+
+  it('applies default variant styling when variant is default', () => {
+    const { container } = render(
+      <FilterChip 
+        label="Default Filter" 
+        onRemove={mockOnRemove} 
+        variant="default"
+      />
+    );
+    
+    const chip = container.firstChild as HTMLElement;
+    expect(chip).toHaveClass(
+      'bg-gray-100',
+      'border-gray-200',
+      'text-gray-700'
+    );
+  });
 }); 
