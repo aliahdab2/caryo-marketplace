@@ -21,6 +21,7 @@ interface FilterChipsProps {
   getSellerTypeDisplayName: (id: number) => string;
   selectedMake: number | null;
   selectedModel: number | null;
+  referenceData?: { fuelTypes?: Array<{ id: number; name: string; displayNameEn: string; displayNameAr: string }> } | null;
   t: (key: string, fallback?: string, options?: { brand?: string; model?: string }) => string;
 }
 
@@ -38,8 +39,20 @@ export default function FilterChips({
   getSellerTypeDisplayName,
   selectedMake,
   selectedModel,
+  referenceData,
   t
 }: FilterChipsProps) {
+  // Helper function to get fuel type name from ID for icon
+  const getFuelTypeNameFromId = (id: number): string => {
+    if (referenceData?.fuelTypes) {
+      const fuelType = referenceData.fuelTypes.find(f => f.id === id);
+      if (fuelType) {
+        return fuelType.name.toLowerCase();
+      }
+    }
+    // Fallback to gasoline if not found
+    return 'gasoline';
+  };
 
 
   // Show filter chips only when there are active filters
@@ -202,7 +215,7 @@ export default function FilterChips({
           <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
             <span className="mr-1">{getFuelTypeDisplayName(filters.fuelTypeId)}</span>
             <div className="w-8 h-8 mr-1 flex-shrink-0">
-              {getFuelTypeIcon('gasoline', "w-8 h-8")}
+              {getFuelTypeIcon(getFuelTypeNameFromId(filters.fuelTypeId), "w-6 h-4")}
             </div>
             <button
               onClick={() => updateFiltersAndState({ fuelTypeId: undefined })}
