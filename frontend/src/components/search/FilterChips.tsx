@@ -185,7 +185,7 @@ export default function FilterChips({
                 bodyType: updatedBodyTypes.length > 0 ? updatedBodyTypes : undefined
               });
             }}
-            icon={getCarIcon(bodyStyleSlug, "w-8 h-8")}
+            icon={getCarIcon(bodyStyleSlug, "w-6 h-5")}
             removeButtonLabel={t('removeBodyStyleFilter', 'Remove body style filter')}
           />
         ))}
