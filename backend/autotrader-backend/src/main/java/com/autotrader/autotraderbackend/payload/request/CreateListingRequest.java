@@ -81,6 +81,21 @@ public class CreateListingRequest {
      */
     private Boolean isArchived;
 
+    /**
+     * ID of the transmission type. Optional.
+     */
+    private Long transmissionId;
+
+    /**
+     * ID of the fuel type. Optional.
+     */
+    private Long fuelTypeId;
+
+    /**
+     * ID of the body style. Optional.
+     */
+    private Long bodyStyleId;
+
     // Explicit Getters
     public String getTitle() { return title; }
     public Long getModelId() { return modelId; }
@@ -92,6 +107,9 @@ public class CreateListingRequest {
     public String getDescription() { return description; }
     public Boolean getIsSold() { return isSold; }
     public Boolean getIsArchived() { return isArchived; }
+    public Long getTransmissionId() { return transmissionId; }
+    public Long getFuelTypeId() { return fuelTypeId; }
+    public Long getBodyStyleId() { return bodyStyleId; }
 
     // Explicit Setters
     public void setTitle(String title) { this.title = title; }
@@ -104,4 +122,7 @@ public class CreateListingRequest {
     public void setDescription(String description) { this.description = description; }
     public void setIsSold(Boolean isSold) { this.isSold = isSold; }
     public void setIsArchived(Boolean isArchived) { this.isArchived = isArchived; }
+    public void setTransmissionId(Long transmissionId) { this.transmissionId = transmissionId; }
+    public void setFuelTypeId(Long fuelTypeId) { this.fuelTypeId = fuelTypeId; }
+    public void setBodyStyleId(Long bodyStyleId) { this.bodyStyleId = bodyStyleId; }
 }

@@ -10,6 +10,7 @@ This document provides detailed information about the available API endpoints in
 - Added advanced listing management endpoints (mark-sold, archive, unarchive)
 - Added listing creation with image upload (`POST /api/listings/with-image`)
 - Added comprehensive reference data endpoints (fuel-types, body-styles, transmissions, etc.)
+- Added multiple filter support for transmission, fuel type, and body style (supports selecting multiple options)
 - Updated all testing examples with correct API paths
 - Added bilingual field support documentation
 
@@ -509,6 +510,9 @@ These endpoints provide efficient count information for car listings without fet
   - `isSold` (boolean): Show sold listings
   - `isArchived` (boolean): Show archived listings
   - `sellerTypeIds` (array of integers): Filter by seller type IDs (supports multiple selections)
+  - `transmissionIds` (array of integers): Filter by transmission IDs (supports multiple selections, e.g., [5, 4] for automatic and manual)
+  - `fuelTypeIds` (array of integers): Filter by fuel type IDs (supports multiple selections, e.g., [1, 2] for gasoline and diesel)
+  - `bodyStyleIds` (array of integers): Filter by body style IDs (supports multiple selections, e.g., [1, 2] for sedan and SUV)
   - `searchQuery` (string): Text search in title/description
 - **Response (200 OK)**:
   ```json
@@ -532,6 +536,18 @@ These endpoints provide efficient count information for car listings without fet
   
   # Count cars from private sellers only
   curl "http://localhost:8080/api/listings/count/filter?sellerTypeIds=3"
+  
+  # Count automatic and manual transmission cars
+  curl "http://localhost:8080/api/listings/count/filter?transmissionIds=5&transmissionIds=4"
+  
+  # Count gasoline and diesel cars
+  curl "http://localhost:8080/api/listings/count/filter?fuelTypeIds=1&fuelTypeIds=2"
+  
+  # Count sedan and SUV body styles
+  curl "http://localhost:8080/api/listings/count/filter?bodyStyleIds=1&bodyStyleIds=2"
+  
+  # Count automatic Toyota cars with gasoline fuel
+  curl "http://localhost:8080/api/listings/count/filter?brandSlugs=toyota&transmissionIds=5&fuelTypeIds=1"
   ```
 
 #### Get Filtered Listings Count (JSON Body)
@@ -550,6 +566,9 @@ These endpoints provide efficient count information for car listings without fet
     "maxPrice": 45000,
     "locations": ["damascus", "aleppo"],
     "maxMileage": 100000,
+    "transmissionIds": [5, 4],
+    "fuelTypeIds": [1, 2],
+    "bodyStyleIds": [1, 2],
     "searchQuery": "automatic"
   }
   ```
@@ -1413,7 +1432,7 @@ To run all API tests automatically:
 - **Endpoint**: `GET /api/listings/filter`
 - **Access**: Public
 - **Description**: Returns filtered listings using query parameters
-- **Parameters**: brandSlugs, modelSlugs, minYear, maxYear, location, locationId, minPrice, maxPrice, minMileage, maxMileage, isSold, isArchived, sellerTypeIds, searchQuery
+- **Parameters**: brandSlugs, modelSlugs, minYear, maxYear, location, locationId, minPrice, maxPrice, minMileage, maxMileage, isSold, isArchived, sellerTypeIds, transmissionIds, fuelTypeIds, bodyStyleIds, searchQuery
 - **Response**: Paginated list of listings
 
 #### Filter Listings (POST)

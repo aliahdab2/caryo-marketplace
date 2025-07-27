@@ -417,7 +417,7 @@ export default function AdvancedSearchPage() {
     if (newFilters.transmissionId) params.append('transmissionId', newFilters.transmissionId.toString());
     if (newFilters.fuelTypeId) params.append('fuelTypeId', newFilters.fuelTypeId.toString());
     if (newFilters.bodyStyleIds && newFilters.bodyStyleIds.length > 0) {
-      newFilters.bodyStyleIds.forEach(id => params.append('bodyStyleId', id.toString()));
+      newFilters.bodyStyleIds.forEach(id => params.append('bodyStyleIds', id.toString()));
     }
     if (newFilters.sellerTypeIds && newFilters.sellerTypeIds.length > 0) {
       newFilters.sellerTypeIds.forEach(id => params.append('sellerTypeId', id.toString()));
@@ -472,6 +472,7 @@ export default function AdvancedSearchPage() {
   }, [filters.models, availableModels, selectedModel]);
 
   // Memoize seller type fetch dependencies to prevent unnecessary API calls
+  // Note: Seller type counts endpoint doesn't support transmission/fuel type filtering
   const sellerTypeCountDependencies = useMemo(() => ({
     brands: filters.brands,
     models: filters.models,
@@ -480,17 +481,16 @@ export default function AdvancedSearchPage() {
     minPrice: filters.minPrice,
     maxPrice: filters.maxPrice,
     minMileage: filters.minMileage,
-    maxMileage: filters.maxMileage,
-    transmissionId: filters.transmissionId,
-    fuelTypeId: filters.fuelTypeId,
-    bodyStyleIds: filters.bodyStyleIds
-  }), [filters.brands, filters.models, filters.minYear, filters.maxYear, filters.minPrice, filters.maxPrice, filters.minMileage, filters.maxMileage, filters.transmissionId, filters.fuelTypeId, filters.bodyStyleIds]);
+    maxMileage: filters.maxMileage
+    // Removed transmissionId, fuelTypeId, and bodyStyleIds as they're not supported by the seller type counts endpoint
+  }), [filters.brands, filters.models, filters.minYear, filters.maxYear, filters.minPrice, filters.maxPrice, filters.minMileage, filters.maxMileage]);
 
   // Fetch seller type counts when filters change (Swedish marketplace style)
   useEffect(() => {
     const fetchSellerTypeCounts = async () => {
       try {
         // Convert filters to API format for count endpoint
+        // Note: Seller type counts endpoint doesn't support transmission/fuel type filtering
         const apiFilters = {
           brandSlugs: sellerTypeCountDependencies.brands,
           modelSlugs: sellerTypeCountDependencies.models,
@@ -500,9 +500,7 @@ export default function AdvancedSearchPage() {
           maxPrice: sellerTypeCountDependencies.maxPrice?.toString(),
           minMileage: sellerTypeCountDependencies.minMileage?.toString(),
           maxMileage: sellerTypeCountDependencies.maxMileage?.toString(),
-          transmissionId: sellerTypeCountDependencies.transmissionId,
-          fuelTypeId: sellerTypeCountDependencies.fuelTypeId,
-          bodyStyleIds: sellerTypeCountDependencies.bodyStyleIds,
+          // Don't include transmissionId, fuelTypeId, or bodyStyleIds as they're not supported by this endpoint
           // Don't include sellerTypeId in count queries
         };
         

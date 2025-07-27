@@ -442,8 +442,8 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
     
     // Entity ID filters
     if (filters.conditionId && filters.conditionId > 0) queryParams.append('conditionId', filters.conditionId.toString());
-    if (filters.transmissionId && filters.transmissionId > 0) queryParams.append('transmissionId', filters.transmissionId.toString());
-    if (filters.fuelTypeId && filters.fuelTypeId > 0) queryParams.append('fuelTypeId', filters.fuelTypeId.toString());
+    if (filters.transmissionId && filters.transmissionId > 0) queryParams.append('transmissionIds', filters.transmissionId.toString());
+    if (filters.fuelTypeId && filters.fuelTypeId > 0) queryParams.append('fuelTypeIds', filters.fuelTypeId.toString());
     if (filters.bodyStyleIds && filters.bodyStyleIds.length > 0) {
       filters.bodyStyleIds.forEach(id => queryParams.append('bodyStyleIds', id.toString()));
     }
