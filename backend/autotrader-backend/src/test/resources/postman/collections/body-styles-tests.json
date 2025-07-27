@@ -68,6 +68,7 @@
               "        pm.expect(jsonData[0]).to.have.property('name');",
               "        pm.expect(jsonData[0]).to.have.property('displayNameEn');",
               "        pm.expect(jsonData[0]).to.have.property('displayNameAr');",
+              "        pm.expect(jsonData[0]).to.have.property('slug');",
               "    }",
               "});"
             ],
@@ -112,6 +113,7 @@
               "    pm.expect(jsonData).to.have.property('name');",
               "    pm.expect(jsonData).to.have.property('displayNameEn');",
               "    pm.expect(jsonData).to.have.property('displayNameAr');",
+              "    pm.expect(jsonData).to.have.property('slug');",
               "});"
             ],
             "type": "text/javascript"

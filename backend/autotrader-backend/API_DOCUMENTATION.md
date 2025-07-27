@@ -1571,21 +1571,24 @@ To run all API tests automatically:
   [
     {
       "id": 1,
+      "name": "new",
       "displayNameEn": "New",
       "displayNameAr": "جديد",
       "slug": "new"
     },
     {
       "id": 2,
-      "displayNameEn": "Used - Excellent",
-      "displayNameAr": "مستعمل - ممتاز",
-      "slug": "used-excellent"
+      "name": "like_new",
+      "displayNameEn": "Like New",
+      "displayNameAr": "شبه جديد",
+      "slug": "like_new"
     },
     {
       "id": 3,
-      "displayNameEn": "Used - Good",
-      "displayNameAr": "مستعمل - جيد",
-      "slug": "used-good"
+      "name": "excellent",
+      "displayNameEn": "Excellent",
+      "displayNameAr": "ممتاز",
+      "slug": "excellent"
     }
     // ... more conditions
   ]
@@ -1600,18 +1603,21 @@ To run all API tests automatically:
   [
     {
       "id": 1,
+      "name": "fwd",
       "displayNameEn": "Front-Wheel Drive",
       "displayNameAr": "دفع أمامي",
       "slug": "fwd"
     },
     {
       "id": 2,
+      "name": "rwd",
       "displayNameEn": "Rear-Wheel Drive",
       "displayNameAr": "دفع خلفي",
       "slug": "rwd"
     },
     {
       "id": 3,
+      "name": "awd",
       "displayNameEn": "All-Wheel Drive",
       "displayNameAr": "دفع رباعي",
       "slug": "awd"
@@ -1629,18 +1635,21 @@ To run all API tests automatically:
   [
     {
       "id": 1,
+      "name": "sedan",
       "displayNameEn": "Sedan",
       "displayNameAr": "سيدان",
       "slug": "sedan"
     },
     {
       "id": 2,
+      "name": "suv",
       "displayNameEn": "SUV",
-      "displayNameAr": "دفع رباعي",
+      "displayNameAr": "إس يو في",
       "slug": "suv"
     },
     {
       "id": 3,
+      "name": "hatchback",
       "displayNameEn": "Hatchback",
       "displayNameAr": "هاتشباك",
       "slug": "hatchback"
@@ -1658,23 +1667,58 @@ To run all API tests automatically:
   [
     {
       "id": 1,
+      "name": "automatic",
       "displayNameEn": "Automatic",
       "displayNameAr": "أوتوماتيك",
       "slug": "automatic"
     },
     {
       "id": 2,
+      "name": "manual",
       "displayNameEn": "Manual",
       "displayNameAr": "يدوي",
       "slug": "manual"
     },
     {
       "id": 3,
+      "name": "cvt",
       "displayNameEn": "CVT",
       "displayNameAr": "CVT",
       "slug": "cvt"
     }
     // ... more transmissions
+  ]
+  ```
+
+#### Fuel Types
+- **Endpoint**: `GET /api/reference-data/fuel-types`
+- **Access**: Public
+- **Description**: Returns all fuel type options
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "gasoline",
+      "displayNameEn": "Gasoline",
+      "displayNameAr": "بنزين",
+      "slug": "gasoline"
+    },
+    {
+      "id": 2,
+      "name": "diesel",
+      "displayNameEn": "Diesel",
+      "displayNameAr": "ديزل",
+      "slug": "diesel"
+    },
+    {
+      "id": 3,
+      "name": "hybrid",
+      "displayNameEn": "Hybrid",
+      "displayNameAr": "هجين",
+      "slug": "hybrid"
+    }
+    // ... more fuel types
   ]
   ```
 
