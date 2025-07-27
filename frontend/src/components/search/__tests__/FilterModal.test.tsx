@@ -643,7 +643,8 @@ describe('FilterModal', () => {
     it('renders transmission filter correctly', () => {
       render(<FilterModal {...mockProps} filterType="transmission" />);
       expect(screen.getByText('Transmission')).toBeInTheDocument();
-      expect(screen.getByRole('combobox')).toBeInTheDocument();
+      expect(screen.getByText('Manual')).toBeInTheDocument();
+      expect(screen.getByText('(0)')).toBeInTheDocument();
     });
 
     it('renders fuel type filter correctly', () => {

@@ -850,7 +850,7 @@ export default function AdvancedSearchPage() {
             isLoadingBrands={isLoadingBrands}
             isLoadingModels={isLoadingModels}
             referenceData={referenceData}
-            isLoadingReferenceData={isLoadingReferenceData}
+            _isLoadingReferenceData={isLoadingReferenceData}
             sellerTypeCounts={sellerTypeCounts}
             bodyStyleCounts={bodyStyleCounts}
             fuelTypeCounts={fuelTypeCounts}
