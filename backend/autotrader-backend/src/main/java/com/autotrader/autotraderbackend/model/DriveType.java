@@ -23,4 +23,7 @@ public class DriveType {
 
     @Column(name = "display_name_ar", nullable = false, length = 50)
     private String displayNameAr;
+
+    @Column(nullable = false, length = 50, unique = true)
+    private String slug;
 }
