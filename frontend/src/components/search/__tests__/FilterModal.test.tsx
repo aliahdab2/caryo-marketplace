@@ -67,13 +67,13 @@ const mockProps = {
     { id: 2, displayNameEn: 'Honda', displayNameAr: 'هوندا', slug: 'honda', name: 'Honda', isActive: true }
   ],
   availableModels: [
-    { id: 1, displayNameEn: 'Camry', displayNameAr: 'كامري', slug: 'camry', name: 'Camry', isActive: true, brand: { id: 1, displayNameEn: 'Toyota', displayNameAr: 'تويوتا', slug: 'toyota', name: 'Toyota', isActive: true } },
-    { id: 2, displayNameEn: 'Corolla', displayNameAr: 'كورولا', slug: 'corolla', name: 'Corolla', isActive: true, brand: { id: 1, displayNameEn: 'Toyota', displayNameAr: 'تويوتا', slug: 'toyota', name: 'Toyota', isActive: true } }
+    { id: 1, displayNameEn: 'Camry', displayNameAr: 'كامري', slug: 'camry', name: 'Camry', isActive: true, brandId: 1 },
+    { id: 2, displayNameEn: 'Corolla', displayNameAr: 'كورولا', slug: 'corolla', name: 'Corolla', isActive: true, brandId: 1 }
   ],
   allModels: [
-    { id: 1, displayNameEn: 'Camry', displayNameAr: 'كامري', slug: 'camry', name: 'Camry', isActive: true, brand: { id: 1, displayNameEn: 'Toyota', displayNameAr: 'تويوتا', slug: 'toyota', name: 'Toyota', isActive: true } },
-    { id: 2, displayNameEn: 'Corolla', displayNameAr: 'كورولا', slug: 'corolla', name: 'Corolla', isActive: true, brand: { id: 1, displayNameEn: 'Toyota', displayNameAr: 'تويوتا', slug: 'toyota', name: 'Toyota', isActive: true } },
-    { id: 3, displayNameEn: 'Civic', displayNameAr: 'سيفيك', slug: 'civic', name: 'Civic', isActive: true, brand: { id: 2, displayNameEn: 'Honda', displayNameAr: 'هوندا', slug: 'honda', name: 'Honda', isActive: true } }
+    { id: 1, displayNameEn: 'Camry', displayNameAr: 'كامري', slug: 'camry', name: 'Camry', isActive: true, brandId: 1 },
+    { id: 2, displayNameEn: 'Corolla', displayNameAr: 'كورولا', slug: 'corolla', name: 'Corolla', isActive: true, brandId: 1 },
+    { id: 3, displayNameEn: 'Civic', displayNameAr: 'سيفيك', slug: 'civic', name: 'Civic', isActive: true, brandId: 2 }
   ],
   isLoadingBrands: false,
   isLoadingModels: false,
