@@ -18,7 +18,7 @@ const mockFilters: AdvancedSearchFilters = {
   maxYear: 2024,
   transmissionId: 1,
   fuelTypeId: 2,
-  bodyStyleIds: [3],
+  bodyType: ['sedan'],
   sellerTypeIds: [1, 2]
 };
 
@@ -93,7 +93,7 @@ describe('FilterChips', () => {
       maxMileage: undefined,
       transmissionId: undefined,
       fuelTypeId: undefined,
-      bodyStyleIds: undefined,
+      bodyType: undefined,
       sellerTypeIds: undefined
     }, {
       selectedMake: null,
@@ -172,7 +172,7 @@ describe('FilterChips', () => {
   it('renders body style chips with icons when body style filters are set', () => {
     const propsWithBodyStyles = {
       ...mockProps,
-      filters: { bodyStyleIds: [3] },
+      filters: { bodyType: ['sedan'] },
       isFilterActive: jest.fn((filterType: FilterType) => filterType === 'bodyStyle')
     };
     

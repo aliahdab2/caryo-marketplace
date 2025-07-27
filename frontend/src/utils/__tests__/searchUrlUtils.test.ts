@@ -83,7 +83,7 @@ describe('searchUrlUtils', () => {
       const filters: FilterUrlParams = {
         transmissionId: 2,
         fuelTypeId: 3,
-        bodyStyleId: 4,
+        bodyStyleIds: [4],
         sellerTypeId: 5
       };
       
@@ -91,7 +91,7 @@ describe('searchUrlUtils', () => {
       
       expect(params.get('transmissionId')).toBe('2');
       expect(params.get('fuelTypeId')).toBe('3');
-      expect(params.get('bodyStyleId')).toBe('4');
+      expect(params.get('bodyStyleIds')).toBe('4');
       expect(params.get('sellerTypeId')).toBe('5');
     });
   });
