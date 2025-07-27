@@ -54,7 +54,7 @@ const mockProps = {
     minMileage: undefined,
     maxMileage: undefined,
     transmissionId: undefined,
-    fuelTypeId: undefined,
+    fuelTypeSlugs: undefined,
     bodyStyleIds: undefined,
     sellerTypeIds: undefined,
     location: undefined
@@ -83,10 +83,10 @@ const mockProps = {
       { id: 1, displayNameEn: 'Manual', displayNameAr: 'يدوي', name: 'manual' }
     ],
     fuelTypes: [
-      { id: 1, displayNameEn: 'Gasoline', displayNameAr: 'بنزين', name: 'gasoline' }
+      { id: 1, displayNameEn: 'Gasoline', displayNameAr: 'بنزين', name: 'gasoline', slug: 'gasoline' }
     ],
     bodyStyles: [
-      { id: 1, displayNameEn: 'Sedan', displayNameAr: 'سيدان', name: 'sedan' }
+      { id: 1, displayNameEn: 'Sedan', displayNameAr: 'سيدان', name: 'sedan', slug: 'sedan' }
     ],
     sellerTypes: [
       { id: 1, displayNameEn: 'Dealer', displayNameAr: 'معرض', name: 'dealer' }
@@ -97,6 +97,14 @@ const mockProps = {
     driveTypes: [
       { id: 1, displayNameEn: 'FWD', displayNameAr: 'دفع أمامي', name: 'fwd' }
     ]
+  },
+  fuelTypeCounts: {
+    gasoline: 150,
+    diesel: 80,
+    hybrid: 30,
+    electric: 20,
+    cng: 10,
+    lpg: 5
   },
   isLoadingReferenceData: false,
   sellerTypeCounts: { dealer: 5 },
@@ -635,13 +643,15 @@ describe('FilterModal', () => {
     it('renders transmission filter correctly', () => {
       render(<FilterModal {...mockProps} filterType="transmission" />);
       expect(screen.getByText('Transmission')).toBeInTheDocument();
-      expect(screen.getByRole('combobox')).toBeInTheDocument();
+      expect(screen.getByText('Manual')).toBeInTheDocument();
+      expect(screen.getByText('(0)')).toBeInTheDocument();
     });
 
     it('renders fuel type filter correctly', () => {
       render(<FilterModal {...mockProps} filterType="fuelType" />);
       expect(screen.getByText('Fuel Type')).toBeInTheDocument();
-      expect(screen.getByRole('combobox')).toBeInTheDocument();
+      expect(screen.getByText('Gasoline')).toBeInTheDocument();
+      expect(screen.getByText('(150)')).toBeInTheDocument();
     });
 
     it('renders body style filter correctly', () => {

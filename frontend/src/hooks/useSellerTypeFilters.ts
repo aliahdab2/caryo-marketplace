@@ -13,7 +13,7 @@ interface UseSellerTypeFiltersParams {
     minMileage?: number;
     maxMileage?: number;
     transmissionId?: number;
-    fuelTypeId?: number;
+    fuelTypeSlugs?: string[];
     bodyStyleId?: number;
   };
 }
@@ -46,7 +46,7 @@ export const useSellerTypeFilters = (params: UseSellerTypeFiltersParams): UseSel
         maxPrice: params.filters.maxPrice?.toString(),
         minMileage: params.filters.minMileage?.toString(),
         maxMileage: params.filters.maxMileage?.toString(),
-        // Don't include transmissionId, fuelTypeId, or bodyStyleId as they're not supported by this endpoint
+        // Don't include transmissionId, fuelTypeSlugs, or bodyStyleId as they're not supported by this endpoint
         // Don't include sellerTypeId in count queries
       };
       
@@ -68,7 +68,7 @@ export const useSellerTypeFilters = (params: UseSellerTypeFiltersParams): UseSel
     params.filters.maxPrice,
     params.filters.minMileage,
     params.filters.maxMileage
-    // Removed transmissionId, fuelTypeId, and bodyStyleId as they're not supported by the seller type counts endpoint
+    // Removed transmissionId, fuelTypeSlugs, and bodyStyleId as they're not supported by the seller type counts endpoint
   ]);
 
   useEffect(() => {

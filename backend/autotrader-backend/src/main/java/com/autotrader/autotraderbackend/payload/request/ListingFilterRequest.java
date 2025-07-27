@@ -117,11 +117,11 @@ public class ListingFilterRequest {
     private List<Long> transmissionIds;
 
     /**
-     * Filter by fuel type IDs. Optional.
-     * Use this to filter listings by multiple fuel types (e.g., gasoline, diesel, electric).
+     * Filter by fuel type slugs. Optional.
+     * Use this to filter listings by multiple fuel types using slugs (e.g., gasoline, diesel, electric).
      */
-    @Schema(description = "Filter by fuel type IDs (e.g., [1, 2] for gasoline and diesel)", example = "[1, 2]")
-    private List<Long> fuelTypeIds;
+    @Schema(description = "Filter by fuel type slugs (e.g., [\"gasoline\", \"diesel\"] for gasoline and diesel)", example = "[\"gasoline\", \"diesel\"]")
+    private List<String> fuelTypeSlugs;
 
     /**
      * Filter by body style IDs. Optional.
@@ -169,6 +169,21 @@ public class ListingFilterRequest {
     public List<String> getNormalizedBodyStyleSlugs() {
         return bodyStyleSlugs == null ? Collections.emptyList() :
             bodyStyleSlugs.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .filter(slug -> !slug.isEmpty())
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns normalized fuel type slugs (lowercase, trimmed, no duplicates).
+     */
+    @JsonIgnore
+    public List<String> getNormalizedFuelTypeSlugs() {
+        return fuelTypeSlugs == null ? Collections.emptyList() :
+            fuelTypeSlugs.stream()
                 .filter(Objects::nonNull)
                 .map(String::trim)
                 .map(String::toLowerCase)

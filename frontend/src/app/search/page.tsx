@@ -23,6 +23,7 @@ import {
 import { getSellerTypeCounts } from '@/services/sellerTypes';
 import { SellerTypeCounts } from '@/types/sellerTypes';
 import { useBodyStyleCounts } from '@/hooks/useBodyStyleCounts';
+import { useFuelTypeCounts } from '@/hooks/useFuelTypeCounts';
 import { useApiData } from '@/hooks/useApiData';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
@@ -112,7 +113,7 @@ export default function AdvancedSearchPage() {
       
       // Add missing filter fields that are defined in CarListingFilterParams
       transmissionId: filters.transmissionId,
-      fuelTypeId: filters.fuelTypeId,
+      fuelTypeSlugs: filters.fuelTypeSlugs,
               bodyType: filters.bodyType,
       conditionId: filters.conditionId
     };
@@ -151,6 +152,9 @@ export default function AdvancedSearchPage() {
 
   // Body style counts hook
   const { bodyStyleCounts } = useBodyStyleCounts(listingFilters);
+
+  // Fuel type counts hook
+  const { fuelTypeCounts } = useFuelTypeCounts(listingFilters);
 
   // API data hooks - with stable dependencies to prevent loops
   const {
@@ -242,9 +246,16 @@ export default function AdvancedSearchPage() {
     }, [referenceData?.transmissions, currentLanguage]
   );
 
-  const getFuelTypeDisplayName = useMemo(() => 
+    const getFuelTypeDisplayName = useMemo(() =>
     (id: number): string => {
       const fuelType = referenceData?.fuelTypes?.find(f => f.id === id);
+      return fuelType ? (currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn) : '';
+    }, [referenceData?.fuelTypes, currentLanguage]
+  );
+
+  const getFuelTypeDisplayNameFromSlug = useMemo(() =>
+    (slug: string): string => {
+      const fuelType = referenceData?.fuelTypes?.find(f => f.slug === slug);
       return fuelType ? (currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn) : '';
     }, [referenceData?.fuelTypes, currentLanguage]
   );
@@ -276,7 +287,7 @@ export default function AdvancedSearchPage() {
       (filters.minYear || filters.maxYear ? 1 : 0) +
       (filters.minMileage || filters.maxMileage ? 1 : 0) +
       (filters.transmissionId ? 1 : 0) +
-      (filters.fuelTypeId ? 1 : 0) +
+      (filters.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0 ? 1 : 0) +
               (filters.bodyType?.length || 0) +
       (filters.sellerTypeIds?.length || 0)
     );
@@ -290,7 +301,7 @@ export default function AdvancedSearchPage() {
     filters.minMileage,
     filters.maxMileage,
     filters.transmissionId,
-    filters.fuelTypeId,
+    filters.fuelTypeSlugs,
             filters.bodyType,
     filters.sellerTypeIds
   ]);
@@ -376,6 +387,12 @@ export default function AdvancedSearchPage() {
               initialFilters.bodyType = bodyTypeParam.split('-').map(type => type.trim()).filter(type => type.length > 0);
             }
 
+    // Handle fuel type slugs - support multiple values
+    const fuelTypeSlugs = searchParams.getAll('fuelType');
+    if (fuelTypeSlugs.length > 0) {
+      initialFilters.fuelTypeSlugs = fuelTypeSlugs.filter(slug => slug.trim());
+    }
+
     setFilters(initialFilters);
     setHasInitialized(true);
   }, [hasInitialized, searchParams]);
@@ -415,7 +432,9 @@ export default function AdvancedSearchPage() {
     if (newFilters.maxMileage) params.append('maxMileage', newFilters.maxMileage.toString());
 
     if (newFilters.transmissionId) params.append('transmissionId', newFilters.transmissionId.toString());
-    if (newFilters.fuelTypeId) params.append('fuelTypeId', newFilters.fuelTypeId.toString());
+    if (newFilters.fuelTypeSlugs && newFilters.fuelTypeSlugs.length > 0) {
+      newFilters.fuelTypeSlugs.forEach(slug => params.append('fuelType', slug));
+    }
             if (newFilters.bodyType && newFilters.bodyType.length > 0) {
           params.append('bodyType', newFilters.bodyType.join('-'));
         }
@@ -482,7 +501,7 @@ export default function AdvancedSearchPage() {
     maxPrice: filters.maxPrice,
     minMileage: filters.minMileage,
     maxMileage: filters.maxMileage
-    // Removed transmissionId, fuelTypeId, and bodyStyleIds as they're not supported by the seller type counts endpoint
+    // Removed transmissionId, fuelTypeSlugs, and bodyStyleIds as they're not supported by the seller type counts endpoint
   }), [filters.brands, filters.models, filters.minYear, filters.maxYear, filters.minPrice, filters.maxPrice, filters.minMileage, filters.maxMileage]);
 
   // Fetch seller type counts when filters change (Swedish marketplace style)
@@ -500,7 +519,7 @@ export default function AdvancedSearchPage() {
           maxPrice: sellerTypeCountDependencies.maxPrice?.toString(),
           minMileage: sellerTypeCountDependencies.minMileage?.toString(),
           maxMileage: sellerTypeCountDependencies.maxMileage?.toString(),
-          // Don't include transmissionId, fuelTypeId, or bodyStyleIds as they're not supported by this endpoint
+          // Don't include transmissionId, fuelTypeSlugs, or bodyStyleIds as they're not supported by this endpoint
           // Don't include sellerTypeId in count queries
         };
         
@@ -617,7 +636,7 @@ export default function AdvancedSearchPage() {
         updateFiltersAndState({ transmissionId: undefined });
         break;
       case 'fuelType':
-        updateFiltersAndState({ fuelTypeId: undefined });
+        updateFiltersAndState({ fuelTypeSlugs: undefined });
         break;
       case 'bodyStyle':
         updateFiltersAndState({ bodyType: undefined });
@@ -663,7 +682,9 @@ export default function AdvancedSearchPage() {
         return filters.transmissionId ? getTransmissionDisplayName(filters.transmissionId) : t('transmission', 'Transmission');
 
       case 'fuelType':
-        return filters.fuelTypeId ? getFuelTypeDisplayName(filters.fuelTypeId) : t('fuelType', 'Fuel type');
+        return filters.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0 
+          ? filters.fuelTypeSlugs.map(slug => getFuelTypeDisplayNameFromSlug(slug)).join(', ') 
+          : t('fuelType', 'Fuel type');
       case 'bodyStyle':
                 return filters.bodyType && filters.bodyType.length > 0
           ? filters.bodyType.length === 1
@@ -699,7 +720,7 @@ export default function AdvancedSearchPage() {
         return !!filters.transmissionId;
 
       case 'fuelType':
-        return !!filters.fuelTypeId;
+        return !!(filters.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0);
       case 'bodyStyle':
         return !!(filters.bodyType && filters.bodyType.length > 0);
       case 'sellerType':
@@ -767,12 +788,12 @@ export default function AdvancedSearchPage() {
           getModelDisplayNameFromSlug={getModelDisplayNameFromSlug}
           getFilterDisplayText={getFilterDisplayText}
           getTransmissionDisplayName={getTransmissionDisplayName}
-          getFuelTypeDisplayName={getFuelTypeDisplayName}
+          getFuelTypeDisplayNameFromSlug={getFuelTypeDisplayNameFromSlug}
           getBodyStyleDisplayName={getBodyStyleDisplayName}
           getSellerTypeDisplayName={getSellerTypeDisplayName}
           selectedMake={selectedMake}
           selectedModel={selectedModel}
-
+          referenceData={referenceData}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           t={t as any}
         />
@@ -846,9 +867,10 @@ export default function AdvancedSearchPage() {
             isLoadingBrands={isLoadingBrands}
             isLoadingModels={isLoadingModels}
             referenceData={referenceData}
-            isLoadingReferenceData={isLoadingReferenceData}
+            _isLoadingReferenceData={isLoadingReferenceData}
             sellerTypeCounts={sellerTypeCounts}
             bodyStyleCounts={bodyStyleCounts}
+            fuelTypeCounts={fuelTypeCounts}
             carListings={carListings}
             currentLanguage={currentLanguage}
             isRTL={isRTL}

@@ -315,8 +315,9 @@ public class CarListingSpecification {
                                         jakarta.persistence.criteria.Root<CarListing> root,
                                         jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
                                         List<Predicate> predicates) {
-        if (filter.getFuelTypeIds() != null && !filter.getFuelTypeIds().isEmpty()) {
-            predicates.add(root.get("fuelType").get("id").in(filter.getFuelTypeIds()));
+        // Handle slug-based filtering
+        if (filter.getFuelTypeSlugs() != null && !filter.getFuelTypeSlugs().isEmpty()) {
+            predicates.add(root.get("fuelType").get("slug").in(filter.getFuelTypeSlugs()));
         }
     }
 

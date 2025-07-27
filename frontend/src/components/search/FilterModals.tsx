@@ -8,6 +8,7 @@ import { CarMake, CarModel } from '@/types/car';
 import { CarReferenceData } from '@/services/api';
 import { SellerTypeCounts } from '@/types/sellerTypes';
 import { BodyStyleCounts } from '@/hooks/useBodyStyleCounts';
+import { FuelTypeCounts } from '@/hooks/useFuelTypeCounts';
 import { 
   ConvertibleIcon,
   CoupeIcon,
@@ -20,6 +21,7 @@ import {
   VanIcon,
   MotorcycleIcon
 } from '@/components/icons/CarIcons';
+import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
 
 // Move constants outside component to prevent recreation
 const CURRENT_YEAR = new Date().getFullYear();
@@ -229,7 +231,7 @@ export interface AdvancedSearchFilters {
   // Entity ID filters (for dropdown selections)
   conditionId?: number;
   transmissionId?: number;
-  fuelTypeId?: number;
+  fuelTypeSlugs?: string[]; // Fuel type filtering - multiple selection using slugs
   bodyStyleSlugs?: string[];
   sellerTypeIds?: number[];
   
@@ -254,6 +256,7 @@ interface FilterModalsProps {
   referenceData?: CarReferenceData;
   sellerTypeCounts: SellerTypeCounts;
   bodyStyleCounts: BodyStyleCounts;
+  fuelTypeCounts: FuelTypeCounts;
   
   // Loading states
   isLoadingBrands?: boolean;
@@ -281,6 +284,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
   referenceData,
   sellerTypeCounts,
   bodyStyleCounts,
+  fuelTypeCounts,
   isLoadingBrands = false,
   isLoadingModels = false,
   isLoadingReferenceData = false,
@@ -596,19 +600,53 @@ const FilterModals = React.memo<FilterModalsProps>(({
           <div className="space-y-6">
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:fuelType', 'Fuel type')}</h3>
-              <select
-                value={filters.fuelTypeId || ''}
-                onChange={(e) => handleInputChange('fuelTypeId', e.target.value ? parseInt(e.target.value) : undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                disabled={isLoadingReferenceData}
-              >
-                <option value="">{t('search:any', 'Any')}</option>
-                {referenceData?.fuelTypes?.map(fuelType => (
-                  <option key={fuelType.id} value={fuelType.id}>
-                    {currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn}
-                  </option>
-                ))}
-              </select>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {referenceData?.fuelTypes?.map(fuelType => {
+                  const isSelected = filters.fuelTypeSlugs?.includes(fuelType.slug) || false;
+                  const displayName = currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn;
+                  const count = fuelTypeCounts[fuelType.name.toLowerCase()];
+                  
+                  return (
+                    <div
+                      key={fuelType.id}
+                      className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all hover:border-blue-300 hover:bg-blue-50 ${
+                        isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                      }`}
+                      onClick={() => {
+                        const currentFuelTypes = filters.fuelTypeSlugs || [];
+                        const newFuelTypes = isSelected 
+                          ? currentFuelTypes.filter(fuelTypeSlug => fuelTypeSlug !== fuelType.slug)
+                          : [...currentFuelTypes, fuelType.slug];
+                        
+                        handleInputChange('fuelTypeSlugs', newFuelTypes.length > 0 ? newFuelTypes : undefined);
+                      }}
+                    >
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className="w-20 h-14 flex items-center justify-center">
+                          {getFuelTypeIcon(fuelType.name.toLowerCase())}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">{displayName}</div>
+                          <div className="text-sm text-gray-500">{count ? `${count.toLocaleString()} listings` : 'No listings'}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className={`w-5 h-5 border-2 rounded transition-all ${
+                          isSelected 
+                            ? 'border-blue-500 bg-blue-500' 
+                            : 'border-gray-300 hover:border-blue-400'
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         );
