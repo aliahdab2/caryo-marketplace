@@ -71,16 +71,14 @@ describe('FilterChip', () => {
       'group',
       'inline-flex',
       'items-center',
-      'bg-gradient-to-r',
-      'from-gray-50',
-      'to-gray-100',
-      'border-2',
+      'bg-gray-100',
+      'border',
       'border-gray-200',
-      'rounded-xl',
-      'px-4',
-      'py-2.5',
+      'rounded-full',
+      'px-3',
+      'py-2',
       'text-sm',
-      'font-semibold',
+      'font-medium',
       'text-gray-700'
     );
   });
