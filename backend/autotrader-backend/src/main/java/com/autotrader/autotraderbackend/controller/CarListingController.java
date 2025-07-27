@@ -745,6 +745,46 @@ public class CarListingController {
         return ResponseEntity.ok(sellerTypeCounts);
     }
 
+    @GetMapping("/counts/fuel-types")
+    @Operation(
+        summary = "Get count of listings by fuel type",
+        description = "Returns count of listings for each fuel type (Gasoline, Diesel, Electric, Hybrid, etc.). Optionally accepts filter parameters to constrain the results.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Count of listings by fuel type", 
+                         content = @Content(mediaType = "application/json",
+                                            schema = @Schema(type = "object", example = "{\\\"gasoline\\\": 1500, \\\"diesel\\\": 800, \\\"electric\\\": 200}")))
+        }
+    )
+    public ResponseEntity<Map<String, Long>> getCountsByFuelType(
+            @Parameter(description = "Brand slugs to filter by") @RequestParam(required = false) List<String> brandSlugs,
+            @Parameter(description = "Model slugs to filter by") @RequestParam(required = false) List<String> modelSlugs,
+            @Parameter(description = "Minimum year") @RequestParam(required = false) Integer minYear,
+            @Parameter(description = "Maximum year") @RequestParam(required = false) Integer maxYear,
+            @Parameter(description = "Location slugs to filter by") @RequestParam(required = false) List<String> location,
+            @Parameter(description = "Minimum price") @RequestParam(required = false) BigDecimal minPrice,
+            @Parameter(description = "Maximum price") @RequestParam(required = false) BigDecimal maxPrice,
+            @Parameter(description = "Minimum mileage") @RequestParam(required = false) Integer minMileage,
+            @Parameter(description = "Maximum mileage") @RequestParam(required = false) Integer maxMileage) {
+        
+        log.info("Getting counts by fuel type with filters: brands={}, models={}, years={}-{}", 
+                brandSlugs, modelSlugs, minYear, maxYear);
+        
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setBrandSlugs(brandSlugs);
+        filterRequest.setModelSlugs(modelSlugs);
+        filterRequest.setMinYear(minYear);
+        filterRequest.setMaxYear(maxYear);
+        filterRequest.setLocations(location);
+        filterRequest.setMinPrice(minPrice);
+        filterRequest.setMaxPrice(maxPrice);
+        filterRequest.setMinMileage(minMileage);
+        filterRequest.setMaxMileage(maxMileage);
+        
+        Map<String, Long> fuelTypeCounts = carListingService.getCountsByFuelType(filterRequest);
+        log.info("Returning fuel type counts for {} fuel types", fuelTypeCounts.size());
+        return ResponseEntity.ok(fuelTypeCounts);
+    }
+
     @GetMapping("/{id:[0-9]+}")
     @Operation(
         summary = "Get car listing by ID",

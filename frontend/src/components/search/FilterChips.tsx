@@ -2,6 +2,7 @@ import React from 'react';
 import { MdClose, MdDeleteSweep } from 'react-icons/md';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { getCarIcon } from '@/utils/carIcons';
+import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
 
 interface FilterChipsProps {
   filters: AdvancedSearchFilters;
@@ -198,11 +199,14 @@ export default function FilterChips({
 
         {/* Fuel Type Chip */}
         {filters.fuelTypeId && (
-          <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
-            <span>{getFuelTypeDisplayName(filters.fuelTypeId)}</span>
+          <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+            <span className="mr-1">{getFuelTypeDisplayName(filters.fuelTypeId)}</span>
+            <div className="w-8 h-8 mr-1 flex-shrink-0">
+              {getFuelTypeIcon('gasoline', "w-8 h-8")}
+            </div>
             <button
               onClick={() => updateFiltersAndState({ fuelTypeId: undefined })}
-              className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
+              className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
               aria-label={t('removeFuelTypeFilter', 'Remove fuel type filter')}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

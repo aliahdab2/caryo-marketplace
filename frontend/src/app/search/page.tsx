@@ -23,6 +23,7 @@ import {
 import { getSellerTypeCounts } from '@/services/sellerTypes';
 import { SellerTypeCounts } from '@/types/sellerTypes';
 import { useBodyStyleCounts } from '@/hooks/useBodyStyleCounts';
+import { useFuelTypeCounts } from '@/hooks/useFuelTypeCounts';
 import { useApiData } from '@/hooks/useApiData';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
@@ -151,6 +152,9 @@ export default function AdvancedSearchPage() {
 
   // Body style counts hook
   const { bodyStyleCounts } = useBodyStyleCounts(listingFilters);
+
+  // Fuel type counts hook
+  const { fuelTypeCounts } = useFuelTypeCounts(listingFilters);
 
   // API data hooks - with stable dependencies to prevent loops
   const {
@@ -849,6 +853,7 @@ export default function AdvancedSearchPage() {
             isLoadingReferenceData={isLoadingReferenceData}
             sellerTypeCounts={sellerTypeCounts}
             bodyStyleCounts={bodyStyleCounts}
+            fuelTypeCounts={fuelTypeCounts}
             carListings={carListings}
             currentLanguage={currentLanguage}
             isRTL={isRTL}

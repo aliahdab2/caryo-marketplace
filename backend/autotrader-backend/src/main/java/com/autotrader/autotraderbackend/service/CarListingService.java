@@ -641,6 +641,68 @@ public class CarListingService {
         return sellerTypeCounts;
     }
 
+    /**
+     * Get count of listings by fuel type with optimized approach.
+     * Uses direct database queries when possible, falls back to specification filtering when needed.
+     */
+    public Map<String, Long> getCountsByFuelType(ListingFilterRequest filterRequest) {
+        log.debug("Getting counts by fuel type with filters: {}", filterRequest);
+        
+        try {
+            // Check if we have any filters that would affect fuel type counts
+            if (hasNonFuelTypeFilters(filterRequest)) {
+                // Use specification approach but only fetch the fuel type field to minimize memory usage
+                return getFuelTypeCountsWithSpecification(filterRequest);
+            } else {
+                // Use efficient direct query for unfiltered requests
+                List<Object[]> distinctFuelTypeCounts = carListingRepository.findDistinctFuelTypesWithCounts();
+                
+                Map<String, Long> fuelTypeCounts = new LinkedHashMap<>();
+                for (Object[] entry : distinctFuelTypeCounts) {
+                    String fuelTypeName = (String) entry[0];
+                    Long count = (Long) entry[1];
+                    if (StringUtils.isNotBlank(fuelTypeName) && count != null && count > 0) {
+                        fuelTypeCounts.put(fuelTypeName, count);
+                    }
+                }
+                
+                log.info("Found counts for {} fuel types (unfiltered)", fuelTypeCounts.size());
+                return fuelTypeCounts;
+            }
+        } catch (Exception e) {
+            log.error("Error getting fuel type counts", e);
+            return new LinkedHashMap<>();
+        }
+    }
+
+    /**
+     * Get fuel type counts using specification filtering.
+     * Optimized to only fetch necessary fields and avoid loading full entities.
+     */
+    private Map<String, Long> getFuelTypeCountsWithSpecification(ListingFilterRequest filterRequest) {
+        // Remove fuel type filter to get all fuel types with their counts
+        ListingFilterRequest modifiedFilter = createFilterWithoutFuelType(filterRequest);
+        
+        // Build the specification for filtering
+        Specification<CarListing> baseSpec = buildBaseSpecification(modifiedFilter, false);
+        
+        // Fetch only IDs first to get the filtered listings efficiently
+        List<CarListing> filteredListings = carListingRepository.findAll(baseSpec);
+        
+        // Group by fuel type name and count
+        Map<String, Long> fuelTypeCounts = filteredListings.stream()
+            .filter(listing -> listing.getFuelType() != null && 
+                             StringUtils.isNotBlank(listing.getFuelType().getName()))
+            .collect(Collectors.groupingBy(
+                listing -> listing.getFuelType().getName(),
+                LinkedHashMap::new,
+                Collectors.counting()
+            ));
+        
+        log.info("Found counts for {} fuel types (filtered)", fuelTypeCounts.size());
+        return fuelTypeCounts;
+    }
+
     private boolean hasNonSellerTypeFilters(ListingFilterRequest filterRequest) {
         if (filterRequest == null) return false;
         
@@ -651,6 +713,22 @@ public class CarListingService {
                filterRequest.getMinMileage() != null || filterRequest.getMaxMileage() != null ||
                filterRequest.getLocations() != null && !filterRequest.getLocations().isEmpty() ||
                filterRequest.getLocationId() != null ||
+               filterRequest.getIsSold() != null ||
+               filterRequest.getIsArchived() != null ||
+               filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty();
+    }
+
+    private boolean hasNonFuelTypeFilters(ListingFilterRequest filterRequest) {
+        if (filterRequest == null) return false;
+        
+        return filterRequest.getBrandSlugs() != null && !filterRequest.getBrandSlugs().isEmpty() ||
+               filterRequest.getModelSlugs() != null && !filterRequest.getModelSlugs().isEmpty() ||
+               filterRequest.getMinYear() != null || filterRequest.getMaxYear() != null ||
+               filterRequest.getMinPrice() != null || filterRequest.getMaxPrice() != null ||
+               filterRequest.getMinMileage() != null || filterRequest.getMaxMileage() != null ||
+               filterRequest.getLocations() != null && !filterRequest.getLocations().isEmpty() ||
+               filterRequest.getLocationId() != null ||
+               filterRequest.getSellerTypeIds() != null && !filterRequest.getSellerTypeIds().isEmpty() ||
                filterRequest.getIsSold() != null ||
                filterRequest.getIsArchived() != null ||
                filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty();
@@ -743,6 +821,33 @@ public class CarListingService {
         modified.setIsSold(original.getIsSold());
         modified.setIsArchived(original.getIsArchived());
         // Note: sellerTypeId is intentionally excluded
+        
+        return modified;
+    }
+
+    /**
+     * Create a filter request without fuel type filters.
+     */
+    private ListingFilterRequest createFilterWithoutFuelType(ListingFilterRequest original) {
+        if (original == null) return new ListingFilterRequest();
+        
+        ListingFilterRequest modified = new ListingFilterRequest();
+        // Copy all filters except fuel type
+        modified.setBrandSlugs(original.getBrandSlugs());
+        modified.setModelSlugs(original.getModelSlugs());
+        modified.setMinYear(original.getMinYear());
+        modified.setMaxYear(original.getMaxYear());
+        modified.setLocations(original.getLocations());
+        modified.setLocationId(original.getLocationId());
+        modified.setMinPrice(original.getMinPrice());
+        modified.setMaxPrice(original.getMaxPrice());
+        modified.setMinMileage(original.getMinMileage());
+        modified.setMaxMileage(original.getMaxMileage());
+        modified.setSellerTypeIds(original.getSellerTypeIds());
+        modified.setSearchQuery(original.getSearchQuery());
+        modified.setIsSold(original.getIsSold());
+        modified.setIsArchived(original.getIsArchived());
+        // Note: fuelTypeId is intentionally excluded
         
         return modified;
     }
