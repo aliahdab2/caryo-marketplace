@@ -117,6 +117,13 @@ public class ListingFilterRequest {
     private List<Long> transmissionIds;
 
     /**
+     * Filter by transmission slugs. Optional.
+     * Use this to filter listings by multiple transmission types using slugs (e.g., automatic, manual).
+     */
+    @Schema(description = "Filter by transmission slugs (e.g., [\"automatic\", \"manual\"] for automatic and manual)", example = "[\"automatic\", \"manual\"]")
+    private List<String> transmissionSlugs;
+
+    /**
      * Filter by fuel type slugs. Optional.
      * Use this to filter listings by multiple fuel types using slugs (e.g., gasoline, diesel, electric).
      */
@@ -184,6 +191,21 @@ public class ListingFilterRequest {
     public List<String> getNormalizedFuelTypeSlugs() {
         return fuelTypeSlugs == null ? Collections.emptyList() :
             fuelTypeSlugs.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .filter(slug -> !slug.isEmpty())
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns normalized transmission slugs (lowercase, trimmed, no duplicates).
+     */
+    @JsonIgnore
+    public List<String> getNormalizedTransmissionSlugs() {
+        return transmissionSlugs == null ? Collections.emptyList() :
+            transmissionSlugs.stream()
                 .filter(Objects::nonNull)
                 .map(String::trim)
                 .map(String::toLowerCase)

@@ -34,7 +34,7 @@ export interface AdvancedSearchFilters {
   
   // Entity ID filters (for dropdown selections)
   conditionId?: number;
-  transmissionId?: number;
+  transmissionSlugs?: string[]; // Transmission filtering - multiple selection using slugs
   fuelTypeSlugs?: string[]; // Fuel type filtering - multiple selection using slugs
   bodyType?: string[]; // Body type filtering
   sellerTypeIds?: number[];
@@ -109,10 +109,13 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
           case 'minMileage':
           case 'maxMileage':
           case 'conditionId':
-          case 'transmissionId':
           case 'doors':
           case 'cylinders':
             newFilters[field] = value as number;
+            break;
+          case 'transmissionSlugs':
+            newFilters[field] = value as string[];
+            break;
             break;
           case 'fuelTypeSlugs':
             newFilters[field] = value as string[];
@@ -153,7 +156,7 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
           delete newFilters.maxMileage;
           break;
         case 'transmission':
-          delete newFilters.transmissionId;
+          delete newFilters.transmissionSlugs;
           break;
         case 'fuelType':
           delete newFilters.fuelTypeSlugs;
@@ -354,8 +357,8 @@ export function useSearchFilters({
     if (newFilters.locations && newFilters.locations.length > 0) {
       searchParams.set('locations', newFilters.locations.join(','));
     }
-    if (newFilters.transmissionId) {
-      searchParams.set('transmission', newFilters.transmissionId.toString());
+    if (newFilters.transmissionSlugs && newFilters.transmissionSlugs.length > 0) {
+      searchParams.set('transmission', newFilters.transmissionSlugs.join(','));
     }
     if (newFilters.fuelTypeSlugs && newFilters.fuelTypeSlugs.length > 0) {
       searchParams.set('fuelType', newFilters.fuelTypeSlugs.join(','));
@@ -468,7 +471,9 @@ export function useSearchFilters({
         return t('search.filters.mileage', 'Mileage');
 
       case 'transmission':
-        return state.filters.transmissionId ? getTransmissionDisplayName(state.filters.transmissionId) : t('search.filters.transmission', 'Transmission');
+        return state.filters.transmissionSlugs && state.filters.transmissionSlugs.length > 0 
+          ? state.filters.transmissionSlugs.join(', ') 
+          : t('search.filters.transmission', 'Transmission');
 
           case 'fuelType':
       return state.filters.fuelTypeSlugs && state.filters.fuelTypeSlugs.length > 0 
@@ -504,7 +509,7 @@ export function useSearchFilters({
       case 'mileage':
         return state.filters.minMileage !== undefined || state.filters.maxMileage !== undefined;
       case 'transmission':
-        return state.filters.transmissionId !== undefined;
+        return !!(state.filters.transmissionSlugs && state.filters.transmissionSlugs.length > 0);
           case 'fuelType':
       return state.filters.fuelTypeSlugs !== undefined && state.filters.fuelTypeSlugs.length > 0;
       case 'bodyStyle':

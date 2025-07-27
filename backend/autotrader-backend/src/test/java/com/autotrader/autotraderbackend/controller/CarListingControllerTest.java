@@ -314,9 +314,10 @@ public class CarListingControllerTest {
                 null, // isSold
                 null, // isArchived
                 null, // sellerTypeIds
-                null, // transmissionId
-                null, // fuelTypeId
-                null, // bodyStyleIds
+                null, // transmissionIds
+                null, // transmissionSlugs
+                null, // fuelTypeSlugs
+                null, // bodyType
                 null, // searchQuery
                 pageable
             )
@@ -1078,7 +1079,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             brandSlugs, modelSlugs, minYear, maxYear, locations, null, minPrice, maxPrice,
-            minMileage, maxMileage, isSold, isArchived, sellerTypeIds, null, null, null, searchQuery
+            minMileage, maxMileage, isSold, isArchived, sellerTypeIds, null, null, null, null, searchQuery
         );
 
         // Assert
@@ -1111,7 +1112,7 @@ public class CarListingControllerTest {
         // Act
         ResponseEntity<Map<String, Long>> response = carListingController.getFilteredListingsCountByParams(
             null, null, null, null, null, null, null, null,
-            null, null, null, null, null, null, null, null, null
+            null, null, null, null, null, null, null, null, null, null
         );
 
         // Assert

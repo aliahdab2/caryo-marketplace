@@ -3,6 +3,7 @@ import { MdDeleteSweep } from 'react-icons/md';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { getCarIcon } from '@/utils/carIcons';
 import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
+import { getTransmissionIcon } from '@/utils/transmissionIcons';
 import FilterChip from './FilterChip';
 
 interface FilterChipsProps {
@@ -16,13 +17,17 @@ interface FilterChipsProps {
   getBrandDisplayNameFromSlug: (slug: string) => string;
   getModelDisplayNameFromSlug: (slug: string) => string;
   getFilterDisplayText: (filterType: FilterType) => string;
-  getTransmissionDisplayName: (id: number) => string;
+  _getTransmissionDisplayName: (id: number) => string;
   getFuelTypeDisplayNameFromSlug: (slug: string) => string;
   getBodyStyleDisplayName: (slug: string) => string;
   getSellerTypeDisplayName: (id: number) => string;
   selectedMake: number | null;
   selectedModel: number | null;
-  referenceData?: { fuelTypes?: Array<{ id: number; name: string; displayNameEn: string; displayNameAr: string }> } | null;
+  referenceData?: { 
+    fuelTypes?: Array<{ id: number; name: string; displayNameEn: string; displayNameAr: string }>;
+    transmissions?: Array<{ id: number; name: string; displayNameEn: string; displayNameAr: string; slug: string }>;
+  } | null;
+  currentLanguage: string;
   t: (key: string, fallback?: string, options?: { brand?: string; model?: string }) => string;
 }
 
@@ -34,12 +39,14 @@ export default function FilterChips({
   getBrandDisplayNameFromSlug,
   getModelDisplayNameFromSlug,
   getFilterDisplayText,
-  getTransmissionDisplayName,
+  _getTransmissionDisplayName,
   getFuelTypeDisplayNameFromSlug,
   getBodyStyleDisplayName,
   getSellerTypeDisplayName,
   selectedMake,
   selectedModel,
+  referenceData,
+  currentLanguage,
   t
 }: FilterChipsProps) {
 
@@ -69,7 +76,7 @@ export default function FilterChips({
               maxYear: undefined,
               minMileage: undefined,
               maxMileage: undefined,
-              transmissionId: undefined,
+              transmissionSlugs: undefined,
               fuelTypeSlugs: undefined,
               bodyType: undefined,
               sellerTypeIds: undefined
@@ -149,14 +156,26 @@ export default function FilterChips({
           />
         )}
 
-        {/* Transmission Chip */}
-        {filters.transmissionId && (
-          <FilterChip
-            label={getTransmissionDisplayName(filters.transmissionId)}
-            onRemove={() => updateFiltersAndState({ transmissionId: undefined })}
-            removeButtonLabel={t('removeTransmissionFilter', 'Remove transmission filter')}
-          />
-        )}
+        {/* Transmission Chips */}
+        {filters.transmissionSlugs && filters.transmissionSlugs.map((transmissionSlug) => {
+          const transmission = referenceData?.transmissions?.find(t => t.slug === transmissionSlug);
+          const displayName = transmission ? (currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn) : transmissionSlug;
+          
+          return (
+            <FilterChip
+              key={`transmission-${transmissionSlug}`}
+              label={displayName}
+              icon={getTransmissionIcon(transmissionSlug, "w-4 h-4")}
+              onRemove={() => {
+                const updatedTransmissions = filters.transmissionSlugs?.filter(slug => slug !== transmissionSlug) || [];
+                updateFiltersAndState({ 
+                  transmissionSlugs: updatedTransmissions.length > 0 ? updatedTransmissions : undefined
+                });
+              }}
+              removeButtonLabel={t('removeTransmissionFilter', 'Remove transmission filter')}
+            />
+          );
+        })}
 
         {/* Fuel Type Chips */}
         {filters.fuelTypeSlugs && filters.fuelTypeSlugs.map((fuelTypeSlug) => (

@@ -303,8 +303,16 @@ public class CarListingSpecification {
                                             jakarta.persistence.criteria.Root<CarListing> root,
                                             jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
                                             List<Predicate> predicates) {
+        // Handle ID-based filtering
         if (filter.getTransmissionIds() != null && !filter.getTransmissionIds().isEmpty()) {
+            System.out.println("DEBUG: Adding transmission ID filter: " + filter.getTransmissionIds());
             predicates.add(root.get("transmissionType").get("id").in(filter.getTransmissionIds()));
+        }
+        
+        // Handle slug-based filtering
+        if (filter.getTransmissionSlugs() != null && !filter.getTransmissionSlugs().isEmpty()) {
+            System.out.println("DEBUG: Adding transmission slug filter: " + filter.getTransmissionSlugs());
+            predicates.add(root.get("transmissionType").get("slug").in(filter.getTransmissionSlugs()));
         }
     }
 

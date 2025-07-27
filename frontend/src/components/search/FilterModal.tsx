@@ -9,6 +9,7 @@ import MileageSlider from '@/components/ui/MileageSlider';
 import YearSlider from '@/components/ui/YearSlider';
 import { getCarIcon } from '@/utils/carIcons';
 import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
+import { getTransmissionIcon } from '@/utils/transmissionIcons';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
 
@@ -30,6 +31,7 @@ interface FilterModalProps {
   sellerTypeCounts: SellerTypeCounts;
   bodyStyleCounts: BodyStyleCounts;
   fuelTypeCounts: FuelTypeCounts;
+  transmissionCounts: Record<string, number>;
   carListings: PageResponse<CarListing> | null;
   currentLanguage: string;
   isRTL: boolean;
@@ -76,6 +78,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
   sellerTypeCounts,
   bodyStyleCounts,
   fuelTypeCounts,
+  transmissionCounts,
   carListings,
   currentLanguage,
   t,
@@ -588,13 +591,15 @@ const FilterModal: React.FC<FilterModalProps> = ({
         );
 
               case 'transmission':
+          console.log('🔧 Rendering transmission filter with counts:', transmissionCounts);
           return (
             <div className="space-y-4">
               <div className="grid gap-3 max-h-96 overflow-y-auto pr-2 rtl:pr-0 rtl:pl-2">
                 {referenceData?.transmissions?.map(transmission => {
-                  const isSelected = filters.transmissionId === transmission.id;
+                  const isSelected = filters.transmissionSlugs?.includes(transmission.slug) || false;
                   const displayName = currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn;
-                  const count = 0; // TODO: Add transmission counts when backend endpoint is available
+                  const count = transmissionCounts[transmission.name] || 0;
+                  console.log(`📊 Transmission ${transmission.name} (${transmission.slug}): count = ${count}`);
                   
                   return (
                     <div
@@ -605,15 +610,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
                           : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
                       }`}
                       onClick={() => {
-                        handleInputChange('transmissionId', isSelected ? undefined : transmission.id);
+                        const currentTransmissions = filters.transmissionSlugs || [];
+                        const newTransmissions = isSelected
+                          ? currentTransmissions.filter(slug => slug !== transmission.slug)
+                          : [...currentTransmissions, transmission.slug];
+                        
+                        handleInputChange('transmissionSlugs', newTransmissions.length > 0 ? newTransmissions : undefined);
                       }}
                     >
                       <div className="flex items-center space-x-4 rtl:space-x-reverse">
                         <div className="transition-transform group-hover:scale-105">
                           <div className="w-10 h-7 flex items-center justify-center text-gray-600">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            </svg>
+                            {getTransmissionIcon(transmission.slug, "w-6 h-6")}
                           </div>
                         </div>
                         <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -1058,6 +1066,209 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 })}
               </div>
             </CollapsibleSection>
+
+            {/* Transmission */}
+            <CollapsibleSection
+              title={t('transmission', 'Transmission')}
+              sectionName="transmission"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              }
+            >
+              <div className="grid gap-3 max-h-60 overflow-y-auto">
+                {referenceData?.transmissions?.map(transmission => {
+                  const isSelected = filters.transmissionSlugs?.includes(transmission.slug) || false;
+                  const displayName = currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn;
+                  const count = transmissionCounts[transmission.name] || 0;
+                  console.log(`📊 All Filters - Transmission ${transmission.name} (${transmission.slug}): count = ${count}`);
+                  
+                  return (
+                    <div
+                      key={transmission.id}
+                      className={`group relative flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                        isSelected 
+                          ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
+                      }`}
+                      onClick={() => {
+                        const currentTransmissions = filters.transmissionSlugs || [];
+                        const newTransmissions = isSelected
+                          ? currentTransmissions.filter(slug => slug !== transmission.slug)
+                          : [...currentTransmissions, transmission.slug];
+                        
+                        handleInputChange('transmissionSlugs', newTransmissions.length > 0 ? newTransmissions : undefined);
+                      }}
+                    >
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className="transition-transform group-hover:scale-105">
+                          <div className="text-gray-600">
+                            {getTransmissionIcon(transmission.slug, "w-6 h-6")}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                          <span className="text-gray-900 font-medium">{displayName}</span>
+                          <span className="text-sm text-gray-500">({count.toLocaleString()})</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
+                          isSelected 
+                            ? 'border-blue-500 bg-blue-500 scale-110' 
+                            : 'border-gray-300 group-hover:border-blue-400'
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Selection indicator */}
+                      {isSelected && (
+                        <div className="absolute inset-0 border-2 border-blue-500 rounded-lg pointer-events-none animate-pulse"></div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CollapsibleSection>
+
+            {/* Fuel Type */}
+            <CollapsibleSection
+              title={t('fuelType', 'Fuel Type')}
+              sectionName="fuelType"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              }
+            >
+              <div className="grid gap-3 max-h-60 overflow-y-auto">
+                {referenceData?.fuelTypes?.map(fuelType => {
+                  const isSelected = filters.fuelTypeSlugs?.includes(fuelType.slug) || false;
+                  const displayName = currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn;
+                  const count = fuelTypeCounts[fuelType.name.toLowerCase()] || 0;
+                  
+                  return (
+                    <div
+                      key={fuelType.id}
+                      className={`group relative flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                        isSelected 
+                          ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
+                      }`}
+                      onClick={() => {
+                        const currentFuelTypes = filters.fuelTypeSlugs || [];
+                        const newFuelTypes = isSelected
+                          ? currentFuelTypes.filter(type => type !== fuelType.slug)
+                          : [...currentFuelTypes, fuelType.slug];
+                        
+                        handleInputChange('fuelTypeSlugs', newFuelTypes.length > 0 ? newFuelTypes : undefined);
+                      }}
+                    >
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className="transition-transform group-hover:scale-105">
+                          {getFuelTypeIcon(fuelType.name.toLowerCase(), "w-6 h-6")}
+                        </div>
+                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                          <span className="text-gray-900 font-medium">{displayName}</span>
+                          <span className="text-gray-500 text-sm">({count.toLocaleString()})</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
+                          isSelected 
+                            ? 'border-blue-500 bg-blue-500 scale-110' 
+                            : 'border-gray-300 group-hover:border-blue-400'
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Selection indicator */}
+                      {isSelected && (
+                        <div className="absolute inset-0 border-2 border-blue-500 rounded-lg pointer-events-none animate-pulse"></div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CollapsibleSection>
+
+            {/* Seller Type */}
+            <CollapsibleSection
+              title={t('sellerType', 'Seller Type')}
+              sectionName="sellerType"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              }
+            >
+              <div className="grid gap-3 max-h-60 overflow-y-auto">
+                {referenceData?.sellerTypes?.map(sellerType => {
+                  const typedSellerType = sellerType as { id: number; displayNameEn: string; displayNameAr: string };
+                  const count = sellerTypeCounts[typedSellerType.id.toString()] || 0;
+                  const isSelected = filters.sellerTypeIds?.includes(typedSellerType.id) || false;
+                  const displayName = currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn;
+                  
+                  return (
+                    <div
+                      key={typedSellerType.id}
+                      className={`group relative flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                        isSelected 
+                          ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
+                      }`}
+                      onClick={() => {
+                        const currentSellerTypes = filters.sellerTypeIds || [];
+                        const newSellerTypes = isSelected
+                          ? currentSellerTypes.filter(id => id !== typedSellerType.id)
+                          : [...currentSellerTypes, typedSellerType.id];
+                        
+                        handleInputChange('sellerTypeIds', newSellerTypes.length > 0 ? newSellerTypes : undefined);
+                      }}
+                    >
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                          <span className="text-gray-900 font-medium">{displayName}</span>
+                          <span className="text-gray-500 text-sm">({count.toLocaleString()})</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
+                          isSelected 
+                            ? 'border-blue-500 bg-blue-500 scale-110' 
+                            : 'border-gray-300 group-hover:border-blue-400'
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Selection indicator */}
+                      {isSelected && (
+                        <div className="absolute inset-0 border-2 border-blue-500 rounded-lg pointer-events-none animate-pulse"></div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CollapsibleSection>
           </div>
         );
 
@@ -1154,7 +1365,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                           maxYear: undefined,
                           minMileage: undefined,
                           maxMileage: undefined,
-                          transmissionId: undefined,
+                          transmissionSlugs: undefined,
                           fuelTypeSlugs: undefined,
                           bodyType: undefined,
                           sellerTypeIds: undefined,

@@ -80,7 +80,7 @@ const mockProps = {
   isLoadingAllModels: false,
   referenceData: {
     transmissions: [
-      { id: 1, displayNameEn: 'Manual', displayNameAr: 'يدوي', name: 'manual' }
+      { id: 1, displayNameEn: 'Manual', displayNameAr: 'يدوي', name: 'manual', slug: 'manual' }
     ],
     fuelTypes: [
       { id: 1, displayNameEn: 'Gasoline', displayNameAr: 'بنزين', name: 'gasoline', slug: 'gasoline' }
@@ -105,6 +105,13 @@ const mockProps = {
     electric: 20,
     cng: 10,
     lpg: 5
+  },
+  transmissionCounts: {
+    manual: 0,
+    automatic: 5,
+    cvt: 0,
+    'dual-clutch': 0,
+    'semi-automatic': 0
   },
   isLoadingReferenceData: false,
   sellerTypeCounts: { dealer: 5 },

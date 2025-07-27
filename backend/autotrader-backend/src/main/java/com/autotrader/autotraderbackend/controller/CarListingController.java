@@ -320,6 +320,7 @@ public class CarListingController {
             @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
             @Parameter(description = "Filter by seller type IDs") @RequestParam(required = false) List<Long> sellerTypeIds,
             @Parameter(description = "Filter by transmission IDs") @RequestParam(required = false) List<Long> transmissionIds,
+            @Parameter(description = "Filter by transmission slugs (can be repeated for multiple transmission types)", example = "automatic") @RequestParam(required = false) List<String> transmissionSlugs,
             @Parameter(description = "Filter by fuel type slugs (can be repeated for multiple fuel types)", example = "gasoline") @RequestParam(required = false) List<String> fuelTypeSlugs,
             @Parameter(description = "Filter by body type") @RequestParam(required = false) List<String> bodyType,
             @Parameter(description = "Search query for text-based search (supports English and Arabic)") @RequestParam(required = false) String searchQuery,
@@ -379,6 +380,12 @@ public class CarListingController {
         if (fuelTypeSlugs != null && !fuelTypeSlugs.isEmpty()) {
             validateFuelTypeSlugs(fuelTypeSlugs);
         }
+        
+        // Set transmission slugs in filter request
+        filterRequest.setTransmissionSlugs(transmissionSlugs);
+        
+        log.info("DEBUG: transmissionSlugs parameter: {}", transmissionSlugs);
+        log.info("DEBUG: filterRequest.getTransmissionSlugs(): {}", filterRequest.getTransmissionSlugs());
         
         Page<CarListingResponse> listingPage = carListingService.getFilteredListings(filterRequest, pageable);
         PageResponse<CarListingResponse> response = new PageResponse<>(
@@ -537,6 +544,7 @@ public class CarListingController {
             @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
             @Parameter(description = "Filter by seller type IDs") @RequestParam(required = false) List<Long> sellerTypeIds,
             @Parameter(description = "Filter by transmission IDs") @RequestParam(required = false) List<Long> transmissionIds,
+            @Parameter(description = "Filter by transmission slugs (can be repeated for multiple transmission types)", example = "automatic") @RequestParam(required = false) List<String> transmissionSlugs,
             @Parameter(description = "Filter by fuel type slugs (can be repeated for multiple fuel types)", example = "gasoline") @RequestParam(required = false) List<String> fuelTypeSlugs,
             @Parameter(description = "Filter by body type") @RequestParam(required = false) List<String> bodyType,
             @Parameter(description = "Search query for text-based search (supports English and Arabic)") @RequestParam(required = false) String searchQuery) {
@@ -590,6 +598,9 @@ public class CarListingController {
         
         // Validate input
         validateFilterRequest(filterRequest);
+        
+        // Set transmission slugs in filter request
+        filterRequest.setTransmissionSlugs(transmissionSlugs);
         
         long count = carListingService.getFilteredListingsCount(filterRequest);
         
@@ -815,6 +826,46 @@ public class CarListingController {
         Map<String, Long> fuelTypeCounts = carListingService.getCountsByFuelType(filterRequest);
         log.info("Returning fuel type counts for {} fuel types", fuelTypeCounts.size());
         return ResponseEntity.ok(fuelTypeCounts);
+    }
+
+    @GetMapping("/counts/transmissions")
+    @Operation(
+        summary = "Get count of listings by transmission",
+        description = "Returns count of listings for each transmission type (Automatic, Manual, etc.). Optionally accepts filter parameters to constrain the results.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Count of listings by transmission", 
+                         content = @Content(mediaType = "application/json",
+                                            schema = @Schema(type = "object", example = "{\\\"automatic\\\": 1200, \\\"manual\\\": 800}")))
+        }
+    )
+    public ResponseEntity<Map<String, Long>> getCountsByTransmission(
+            @Parameter(description = "Brand slugs to filter by") @RequestParam(required = false) List<String> brandSlugs,
+            @Parameter(description = "Model slugs to filter by") @RequestParam(required = false) List<String> modelSlugs,
+            @Parameter(description = "Minimum year") @RequestParam(required = false) Integer minYear,
+            @Parameter(description = "Maximum year") @RequestParam(required = false) Integer maxYear,
+            @Parameter(description = "Location slugs to filter by") @RequestParam(required = false) List<String> location,
+            @Parameter(description = "Minimum price") @RequestParam(required = false) BigDecimal minPrice,
+            @Parameter(description = "Maximum price") @RequestParam(required = false) BigDecimal maxPrice,
+            @Parameter(description = "Minimum mileage") @RequestParam(required = false) Integer minMileage,
+            @Parameter(description = "Maximum mileage") @RequestParam(required = false) Integer maxMileage) {
+        
+        log.info("Getting counts by transmission with filters: brands={}, models={}, years={}-{}", 
+                brandSlugs, modelSlugs, minYear, maxYear);
+        
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setBrandSlugs(brandSlugs);
+        filterRequest.setModelSlugs(modelSlugs);
+        filterRequest.setMinYear(minYear);
+        filterRequest.setMaxYear(maxYear);
+        filterRequest.setLocations(location);
+        filterRequest.setMinPrice(minPrice);
+        filterRequest.setMaxPrice(maxPrice);
+        filterRequest.setMinMileage(minMileage);
+        filterRequest.setMaxMileage(maxMileage);
+        
+        Map<String, Long> transmissionCounts = carListingService.getCountsByTransmission(filterRequest);
+        log.info("Returning transmission counts for {} transmission types", transmissionCounts.size());
+        return ResponseEntity.ok(transmissionCounts);
     }
 
     @GetMapping("/{id:[0-9]+}")

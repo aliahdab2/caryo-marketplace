@@ -703,6 +703,51 @@ public class CarListingService {
         return fuelTypeCounts;
     }
 
+    /**
+     * Get transmission counts for listings.
+     * Returns a map of transmission names to their counts.
+     */
+    public Map<String, Long> getCountsByTransmission(ListingFilterRequest filterRequest) {
+        log.debug("Getting counts by transmission with filters: {}", filterRequest);
+        
+        try {
+            // For now, use specification approach for all transmission count requests
+            // as we don't have a direct repository method for transmission counts
+            return getTransmissionCountsWithSpecification(filterRequest);
+        } catch (Exception e) {
+            log.error("Error getting transmission counts", e);
+            return new LinkedHashMap<>();
+        }
+    }
+
+    /**
+     * Get transmission counts using specification filtering.
+     * Optimized to only fetch necessary fields and avoid loading full entities.
+     */
+    private Map<String, Long> getTransmissionCountsWithSpecification(ListingFilterRequest filterRequest) {
+        // Remove transmission filter to get all transmission types with their counts
+        ListingFilterRequest modifiedFilter = createFilterWithoutTransmission(filterRequest);
+        
+        // Build the specification for filtering
+        Specification<CarListing> baseSpec = buildBaseSpecification(modifiedFilter, false);
+        
+        // Fetch only IDs first to get the filtered listings efficiently
+        List<CarListing> filteredListings = carListingRepository.findAll(baseSpec);
+        
+        // Group by transmission name and count
+        Map<String, Long> transmissionCounts = filteredListings.stream()
+            .filter(listing -> listing.getTransmissionType() != null && 
+                             StringUtils.isNotBlank(listing.getTransmissionType().getName()))
+            .collect(Collectors.groupingBy(
+                listing -> listing.getTransmissionType().getName(),
+                LinkedHashMap::new,
+                Collectors.counting()
+            ));
+        
+        log.info("Found counts for {} transmission types (filtered)", transmissionCounts.size());
+        return transmissionCounts;
+    }
+
     private boolean hasNonSellerTypeFilters(ListingFilterRequest filterRequest) {
         if (filterRequest == null) return false;
         
@@ -729,6 +774,23 @@ public class CarListingService {
                filterRequest.getLocations() != null && !filterRequest.getLocations().isEmpty() ||
                filterRequest.getLocationId() != null ||
                filterRequest.getSellerTypeIds() != null && !filterRequest.getSellerTypeIds().isEmpty() ||
+               filterRequest.getIsSold() != null ||
+               filterRequest.getIsArchived() != null ||
+               filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty();
+    }
+
+    private boolean hasNonTransmissionFilters(ListingFilterRequest filterRequest) {
+        if (filterRequest == null) return false;
+        
+        return filterRequest.getBrandSlugs() != null && !filterRequest.getBrandSlugs().isEmpty() ||
+               filterRequest.getModelSlugs() != null && !filterRequest.getModelSlugs().isEmpty() ||
+               filterRequest.getMinYear() != null || filterRequest.getMaxYear() != null ||
+               filterRequest.getMinPrice() != null || filterRequest.getMaxPrice() != null ||
+               filterRequest.getMinMileage() != null || filterRequest.getMaxMileage() != null ||
+               filterRequest.getLocations() != null && !filterRequest.getLocations().isEmpty() ||
+               filterRequest.getLocationId() != null ||
+               filterRequest.getSellerTypeIds() != null && !filterRequest.getSellerTypeIds().isEmpty() ||
+               filterRequest.getFuelTypeSlugs() != null && !filterRequest.getFuelTypeSlugs().isEmpty() ||
                filterRequest.getIsSold() != null ||
                filterRequest.getIsArchived() != null ||
                filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty();
@@ -848,6 +910,31 @@ public class CarListingService {
         modified.setIsSold(original.getIsSold());
         modified.setIsArchived(original.getIsArchived());
         // Note: fuelTypeId is intentionally excluded
+        
+        return modified;
+    }
+
+    private ListingFilterRequest createFilterWithoutTransmission(ListingFilterRequest original) {
+        if (original == null) return new ListingFilterRequest();
+        
+        ListingFilterRequest modified = new ListingFilterRequest();
+        // Copy all filters except transmission
+        modified.setBrandSlugs(original.getBrandSlugs());
+        modified.setModelSlugs(original.getModelSlugs());
+        modified.setMinYear(original.getMinYear());
+        modified.setMaxYear(original.getMaxYear());
+        modified.setLocations(original.getLocations());
+        modified.setLocationId(original.getLocationId());
+        modified.setMinPrice(original.getMinPrice());
+        modified.setMaxPrice(original.getMaxPrice());
+        modified.setMinMileage(original.getMinMileage());
+        modified.setMaxMileage(original.getMaxMileage());
+        modified.setSellerTypeIds(original.getSellerTypeIds());
+        modified.setFuelTypeSlugs(original.getFuelTypeSlugs());
+        modified.setSearchQuery(original.getSearchQuery());
+        modified.setIsSold(original.getIsSold());
+        modified.setIsArchived(original.getIsArchived());
+        // Note: transmissionIds is intentionally excluded
         
         return modified;
     }

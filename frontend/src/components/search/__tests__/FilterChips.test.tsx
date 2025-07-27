@@ -16,7 +16,7 @@ const mockFilters: AdvancedSearchFilters = {
   maxPrice: 50000,
   minYear: 2020,
   maxYear: 2024,
-  transmissionId: 1,
+  transmissionSlugs: ['automatic'],
   fuelTypeSlugs: ['gasoline', 'diesel'],
   bodyType: ['sedan'],
   sellerTypeIds: [1, 2]
@@ -30,7 +30,7 @@ const mockProps = {
   getBrandDisplayNameFromSlug: jest.fn((slug: string) => slug === 'toyota' ? 'Toyota' : 'Unknown'),
   getModelDisplayNameFromSlug: jest.fn((slug: string) => slug === 'camry' ? 'Camry' : 'Unknown'),
   getFilterDisplayText: jest.fn((filterType: FilterType) => `${filterType} filter`),
-  getTransmissionDisplayName: jest.fn(() => 'Automatic'),
+  _getTransmissionDisplayName: jest.fn(() => 'Automatic'),
   getFuelTypeDisplayNameFromSlug: jest.fn((slug: string) => slug === 'gasoline' ? 'Gasoline' : 'Diesel'),
   getBodyStyleDisplayName: jest.fn(() => 'Sedan'),
   getSellerTypeDisplayName: jest.fn(() => 'Dealer'),
@@ -45,6 +45,7 @@ const mockProps = {
       { id: 2, name: 'diesel', displayNameEn: 'Diesel', displayNameAr: 'ديزل' }
     ]
   },
+  currentLanguage: 'en',
   t: jest.fn((key: string, fallback?: string) => fallback || key)
 };
 
@@ -151,8 +152,15 @@ describe('FilterChips', () => {
   it('renders transmission chip when transmission filter is set', () => {
     const propsWithTransmission = {
       ...mockProps,
-      filters: { transmissionId: 1 },
-      isFilterActive: jest.fn((filterType: FilterType) => filterType === 'transmission')
+      filters: { transmissionSlugs: ['automatic'] },
+      isFilterActive: jest.fn((filterType: FilterType) => filterType === 'transmission'),
+      referenceData: {
+        ...mockProps.referenceData,
+        transmissions: [
+          { id: 1, name: 'automatic', displayNameEn: 'Automatic', displayNameAr: 'أوتوماتيك', slug: 'automatic' }
+        ]
+      },
+      currentLanguage: 'en'
     };
     
     render(<FilterChips {...propsWithTransmission} />);

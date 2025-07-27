@@ -24,6 +24,7 @@ import { getSellerTypeCounts } from '@/services/sellerTypes';
 import { SellerTypeCounts } from '@/types/sellerTypes';
 import { useBodyStyleCounts } from '@/hooks/useBodyStyleCounts';
 import { useFuelTypeCounts } from '@/hooks/useFuelTypeCounts';
+import { useTransmissionCounts } from '@/hooks/useTransmissionCounts';
 import { useApiData } from '@/hooks/useApiData';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
@@ -112,7 +113,7 @@ export default function AdvancedSearchPage() {
       sort: 'createdAt,desc', // Default sort
       
       // Add missing filter fields that are defined in CarListingFilterParams
-      transmissionId: filters.transmissionId,
+      transmissionSlugs: filters.transmissionSlugs,
       fuelTypeSlugs: filters.fuelTypeSlugs,
               bodyType: filters.bodyType,
       conditionId: filters.conditionId
@@ -155,6 +156,9 @@ export default function AdvancedSearchPage() {
 
   // Fuel type counts hook
   const { fuelTypeCounts } = useFuelTypeCounts(listingFilters);
+
+  // Transmission counts hook
+  const { transmissionCounts } = useTransmissionCounts({ filters: listingFilters });
 
   // API data hooks - with stable dependencies to prevent loops
   const {
@@ -286,7 +290,7 @@ export default function AdvancedSearchPage() {
       (filters.minPrice || filters.maxPrice ? 1 : 0) +
       (filters.minYear || filters.maxYear ? 1 : 0) +
       (filters.minMileage || filters.maxMileage ? 1 : 0) +
-      (filters.transmissionId ? 1 : 0) +
+      (filters.transmissionSlugs?.length || 0) +
       (filters.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0 ? 1 : 0) +
               (filters.bodyType?.length || 0) +
       (filters.sellerTypeIds?.length || 0)
@@ -300,7 +304,7 @@ export default function AdvancedSearchPage() {
     filters.maxYear,
     filters.minMileage,
     filters.maxMileage,
-    filters.transmissionId,
+    filters.transmissionSlugs,
     filters.fuelTypeSlugs,
             filters.bodyType,
     filters.sellerTypeIds
@@ -431,7 +435,9 @@ export default function AdvancedSearchPage() {
     if (newFilters.minMileage) params.append('minMileage', newFilters.minMileage.toString());
     if (newFilters.maxMileage) params.append('maxMileage', newFilters.maxMileage.toString());
 
-    if (newFilters.transmissionId) params.append('transmissionId', newFilters.transmissionId.toString());
+    if (newFilters.transmissionSlugs && newFilters.transmissionSlugs.length > 0) {
+      params.append('transmissionSlugs', newFilters.transmissionSlugs.join(','));
+    }
     if (newFilters.fuelTypeSlugs && newFilters.fuelTypeSlugs.length > 0) {
       newFilters.fuelTypeSlugs.forEach(slug => params.append('fuelType', slug));
     }
@@ -633,7 +639,7 @@ export default function AdvancedSearchPage() {
         updateFiltersAndState({ minMileage: undefined, maxMileage: undefined });
         break;
       case 'transmission':
-        updateFiltersAndState({ transmissionId: undefined });
+        updateFiltersAndState({ transmissionSlugs: undefined });
         break;
       case 'fuelType':
         updateFiltersAndState({ fuelTypeSlugs: undefined });
@@ -679,7 +685,12 @@ export default function AdvancedSearchPage() {
         if (filters.maxMileage) return `${t('upTo', 'Up to')} ${filters.maxMileage}`;
         return t('mileage', 'Mileage');
       case 'transmission':
-        return filters.transmissionId ? getTransmissionDisplayName(filters.transmissionId) : t('transmission', 'Transmission');
+        return filters.transmissionSlugs && filters.transmissionSlugs.length > 0 
+      ? filters.transmissionSlugs.map(slug => {
+          const transmission = referenceData?.transmissions?.find(t => t.slug === slug);
+          return transmission ? (currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn) : slug;
+        }).join(', ') 
+      : t('transmission', 'Transmission');
 
       case 'fuelType':
         return filters.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0 
@@ -717,7 +728,7 @@ export default function AdvancedSearchPage() {
       case 'mileage':
         return !!(filters.minMileage || filters.maxMileage);
       case 'transmission':
-        return !!filters.transmissionId;
+        return !!(filters.transmissionSlugs && filters.transmissionSlugs.length > 0);
 
       case 'fuelType':
         return !!(filters.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0);
@@ -787,13 +798,14 @@ export default function AdvancedSearchPage() {
           getBrandDisplayNameFromSlug={getBrandDisplayNameFromSlug}
           getModelDisplayNameFromSlug={getModelDisplayNameFromSlug}
           getFilterDisplayText={getFilterDisplayText}
-          getTransmissionDisplayName={getTransmissionDisplayName}
+          _getTransmissionDisplayName={getTransmissionDisplayName}
           getFuelTypeDisplayNameFromSlug={getFuelTypeDisplayNameFromSlug}
           getBodyStyleDisplayName={getBodyStyleDisplayName}
           getSellerTypeDisplayName={getSellerTypeDisplayName}
           selectedMake={selectedMake}
           selectedModel={selectedModel}
           referenceData={referenceData}
+          currentLanguage={currentLanguage}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           t={t as any}
         />
@@ -874,6 +886,7 @@ export default function AdvancedSearchPage() {
             sellerTypeCounts={sellerTypeCounts}
             bodyStyleCounts={bodyStyleCounts}
             fuelTypeCounts={fuelTypeCounts}
+            transmissionCounts={transmissionCounts}
             carListings={carListings}
             currentLanguage={currentLanguage}
             isRTL={isRTL}

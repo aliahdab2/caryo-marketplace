@@ -16,6 +16,7 @@ export interface Transmission {
   name: string;
   displayNameEn: string;
   displayNameAr: string;
+  slug: string;
 }
 
 export interface FuelType {
@@ -158,7 +159,7 @@ export interface CarListingFilterParams {
   
   // Entity filters  
   conditionId?: number;
-  transmissionId?: number;
+  transmissionSlugs?: string[]; // Multiple transmission slugs
   fuelTypeSlugs?: string[]; // Multiple fuel type slugs
   bodyStyleIds?: number[]; // Changed from bodyStyleId to support multiple selections
   bodyType?: string[]; // Body type filtering
@@ -445,7 +446,9 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
     
     // Entity ID filters
     if (filters.conditionId && filters.conditionId > 0) queryParams.append('conditionId', filters.conditionId.toString());
-    if (filters.transmissionId && filters.transmissionId > 0) queryParams.append('transmissionIds', filters.transmissionId.toString());
+    if (filters.transmissionSlugs && filters.transmissionSlugs.length > 0) {
+      queryParams.append('transmissionSlugs', filters.transmissionSlugs.join(','));
+    }
     if (filters.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0) {
       queryParams.append('fuelTypeSlugs', filters.fuelTypeSlugs.join(','));
     }
@@ -662,3 +665,32 @@ export function clearApiCache(endpoint?: string): void {
     apiCache.clear();
   }
 }
+
+export const getTransmissionCounts = async (filters: Record<string, unknown> = {}): Promise<Record<string, number>> => {
+  try {
+    const queryParams = new URLSearchParams();
+    
+    // Add filter parameters
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        if (Array.isArray(value)) {
+          value.forEach(v => queryParams.append(key, String(v)));
+        } else {
+          queryParams.append(key, String(value));
+        }
+      }
+    });
+    
+    const response = await fetch(`${API_BASE_URL}/listings/counts/transmissions?${queryParams}`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch transmission counts: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching transmission counts:', error);
+    return {};
+  }
+};
