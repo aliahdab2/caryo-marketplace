@@ -1,7 +1,9 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.model.*;
-import com.autotrader.autotraderbackend.payload.response.CarReferenceDataResponse; // Added import
+import com.autotrader.autotraderbackend.payload.response.CarReferenceDataResponse;
+import com.autotrader.autotraderbackend.payload.response.CarBrandResponse;
+import com.autotrader.autotraderbackend.payload.response.CarModelResponse;
 import com.autotrader.autotraderbackend.payload.response.SellerTypeResponse;
 import com.autotrader.autotraderbackend.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List; // Removed java.util.Map and java.util.HashMap imports as they are no longer needed.
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/reference-data")
@@ -40,7 +43,7 @@ public class CarReferenceDataController {
             @ApiResponse(responseCode = "200", description = "Reference data retrieved successfully")
         }
     )
-    public ResponseEntity<CarReferenceDataResponse> getAllReferenceData() { // Changed return type
+    public ResponseEntity<CarReferenceDataResponse> getAllReferenceData() {
         log.debug("Request received to get all car reference data");
         
         List<CarCondition> carConditions = carConditionService.getAllConditions();
@@ -71,11 +74,17 @@ public class CarReferenceDataController {
             @ApiResponse(responseCode = "200", description = "List of active car brands retrieved successfully")
         }
     )
-    public ResponseEntity<List<CarBrand>> getAllActiveBrands() {
+    public ResponseEntity<List<CarBrandResponse>> getAllActiveBrands() {
         log.debug("Request received to get all active car brands");
         List<CarBrand> brands = carBrandService.getActiveBrands();
-        log.debug("Returning {} active car brands", brands.size());
-        return ResponseEntity.ok(brands);
+        
+        // Convert entities to DTOs to prevent lazy initialization issues
+        List<CarBrandResponse> brandResponses = brands.stream()
+            .map(CarBrandResponse::fromEntity)
+            .collect(Collectors.toList());
+            
+        log.debug("Returning {} active car brands", brandResponses.size());
+        return ResponseEntity.ok(brandResponses);
     }
     
     @GetMapping("/brands/{brandId}/models")
@@ -87,12 +96,18 @@ public class CarReferenceDataController {
             @ApiResponse(responseCode = "404", description = "Brand not found")
         }
     )
-    public ResponseEntity<List<CarModel>> getActiveModelsByBrand(
+    public ResponseEntity<List<CarModelResponse>> getActiveModelsByBrand(
             @Parameter(description = "ID of the car brand", required = true) 
             @PathVariable Long brandId) {
         log.debug("Request received to get active car models for brand ID: {}", brandId);
         List<CarModel> models = carModelService.getActiveModelsByBrandId(brandId);
-        log.debug("Returning {} active car models for brand ID: {}", models.size(), brandId);
-        return ResponseEntity.ok(models);
+        
+        // Convert entities to DTOs to prevent lazy initialization issues
+        List<CarModelResponse> modelResponses = models.stream()
+            .map(CarModelResponse::fromEntity)
+            .collect(Collectors.toList());
+            
+        log.debug("Returning {} active car models for brand ID: {}", modelResponses.size(), brandId);
+        return ResponseEntity.ok(modelResponses);
     }
 }

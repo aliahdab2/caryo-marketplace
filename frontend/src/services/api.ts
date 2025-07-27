@@ -246,26 +246,43 @@ async function apiRequest<T>(
     if (!response.ok) {
       // Create an ApiError with status code and response data
       let detailedErrorMessage = `Error ${response.status}: Request failed`;
+      
+      // Try to extract meaningful error message from response
       if (typeof responseData === 'string' && responseData.trim() !== '') {
         detailedErrorMessage = responseData;
-      } else if (responseData && typeof responseData === 'object' && (responseData as { message?: string })?.message) {
-        detailedErrorMessage = (responseData as { message: string }).message;
-      } else if (responseData && typeof responseData === 'object' && Object.keys(responseData).length > 0) {
-        // If it's an object but not with a 'message' field, stringify it.
-        try {
-          detailedErrorMessage = JSON.stringify(responseData);
-        } catch (stringifyError) { // Changed variable name to avoid conflict and indicate usage
-          console.warn('Failed to stringify error object:', stringifyError);
-          detailedErrorMessage = 'Non-JSON error object received.';
+      } else if (responseData && typeof responseData === 'object') {
+        // Check for common error message fields
+        const errorObj = responseData as Record<string, unknown>;
+        if (errorObj.message && typeof errorObj.message === 'string') {
+          detailedErrorMessage = errorObj.message;
+        } else if (errorObj.error && typeof errorObj.error === 'string') {
+          detailedErrorMessage = errorObj.error;
+        } else if (errorObj.details && typeof errorObj.details === 'string') {
+          detailedErrorMessage = errorObj.details;
+        } else if (Object.keys(errorObj).length > 0) {
+          // If it's an object but not with a 'message' field, stringify it.
+          try {
+            detailedErrorMessage = JSON.stringify(responseData);
+          } catch (stringifyError) {
+            console.warn('Failed to stringify error object:', stringifyError);
+            detailedErrorMessage = 'Non-JSON error object received.';
+          }
+        } else if (response.statusText) {
+          detailedErrorMessage = `Error ${response.status}: ${response.statusText}`;
         }
-      } else if (responseData && typeof responseData === 'object' && Object.keys(responseData).length === 0 && response.statusText) {
-        // If it's an empty object, use statusText if available
-        detailedErrorMessage = `Error ${response.status}: ${response.statusText || 'Empty error response'}`;
       } else if (response.statusText) {
          detailedErrorMessage = `Error ${response.status}: ${response.statusText}`;
       }
         
-      console.error('API error details:', { status: response.status, message: detailedErrorMessage, rawResponse: responseData });
+      // Log detailed error information for debugging
+      console.error('API error details:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        url: url,
+        message: detailedErrorMessage, 
+        rawResponse: responseData 
+      });
+      
       throw new ApiError(detailedErrorMessage, response.status, responseData);
     }
 

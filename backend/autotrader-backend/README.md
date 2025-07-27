@@ -41,7 +41,7 @@ autotrader-backend/
 
 The application will start on port 8080 by default.
 
-> **Quick Start**: For a step-by-step guide on how to test the API endpoints and run the Postman tests, see the [Quick Start Guide](API_DOCUMENTATION.md#quick-start-guide) in the API documentation.
+> **Quick Start**: For a step-by-step guide on how to test the API endpoints and run the Postman tests, see the [Quick Start Guide](API.md#quick-start-guide) in the API documentation.
 
 ### Environment Configuration
 
@@ -54,7 +54,7 @@ Configure the database connection in `application.properties` for production or 
 
 ## API Documentation
 
-The API endpoints are documented in detail in the [API_DOCUMENTATION.md](API_DOCUMENTATION.md) file, including:
+The API endpoints are documented in detail in the [API.md](API.md) file, including:
 - Request/response formats
 - Authentication requirements
 - Example usage with cURL

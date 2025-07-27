@@ -5,7 +5,7 @@ This directory contains comprehensive documentation for the Caryo Marketplace pr
 ## Table of Contents
 
 ### API Documentation
-- [Complete API Documentation](../backend/autotrader-backend/scripts/docs/api_documentation_generated.md) - Comprehensive API reference including filtering, testing, and examples
+- [Complete API Documentation](../backend/autotrader-backend/API.md) - Comprehensive API reference including filtering, testing, and examples
 
 ### Setup & Configuration
 - [Database Migration Guide](database_migration_guide.md)

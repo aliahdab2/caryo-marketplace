@@ -34,6 +34,7 @@ export interface CarModel {
   displayNameEn: string;
   displayNameAr: string;
   isActive: boolean;
+  brandId: number; // Added to match DTO structure
 }
 
 /**
@@ -101,19 +102,19 @@ export async function getVehicleModels(brandId: number): Promise<CarModel[]> {
     // Return default models based on popular car makes as fallback
     const defaultModels: Record<number, CarModel[]> = {
       1: [ // Toyota
-        { id: 1, name: 'Camry', slug: 'camry', displayNameEn: 'Camry', displayNameAr: 'كامري', isActive: true },
-        { id: 2, name: 'Corolla', slug: 'corolla', displayNameEn: 'Corolla', displayNameAr: 'كورولا', isActive: true },
-        { id: 3, name: 'RAV4', slug: 'rav4', displayNameEn: 'RAV4', displayNameAr: 'رافـ4', isActive: true },
+        { id: 1, name: 'Camry', slug: 'camry', displayNameEn: 'Camry', displayNameAr: 'كامري', isActive: true, brandId: 1 },
+        { id: 2, name: 'Corolla', slug: 'corolla', displayNameEn: 'Corolla', displayNameAr: 'كورولا', isActive: true, brandId: 1 },
+        { id: 3, name: 'RAV4', slug: 'rav4', displayNameEn: 'RAV4', displayNameAr: 'رافـ4', isActive: true, brandId: 1 },
       ],
       2: [ // Honda
-        { id: 4, name: 'Civic', slug: 'civic', displayNameEn: 'Civic', displayNameAr: 'سيفيك', isActive: true },
-        { id: 5, name: 'Accord', slug: 'accord', displayNameEn: 'Accord', displayNameAr: 'أكورد', isActive: true },
-        { id: 6, name: 'CR-V', slug: 'cr-v', displayNameEn: 'CR-V', displayNameAr: 'سي آر-في', isActive: true },
+        { id: 4, name: 'Civic', slug: 'civic', displayNameEn: 'Civic', displayNameAr: 'سيفيك', isActive: true, brandId: 2 },
+        { id: 5, name: 'Accord', slug: 'accord', displayNameEn: 'Accord', displayNameAr: 'أكورد', isActive: true, brandId: 2 },
+        { id: 6, name: 'CR-V', slug: 'cr-v', displayNameEn: 'CR-V', displayNameAr: 'سي آر-في', isActive: true, brandId: 2 },
       ],
       3: [ // Ford
-        { id: 7, name: 'F-150', slug: 'f-150', displayNameEn: 'F-150', displayNameAr: 'إف-150', isActive: true },
-        { id: 8, name: 'Escape', slug: 'escape', displayNameEn: 'Escape', displayNameAr: 'إسكيب', isActive: true },
-        { id: 9, name: 'Mustang', slug: 'mustang', displayNameEn: 'Mustang', displayNameAr: 'موستانغ', isActive: true },
+        { id: 7, name: 'F-150', slug: 'f-150', displayNameEn: 'F-150', displayNameAr: 'إف-150', isActive: true, brandId: 3 },
+        { id: 8, name: 'Escape', slug: 'escape', displayNameEn: 'Escape', displayNameAr: 'إسكيب', isActive: true, brandId: 3 },
+        { id: 9, name: 'Mustang', slug: 'mustang', displayNameEn: 'Mustang', displayNameAr: 'موستانغ', isActive: true, brandId: 3 },
       ]
     };
     

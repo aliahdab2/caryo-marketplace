@@ -246,8 +246,8 @@ const FilterModal: React.FC<FilterModalProps> = ({
         
         // Filter brands and models based on search query
         const filteredBrands = (carMakes || []).map(brand => {
-          // Filter models for this brand
-          const brandModels = modelsToUse.filter(model => model.brand?.id === brand.id);
+          // Filter models for this brand using brandId instead of brand object
+          const brandModels = modelsToUse.filter(model => model.brandId === brand.id);
           let showBrand = false;
           let filteredModels = brandModels;
           if (searchQuery) {
@@ -313,7 +313,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 type: 'model', 
                 id: model.id, 
                 label: modelName,
-                brandId: model.brand?.id,
+                brandId: model.brandId,
                 slug: modelSlug
               });
             }
@@ -332,7 +332,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
             
             if (brandToRemove) {
               // Get all models that belong to this brand
-              const brandModels = modelsToUse.filter(model => model.brand?.id === brandToRemove.id);
+              const brandModels = modelsToUse.filter(model => model.brandId === brandToRemove.id);
               const brandModelSlugs = brandModels.map(model => model.slug);
               
               // Remove all models that belong to this brand
@@ -363,7 +363,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
             
             // Find all models that belong to this brand and remove them
             let updatedModels = filters.models || [];
-            const brandModels = modelsToUse.filter(model => model.brand?.id === brand.id);
+            const brandModels = modelsToUse.filter(model => model.brandId === brand.id);
             const brandModelSlugs = brandModels.map(model => model.slug);
             
             // Remove all models that belong to this brand
@@ -398,8 +398,9 @@ const FilterModal: React.FC<FilterModalProps> = ({
             let newBrands = updatedBrands;
             
             // Add brand if it's not already selected
-            if (model.brand && !updatedBrands.includes(model.brand.slug)) {
-              newBrands = [...updatedBrands, model.brand.slug];
+            const brand = carMakes?.find(b => b.id === model.brandId);
+            if (brand && !updatedBrands.includes(brand.slug)) {
+              newBrands = [...updatedBrands, brand.slug];
             }
             
             updateFiltersAndState({ 

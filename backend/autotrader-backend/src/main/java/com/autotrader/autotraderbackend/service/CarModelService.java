@@ -28,6 +28,7 @@ public class CarModelService {
      * Get all car models
      * @return List of all car models
      */
+    @Transactional(readOnly = true)
     @Cacheable(value = "carModels", key = "'all'")
     public List<CarModel> getAllModels() {
         log.debug("Fetching all car models from database");
@@ -39,6 +40,7 @@ public class CarModelService {
      * @param brandId ID of the brand
      * @return List of car models belonging to the brand
      */
+    @Transactional(readOnly = true)
     @Cacheable(value = "modelsByBrand", key = "#brandId")
     public List<CarModel> getModelsByBrandId(Long brandId) {
         log.debug("Fetching car models for brand ID: {}", brandId);
@@ -51,6 +53,7 @@ public class CarModelService {
      * @param brandId ID of the brand
      * @return List of active car models belonging to the brand
      */
+    @Transactional(readOnly = true)
     @Cacheable(value = "modelsByBrand", key = "'active-' + #brandId")
     public List<CarModel> getActiveModelsByBrandId(Long brandId) {
         log.debug("Fetching active car models for brand ID: {}", brandId);
@@ -63,6 +66,7 @@ public class CarModelService {
      * @param brandSlug Slug of the brand
      * @return List of car models belonging to the brand
      */
+    @Transactional(readOnly = true)
     public List<CarModel> getModelsByBrandSlug(String brandSlug) {
         CarBrand brand = carBrandService.getBrandBySlug(brandSlug);
         return carModelRepository.findByBrand(brand);
@@ -73,6 +77,7 @@ public class CarModelService {
      * @param brandSlug Slug of the brand
      * @return List of active car models belonging to the brand
      */
+    @Transactional(readOnly = true)
     public List<CarModel> getActiveModelsByBrandSlug(String brandSlug) {
         CarBrand brand = carBrandService.getBrandBySlug(brandSlug);
         return carModelRepository.findByBrandAndIsActiveTrue(brand);
@@ -84,6 +89,7 @@ public class CarModelService {
      * @return Car model
      * @throws ResourceNotFoundException if model not found
      */
+    @Transactional(readOnly = true)
     public CarModel getModelById(Long id) {
         return carModelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("CarModel", "id", id));
@@ -95,6 +101,7 @@ public class CarModelService {
      * @return Car model
      * @throws ResourceNotFoundException if model not found
      */
+    @Transactional(readOnly = true)
     public CarModel getModelBySlug(String slug) {
         return carModelRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("CarModel", "slug", slug));
@@ -105,9 +112,10 @@ public class CarModelService {
      * @param query Search query
      * @return List of matching models
      */
+    @Transactional(readOnly = true)
     public List<CarModel> searchModels(String query) {
         if (query == null || query.trim().isEmpty()) {
-            return carModelRepository.findAll();
+            return getAllModels();
         }
         return carModelRepository.searchByName(query);
     }

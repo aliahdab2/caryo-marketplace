@@ -179,7 +179,7 @@ newman run "./backend/autotrader-backend/src/test/resources/postman/autotrader-a
 
 ## API Documentation
 
-Detailed API documentation is available in [backend/autotrader-backend/API_DOCUMENTATION.md](backend/autotrader-backend/API_DOCUMENTATION.md), which includes:
+Detailed API documentation is available in [backend/autotrader-backend/API.md](backend/autotrader-backend/API.md), which includes:
 
 - Authentication endpoints
 - Car listing endpoints  

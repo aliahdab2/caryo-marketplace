@@ -1,5 +1,5 @@
 /**
- * Interface for car make/brand
+ * Interface for car make/brand (updated to match DTO structure)
  */
 export interface CarMake {
   id: number;
@@ -8,11 +8,11 @@ export interface CarMake {
   displayNameEn: string;
   displayNameAr: string;
   isActive: boolean;
-  models?: CarModel[];
+  // Removed models array - no longer included in API response
 }
 
 /**
- * Interface for car model
+ * Interface for car model (updated to match DTO structure)
  */
 export interface CarModel {
   id: number;
@@ -21,8 +21,8 @@ export interface CarModel {
   displayNameEn: string;
   displayNameAr: string;
   isActive: boolean;
-  brand?: CarMake;
-  trims?: CarTrim[];
+  brandId: number; // Added brandId reference instead of full brand object
+  // Removed brand object and trims array - no longer included in API response
 }
 
 /**
@@ -31,7 +31,7 @@ export interface CarModel {
 export interface CarTrim {
   id: number;
   name: string;
-  model?: CarModel;
+  modelId?: number; // Reference to model instead of full model object
 }
 
 /**

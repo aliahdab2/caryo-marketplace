@@ -1,6 +1,8 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.model.*;
+import com.autotrader.autotraderbackend.payload.response.CarBrandResponse;
+import com.autotrader.autotraderbackend.payload.response.CarModelResponse;
 import com.autotrader.autotraderbackend.service.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,11 +71,14 @@ class CarReferenceDataControllerTest {
         when(carBrandService.getActiveBrands()).thenReturn(expectedBrands);
         
         // Act
-        ResponseEntity<List<CarBrand>> response = carReferenceDataController.getAllActiveBrands();
+        ResponseEntity<List<CarBrandResponse>> response = carReferenceDataController.getAllActiveBrands();
         
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(expectedBrands, response.getBody());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        assertEquals("Toyota", response.getBody().get(0).getDisplayNameEn());
+        assertEquals("Nissan", response.getBody().get(1).getDisplayNameEn());
         verify(carBrandService, times(1)).getActiveBrands();
     }
     
@@ -83,7 +88,7 @@ class CarReferenceDataControllerTest {
         when(carBrandService.getActiveBrands()).thenReturn(Collections.emptyList());
         
         // Act
-        ResponseEntity<List<CarBrand>> response = carReferenceDataController.getAllActiveBrands();
+        ResponseEntity<List<CarBrandResponse>> response = carReferenceDataController.getAllActiveBrands();
         
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -115,11 +120,14 @@ class CarReferenceDataControllerTest {
         when(carModelService.getActiveModelsByBrandId(brandId)).thenReturn(expectedModels);
         
         // Act
-        ResponseEntity<List<CarModel>> response = carReferenceDataController.getActiveModelsByBrand(brandId);
+        ResponseEntity<List<CarModelResponse>> response = carReferenceDataController.getActiveModelsByBrand(brandId);
         
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(expectedModels, response.getBody());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        assertEquals("Corolla", response.getBody().get(0).getDisplayNameEn());
+        assertEquals("Camry", response.getBody().get(1).getDisplayNameEn());
         verify(carModelService, times(1)).getActiveModelsByBrandId(brandId);
     }
     
@@ -130,7 +138,7 @@ class CarReferenceDataControllerTest {
         when(carModelService.getActiveModelsByBrandId(brandId)).thenReturn(Collections.emptyList());
         
         // Act
-        ResponseEntity<List<CarModel>> response = carReferenceDataController.getActiveModelsByBrand(brandId);
+        ResponseEntity<List<CarModelResponse>> response = carReferenceDataController.getActiveModelsByBrand(brandId);
         
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

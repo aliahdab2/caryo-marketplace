@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,7 +34,7 @@ public class CarBrand {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    @JsonManagedReference
+    @JsonIgnore
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CarModel> models = new ArrayList<>();
 }

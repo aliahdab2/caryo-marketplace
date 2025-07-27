@@ -35,6 +35,7 @@ public class CarBrandService {
      * Get only active car brands
      * @return List of active car brands
      */
+    @Transactional(readOnly = true)
     @Cacheable(value = "activeBrands", key = "'active'")
     public List<CarBrand> getActiveBrands() {
         log.debug("Fetching active car brands from database");
@@ -47,6 +48,7 @@ public class CarBrandService {
      * @return Car brand
      * @throws ResourceNotFoundException if brand not found
      */
+    @Transactional(readOnly = true)
     @Cacheable(value = "carBrands", key = "#id")
     public CarBrand getBrandById(Long id) {
         return carBrandRepository.findById(id)
@@ -59,6 +61,7 @@ public class CarBrandService {
      * @return Car brand
      * @throws ResourceNotFoundException if brand not found
      */
+    @Transactional(readOnly = true)
     public CarBrand getBrandBySlug(String slug) {
         return carBrandRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("CarBrand", "slug", slug));
@@ -69,6 +72,7 @@ public class CarBrandService {
      * @param query Search query
      * @return List of matching brands
      */
+    @Transactional(readOnly = true)
     public List<CarBrand> searchBrands(String query) {
         if (query == null || query.trim().isEmpty()) {
             return getActiveBrands();

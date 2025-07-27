@@ -1,21 +1,48 @@
-# Autotrader Marketplace API Documentation
+# AutoTrader API Documentation
 
-This document provides detailed information about the available API endpoints in the Autotrader Marketplace backend service.
+## Overview
 
-**Last Updated:** July 13, 2025
+The AutoTrader API provides a comprehensive set of endpoints for managing car listings, user accounts, and reference data. The API follows RESTful principles and uses DTOs (Data Transfer Objects) for clean, consistent responses.
 
-**Recent Updates:**
-- Added social login endpoint (`POST /api/auth/social-login`)
-- Added change password endpoint (`POST /api/auth/change-password`)
-- Added advanced listing management endpoints (mark-sold, archive, unarchive)
-- Added listing creation with image upload (`POST /api/listings/with-image`)
-- Added comprehensive reference data endpoints (fuel-types, body-styles, transmissions, etc.)
-- Added multiple filter support for transmission, fuel type, and body style (supports selecting multiple options)
-- Fuel type filtering now uses slug-based approach (fuelTypeSlugs parameter) for consistency with other filters
-- Updated all testing examples with correct API paths
-- Added bilingual field support documentation
+## API Design Principles
 
-## Quick Start Guide
+### DTO Structure
+The API uses DTOs to provide clean, consistent responses without nested objects that could cause lazy initialization issues. This approach offers:
+
+- **Performance**: Smaller payload sizes and faster serialization
+- **Reliability**: No Hibernate LazyInitializationException issues
+- **Maintainability**: Clear separation between entities and API responses
+- **Type Safety**: Consistent structure across all endpoints
+
+### Response Format
+All API responses follow a consistent structure:
+- **Success responses**: Direct data objects or arrays
+- **Error responses**: Standardized error format with status, message, and details
+- **Pagination**: Standard Spring Boot pagination format for list endpoints
+
+### Authentication
+- **JWT Tokens**: Bearer token authentication for protected endpoints
+- **Role-based Access**: Different endpoints require different user roles
+- **Public Endpoints**: Reference data and listing search are publicly accessible
+
+## Quick Start
+
+### Base URL
+```
+http://localhost:8080/api
+```
+
+### Authentication
+```bash
+# Login to get JWT token
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"user","password":"password"}'
+
+# Use token for authenticated requests
+curl -H "Authorization: Bearer <token>" \
+  http://localhost:8080/api/listings
+```
 
 ### Starting the Application
 ```bash
@@ -1729,29 +1756,65 @@ To run all API tests automatically:
 - **Car Models**: Camry, Mustang, Civic, 3 Series, Model S
 - **Locations**: New York, NY; Los Angeles, CA; Chicago, IL; Houston, TX; Phoenix, AZ
 
+### DTO Structure for Car Data
+
+The car brand and model endpoints use DTOs to provide clean, consistent responses without nested objects. This approach eliminates lazy initialization issues and improves performance.
+
+**Key Features:**
+- **Direct ID References**: Models reference brands via `brandId` instead of nested objects
+- **Flat Structure**: No nested collections that could cause serialization issues
+- **Consistent Fields**: All entities include `id`, `name`, `slug`, `displayNameEn`, `displayNameAr`, and `isActive`
+- **Type Safety**: Exact interface matches between frontend and backend
+
+**Example Structure:**
+```json
+// Brand DTO
+{
+  "id": 1,
+  "name": "toyota",
+  "slug": "toyota",
+  "displayNameEn": "Toyota",
+  "displayNameAr": "تويوتا",
+  "isActive": true
+}
+
+// Model DTO
+{
+  "id": 101,
+  "name": "camry",
+  "slug": "toyota-camry",
+  "displayNameEn": "Camry",
+  "displayNameAr": "كامري",
+  "isActive": true,
+  "brandId": 1
+}
+```
+
 ### Car Brand and Model Data
 
 #### Get All Car Brands
 
 - **Endpoint**: `GET /api/reference-data/brands`
 - **Access**: Public
-- **Description**: Retrieves a list of all active car brands/makes.
+- **Description**: Retrieves a list of all active car brands/makes using DTO structure.
 - **Response (200 OK)**:
   ```json
   [
     {
       "id": 1,
+      "name": "toyota",
+      "slug": "toyota",
       "displayNameEn": "Toyota",
       "displayNameAr": "تويوتا",
-      "slug": "toyota",
-      "active": true
+      "isActive": true
     },
     {
       "id": 2,
+      "name": "ford",
+      "slug": "ford",
       "displayNameEn": "Ford",
       "displayNameAr": "فورد",
-      "slug": "ford",
-      "active": true
+      "isActive": true
     }
     // ... more brands
   ]
@@ -1761,7 +1824,7 @@ To run all API tests automatically:
 
 - **Endpoint**: `GET /api/reference-data/brands/{brandId}/models`
 - **Access**: Public
-- **Description**: Retrieves a list of active car models for a given brand ID.
+- **Description**: Retrieves a list of active car models for a given brand ID using DTO structure.
 - **Parameters**:
   - `brandId` (path parameter): The ID of the car brand.
 - **Response (200 OK)**:
@@ -1769,18 +1832,20 @@ To run all API tests automatically:
   [
     {
       "id": 101,
+      "name": "camry",
+      "slug": "toyota-camry",
       "displayNameEn": "Camry", 
       "displayNameAr": "كامري",
-      "slug": "camry",
-      "active": true,
-      "brandId": 1 
+      "isActive": true,
+      "brandId": 1
     },
     {
       "id": 102,
+      "name": "corolla",
+      "slug": "toyota-corolla",
       "displayNameEn": "Corolla",
       "displayNameAr": "كورولا",
-      "slug": "corolla",
-      "active": true,
+      "isActive": true,
       "brandId": 1
     }
     // ... more models for the brand
@@ -1801,7 +1866,7 @@ To run all API tests automatically:
 
 - **Endpoint**: `GET /api/reference-data/brands/{brandId}/models/{modelId}/trims`
 - **Access**: Public
-- **Description**: Retrieves a list of active car trims for a given model ID.
+- **Description**: Retrieves a list of active car trims for a given model ID using DTO structure.
 - **Parameters**:
   - `brandId` (path parameter): The ID of the car brand.
   - `modelId` (path parameter): The ID of the car model.
@@ -1810,18 +1875,20 @@ To run all API tests automatically:
   [
     {
       "id": 1001,
+      "name": "se",
+      "slug": "se",
       "displayNameEn": "SE",
       "displayNameAr": "إس إي",
-      "slug": "se",
-      "active": true,
+      "isActive": true,
       "modelId": 101
     },
     {
       "id": 1002,
+      "name": "xle",
+      "slug": "xle",
       "displayNameEn": "XLE",
       "displayNameAr": "إكس إل إي",
-      "slug": "xle",
-      "active": true,
+      "isActive": true,
       "modelId": 101
     }
     // ... more trims for the model
