@@ -627,7 +627,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
               
             <div className="grid gap-3 max-h-96 overflow-y-auto pr-2 rtl:pr-0 rtl:pl-2">
               {referenceData?.bodyStyles?.map(bodyStyle => {
-                const isSelected = filters.bodyStyleIds?.includes(bodyStyle.id) || false;
+                const isSelected = filters.bodyType?.includes(bodyStyle.slug) || false;
                 const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
                 const count = bodyStyleCounts[bodyStyle.name.toLowerCase()] || 0;
                 
@@ -640,12 +640,12 @@ const FilterModal: React.FC<FilterModalProps> = ({
                         : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
                     }`}
                     onClick={() => {
-                      const currentBodyStyleIds = filters.bodyStyleIds || [];
-                      const newBodyStyleIds = isSelected 
-                        ? currentBodyStyleIds.filter(id => id !== bodyStyle.id)
-                        : [...currentBodyStyleIds, bodyStyle.id];
+                      const currentBodyTypes = filters.bodyType || [];
+                      const newBodyTypes = isSelected 
+                        ? currentBodyTypes.filter(type => type !== bodyStyle.slug)
+                        : [...currentBodyTypes, bodyStyle.slug];
                       
-                      handleInputChange('bodyStyleIds', newBodyStyleIds.length > 0 ? newBodyStyleIds : undefined);
+                      handleInputChange('bodyType', newBodyTypes.length > 0 ? newBodyTypes : undefined);
                     }}
                   >
                     <div className="flex items-center space-x-4 rtl:space-x-reverse">
@@ -913,7 +913,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
             >
               <div className="grid gap-3 max-h-60 overflow-y-auto">
                 {referenceData?.bodyStyles?.map(bodyStyle => {
-                  const isSelected = filters.bodyStyleIds?.includes(bodyStyle.id) || false;
+                  const isSelected = filters.bodyType?.includes(bodyStyle.slug) || false;
                   const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
                   const count = bodyStyleCounts[bodyStyle.name.toLowerCase()] || 0;
                   
@@ -926,12 +926,12 @@ const FilterModal: React.FC<FilterModalProps> = ({
                           : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
                       }`}
                       onClick={() => {
-                        const currentBodyStyleIds = filters.bodyStyleIds || [];
-                        const newBodyStyleIds = isSelected 
-                          ? currentBodyStyleIds.filter(id => id !== bodyStyle.id)
-                          : [...currentBodyStyleIds, bodyStyle.id];
-                        
-                        handleInputChange('bodyStyleIds', newBodyStyleIds.length > 0 ? newBodyStyleIds : undefined);
+                                              const currentBodyTypes = filters.bodyType || [];
+                      const newBodyTypes = isSelected
+                        ? currentBodyTypes.filter(type => type !== bodyStyle.slug)
+                        : [...currentBodyTypes, bodyStyle.slug];
+                      
+                      handleInputChange('bodyType', newBodyTypes.length > 0 ? newBodyTypes : undefined);
                       }}
                     >
                       <div className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -1065,7 +1065,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                           maxMileage: undefined,
                           transmissionId: undefined,
                           fuelTypeId: undefined,
-                          bodyStyleIds: undefined,
+                          bodyType: undefined,
                           sellerTypeIds: undefined,
                           locations: undefined,
                           conditionId: undefined,

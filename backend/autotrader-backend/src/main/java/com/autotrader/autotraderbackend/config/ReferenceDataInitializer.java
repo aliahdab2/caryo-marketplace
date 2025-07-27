@@ -243,6 +243,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
         condition.setName(name);
         condition.setDisplayNameEn(displayNameEn);
         condition.setDisplayNameAr(displayNameAr);
+        condition.setSlug(name); // Set slug to match the name
         return condition;
     }
     
@@ -251,6 +252,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
         driveType.setName(name);
         driveType.setDisplayNameEn(displayNameEn);
         driveType.setDisplayNameAr(displayNameAr);
+        driveType.setSlug(name); // Set slug to match the name
         return driveType;
     }
     
@@ -259,6 +261,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
         bodyStyle.setName(name);
         bodyStyle.setDisplayNameEn(displayNameEn);
         bodyStyle.setDisplayNameAr(displayNameAr);
+        bodyStyle.setSlug(name); // Set slug to match the name
         return bodyStyle;
     }
     
@@ -267,6 +270,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
         fuelType.setName(name);
         fuelType.setDisplayNameEn(displayNameEn);
         fuelType.setDisplayNameAr(displayNameAr);
+        fuelType.setSlug(name); // Set slug to match the name
         return fuelType;
     }
     
@@ -275,6 +279,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
         transmission.setName(name);
         transmission.setDisplayNameEn(displayNameEn);
         transmission.setDisplayNameAr(displayNameAr);
+        transmission.setSlug(name); // Set slug to match the name
         return transmission;
     }
     

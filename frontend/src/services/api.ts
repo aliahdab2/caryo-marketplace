@@ -30,6 +30,7 @@ export interface BodyStyle {
   name: string;
   displayNameEn: string;
   displayNameAr: string;
+  slug: string;
 }
 
 export interface DriveType {
@@ -159,6 +160,7 @@ export interface CarListingFilterParams {
   transmissionId?: number;
   fuelTypeId?: number;
   bodyStyleIds?: number[]; // Changed from bodyStyleId to support multiple selections
+  bodyType?: string[]; // Body type filtering
   sellerTypeIds?: number[];
   
   // Status filters
@@ -444,9 +446,9 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
     if (filters.conditionId && filters.conditionId > 0) queryParams.append('conditionId', filters.conditionId.toString());
     if (filters.transmissionId && filters.transmissionId > 0) queryParams.append('transmissionIds', filters.transmissionId.toString());
     if (filters.fuelTypeId && filters.fuelTypeId > 0) queryParams.append('fuelTypeIds', filters.fuelTypeId.toString());
-    if (filters.bodyStyleIds && filters.bodyStyleIds.length > 0) {
-      filters.bodyStyleIds.forEach(id => queryParams.append('bodyStyleIds', id.toString()));
-    }
+            if (filters.bodyType && filters.bodyType.length > 0) {
+          queryParams.append('bodyType', filters.bodyType.join('-'));
+        }
     if (filters.sellerTypeIds && filters.sellerTypeIds.length > 0) {
       filters.sellerTypeIds.forEach(id => queryParams.append('sellerTypeIds', id.toString()));
     }

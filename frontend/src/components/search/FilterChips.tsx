@@ -16,19 +16,11 @@ interface FilterChipsProps {
   getFilterDisplayText: (filterType: FilterType) => string;
   getTransmissionDisplayName: (id: number) => string;
   getFuelTypeDisplayName: (id: number) => string;
-  getBodyStyleDisplayName: (id: number) => string;
+  getBodyStyleDisplayName: (slug: string) => string;
   getSellerTypeDisplayName: (id: number) => string;
   selectedMake: number | null;
   selectedModel: number | null;
   t: (key: string, fallback?: string, options?: { brand?: string; model?: string }) => string;
-  referenceData?: {
-    bodyStyles?: Array<{
-      id: number;
-      name: string;
-      displayNameEn: string;
-      displayNameAr: string;
-    }>;
-  };
 }
 
 export default function FilterChips({
@@ -45,14 +37,9 @@ export default function FilterChips({
   getSellerTypeDisplayName,
   selectedMake,
   selectedModel,
-  t,
-  referenceData
+  t
 }: FilterChipsProps) {
-  // Helper function to get body style name by ID
-  const getBodyStyleNameById = (id: number): string => {
-    const bodyStyle = referenceData?.bodyStyles?.find(b => b.id === id);
-    return bodyStyle?.name || '';
-  };
+
 
   // Show filter chips only when there are active filters
   const hasActiveFilters = isFilterActive('makeModel') || isFilterActive('price') || isFilterActive('year') || 
@@ -81,7 +68,7 @@ export default function FilterChips({
               maxMileage: undefined,
               transmissionId: undefined,
               fuelTypeId: undefined,
-              bodyStyleIds: undefined,
+              bodyType: undefined,
               sellerTypeIds: undefined
             }, {
               selectedMake: null,
@@ -226,21 +213,21 @@ export default function FilterChips({
         )}
 
         {/* Body Style Chips */}
-        {filters.bodyStyleIds && filters.bodyStyleIds.map((bodyStyleId) => (
+        {filters.bodyType && filters.bodyType.map((bodyStyleSlug) => (
           <div
-            key={`body-${bodyStyleId}`}
+            key={`body-${bodyStyleSlug}`}
             className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
           >
-            <span className="mr-1">{getBodyStyleDisplayName(bodyStyleId)}</span>
+            <span className="mr-1">{getBodyStyleDisplayName(bodyStyleSlug)}</span>
             <div className="w-8 h-8 mr-1 flex-shrink-0">
-              {getCarIcon(getBodyStyleNameById(bodyStyleId), "w-8 h-8")}
+              {getCarIcon(bodyStyleSlug, "w-8 h-8")}
             </div>
             <button
               onClick={() => {
-                const updatedBodyStyles = filters.bodyStyleIds?.filter(id => id !== bodyStyleId) || [];
-                updateFiltersAndState({ 
-                  bodyStyleIds: updatedBodyStyles.length > 0 ? updatedBodyStyles : undefined
-                });
+                            const updatedBodyTypes = filters.bodyType?.filter(type => type !== bodyStyleSlug) || [];
+            updateFiltersAndState({ 
+              bodyType: updatedBodyTypes.length > 0 ? updatedBodyTypes : undefined
+            });
               }}
               className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full p-0.5"
               aria-label={t('removeBodyStyleFilter', 'Remove body style filter')}

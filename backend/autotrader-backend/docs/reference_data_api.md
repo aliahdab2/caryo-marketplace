@@ -15,12 +15,59 @@ GET /api/reference-data
 **Response:**
 ```json
 {
-  "carConditions": [...],
-  "driveTypes": [...],
-  "bodyStyles": [...],
-  "fuelTypes": [...],
-  "transmissions": [...],
-  "sellerTypes": [...]
+  "carConditions": [
+    {
+      "id": 1,
+      "name": "new",
+      "displayNameEn": "New",
+      "displayNameAr": "جديد",
+      "slug": "new"
+    }
+  ],
+  "driveTypes": [
+    {
+      "id": 1,
+      "name": "fwd",
+      "displayNameEn": "Front-Wheel Drive",
+      "displayNameAr": "دفع أمامي",
+      "slug": "fwd"
+    }
+  ],
+  "bodyStyles": [
+    {
+      "id": 1,
+      "name": "sedan",
+      "displayNameEn": "Sedan",
+      "displayNameAr": "سيدان",
+      "slug": "sedan"
+    }
+  ],
+  "fuelTypes": [
+    {
+      "id": 1,
+      "name": "gasoline",
+      "displayNameEn": "Gasoline",
+      "displayNameAr": "بنزين",
+      "slug": "gasoline"
+    }
+  ],
+  "transmissions": [
+    {
+      "id": 1,
+      "name": "automatic",
+      "displayNameEn": "Automatic",
+      "displayNameAr": "أوتوماتيك",
+      "slug": "automatic"
+    }
+  ],
+  "sellerTypes": [
+    {
+      "id": 1,
+      "name": "PRIVATE",
+      "displayNameEn": "Private",
+      "displayNameAr": "خاص"
+    }
+  ]
 }
 ```
 

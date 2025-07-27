@@ -230,7 +230,7 @@ export interface AdvancedSearchFilters {
   conditionId?: number;
   transmissionId?: number;
   fuelTypeId?: number;
-  bodyStyleId?: number;
+  bodyStyleSlugs?: string[];
   sellerTypeIds?: number[];
   
   // Direct field filters
@@ -620,7 +620,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
               <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:bodyStyle', 'Body style')}</h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {referenceData?.bodyStyles?.map(bodyStyle => {
-                  const isSelected = filters.bodyStyleId === bodyStyle.id;
+                  const isSelected = filters.bodyStyleSlugs?.includes(bodyStyle.slug) || false;
                   const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
                   const count = bodyStyleCounts[bodyStyle.name.toLowerCase()];
                   
@@ -631,12 +631,12 @@ const FilterModals = React.memo<FilterModalsProps>(({
                         isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                       }`}
                       onClick={() => {
-                        handleInputChange('bodyStyleId', isSelected ? undefined : bodyStyle.id);
-                        if (!isSelected) {
-                          setTimeout(() => {
-                            handleEnhancedClose();
-                          }, 100);
-                        }
+                        const currentBodyStyles = filters.bodyStyleSlugs || [];
+                        const newBodyStyles = isSelected 
+                          ? currentBodyStyles.filter(bodyStyleSlug => bodyStyleSlug !== bodyStyle.slug)
+                          : [...currentBodyStyles, bodyStyle.slug];
+                        
+                        handleInputChange('bodyStyleSlugs', newBodyStyles.length > 0 ? newBodyStyles : undefined);
                       }}
                     >
                       <div className="flex items-center space-x-3 rtl:space-x-reverse">

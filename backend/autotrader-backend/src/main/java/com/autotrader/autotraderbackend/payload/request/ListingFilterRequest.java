@@ -129,6 +129,9 @@ public class ListingFilterRequest {
      */
     @Schema(description = "Filter by body style IDs (e.g., [1, 2] for sedan and SUV)", example = "[1, 2]")
     private List<Long> bodyStyleIds;
+    
+    @Schema(description = "Filter by body style slugs (e.g., [\"sedan\", \"suv\"] for sedan and SUV)", example = "[\"sedan\", \"suv\"]")
+    private List<String> bodyStyleSlugs;
 
     // Helper methods for slug-based filtering
     
@@ -154,6 +157,18 @@ public class ListingFilterRequest {
     public List<String> getNormalizedModelSlugs() {
         return modelSlugs == null ? Collections.emptyList() :
             modelSlugs.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .filter(slug -> !slug.isEmpty())
+                .distinct()
+                .collect(Collectors.toList());
+    }
+    
+    @JsonIgnore
+    public List<String> getNormalizedBodyStyleSlugs() {
+        return bodyStyleSlugs == null ? Collections.emptyList() :
+            bodyStyleSlugs.stream()
                 .filter(Objects::nonNull)
                 .map(String::trim)
                 .map(String::toLowerCase)
