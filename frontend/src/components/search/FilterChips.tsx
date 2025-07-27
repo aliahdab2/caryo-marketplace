@@ -214,8 +214,8 @@ export default function FilterChips({
         {filters.fuelTypeId && (
           <div className="inline-flex items-center bg-gray-100 border border-gray-200 rounded-full px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
             <span className="mr-1">{getFuelTypeDisplayName(filters.fuelTypeId)}</span>
-            <div className="w-8 h-8 mr-1 flex-shrink-0">
-              {getFuelTypeIcon(getFuelTypeNameFromId(filters.fuelTypeId), "w-6 h-4")}
+            <div className="w-6 h-6 mr-1 flex-shrink-0 flex items-center justify-center">
+              {getFuelTypeIcon(getFuelTypeNameFromId(filters.fuelTypeId), "w-5 h-4")}
             </div>
             <button
               onClick={() => updateFiltersAndState({ fuelTypeId: undefined })}

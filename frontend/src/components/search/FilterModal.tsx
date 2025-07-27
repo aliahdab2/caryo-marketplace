@@ -629,7 +629,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                     >
                       <div className="flex items-center space-x-4 rtl:space-x-reverse">
                         <div className="transition-transform group-hover:scale-105">
-                          {getFuelTypeIcon(fuelType.name.toLowerCase())}
+                          {getFuelTypeIcon(fuelType.name.toLowerCase(), "w-10 h-7")}
                         </div>
                         <div className="flex items-center space-x-2 rtl:space-x-reverse">
                           <span className="text-gray-900 font-medium">{displayName}</span>

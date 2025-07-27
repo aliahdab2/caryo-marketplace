@@ -39,6 +39,10 @@ const mockProps = {
   referenceData: {
     bodyStyles: [
       { id: 3, name: 'sedan', displayNameEn: 'Sedan', displayNameAr: 'سيدان' }
+    ],
+    fuelTypes: [
+      { id: 1, name: 'gasoline', displayNameEn: 'Gasoline', displayNameAr: 'بنزين' },
+      { id: 2, name: 'diesel', displayNameEn: 'Diesel', displayNameAr: 'ديزل' }
     ]
   },
   t: jest.fn((key: string, fallback?: string) => fallback || key)

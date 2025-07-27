@@ -14,7 +14,7 @@ import {
  * @param size - Optional size class (default: "w-16 h-12")
  * @returns React component for the corresponding fuel type icon
  */
-export const getFuelTypeIcon = (fuelTypeName: string, size: string = "w-16 h-12"): React.ReactNode => {
+export const getFuelTypeIcon = (fuelTypeName: string, size: string = "w-12 h-8"): React.ReactNode => {
   const normalizedName = fuelTypeName.toLowerCase();
   
   // Create a new icon map with the specified size
