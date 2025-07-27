@@ -10,7 +10,8 @@ import YearSlider from '@/components/ui/YearSlider';
 import { getCarIcon } from '@/utils/carIcons';
 import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
-import { DEFAULT_CURRENCY } from '@/utils/currency';
+import { formatCurrencyCompact, DEFAULT_CURRENCY } from '@/utils/currency';
+import FilterChipsDisplay from './FilterChipsDisplay';
 
 interface FilterModalProps {
   filterType: FilterType;
@@ -835,6 +836,93 @@ const FilterModal: React.FC<FilterModalProps> = ({
       case 'allFilters':
         return (
           <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+            
+            {/* Filter Chips Section */}
+            {(() => {
+              const hasActiveFilters = filters.brands?.length || filters.models?.length || 
+                filters.minPrice || filters.maxPrice || filters.minYear || filters.maxYear || 
+                filters.minMileage || filters.maxMileage || filters.transmissionId || 
+                filters.fuelTypeSlugs?.length || filters.bodyType?.length || filters.sellerTypeIds?.length;
+              
+              if (!hasActiveFilters) return null;
+              
+              return (
+                <div className="sticky top-0 z-20 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 mb-4 shadow">
+                  <FilterChipsDisplay
+                    filters={filters}
+                    updateFiltersAndState={updateFiltersAndState}
+                    getBrandDisplayNameFromSlug={(brandSlug) => {
+                      const brand = carMakes?.find(b => b.slug === brandSlug);
+                      if (!brand) return brandSlug;
+                      return currentLanguage === 'ar' ? brand.displayNameAr : brand.displayNameEn;
+                    }}
+                    getModelDisplayNameFromSlug={(modelSlug) => {
+                      const model = availableModels?.find(m => m.slug === modelSlug);
+                      if (!model) return modelSlug;
+                      return currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn;
+                    }}
+                    getFilterDisplayText={(filterType) => {
+                      switch (filterType) {
+                        case 'price':
+                          const currency = DEFAULT_CURRENCY;
+                          const locale = currentLanguage === 'ar' ? 'ar-SY' : 'en-US';
+                          if (filters.minPrice && filters.maxPrice) {
+                            return `${formatCurrencyCompact(filters.minPrice, currency, locale)} - ${formatCurrencyCompact(filters.maxPrice, currency, locale)}`;
+                          } else if (filters.minPrice) {
+                            return `≥ ${formatCurrencyCompact(filters.minPrice, currency, locale)}`;
+                          } else {
+                            return `≤ ${formatCurrencyCompact(filters.maxPrice!, currency, locale)}`;
+                          }
+                        case 'year':
+                          if (filters.minYear && filters.maxYear) {
+                            return `${filters.minYear} - ${filters.maxYear}`;
+                          } else if (filters.minYear) {
+                            return `≥ ${filters.minYear}`;
+                          } else {
+                            return `≤ ${filters.maxYear}`;
+                          }
+                        case 'mileage':
+                          if (filters.minMileage && filters.maxMileage) {
+                            return `${filters.minMileage.toLocaleString()} - ${filters.maxMileage.toLocaleString()} km`;
+                          } else if (filters.minMileage) {
+                            return `≥ ${filters.minMileage.toLocaleString()} km`;
+                          } else {
+                            return `≤ ${filters.maxMileage?.toLocaleString()} km`;
+                          }
+                        default:
+                          return '';
+                      }
+                    }}
+                    getTransmissionDisplayName={(id) => {
+                      const transmission = referenceData?.transmissions?.find(t => t.id === id);
+                      if (!transmission) return '';
+                      return currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn;
+                    }}
+                    getFuelTypeDisplayNameFromSlug={(slug) => {
+                      const fuelType = referenceData?.fuelTypes?.find(f => f.slug === slug);
+                      if (!fuelType) return slug;
+                      return currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn;
+                    }}
+                    getBodyStyleDisplayName={(slug) => {
+                      const bodyStyle = referenceData?.bodyStyles?.find(b => b.slug === slug);
+                      if (!bodyStyle) return slug;
+                      return currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
+                    }}
+                    getSellerTypeDisplayName={(id) => {
+                      const sellerType = referenceData?.sellerTypes?.find(s => s.id === id);
+                      if (!sellerType) return '';
+                      return currentLanguage === 'ar' ? sellerType.displayNameAr : sellerType.displayNameEn;
+                    }}
+                    selectedMake={selectedMake}
+                    selectedModel={selectedModel}
+                    referenceData={referenceData}
+                    currentLanguage={currentLanguage}
+                    t={t}
+                    showClearAllButton={false}
+                  />
+                </div>
+              );
+            })()}
             
             {/* Make and Model */}
             <CollapsibleSection
