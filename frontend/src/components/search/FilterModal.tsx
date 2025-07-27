@@ -12,6 +12,7 @@ import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
 
+
 interface FilterModalProps {
   filterType: FilterType;
   onClose: () => void;
@@ -26,14 +27,11 @@ interface FilterModalProps {
   isLoadingModels: boolean;
   isLoadingAllModels?: boolean; // New prop for loading all models
   referenceData: CarReferenceData | null;
-  _isLoadingReferenceData?: boolean;
   sellerTypeCounts: SellerTypeCounts;
   bodyStyleCounts: BodyStyleCounts;
   fuelTypeCounts: FuelTypeCounts;
   carListings: PageResponse<CarListing> | null;
   currentLanguage: string;
-  isRTL: boolean;
-  dirClass: string;
   t: (key: string, fallback?: string, options?: Record<string, unknown>) => string;
   updateFiltersAndState: (
     filterUpdates: Partial<AdvancedSearchFilters>,
@@ -72,7 +70,6 @@ const FilterModal: React.FC<FilterModalProps> = ({
   isLoadingModels,
   isLoadingAllModels,
   referenceData,
-  _isLoadingReferenceData,
   sellerTypeCounts,
   bodyStyleCounts,
   fuelTypeCounts,
@@ -846,34 +843,29 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 </svg>
               }
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">{t('make', 'Make')}</label>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:make', 'Make')}</h3>
                   <select
                     value={selectedMake || ''}
                     onChange={(e) => {
                       const makeId = e.target.value ? Number(e.target.value) : null;
+                      
                       if (selectedMake !== makeId) {
                         if (makeId && carMakes) {
                           const brand = carMakes.find(make => make.id === makeId);
                           if (brand && brand.slug) {
-                            updateFiltersAndState(
-                              { brands: [brand.slug], models: [] },
-                              { selectedMake: makeId, selectedModel: null }
-                            );
+                            updateFiltersAndState({ brands: [brand.slug], models: [] }, { selectedMake: makeId, selectedModel: null });
                           }
                         } else {
-                          updateFiltersAndState(
-                            { brands: [], models: [] },
-                            { selectedMake: null, selectedModel: null }
-                          );
+                          updateFiltersAndState({ brands: [], models: [] }, { selectedMake: null, selectedModel: null });
                         }
                       }
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                     disabled={isLoadingBrands}
                   >
-                    <option value="">{t('any', 'Any')}</option>
+                    <option value="">{t('search:any', 'Any')}</option>
                     {carMakes?.map(make => (
                       <option key={make.id} value={make.id}>
                         {currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn}
@@ -883,32 +875,27 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 </div>
                 
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">{t('model', 'Model')}</label>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:model', 'Model')}</h3>
                   <select
                     value={selectedModel || ''}
                     onChange={(e) => {
                       const modelId = e.target.value ? Number(e.target.value) : null;
+                      
                       if (selectedModel !== modelId) {
                         if (modelId && availableModels) {
                           const model = availableModels.find(m => m.id === modelId);
                           if (model && model.slug) {
-                            updateFiltersAndState(
-                              { models: [model.slug] },
-                              { selectedModel: modelId }
-                            );
+                            updateFiltersAndState({ models: [model.slug] }, { selectedModel: modelId });
                           }
                         } else {
-                          updateFiltersAndState(
-                            { models: [] },
-                            { selectedModel: null }
-                          );
+                          updateFiltersAndState({ models: [] }, { selectedModel: null });
                         }
                       }
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                     disabled={!selectedMake || isLoadingModels}
                   >
-                    <option value="">{t('any', 'Any')}</option>
+                    <option value="">{t('search:any', 'Any')}</option>
                     {availableModels?.map(model => (
                       <option key={model.id} value={model.id}>
                         {currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn}
@@ -1053,6 +1040,203 @@ const FilterModal: React.FC<FilterModalProps> = ({
                       {isSelected && (
                         <div className="absolute inset-0 border-2 border-blue-500 rounded-lg pointer-events-none animate-pulse"></div>
                       )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CollapsibleSection>
+            
+            {/* Transmission */}
+            <CollapsibleSection
+              title={t('transmission', 'Transmission')}
+              sectionName="transmission"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              }
+            >
+              <div className="grid gap-3 max-h-60 overflow-y-auto">
+                {referenceData?.transmissions?.map(transmission => {
+                  const isSelected = filters.transmissionId === transmission.id;
+                  const displayName = currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn;
+                  const count = 0; // TODO: Add transmission counts when backend endpoint is available
+                  
+                  return (
+                    <div
+                      key={transmission.id}
+                      className={`group relative flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                        isSelected 
+                          ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
+                      }`}
+                      onClick={() => {
+                        handleInputChange('transmissionId', isSelected ? undefined : transmission.id);
+                      }}
+                    >
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className="transition-transform group-hover:scale-105">
+                          <div className="w-8 h-8 flex items-center justify-center text-gray-600">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                          <span className="text-gray-900 font-medium">{displayName}</span>
+                          <span className="text-gray-500 text-sm">
+                            {count > 0 ? `(${count.toLocaleString()})` : '(0)'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
+                          isSelected 
+                            ? 'border-blue-500 bg-blue-500 scale-110' 
+                            : 'border-gray-300 group-hover:border-blue-400'
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Selection indicator */}
+                      {isSelected && (
+                        <div className="absolute inset-0 border-2 border-blue-500 rounded-lg pointer-events-none animate-pulse"></div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CollapsibleSection>
+            
+            {/* Fuel Type */}
+            <CollapsibleSection
+              title={t('fuelType', 'Fuel Type')}
+              sectionName="fuelType"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              }
+            >
+              <div className="grid gap-3 max-h-60 overflow-y-auto">
+                {referenceData?.fuelTypes?.map(fuelType => {
+                  const isSelected = filters.fuelTypeSlugs?.includes(fuelType.slug) || false;
+                  const displayName = currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn;
+                  const count = fuelTypeCounts[fuelType.name.toLowerCase()] || 0;
+                  
+                  return (
+                    <div
+                      key={fuelType.id}
+                      className={`group relative flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                        isSelected 
+                          ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
+                      }`}
+                      onClick={() => {
+                        const currentFuelTypes = filters.fuelTypeSlugs || [];
+                        const newFuelTypes = isSelected 
+                          ? currentFuelTypes.filter(fuelTypeSlug => fuelTypeSlug !== fuelType.slug)
+                          : [...currentFuelTypes, fuelType.slug];
+                        
+                        handleInputChange('fuelTypeSlugs', newFuelTypes.length > 0 ? newFuelTypes : undefined);
+                      }}
+                    >
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className="transition-transform group-hover:scale-105">
+                          {getFuelTypeIcon(fuelType.name.toLowerCase(), "w-8 h-8")}
+                        </div>
+                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                          <span className="text-gray-900 font-medium">{displayName}</span>
+                          <span className="text-gray-500 text-sm">
+                            {count > 0 ? `(${count.toLocaleString()})` : '(0)'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
+                          isSelected 
+                            ? 'border-blue-500 bg-blue-500 scale-110' 
+                            : 'border-gray-300 group-hover:border-blue-400'
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Selection indicator */}
+                      {isSelected && (
+                        <div className="absolute inset-0 border-2 border-blue-500 rounded-lg pointer-events-none animate-pulse"></div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CollapsibleSection>
+            
+            {/* Seller Type */}
+            <CollapsibleSection
+              title={t('sellerType', 'Seller Type')}
+              sectionName="sellerType"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              }
+            >
+              <div className="space-y-2">
+                {referenceData?.sellerTypes?.map(sellerType => {
+                  const id = sellerType.id as number;
+                  const typedSellerType = sellerType as { displayNameEn: string; displayNameAr: string; name: string };
+                  const isSelected = filters.sellerTypeIds?.includes(id) || false;
+                  
+                  // Use proper English and Arabic display names from the database
+                  const displayName = currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn;
+                  
+                  // Get count for this seller type from our counts data
+                  const count = sellerTypeCounts[typedSellerType.name] || 0;
+                  
+                  return (
+                    <div
+                      key={id}
+                      className="flex items-center justify-between py-3 cursor-pointer hover:bg-gray-50 rounded-md px-2"
+                      onClick={() => {
+                        const currentSellerTypes = filters.sellerTypeIds || [];
+                        const newSellerTypes = isSelected 
+                          ? currentSellerTypes.filter(sellerTypeId => sellerTypeId !== id)
+                          : [...currentSellerTypes, id];
+                        
+                        handleInputChange('sellerTypeIds', newSellerTypes.length > 0 ? newSellerTypes : undefined);
+                      }}
+                    >
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        {/* Checkbox */}
+                        <div className={`w-5 h-5 border-2 rounded transition-all ${
+                          isSelected 
+                            ? 'border-gray-400 bg-gray-400' 
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                            </svg>
+                          )}
+                        </div>
+                        
+                        {/* Label with Count */}
+                        <label className="text-gray-900 cursor-pointer text-base font-normal">
+                          {displayName} <span className="text-gray-500 font-normal">({count.toLocaleString()})</span>
+                        </label>
+                      </div>
                     </div>
                   );
                 })}

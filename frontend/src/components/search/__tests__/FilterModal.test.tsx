@@ -669,6 +669,24 @@ describe('FilterModal', () => {
       render(<FilterModal {...mockProps} filterType="allFilters" />);
       expect(screen.getByText('Filter and sort')).toBeInTheDocument();
     });
+
+    it('renders all filter sections in allFilters modal', () => {
+      render(<FilterModal {...mockProps} filterType="allFilters" />);
+      
+      // Check that all filter sections are present
+      expect(screen.getByText('Make and Model')).toBeInTheDocument();
+      expect(screen.getByText('Price Range')).toBeInTheDocument();
+      expect(screen.getByText('Year Range')).toBeInTheDocument();
+      expect(screen.getByText('Mileage Range')).toBeInTheDocument();
+      expect(screen.getByText('Body Style')).toBeInTheDocument();
+      expect(screen.getByText('Transmission')).toBeInTheDocument();
+      expect(screen.getByText('Fuel Type')).toBeInTheDocument();
+      expect(screen.getByText('Seller Type')).toBeInTheDocument();
+    });
+
+
+
+
   });
 
   describe('Accessibility', () => {

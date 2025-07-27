@@ -42,7 +42,7 @@ export default function AdvancedSearchPage() {
   const { t, i18n } = useLazyTranslation(SEARCH_NAMESPACES);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { dirClass, isRTL } = useLanguageDirection();
+  const { dirClass: _dirClass, isRTL: _isRTL } = useLanguageDirection();
   
   // Extract language to prevent i18n object recreation causing re-renders
   const currentLanguage = i18n.language;
@@ -220,7 +220,7 @@ export default function AdvancedSearchPage() {
 
   const {
     data: referenceData,
-    isLoading: isLoadingReferenceData,
+    isLoading: _isLoadingReferenceData,
     error: referenceDataError
   } = useApiData<CarReferenceData>(
     fetchCarReferenceData,
@@ -870,14 +870,11 @@ export default function AdvancedSearchPage() {
             isLoadingBrands={isLoadingBrands}
             isLoadingModels={isLoadingModels}
             referenceData={referenceData}
-            _isLoadingReferenceData={isLoadingReferenceData}
             sellerTypeCounts={sellerTypeCounts}
             bodyStyleCounts={bodyStyleCounts}
             fuelTypeCounts={fuelTypeCounts}
             carListings={carListings}
             currentLanguage={currentLanguage}
-            isRTL={isRTL}
-            dirClass={dirClass}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             t={t as any}
             updateFiltersAndState={updateFiltersAndState}
