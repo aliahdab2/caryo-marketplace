@@ -58,7 +58,7 @@ export const useBodyStyleCounts = (filters?: CarListingFilterParams) => {
             // Build query string for the count endpoint
             const params = new URLSearchParams();
             if (countFilters.bodyStyleIds && countFilters.bodyStyleIds.length > 0) {
-              countFilters.bodyStyleIds.forEach(id => params.append('bodyStyleId', id.toString()));
+              countFilters.bodyStyleIds.forEach(id => params.append('bodyStyleIds', id.toString()));
             }
             if (countFilters.brands) countFilters.brands.forEach((slug: string) => params.append('brandSlugs', slug));
             if (countFilters.models) countFilters.models.forEach((slug: string) => params.append('modelSlugs', slug));

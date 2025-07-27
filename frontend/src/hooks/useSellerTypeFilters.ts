@@ -36,6 +36,7 @@ export const useSellerTypeFilters = (params: UseSellerTypeFiltersParams): UseSel
     
     try {
       // Convert filters to API format for count endpoint
+      // Note: Seller type counts endpoint doesn't support transmission/fuel type filtering
       const apiFilters = {
         brandSlugs: params.filters.brands,
         modelSlugs: params.filters.models,
@@ -45,9 +46,7 @@ export const useSellerTypeFilters = (params: UseSellerTypeFiltersParams): UseSel
         maxPrice: params.filters.maxPrice?.toString(),
         minMileage: params.filters.minMileage?.toString(),
         maxMileage: params.filters.maxMileage?.toString(),
-        transmissionId: params.filters.transmissionId,
-        fuelTypeId: params.filters.fuelTypeId,
-        bodyStyleId: params.filters.bodyStyleId,
+        // Don't include transmissionId, fuelTypeId, or bodyStyleId as they're not supported by this endpoint
         // Don't include sellerTypeId in count queries
       };
       
@@ -68,10 +67,8 @@ export const useSellerTypeFilters = (params: UseSellerTypeFiltersParams): UseSel
     params.filters.minPrice,
     params.filters.maxPrice,
     params.filters.minMileage,
-    params.filters.maxMileage,
-    params.filters.transmissionId,
-    params.filters.fuelTypeId,
-    params.filters.bodyStyleId
+    params.filters.maxMileage
+    // Removed transmissionId, fuelTypeId, and bodyStyleId as they're not supported by the seller type counts endpoint
   ]);
 
   useEffect(() => {
