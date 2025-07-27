@@ -35,7 +35,7 @@ export interface AdvancedSearchFilters {
   // Entity ID filters (for dropdown selections)
   conditionId?: number;
   transmissionId?: number;
-  fuelTypeId?: number;
+  fuelTypeSlugs?: string[]; // Fuel type filtering - multiple selection using slugs
   bodyType?: string[]; // Body type filtering
   sellerTypeIds?: number[];
   
@@ -110,10 +110,12 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
           case 'maxMileage':
           case 'conditionId':
           case 'transmissionId':
-          case 'fuelTypeId':
           case 'doors':
           case 'cylinders':
             newFilters[field] = value as number;
+            break;
+          case 'fuelTypeSlugs':
+            newFilters[field] = value as string[];
             break;
           case 'bodyType':
             newFilters[field] = value as string[];
@@ -154,7 +156,7 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
           delete newFilters.transmissionId;
           break;
         case 'fuelType':
-          delete newFilters.fuelTypeId;
+          delete newFilters.fuelTypeSlugs;
           break;
         case 'bodyStyle':
           delete newFilters.bodyType;
@@ -277,6 +279,13 @@ export function useSearchFilters({
     }, [carReferenceData?.fuelTypes]
   );
 
+  const getFuelTypeDisplayNameFromSlug = useMemo(() => 
+    (slug: string): string => {
+      const fuelType = carReferenceData?.fuelTypes.find(f => f.slug === slug);
+      return fuelType ? fuelType.displayNameEn : '';
+    }, [carReferenceData?.fuelTypes]
+  );
+
   const getBodyStyleDisplayName = useMemo(() => 
     (slug: string): string => {
       const bodyStyle = carReferenceData?.bodyStyles.find(b => b.slug === slug);
@@ -348,8 +357,8 @@ export function useSearchFilters({
     if (newFilters.transmissionId) {
       searchParams.set('transmission', newFilters.transmissionId.toString());
     }
-    if (newFilters.fuelTypeId) {
-      searchParams.set('fuelType', newFilters.fuelTypeId.toString());
+    if (newFilters.fuelTypeSlugs && newFilters.fuelTypeSlugs.length > 0) {
+      searchParams.set('fuelType', newFilters.fuelTypeSlugs.join(','));
     }
             if (newFilters.bodyType && newFilters.bodyType.length > 0) {
           searchParams.set('bodyType', newFilters.bodyType.join('-'));
@@ -461,8 +470,10 @@ export function useSearchFilters({
       case 'transmission':
         return state.filters.transmissionId ? getTransmissionDisplayName(state.filters.transmissionId) : t('search.filters.transmission', 'Transmission');
 
-      case 'fuelType':
-        return state.filters.fuelTypeId ? getFuelTypeDisplayName(state.filters.fuelTypeId) : t('search.filters.fuelType', 'Fuel Type');
+          case 'fuelType':
+      return state.filters.fuelTypeSlugs && state.filters.fuelTypeSlugs.length > 0 
+        ? state.filters.fuelTypeSlugs.map(slug => getFuelTypeDisplayNameFromSlug(slug)).join(', ') 
+        : t('search.filters.fuelType', 'Fuel Type');
 
       case 'bodyStyle':
                 return state.filters.bodyType && state.filters.bodyType.length > 0
@@ -494,8 +505,8 @@ export function useSearchFilters({
         return state.filters.minMileage !== undefined || state.filters.maxMileage !== undefined;
       case 'transmission':
         return state.filters.transmissionId !== undefined;
-      case 'fuelType':
-        return state.filters.fuelTypeId !== undefined;
+          case 'fuelType':
+      return state.filters.fuelTypeSlugs !== undefined && state.filters.fuelTypeSlugs.length > 0;
       case 'bodyStyle':
         return state.filters.bodyType !== undefined && state.filters.bodyType.length > 0;
       case 'sellerType':

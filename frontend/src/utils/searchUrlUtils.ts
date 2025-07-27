@@ -14,7 +14,7 @@ export interface FilterUrlParams {
   maxMileage?: number;
   location?: string;
   transmissionId?: number;
-  fuelTypeId?: number;
+  fuelTypeSlugs?: string[]; // Multiple fuel type slugs
   bodyStyleIds?: number[];
   sellerTypeId?: number;
 }
@@ -72,8 +72,8 @@ export function buildSearchParams(filters: FilterUrlParams): URLSearchParams {
   if (filters.transmissionId && filters.transmissionId > 0) {
     params.append('transmissionId', filters.transmissionId.toString());
   }
-  if (filters.fuelTypeId && filters.fuelTypeId > 0) {
-    params.append('fuelTypeId', filters.fuelTypeId.toString());
+  if (filters.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0) {
+    filters.fuelTypeSlugs.forEach(slug => params.append('fuelType', slug));
   }
   if (filters.bodyStyleIds && filters.bodyStyleIds.length > 0) {
     filters.bodyStyleIds.forEach(id => params.append('bodyStyleIds', id.toString()));
@@ -163,10 +163,9 @@ export function parseSearchParams(searchParams: URLSearchParams): FilterUrlParam
     if (id > 0) filters.transmissionId = id;
   }
   
-  const fuelTypeId = searchParams.get('fuelTypeId');
-  if (fuelTypeId) {
-    const id = parseInt(fuelTypeId, 10);
-    if (id > 0) filters.fuelTypeId = id;
+  const fuelTypeSlugs = searchParams.getAll('fuelType').filter(slug => slug.trim());
+  if (fuelTypeSlugs.length > 0) {
+    filters.fuelTypeSlugs = fuelTypeSlugs;
   }
   
   const bodyStyleIds = searchParams.getAll('bodyStyleIds');
@@ -270,7 +269,7 @@ export function countActiveFilters(filters: FilterUrlParams): number {
   if (filters.minPrice || filters.maxPrice) count++;
   if (filters.minMileage || filters.maxMileage) count++;
   if (filters.transmissionId) count++;
-  if (filters.fuelTypeId) count++;
+  if (filters.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0) count++;
   if (filters.bodyStyleIds && filters.bodyStyleIds.length > 0) count++;
   if (filters.sellerTypeId) count++;
   

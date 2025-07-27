@@ -231,7 +231,7 @@ export interface AdvancedSearchFilters {
   // Entity ID filters (for dropdown selections)
   conditionId?: number;
   transmissionId?: number;
-  fuelTypeId?: number;
+  fuelTypeSlugs?: string[]; // Fuel type filtering - multiple selection using slugs
   bodyStyleSlugs?: string[];
   sellerTypeIds?: number[];
   
@@ -602,7 +602,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
               <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:fuelType', 'Fuel type')}</h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {referenceData?.fuelTypes?.map(fuelType => {
-                  const isSelected = filters.fuelTypeId === fuelType.id;
+                  const isSelected = filters.fuelTypeSlugs?.includes(fuelType.slug) || false;
                   const displayName = currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn;
                   const count = fuelTypeCounts[fuelType.name.toLowerCase()];
                   
@@ -613,7 +613,12 @@ const FilterModals = React.memo<FilterModalsProps>(({
                         isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                       }`}
                       onClick={() => {
-                        handleInputChange('fuelTypeId', isSelected ? undefined : fuelType.id);
+                        const currentFuelTypes = filters.fuelTypeSlugs || [];
+                        const newFuelTypes = isSelected 
+                          ? currentFuelTypes.filter(fuelTypeSlug => fuelTypeSlug !== fuelType.slug)
+                          : [...currentFuelTypes, fuelType.slug];
+                        
+                        handleInputChange('fuelTypeSlugs', newFuelTypes.length > 0 ? newFuelTypes : undefined);
                       }}
                     >
                       <div className="flex items-center space-x-3 rtl:space-x-reverse">

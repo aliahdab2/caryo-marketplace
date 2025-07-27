@@ -54,7 +54,7 @@ const mockProps = {
     minMileage: undefined,
     maxMileage: undefined,
     transmissionId: undefined,
-    fuelTypeId: undefined,
+    fuelTypeSlugs: undefined,
     bodyStyleIds: undefined,
     sellerTypeIds: undefined,
     location: undefined
@@ -83,7 +83,7 @@ const mockProps = {
       { id: 1, displayNameEn: 'Manual', displayNameAr: 'يدوي', name: 'manual' }
     ],
     fuelTypes: [
-      { id: 1, displayNameEn: 'Gasoline', displayNameAr: 'بنزين', name: 'gasoline' }
+      { id: 1, displayNameEn: 'Gasoline', displayNameAr: 'بنزين', name: 'gasoline', slug: 'gasoline' }
     ],
     bodyStyles: [
       { id: 1, displayNameEn: 'Sedan', displayNameAr: 'سيدان', name: 'sedan', slug: 'sedan' }

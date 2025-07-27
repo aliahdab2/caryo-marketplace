@@ -10,11 +10,13 @@ import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.model.BodyStyle;
+import com.autotrader.autotraderbackend.model.FuelType;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.BodyStyleService;
 import com.autotrader.autotraderbackend.service.CarListingService;
 import com.autotrader.autotraderbackend.service.CarListingStatusService;
+import com.autotrader.autotraderbackend.service.FuelTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -51,6 +53,7 @@ public class CarListingController {
     private final CarListingService carListingService;
     private final CarListingStatusService carListingStatusService;
     private final BodyStyleService bodyStyleService;
+    private final FuelTypeService fuelTypeService;
 
     @PutMapping("/{id}/pause")
     @PreAuthorize("isAuthenticated()")
@@ -317,7 +320,7 @@ public class CarListingController {
             @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
             @Parameter(description = "Filter by seller type IDs") @RequestParam(required = false) List<Long> sellerTypeIds,
             @Parameter(description = "Filter by transmission IDs") @RequestParam(required = false) List<Long> transmissionIds,
-            @Parameter(description = "Filter by fuel type IDs") @RequestParam(required = false) List<Long> fuelTypeIds,
+            @Parameter(description = "Filter by fuel type slugs (can be repeated for multiple fuel types)", example = "gasoline") @RequestParam(required = false) List<String> fuelTypeSlugs,
             @Parameter(description = "Filter by body type") @RequestParam(required = false) List<String> bodyType,
             @Parameter(description = "Search query for text-based search (supports English and Arabic)") @RequestParam(required = false) String searchQuery,
             @PageableDefault(size = 10, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
@@ -344,7 +347,7 @@ public class CarListingController {
         filterRequest.setIsArchived(isArchived);
         filterRequest.setSellerTypeIds(sellerTypeIds);
         filterRequest.setTransmissionIds(transmissionIds);
-        filterRequest.setFuelTypeIds(fuelTypeIds);
+        filterRequest.setFuelTypeSlugs(fuelTypeSlugs);
         // Handle hyphen-separated body types
         if (bodyType != null && !bodyType.isEmpty()) {
             List<String> bodyTypes = new ArrayList<>();
@@ -371,6 +374,11 @@ public class CarListingController {
         
         // Validate input
         validateFilterRequest(filterRequest);
+        
+        // Validate fuel type slugs if provided
+        if (fuelTypeSlugs != null && !fuelTypeSlugs.isEmpty()) {
+            validateFuelTypeSlugs(fuelTypeSlugs);
+        }
         
         Page<CarListingResponse> listingPage = carListingService.getFilteredListings(filterRequest, pageable);
         PageResponse<CarListingResponse> response = new PageResponse<>(
@@ -428,6 +436,30 @@ public class CarListingController {
         
         if (!invalidSlugs.isEmpty()) {
             throw new IllegalArgumentException("Invalid body type(s): " + String.join(", ", invalidSlugs) + 
+                ". Valid options are: " + String.join(", ", validSlugs));
+        }
+    }
+
+    /**
+     * Validates that all fuel type slugs exist in the database.
+     */
+    private void validateFuelTypeSlugs(List<String> fuelTypeSlugs) {
+        if (fuelTypeSlugs.size() > 10) {
+            throw new IllegalArgumentException("Too many fuel type filters (max 10)");
+        }
+        
+        // Get all valid fuel type slugs from the database
+        List<String> validSlugs = fuelTypeService.getAllFuelTypes().stream()
+            .map(FuelType::getSlug)
+            .collect(Collectors.toList());
+        
+        // Find invalid slugs
+        List<String> invalidSlugs = fuelTypeSlugs.stream()
+            .filter(slug -> !validSlugs.contains(slug))
+            .collect(Collectors.toList());
+        
+        if (!invalidSlugs.isEmpty()) {
+            throw new IllegalArgumentException("Invalid fuel type(s): " + String.join(", ", invalidSlugs) + 
                 ". Valid options are: " + String.join(", ", validSlugs));
         }
     }
@@ -505,7 +537,7 @@ public class CarListingController {
             @Parameter(description = "Show archived listings") @RequestParam(required = false) Boolean isArchived,
             @Parameter(description = "Filter by seller type IDs") @RequestParam(required = false) List<Long> sellerTypeIds,
             @Parameter(description = "Filter by transmission IDs") @RequestParam(required = false) List<Long> transmissionIds,
-            @Parameter(description = "Filter by fuel type IDs") @RequestParam(required = false) List<Long> fuelTypeIds,
+            @Parameter(description = "Filter by fuel type slugs (can be repeated for multiple fuel types)", example = "gasoline") @RequestParam(required = false) List<String> fuelTypeSlugs,
             @Parameter(description = "Filter by body type") @RequestParam(required = false) List<String> bodyType,
             @Parameter(description = "Search query for text-based search (supports English and Arabic)") @RequestParam(required = false) String searchQuery) {
         
@@ -531,7 +563,7 @@ public class CarListingController {
         filterRequest.setIsArchived(isArchived);
         filterRequest.setSellerTypeIds(sellerTypeIds);
         filterRequest.setTransmissionIds(transmissionIds);
-        filterRequest.setFuelTypeIds(fuelTypeIds);
+        filterRequest.setFuelTypeSlugs(fuelTypeSlugs);
         // Handle hyphen-separated body types
         if (bodyType != null && !bodyType.isEmpty()) {
             List<String> bodyTypes = new ArrayList<>();

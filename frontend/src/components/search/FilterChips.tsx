@@ -17,7 +17,7 @@ interface FilterChipsProps {
   getModelDisplayNameFromSlug: (slug: string) => string;
   getFilterDisplayText: (filterType: FilterType) => string;
   getTransmissionDisplayName: (id: number) => string;
-  getFuelTypeDisplayName: (id: number) => string;
+  getFuelTypeDisplayNameFromSlug: (slug: string) => string;
   getBodyStyleDisplayName: (slug: string) => string;
   getSellerTypeDisplayName: (id: number) => string;
   selectedMake: number | null;
@@ -35,25 +35,13 @@ export default function FilterChips({
   getModelDisplayNameFromSlug,
   getFilterDisplayText,
   getTransmissionDisplayName,
-  getFuelTypeDisplayName,
+  getFuelTypeDisplayNameFromSlug,
   getBodyStyleDisplayName,
   getSellerTypeDisplayName,
   selectedMake,
   selectedModel,
-  referenceData,
   t
 }: FilterChipsProps) {
-  // Helper function to get fuel type name from ID for icon
-  const getFuelTypeNameFromId = (id: number): string => {
-    if (referenceData?.fuelTypes) {
-      const fuelType = referenceData.fuelTypes.find(f => f.id === id);
-      if (fuelType) {
-        return fuelType.name.toLowerCase();
-      }
-    }
-    // Fallback to gasoline if not found
-    return 'gasoline';
-  };
 
 
   // Show filter chips only when there are active filters
@@ -82,7 +70,7 @@ export default function FilterChips({
               minMileage: undefined,
               maxMileage: undefined,
               transmissionId: undefined,
-              fuelTypeId: undefined,
+              fuelTypeSlugs: undefined,
               bodyType: undefined,
               sellerTypeIds: undefined
             }, {
@@ -170,15 +158,21 @@ export default function FilterChips({
           />
         )}
 
-        {/* Fuel Type Chip */}
-        {filters.fuelTypeId && (
+        {/* Fuel Type Chips */}
+        {filters.fuelTypeSlugs && filters.fuelTypeSlugs.map((fuelTypeSlug) => (
           <FilterChip
-            label={getFuelTypeDisplayName(filters.fuelTypeId)}
-            onRemove={() => updateFiltersAndState({ fuelTypeId: undefined })}
-            icon={getFuelTypeIcon(getFuelTypeNameFromId(filters.fuelTypeId), "w-6 h-5")}
+            key={`fuel-${fuelTypeSlug}`}
+            label={getFuelTypeDisplayNameFromSlug(fuelTypeSlug)}
+            onRemove={() => {
+              const updatedFuelTypes = filters.fuelTypeSlugs?.filter(slug => slug !== fuelTypeSlug) || [];
+              updateFiltersAndState({ 
+                fuelTypeSlugs: updatedFuelTypes.length > 0 ? updatedFuelTypes : undefined
+              });
+            }}
+            icon={getFuelTypeIcon(fuelTypeSlug, "w-6 h-5")}
             removeButtonLabel={t('removeFuelTypeFilter', 'Remove fuel type filter')}
           />
-        )}
+        ))}
 
         {/* Body Style Chips */}
         {filters.bodyType && filters.bodyType.map((bodyStyleSlug) => (

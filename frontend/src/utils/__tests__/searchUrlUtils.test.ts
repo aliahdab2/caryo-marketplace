@@ -82,7 +82,7 @@ describe('searchUrlUtils', () => {
     it('builds params for entity ID filters', () => {
       const filters: FilterUrlParams = {
         transmissionId: 2,
-        fuelTypeId: 3,
+        fuelTypeSlugs: ['gasoline', 'hybrid'],
         bodyStyleIds: [4],
         sellerTypeId: 5
       };
@@ -90,7 +90,7 @@ describe('searchUrlUtils', () => {
       const params = buildSearchParams(filters);
       
       expect(params.get('transmissionId')).toBe('2');
-      expect(params.get('fuelTypeId')).toBe('3');
+      expect(params.getAll('fuelType')).toEqual(['gasoline', 'hybrid']);
       expect(params.get('bodyStyleIds')).toBe('4');
       expect(params.get('sellerTypeId')).toBe('5');
     });
@@ -148,12 +148,12 @@ describe('searchUrlUtils', () => {
     });
 
     it('parses entity ID parameters', () => {
-      const params = new URLSearchParams('transmissionId=2&fuelTypeId=3');
+      const params = new URLSearchParams('transmissionId=2&fuelType=gasoline&fuelType=hybrid');
       
       const filters = parseSearchParams(params);
       
       expect(filters.transmissionId).toBe(2);
-      expect(filters.fuelTypeId).toBe(3);
+      expect(filters.fuelTypeSlugs).toEqual(['gasoline', 'hybrid']);
     });
 
     it('filters out empty brand/model slugs', () => {

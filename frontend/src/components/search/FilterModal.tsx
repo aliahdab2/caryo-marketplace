@@ -654,7 +654,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
             <div className="space-y-4">
               <div className="grid gap-3 max-h-96 overflow-y-auto pr-2 rtl:pr-0 rtl:pl-2">
                 {referenceData?.fuelTypes?.map(fuelType => {
-                  const isSelected = filters.fuelTypeId === fuelType.id;
+                  const isSelected = filters.fuelTypeSlugs?.includes(fuelType.slug) || false;
                   const displayName = currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn;
                   const count = fuelTypeCounts[fuelType.name.toLowerCase()] || 0;
                   
@@ -667,7 +667,12 @@ const FilterModal: React.FC<FilterModalProps> = ({
                           : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
                       }`}
                       onClick={() => {
-                        handleInputChange('fuelTypeId', isSelected ? undefined : fuelType.id);
+                        const currentFuelTypes = filters.fuelTypeSlugs || [];
+                        const newFuelTypes = isSelected 
+                          ? currentFuelTypes.filter(fuelTypeSlug => fuelTypeSlug !== fuelType.slug)
+                          : [...currentFuelTypes, fuelType.slug];
+                        
+                        handleInputChange('fuelTypeSlugs', newFuelTypes.length > 0 ? newFuelTypes : undefined);
                       }}
                     >
                       <div className="flex items-center space-x-4 rtl:space-x-reverse">
@@ -1150,7 +1155,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                           minMileage: undefined,
                           maxMileage: undefined,
                           transmissionId: undefined,
-                          fuelTypeId: undefined,
+                          fuelTypeSlugs: undefined,
                           bodyType: undefined,
                           sellerTypeIds: undefined,
                           locations: undefined,

@@ -59,7 +59,7 @@ export function useSearchOptimizations({
       page: 0,
       sort: 'createdAt,desc',
       transmissionId: filters.transmissionId,
-      fuelTypeId: filters.fuelTypeId,
+      fuelTypeSlugs: filters.fuelTypeSlugs,
       bodyType: filters.bodyType,
       conditionId: filters.conditionId
     };
@@ -84,7 +84,7 @@ export function useSearchOptimizations({
     filters.locations,
     filters.sellerTypeIds,
     filters.transmissionId,
-    filters.fuelTypeId,
+    filters.fuelTypeSlugs,
           filters.bodyType,
     filters.conditionId,
     filters.brands,
@@ -123,7 +123,7 @@ export function useSearchOptimizations({
       filters.maxMileage ||
       filters.locations?.length ||
       filters.transmissionId ||
-      filters.fuelTypeId ||
+      (filters.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0) ||
               filters.bodyType?.length ||
       filters.conditionId ||
       filters.sellerTypeIds?.length
@@ -139,7 +139,7 @@ export function useSearchOptimizations({
     if (filters.minMileage || filters.maxMileage) count++;
     if (filters.locations?.length) count++;
     if (filters.transmissionId) count++;
-    if (filters.fuelTypeId) count++;
+    if (filters.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0) count++;
     if (filters.bodyType?.length) count++;
     if (filters.conditionId) count++;
     if (filters.sellerTypeIds?.length) count++;

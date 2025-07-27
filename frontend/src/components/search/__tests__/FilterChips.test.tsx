@@ -17,7 +17,7 @@ const mockFilters: AdvancedSearchFilters = {
   minYear: 2020,
   maxYear: 2024,
   transmissionId: 1,
-  fuelTypeId: 2,
+  fuelTypeSlugs: ['gasoline', 'diesel'],
   bodyType: ['sedan'],
   sellerTypeIds: [1, 2]
 };
@@ -31,7 +31,7 @@ const mockProps = {
   getModelDisplayNameFromSlug: jest.fn((slug: string) => slug === 'camry' ? 'Camry' : 'Unknown'),
   getFilterDisplayText: jest.fn((filterType: FilterType) => `${filterType} filter`),
   getTransmissionDisplayName: jest.fn(() => 'Automatic'),
-  getFuelTypeDisplayName: jest.fn(() => 'Gasoline'),
+  getFuelTypeDisplayNameFromSlug: jest.fn((slug: string) => slug === 'gasoline' ? 'Gasoline' : 'Diesel'),
   getBodyStyleDisplayName: jest.fn(() => 'Sedan'),
   getSellerTypeDisplayName: jest.fn(() => 'Dealer'),
   selectedMake: null,
@@ -96,7 +96,7 @@ describe('FilterChips', () => {
       minMileage: undefined,
       maxMileage: undefined,
       transmissionId: undefined,
-      fuelTypeId: undefined,
+      fuelTypeSlugs: undefined,
       bodyType: undefined,
       sellerTypeIds: undefined
     }, {
