@@ -22,6 +22,7 @@ import {
   MotorcycleIcon
 } from '@/components/icons/CarIcons';
 import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
+import FuelTypeFilter from './filters/FuelTypeFilter';
 import TransmissionFilter from './filters/TransmissionFilter';
 import BodyStyleFilter from './filters/BodyStyleFilter';
 
@@ -593,53 +594,16 @@ const FilterModals = React.memo<FilterModalsProps>(({
           <div className="space-y-6">
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:fuelType', 'Fuel type')}</h3>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {referenceData?.fuelTypes?.map(fuelType => {
-                  const isSelected = filters.fuelTypeSlugs?.includes(fuelType.slug) || false;
-                  const displayName = currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn;
-                  const count = fuelTypeCounts[fuelType.name.toLowerCase()];
-                  
-                  return (
-                    <div
-                      key={fuelType.id}
-                      className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all hover:border-blue-300 hover:bg-blue-50 ${
-                        isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                      }`}
-                      onClick={() => {
-                        const currentFuelTypes = filters.fuelTypeSlugs || [];
-                        const newFuelTypes = isSelected 
-                          ? currentFuelTypes.filter(fuelTypeSlug => fuelTypeSlug !== fuelType.slug)
-                          : [...currentFuelTypes, fuelType.slug];
-                        
-                        handleInputChange('fuelTypeSlugs', newFuelTypes.length > 0 ? newFuelTypes : undefined);
-                      }}
-                    >
-                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                        <div className="w-20 h-14 flex items-center justify-center">
-                          {getFuelTypeIcon(fuelType.name.toLowerCase())}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">{displayName}</div>
-                          <div className="text-sm text-gray-500">{count ? `${count.toLocaleString()} listings` : 'No listings'}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <div className={`w-5 h-5 border-2 rounded transition-all ${
-                          isSelected 
-                            ? 'border-blue-500 bg-blue-500' 
-                            : 'border-gray-300 hover:border-blue-400'
-                        }`}>
-                          {isSelected && (
-                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                            </svg>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <FuelTypeFilter
+                referenceData={referenceData}
+                currentLanguage={currentLanguage}
+                selectedFuelTypeSlugs={filters.fuelTypeSlugs}
+                onFuelTypeChange={(fuelTypeSlugs) => handleInputChange('fuelTypeSlugs', fuelTypeSlugs)}
+                variant="cards"
+                isLoading={isLoadingReferenceData}
+                fuelTypeCounts={fuelTypeCounts}
+                t={t as any}
+              />
             </div>
           </div>
         );
