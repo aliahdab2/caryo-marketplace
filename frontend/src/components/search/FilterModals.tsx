@@ -25,6 +25,7 @@ import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
 import FuelTypeFilter from './filters/FuelTypeFilter';
 import TransmissionFilter from './filters/TransmissionFilter';
 import BodyStyleFilter from './filters/BodyStyleFilter';
+import SellerTypeFilter from './filters/SellerTypeFilter';
 
 // Move constants outside component to prevent recreation
 const CURRENT_YEAR = new Date().getFullYear();
@@ -633,48 +634,16 @@ const FilterModals = React.memo<FilterModalsProps>(({
             <div className="text-center">
               <h3 className="text-xl font-medium text-gray-900 mb-1">{t('search:sellerType', 'Seller Type')}</h3>
             </div>
-            
-            <div className="space-y-2">
-              {referenceData?.sellerTypes?.map(sellerType => {
-                const id = sellerType.id as number;
-                const typedSellerType = sellerType as { displayNameEn: string; displayNameAr: string; name: string };
-                const isSelected = filters.sellerTypeIds?.includes(id) || false;
-                const displayName = currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn;
-                const count = sellerTypeCounts[typedSellerType.name] || 0;
-                
-                return (
-                  <div
-                    key={id}
-                    className="flex items-center justify-between py-3 cursor-pointer hover:bg-gray-50 rounded-md px-2"
-                    onClick={() => {
-                      const currentSellerTypes = filters.sellerTypeIds || [];
-                      const newSellerTypes = isSelected 
-                        ? currentSellerTypes.filter(sellerTypeId => sellerTypeId !== id)
-                        : [...currentSellerTypes, id];
-                      
-                      handleInputChange('sellerTypeIds', newSellerTypes.length > 0 ? newSellerTypes : undefined);
-                    }}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-5 h-5 border-2 rounded transition-all ${
-                        isSelected 
-                          ? 'border-gray-400 bg-gray-400' 
-                          : 'border-gray-300 hover:border-gray-400'
-                      }`}>
-                        {isSelected && (
-                          <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                          </svg>
-                        )}
-                      </div>
-                      <label className="text-gray-900 cursor-pointer text-base font-normal">
-                        {displayName} <span className="text-gray-500 font-normal">({count.toLocaleString()})</span>
-                      </label>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <SellerTypeFilter
+              referenceData={referenceData}
+              currentLanguage={currentLanguage}
+              selectedSellerTypeIds={filters.sellerTypeIds}
+              onSellerTypeChange={(sellerTypeIds) => handleInputChange('sellerTypeIds', sellerTypeIds)}
+              variant="cards"
+              isLoading={isLoadingReferenceData}
+              sellerTypeCounts={sellerTypeCounts}
+              t={t as any}
+            />
           </div>
         );
 
