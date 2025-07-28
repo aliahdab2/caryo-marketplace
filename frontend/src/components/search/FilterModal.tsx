@@ -8,12 +8,14 @@ import { TransmissionCounts } from '@/hooks/useTransmissionCounts';
 import PriceSlider from '@/components/ui/PriceSlider';
 import MileageSlider from '@/components/ui/MileageSlider';
 import YearSlider from '@/components/ui/YearSlider';
-import { getCarIcon } from '@/utils/carIcons';
-import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
+
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
 import TransmissionFilter from './filters/TransmissionFilter';
 import BodyStyleFilter from './filters/BodyStyleFilter';
+import FuelTypeFilter from './filters/FuelTypeFilter';
+import SellerTypeFilter from './filters/SellerTypeFilter';
+
 
 interface FilterModalProps {
   filterType: FilterType;
@@ -169,7 +171,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
           </div>
         </button>
         <div className={`transition-all duration-300 ease-in-out ${
-          isCollapsed ? 'max-h-0 opacity-0' : 'max-h-96 opacity-100'
+          isCollapsed ? 'max-h-0 opacity-0' : 'max-h-[600px] opacity-100'
         } overflow-hidden`}>
           <div className="p-4">
             {children}
@@ -627,67 +629,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 );
 
               case 'fuelType':
-          return (
-            <div className="space-y-4">
-              <div className="grid gap-3 max-h-96 overflow-y-auto pr-2 rtl:pr-0 rtl:pl-2">
-                {referenceData?.fuelTypes?.map(fuelType => {
-                  const isSelected = filters.fuelTypeSlugs?.includes(fuelType.slug) || false;
-                  const displayName = currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn;
-                  const count = fuelTypeCounts[fuelType.name.toLowerCase()] || 0;
-                  
-                  return (
-                    <div
-                      key={fuelType.id}
-                      className={`group relative flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                        isSelected 
-                          ? 'border-blue-500 bg-blue-50 shadow-sm' 
-                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
-                      }`}
-                      onClick={() => {
-                        const currentFuelTypes = filters.fuelTypeSlugs || [];
-                        const newFuelTypes = isSelected 
-                          ? currentFuelTypes.filter(fuelTypeSlug => fuelTypeSlug !== fuelType.slug)
-                          : [...currentFuelTypes, fuelType.slug];
-                        
-                        handleInputChange('fuelTypeSlugs', newFuelTypes.length > 0 ? newFuelTypes : undefined);
-                      }}
-                    >
-                      <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                        <div className="transition-transform group-hover:scale-105">
-                          {getFuelTypeIcon(fuelType.name.toLowerCase(), "w-10 h-7")}
-                        </div>
-                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                          <span className="text-gray-900 font-medium">{displayName}</span>
-                          <span className="text-gray-500 text-sm">
-                            {count > 0 ? `(${count.toLocaleString()})` : '(0)'}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center">
-                        <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
-                          isSelected 
-                            ? 'border-blue-500 bg-blue-500 scale-110' 
-                            : 'border-gray-300 group-hover:border-blue-400'
-                        }`}>
-                          {isSelected && (
-                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                            </svg>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Selection indicator */}
-                      {isSelected && (
-                        <div className="absolute inset-0 border-2 border-blue-500 rounded-xl pointer-events-none animate-pulse"></div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
+                return (
+                  <FuelTypeFilter
+                    referenceData={referenceData}
+                    currentLanguage={currentLanguage}
+                    selectedFuelTypeSlugs={filters.fuelTypeSlugs}
+                    onFuelTypeChange={(fuelTypeSlugs) => handleInputChange('fuelTypeSlugs', fuelTypeSlugs)}
+                    variant="cards"
+                    isLoading={_isLoadingReferenceData}
+                    fuelTypeCounts={fuelTypeCounts}
+                    t={t as any}
+                  />
+                );
 
               case 'bodyStyle':
                 return (
@@ -704,61 +657,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 );
 
               case 'sellerType':
-          return (
-            <div className="space-y-6">
-            
-            {/* Blocket Style Filter with Checkboxes */}
-            <div className="space-y-2">
-              {/* Individual Seller Type Checkboxes - Blocket styling with English/Arabic content */}
-              {referenceData?.sellerTypes?.map(sellerType => {
-                const id = sellerType.id as number;
-                const typedSellerType = sellerType as { displayNameEn: string; displayNameAr: string; name: string };
-                const isSelected = filters.sellerTypeIds?.includes(id) || false;
-                
-                // Use proper English and Arabic display names from the database
-                const displayName = currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn;
-                
-                // Get count for this seller type from our counts data
-                const count = sellerTypeCounts[typedSellerType.name] || 0;
-                
                 return (
-                  <div
-                    key={id}
-                    className="flex items-center justify-between py-3 cursor-pointer hover:bg-gray-50 rounded-md px-2"
-                    onClick={() => {
-                      const currentSellerTypes = filters.sellerTypeIds || [];
-                      const newSellerTypes = isSelected 
-                        ? currentSellerTypes.filter(sellerTypeId => sellerTypeId !== id)
-                        : [...currentSellerTypes, id];
-                      
-                      handleInputChange('sellerTypeIds', newSellerTypes.length > 0 ? newSellerTypes : undefined);
-                    }}
-                  >
-                    <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                      {/* Blocket-style Checkbox */}
-                      <div className={`w-5 h-5 border-2 rounded transition-all ${
-                        isSelected 
-                          ? 'border-gray-400 bg-gray-400' 
-                          : 'border-gray-300 hover:border-gray-400'
-                      }`}>
-                        {isSelected && (
-                          <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                          </svg>
-                        )}
-                      </div>
-                      
-                      {/* Label with Count - Blocket Style with English/Arabic */}
-                      <label className="text-gray-900 cursor-pointer text-base font-normal">
-                        {displayName} <span className="text-gray-500 font-normal">({count.toLocaleString()})</span>
-                      </label>
-                    </div>
-                  </div>
+                  <SellerTypeFilter
+                    referenceData={referenceData}
+                    currentLanguage={currentLanguage}
+                    selectedSellerTypeIds={filters.sellerTypeIds}
+                    onSellerTypeChange={(sellerTypeIds) => handleInputChange('sellerTypeIds', sellerTypeIds)}
+                    variant="cards"
+                    isLoading={_isLoadingReferenceData}
+                    sellerTypeCounts={sellerTypeCounts}
+                    t={t as any}
+                  />
                 );
-              })}
-            </div>
-          </div>
-        );
 
       case 'allFilters':
         return (
@@ -904,19 +814,44 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 </svg>
               }
             >
-              <MileageSlider
-                minMileage={filters.minMileage}
-                maxMileage={filters.maxMileage}
-                onChange={(min, max) => {
-                  updateFiltersAndState({
-                    minMileage: min,
-                    maxMileage: max
-                  });
-                }}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              <div className="w-full [&_.range-slider]:pt-0 [&_.range-slider]:pb-0 [&_.range-slider_.grid]:mt-0">
+                <MileageSlider
+                  minMileage={filters.minMileage}
+                  maxMileage={filters.maxMileage}
+                  onChange={(min, max) => {
+                    updateFiltersAndState({
+                      minMileage: min,
+                      maxMileage: max
+                    });
+                  }}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  t={t as any}
+                  locale={currentLanguage}
+                  className="w-full"
+                />
+              </div>
+            </CollapsibleSection>
+            
+            {/* Fuel Type */}
+            <CollapsibleSection
+              title={t('fuelType', 'Fuel Type')}
+              sectionName="fuelType"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              }
+            >
+              <FuelTypeFilter
+                referenceData={referenceData}
+                currentLanguage={currentLanguage}
+                selectedFuelTypeSlugs={filters.fuelTypeSlugs}
+                onFuelTypeChange={(fuelTypeSlugs) => handleInputChange('fuelTypeSlugs', fuelTypeSlugs)}
+                variant="cards"
+                isLoading={_isLoadingReferenceData}
+                disableScroll={true}
+                fuelTypeCounts={fuelTypeCounts}
                 t={t as any}
-                locale={currentLanguage}
-                className="w-full"
               />
             </CollapsibleSection>
             
@@ -943,13 +878,36 @@ const FilterModal: React.FC<FilterModalProps> = ({
               />
             </CollapsibleSection>
             
+            {/* Seller Type */}
+            <CollapsibleSection
+              title={t('sellerType', 'Seller Type')}
+              sectionName="sellerType"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              }
+            >
+              <SellerTypeFilter
+                referenceData={referenceData}
+                currentLanguage={currentLanguage}
+                selectedSellerTypeIds={filters.sellerTypeIds}
+                onSellerTypeChange={(sellerTypeIds) => handleInputChange('sellerTypeIds', sellerTypeIds)}
+                variant="cards"
+                isLoading={_isLoadingReferenceData}
+                disableScroll={true}
+                sellerTypeCounts={sellerTypeCounts}
+                t={t as any}
+              />
+            </CollapsibleSection>
+            
             {/* Transmission */}
             <CollapsibleSection
               title={t('transmission', 'Transmission')}
               sectionName="transmission"
               icon={
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
               }
             >
@@ -980,7 +938,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
         
         <div 
           ref={modalRef}
-          className={`${MODAL_CLASSES.MODAL} max-h-[90vh] overflow-hidden flex flex-col`}
+          className={`${MODAL_CLASSES.MODAL} max-h-[95vh] overflow-hidden flex flex-col`}
           onKeyDown={(e) => {
             if (e.key === 'Escape') {
               onClose();
