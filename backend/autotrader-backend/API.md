@@ -731,6 +731,43 @@ These endpoints provide efficient count information for car listings without fet
   curl "http://localhost:8080/api/listings/counts/models?brandSlugs=toyota"
   ```
 
+#### Get Transmissions with Counts
+
+- **Endpoint**: `GET /api/listings/counts/transmissions`
+- **Access**: Public
+- **Description**: Returns all transmission types with their listing counts, optionally filtered
+- **Query Parameters**:
+  - `brandSlugs` (array): Filter by brand slugs (e.g., `toyota`, `honda`)
+  - `modelSlugs` (array): Filter by model slugs (e.g., `camry`, `civic`)
+  - `minYear` (integer): Minimum model year
+  - `maxYear` (integer): Maximum model year
+  - `location` (array): Filter by location slugs
+  - `minPrice` (decimal): Minimum price
+  - `maxPrice` (decimal): Maximum price
+  - `minMileage` (integer): Minimum mileage
+  - `maxMileage` (integer): Maximum mileage
+  - `fuelTypeSlugs` (array): Filter by fuel type slugs
+  - `bodyStyleIds` (array): Filter by body style IDs
+- **Response (200 OK)**:
+  ```json
+  {
+    "manual": 1200,
+    "automatic": 800,
+    "cvt": 150
+  }
+  ```
+- **Example**:
+  ```bash
+  # Get all transmission counts
+  curl http://localhost:8080/api/listings/counts/transmissions
+  
+  # Get transmission counts for Toyota cars only
+  curl "http://localhost:8080/api/listings/counts/transmissions?brandSlugs=toyota"
+  
+  # Get transmission counts for automatic cars from 2020 onwards
+  curl "http://localhost:8080/api/listings/counts/transmissions?minYear=2020&fuelTypeSlugs=gasoline"
+  ```
+
 ### Status Endpoints
 
 #### Check Service Status

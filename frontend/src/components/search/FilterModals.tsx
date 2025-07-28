@@ -22,6 +22,7 @@ import {
   MotorcycleIcon
 } from '@/components/icons/CarIcons';
 import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
+import TransmissionFilter from './filters/TransmissionFilter';
 
 // Move constants outside component to prevent recreation
 const CURRENT_YEAR = new Date().getFullYear();
@@ -575,24 +576,15 @@ const FilterModals = React.memo<FilterModalsProps>(({
 
       case 'transmission':
         return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:gearbox', 'Gearbox')}</h3>
-              <select
-                value={filters.transmissionId || ''}
-                onChange={(e) => handleInputChange('transmissionId', e.target.value ? parseInt(e.target.value) : undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                disabled={isLoadingReferenceData}
-              >
-                <option value="">{t('search:any', 'Any')}</option>
-                {referenceData?.transmissions?.map(transmission => (
-                  <option key={transmission.id} value={transmission.id}>
-                    {currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <TransmissionFilter
+            referenceData={referenceData || null}
+            currentLanguage={currentLanguage}
+            selectedTransmissionId={filters.transmissionId}
+            onTransmissionChange={(transmissionId) => handleInputChange('transmissionId', transmissionId)}
+            variant="dropdown"
+            isLoading={isLoadingReferenceData}
+            t={t as any}
+          />
         );
 
       case 'fuelType':

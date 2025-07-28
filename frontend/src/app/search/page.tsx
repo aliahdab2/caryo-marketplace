@@ -24,6 +24,7 @@ import { getSellerTypeCounts } from '@/services/sellerTypes';
 import { SellerTypeCounts } from '@/types/sellerTypes';
 import { useBodyStyleCounts } from '@/hooks/useBodyStyleCounts';
 import { useFuelTypeCounts } from '@/hooks/useFuelTypeCounts';
+import { useTransmissionCounts } from '@/hooks/useTransmissionCounts';
 import { useApiData } from '@/hooks/useApiData';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
@@ -155,6 +156,9 @@ export default function AdvancedSearchPage() {
 
   // Fuel type counts hook
   const { fuelTypeCounts } = useFuelTypeCounts(listingFilters);
+
+  // Transmission counts hook
+  const { transmissionCounts } = useTransmissionCounts(listingFilters);
 
   // API data hooks - with stable dependencies to prevent loops
   const {
@@ -874,6 +878,7 @@ export default function AdvancedSearchPage() {
             sellerTypeCounts={sellerTypeCounts}
             bodyStyleCounts={bodyStyleCounts}
             fuelTypeCounts={fuelTypeCounts}
+            transmissionCounts={transmissionCounts}
             carListings={carListings}
             currentLanguage={currentLanguage}
             isRTL={isRTL}

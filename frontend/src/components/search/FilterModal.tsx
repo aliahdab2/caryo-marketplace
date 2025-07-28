@@ -4,6 +4,7 @@ import { CarReferenceData, CarListing, PageResponse, fetchBrandCounts, fetchMode
 import { SellerTypeCounts } from '@/types/sellerTypes';
 import { BodyStyleCounts } from '@/hooks/useBodyStyleCounts';
 import { FuelTypeCounts } from '@/hooks/useFuelTypeCounts';
+import { TransmissionCounts } from '@/hooks/useTransmissionCounts';
 import PriceSlider from '@/components/ui/PriceSlider';
 import MileageSlider from '@/components/ui/MileageSlider';
 import YearSlider from '@/components/ui/YearSlider';
@@ -11,6 +12,7 @@ import { getCarIcon } from '@/utils/carIcons';
 import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
+import TransmissionFilter from './filters/TransmissionFilter';
 
 interface FilterModalProps {
   filterType: FilterType;
@@ -30,6 +32,7 @@ interface FilterModalProps {
   sellerTypeCounts: SellerTypeCounts;
   bodyStyleCounts: BodyStyleCounts;
   fuelTypeCounts: FuelTypeCounts;
+  transmissionCounts: TransmissionCounts;
   carListings: PageResponse<CarListing> | null;
   currentLanguage: string;
   isRTL: boolean;
@@ -76,6 +79,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
   sellerTypeCounts,
   bodyStyleCounts,
   fuelTypeCounts,
+  transmissionCounts,
   carListings,
   currentLanguage,
   t,
@@ -123,9 +127,28 @@ const FilterModal: React.FC<FilterModalProps> = ({
     icon: React.ReactNode;
   }) => {
     const isCollapsed = collapsedSections[sectionName];
+    const sectionRef = useRef<HTMLDivElement>(null);
+    const prevCollapsedRef = useRef<boolean>(isCollapsed);
+    
+    // Auto-scroll to section when it expands (not when it collapses)
+    useEffect(() => {
+      // Only scroll when expanding (was collapsed, now expanded)
+      if (prevCollapsedRef.current && !isCollapsed && sectionRef.current) {
+        // Use setTimeout to ensure the animation has started
+        setTimeout(() => {
+          sectionRef.current?.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'nearest' 
+          });
+        }, 100);
+      }
+      
+      // Update the previous state
+      prevCollapsedRef.current = isCollapsed;
+    }, [isCollapsed]);
     
     return (
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div ref={sectionRef} className="border border-gray-200 rounded-lg overflow-hidden">
         <button
           onClick={() => toggleSection(sectionName)}
           className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
@@ -589,66 +612,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
         );
 
               case 'transmission':
-          return (
-            <div className="space-y-4">
-              <div className="grid gap-3 max-h-96 overflow-y-auto pr-2 rtl:pr-0 rtl:pl-2">
-                {referenceData?.transmissions?.map(transmission => {
-                  const isSelected = filters.transmissionId === transmission.id;
-                  const displayName = currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn;
-                  const count = 0; // TODO: Add transmission counts when backend endpoint is available
-                  
-                  return (
-                    <div
-                      key={transmission.id}
-                      className={`group relative flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                        isSelected 
-                          ? 'border-blue-500 bg-blue-50 shadow-sm' 
-                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
-                      }`}
-                      onClick={() => {
-                        handleInputChange('transmissionId', isSelected ? undefined : transmission.id);
-                      }}
-                    >
-                      <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                        <div className="transition-transform group-hover:scale-105">
-                          <div className="w-10 h-7 flex items-center justify-center text-gray-600">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            </svg>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                          <span className="text-gray-900 font-medium">{displayName}</span>
-                          <span className="text-gray-500 text-sm">
-                            {count > 0 ? `(${count.toLocaleString()})` : '(0)'}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center">
-                        <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
-                          isSelected 
-                            ? 'border-blue-500 bg-blue-500 scale-110' 
-                            : 'border-gray-300 group-hover:border-blue-400'
-                        }`}>
-                          {isSelected && (
-                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                            </svg>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Selection indicator */}
-                      {isSelected && (
-                        <div className="absolute inset-0 border-2 border-blue-500 rounded-xl pointer-events-none animate-pulse"></div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
+                return (
+                  <TransmissionFilter
+                    referenceData={referenceData}
+                    currentLanguage={currentLanguage}
+                    selectedTransmissionId={filters.transmissionId}
+                    onTransmissionChange={(transmissionId) => handleInputChange('transmissionId', transmissionId)}
+                    variant="cards"
+                    isLoading={_isLoadingReferenceData}
+                    transmissionCounts={transmissionCounts}
+                    t={t as any}
+                  />
+                );
 
               case 'fuelType':
           return (
@@ -835,7 +810,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
       case 'allFilters':
         return (
-          <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+          <div className="space-y-4">
             
             {/* Make and Model */}
             <CollapsibleSection
@@ -1058,6 +1033,29 @@ const FilterModal: React.FC<FilterModalProps> = ({
                   );
                 })}
               </div>
+            </CollapsibleSection>
+            
+            {/* Transmission */}
+            <CollapsibleSection
+              title={t('transmission', 'Transmission')}
+              sectionName="transmission"
+              icon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              }
+            >
+              <TransmissionFilter
+                referenceData={referenceData}
+                currentLanguage={currentLanguage}
+                selectedTransmissionId={filters.transmissionId}
+                onTransmissionChange={(transmissionId) => handleInputChange('transmissionId', transmissionId)}
+                variant="cards"
+                isLoading={_isLoadingReferenceData}
+                disableScroll={true}
+                transmissionCounts={transmissionCounts}
+                t={t as any}
+              />
             </CollapsibleSection>
           </div>
         );
