@@ -21,11 +21,11 @@ import {
   VanIcon,
   MotorcycleIcon
 } from '@/components/icons/CarIcons';
-import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
 import FuelTypeFilter from './filters/FuelTypeFilter';
 import TransmissionFilter from './filters/TransmissionFilter';
 import BodyStyleFilter from './filters/BodyStyleFilter';
 import SellerTypeFilter from './filters/SellerTypeFilter';
+import MileageSlider from '@/components/ui/MileageSlider';
 
 // Move constants outside component to prevent recreation
 const CURRENT_YEAR = new Date().getFullYear();
@@ -548,32 +548,19 @@ const FilterModals = React.memo<FilterModalsProps>(({
 
       case 'mileage':
         return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:mileageRange', 'Mileage range')}</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">{t('search:from', 'From')}</label>
-                  <input
-                    type="number"
-                    value={filters.minMileage || ''}
-                    onChange={(e) => handleInputChange('minMileage', e.target.value ? parseInt(e.target.value) : undefined)}
-                    placeholder={t('search:any', 'Any')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">{t('search:to', 'To')}</label>
-                  <input
-                    type="number"
-                    value={filters.maxMileage || ''}
-                    onChange={(e) => handleInputChange('maxMileage', e.target.value ? parseInt(e.target.value) : undefined)}
-                    placeholder={t('search:any', 'Any')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                </div>
-              </div>
-            </div>
+          <div className="w-full [&_.range-slider]:pt-0 [&_.range-slider]:pb-0 [&_.range-slider_.grid]:mt-0">
+            <MileageSlider
+              minMileage={filters.minMileage}
+              maxMileage={filters.maxMileage}
+              onChange={(min, max) => {
+                handleInputChange('minMileage', min);
+                handleInputChange('maxMileage', max);
+              }}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              t={t as any}
+              locale={currentLanguage}
+              className="w-full"
+            />
           </div>
         );
 

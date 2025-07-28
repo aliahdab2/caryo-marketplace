@@ -5,5 +5,6 @@ export { default as BodyStyleFilter } from './BodyStyleFilter';
 export { default as FuelTypeFilter } from './FuelTypeFilter';
 export { default as SellerTypeFilter } from './SellerTypeFilter';
 
+
 // Re-export common types
 export type { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';

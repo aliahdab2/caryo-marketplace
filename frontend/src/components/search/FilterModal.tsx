@@ -8,14 +8,14 @@ import { TransmissionCounts } from '@/hooks/useTransmissionCounts';
 import PriceSlider from '@/components/ui/PriceSlider';
 import MileageSlider from '@/components/ui/MileageSlider';
 import YearSlider from '@/components/ui/YearSlider';
-import { getCarIcon } from '@/utils/carIcons';
-import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
-import FuelTypeFilter from './filters/FuelTypeFilter';
-import SellerTypeFilter from './filters/SellerTypeFilter';
+
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
 import TransmissionFilter from './filters/TransmissionFilter';
 import BodyStyleFilter from './filters/BodyStyleFilter';
+import FuelTypeFilter from './filters/FuelTypeFilter';
+import SellerTypeFilter from './filters/SellerTypeFilter';
+
 
 interface FilterModalProps {
   filterType: FilterType;
@@ -814,20 +814,22 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 </svg>
               }
             >
-              <MileageSlider
-                minMileage={filters.minMileage}
-                maxMileage={filters.maxMileage}
-                onChange={(min, max) => {
-                  updateFiltersAndState({
-                    minMileage: min,
-                    maxMileage: max
-                  });
-                }}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                t={t as any}
-                locale={currentLanguage}
-                className="w-full"
-              />
+              <div className="w-full [&_.range-slider]:pt-0 [&_.range-slider]:pb-0 [&_.range-slider_.grid]:mt-0">
+                <MileageSlider
+                  minMileage={filters.minMileage}
+                  maxMileage={filters.maxMileage}
+                  onChange={(min, max) => {
+                    updateFiltersAndState({
+                      minMileage: min,
+                      maxMileage: max
+                    });
+                  }}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  t={t as any}
+                  locale={currentLanguage}
+                  className="w-full"
+                />
+              </div>
             </CollapsibleSection>
             
             {/* Fuel Type */}
