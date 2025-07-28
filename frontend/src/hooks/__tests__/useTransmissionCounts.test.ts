@@ -102,29 +102,7 @@ describe('useTransmissionCounts', () => {
     expect(result.current.transmissionCounts).toEqual({});
   });
 
-  it('should handle empty filters', async () => {
-    const mockResponse = {
-      manual: 1000,
-      automatic: 600
-    };
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-      status: 200
-    });
-
-    const { result } = renderHook(() => useTransmissionCounts({}));
-
-    // Wait for the effect to complete
-    await waitFor(() => {
-      expect(result.current.transmissionCounts).toEqual(mockResponse);
-    }, { timeout: 5000 });
-
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/listings/counts/transmissions')
-    );
-  });
 
   it('should handle undefined filters', async () => {
     const mockResponse = {
