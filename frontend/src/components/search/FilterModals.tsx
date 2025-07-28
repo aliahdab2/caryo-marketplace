@@ -23,6 +23,7 @@ import {
 } from '@/components/icons/CarIcons';
 import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
 import TransmissionFilter from './filters/TransmissionFilter';
+import BodyStyleFilter from './filters/BodyStyleFilter';
 
 // Move constants outside component to prevent recreation
 const CURRENT_YEAR = new Date().getFullYear();
@@ -648,53 +649,16 @@ const FilterModals = React.memo<FilterModalsProps>(({
           <div className="space-y-6">
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:bodyStyle', 'Body style')}</h3>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {referenceData?.bodyStyles?.map(bodyStyle => {
-                  const isSelected = filters.bodyStyleSlugs?.includes(bodyStyle.slug) || false;
-                  const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
-                  const count = bodyStyleCounts[bodyStyle.name.toLowerCase()];
-                  
-                  return (
-                    <div
-                      key={bodyStyle.id}
-                      className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all hover:border-blue-300 hover:bg-blue-50 ${
-                        isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                      }`}
-                      onClick={() => {
-                        const currentBodyStyles = filters.bodyStyleSlugs || [];
-                        const newBodyStyles = isSelected 
-                          ? currentBodyStyles.filter(bodyStyleSlug => bodyStyleSlug !== bodyStyle.slug)
-                          : [...currentBodyStyles, bodyStyle.slug];
-                        
-                        handleInputChange('bodyStyleSlugs', newBodyStyles.length > 0 ? newBodyStyles : undefined);
-                      }}
-                    >
-                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                        <div className="w-20 h-14 flex items-center justify-center">
-                          <CarIconDisplay bodyStyleName={bodyStyle.name.toLowerCase()} />
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">{displayName}</div>
-                          <div className="text-sm text-gray-500">{count ? `${count.toLocaleString()} listings` : 'No listings'}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <div className={`w-5 h-5 border-2 rounded transition-all ${
-                          isSelected 
-                            ? 'border-blue-500 bg-blue-500' 
-                            : 'border-gray-300 hover:border-blue-400'
-                        }`}>
-                          {isSelected && (
-                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                            </svg>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <BodyStyleFilter
+                referenceData={referenceData}
+                currentLanguage={currentLanguage}
+                selectedBodyStyleSlugs={filters.bodyStyleSlugs}
+                onBodyStyleChange={(bodyStyleSlugs) => handleInputChange('bodyStyleSlugs', bodyStyleSlugs)}
+                variant="cards"
+                isLoading={isLoadingReferenceData}
+                bodyStyleCounts={bodyStyleCounts}
+                t={t as any}
+              />
             </div>
           </div>
         );

@@ -13,6 +13,7 @@ import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
 import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
 import TransmissionFilter from './filters/TransmissionFilter';
+import BodyStyleFilter from './filters/BodyStyleFilter';
 
 interface FilterModalProps {
   filterType: FilterType;
@@ -689,67 +690,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
           );
 
               case 'bodyStyle':
-          return (
-            <div className="space-y-4">
-              
-            <div className="grid gap-3 max-h-96 overflow-y-auto pr-2 rtl:pr-0 rtl:pl-2">
-              {referenceData?.bodyStyles?.map(bodyStyle => {
-                const isSelected = filters.bodyType?.includes(bodyStyle.slug) || false;
-                const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
-                const count = bodyStyleCounts[bodyStyle.name.toLowerCase()] || 0;
-                
                 return (
-                  <div
-                    key={bodyStyle.id}
-                    className={`group relative flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                      isSelected 
-                        ? 'border-blue-500 bg-blue-50 shadow-sm' 
-                        : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
-                    }`}
-                    onClick={() => {
-                      const currentBodyTypes = filters.bodyType || [];
-                      const newBodyTypes = isSelected 
-                        ? currentBodyTypes.filter(type => type !== bodyStyle.slug)
-                        : [...currentBodyTypes, bodyStyle.slug];
-                      
-                      handleInputChange('bodyType', newBodyTypes.length > 0 ? newBodyTypes : undefined);
-                    }}
-                  >
-                    <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                      <div className="transition-transform group-hover:scale-105">
-                        {/* Professional car silhouette icon - now self-centering */}
-                        {getCarIcon(bodyStyle.name.toLowerCase())}
-                      </div>
-                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                        <span className="text-gray-900 font-medium">{displayName}</span>
-                        <span className="text-gray-500 text-sm">({count.toLocaleString()})</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
-                        isSelected 
-                          ? 'border-blue-500 bg-blue-500 scale-110' 
-                          : 'border-gray-300 group-hover:border-blue-400'
-                      }`}>
-                        {isSelected && (
-                          <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                          </svg>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Selection indicator */}
-                    {isSelected && (
-                      <div className="absolute inset-0 border-2 border-blue-500 rounded-xl pointer-events-none animate-pulse"></div>
-                    )}
-                  </div>
+                  <BodyStyleFilter
+                    referenceData={referenceData}
+                    currentLanguage={currentLanguage}
+                    selectedBodyStyleSlugs={filters.bodyType}
+                    onBodyStyleChange={(bodyStyleSlugs) => handleInputChange('bodyType', bodyStyleSlugs)}
+                    variant="cards"
+                    isLoading={_isLoadingReferenceData}
+                    bodyStyleCounts={bodyStyleCounts}
+                    t={t as any}
+                  />
                 );
-              })}
-            </div>
-          </div>
-        );
 
               case 'sellerType':
           return (
@@ -978,61 +930,17 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 </svg>
               }
             >
-              <div className="grid gap-3 max-h-60 overflow-y-auto">
-                {referenceData?.bodyStyles?.map(bodyStyle => {
-                  const isSelected = filters.bodyType?.includes(bodyStyle.slug) || false;
-                  const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
-                  const count = bodyStyleCounts[bodyStyle.name.toLowerCase()] || 0;
-                  
-                  return (
-                    <div
-                      key={bodyStyle.id}
-                      className={`group relative flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                        isSelected 
-                          ? 'border-blue-500 bg-blue-50 shadow-sm' 
-                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
-                      }`}
-                      onClick={() => {
-                                              const currentBodyTypes = filters.bodyType || [];
-                      const newBodyTypes = isSelected
-                        ? currentBodyTypes.filter(type => type !== bodyStyle.slug)
-                        : [...currentBodyTypes, bodyStyle.slug];
-                      
-                      handleInputChange('bodyType', newBodyTypes.length > 0 ? newBodyTypes : undefined);
-                      }}
-                    >
-                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                        <div className="transition-transform group-hover:scale-105">
-                          {getCarIcon(bodyStyle.name.toLowerCase(), "w-8 h-8")}
-                        </div>
-                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                          <span className="text-gray-900 font-medium">{displayName}</span>
-                          <span className="text-gray-500 text-sm">({count.toLocaleString()})</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center">
-                        <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
-                          isSelected 
-                            ? 'border-blue-500 bg-blue-500 scale-110' 
-                            : 'border-gray-300 group-hover:border-blue-400'
-                        }`}>
-                          {isSelected && (
-                            <svg className="w-3 h-3 text-white m-0.5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                            </svg>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Selection indicator */}
-                      {isSelected && (
-                        <div className="absolute inset-0 border-2 border-blue-500 rounded-lg pointer-events-none animate-pulse"></div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+              <BodyStyleFilter
+                referenceData={referenceData}
+                currentLanguage={currentLanguage}
+                selectedBodyStyleSlugs={filters.bodyType}
+                onBodyStyleChange={(bodyStyleSlugs) => handleInputChange('bodyType', bodyStyleSlugs)}
+                variant="cards"
+                isLoading={_isLoadingReferenceData}
+                disableScroll={true}
+                bodyStyleCounts={bodyStyleCounts}
+                t={t as any}
+              />
             </CollapsibleSection>
             
             {/* Transmission */}
