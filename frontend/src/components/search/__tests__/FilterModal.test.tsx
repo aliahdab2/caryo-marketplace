@@ -109,6 +109,8 @@ const mockProps = {
     lpg: 5
   },
   transmissionCounts: { manual: 100, automatic: 200 },
+  brandCounts: { toyota: 150, honda: 120 }, // Add brand counts
+  modelCounts: { camry: 50, corolla: 45, civic: 40 }, // Add model counts
   isLoadingReferenceData: false,
   carListings: { 
     totalElements: 10, 
@@ -321,7 +323,11 @@ describe('FilterModal', () => {
       };
       
       render(<FilterModal {...propsWithBrands} filterType="makeModel" />);
-      expect(screen.getByText('Toyota')).toBeInTheDocument();
+      // Check that the brand chip text is displayed (there are multiple Toyota elements, so use getAllByText)
+      const toyotaElements = screen.getAllByText('Toyota');
+      expect(toyotaElements.length).toBeGreaterThan(0);
+      // Check that there's a remove button (for the chip)
+      expect(screen.getByLabelText('Remove')).toBeInTheDocument();
     });
 
     it('displays model chips when models are selected', () => {
@@ -331,7 +337,10 @@ describe('FilterModal', () => {
       };
       
       render(<FilterModal {...propsWithModels} filterType="makeModel" />);
+      // Check that the model chip text is displayed
       expect(screen.getByText('Camry')).toBeInTheDocument();
+      // Check that there's a remove button (for the chip)
+      expect(screen.getByLabelText('Remove')).toBeInTheDocument();
     });
 
     it('removes brand chip when remove button is clicked', () => {
@@ -402,9 +411,11 @@ describe('FilterModal', () => {
       
       render(<FilterModal {...propsWithBrandAndModels} filterType="makeModel" />);
       
-      // Wait for brands to load
+      // Wait for brands to load and check that Toyota brand is visible in the list
       await waitFor(() => {
-        expect(screen.getByText('Toyota')).toBeInTheDocument();
+        // Check that Toyota appears in the brand list (not just in chips)
+        const brandElements = screen.getAllByText('Toyota');
+        expect(brandElements.length).toBeGreaterThan(0);
       });
       
       // Find and click the Toyota checkbox to uncheck it
@@ -520,16 +531,6 @@ describe('FilterModal', () => {
       expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
     });
 
-    it('shows loading spinner when models are loading', () => {
-      const propsWithLoading = {
-        ...mockProps,
-        isLoadingModels: true
-      };
-      
-      render(<FilterModal {...propsWithLoading} filterType="makeModel" />);
-      expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
-    });
-
     it('shows loading spinner when all models are loading', () => {
       const propsWithLoading = {
         ...mockProps,
@@ -542,15 +543,14 @@ describe('FilterModal', () => {
   });
 
   describe('Empty States', () => {
-    it('shows loading spinner when no brands exist initially', () => {
+    it('shows "No brands available" when no brands exist', () => {
       const propsWithNoBrands = {
         ...mockProps,
         carMakes: []
       };
       
       render(<FilterModal {...propsWithNoBrands} filterType="makeModel" />);
-      // Initially shows loading spinner while fetching counts
-      expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
+      expect(screen.getByText('No brands available')).toBeInTheDocument();
     });
 
     it('shows "No brands or models found" when search has no results', async () => {

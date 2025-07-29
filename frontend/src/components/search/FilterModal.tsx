@@ -36,6 +36,8 @@ interface FilterModalProps {
   bodyStyleCounts: BodyStyleCounts;
   fuelTypeCounts: FuelTypeCounts;
   transmissionCounts: TransmissionCounts;
+  brandCounts?: { [brandSlug: string]: number }; // New prop for brand counts
+  modelCounts?: { [modelSlug: string]: number }; // New prop for model counts
   carListings: PageResponse<CarListing> | null;
   currentLanguage: string;
   isRTL: boolean;
@@ -83,6 +85,8 @@ const FilterModal: React.FC<FilterModalProps> = ({
   bodyStyleCounts,
   fuelTypeCounts,
   transmissionCounts,
+  brandCounts = {},
+  modelCounts = {},
   carListings,
   currentLanguage,
   t,
@@ -94,8 +98,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
   // Local state for modal
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedBrands, setExpandedBrands] = useState<Set<number>>(new Set());
-  const [brandCounts, setBrandCounts] = useState<Record<string, number>>({});
-  const [modelCounts, setModelCounts] = useState<Record<string, number>>({});
+  // Use passed brand and model counts instead of local state
   const [isLoadingCounts, setIsLoadingCounts] = useState(false);
   
   // State for managing collapsible sections in allFilters modal
@@ -239,28 +242,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
     });
   };
 
-  // Fetch brand and model counts when modal opens
-  useEffect(() => {
-    if (filterType === 'makeModel') {
-      const fetchCounts = async () => {
-        setIsLoadingCounts(true);
-        try {
-          const [brands, models] = await Promise.all([
-            fetchBrandCounts(),
-            fetchModelCounts()
-          ]);
-          setBrandCounts(brands);
-          setModelCounts(models);
-        } catch (error) {
-          console.error('Error fetching counts:', error);
-        } finally {
-          setIsLoadingCounts(false);
-        }
-      };
-      
-      fetchCounts();
-    }
-  }, [filterType]);
+
 
 
 

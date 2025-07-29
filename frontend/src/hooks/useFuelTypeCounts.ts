@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CarListingFilterParams } from '@/services/api';
-import { API_BASE_URL, buildQueryParams, getStandardErrorMessage } from '@/utils/apiUtils';
+import { buildQueryParams, getStandardErrorMessage } from '@/utils/apiUtils';
+import { cachedFetch } from '@/utils/cachedFetch';
 
 export interface FuelTypeCounts {
   [fuelTypeName: string]: number;
@@ -31,16 +32,18 @@ export const useFuelTypeCounts = (filters?: CarListingFilterParams) => {
           location: filters?.locations,
         });
 
-        const response = await fetch(`${API_BASE_URL}/api/listings/counts/fuel-types?${params.toString()}`);
+        const data = await cachedFetch<FuelTypeCounts>(`/api/listings/counts/fuel-types?${params.toString()}`, {
+          ttl: 2 * 60 * 1000, // Cache for 2 minutes
+          cacheKey: `fuel-types-${params.toString()}`
+        });
         
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        // Validate the response data
+        if (data && typeof data === 'object') {
+          setFuelTypeCounts(data);
+        } else {
+          console.warn('Invalid fuel type counts response:', data);
+          setFuelTypeCounts({});
         }
-        
-        const data = await response.json();
-        
-        // The API returns a map of fuel type names to counts
-        setFuelTypeCounts(data);
       } catch (err) {
         console.error('Failed to fetch fuel type counts:', err);
         setError(getStandardErrorMessage('fuel type counts'));

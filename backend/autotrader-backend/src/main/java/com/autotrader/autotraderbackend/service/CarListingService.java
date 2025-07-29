@@ -425,6 +425,9 @@ public class CarListingService {
         // Get counts by brand
         breakdown.put("brands", getCountsByBrand(existingFilters));
         
+        // Get counts by body style
+        breakdown.put("bodyStyles", getCountsByBodyStyle(existingFilters));
+        
         // Get counts by model (if brand is selected)
         if (existingFilters != null && existingFilters.getBrandSlugs() != null && !existingFilters.getBrandSlugs().isEmpty()) {
             breakdown.put("models", getCountsByModel(existingFilters));
@@ -574,6 +577,56 @@ public class CarListingService {
             return modelCounts;
         } catch (Exception e) {
             log.error("Error getting model counts", e);
+            return new LinkedHashMap<>();
+        }
+    }
+
+    /**
+     * Get count of listings grouped by body style.
+     * Optimized to use database queries when possible.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Long> getCountsByBodyStyle(ListingFilterRequest filterRequest) {
+        log.debug("Getting counts by body style with filters: {}", filterRequest);
+        
+        try {
+            Map<String, Long> bodyStyleCounts = new LinkedHashMap<>();
+            
+            // Check if we have any filters that would affect body style counts
+            if (hasNonBodyStyleFilters(filterRequest)) {
+                // Use specification approach when filters are applied
+                ListingFilterRequest modifiedFilter = createFilterWithoutBodyStyle(filterRequest);
+                Specification<CarListing> baseSpec = buildBaseSpecification(modifiedFilter, false);
+                
+                List<CarListing> listings = carListingRepository.findAll(baseSpec);
+                bodyStyleCounts = listings.stream()
+                    .filter(listing -> listing.getBodyStyle() != null && 
+                                     StringUtils.isNotBlank(listing.getBodyStyle().getSlug()))
+                    .collect(Collectors.groupingBy(
+                        listing -> listing.getBodyStyle().getSlug(),
+                        LinkedHashMap::new,
+                        Collectors.counting()
+                    ));
+            } else {
+                // Use efficient database-level counting for unfiltered requests
+                List<Object[]> distinctBodyStyleCounts = carListingRepository.findDistinctBodyStylesWithCounts();
+                
+                log.info("Found {} body style count entries from database", distinctBodyStyleCounts.size());
+                
+                for (Object[] entry : distinctBodyStyleCounts) {
+                    String bodyStyleSlug = (String) entry[0];
+                    Long count = (Long) entry[1];
+                    log.info("Body style: {}, count: {}", bodyStyleSlug, count);
+                    if (StringUtils.isNotBlank(bodyStyleSlug) && count != null && count > 0) {
+                        bodyStyleCounts.put(bodyStyleSlug, count);
+                    }
+                }
+            }
+            
+            log.info("Found counts for {} body styles", bodyStyleCounts.size());
+            return bodyStyleCounts;
+        } catch (Exception e) {
+            log.error("Error getting counts by body style: {}", e.getMessage(), e);
             return new LinkedHashMap<>();
         }
     }
@@ -810,6 +863,22 @@ public class CarListingService {
                filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty();
     }
 
+    private boolean hasNonBodyStyleFilters(ListingFilterRequest filterRequest) {
+        if (filterRequest == null) return false;
+        
+        return filterRequest.getBrandSlugs() != null && !filterRequest.getBrandSlugs().isEmpty() ||
+               filterRequest.getModelSlugs() != null && !filterRequest.getModelSlugs().isEmpty() ||
+               filterRequest.getMinYear() != null || filterRequest.getMaxYear() != null ||
+               filterRequest.getMinPrice() != null || filterRequest.getMaxPrice() != null ||
+               filterRequest.getMinMileage() != null || filterRequest.getMaxMileage() != null ||
+               filterRequest.getLocations() != null && !filterRequest.getLocations().isEmpty() ||
+               filterRequest.getLocationId() != null ||
+               filterRequest.getSellerTypeIds() != null && !filterRequest.getSellerTypeIds().isEmpty() ||
+               filterRequest.getIsSold() != null ||
+               filterRequest.getIsArchived() != null ||
+               filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty();
+    }
+
     /**
      * Create a filter request without brand filters.
      */
@@ -937,6 +1006,34 @@ public class CarListingService {
         modified.setIsSold(original.getIsSold());
         modified.setIsArchived(original.getIsArchived());
         // Note: transmissionIds is intentionally excluded
+        
+        return modified;
+    }
+
+    /**
+     * Create a filter request without body style filters.
+     */
+    private ListingFilterRequest createFilterWithoutBodyStyle(ListingFilterRequest original) {
+        if (original == null) return new ListingFilterRequest();
+        
+        ListingFilterRequest modified = new ListingFilterRequest();
+        // Copy all filters except body style
+        modified.setBrandSlugs(original.getBrandSlugs());
+        modified.setModelSlugs(original.getModelSlugs());
+        modified.setMinYear(original.getMinYear());
+        modified.setMaxYear(original.getMaxYear());
+        modified.setLocations(original.getLocations());
+        modified.setLocationId(original.getLocationId());
+        modified.setMinPrice(original.getMinPrice());
+        modified.setMaxPrice(original.getMaxPrice());
+        modified.setMinMileage(original.getMinMileage());
+        modified.setMaxMileage(original.getMaxMileage());
+        modified.setSellerTypeIds(original.getSellerTypeIds());
+        modified.setFuelTypeSlugs(original.getFuelTypeSlugs());
+        modified.setSearchQuery(original.getSearchQuery());
+        modified.setIsSold(original.getIsSold());
+        modified.setIsArchived(original.getIsArchived());
+        // Note: bodyStyleIds is intentionally excluded
         
         return modified;
     }
@@ -1392,5 +1489,59 @@ public class CarListingService {
         // modified.setMaxYear(null);
         
         return modified;
+    }
+
+    /**
+     * Get all counts (fuel types, transmissions, body styles, brands, models) in a single method call.
+     * This is more efficient than making separate calls for each count type.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getAllCounts(ListingFilterRequest filterRequest) {
+        log.debug("Getting all counts with filters: {}", filterRequest);
+        
+        try {
+            Map<String, Object> allCounts = new LinkedHashMap<>();
+            
+            // Get fuel type counts
+            Map<String, Long> fuelTypeCounts = getCountsByFuelType(filterRequest);
+            allCounts.put("fuelTypes", fuelTypeCounts);
+            
+            // Get transmission counts
+            Map<String, Long> transmissionCounts = getCountsByTransmission(filterRequest);
+            allCounts.put("transmissions", transmissionCounts);
+            
+            // Get body style counts from breakdown
+            Map<String, Object> breakdown = getFilterBreakdown(filterRequest);
+            if (breakdown.containsKey("bodyStyles")) {
+                allCounts.put("bodyStyles", breakdown.get("bodyStyles"));
+            } else {
+                allCounts.put("bodyStyles", new LinkedHashMap<String, Long>());
+            }
+            
+            // Get brand counts
+            Map<String, Long> brandCounts = getCountsByBrand(filterRequest);
+            allCounts.put("brands", brandCounts);
+            
+            // Get model counts
+            Map<String, Long> modelCounts = getCountsByModel(filterRequest);
+            allCounts.put("models", modelCounts);
+            
+            log.info("Returning all counts: {} fuel types, {} transmission types, {} body styles, {} brands, {} models", 
+                    fuelTypeCounts.size(), transmissionCounts.size(), 
+                    ((Map<String, Long>) allCounts.get("bodyStyles")).size(),
+                    brandCounts.size(), modelCounts.size());
+            
+            return allCounts;
+        } catch (Exception e) {
+            log.error("Error getting all counts: {}", e.getMessage(), e);
+            // Return empty maps on error
+            Map<String, Object> emptyCounts = new LinkedHashMap<>();
+            emptyCounts.put("fuelTypes", new LinkedHashMap<String, Long>());
+            emptyCounts.put("transmissions", new LinkedHashMap<String, Long>());
+            emptyCounts.put("bodyStyles", new LinkedHashMap<String, Long>());
+            emptyCounts.put("brands", new LinkedHashMap<String, Long>());
+            emptyCounts.put("models", new LinkedHashMap<String, Long>());
+            return emptyCounts;
+        }
     }
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchCarReferenceData } from '@/services/api';
 import { CarListingFilterParams } from '@/services/api';
+import { cachedFetch } from '@/utils/cachedFetch';
 
 export interface BodyStyleCounts {
   [bodyStyleName: string]: number;
@@ -68,8 +69,10 @@ export const useBodyStyleCounts = (filters?: CarListingFilterParams) => {
             if (countFilters.sellerTypeIds) countFilters.sellerTypeIds.forEach((id: number) => params.append('sellerTypeIds', id.toString()));
             if (countFilters.searchQuery) params.append('searchQuery', countFilters.searchQuery);
 
-            const response = await fetch(`http://localhost:8080/api/listings/count/filter?${params.toString()}`);
-            const data = await response.json();
+            const data = await cachedFetch<{ count: number }>(`/api/listings/count/filter?${params.toString()}`, {
+              ttl: 2 * 60 * 1000, // Cache for 2 minutes
+              cacheKey: `body-style-count-${bodyStyle.slug}-${params.toString()}`
+            });
             
             const bodyStyleCount = data.count || 0;
             

@@ -592,11 +592,16 @@ export const createCacheKey = (endpoint: string, params?: Record<string, string 
     return '';
   }
   
+  // Validate endpoint
+  if (!endpoint || typeof endpoint !== 'string') {
+    return '';
+  }
+  
   let key = endpoint;
-  if (params) {
+  if (params && typeof params === 'object') {
     // Filter out null and undefined values
     const filteredParams = Object.entries(params)
-      .filter(([_, value]) => value !== null && value !== undefined)
+      .filter(([_, value]) => value !== null && value !== undefined && value !== '')
       .sort(([keyA], [keyB]) => keyA.localeCompare(keyB));
       
     if (filteredParams.length > 0) {
