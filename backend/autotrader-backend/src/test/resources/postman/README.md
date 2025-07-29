@@ -22,6 +22,44 @@ Located in the `collections/` directory:
 - `seller-types-tests.json`: Tests for Seller Type endpoints
 - `listings-media-tests.json`: Tests for Listings and Media endpoints
 
+## API Endpoints Tested
+
+### Listings Count Endpoints
+
+The collection includes comprehensive tests for the following count endpoints:
+
+#### Basic Count Endpoints
+- **`GET /api/listings/count`**: Get total listings count
+- **`GET /api/listings/count/filter`**: Get filtered listings count with query parameters
+- **`POST /api/listings/count`**: Get filtered listings count with JSON body
+
+#### Individual Count Endpoints
+- **`GET /api/listings/counts/years`**: Get year-based counts
+- **`GET /api/listings/counts/brands`**: Get brand-based counts
+- **`GET /api/listings/counts/models`**: Get model-based counts
+- **`GET /api/listings/counts/seller-types`**: Get seller type counts
+
+#### New Consolidated Count Endpoints (Added in Recent Updates)
+- **`GET /api/listings/counts/fuel-types`**: Get fuel type counts with optional filters
+- **`GET /api/listings/counts/transmissions`**: Get transmission counts with optional filters
+- **`GET /api/listings/counts/all`**: **NEW!** Get all counts in a single request (fuel types, transmissions, body styles, brands, models)
+
+#### Advanced Filtering Tests
+- Multiple transmission types filtering
+- Multiple fuel types filtering
+- Multiple body styles filtering
+- Combined multiple filters with JSON body
+- Empty filter arrays handling
+
+### Test Coverage
+
+Each endpoint includes tests for:
+- ✅ **Status code validation** (200 OK)
+- ✅ **Response structure validation** (correct properties and data types)
+- ✅ **Data integrity validation** (counts are numbers >= 0)
+- ✅ **Filter parameter handling** (query parameters and JSON body)
+- ✅ **Edge case handling** (empty filters, invalid parameters)
+
 ## Running the Tests
 
 ### Prerequisites
@@ -43,6 +81,14 @@ To run each collection separately:
 
 ```bash
 ./run-collections.sh
+```
+
+### Running Specific Count Tests
+
+To run only the count-related tests:
+
+```bash
+newman run autotrader-api-collection.json -e environment.json --folder "Listings Count"
 ```
 
 ## When the Backend Environment is Down
@@ -91,3 +137,11 @@ The tests use environment variables defined in `environment.json`:
 - `admin_auth_token`: Admin authentication token (generated during test execution)
 - `test_username`, `test_email`, `test_password`: Credentials for test user
 - `admin_username`, `admin_password`: Credentials for admin user
+
+## Recent Updates
+
+### New Count Endpoints (Latest)
+- Added comprehensive tests for the new consolidated count endpoints
+- Tests cover both filtered and unfiltered scenarios
+- Includes validation for the new `/api/listings/counts/all` endpoint that returns all count types in a single request
+- Added tests for fuel type and transmission count endpoints with various filter combinations

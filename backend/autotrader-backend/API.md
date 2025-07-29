@@ -731,6 +731,44 @@ These endpoints provide efficient count information for car listings without fet
   curl "http://localhost:8080/api/listings/counts/models?brandSlugs=toyota"
   ```
 
+#### Get Fuel Types with Counts
+
+- **Endpoint**: `GET /api/listings/counts/fuel-types`
+- **Access**: Public
+- **Description**: Returns all fuel types with their listing counts, optionally filtered
+- **Query Parameters**:
+  - `brandSlugs` (array): Filter by brand slugs (e.g., `toyota`, `honda`)
+  - `modelSlugs` (array): Filter by model slugs (e.g., `camry`, `civic`)
+  - `minYear` (integer): Minimum model year
+  - `maxYear` (integer): Maximum model year
+  - `location` (array): Filter by location slugs
+  - `minPrice` (decimal): Minimum price
+  - `maxPrice` (decimal): Maximum price
+  - `minMileage` (integer): Minimum mileage
+  - `maxMileage` (integer): Maximum mileage
+  - `fuelTypeSlugs` (array): Filter by fuel type slugs
+  - `bodyStyleIds` (array): Filter by body style IDs
+- **Response (200 OK)**:
+  ```json
+  {
+    "gasoline": 1500,
+    "diesel": 800,
+    "electric": 200,
+    "hybrid": 300
+  }
+  ```
+- **Example**:
+  ```bash
+  # Get all fuel type counts
+  curl http://localhost:8080/api/listings/counts/fuel-types
+  
+  # Get fuel type counts for Toyota cars only
+  curl "http://localhost:8080/api/listings/counts/fuel-types?brandSlugs=toyota"
+  
+  # Get fuel type counts for cars from 2020 onwards
+  curl "http://localhost:8080/api/listings/counts/fuel-types?minYear=2020"
+  ```
+
 #### Get Transmissions with Counts
 
 - **Endpoint**: `GET /api/listings/counts/transmissions`
@@ -767,6 +805,79 @@ These endpoints provide efficient count information for car listings without fet
   # Get transmission counts for automatic cars from 2020 onwards
   curl "http://localhost:8080/api/listings/counts/transmissions?minYear=2020&fuelTypeSlugs=gasoline"
   ```
+
+#### Get All Counts in a Single Request
+
+- **Endpoint**: `GET /api/listings/counts/all`
+- **Access**: Public
+- **Description**: Returns fuel type counts, transmission counts, body style counts, brand counts, and model counts in a single API call. This is more efficient than making separate requests for each count type.
+- **Query Parameters**:
+  - `brandSlugs` (array): Filter by brand slugs (e.g., `toyota`, `honda`)
+  - `modelSlugs` (array): Filter by model slugs (e.g., `camry`, `civic`)
+  - `minYear` (integer): Minimum model year
+  - `maxYear` (integer): Maximum model year
+  - `location` (array): Filter by location slugs
+  - `minPrice` (decimal): Minimum price
+  - `maxPrice` (decimal): Maximum price
+  - `minMileage` (integer): Minimum mileage
+  - `maxMileage` (integer): Maximum mileage
+  - `fuelTypeSlugs` (array): Filter by fuel type slugs
+  - `bodyStyleIds` (array): Filter by body style IDs
+- **Response (200 OK)**:
+  ```json
+  {
+    "fuelTypes": {
+      "gasoline": 1500,
+      "diesel": 800,
+      "electric": 200,
+      "hybrid": 300
+    },
+    "transmissions": {
+      "manual": 1200,
+      "automatic": 800,
+      "cvt": 150
+    },
+    "bodyStyles": {
+      "sedan": 1000,
+      "suv": 600,
+      "hatchback": 300,
+      "convertible": 100
+    },
+    "brands": {
+      "toyota": 120,
+      "honda": 95,
+      "nissan": 78,
+      "hyundai": 65,
+      "kia": 45
+    },
+    "models": {
+      "camry": 35,
+      "civic": 28,
+      "accord": 22,
+      "corolla": 31,
+      "altima": 19
+    }
+  }
+  ```
+- **Example**:
+  ```bash
+  # Get all counts without filters
+  curl http://localhost:8080/api/listings/counts/all
+  
+  # Get all counts for Toyota cars only
+  curl "http://localhost:8080/api/listings/counts/all?brandSlugs=toyota"
+  
+  # Get all counts for cars from 2020 onwards
+  curl "http://localhost:8080/api/listings/counts/all?minYear=2020"
+  
+  # Get all counts for automatic Toyota cars with gasoline fuel
+  curl "http://localhost:8080/api/listings/counts/all?brandSlugs=toyota&transmissionIds=5&fuelTypeSlugs=gasoline"
+  ```
+- **Performance Benefits**:
+  - **Single Request**: Reduces network overhead by combining multiple count queries
+  - **Efficient Caching**: Frontend can cache all counts with a single cache key
+  - **Consistent Data**: All counts are calculated with the same filter criteria
+  - **Reduced Server Load**: One database query instead of multiple separate queries
 
 ### Status Endpoints
 

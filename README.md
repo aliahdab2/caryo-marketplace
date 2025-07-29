@@ -31,6 +31,9 @@ For detailed information about this project, refer to these documents:
 - [Redis Integration](backend/autotrader-backend/docs/redis-integration-guide.md) - Guide for Redis caching
 - [MailDev Integration](backend/autotrader-backend/docs/maildev-integration-guide.md) - Email testing setup
 - [Translation Guide](docs/translation_guide_for_developers.md) - Internationalization best practices
+- [API Documentation](backend/autotrader-backend/API.md) - Complete API reference with examples
+- [Frontend Caching System](frontend/docs/caching_system.md) - Caching implementation and performance optimization
+- [API Error Handling](frontend/docs/api_error_handling.md) - Error handling strategies and improvements
 
 ## Getting Started
 
