@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CarListingFilterParams } from '@/services/api';
+import { API_BASE_URL, buildQueryParams, getStandardErrorMessage } from '@/utils/apiUtils';
 
 export interface FuelTypeCounts {
   [fuelTypeName: string]: number;
@@ -7,42 +8,49 @@ export interface FuelTypeCounts {
 
 export const useFuelTypeCounts = (filters?: CarListingFilterParams) => {
   const [fuelTypeCounts, setFuelTypeCounts] = useState<FuelTypeCounts>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start with loading true
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchFuelTypeCounts = async () => {
+    // Debounce the API calls to prevent excessive requests
+    const timeoutId = setTimeout(async () => {
       setIsLoading(true);
       setError(null);
 
       try {
         // Build query string for the fuel type counts endpoint
-        const params = new URLSearchParams();
-        if (filters?.brands) filters.brands.forEach((slug: string) => params.append('brandSlugs', slug));
-        if (filters?.models) filters.models.forEach((slug: string) => params.append('modelSlugs', slug));
-        if (filters?.minYear) params.append('minYear', filters.minYear.toString());
-        if (filters?.maxYear) params.append('maxYear', filters.maxYear.toString());
-        if (filters?.minPrice) params.append('minPrice', filters.minPrice.toString());
-        if (filters?.maxPrice) params.append('maxPrice', filters.maxPrice.toString());
-        if (filters?.minMileage) params.append('minMileage', filters.minMileage.toString());
-        if (filters?.maxMileage) params.append('maxMileage', filters.maxMileage.toString());
-        if (filters?.locations) filters.locations.forEach((location: string) => params.append('location', location));
+        const params = buildQueryParams({
+          brandSlugs: filters?.brands,
+          modelSlugs: filters?.models,
+          minYear: filters?.minYear,
+          maxYear: filters?.maxYear,
+          minPrice: filters?.minPrice,
+          maxPrice: filters?.maxPrice,
+          minMileage: filters?.minMileage,
+          maxMileage: filters?.maxMileage,
+          location: filters?.locations,
+        });
 
-        const response = await fetch(`http://localhost:8080/api/listings/counts/fuel-types?${params.toString()}`);
+        const response = await fetch(`${API_BASE_URL}/api/listings/counts/fuel-types?${params.toString()}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         // The API returns a map of fuel type names to counts
         setFuelTypeCounts(data);
       } catch (err) {
         console.error('Failed to fetch fuel type counts:', err);
-        setError('Failed to load fuel type counts');
+        setError(getStandardErrorMessage('fuel type counts'));
         setFuelTypeCounts({});
       } finally {
         setIsLoading(false);
       }
-    };
+    }, 300); // 300ms debounce
 
-    fetchFuelTypeCounts();
+    return () => clearTimeout(timeoutId);
   }, [filters]);
 
   return { fuelTypeCounts, isLoading, error };

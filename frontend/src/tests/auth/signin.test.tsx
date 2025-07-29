@@ -1,7 +1,7 @@
 import React from 'react';
 import { act as rtlAct, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import SignInPage from '@/app/auth/signin/page';
+import SignInPage from '@/app/[locale]/auth/signin/page';
 import { signIn, useSession } from 'next-auth/react';
 // Import our i18n mock
 import '../mocks/i18n-mock';

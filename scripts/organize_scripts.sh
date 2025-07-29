@@ -65,9 +65,9 @@ script_category_test_auth_paths_sh="testing"
 script_category_mock_spring_boot_sh="testing"
 script_category_test_docker_compose_yml="testing"
 
-# Maintenance scripts
-script_category_cleanup_sh="maintenance"
-script_category_cleanup_image_scripts_sh="maintenance"
+# Maintenance scripts (removed during cleanup)
+# script_category_cleanup_sh="maintenance"
+# script_category_cleanup_image_scripts_sh="maintenance"
 
 # Move scripts to appropriate directories
 echo -e "${GREEN}Moving scripts to appropriate directories...${NC}"
@@ -126,9 +126,9 @@ process_script "test-auth-paths.sh" "testing"
 process_script "mock-spring-boot.sh" "testing"
 process_script "test-docker-compose.yml" "testing"
 
-# Maintenance scripts
-process_script "cleanup.sh" "maintenance"
-process_script "cleanup_image_scripts.sh" "maintenance"
+# Maintenance scripts (removed during cleanup)
+# process_script "cleanup.sh" "maintenance"
+# process_script "cleanup_image_scripts.sh" "maintenance"
 
 # Move README files
 if [[ -f "$SCRIPT_DIR/IMAGE_SCRIPTS_README.md" ]]; then

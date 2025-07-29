@@ -39,32 +39,36 @@ export const createModelSlug = (brandName: string, modelName: string): string =>
 /**
  * Builds a search URL with brand filter
  * @param brandName - The brand display name
+ * @param locale - The current locale (optional, defaults to 'ar')
  * @returns A complete search URL with brand filter
  */
-export const buildBrandSearchUrl = (brandName: string): string => {
+export const buildBrandSearchUrl = (brandName: string, locale: string = 'ar'): string => {
   const brandSlug = createSlug(brandName);
-  if (!brandSlug) return '/search';
+  if (!brandSlug) return `/${locale}/search`;
   
-  return `/search?brand=${encodeURIComponent(brandSlug)}`;
+  return `/${locale}/search?brand=${encodeURIComponent(brandSlug)}`;
 };
 
 /**
  * Builds a search URL with brand and model filters
  * @param brandName - The brand display name
  * @param modelName - The model display name
+ * @param locale - The current locale (optional, defaults to 'ar')
  * @returns A complete search URL with brand and model filters
  */
-export const buildModelSearchUrl = (brandName: string, modelName: string): string => {
+export const buildModelSearchUrl = (brandName: string, modelName: string, locale: string = 'ar'): string => {
   const brandSlug = createSlug(brandName);
   const modelSlug = createModelSlug(brandName, modelName);
   
-  if (!brandSlug || !modelSlug) return '/search';
+  if (!brandSlug || !modelSlug) return `/${locale}/search`;
   
-  return `/search?brand=${encodeURIComponent(brandSlug)}&model=${encodeURIComponent(modelSlug)}`;
+  return `/${locale}/search?brand=${encodeURIComponent(brandSlug)}&model=${encodeURIComponent(modelSlug)}`;
 };
 
 /**
  * Navigation constants for consistent routing
+ * Note: These are base routes without locale prefix
+ * Use with locale prefix when needed
  */
 export const NAVIGATION_ROUTES = {
   HOME: '/',

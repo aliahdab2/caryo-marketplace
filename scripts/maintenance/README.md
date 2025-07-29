@@ -1,22 +1,9 @@
 # Maintenance Scripts
 
-This directory contains scripts for maintaining the Caryo Marketplace repository.
+This directory previously contained scripts for maintaining the Caryo Marketplace repository.
 
-## Available Scripts
+## Current Status
 
-| Script | Description |
-|--------|-------------|
-| `cleanup.sh` | General cleanup script for removing temporary files and containers. |
-| `cleanup_image_scripts.sh` | Specifically cleans up redundant image management scripts. |
-
-## Usage Examples
-
-```bash
-# Run general cleanup
-./scripts/maintenance/cleanup.sh
-
-# Clean up image scripts
-./scripts/maintenance/cleanup_image_scripts.sh
-```
+All maintenance scripts have been removed as part of the cleanup process.
 
 For general script documentation, see the main [README.md](../README.md).

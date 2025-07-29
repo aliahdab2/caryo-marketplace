@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useTranslation, UseTranslationResponse } from 'react-i18next';
-import { translationDebug } from '@/utils/translationDebug';
 
 /**
  * Custom hook for lazy loading translation namespaces and providing the t function.
@@ -36,7 +35,7 @@ export function useLazyTranslation(
       try {
         if (debug) {
           const notLoadedNamespaces = normalizedNamespaces.filter(
-            ns => !translationDebug.isNamespaceLoaded(ns, i18nInstance.language)
+            ns => !i18nInstance.hasResourceBundle?.(i18nInstance.language, ns)
           );
           
           if (notLoadedNamespaces.length > 0) {
@@ -62,7 +61,12 @@ export function useLazyTranslation(
         }
         
         if (debug && normalizedNamespaces.length > 0) {
-          translationDebug.logNamespaceLoaded(normalizedNamespaces, i18nInstance.language);
+          console.log(
+            `%c[i18n] Loaded namespaces: %c${normalizedNamespaces.join(', ')} %c(${i18nInstance.language})`,
+            'color: #4CAF50; font-weight: bold',
+            'color: #2196F3; font-weight: bold',
+            'color: #9E9E9E'
+          );
         }
       } catch (error) {
         console.error('[i18n] Error loading translation namespaces:', error);
@@ -77,7 +81,12 @@ export function useLazyTranslation(
     if (debug) {
       // Throttle the debug report to reduce console noise
       const timeoutId = setTimeout(() => {
-        translationDebug.printLoadingReport(i18nInstance);
+        console.log(
+          `%c[i18n] Translation status: %c${i18nInstance.language} %c(${normalizedNamespaces.join(', ')})`,
+          'color: #673AB7; font-weight: bold',
+          'color: #4CAF50; font-weight: bold',
+          'color: #9E9E9E'
+        );
       }, 1000);
       return () => {
         isMounted = false;

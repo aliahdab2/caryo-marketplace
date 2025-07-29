@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthUser } from '@/hooks/useAuthSession';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/components/EnhancedLanguageProvider';
 import { FavoriteButtonProps } from '@/types/components';
 
 const FavoriteButton: React.FC<FavoriteButtonProps> = ({
@@ -17,6 +18,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
 }) => {
   const { t } = useTranslation('common');
   const router = useRouter();
+  const { locale } = useLanguage();
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isLoading, setIsLoading] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -248,13 +250,13 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         
         // Small delay to show loading state, then redirect with returnUrl parameter
         setTimeout(() => {
-          router.push(`/auth/signin?returnUrl=${encodeURIComponent(currentUrl)}`);
+          router.push(`/${locale}/auth/signin?returnUrl=${encodeURIComponent(currentUrl)}`);
         }, 200);
       } catch (storageError) {
         console.error('[FAVORITE] Failed to store pending action:', storageError);
         // Still redirect to sign-in even if storage fails
         setIsLoading(false);
-        router.push(`/auth/signin?returnUrl=${encodeURIComponent(window.location.pathname)}`);
+        router.push(`/${locale}/auth/signin?returnUrl=${encodeURIComponent(window.location.pathname)}`);
       }
       return;
     }

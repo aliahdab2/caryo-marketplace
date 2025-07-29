@@ -98,6 +98,8 @@ const mockProps = {
       { id: 1, displayNameEn: 'FWD', displayNameAr: 'دفع أمامي', name: 'fwd' }
     ]
   },
+  sellerTypeCounts: { dealer: 5 },
+  bodyStyleCounts: { sedan: 3 },
   fuelTypeCounts: {
     gasoline: 150,
     diesel: 80,
@@ -106,9 +108,8 @@ const mockProps = {
     cng: 10,
     lpg: 5
   },
+  transmissionCounts: { manual: 100, automatic: 200 },
   isLoadingReferenceData: false,
-  sellerTypeCounts: { dealer: 5 },
-  bodyStyleCounts: { sedan: 3 },
   carListings: { 
     totalElements: 10, 
     content: [], 
@@ -644,7 +645,7 @@ describe('FilterModal', () => {
       render(<FilterModal {...mockProps} filterType="transmission" />);
       expect(screen.getByText('Transmission')).toBeInTheDocument();
       expect(screen.getByText('Manual')).toBeInTheDocument();
-      expect(screen.getByText('(0)')).toBeInTheDocument();
+      expect(screen.getByText('(100)')).toBeInTheDocument();
     });
 
     it('renders fuel type filter correctly', () => {

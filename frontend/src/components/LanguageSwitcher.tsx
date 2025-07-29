@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
 import { SupportedLanguage } from '@/utils/i18nExports';
 import { useManualLanguageOverride } from '@/hooks/useAutomaticLanguageDetection';
+import { useRouter, usePathname } from 'next/navigation';
 
 type LanguageSwitcherProps = ComponentProps;
 
@@ -13,6 +14,8 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const { locale, changeLanguage } = useLanguage();
   const { setLanguageManually } = useManualLanguageOverride();
   const { t } = useTranslation('common');
+  const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -115,6 +118,33 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
         // Change the language
         changeLanguage(lang);
         
+        // Set the cookie for the new language
+        document.cookie = `NEXT_LOCALE=${lang}; path=/; max-age=31536000`;
+        
+        // Navigate to the new locale URL
+        const currentPath = pathname || '/';
+        
+        // Extract the path without the locale prefix
+        let pathWithoutLocale = currentPath;
+        if (currentPath.startsWith(`/${locale}/`)) {
+          pathWithoutLocale = currentPath.substring(locale.length + 2); // +2 for "/" and "/"
+        } else if (currentPath === `/${locale}`) {
+          pathWithoutLocale = '';
+        }
+        
+        // Construct the new path with the new locale
+        const newPath = pathWithoutLocale ? `/${lang}/${pathWithoutLocale}` : `/${lang}`;
+        
+        console.log('Language change navigation:', {
+          currentPath,
+          locale,
+          lang,
+          pathWithoutLocale,
+          newPath
+        });
+        
+        router.push(newPath);
+        
         // Return focus to the main button
         buttonRef.current?.focus();
       } catch (error) {
@@ -172,7 +202,7 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
           {/* Desktop dropdown */}
           <div 
             id="language-menu-desktop"
-            className="hidden sm:block absolute mt-2 right-0 rtl:right-auto rtl:left-0 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 focus:outline-none z-50"
+            className="hidden sm:block absolute mt-2 right-0 rtl:right-auto rtl:left-0 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 focus:outline-none z-50"
             role="menu"
             aria-orientation="vertical"
             aria-labelledby="language-button"
@@ -193,9 +223,9 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
                 tabIndex={0}
               >
                 <span className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-sm font-medium mr-3 rtl:ml-3 rtl:mr-0">العربية</span>
-                <span>{t('languages.arabic')}</span>
+                <span className="flex-1 min-w-0">{t('languages.arabic')}</span>
                 {locale === 'ar' && (
-                  <svg className="ml-auto w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="flex-shrink-0 ml-auto rtl:ml-0 rtl:mr-auto w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                   </svg>
                 )}
@@ -214,9 +244,9 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
                 tabIndex={0}
               >
                 <span className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-sm font-medium mr-3 rtl:ml-3 rtl:mr-0">EN</span>
-                <span>{t('languages.english')}</span>
+                <span className="flex-1 min-w-0">{t('languages.english')}</span>
                 {locale === 'en' && (
-                  <svg className="ml-auto w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="flex-shrink-0 ml-auto rtl:ml-0 rtl:mr-auto w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                   </svg>
                 )}
@@ -256,9 +286,9 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
                 tabIndex={0}
               >
                 <span className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 text-sm font-medium mr-4 rtl:ml-4 rtl:mr-0">العربية</span>
-                <span className="text-base">{t('languages.arabic')}</span>
+                <span className="flex-1 min-w-0 text-base">{t('languages.arabic')}</span>
                 {locale === 'ar' && (
-                  <svg className="ml-auto w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="flex-shrink-0 ml-auto rtl:ml-0 rtl:mr-auto w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                   </svg>
                 )}
@@ -277,9 +307,9 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
                 tabIndex={0}
               >
                 <span className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 text-sm font-medium mr-4 rtl:ml-4 rtl:mr-0">EN</span>
-                <span className="text-base">{t('languages.english')}</span>
+                <span className="flex-1 min-w-0 text-base">{t('languages.english')}</span>
                 {locale === 'en' && (
-                  <svg className="ml-auto w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="flex-shrink-0 ml-auto rtl:ml-0 rtl:mr-auto w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                   </svg>
                 )}

@@ -4,12 +4,15 @@ import { ComponentProps } from "@/types/components";
 import { useLanguage } from '@/components/EnhancedLanguageProvider';
 import { SupportedLanguage } from '@/utils/i18nExports';
 import { useManualLanguageOverride } from '@/hooks/useAutomaticLanguageDetection';
+import { useRouter, usePathname } from 'next/navigation';
 
 type ToggleLanguageSwitcherProps = ComponentProps;
 
 export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwitcherProps) {
   const { locale, changeLanguage } = useLanguage();
   const { setLanguageManually } = useManualLanguageOverride();
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Handle language change
   const handleLanguageChange = (lang: SupportedLanguage) => {
@@ -20,6 +23,25 @@ export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwit
     try {
       setLanguageManually(lang);
       changeLanguage(lang);
+      
+      // Set the cookie for the new language
+      document.cookie = `NEXT_LOCALE=${lang}; path=/; max-age=31536000`;
+      
+      // Navigate to the new locale URL
+      const currentPath = pathname || '/';
+      
+      // Extract the path without the locale prefix
+      let pathWithoutLocale = currentPath;
+      if (currentPath.startsWith(`/${locale}/`)) {
+        pathWithoutLocale = currentPath.substring(locale.length + 2); // +2 for "/" and "/"
+      } else if (currentPath === `/${locale}`) {
+        pathWithoutLocale = '';
+      }
+      
+      // Construct the new path with the new locale
+      const newPath = pathWithoutLocale ? `/${lang}/${pathWithoutLocale}` : `/${lang}`;
+      
+      router.push(newPath);
     } catch (error) {
       console.error('Failed to switch language:', error);
     }
@@ -28,10 +50,10 @@ export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwit
   return (
     <div className={`inline-flex items-center ${className || ''}`}>
       {/* Underline Style */}
-      <div className="relative flex items-center space-x-6">
+      <div className="relative flex items-center gap-4 rtl:gap-6">
         <button
           onClick={() => handleLanguageChange('en')}
-          className={`relative pb-1 text-sm font-medium transition-colors duration-200 ${
+          className={`relative pb-1 px-1 text-sm font-medium transition-colors duration-200 ${
             locale === 'en'
               ? 'text-gray-900 dark:text-white'
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
@@ -46,7 +68,7 @@ export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwit
         
         <button
           onClick={() => handleLanguageChange('ar')}
-          className={`relative pb-1 text-sm font-medium transition-colors duration-200 ${
+          className={`relative pb-1 px-2 text-sm font-medium transition-colors duration-200 ${
             locale === 'ar'
               ? 'text-gray-900 dark:text-white'
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
