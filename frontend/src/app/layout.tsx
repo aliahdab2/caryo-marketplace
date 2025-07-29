@@ -10,6 +10,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import ClientRTLStylesLoader from "@/components/layout/ClientRTLStylesLoader";
 import AuthDataHandler from "@/components/auth/AuthDataHandler";
 import AutoLanguageDetector from "@/components/AutoLanguageDetector";
+import LocaleDetector from "@/components/LocaleDetector";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +35,11 @@ export default async function RootLayout({
   // Try to get the locale from cookies, defaulting to Arabic if not found
   const cookieStore = await cookies();
   const savedLocale = cookieStore.get('NEXT_LOCALE')?.value || 'ar';
-  const isRTL = savedLocale === 'ar';
+  
+  // Use the saved locale from cookies for now
+  // The LocaleDetector component will update the lang attribute client-side
+  const locale = savedLocale;
+  const isRTL = locale === 'ar';
   
   return (
     <html lang={savedLocale} dir={isRTL ? 'rtl' : 'ltr'}>
@@ -50,6 +55,7 @@ export default async function RootLayout({
           <I18nProvider>
             <LanguageProvider>
               <AutoLanguageDetector />
+              <LocaleDetector />
               <MainLayout>{children}</MainLayout>
             </LanguageProvider>
           </I18nProvider>

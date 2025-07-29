@@ -32,7 +32,7 @@ jest.mock('@/hooks/useApiData', () => ({
 
 // Mock lodash debounce
 jest.mock('lodash/debounce', () => {
-  return jest.fn((fn) => {
+  return jest.fn((fn: Function) => {
     const debouncedFn = (...args: unknown[]) => fn(...args);
     debouncedFn.cancel = jest.fn();
     return debouncedFn;
@@ -316,6 +316,16 @@ describe('HomeSearchBar', () => {
       (useApiDataHook.useFormSelection as jest.Mock)
         .mockReturnValue([1, mockSetSelectedMake]); // selectedMake = 1 (Toyota)
 
+      // Mock window.location with pathname
+      const originalHref = window.location.href;
+      Object.defineProperty(window, 'location', {
+        value: { 
+          href: originalHref,
+          pathname: '/en/search'
+        },
+        writable: true,
+      });
+
       render(<HomeSearchBar />);
 
       const searchButton = screen.getByRole('button', { name: /search cars/i });
@@ -323,16 +333,23 @@ describe('HomeSearchBar', () => {
       await userEvent.click(searchButton);
       
       // Should use brands parameter when a brand is selected
-      expect(mockPush).toHaveBeenCalledWith(
-        expect.stringContaining('/search?brand=toyota'),
-        { scroll: false }
-      );
+      expect(window.location.href).toContain('/search?brand=toyota');
     });
 
     it('handles model selection with slug-based URLs correctly', async () => {
       // Mock form selection for brand=1 (Toyota)
       (useApiDataHook.useFormSelection as jest.Mock)
         .mockReturnValue([1, jest.fn()]); // selectedMake = 1 (Toyota)
+
+      // Mock window.location with pathname
+      const originalHref = window.location.href;
+      Object.defineProperty(window, 'location', {
+        value: { 
+          href: originalHref,
+          pathname: '/en/search'
+        },
+        writable: true,
+      });
 
       render(<HomeSearchBar />);
 
@@ -341,16 +358,23 @@ describe('HomeSearchBar', () => {
       await userEvent.click(searchButton);
       
       // Should include brands parameter when brand is selected
-      expect(mockPush).toHaveBeenCalledWith(
-        expect.stringContaining('/search?brand=toyota'),
-        { scroll: false }
-      );
+      expect(window.location.href).toContain('/search?brand=toyota');
     });
 
     it('only creates URLs when brands/models have slugs', async () => {
       // Mock form selections to have no selections
       (useApiDataHook.useFormSelection as jest.Mock)
         .mockReturnValue([null, jest.fn()]); // selectedMake = null
+
+      // Mock window.location with pathname
+      const originalHref = window.location.href;
+      Object.defineProperty(window, 'location', {
+        value: { 
+          href: originalHref,
+          pathname: '/en/search'
+        },
+        writable: true,
+      });
 
       render(<HomeSearchBar />);
 
@@ -359,7 +383,8 @@ describe('HomeSearchBar', () => {
       await userEvent.click(searchButton);
       
       // Should not create URL params when no brand is selected
-      expect(mockPush).toHaveBeenCalledWith('/search', { scroll: false });
+      expect(window.location.href).toContain('/search');
+      expect(window.location.href).not.toContain('?');
     });
   });
 

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { formatDate, formatNumber } from '../../../utils/localization';
+import { formatDate, formatNumber } from '@/utils/localization';
 import { getListingById } from '@/services/listings';
 import { Listing } from '@/types/listings';
 import { transformMinioUrl } from '@/utils/mediaUtils';

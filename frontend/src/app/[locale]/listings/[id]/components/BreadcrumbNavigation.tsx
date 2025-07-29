@@ -30,7 +30,7 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({ listing }) 
     const items: BreadcrumbItem[] = [
       { 
         label: t('allCars'),
-        href: NAVIGATION_ROUTES.SEARCH
+        href: `/${locale}${NAVIGATION_ROUTES.SEARCH}`
       }
     ];
 
@@ -43,14 +43,14 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({ listing }) 
     if (brandNameEn && brandNameDisplay) {
       items.push({
         label: brandNameDisplay, // Display in current language
-        href: buildBrandSearchUrl(brandNameEn) // But use English for URL slug
+        href: buildBrandSearchUrl(brandNameEn, locale) // Use locale-aware URL
       });
 
       // Only add model breadcrumb if we have both brand and model
       if (modelNameEn && modelNameDisplay) {
         items.push({
           label: modelNameDisplay, // Display in current language
-          href: buildModelSearchUrl(brandNameEn, modelNameEn) // But use English for URL slug
+          href: buildModelSearchUrl(brandNameEn, modelNameEn, locale) // Use locale-aware URL
         });
       }
     }

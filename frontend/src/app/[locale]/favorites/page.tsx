@@ -58,10 +58,10 @@ export default function FavoritesPage() {
     }
   };
 
-  const handleFavoriteToggle = (listingId: string, isFavorite: boolean) => {
+  const handleFavoriteToggle = (isFavorite: boolean) => {
     if (!isFavorite) {
       // If removed from favorites, remove from the list
-      setFavorites(favorites.filter(listing => listing.id.toString() !== listingId));
+      setFavorites(favorites.filter(listing => listing.id.toString() !== listing.id.toString()));
     }
   };
 
@@ -101,70 +101,78 @@ export default function FavoritesPage() {
       
       {!isLoading && !error && favorites.length === 0 && (
         <div className="text-center py-12">
-          <svg className="w-16 h-16 mx-auto text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
-          <h2 className="mt-4 font-medium text-lg">{t('favorites.empty.title', { ns: 'common' })}</h2>
-          <p className="mt-2 text-gray-500">{t('favorites.empty.message', { ns: 'common' })}</p>
-          <Link 
+          <div className="mb-4">
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            {t('favorites.emptyTitle', { ns: 'common' })}
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
+            {t('favorites.emptyDescription', { ns: 'common' })}
+          </p>
+          <Link
             href="/search"
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            {t('favorites.empty.browseListings', { ns: 'common' })}
+            {t('favorites.browseCars', { ns: 'common' })}
           </Link>
         </div>
       )}
       
       {!isLoading && !error && favorites.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {favorites.map((listing) => (
-            <div key={listing.id} className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out">
-              <Link href={`/listings/${listing.id}`} className="block group">
-                <div className="relative h-48 w-full overflow-hidden">
-                  <Image
-                    src={listing.media && listing.media.length > 0 ? listing.media[0].url : '/images/vehicles/car-default.svg'}
-                    alt={listing.title}
-                    className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    unoptimized
+            <div key={listing.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+              <div className="relative">
+                <Image
+                  src={listing.image || '/images/placeholder.png'}
+                  alt={listing.title}
+                  width={400}
+                  height={300}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute top-2 right-2">
+                  <FavoriteButton
+                    listingId={listing.id.toString()}
+                    initialFavorite={true}
+                    onToggle={handleFavoriteToggle}
                   />
-                  <div className="absolute top-2 right-2" onClick={(e) => e.stopPropagation()}>
-                    <FavoriteButton
-                      listingId={listing.id.toString()}
-                      variant="filled"
-                      size="sm"
-                      className="shadow-md hover:shadow-lg z-10"
-                      initialFavorite={true}
-                      onToggle={(isFavorite) => handleFavoriteToggle(listing.id.toString(), isFavorite)}
-                    />
-                  </div>
                 </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 truncate group-hover:text-primary-500 transition-colors">
-                    {listing.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 capitalize">
-                    {listing.category?.name || t('listings.noCategory')}
-                  </p>
-                  <h4 className="text-xl font-bold text-primary-600 dark:text-primary-400 mb-2">
-                    {formatNumber(listing.price, i18n.language, { style: 'currency', currency: listing.currency || 'SYP' })}
-                  </h4>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    <p className="truncate">
-                      {listing.location?.city || t('listings.unknownLocation')}
-                      {listing.location?.country ? `, ${listing.location.country}` : ''}
-                    </p>
-                    <p>
-                      {t('listings.postedOn')}: {formatDate(new Date(listing.createdAt), i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
-                    </p>
-                  </div>
+              </div>
+              
+              <div className="p-4">
+                <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                  {listing.title}
+                </h3>
+                
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-3">
+                  {formatNumber(listing.price, i18n.language)}
+                </p>
+                
+                <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
+                  <div>{listing.year}</div>
+                  <div>{listing.mileage?.toLocaleString()} {t('listing.km', { ns: 'common' })}</div>
+                  {listing.transmission && <div>{listing.transmission}</div>}
+                  {listing.fuelType && <div>{listing.fuelType}</div>}
                 </div>
-              </Link>
+                
+                <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+                  <span>{formatDate(listing.createdAt, i18n.language)}</span>
+                </div>
+                
+                <Link
+                  href={`/listings/${listing.id}`}
+                  className="mt-4 w-full block text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-300"
+                >
+                  {t('listing.viewDetails', { ns: 'common' })}
+                </Link>
+              </div>
             </div>
           ))}
         </div>
       )}
     </div>
   );
-}
+} 

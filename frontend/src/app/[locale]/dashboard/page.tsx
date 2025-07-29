@@ -4,8 +4,8 @@ import { signOut } from "next-auth/react";
 import { useAuthUser } from "@/hooks/useAuthSession";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useLazyTranslation } from '../../hooks/useLazyTranslation';
-import { formatDate, formatNumber } from "../../utils/localization";
+import { useLazyTranslation } from '@/hooks/useLazyTranslation';
+import { formatDate, formatNumber } from "@/utils/localization";
 import { useEffect, useState } from "react";
 import { 
   MdStarBorder, 

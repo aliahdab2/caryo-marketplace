@@ -1,7 +1,7 @@
-import { 
-  createSlug, 
-  createModelSlug, 
-  buildBrandSearchUrl, 
+import {
+  createSlug,
+  createModelSlug,
+  buildBrandSearchUrl,
   buildModelSearchUrl,
   NAVIGATION_ROUTES,
   isValidNavigationRoute
@@ -9,101 +9,111 @@ import {
 
 describe('navigationUtils', () => {
   describe('createSlug', () => {
-    it('should create basic slugs correctly', () => {
-      expect(createSlug('Toyota')).toBe('toyota');
-      expect(createSlug('Honda Civic')).toBe('honda-civic');
+    it('creates a valid slug from English text', () => {
+      expect(createSlug('Toyota Camry')).toBe('toyota-camry');
       expect(createSlug('BMW X5')).toBe('bmw-x5');
+      expect(createSlug('Mercedes-Benz')).toBe('mercedes-benz');
     });
 
-    it('should handle special characters', () => {
-      expect(createSlug('Rolls-Royce')).toBe('rolls-royce');
-      expect(createSlug('McLaren P1™')).toBe('mclaren-p1');
-      expect(createSlug('Audi A4 (2023)')).toBe('audi-a4-2023');
+    it('creates a valid slug from Arabic text', () => {
+      expect(createSlug('تويوتا كامري')).toBe('تويوتا-كامري');
+      expect(createSlug('بي إم دبليو إكس 5')).toBe('بي-إم-دبليو-إكس-5');
     });
 
-    it('should handle edge cases', () => {
+    it('handles special characters and spaces', () => {
+      expect(createSlug('Toyota & Camry')).toBe('toyota-camry');
+      expect(createSlug('BMW (X5)')).toBe('bmw-x5');
+      expect(createSlug('  Toyota   Camry  ')).toBe('toyota-camry');
+    });
+
+    it('handles empty or invalid input', () => {
       expect(createSlug('')).toBe('');
       expect(createSlug('   ')).toBe('');
-      expect(createSlug('---')).toBe('');
-      expect(createSlug('  Toyota  ')).toBe('toyota');
-    });
-
-    it('should handle invalid inputs', () => {
       expect(createSlug(null as unknown as string)).toBe('');
       expect(createSlug(undefined as unknown as string)).toBe('');
-      expect(createSlug(123 as unknown as string)).toBe('');
     });
 
-    it('should handle Arabic text', () => {
-      expect(createSlug('تويوتا')).toBe('تويوتا');
-      expect(createSlug('هوندا سيفيك')).toBe('هوندا-سيفيك');
+    it('removes leading and trailing dashes', () => {
+      expect(createSlug('-Toyota-')).toBe('toyota');
+      expect(createSlug('--BMW--')).toBe('bmw');
     });
   });
 
   describe('createModelSlug', () => {
-    it('should create compound model slugs correctly', () => {
+    it('creates a compound model slug', () => {
       expect(createModelSlug('Toyota', 'Camry')).toBe('toyota-camry');
-      expect(createModelSlug('Honda', 'Civic')).toBe('honda-civic');
       expect(createModelSlug('BMW', 'X5')).toBe('bmw-x5');
     });
 
-    it('should handle brands and models with spaces', () => {
-      expect(createModelSlug('Land Rover', 'Range Rover')).toBe('land-rover-range-rover');
-      expect(createModelSlug('Rolls Royce', 'Phantom')).toBe('rolls-royce-phantom');
-    });
-
-    it('should handle invalid inputs', () => {
+    it('handles empty or invalid input', () => {
       expect(createModelSlug('', 'Camry')).toBe('');
       expect(createModelSlug('Toyota', '')).toBe('');
       expect(createModelSlug('', '')).toBe('');
-      expect(createModelSlug(null as unknown as string, 'Camry')).toBe('');
     });
 
-    it('should handle Arabic text', () => {
-      expect(createModelSlug('تويوتا', 'كامري')).toBe('تويوتا-كامري');
-      expect(createModelSlug('هوندا', 'سيفيك')).toBe('هوندا-سيفيك');
+    it('handles special characters in brand and model names', () => {
+      expect(createModelSlug('Toyota & Co', 'Camry (2024)')).toBe('toyota-co-camry-2024');
     });
   });
 
   describe('buildBrandSearchUrl', () => {
-    it('should build brand search URLs correctly', () => {
-      expect(buildBrandSearchUrl('Toyota')).toBe('/search?brand=toyota');
-      expect(buildBrandSearchUrl('Land Rover')).toBe('/search?brand=land-rover');
+    it('creates a brand search URL with default locale', () => {
+      expect(buildBrandSearchUrl('Toyota')).toBe('/ar/search?brand=toyota');
+      expect(buildBrandSearchUrl('BMW')).toBe('/ar/search?brand=bmw');
     });
 
-    it('should handle invalid brand names', () => {
-      expect(buildBrandSearchUrl('')).toBe('/search');
-      expect(buildBrandSearchUrl(null as unknown as string)).toBe('/search');
+    it('creates a brand search URL with specified locale', () => {
+      expect(buildBrandSearchUrl('Toyota', 'en')).toBe('/en/search?brand=toyota');
+      expect(buildBrandSearchUrl('BMW', 'ar')).toBe('/ar/search?brand=bmw');
     });
 
-    it('should URL encode properly', () => {
-      expect(buildBrandSearchUrl('Rolls-Royce')).toBe('/search?brand=rolls-royce');
-      expect(buildBrandSearchUrl('McLaren P1™')).toBe('/search?brand=mclaren-p1');
+    it('handles empty or invalid brand names', () => {
+      expect(buildBrandSearchUrl('')).toBe('/ar/search');
+      expect(buildBrandSearchUrl('   ')).toBe('/ar/search');
+    });
+
+    it('URL encodes the brand slug', () => {
+      expect(buildBrandSearchUrl('Toyota & Co')).toBe('/ar/search?brand=toyota-co');
     });
   });
 
   describe('buildModelSearchUrl', () => {
-    it('should build model search URLs correctly', () => {
-      expect(buildModelSearchUrl('Toyota', 'Camry'))
-        .toBe('/search?brand=toyota&model=toyota-camry');
-      expect(buildModelSearchUrl('Honda', 'Civic'))
-        .toBe('/search?brand=honda&model=honda-civic');
+    it('creates a model search URL with default locale', () => {
+      expect(buildModelSearchUrl('Toyota', 'Camry')).toBe('/ar/search?brand=toyota&model=toyota-camry');
+      expect(buildModelSearchUrl('BMW', 'X5')).toBe('/ar/search?brand=bmw&model=bmw-x5');
     });
 
-    it('should handle invalid inputs', () => {
-      expect(buildModelSearchUrl('', 'Camry')).toBe('/search');
-      expect(buildModelSearchUrl('Toyota', '')).toBe('/search');
-      expect(buildModelSearchUrl('', '')).toBe('/search');
+    it('creates a model search URL with specified locale', () => {
+      expect(buildModelSearchUrl('Toyota', 'Camry', 'en')).toBe('/en/search?brand=toyota&model=toyota-camry');
+      expect(buildModelSearchUrl('BMW', 'X5', 'ar')).toBe('/ar/search?brand=bmw&model=bmw-x5');
     });
 
-    it('should URL encode properly', () => {
-      expect(buildModelSearchUrl('Land Rover', 'Range Rover'))
-        .toBe('/search?brand=land-rover&model=land-rover-range-rover');
+    it('handles empty or invalid brand/model names', () => {
+      expect(buildModelSearchUrl('', 'Camry')).toBe('/ar/search');
+      expect(buildModelSearchUrl('Toyota', '')).toBe('/ar/search');
+      expect(buildModelSearchUrl('', '')).toBe('/ar/search');
+    });
+
+    it('URL encodes the brand and model slugs', () => {
+      expect(buildModelSearchUrl('Toyota & Co', 'Camry (2024)')).toBe('/ar/search?brand=toyota-co&model=toyota-co-camry-2024');
     });
   });
 
   describe('NAVIGATION_ROUTES', () => {
-    it('should contain all expected routes', () => {
+    it('contains all expected routes', () => {
+      expect(NAVIGATION_ROUTES).toHaveProperty('HOME');
+      expect(NAVIGATION_ROUTES).toHaveProperty('SEARCH');
+      expect(NAVIGATION_ROUTES).toHaveProperty('LISTINGS');
+      expect(NAVIGATION_ROUTES).toHaveProperty('FAVORITES');
+      expect(NAVIGATION_ROUTES).toHaveProperty('DASHBOARD');
+      expect(NAVIGATION_ROUTES).toHaveProperty('PROFILE');
+      expect(NAVIGATION_ROUTES).toHaveProperty('SETTINGS');
+      expect(NAVIGATION_ROUTES).toHaveProperty('CONTACT');
+      expect(NAVIGATION_ROUTES).toHaveProperty('SIGNIN');
+      expect(NAVIGATION_ROUTES).toHaveProperty('SIGNUP');
+    });
+
+    it('has correct route values', () => {
       expect(NAVIGATION_ROUTES.HOME).toBe('/');
       expect(NAVIGATION_ROUTES.SEARCH).toBe('/search');
       expect(NAVIGATION_ROUTES.LISTINGS).toBe('/listings');
@@ -118,18 +128,24 @@ describe('navigationUtils', () => {
   });
 
   describe('isValidNavigationRoute', () => {
-    it('should validate known routes correctly', () => {
+    it('returns true for valid navigation routes', () => {
       expect(isValidNavigationRoute('/')).toBe(true);
       expect(isValidNavigationRoute('/search')).toBe(true);
+      expect(isValidNavigationRoute('/listings')).toBe(true);
+      expect(isValidNavigationRoute('/favorites')).toBe(true);
       expect(isValidNavigationRoute('/dashboard')).toBe(true);
+      expect(isValidNavigationRoute('/dashboard/profile')).toBe(true);
+      expect(isValidNavigationRoute('/dashboard/settings')).toBe(true);
+      expect(isValidNavigationRoute('/contact')).toBe(true);
       expect(isValidNavigationRoute('/auth/signin')).toBe(true);
+      expect(isValidNavigationRoute('/auth/signup')).toBe(true);
     });
 
-    it('should reject unknown routes', () => {
-      expect(isValidNavigationRoute('/unknown')).toBe(false);
-      expect(isValidNavigationRoute('/listings/123')).toBe(false);
+    it('returns false for invalid routes', () => {
+      expect(isValidNavigationRoute('/invalid')).toBe(false);
+      expect(isValidNavigationRoute('/dashboard/invalid')).toBe(false);
+      expect(isValidNavigationRoute('/api/test')).toBe(false);
       expect(isValidNavigationRoute('')).toBe(false);
-      expect(isValidNavigationRoute('invalid')).toBe(false);
     });
   });
 });

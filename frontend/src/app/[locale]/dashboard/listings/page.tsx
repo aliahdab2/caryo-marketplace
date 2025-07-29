@@ -5,9 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import { getSession } from "next-auth/react";
-import { formatDate, formatNumber } from "../../../utils/localization";
-import { getMyListings } from "../../../services/listings";
-import { Listing } from "../../../types/listings";
+import { formatDate, formatNumber } from "@/utils/localization";
+import { getMyListings } from "@/services/listings";
+import { Listing } from "@/types/listings";
 import { 
   MdSearch, 
   MdFilterListAlt, 

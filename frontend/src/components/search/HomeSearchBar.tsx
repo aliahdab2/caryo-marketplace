@@ -129,6 +129,16 @@ const HomeSearchBar: React.FC = () => {
     [t]
   );
 
+  // Debug logging for data loading
+  console.log('HomeSearchBar data loading:', {
+    carMakes: carMakes?.length || 0,
+    isLoadingBrands,
+    brandsError,
+    selectedMake,
+    selectedModel,
+    selectedGovernorateSlug
+  });
+
   const {
     data: governorates = [],
     isLoading: isLoadingGovernorates,
@@ -173,6 +183,8 @@ const HomeSearchBar: React.FC = () => {
   const handleSearch = useCallback((e?: React.FormEvent) => {
     if (e) e.preventDefault();
     
+    console.log('HomeSearchBar handleSearch called', { selectedMake, selectedModel, selectedGovernorateSlug });
+    
     const params = new URLSearchParams();
     
     // Location first for SEO - local relevance is primary
@@ -199,10 +211,18 @@ const HomeSearchBar: React.FC = () => {
     
     // Build location parameters - removed as location is now handled above
 
+    // Get current locale from the URL path
+    const pathname = window.location.pathname;
+    const localeMatch = pathname.match(/^\/([a-z]{2})(\/|$)/);
+    const currentLocale = localeMatch ? localeMatch[1] : 'en';
+    
     // Use replace instead of push to avoid history stacking on quick searches
     const queryString = params.toString();
-    const url = queryString ? `/search?${queryString}` : '/search';
-    router.push(url, { scroll: false });
+    const url = queryString ? `/${currentLocale}/search?${queryString}` : `/${currentLocale}/search`;
+    
+    console.log('HomeSearchBar navigating to:', url);
+    // Use window.location.href to preserve query parameters
+    window.location.href = url;
   }, [selectedMake, selectedModel, selectedGovernorateSlug, carMakes, availableModels, router]);
 
   // Create a debounced search function
@@ -231,7 +251,11 @@ const HomeSearchBar: React.FC = () => {
                   id="brand"
                   ref={brandSelectRef}
                   value={selectedMake ?? ''}
-                  onChange={(e) => setSelectedMake(e.target.value ? Number(e.target.value) : null)}
+                  onChange={(e) => {
+                    const value = e.target.value ? Number(e.target.value) : null;
+                    console.log('Brand selected:', value);
+                    setSelectedMake(value);
+                  }}
                   className="appearance-none block w-full h-12 pl-3 xs:pl-4 pr-8 xs:pr-10 py-2 xs:py-3 text-sm xs:text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap mobile-select-dropdown select-fix"
                   disabled={isLoadingBrands}
                   aria-label={t('selectBrand', 'Select brand')}
@@ -265,7 +289,11 @@ const HomeSearchBar: React.FC = () => {
                   id="model"
                   ref={modelSelectRef}
                   value={selectedModel ?? ''}
-                  onChange={(e) => setSelectedModel(e.target.value ? Number(e.target.value) : null)}
+                  onChange={(e) => {
+                    const value = e.target.value ? Number(e.target.value) : null;
+                    console.log('Model selected:', value);
+                    setSelectedModel(value);
+                  }}
                   className="appearance-none block w-full h-12 pl-3 xs:pl-4 pr-8 xs:pr-10 py-2 xs:py-3 text-sm xs:text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap mobile-select-dropdown select-fix"
                   disabled={!selectedMake || isLoadingModels}
                   aria-label={t('selectModel', 'Select model')}
@@ -301,7 +329,11 @@ const HomeSearchBar: React.FC = () => {
                   id="governorate"
                   ref={govSelectRef}
                   value={selectedGovernorateSlug}
-                  onChange={(e) => setSelectedGovernorateSlug(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    console.log('Governorate selected:', value);
+                    setSelectedGovernorateSlug(value);
+                  }}
                   className="appearance-none block w-full h-12 pl-3 xs:pl-4 pr-8 xs:pr-10 py-2 xs:py-3 text-sm xs:text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap mobile-select-dropdown select-fix"
                   disabled={isLoadingGovernorates}
                   aria-label={t('selectGovernorate', 'Select governorate')}
@@ -329,7 +361,7 @@ const HomeSearchBar: React.FC = () => {
             {/* Search Button */}
             <div className="h-12 flex items-center md:col-span-2 lg:col-span-1">
               <button
-                type="submit"
+                type="button"
                 onClick={handleSearch}
                 className="w-full h-12 px-4 xs:px-6 bg-blue-600 text-white text-sm xs:text-base font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors whitespace-nowrap flex items-center justify-center"
                 aria-label={t('searchButton', 'Search Cars')}

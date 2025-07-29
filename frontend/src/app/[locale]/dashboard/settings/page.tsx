@@ -5,11 +5,14 @@ import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/components/EnhancedLanguageProvider";
 import { SupportedLanguage } from "@/utils/i18n";
 import { useManualLanguageOverride } from "@/hooks/useAutomaticLanguageDetection";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function SettingsPage() {
   const { t } = useTranslation('common');
   const { locale } = useLanguage();
   const { setLanguageManually } = useManualLanguageOverride();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const [accountSettings, setAccountSettings] = useState({
     language: locale, // Initialize with current locale
@@ -56,6 +59,25 @@ export default function SettingsPage() {
         try {
           // Use manual override to change language and mark it as user-selected
           setLanguageManually(newLanguage);
+          
+          // Set the cookie for the new language
+          document.cookie = `NEXT_LOCALE=${newLanguage}; path=/; max-age=31536000`;
+          
+          // Navigate to the new locale URL
+          const currentPath = pathname || '/';
+          
+          // Extract the path without the locale prefix
+          let pathWithoutLocale = currentPath;
+          if (currentPath.startsWith(`/${locale}/`)) {
+            pathWithoutLocale = currentPath.substring(locale.length + 2); // +2 for "/" and "/"
+          } else if (currentPath === `/${locale}`) {
+            pathWithoutLocale = '';
+          }
+          
+          // Construct the new path with the new locale
+          const newPath = pathWithoutLocale ? `/${newLanguage}/${pathWithoutLocale}` : `/${newLanguage}`;
+          
+          router.push(newPath);
         } catch (error: unknown) {
           console.error("Failed to change language:", error);
         } finally {

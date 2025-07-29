@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { formatDate } from '../../../../utils/localization';
+import { formatDate } from '@/utils/localization';
 import { Listing } from '@/types/listings';
 
 interface SellerInfoProps {
