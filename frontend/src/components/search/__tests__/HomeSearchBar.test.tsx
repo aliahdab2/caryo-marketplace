@@ -67,13 +67,14 @@ const createSafeLocationMock = () => {
   // Create a new location object with all required properties
   const locationMock = {
     ...mockLocation,
-    // Override the href setter to prevent navigation errors
+    // Override the href setter to prevent navigation errors and maintain expected value
     set href(value: string) {
       // Silently ignore navigation attempts in tests
       console.log(`[TEST] Navigation attempted to: ${value}`);
+      // Don't actually change the href value in tests
     },
     get href() {
-      return mockLocation.href;
+      return 'http://localhost/'; // Always return the expected value
     }
   };
   

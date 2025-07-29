@@ -1,1 +1,0 @@
-maintenance/cleanup_image_scripts.sh

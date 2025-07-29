@@ -73,8 +73,7 @@ Scripts for maintaining the repository.
 
 | Script | Description |
 |--------|-------------|
-| `cleanup.sh` | General cleanup script for removing temporary files and containers. |
-| `cleanup_image_scripts.sh` | Specifically cleans up redundant image management scripts. |
+| *Maintenance scripts have been removed as part of cleanup* | *No maintenance scripts currently available* |
 
 ## Frontend Environment Scripts
 
@@ -148,11 +147,7 @@ When adding new scripts to this directory:
 
 ## Maintenance
 
-Periodically, you should run the cleanup scripts to remove redundant or obsolete scripts:
-
-```bash
-./scripts/cleanup.sh
-```
+Maintenance scripts have been removed as part of the cleanup process.
 
 ## Bilingual Support
 
