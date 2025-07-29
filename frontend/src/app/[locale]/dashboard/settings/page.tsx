@@ -8,7 +8,7 @@ import { useManualLanguageOverride } from "@/hooks/useAutomaticLanguageDetection
 import { useRouter, usePathname } from "next/navigation";
 
 export default function SettingsPage() {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['settings', 'common', 'dashboard']);
   const { locale } = useLanguage();
   const { setLanguageManually } = useManualLanguageOverride();
   const router = useRouter();
@@ -128,16 +128,16 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold mb-6">{t('dashboard.settings')}</h1>
+      <h1 className="text-2xl font-semibold mb-6">{t('dashboard:settings')}</h1>
       
       {/* Account Preferences */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">{t('settings.accountPreferences')}</h2>
+        <h2 className="text-xl font-semibold mb-4">{t('settings:accountPreferences')}</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('settings.language')}
+              {t('settings:language')}
             </label>
             <select
               name="language"
@@ -153,7 +153,7 @@ export default function SettingsPage() {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('settings.timezone')}
+              {t('settings:timezone')}
             </label>
             <select
               name="timezone"
@@ -171,13 +171,13 @@ export default function SettingsPage() {
       
       {/* Notification Settings */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">{t('settings.notificationSettings')}</h2>
+        <h2 className="text-xl font-semibold mb-4">{t('settings:notificationSettings')}</h2>
         
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-medium text-gray-900 dark:text-white">{t('settings.emailNotifications')}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('settings.emailNotificationsDesc')}</p>
+              <h3 className="font-medium text-gray-900 dark:text-white">{t('settings:emailNotifications')}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('settings:emailNotificationsDesc')}</p>
             </div>
             <div>
               <label className="inline-flex items-center cursor-pointer">
@@ -194,8 +194,8 @@ export default function SettingsPage() {
           
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-medium text-gray-900 dark:text-white">{t('settings.pushNotifications')}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('settings.pushNotificationsDesc')}</p>
+              <h3 className="font-medium text-gray-900 dark:text-white">{t('settings:pushNotifications')}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('settings:pushNotificationsDesc')}</p>
             </div>
             <div>
               <label className="inline-flex items-center cursor-pointer">
@@ -211,11 +211,11 @@ export default function SettingsPage() {
           </div>
           
           <div className="pt-4 border-t dark:border-gray-700">
-            <h3 className="font-medium text-gray-900 dark:text-white mb-3">{t('settings.notificationsFor')}</h3>
+            <h3 className="font-medium text-gray-900 dark:text-white mb-3">{t('settings:notificationsFor')}</h3>
             
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm">{t('settings.newMessages')}</span>
+                <span className="text-sm">{t('settings:newMessages')}</span>
                 <label className="inline-flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 
@@ -228,7 +228,7 @@ export default function SettingsPage() {
               </div>
               
               <div className="flex items-center justify-between">
-                <span className="text-sm">{t('settings.listingExpiry')}</span>
+                <span className="text-sm">{t('settings:listingExpiry')}</span>
                 <label className="inline-flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 
@@ -241,7 +241,7 @@ export default function SettingsPage() {
               </div>
               
               <div className="flex items-center justify-between">
-                <span className="text-sm">{t('settings.priceDrops')}</span>
+                <span className="text-sm">{t('settings:priceDrops')}</span>
                 <label className="inline-flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 
@@ -254,7 +254,7 @@ export default function SettingsPage() {
               </div>
               
               <div className="flex items-center justify-between">
-                <span className="text-sm">{t('settings.newsletter')}</span>
+                <span className="text-sm">{t('settings:newsletter')}</span>
                 <label className="inline-flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 
@@ -267,7 +267,7 @@ export default function SettingsPage() {
               </div>
               
               <div className="flex items-center justify-between">
-                <span className="text-sm">{t('settings.marketing')}</span>
+                <span className="text-sm">{t('settings:marketing')}</span>
                 <label className="inline-flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 
@@ -285,13 +285,13 @@ export default function SettingsPage() {
       
       {/* Privacy Settings */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">{t('settings.privacySettings')}</h2>
+        <h2 className="text-xl font-semibold mb-4">{t('settings:privacySettings')}</h2>
         
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-medium text-gray-900 dark:text-white">{t('settings.showPhone')}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('settings.showPhoneDesc')}</p>
+              <h3 className="font-medium text-gray-900 dark:text-white">{t('settings:showPhone')}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('settings:showPhoneDesc')}</p>
             </div>
             <div>
               <label className="inline-flex items-center cursor-pointer">
@@ -308,8 +308,8 @@ export default function SettingsPage() {
           
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-medium text-gray-900 dark:text-white">{t('settings.showEmail')}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('settings.showEmailDesc')}</p>
+              <h3 className="font-medium text-gray-900 dark:text-white">{t('settings:showEmail')}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('settings:showEmailDesc')}</p>
             </div>
             <div>
               <label className="inline-flex items-center cursor-pointer">
@@ -326,8 +326,8 @@ export default function SettingsPage() {
           
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-medium text-gray-900 dark:text-white">{t('settings.analytics')}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('settings.analyticsDesc')}</p>
+              <h3 className="font-medium text-gray-900 dark:text-white">{t('settings:analytics')}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('settings:analyticsDesc')}</p>
             </div>
             <div>
               <label className="inline-flex items-center cursor-pointer">
@@ -350,22 +350,22 @@ export default function SettingsPage() {
           onClick={handleSaveSettings}
           className="py-2 px-6 bg-primary text-white rounded-lg hover:bg-primary/90"
         >
-          {t('saveChanges')}
+          {t('common:saveChanges')}
         </button>
       </div>
       
       {/* Danger Zone */}
       <div className="mt-12 border border-red-200 dark:border-red-900 rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-4">{t('settings.dangerZone')}</h2>
+        <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-4">{t('settings:dangerZone')}</h2>
         
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div className="mb-3 md:mb-0">
-              <h3 className="font-medium text-gray-900 dark:text-white">{t('settings.deleteAccount')}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('settings.deleteAccountDesc')}</p>
+              <h3 className="font-medium text-gray-900 dark:text-white">{t('settings:deleteAccount')}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('settings:deleteAccountDesc')}</p>
             </div>
             <button className="py-2 px-4 bg-white dark:bg-gray-800 text-red-600 border border-red-300 dark:border-red-700 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30">
-              {t('settings.deleteAccount')}
+              {t('settings:deleteAccount')}
             </button>
           </div>
         </div>

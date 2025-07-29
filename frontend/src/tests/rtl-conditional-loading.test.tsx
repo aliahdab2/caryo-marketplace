@@ -1,8 +1,19 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { isRTLStylesheetLoaded } from '@/utils/rtl-test-utils';
 import ClientRTLStylesLoader from '@/components/layout/ClientRTLStylesLoader';
+
+// Helper function to check if RTL stylesheet is loaded (replacing the deleted utility)
+const isRTLStylesheetLoaded = (): boolean => {
+  const links = document.querySelectorAll('link[rel="stylesheet"]');
+  for (const link of links) {
+    const href = link.getAttribute('href');
+    if (href && href.includes('rtl-specific.css')) {
+      return true;
+    }
+  }
+  return false;
+};
 
 // Mock usePathname to avoid router context errors
 jest.mock('next/navigation', () => ({
