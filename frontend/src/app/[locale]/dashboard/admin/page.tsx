@@ -7,6 +7,7 @@ import { getAuthHeaders, isAdmin } from '@/utils/auth';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useToastHelpers } from '@/components/ui/ToastProvider';
+import { useLanguage } from '@/components/EnhancedLanguageProvider';
 
 interface Listing {
   id: number;
@@ -87,6 +88,7 @@ const useAdminPanel = () => {
 };
 
 export default function AdminPanel() {
+  const { locale } = useLanguage();
   const {
     state: { listings, loading, error, processing },
     computedValues: { pendingListings, approvedListings },
@@ -133,7 +135,7 @@ export default function AdminPanel() {
   // Check if user is admin on mount
   useEffect(() => {
     if (!isAdmin()) {
-      router.push('/dashboard');
+      router.push(`/${locale}/dashboard`);
       return;
     }
     fetchPendingListings();

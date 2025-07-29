@@ -10,11 +10,13 @@ import { getUserFavorites } from '@/services/favorites';
 import { formatDate, formatNumber } from '@/utils/localization';
 import FavoriteButton from '@/components/common/FavoriteButton';
 import { Listing } from '@/types/listings';
+import { useLanguage } from '@/components/EnhancedLanguageProvider';
 
 export default function FavoritesPage() {
   const { t, i18n } = useTranslation(['common']);
   const status = useAuthStatus();
   const router = useRouter();
+  const { locale } = useLanguage();
   
   const [favorites, setFavorites] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,7 +25,7 @@ export default function FavoritesPage() {
   useEffect(() => {
     // Redirect to login if user is not authenticated
     if (status.isUnauthenticated) {
-      router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname));
+      router.push(`/${locale}/auth/signin?callbackUrl=` + encodeURIComponent(window.location.pathname));
       return;
     }
 

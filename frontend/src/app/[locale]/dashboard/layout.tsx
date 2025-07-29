@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState, useCallback, memo } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { useLanguage } from '@/components/EnhancedLanguageProvider';
 import { 
   MdDashboard, 
   MdDirectionsCar, 
@@ -109,6 +110,7 @@ export default function DashboardLayout({
 }) {
   const { session, status } = useAuthSession();
   const router = useRouter();
+  const { locale } = useLanguage();
   const { t } = useTranslation('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -116,7 +118,7 @@ export default function DashboardLayout({
   // Handle authentication redirection with a consistent user experience
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push(`/auth/signin?message=${encodeURIComponent('Please log in to access dashboard')}`);
+      router.push(`/${locale}/auth/signin?message=${encodeURIComponent('Please log in to access dashboard')}`);
     }
   }, [status, router, t]);
 

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { formatDate, formatNumber } from "@/utils/localization";
 import { useEffect, useState } from "react";
+import { useLanguage } from '@/components/EnhancedLanguageProvider';
 import { 
   MdStarBorder, 
   MdEmail, 
@@ -26,6 +27,7 @@ const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings'];
 export default function Dashboard() {
   const user = useAuthUser();
   const router = useRouter();
+  const { locale } = useLanguage();
   const { t, i18n, ready } = useLazyTranslation(DASHBOARD_NAMESPACES);
   const [favoritesCount, setFavoritesCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -357,7 +359,7 @@ export default function Dashboard() {
                     <td className="py-4 px-5">
                       <div className="flex items-center space-x-3 rtl:space-x-reverse rtl:gap-3">
                         <button 
-                          onClick={() => router.push(`/dashboard/listings/edit/${listing.id}`)}
+                          onClick={() => router.push(`/${locale}/dashboard/listings/edit/${listing.id}`)}
                           className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                           aria-label={t('edit')}
                           title={t('edit')}

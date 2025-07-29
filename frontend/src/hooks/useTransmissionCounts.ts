@@ -11,7 +11,8 @@ export const useTransmissionCounts = (filters?: CarListingFilterParams) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchTransmissionCounts = async () => {
+    // Debounce the API calls to prevent excessive requests
+    const timeoutId = setTimeout(async () => {
       setIsLoading(true);
       setError(null);
 
@@ -47,9 +48,9 @@ export const useTransmissionCounts = (filters?: CarListingFilterParams) => {
       } finally {
         setIsLoading(false);
       }
-    };
+    }, 300); // 300ms debounce
 
-    fetchTransmissionCounts();
+    return () => clearTimeout(timeoutId);
   }, [filters]);
 
   return { transmissionCounts, isLoading, error };

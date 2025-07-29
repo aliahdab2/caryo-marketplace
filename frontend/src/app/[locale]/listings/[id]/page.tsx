@@ -8,6 +8,7 @@ import { getListingById } from '@/services/listings';
 import { Listing } from '@/types/listings';
 import { transformMinioUrl } from '@/utils/mediaUtils';
 import FavoriteButton from '@/components/common/FavoriteButton';
+import { useLanguage } from '@/components/EnhancedLanguageProvider';
 
 // Component imports for the new enhanced layout
 import BreadcrumbNavigation from './components/BreadcrumbNavigation';
@@ -20,6 +21,7 @@ export default function ListingDetailPage() {
   const { t, i18n } = useTranslation('listings');
   const params = useParams();
   const router = useRouter();
+  const { locale } = useLanguage();
   // Safely extract id from params
   const id = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params?.id[0] : undefined;
   
@@ -123,7 +125,7 @@ export default function ListingDetailPage() {
           <p className="mb-4 text-center text-sm sm:text-base">{error}</p>
           <div className="flex justify-center">
             <button
-              onClick={() => router.push('/listings')}
+              onClick={() => router.push(`/${locale}/listings`)}
               className="inline-flex items-center bg-blue-600 text-white py-2 px-4 text-xs sm:text-sm rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 rtl:ml-1.5 rtl:mr-0 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

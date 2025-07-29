@@ -11,7 +11,8 @@ export const useFuelTypeCounts = (filters?: CarListingFilterParams) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchFuelTypeCounts = async () => {
+    // Debounce the API calls to prevent excessive requests
+    const timeoutId = setTimeout(async () => {
       setIsLoading(true);
       setError(null);
 
@@ -40,9 +41,9 @@ export const useFuelTypeCounts = (filters?: CarListingFilterParams) => {
       } finally {
         setIsLoading(false);
       }
-    };
+    }, 300); // 300ms debounce
 
-    fetchFuelTypeCounts();
+    return () => clearTimeout(timeoutId);
   }, [filters]);
 
   return { fuelTypeCounts, isLoading, error };

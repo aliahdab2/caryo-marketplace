@@ -422,51 +422,56 @@ export default function AdvancedSearchPage() {
   // URLs use clean singular form (brand/model) for SEO and UX
   // Backend API expects plural form (brandSlugs/modelSlugs)
   const updateUrlFromFilters = useCallback((newFilters: AdvancedSearchFilters) => {
-
-    const params = new URLSearchParams();
+    // Skip URL update if filters haven't meaningfully changed
+    const currentParams = new URLSearchParams(window.location.search);
+    const newParams = new URLSearchParams();
     
     // Location first for SEO - local relevance is primary
     if (newFilters.locations && newFilters.locations.length > 0) {
-
       // Use dash-separated values for maximum SEO-friendliness (no encoding ever)
-      params.set('locations', newFilters.locations.join('-'));
+      newParams.set('locations', newFilters.locations.join('-'));
     }
     
     // Add brand slugs - use singular form for clean URLs
     if (newFilters.brands && newFilters.brands.length > 0) {
       newFilters.brands.forEach(brand => {
-        params.append('brand', brand);
+        newParams.append('brand', brand);
       });
     }
     
     // Add model slugs - use singular form for clean URLs
     if (newFilters.models && newFilters.models.length > 0) {
       newFilters.models.forEach(model => {
-        params.append('model', model);
+        newParams.append('model', model);
       });
     }
-    if (newFilters.minYear) params.append('minYear', newFilters.minYear.toString());
-    if (newFilters.maxYear) params.append('maxYear', newFilters.maxYear.toString());
-    if (newFilters.minPrice) params.append('minPrice', newFilters.minPrice.toString());
-    if (newFilters.maxPrice) params.append('maxPrice', newFilters.maxPrice.toString());
-    if (newFilters.minMileage) params.append('minMileage', newFilters.minMileage.toString());
-    if (newFilters.maxMileage) params.append('maxMileage', newFilters.maxMileage.toString());
+    if (newFilters.minYear) newParams.append('minYear', newFilters.minYear.toString());
+    if (newFilters.maxYear) newParams.append('maxYear', newFilters.maxYear.toString());
+    if (newFilters.minPrice) newParams.append('minPrice', newFilters.minPrice.toString());
+    if (newFilters.maxPrice) newParams.append('maxPrice', newFilters.maxPrice.toString());
+    if (newFilters.minMileage) newParams.append('minMileage', newFilters.minMileage.toString());
+    if (newFilters.maxMileage) newParams.append('maxMileage', newFilters.maxMileage.toString());
 
-    if (newFilters.transmissionId) params.append('transmissionId', newFilters.transmissionId.toString());
+    if (newFilters.transmissionId) newParams.append('transmissionId', newFilters.transmissionId.toString());
     if (newFilters.fuelTypeSlugs && newFilters.fuelTypeSlugs.length > 0) {
-      newFilters.fuelTypeSlugs.forEach(slug => params.append('fuelType', slug));
+      newFilters.fuelTypeSlugs.forEach(slug => newParams.append('fuelType', slug));
     }
-            if (newFilters.bodyType && newFilters.bodyType.length > 0) {
-          params.append('bodyType', newFilters.bodyType.join('-'));
-        }
+    if (newFilters.bodyType && newFilters.bodyType.length > 0) {
+      newParams.append('bodyType', newFilters.bodyType.join('-'));
+    }
     if (newFilters.sellerTypeIds && newFilters.sellerTypeIds.length > 0) {
-      newFilters.sellerTypeIds.forEach(id => params.append('sellerTypeId', id.toString()));
+      newFilters.sellerTypeIds.forEach(id => newParams.append('sellerTypeId', id.toString()));
     }
     
-    // Update URL without causing a page reload
-    const newUrl = `/search${params.toString() ? `?${params.toString()}` : ''}`;
-    router.replace(newUrl, { scroll: false });
-  }, [router]);
+    // Only update URL if it has actually changed
+    const newUrlString = newParams.toString();
+    const currentUrlString = currentParams.toString();
+    
+    if (newUrlString !== currentUrlString) {
+      const newUrl = `/${currentLanguage}/search${newUrlString ? `?${newUrlString}` : ''}`;
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [router, currentLanguage]);
 
   // Trigger search after filters are initialized - always search to show results
   useEffect(() => {
@@ -475,10 +480,15 @@ export default function AdvancedSearchPage() {
     }
   }, [hasInitialized, listingFilters, executeSearch]);
 
-  // Update URL when filters change (but not during initial load)
+  // Update URL when filters change (but not during initial load) - with debouncing
   useEffect(() => {
     if (hasInitialized) {
-      updateUrlFromFilters(filters);
+      // Debounce URL updates to prevent excessive router calls
+      const timeoutId = setTimeout(() => {
+        updateUrlFromFilters(filters);
+      }, 200); // 200ms debounce for URL updates
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [filters, hasInitialized, updateUrlFromFilters]);
 
@@ -525,9 +535,9 @@ export default function AdvancedSearchPage() {
     // Removed transmissionId, fuelTypeSlugs, and bodyStyleIds as they're not supported by the seller type counts endpoint
   }), [filters.brands, filters.models, filters.minYear, filters.maxYear, filters.minPrice, filters.maxPrice, filters.minMileage, filters.maxMileage]);
 
-  // Fetch seller type counts when filters change (Swedish marketplace style)
+  // Fetch seller type counts when filters change (Swedish marketplace style) - with debouncing
   useEffect(() => {
-    const fetchSellerTypeCounts = async () => {
+    const timeoutId = setTimeout(async () => {
       try {
         // Convert filters to API format for count endpoint
         // Note: Seller type counts endpoint doesn't support transmission/fuel type filtering
@@ -550,9 +560,9 @@ export default function AdvancedSearchPage() {
         console.error('Error fetching seller type counts:', error);
         setSellerTypeCounts({}); // Reset to empty on error
       }
-    };
+    }, 400); // 400ms debounce for seller type counts
 
-    fetchSellerTypeCounts();
+    return () => clearTimeout(timeoutId);
   }, [sellerTypeCountDependencies]);
 
   // ESC key handler to close modals

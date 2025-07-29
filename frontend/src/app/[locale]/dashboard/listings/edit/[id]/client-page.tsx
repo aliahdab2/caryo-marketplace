@@ -8,10 +8,12 @@ import { Governorate, fetchGovernorates } from '@/services/api';
 import { getListingById, updateListing } from '@/services/listings';
 import { SUPPORTED_CURRENCIES } from '@/utils/currency';
 import ListingExpiry from "../../components/ListingExpiry";
+import { useLanguage } from '@/components/EnhancedLanguageProvider';
 
 // Client component
 export default function EditListingPageClient({ id }: { id: string }) {
   const router = useRouter();
+  const { locale } = useLanguage();
   const [formData, setFormData] = useState<ListingFormData | null>(null);
   const [governorates, setGovernorates] = useState<Governorate[]>([]);
   const [isLoadingGovernorates, setIsLoadingGovernorates] = useState(true);
@@ -196,7 +198,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
       await updateListing(id, updateData);
       
       // Redirect to listings page after successful update
-      router.push("/dashboard/listings");
+      router.push(`/${locale}/dashboard/listings`);
     } catch (error) {
       console.error("Error updating listing:", error);
       setError(error instanceof Error ? error.message : "Failed to update listing. Please try again.");
@@ -569,7 +571,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
       <div className="flex justify-end space-x-3">
         <button
           type="button"
-          onClick={() => router.push('/dashboard/listings')}
+          onClick={() => router.push(`/${locale}/dashboard/listings`)}
           className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-700"
         >
           Cancel

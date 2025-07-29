@@ -12,7 +12,8 @@ export const useBodyStyleCounts = (filters?: CarListingFilterParams) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchBodyStyleCounts = async () => {
+    // Debounce the API calls to prevent excessive requests
+    const timeoutId = setTimeout(async () => {
       setIsLoading(true);
       setError(null);
 
@@ -87,9 +88,9 @@ export const useBodyStyleCounts = (filters?: CarListingFilterParams) => {
       } finally {
         setIsLoading(false);
       }
-    };
+    }, 300); // 300ms debounce
 
-    fetchBodyStyleCounts();
+    return () => clearTimeout(timeoutId);
   }, [filters]);
 
   return { bodyStyleCounts, isLoading, error };

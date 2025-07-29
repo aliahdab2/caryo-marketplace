@@ -19,8 +19,8 @@ export function useOptimizedFiltering<TFilters, TResult>(
   options: UseOptimizedFilteringOptions = {}
 ) {
   const {
-    debounceMs = 500, // Increased from 300ms to 500ms for better debouncing
-    minLoadingDelayMs = 150,
+    debounceMs = 300, // Reduced from 500ms to 300ms for better responsiveness
+    minLoadingDelayMs = 100, // Reduced from 150ms to 100ms
     immediate = false
   } = options;
 
@@ -50,11 +50,30 @@ export function useOptimizedFiltering<TFilters, TResult>(
         
         if (newKeys.length !== oldKeys.length) return true;
         
-        return newKeys.some(key => newObj[key] !== oldObj[key]);
+        // Only compare keys that are likely to change (skip computed/derived values)
+        const relevantKeys = newKeys.filter(key => 
+          !key.startsWith('_') && 
+          key !== 'computed' && 
+          key !== 'derived' &&
+          key !== 'hash'
+        );
+        
+        return relevantKeys.some(key => {
+          const newVal = newObj[key];
+          const oldVal = oldObj[key];
+          
+          // Special handling for arrays
+          if (Array.isArray(newVal) && Array.isArray(oldVal)) {
+            if (newVal.length !== oldVal.length) return true;
+            return newVal.some((item, index) => item !== oldVal[index]);
+          }
+          
+          return newVal !== oldVal;
+        });
       }
       
-      // Fallback to JSON comparison for complex objects
-      return JSON.stringify(newFilters) !== JSON.stringify(oldFilters);
+      // Fallback to direct comparison for primitives
+      return newFilters !== oldFilters;
     } catch {
       return newFilters !== oldFilters;
     }

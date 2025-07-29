@@ -12,6 +12,7 @@ import { FormErrors, StepConfig } from "@/types/forms";
 import { SUPPORTED_CURRENCIES } from '@/utils/currency';
 import { validateStep, calculateProgress, processFormFieldValue } from '@/utils/formUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
+import { useLanguage } from '@/components/EnhancedLanguageProvider';
 
 // Constants
 const TOTAL_STEPS = 4;
@@ -38,6 +39,7 @@ const ErrorMessage: React.FC<{ error?: string; id?: string }> = ({ error, id }) 
 
 export default function NewListingPage() {
   const router = useRouter();
+  const { locale } = useLanguage();
   const { t, i18n } = useLazyTranslation(['dashboard', 'listings', 'common', 'errors']);
   
   // State management
@@ -170,8 +172,8 @@ export default function NewListingPage() {
   // Handle success alert completion
   const handleSuccessAlertComplete = useCallback(() => {
     setShowSuccessAlert(false);
-    router.push("/dashboard/listings");
-  }, [router]);
+    router.push(`/${locale}/dashboard/listings`);
+  }, [router, locale]);
 
   // Check if a step can be accessed based on validation
   const isStepAccessible = useCallback((targetStep: number) => {
