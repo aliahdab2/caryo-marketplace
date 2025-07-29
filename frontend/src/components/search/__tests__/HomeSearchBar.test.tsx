@@ -39,6 +39,25 @@ jest.mock('lodash/debounce', () => {
   });
 });
 
+// Mock window.location to prevent JSDOM navigation errors
+const mockLocation = {
+  href: 'http://localhost/',
+  pathname: '/',
+  search: '',
+  hash: '',
+  host: 'localhost',
+  hostname: 'localhost',
+  port: '',
+  protocol: 'http:',
+  origin: 'http://localhost',
+  assign: jest.fn(),
+  replace: jest.fn(),
+  reload: jest.fn(),
+};
+
+// Store original location
+const originalLocation = window.location;
+
 describe('HomeSearchBar', () => {
   const mockPush = jest.fn();
   const mockT = jest.fn((key: string, defaultValue?: string) => defaultValue || key);
@@ -63,6 +82,10 @@ describe('HomeSearchBar', () => {
     // Reset all mocks
     jest.clearAllMocks();
     
+    // Mock window.location
+    delete (window as any).location;
+    (window as any).location = { ...mockLocation };
+    
     // Setup router mock
     (useRouter as jest.Mock).mockReturnValue({
       push: mockPush,
@@ -79,6 +102,11 @@ describe('HomeSearchBar', () => {
       initialValue,
       jest.fn(),
     ]);
+  });
+
+  afterEach(() => {
+    // Restore original location
+    (window as any).location = originalLocation;
   });
 
   describe('Initial Render', () => {

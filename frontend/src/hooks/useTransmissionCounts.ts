@@ -7,7 +7,7 @@ export interface TransmissionCounts {
 
 export const useTransmissionCounts = (filters?: CarListingFilterParams) => {
   const [transmissionCounts, setTransmissionCounts] = useState<TransmissionCounts>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start with loading true
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

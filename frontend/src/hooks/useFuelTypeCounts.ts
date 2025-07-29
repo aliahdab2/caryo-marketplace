@@ -7,7 +7,7 @@ export interface FuelTypeCounts {
 
 export const useFuelTypeCounts = (filters?: CarListingFilterParams) => {
   const [fuelTypeCounts, setFuelTypeCounts] = useState<FuelTypeCounts>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start with loading true
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,6 +30,11 @@ export const useFuelTypeCounts = (filters?: CarListingFilterParams) => {
         if (filters?.locations) filters.locations.forEach((location: string) => params.append('location', location));
 
         const response = await fetch(`http://localhost:8080/api/listings/counts/fuel-types?${params.toString()}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         // The API returns a map of fuel type names to counts
