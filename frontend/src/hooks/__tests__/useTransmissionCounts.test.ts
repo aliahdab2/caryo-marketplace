@@ -100,14 +100,9 @@ describe('useTransmissionCounts', () => {
 
       expect(result.current.transmissionCounts).toEqual(mockResponse);
       expect(result.current.error).toBeNull();
-<<<<<<< HEAD
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('http://localhost:8080/api/listings/counts/transmissions')
-=======
       expect(cachedFetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/listings/counts/transmissions'),
         expect.any(Object)
->>>>>>> 09be7e5 (feat: integrate caching mechanism for API calls; add global cache utilities and refactor data fetching to improve performance and reduce network requests)
       );
     });
 
@@ -139,14 +134,9 @@ describe('useTransmissionCounts', () => {
       });
 
       expect(result.current.transmissionCounts).toEqual(mockResponse);
-<<<<<<< HEAD
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('http://localhost:8080/api/listings/counts/transmissions?brandSlugs=toyota&brandSlugs=honda&modelSlugs=camry&modelSlugs=civic&minYear=2020&maxYear=2023&minPrice=10000&maxPrice=50000&maxMileage=100000&location=damascus&fuelTypeSlugs=gasoline&bodyStyleIds=1&bodyStyleIds=2')
-=======
       expect(cachedFetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/listings/counts/transmissions?brandSlugs=toyota&brandSlugs=honda&modelSlugs=camry&modelSlugs=civic&minYear=2020&maxYear=2023&minPrice=10000&maxPrice=50000&maxMileage=100000&location=damascus&fuelTypeSlugs=gasoline&bodyStyleIds=1&bodyStyleIds=2'),
         expect.any(Object)
->>>>>>> 09be7e5 (feat: integrate caching mechanism for API calls; add global cache utilities and refactor data fetching to improve performance and reduce network requests)
       );
     });
   });
@@ -196,14 +186,9 @@ describe('useTransmissionCounts', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-<<<<<<< HEAD
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('http://localhost:8080/api/listings/counts/transmissions')
-=======
       expect(cachedFetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/listings/counts/transmissions'),
         expect.any(Object)
->>>>>>> 09be7e5 (feat: integrate caching mechanism for API calls; add global cache utilities and refactor data fetching to improve performance and reduce network requests)
       );
       expect(result.current.transmissionCounts).toEqual(mockResponse);
     });
@@ -227,14 +212,9 @@ describe('useTransmissionCounts', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-<<<<<<< HEAD
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('http://localhost:8080/api/listings/counts/transmissions?brandSlugs=toyota&minYear=2020')
-=======
       expect(cachedFetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/listings/counts/transmissions?brandSlugs=toyota&minYear=2020'),
         expect.any(Object)
->>>>>>> 09be7e5 (feat: integrate caching mechanism for API calls; add global cache utilities and refactor data fetching to improve performance and reduce network requests)
       );
       expect(result.current.transmissionCounts).toEqual(mockResponse);
     });

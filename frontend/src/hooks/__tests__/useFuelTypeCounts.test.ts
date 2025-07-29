@@ -96,14 +96,10 @@ describe('useFuelTypeCounts', () => {
 
       expect(result.current.fuelTypeCounts).toEqual(mockCounts);
       expect(result.current.error).toBeNull();
-<<<<<<< HEAD
-      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('http://localhost:8080/api/listings/counts/fuel-types'));
-=======
       expect(cachedFetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/listings/counts/fuel-types'),
         expect.any(Object)
       );
->>>>>>> 09be7e5 (feat: integrate caching mechanism for API calls; add global cache utilities and refactor data fetching to improve performance and reduce network requests)
     });
 
     it('should fetch fuel type counts with filters', async () => {
@@ -133,14 +129,9 @@ describe('useFuelTypeCounts', () => {
       });
 
       expect(result.current.fuelTypeCounts).toEqual(mockCounts);
-<<<<<<< HEAD
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('http://localhost:8080/api/listings/counts/fuel-types')
-=======
       expect(cachedFetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/listings/counts/fuel-types'),
         expect.any(Object)
->>>>>>> 09be7e5 (feat: integrate caching mechanism for API calls; add global cache utilities and refactor data fetching to improve performance and reduce network requests)
       );
     });
   });
