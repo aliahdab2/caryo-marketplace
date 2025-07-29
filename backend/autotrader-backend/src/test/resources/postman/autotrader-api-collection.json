@@ -1173,6 +1173,283 @@
                   "path": ["api", "listings", "count"]
                 }
               }
+            },
+            {
+              "name": "Get Fuel Type Counts",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response is an object with fuel type counts\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('object');",
+                      "    // Check that all values are numbers >= 0",
+                      "    Object.values(jsonData).forEach(count => {",
+                      "        pm.expect(count).to.be.a('number').and.to.be.at.least(0);",
+                      "    });",
+                      "});",
+                      "",
+                      "console.log('Fuel type counts:', pm.response.json());"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/listings/counts/fuel-types",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "listings", "counts", "fuel-types"]
+                }
+              }
+            },
+            {
+              "name": "Get Fuel Type Counts with Filters",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response is an object with fuel type counts\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('object');",
+                      "    // Check that all values are numbers >= 0",
+                      "    Object.values(jsonData).forEach(count => {",
+                      "        pm.expect(count).to.be.a('number').and.to.be.at.least(0);",
+                      "    });",
+                      "});",
+                      "",
+                      "console.log('Fuel type counts with filters:', pm.response.json());"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/listings/counts/fuel-types?brandSlugs=toyota&minYear=2020",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "listings", "counts", "fuel-types"],
+                  "query": [
+                    {
+                      "key": "brandSlugs",
+                      "value": "toyota",
+                      "description": "Filter by brand"
+                    },
+                    {
+                      "key": "minYear",
+                      "value": "2020",
+                      "description": "Filter by minimum year"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Transmission Counts",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response is an object with transmission counts\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('object');",
+                      "    // Check that all values are numbers >= 0",
+                      "    Object.values(jsonData).forEach(count => {",
+                      "        pm.expect(count).to.be.a('number').and.to.be.at.least(0);",
+                      "    });",
+                      "});",
+                      "",
+                      "console.log('Transmission counts:', pm.response.json());"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/listings/counts/transmissions",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "listings", "counts", "transmissions"]
+                }
+              }
+            },
+            {
+              "name": "Get Transmission Counts with Filters",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response is an object with transmission counts\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('object');",
+                      "    // Check that all values are numbers >= 0",
+                      "    Object.values(jsonData).forEach(count => {",
+                      "        pm.expect(count).to.be.a('number').and.to.be.at.least(0);",
+                      "    });",
+                      "});",
+                      "",
+                      "console.log('Transmission counts with filters:', pm.response.json());"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/listings/counts/transmissions?brandSlugs=toyota&minYear=2020",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "listings", "counts", "transmissions"],
+                  "query": [
+                    {
+                      "key": "brandSlugs",
+                      "value": "toyota",
+                      "description": "Filter by brand"
+                    },
+                    {
+                      "key": "minYear",
+                      "value": "2020",
+                      "description": "Filter by minimum year"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get All Counts (Consolidated)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response has all required count properties\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('fuelTypes');",
+                      "    pm.expect(jsonData).to.have.property('transmissions');",
+                      "    pm.expect(jsonData).to.have.property('bodyStyles');",
+                      "    pm.expect(jsonData).to.have.property('brands');",
+                      "    pm.expect(jsonData).to.have.property('models');",
+                      "});",
+                      "",
+                      "pm.test(\"All count properties are objects with numeric values\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    ['fuelTypes', 'transmissions', 'bodyStyles', 'brands', 'models'].forEach(prop => {",
+                      "        pm.expect(jsonData[prop]).to.be.an('object');",
+                      "        Object.values(jsonData[prop]).forEach(count => {",
+                      "            pm.expect(count).to.be.a('number').and.to.be.at.least(0);",
+                      "        });",
+                      "    });",
+                      "});",
+                      "",
+                      "console.log('All counts (consolidated):', pm.response.json());"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/listings/counts/all",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "listings", "counts", "all"]
+                }
+              }
+            },
+            {
+              "name": "Get All Counts with Filters (Consolidated)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response has all required count properties\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('fuelTypes');",
+                      "    pm.expect(jsonData).to.have.property('transmissions');",
+                      "    pm.expect(jsonData).to.have.property('bodyStyles');",
+                      "    pm.expect(jsonData).to.have.property('brands');",
+                      "    pm.expect(jsonData).to.have.property('models');",
+                      "});",
+                      "",
+                      "pm.test(\"All count properties are objects with numeric values\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    ['fuelTypes', 'transmissions', 'bodyStyles', 'brands', 'models'].forEach(prop => {",
+                      "        pm.expect(jsonData[prop]).to.be.an('object');",
+                      "        Object.values(jsonData[prop]).forEach(count => {",
+                      "            pm.expect(count).to.be.a('number').and.to.be.at.least(0);",
+                      "        });",
+                      "    });",
+                      "});",
+                      "",
+                      "console.log('All counts with filters (consolidated):', pm.response.json());"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/listings/counts/all?brandSlugs=toyota&minYear=2020&maxPrice=50000",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "listings", "counts", "all"],
+                  "query": [
+                    {
+                      "key": "brandSlugs",
+                      "value": "toyota",
+                      "description": "Filter by brand"
+                    },
+                    {
+                      "key": "minYear",
+                      "value": "2020",
+                      "description": "Filter by minimum year"
+                    },
+                    {
+                      "key": "maxPrice",
+                      "value": "50000",
+                      "description": "Filter by maximum price"
+                    }
+                  ]
+                }
+              }
             }
           ]
         }
