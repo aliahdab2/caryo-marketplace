@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useAuthSession } from '@/hooks/useAuthSession';
-import ProfilePage from '@/app/dashboard/profile/page';
+import ProfilePage from '@/app/[locale]/dashboard/profile/page';
 // Import our i18n mock
 import '../mocks/i18n-mock';
 
