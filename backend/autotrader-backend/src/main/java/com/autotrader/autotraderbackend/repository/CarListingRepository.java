@@ -96,6 +96,14 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
            "ORDER BY ft.name")
     List<Object[]> findDistinctFuelTypesWithCounts();
     
+    @Query(value = "SELECT bs.slug, COUNT(cl.id) " +
+           "FROM car_listings cl " +
+           "JOIN body_styles bs ON cl.body_style_id = bs.id " +
+           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "GROUP BY bs.slug " +
+           "ORDER BY bs.slug", nativeQuery = true)
+    List<Object[]> findDistinctBodyStylesWithCounts();
+    
     // Count methods for specific filters
     @Query("SELECT COUNT(cl) FROM CarListing cl " +
            "JOIN cl.model m JOIN m.brand b " +
