@@ -152,11 +152,13 @@ export default function AdvancedSearchPage() {
     }
   );
 
-  // Consolidated counts hook - replaces 3 separate API calls with 1
+  // Consolidated counts hook - replaces 5 separate API calls with 1
   const { 
     bodyStyleCounts, 
     fuelTypeCounts, 
-    transmissionCounts 
+    transmissionCounts,
+    brandCounts,
+    modelCounts
   } = useAllCounts(listingFilters);
 
   // API data hooks - with stable dependencies to prevent loops
@@ -902,6 +904,8 @@ export default function AdvancedSearchPage() {
             bodyStyleCounts={bodyStyleCounts}
             fuelTypeCounts={fuelTypeCounts}
             transmissionCounts={transmissionCounts}
+            brandCounts={brandCounts}
+            modelCounts={modelCounts}
             carListings={carListings}
             currentLanguage={currentLanguage}
             isRTL={isRTL}

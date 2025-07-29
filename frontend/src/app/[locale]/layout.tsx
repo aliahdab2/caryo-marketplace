@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { CacheDebugger } from '@/components/debug/CacheDebugger';
 
 interface LocaleLayoutProps {
   children: ReactNode;
@@ -11,6 +12,7 @@ export default async function LocaleLayout({ children, params: _params }: Locale
   return (
     <>
       {children}
+      <CacheDebugger />
     </>
   );
 } 

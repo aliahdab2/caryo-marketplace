@@ -1,30 +1,33 @@
 import { useState, useEffect } from 'react';
 import { CarListingFilterParams } from '@/services/api';
-import { API_BASE_URL, buildQueryParams, getStandardErrorMessage } from '@/utils/apiUtils';
+import { buildQueryParams, getStandardErrorMessage } from '@/utils/apiUtils';
+import { cachedFetch } from '@/utils/cachedFetch';
 
 export interface AllCounts {
   fuelTypes: { [fuelTypeName: string]: number };
   bodyStyles: { [bodyStyleName: string]: number };
   transmissions: { [transmissionName: string]: number };
+  brands: { [brandSlug: string]: number };
+  models: { [modelSlug: string]: number };
 }
 
 export const useAllCounts = (filters?: CarListingFilterParams) => {
   const [counts, setCounts] = useState<AllCounts>({
     fuelTypes: {},
     bodyStyles: {},
-    transmissions: {}
+    transmissions: {},
+    brands: {},
+    models: {}
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Debounce the API calls to prevent excessive requests
     const timeoutId = setTimeout(async () => {
       setIsLoading(true);
       setError(null);
 
       try {
-        // Build query string for the consolidated counts endpoint
         const params = buildQueryParams({
           brandSlugs: filters?.brands,
           modelSlugs: filters?.models,
@@ -39,15 +42,12 @@ export const useAllCounts = (filters?: CarListingFilterParams) => {
           bodyStyleIds: filters?.bodyStyleIds,
         });
 
-        const response = await fetch(`${API_BASE_URL}/api/listings/counts/all?${params.toString()}`);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // The API returns an object with fuelTypes, bodyStyles, and transmissions
+        // Use the new consolidated endpoint
+        const data = await cachedFetch<AllCounts>(`/api/listings/counts/all?${params.toString()}`, {
+          ttl: 2 * 60 * 1000, // Cache for 2 minutes
+          cacheKey: `all-counts-${params.toString()}`
+        });
+
         setCounts(data);
       } catch (err) {
         console.error('Failed to fetch all counts:', err);
@@ -55,22 +55,26 @@ export const useAllCounts = (filters?: CarListingFilterParams) => {
         setCounts({
           fuelTypes: {},
           bodyStyles: {},
-          transmissions: {}
+          transmissions: {},
+          brands: {},
+          models: {}
         });
       } finally {
         setIsLoading(false);
       }
-    }, 300); // 300ms debounce
+    }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [filters]);
 
-  return { 
-    counts, 
-    isLoading, 
+  return {
+    counts,
+    isLoading,
     error,
     fuelTypeCounts: counts.fuelTypes,
     bodyStyleCounts: counts.bodyStyles,
-    transmissionCounts: counts.transmissions
+    transmissionCounts: counts.transmissions,
+    brandCounts: counts.brands,
+    modelCounts: counts.models
   };
 }; 

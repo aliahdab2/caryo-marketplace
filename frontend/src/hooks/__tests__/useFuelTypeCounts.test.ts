@@ -54,7 +54,7 @@ describe('useFuelTypeCounts', () => {
 
       expect(result.current.fuelTypeCounts).toEqual(mockCounts);
       expect(result.current.error).toBeNull();
-      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/listings/counts/fuel-types'));
+      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('http://localhost:8080/api/listings/counts/fuel-types'));
     });
 
     it('should fetch fuel type counts with filters', async () => {
@@ -91,7 +91,7 @@ describe('useFuelTypeCounts', () => {
 
       expect(result.current.fuelTypeCounts).toEqual(mockCounts);
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/listings/counts/fuel-types')
+        expect.stringContaining('http://localhost:8080/api/listings/counts/fuel-types')
       );
     });
   });

@@ -62,7 +62,7 @@ describe('useTransmissionCounts', () => {
       expect(result.current.transmissionCounts).toEqual(mockResponse);
       expect(result.current.error).toBeNull();
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/listings/counts/transmissions')
+        expect.stringContaining('http://localhost:8080/api/listings/counts/transmissions')
       );
     });
 
@@ -101,7 +101,7 @@ describe('useTransmissionCounts', () => {
 
       expect(result.current.transmissionCounts).toEqual(mockResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/listings/counts/transmissions?brandSlugs=toyota&brandSlugs=honda&modelSlugs=camry&modelSlugs=civic&minYear=2020&maxYear=2023&minPrice=10000&maxPrice=50000&maxMileage=100000&location=damascus&fuelTypeSlugs=gasoline&bodyStyleIds=1&bodyStyleIds=2')
+        expect.stringContaining('http://localhost:8080/api/listings/counts/transmissions?brandSlugs=toyota&brandSlugs=honda&modelSlugs=camry&modelSlugs=civic&minYear=2020&maxYear=2023&minPrice=10000&maxPrice=50000&maxMileage=100000&location=damascus&fuelTypeSlugs=gasoline&bodyStyleIds=1&bodyStyleIds=2')
       );
     });
   });
@@ -165,7 +165,7 @@ describe('useTransmissionCounts', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/listings/counts/transmissions')
+        expect.stringContaining('http://localhost:8080/api/listings/counts/transmissions')
       );
       expect(result.current.transmissionCounts).toEqual(mockResponse);
     });
@@ -196,7 +196,7 @@ describe('useTransmissionCounts', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/listings/counts/transmissions?brandSlugs=toyota&minYear=2020')
+        expect.stringContaining('http://localhost:8080/api/listings/counts/transmissions?brandSlugs=toyota&minYear=2020')
       );
       expect(result.current.transmissionCounts).toEqual(mockResponse);
     });

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CarListingFilterParams } from '@/services/api';
-import { API_BASE_URL, buildQueryParams, getStandardErrorMessage } from '@/utils/apiUtils';
+import { buildQueryParams, getStandardErrorMessage } from '@/utils/apiUtils';
+import { cachedFetch } from '@/utils/cachedFetch';
 
 export interface TransmissionCounts {
   [transmissionName: string]: number;
@@ -33,13 +34,10 @@ export const useTransmissionCounts = (filters?: CarListingFilterParams) => {
           bodyStyleIds: filters?.bodyStyleIds,
         });
 
-        const response = await fetch(`${API_BASE_URL}/api/listings/counts/transmissions?${params.toString()}`);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
+        const data = await cachedFetch<TransmissionCounts>(`/api/listings/counts/transmissions?${params.toString()}`, {
+          ttl: 2 * 60 * 1000, // Cache for 2 minutes
+          cacheKey: `transmissions-${params.toString()}`
+        });
         
         // The API returns a map of transmission names to counts
         setTransmissionCounts(data);
