@@ -149,14 +149,7 @@ export interface SimpleVerificationProps extends ComponentProps {
   autoHide?: boolean;
 }
 
-/**
- * Props for Verification component
- */
-export interface VerificationProps extends ComponentProps {
-  onVerified: (isVerified: boolean) => void;
-  autoVerify?: boolean;
-  showIndicator?: boolean;
-}
+
 
 // Types
 export type FontSizeType = 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl';
