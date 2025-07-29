@@ -15,218 +15,236 @@ describe('useFuelTypeCounts', () => {
     jest.useRealTimers();
   });
 
-  it('should fetch fuel type counts successfully', async () => {
-    const mockCounts = {
-      gasoline: 150,
-      diesel: 80,
-      electric: 20,
-      hybrid: 30
-    };
+  describe('Initial State', () => {
+    it('should start with loading state and empty data', () => {
+      const { result } = renderHook(() => useFuelTypeCounts());
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockCounts
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.fuelTypeCounts).toEqual({});
+      expect(result.current.error).toBeNull();
     });
-
-    const { result } = renderHook(() => useFuelTypeCounts());
-
-    expect(result.current.isLoading).toBe(true);
-    expect(result.current.fuelTypeCounts).toEqual({});
-    expect(result.current.error).toBeNull();
-
-    // Fast-forward the debounce timer
-    jest.advanceTimersByTime(300);
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.fuelTypeCounts).toEqual(mockCounts);
-    expect(result.current.error).toBeNull();
-    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('http://localhost:8080/api/listings/counts/fuel-types'));
   });
 
-  it('should fetch fuel type counts with filters', async () => {
-    const mockCounts = {
-      gasoline: 50,
-      diesel: 25
-    };
+  describe('Successful API Calls', () => {
+    it('should fetch fuel type counts successfully', async () => {
+      const mockCounts = {
+        gasoline: 150,
+        diesel: 80,
+        electric: 20,
+        hybrid: 30
+      };
 
-    const filters: CarListingFilterParams = {
-      brands: ['toyota', 'honda'],
-      models: ['camry', 'civic'],
-      minYear: 2020,
-      maxYear: 2023,
-      locations: ['damascus'],
-      minPrice: 10000,
-      maxPrice: 50000,
-      minMileage: 0,
-      maxMileage: 100000
-    };
-
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockCounts
-    });
-
-    const { result } = renderHook(() => useFuelTypeCounts(filters));
-
-    // Fast-forward the debounce timer
-    jest.advanceTimersByTime(300);
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.fuelTypeCounts).toEqual(mockCounts);
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('http://localhost:8080/api/listings/counts/fuel-types')
-    );
-  });
-
-  it('should handle network errors', async () => {
-    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
-
-    const { result } = renderHook(() => useFuelTypeCounts());
-
-    // Fast-forward the debounce timer
-    jest.advanceTimersByTime(300);
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.fuelTypeCounts).toEqual({});
-    expect(result.current.error).toBe('Failed to load fuel type counts');
-  });
-
-  it('should handle non-ok response', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: false,
-      status: 500
-    });
-
-    const { result } = renderHook(() => useFuelTypeCounts());
-
-    // Fast-forward the debounce timer
-    jest.advanceTimersByTime(300);
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.fuelTypeCounts).toEqual({});
-    expect(result.current.error).toBe('Failed to load fuel type counts');
-  });
-
-  it('should refetch when filters change', async () => {
-    const mockCounts1 = {
-      gasoline: 150,
-    };
-
-    const mockCounts2 = {
-      gasoline: 100,
-      diesel: 50,
-    };
-
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockCounts1
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockCounts2
+        json: async () => mockCounts
       });
 
-    const initialFilters: CarListingFilterParams = { brands: ['toyota'] };
-    const { result, rerender } = renderHook(
-      ({ filters }) => useFuelTypeCounts(filters),
-      { initialProps: { filters: initialFilters } }
-    );
+      const { result } = renderHook(() => useFuelTypeCounts());
 
-    // Fast-forward the debounce timer
-    jest.advanceTimersByTime(300);
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.fuelTypeCounts).toEqual({});
+      expect(result.current.error).toBeNull();
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      // Fast-forward the debounce timer
+      jest.advanceTimersByTime(300);
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.fuelTypeCounts).toEqual(mockCounts);
+      expect(result.current.error).toBeNull();
+      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/listings/counts/fuel-types'));
     });
 
-    expect(result.current.fuelTypeCounts).toEqual(mockCounts1);
+    it('should fetch fuel type counts with filters', async () => {
+      const mockCounts = {
+        gasoline: 50,
+        diesel: 25
+      };
 
-    // Change filters
-    const newFilters: CarListingFilterParams = { brands: ['toyota'], models: ['camry'] };
-    rerender({ filters: newFilters });
+      const filters: CarListingFilterParams = {
+        brands: ['toyota', 'honda'],
+        models: ['camry', 'civic'],
+        minYear: 2020,
+        maxYear: 2023,
+        locations: ['damascus'],
+        minPrice: 10000,
+        maxPrice: 50000,
+        minMileage: 0,
+        maxMileage: 100000
+      };
 
-    // Fast-forward the debounce timer again
-    jest.advanceTimersByTime(300);
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockCounts
+      });
 
-    await waitFor(() => {
-      expect(result.current.fuelTypeCounts).toEqual(mockCounts2);
+      const { result } = renderHook(() => useFuelTypeCounts(filters));
+
+      // Fast-forward the debounce timer
+      jest.advanceTimersByTime(300);
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.fuelTypeCounts).toEqual(mockCounts);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/listings/counts/fuel-types')
+      );
     });
-
-    expect(global.fetch).toHaveBeenCalledTimes(2);
   });
 
-  it('should handle empty filters gracefully', async () => {
-    const mockCounts = {
-      gasoline: 150,
-      diesel: 80,
-      electric: 20
-    };
+  describe('Error Handling', () => {
+    it('should handle network errors gracefully', async () => {
+      (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockCounts
+      const { result } = renderHook(() => useFuelTypeCounts());
+
+      // Fast-forward the debounce timer
+      jest.advanceTimersByTime(300);
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.fuelTypeCounts).toEqual({});
+      expect(result.current.error).toBe('Failed to load fuel type counts');
     });
 
-    const { result } = renderHook(() => useFuelTypeCounts({}));
+    it('should handle HTTP errors gracefully', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 500
+      });
 
-    // Fast-forward the debounce timer
-    jest.advanceTimersByTime(300);
+      const { result } = renderHook(() => useFuelTypeCounts());
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      // Fast-forward the debounce timer
+      jest.advanceTimersByTime(300);
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.fuelTypeCounts).toEqual({});
+      expect(result.current.error).toBe('Failed to load fuel type counts');
     });
-
-    expect(result.current.fuelTypeCounts).toEqual(mockCounts);
-    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('http://localhost:8080/api/listings/counts/fuel-types'));
   });
 
-  it('should handle null and undefined filter values', async () => {
-    const mockCounts = {
-      gasoline: 150,
-      diesel: 80,
-      electric: 20
-    };
+  describe('Filter Updates', () => {
+    it('should refetch when filters change', async () => {
+      const mockCounts1 = {
+        gasoline: 150,
+      };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockCounts
+      const mockCounts2 = {
+        gasoline: 100,
+        diesel: 50,
+      };
+
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockCounts1
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockCounts2
+        });
+
+      const initialFilters: CarListingFilterParams = { brands: ['toyota'] };
+      const { result, rerender } = renderHook(
+        ({ filters }) => useFuelTypeCounts(filters),
+        { initialProps: { filters: initialFilters } }
+      );
+
+      // Fast-forward the debounce timer
+      jest.advanceTimersByTime(300);
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.fuelTypeCounts).toEqual(mockCounts1);
+
+      // Change filters
+      const newFilters: CarListingFilterParams = { brands: ['toyota'], models: ['camry'] };
+      rerender({ filters: newFilters });
+
+      // Fast-forward the debounce timer again
+      jest.advanceTimersByTime(300);
+
+      await waitFor(() => {
+        expect(result.current.fuelTypeCounts).toEqual(mockCounts2);
+      });
+
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle empty filters gracefully', async () => {
+      const mockCounts = {
+        gasoline: 150,
+        diesel: 80,
+        electric: 20
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockCounts
+      });
+
+      const { result } = renderHook(() => useFuelTypeCounts({}));
+
+      // Fast-forward the debounce timer
+      jest.advanceTimersByTime(300);
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.fuelTypeCounts).toEqual(mockCounts);
+      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/listings/counts/fuel-types'));
     });
 
-    const filtersWithNulls: CarListingFilterParams = {
-      brands: ['toyota'],
-      models: undefined,
-      minYear: null as any,
-      maxYear: undefined,
-      locations: ['damascus'],
-      minPrice: 10000,
-      maxPrice: undefined,
-      minMileage: null as any,
-      maxMileage: 100000
-    };
+    it('should handle null and undefined filter values', async () => {
+      const mockCounts = {
+        gasoline: 150,
+        diesel: 80,
+        electric: 20
+      };
 
-    const { result } = renderHook(() => useFuelTypeCounts(filtersWithNulls));
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockCounts
+      });
 
-    // Fast-forward the debounce timer
-    jest.advanceTimersByTime(300);
+      const filtersWithNulls: CarListingFilterParams = {
+        brands: ['toyota'],
+        models: undefined,
+        minYear: null as any,
+        maxYear: undefined,
+        locations: ['damascus'],
+        minPrice: 10000,
+        maxPrice: undefined,
+        minMileage: null as any,
+        maxMileage: 100000
+      };
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      const { result } = renderHook(() => useFuelTypeCounts(filtersWithNulls));
+
+      // Fast-forward the debounce timer
+      jest.advanceTimersByTime(300);
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.fuelTypeCounts).toEqual(mockCounts);
+      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/listings/counts/fuel-types'));
     });
-
-    expect(result.current.fuelTypeCounts).toEqual(mockCounts);
-    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('http://localhost:8080/api/listings/counts/fuel-types'));
   });
 }); 

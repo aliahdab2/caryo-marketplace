@@ -55,8 +55,30 @@ const mockLocation = {
   reload: jest.fn(),
 };
 
-// Store original location
+// Store original location and create a safe mock function
 const originalLocation = window.location;
+
+const createSafeLocationMock = () => {
+  // Delete the existing location property if it exists
+  if (Object.getOwnPropertyDescriptor(window, 'location')) {
+    delete (window as any).location;
+  }
+  
+  // Create a new location object with all required properties
+  const locationMock = {
+    ...mockLocation,
+    // Override the href setter to prevent navigation errors
+    set href(value: string) {
+      // Silently ignore navigation attempts in tests
+      console.log(`[TEST] Navigation attempted to: ${value}`);
+    },
+    get href() {
+      return mockLocation.href;
+    }
+  };
+  
+  return locationMock;
+};
 
 describe('HomeSearchBar', () => {
   const mockPush = jest.fn();
@@ -82,9 +104,8 @@ describe('HomeSearchBar', () => {
     // Reset all mocks
     jest.clearAllMocks();
     
-    // Mock window.location
-    delete (window as any).location;
-    (window as any).location = { ...mockLocation };
+    // Mock window.location safely
+    (window as any).location = createSafeLocationMock();
     
     // Setup router mock
     (useRouter as jest.Mock).mockReturnValue({

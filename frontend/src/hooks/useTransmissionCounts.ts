@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CarListingFilterParams } from '@/services/api';
+import { API_BASE_URL, buildQueryParams, getStandardErrorMessage } from '@/utils/apiUtils';
 
 export interface TransmissionCounts {
   [transmissionName: string]: number;
@@ -18,20 +19,21 @@ export const useTransmissionCounts = (filters?: CarListingFilterParams) => {
 
       try {
         // Build query string for the transmission counts endpoint
-        const params = new URLSearchParams();
-        if (filters?.brands) filters.brands.forEach((slug: string) => params.append('brandSlugs', slug));
-        if (filters?.models) filters.models.forEach((slug: string) => params.append('modelSlugs', slug));
-        if (filters?.minYear) params.append('minYear', filters.minYear.toString());
-        if (filters?.maxYear) params.append('maxYear', filters.maxYear.toString());
-        if (filters?.minPrice) params.append('minPrice', filters.minPrice.toString());
-        if (filters?.maxPrice) params.append('maxPrice', filters.maxPrice.toString());
-        if (filters?.minMileage) params.append('minMileage', filters.minMileage.toString());
-        if (filters?.maxMileage) params.append('maxMileage', filters.maxMileage.toString());
-        if (filters?.locations) filters.locations.forEach((location: string) => params.append('location', location));
-        if (filters?.fuelTypeSlugs) filters.fuelTypeSlugs.forEach((slug: string) => params.append('fuelTypeSlugs', slug));
-        if (filters?.bodyStyleIds) filters.bodyStyleIds.forEach((id: number) => params.append('bodyStyleIds', id.toString()));
+        const params = buildQueryParams({
+          brandSlugs: filters?.brands,
+          modelSlugs: filters?.models,
+          minYear: filters?.minYear,
+          maxYear: filters?.maxYear,
+          minPrice: filters?.minPrice,
+          maxPrice: filters?.maxPrice,
+          minMileage: filters?.minMileage,
+          maxMileage: filters?.maxMileage,
+          location: filters?.locations,
+          fuelTypeSlugs: filters?.fuelTypeSlugs,
+          bodyStyleIds: filters?.bodyStyleIds,
+        });
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/counts/transmissions?${params.toString()}`);
+        const response = await fetch(`${API_BASE_URL}/api/listings/counts/transmissions?${params.toString()}`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -43,7 +45,7 @@ export const useTransmissionCounts = (filters?: CarListingFilterParams) => {
         setTransmissionCounts(data);
       } catch (err) {
         console.error('Failed to fetch transmission counts:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load transmission counts');
+        setError(getStandardErrorMessage('transmission counts'));
         setTransmissionCounts({});
       } finally {
         setIsLoading(false);
