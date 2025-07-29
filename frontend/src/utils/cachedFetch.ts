@@ -21,6 +21,11 @@ export async function cachedFetch<T>(
     ...fetchOptions
   } = options;
 
+  // Validate URL
+  if (!url || typeof url !== 'string') {
+    throw new Error('Invalid URL provided to cachedFetch');
+  }
+
   // Generate cache key from URL and options
   const key = cacheKey || `${url}-${JSON.stringify(fetchOptions)}`;
 
@@ -39,6 +44,11 @@ export async function cachedFetch<T>(
     // Make the actual fetch request
     const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
     const response = await fetch(fullUrl, fetchOptions);
+
+    // Add null check for response
+    if (!response) {
+      throw new Error('Network error: No response received');
+    }
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

@@ -48,7 +48,19 @@ export const useAllCounts = (filters?: CarListingFilterParams) => {
           cacheKey: `all-counts-${params.toString()}`
         });
 
-        setCounts(data);
+        // Validate the response data
+        if (data && typeof data === 'object') {
+          setCounts(data);
+        } else {
+          console.warn('Invalid all counts response:', data);
+          setCounts({
+            fuelTypes: {},
+            bodyStyles: {},
+            transmissions: {},
+            brands: {},
+            models: {}
+          });
+        }
       } catch (err) {
         console.error('Failed to fetch all counts:', err);
         setError(getStandardErrorMessage('counts'));

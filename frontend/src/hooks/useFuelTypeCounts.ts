@@ -37,8 +37,13 @@ export const useFuelTypeCounts = (filters?: CarListingFilterParams) => {
           cacheKey: `fuel-types-${params.toString()}`
         });
         
-        // The API returns a map of fuel type names to counts
-        setFuelTypeCounts(data);
+        // Validate the response data
+        if (data && typeof data === 'object') {
+          setFuelTypeCounts(data);
+        } else {
+          console.warn('Invalid fuel type counts response:', data);
+          setFuelTypeCounts({});
+        }
       } catch (err) {
         console.error('Failed to fetch fuel type counts:', err);
         setError(getStandardErrorMessage('fuel type counts'));

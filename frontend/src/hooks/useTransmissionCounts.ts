@@ -39,8 +39,13 @@ export const useTransmissionCounts = (filters?: CarListingFilterParams) => {
           cacheKey: `transmissions-${params.toString()}`
         });
         
-        // The API returns a map of transmission names to counts
-        setTransmissionCounts(data);
+        // Validate the response data
+        if (data && typeof data === 'object') {
+          setTransmissionCounts(data);
+        } else {
+          console.warn('Invalid transmission counts response:', data);
+          setTransmissionCounts({});
+        }
       } catch (err) {
         console.error('Failed to fetch transmission counts:', err);
         setError(getStandardErrorMessage('transmission counts'));
