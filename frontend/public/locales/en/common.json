@@ -115,5 +115,7 @@
   "minimumPrice": "Minimum price",
   "maximumPrice": "Maximum price",
   "minPrice": "Min Price",
-  "maxPrice": "Max Price"
+  "maxPrice": "Max Price",
+  "dashboard.accountSettings": "Account Settings",
+  "listings.viewDetails": "View Details"
 }

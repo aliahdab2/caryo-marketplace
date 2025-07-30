@@ -7,7 +7,7 @@ import { SupportedLanguage } from "@/utils/i18n";
 import { useManualLanguageOverride } from "@/hooks/useAutomaticLanguageDetection";
 
 export default function SettingsPage() {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('dashboard');
   const { locale } = useLanguage();
   const { setLanguageManually } = useManualLanguageOverride();
 
@@ -106,7 +106,7 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold mb-6">{t('dashboard.settings')}</h1>
+      <h1 className="text-2xl font-semibold mb-6">{t('settings')}</h1>
       
       {/* Account Preferences */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
