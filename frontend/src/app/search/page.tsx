@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { MdNotifications } from 'react-icons/md';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useOptimizedFiltering } from '@/hooks/useOptimizedFiltering';
-import { 
-  MdFavoriteBorder
-} from 'react-icons/md';
+
 import { CarMake, CarModel } from '@/types/car';
 import { 
   fetchCarBrands, 
@@ -30,11 +29,14 @@ import { AdvancedSearchFilters, FilterType } from '@/hooks/useSearchFilters';
 import { DEFAULT_CURRENCY } from '@/utils/currency';
 import { formatNumber } from '@/utils/localization';
 import { useLanguageDirection } from '@/utils/languageDirection';
+import { getSortValue, DEFAULT_SORT } from '@/utils/sortUtils';
 import FilterModal from '@/components/search/FilterModal';
 import FilterChips from '@/components/search/FilterChips';
 import SearchBar from '@/components/search/SearchBar';
 import FilterPills from '@/components/search/FilterPills';
 import CarListingsGrid from '@/components/search/CarListingsGrid';
+import SortDropdown from '@/components/search/SortDropdown';
+
 
 // Move namespaces outside component to prevent recreation on every render
 const SEARCH_NAMESPACES = ['common', 'search'];
@@ -48,6 +50,8 @@ export default function AdvancedSearchPage() {
   // Extract language to prevent i18n object recreation causing re-renders
   const currentLanguage = i18n.language;
 
+
+
   // Form state
   const [filters, setFilters] = useState<AdvancedSearchFilters>({});
   const [selectedMake, setSelectedMake] = useState<number | null>(null);
@@ -56,12 +60,13 @@ export default function AdvancedSearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [sellerTypeCounts, setSellerTypeCounts] = useState<SellerTypeCounts>({});
+  const [selectedSort, setSelectedSort] = useState(DEFAULT_SORT);
   
   // New state for all models (for makeModel filter modal)
   const [allModels, setAllModels] = useState<CarModel[]>([]);
   const [isLoadingAllModels, setIsLoadingAllModels] = useState(false);
 
-  // Handle clicking outside the dropdown to close it
+  // Handle clicking outside the location dropdown to close it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
@@ -94,6 +99,7 @@ export default function AdvancedSearchPage() {
       };
     }
   }, [showLocationDropdown]);
+
   const [searchLoading, setSearchLoading] = useState(false);
 
   // Memoize listing filters to prevent unnecessary re-creation
@@ -110,7 +116,7 @@ export default function AdvancedSearchPage() {
       searchQuery: searchQuery.trim() || undefined, // Include search query
       size: 20, // Default page size
       page: 0, // Default to first page
-      sort: 'createdAt,desc', // Default sort
+      sort: getSortValue(selectedSort), // Use selectedSort state
       
       // Add missing filter fields that are defined in CarListingFilterParams
       transmissionId: filters.transmissionId,
@@ -131,7 +137,8 @@ export default function AdvancedSearchPage() {
     return params;
   }, [
     filters,
-    searchQuery
+    searchQuery,
+    selectedSort
   ]);
 
   // Car listings state using optimized filtering
@@ -704,7 +711,7 @@ export default function AdvancedSearchPage() {
       default:
         return '';
     }
-  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getSellerTypeDisplayName, currentLanguage]);
+  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getFuelTypeDisplayName, getFuelTypeDisplayNameFromSlug, getBodyStyleDisplayName, getSellerTypeDisplayName, currentLanguage]);
 
   // Check if filter has active values - memoized to prevent re-renders
   const isFilterActive = useCallback((filterType: FilterType): boolean => {
@@ -755,7 +762,7 @@ export default function AdvancedSearchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className={`min-h-screen bg-gray-50 ${dirClass}`}>
       <div className="container mx-auto px-4 py-6">
         {/* Compact Search Bar */}
         <SearchBar
@@ -804,17 +811,27 @@ export default function AdvancedSearchPage() {
 
         {/* Results Info */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <p className="text-lg font-medium text-gray-900 dark:text-white">
-              {isLoadingListings ? t('loading', 'Loading...') : 
-               carListings?.totalElements ? `${carListings.totalElements.toLocaleString()} ${t('results', 'results')}` : 
-               '0 results'}
-            </p>
+          <div className={`flex items-center ${isRTL ? 'space-x-reverse' : 'space-x-4'}`}>
+            {/* Sort Dropdown - LEFT SIDE */}
+            <SortDropdown
+              selectedSort={selectedSort}
+              onSortChange={setSelectedSort}
+              onSearchTrigger={() => executeSearch(false)}
+            />
           </div>
           
-          <button className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium">
-            <MdFavoriteBorder className="mr-2 h-4 w-4" />
-            {t('saveSearch', 'Save search')}
+          {/* Save Search Button - RIGHT SIDE */}
+          <button 
+            className={`
+              flex items-center text-gray-700 hover:text-gray-900 text-sm font-medium 
+              px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 
+              transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+              ${isRTL ? 'flex-row-reverse' : ''}
+            `}
+            aria-label={t('search:createWatch', 'Create watch')}
+          >
+            <MdNotifications size={20} className={isRTL ? "ml-2" : "mr-2"} />
+            <span>{t('search:createWatch', 'Create watch')}</span>
           </button>
         </div>
 

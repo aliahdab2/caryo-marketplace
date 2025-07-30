@@ -106,6 +106,16 @@
   "showAllFilters": "إظهار جميع الفلاتر",
   "searchMakeModel": "البحث عن الماركة أو الموديل",
   "showAllBrands": "إظهار جميع الماركات",
-  "brands": "الماركات",
-  "models": "الموديلات"
+  "brands": "العلامات التجارية",
+  "models": "الموديلات",
+  "sortBy": "ترتيب حسب",
+  "sortRelevance": "الأكثر صلة",
+  "sortPriceLow": "من الأقل إلى الأعلى",
+  "sortPriceHigh": "من الأعلى إلى الأقل",
+  "sortYearNew": "أحدث سنة",
+  "sortYearOld": "أقدم سنة",
+  "sortMileageLow": "أقل مسافة أولاً",
+  "sortMileageHigh": "أعلى مسافة أولاً",
+  "sortDateNew": "المضاف حديثاً",
+  "createWatch": "إنشاء مراقبة"
 }
