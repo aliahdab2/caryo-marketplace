@@ -107,5 +107,15 @@
   "searchMakeModel": "Search for make or model",
   "showAllBrands": "Show all brands",
   "brands": "Brands",
-  "models": "Models"
+  "models": "Models",
+  "sortBy": "Sort by",
+  "sortRelevance": "Most Relevant",
+  "sortPriceLow": "Low to High",
+  "sortPriceHigh": "High to Low",
+  "sortYearNew": "Newest Year",
+  "sortYearOld": "Oldest Year",
+  "sortMileageLow": "Low Mileage First",
+  "sortMileageHigh": "High Mileage First",
+  "sortDateNew": "Recently Added",
+  "createWatch": "Create watch"
 }

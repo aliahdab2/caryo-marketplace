@@ -415,7 +415,8 @@ describe('AdvancedSearchPage', () => {
       expect(searchInput).toBeInTheDocument();
       
       // Verify that the search results section is rendered
-      const resultsSection = screen.getByText(/results|Loading/);
+      // Look for either car listings, loading state, or no results message
+      const resultsSection = screen.getByText(/Toyota Camry|Loading|No cars found/);
       expect(resultsSection).toBeInTheDocument();
     });
 
