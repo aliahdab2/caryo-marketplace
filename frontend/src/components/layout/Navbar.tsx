@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import ToggleLanguageSwitcher from "@/components/ToggleLanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
 import { useAuthUser } from "@/hooks/useAuthSession";
-import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdSearch } from "react-icons/md";
+import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdSearch, MdNotificationsNone } from "react-icons/md";
 import { NAVIGATION_ROUTES } from "@/utils/navigationUtils";
 import type { ComponentProps } from "@/types/components";
 
@@ -97,9 +97,10 @@ export default function Navbar({ className }: ComponentProps) {
               {/* Saved Searches - Larger style like Blocket */}
               <Link 
                 href={user ? "/dashboard/saved-searches" : "/auth/signin"}
-                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
+                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14 group"
+                title="Saved Searches & Alerts"
               >
-                <MdBookmark className="h-5 w-5 mb-1 flex-shrink-0" />
+                <MdNotificationsNone className="h-5 w-5 mb-1 flex-shrink-0" />
                 <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('header.savedSearches')}</span>
               </Link>
               

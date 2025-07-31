@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { MdNotifications } from 'react-icons/md';
+import { MdNotificationsNone } from 'react-icons/md';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useOptimizedFiltering } from '@/hooks/useOptimizedFiltering';
@@ -828,10 +828,11 @@ export default function AdvancedSearchPage() {
               transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
               ${isRTL ? 'flex-row-reverse' : ''}
             `}
-            aria-label={t('search:createWatch', 'Create watch')}
+            aria-label={t('search:createWatch', 'Create Alert')}
+            title={t('search:createWatchTooltip', 'Get notified when new cars match these filters')}
           >
-            <MdNotifications size={20} className={isRTL ? "ml-2" : "mr-2"} />
-            <span>{t('search:createWatch', 'Create watch')}</span>
+            <MdNotificationsNone size={20} className={isRTL ? "ml-2" : "mr-2"} />
+            <span>{t('search:createWatch', 'Create Alert')}</span>
           </button>
         </div>
 

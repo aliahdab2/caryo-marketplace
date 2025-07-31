@@ -117,5 +117,6 @@
   "sortMileageLow": "Low Mileage First",
   "sortMileageHigh": "High Mileage First",
   "sortDateNew": "Recently Added",
-  "createWatch": "Create watch"
+  "createWatch": "Create Alert",
+  "createWatchTooltip": "Get notified when new cars match these filters"
 }
