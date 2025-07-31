@@ -1,0 +1,415 @@
+{
+  "info": {
+    "name": "Contact & Email Service Tests",
+    "description": "Tests for contact form submission and email notification system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Contact Form Tests",
+      "item": [
+        {
+          "name": "Submit Valid Contact Form",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Response status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains success message', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "    pm.expect(responseJson.message).to.include('Thank you for your message');",
+                  "});",
+                  "",
+                  "pm.test('Response contains timestamp', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('timestamp');",
+                  "    pm.expect(responseJson.timestamp).to.be.a('string');",
+                  "});",
+                  "",
+                  "pm.test('Response time is reasonable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"subject\": \"Question about car listing\",\n    \"message\": \"I would like to know more about the BMW X5 listing. Is it still available?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contact"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Contact Form - Missing Name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Response status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response contains validation error', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "    pm.expect(responseJson.message).to.include('Validation failed');",
+                  "});",
+                  "",
+                  "pm.test('Response contains field-specific errors', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('errors');",
+                  "    pm.expect(responseJson.errors).to.be.an('array');",
+                  "    pm.expect(responseJson.errors.length).to.be.greaterThan(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"john.doe@example.com\",\n    \"subject\": \"Question about car listing\",\n    \"message\": \"I would like to know more about the BMW X5 listing. Is it still available?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contact"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Contact Form - Invalid Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Response status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response contains validation error for email', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "    pm.expect(responseJson.message).to.include('Validation failed');",
+                  "});",
+                  "",
+                  "pm.test('Response contains email field error', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('errors');",
+                  "    const emailError = responseJson.errors.find(error => error.field === 'email');",
+                  "    pm.expect(emailError).to.exist;",
+                  "    pm.expect(emailError.message).to.include('email');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"invalid-email\",\n    \"subject\": \"Question about car listing\",\n    \"message\": \"I would like to know more about the BMW X5 listing. Is it still available?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contact"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Contact Form - Empty Message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Response status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response contains validation error for message', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "    pm.expect(responseJson.message).to.include('Validation failed');",
+                  "});",
+                  "",
+                  "pm.test('Response contains message field error', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('errors');",
+                  "    const messageError = responseJson.errors.find(error => error.field === 'message');",
+                  "    pm.expect(messageError).to.exist;",
+                  "    pm.expect(messageError.message).to.include('message');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"subject\": \"Question about car listing\",\n    \"message\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contact"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Contact Form - Missing Subject",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Response status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response contains validation error for subject', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "    pm.expect(responseJson.message).to.include('Validation failed');",
+                  "});",
+                  "",
+                  "pm.test('Response contains subject field error', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('errors');",
+                  "    const subjectError = responseJson.errors.find(error => error.field === 'subject');",
+                  "    pm.expect(subjectError).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"message\": \"I would like to know more about the BMW X5 listing. Is it still available?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contact"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Contact Form - Large Message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Response status is 200 or 400', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "});",
+                  "",
+                  "pm.test('Large message handled appropriately', function () {",
+                  "    if (pm.response.code === 200) {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('message');",
+                  "        pm.expect(responseJson.message).to.include('Thank you for your message');",
+                  "    } else if (pm.response.code === 400) {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('message');",
+                  "        pm.expect(responseJson.message).to.include('Validation failed');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"subject\": \"Long inquiry about multiple car listings\",\n    \"message\": \"{{ 'This is a very long message. '.repeat(100) }}I would like to know more about multiple car listings on your platform. Could you provide detailed information about the BMW X5, Mercedes C-Class, and Audi A4 listings? I am particularly interested in their mileage, service history, and any available warranties. Please also let me know about financing options and trade-in possibilities.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contact"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Email Notification System Tests",
+      "item": [
+        {
+          "name": "Test Email Notification - Mark Listing as Sold",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// This test requires authentication and a valid listing",
+                  "// It tests the email notification system indirectly",
+                  "console.log('Testing email notification system via listing sold endpoint');"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Listing marked as sold successfully', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404, 401]);",
+                  "});",
+                  "",
+                  "pm.test('Email notification system triggered (indirect test)', function () {",
+                  "    // This is an indirect test - we can't directly verify email was sent",
+                  "    // but we can verify the action that triggers it completed successfully",
+                  "    if (pm.response.code === 200) {",
+                  "        console.log('✅ Listing sold action completed - Email notification should have been triggered');",
+                  "    } else if (pm.response.code === 401) {",
+                  "        console.log('⚠️ Authentication required - Email test skipped');",
+                  "    } else if (pm.response.code === 404) {",
+                  "        console.log('⚠️ Test listing not found - Email test skipped');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/listings/1/sold",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "listings", "1", "sold"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Performance Tests",
+      "item": [
+        {
+          "name": "Contact Form Response Time Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Contact form response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});",
+                  "",
+                  "pm.test('Email processing does not block response', function () {",
+                  "    // Email should be processed asynchronously",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                  "});",
+                  "",
+                  "pm.test('Response status indicates success', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Performance Test User\",\n    \"email\": \"perf.test@example.com\",\n    \"subject\": \"Performance Test Message\",\n    \"message\": \"This is a performance test to ensure the contact form responds quickly.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contact"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

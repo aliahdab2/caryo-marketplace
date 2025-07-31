@@ -21,6 +21,7 @@ Located in the `collections/` directory:
 - `transmissions-tests.json`: Tests for Transmission endpoints
 - `seller-types-tests.json`: Tests for Seller Type endpoints
 - `listings-media-tests.json`: Tests for Listings and Media endpoints
+- `contact-email-tests.json`: Tests for Contact Form and Email Service endpoints
 
 ## Running the Tests
 

@@ -796,6 +796,119 @@ These endpoints provide efficient count information for car listings without fet
   }
   ```
 
+## Contact & Email Endpoints
+
+### Contact Form
+
+#### Submit Contact Form
+
+- **Endpoint**: `POST /api/contact`
+- **Access**: Public
+- **Description**: Submits a contact form message and sends confirmation emails
+- **Request Body**:
+  ```json
+  {
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "subject": "Question about listing",
+    "message": "I would like to know more about your car marketplace."
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "message": "Thank you for your message. We'll get back to you soon!",
+    "timestamp": "2025-07-31T12:34:56Z"
+  }
+  ```
+- **Response (400 Bad Request)** - Invalid form data:
+  ```json
+  {
+    "message": "Validation failed",
+    "errors": [
+      {
+        "field": "email",
+        "message": "Please provide a valid email address"
+      },
+      {
+        "field": "message",
+        "message": "Message cannot be empty"
+      }
+    ]
+  }
+  ```
+- **Response (500 Internal Server Error)** - Email service unavailable:
+  ```json
+  {
+    "message": "Failed to send contact form message. Please try again later."
+  }
+  ```
+
+**Features:**
+- Validates all form fields (name, email, subject, message)
+- Sends confirmation email to the user
+- Notifies administrators of new contact form submissions
+- Supports both English and Arabic languages
+- Rate limiting to prevent spam
+
+**Email Templates:**
+- User receives a confirmation email acknowledging their message
+- Admins receive notification with the full contact form details
+- Templates are localized based on user's language preference
+
+### Email Notification System
+
+The system automatically sends email notifications for various listing events. These are triggered internally and don't require direct API calls.
+
+#### Listing Sold Email Notification
+
+**Trigger**: When a listing is marked as sold via `PUT /api/listings/{id}/sold`
+**Recipients**: Listing owner (seller)
+**Email Content**:
+- Confirmation that their listing has been sold
+- Listing details (title, slug)
+- Link to the listing for reference
+- Localized content (English/Arabic)
+
+#### Listing Archived by Admin Email Notification
+
+**Trigger**: When an admin archives a listing via admin endpoints
+**Recipients**: Listing owner (seller)
+**Email Content**:
+- Notification that their listing was archived by an administrator
+- Listing details (title, slug)
+- Reason for archival (if provided)
+- Contact information for inquiries
+- Localized content (English/Arabic)
+
+#### Listing Feedback Request Email
+
+**Trigger**: Sent after a listing is successfully sold (delayed email)
+**Recipients**: Listing owner (seller)
+**Email Content**:
+- Request for feedback on the selling experience
+- Link to feedback form
+- Listing details for reference
+- Incentives or benefits for providing feedback
+- Localized content (English/Arabic)
+
+**Email Service Configuration:**
+- Uses Spring Boot's JavaMailSender
+- Supports SMTP configuration
+- Template-based emails with Thymeleaf
+- Bilingual support (English/Arabic)
+- Asynchronous email sending to prevent blocking
+- Error handling and retry mechanisms
+- Email delivery status logging
+
+**Email Template Variables:**
+- `sellerName`: Name of the listing owner
+- `listingTitle`: Title of the car listing
+- `listingUrl`: Direct link to the listing
+- `websiteName`: Localized website name
+- `reason`: Reason for admin actions (when applicable)
+- `feedbackUrl`: Link to feedback form
+
 ## Reference Data Endpoints
 
 ### Fuel Types
@@ -1111,6 +1224,18 @@ curl -X POST http://localhost:8080/api/auth/signin \
 curl -X POST http://localhost:8080/api/auth/social-login \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","name":"John Doe","provider":"google"}'
+```
+
+#### Submit Contact Form
+```bash
+curl -X POST http://localhost:8080/api/contact \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john.doe@example.com", 
+    "subject": "Question about car listing",
+    "message": "I would like to know more about the BMW X5 listing. Is it still available?"
+  }'
 ```
 
 #### Change Password (after login)
