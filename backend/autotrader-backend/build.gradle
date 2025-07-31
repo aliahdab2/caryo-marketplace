@@ -32,6 +32,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-cache'  // Added for caching
     implementation 'org.springframework.retry:spring-retry:2.0.4'        // Added for retry support
     implementation 'org.springframework.boot:spring-boot-starter-aop'    // Required for retry aspects
+    implementation 'org.springframework.boot:spring-boot-starter-mail'   // Added for email functionality
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf' // Added for email templates
+    implementation 'com.sun.mail:jakarta.mail:2.0.1' // Jakarta Mail implementation
     
    // Flyway for database migrations
    implementation 'org.flywaydb:flyway-core:9.22.3'

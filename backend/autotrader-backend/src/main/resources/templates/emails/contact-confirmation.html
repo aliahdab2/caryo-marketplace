@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${language == 'ar' ? 'شكراً لك على التواصل معنا' : 'Thank you for contacting us'}">Contact Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            color: #2c3e50;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .thank-you-message {
+            font-size: 18px;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #27ae60;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        [dir="rtl"] {
+            text-align: right;
+        }
+    </style>
+</head>
+<body th:dir="${language == 'ar' ? 'rtl' : 'ltr'}">
+    <div class="container">
+        <div class="header">
+            <div class="logo"><span th:text="${websiteName}">AutoTrader</span></div>
+            <div class="thank-you-message" th:text="${language == 'ar' ? 'شكراً لك على التواصل معنا!' : 'Thank you for contacting us!'}">Thank you for contacting us!</div>
+        </div>
+        
+        <div class="content">
+            <p th:text="${language == 'ar' ? 'مرحباً ' + userName + '،' : 'Hello ' + userName + ','}">Hello User,</p>
+            
+            <p th:text="${language == 'ar' ? 'شكراً لك على التواصل مع ' + websiteName + '! لقد استلمنا رسالتك وسيرد عليك فريق الدعم في أقرب وقت ممكن.' : 'Thank you for reaching out to ' + websiteName + '! We have received your message and our support team will get back to you as soon as possible.'}">
+                Thank you for reaching out to AutoTrader! We have received your message and our support team will get back to you as soon as possible.
+            </p>
+            
+            <div class="info-box">
+                <h3 th:text="${language == 'ar' ? 'ماذا يحدث بعد ذلك؟' : 'What happens next?'}">What happens next?</h3>
+                <ul>
+                    <li th:text="${language == 'ar' ? 'سيقوم فريق الدعم بمراجعة استفسارك' : 'Our support team will review your inquiry'}">Our support team will review your inquiry</li>
+                    <li th:text="${language == 'ar' ? 'ستتلقى رداً شخصياً خلال 24 ساعة' : 'You will receive a personalized response within 24 hours'}">You will receive a personalized response within 24 hours</li>
+                    <li th:text="${language == 'ar' ? 'سنعالج جميع أسئلتك ومخاوفك' : 'We will address all your questions and concerns'}">We will address all your questions and concerns</li>
+                    <li th:text="${language == 'ar' ? 'إذا لزم الأمر، قد نتابع للحصول على معلومات إضافية' : 'If needed, we may follow up for additional information'}">If needed, we may follow up for additional information</li>
+                </ul>
+            </div>
+            
+            <p th:text="${language == 'ar' ? 'في هذه الأثناء، يمكنك:' : 'In the meantime, you can:'}">In the meantime, you can:</p>
+            <ul>
+                <li th:text="${language == 'ar' ? 'تصفح إعلانات سياراتنا' : 'Browse our car listings'}">Browse our car listings</li>
+                <li th:text="${language == 'ar' ? 'إنشاء إعلانك الخاص' : 'Create your own listing'}">Create your own listing</li>
+                <li th:text="${language == 'ar' ? 'التحقق من الأسئلة الشائعة' : 'Check out our frequently asked questions'}">Check out our frequently asked questions</li>
+                <li th:text="${language == 'ar' ? 'استكشاف ميزات منصتنا' : 'Explore our platform features'}">Explore our platform features</li>
+            </ul>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a th:href="${websiteUrl} + '/search'" class="cta-button" th:text="${language == 'ar' ? 'تصفح السيارات' : 'Browse Cars'}">Browse Cars</a>
+                <br>
+                <a th:href="${websiteUrl} + '/dashboard/listings'" class="cta-button" th:text="${language == 'ar' ? 'إنشاء إعلان' : 'Create Listing'}">Create Listing</a>
+            </div>
+            
+            <p th:text="${language == 'ar' ? 'إذا كان لديك أي أسئلة عاجلة، يمكنك أيضاً الوصول إلينا على: ' + supportEmail : 'If you have any urgent questions, you can also reach us at: ' + supportEmail}">
+                If you have any urgent questions, you can also reach us at: support@autotrader.com
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p th:text="${language == 'ar' ? 'شكراً لك على اختيار ' + websiteName + '!' : 'Thank you for choosing ' + websiteName + '!'}">Thank you for choosing AutoTrader!</p>
+            <p th:text="${language == 'ar' ? '© 2024 ' + websiteName + '. جميع الحقوق محفوظة.' : '© 2024 ' + websiteName + '. All rights reserved.'}">© 2024 AutoTrader. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html> 

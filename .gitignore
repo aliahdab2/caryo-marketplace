@@ -49,6 +49,19 @@ Thumbs.db
 
 ### Logs ###
 logs
+*.log
+
+### Temporary and backup files ###
+*.bak
+*.backup
+*.orig
+*.tmp
+*.temp
+*~
+#*#
+*.swp
+*.swo
+.#*
 
 # BlueJ files
 *.ctxt
