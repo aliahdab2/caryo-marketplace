@@ -1,6 +1,28 @@
-# Database Schema
+# System Architecture & Database Schema
 
-This document outlines the database schema for the AutoTrader Marketplace backend.
+## System Overview
+
+The Car Marketplace is a full-stack application designed to allow users to buy and sell cars. It is built using a modern microservice-inspired architecture where different domains (user management, car listings, payments) are clearly separated.
+
+### Core Services
+- **User Service**: Manages user registration, authentication, and authorization
+- **Car Listing Service**: Handles all car listing and search-related operations  
+- **Payment Service**: Integrates with external payment providers for purchasing listings
+- **Email Service**: Handles all email communications and notifications
+- **Media Service**: Manages car images and file uploads
+
+### Technology Stack
+- **Backend**: Spring Boot with Java 17
+- **Database**: PostgreSQL for production, H2 for testing
+- **Frontend**: Next.js with React and TypeScript
+- **Authentication**: JWT with OAuth2 integration (Google)
+- **File Storage**: MinIO (S3-compatible) for development, AWS S3 for production
+- **Email**: SMTP with template-based email system
+- **Testing**: JUnit 5, Jest, Postman for API testing
+
+## Database Schema
+
+This section outlines the complete database schema for the AutoTrader Marketplace backend.
 
 ## Core Tables
 
