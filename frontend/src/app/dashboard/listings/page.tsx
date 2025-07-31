@@ -544,11 +544,8 @@ export default function ListingsPage() {
                     >
                       {t("views")} {getSortIcon("views")}
                     </span>
-                    <div className="ml-1 group relative">
-                      <MdHelpOutline size={16} className="text-gray-400 cursor-help" />
-                      <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-0 mb-1 w-48 bg-gray-800 text-white text-xs p-2 rounded pointer-events-none transition-opacity z-10">
-                        {t("listings.viewsTooltip")}
-                      </div>
+                    <div className="ml-1">
+                      <MdHelpOutline size={16} className="text-gray-400" />
                     </div>
                   </div>
                 </th>
@@ -707,19 +704,10 @@ export default function ListingsPage() {
                       </div>
                     </td>
 										<td className="py-4 px-4">
-                      <div className="group relative">
-                        <div className="flex items-center">
-                          <span className="font-medium text-lg">{formatNumber(listing.views || 0, i18n.language)}</span>
-                          <div className="ml-1.5 bg-gray-100 dark:bg-gray-700 rounded-full p-1 cursor-help">
-                            <MdInfoOutline className="text-gray-500 dark:text-gray-400" size={16} />
-                          </div>
-                        </div>
-                        
-                        {/* Enhanced Tooltip */}
-                        <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-0 mb-2 w-60 bg-gray-900 text-white text-xs p-3 rounded shadow-lg pointer-events-none transition-opacity z-10">
-                          <div className="text-sm font-medium mb-1">{t("listings.viewsTooltip")}</div>
-                          <div className="opacity-75 text-xs">{t("listings.tooltipInfo")}</div>
-                          <div className="absolute bottom-[-6px] left-3 border-solid border-t-gray-900 border-t-[6px] border-x-transparent border-x-[6px] border-b-0"></div>
+                      <div className="flex items-center">
+                        <span className="font-medium text-lg">{formatNumber(listing.views || 0, i18n.language)}</span>
+                        <div className="ml-1.5 bg-gray-100 dark:bg-gray-700 rounded-full p-1">
+                          <MdInfoOutline className="text-gray-500 dark:text-gray-400" size={16} />
                         </div>
                       </div>
                     </td>

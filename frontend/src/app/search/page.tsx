@@ -827,29 +827,11 @@ export default function AdvancedSearchPage() {
               px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 
               transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
               ${isRTL ? 'flex-row-reverse' : ''}
-              relative group
             `}
             aria-label={t('search:createWatch', 'Create Alert')}
           >
             <MdNotificationsNone size={20} className={isRTL ? "ml-2" : "mr-2"} />
             <span>{t('search:createWatch', 'Create Alert')}</span>
-            
-            {/* Custom RTL-aware tooltip */}
-            <div className={`
-              absolute ${isRTL ? 'left-0' : 'right-0'} bottom-full mb-2 px-3 py-2 
-              bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 
-              group-hover:opacity-100 transition-opacity duration-200 pointer-events-none
-              whitespace-nowrap z-50 ${isRTL ? 'text-right' : 'text-left'}
-            `}>
-              <div className={isRTL ? 'rtl' : 'ltr'}>
-                {t('search:createWatchTooltip', 'Get notified when new cars match these filters')}
-              </div>
-              {/* Tooltip arrow */}
-              <div className={`
-                absolute ${isRTL ? 'left-2' : 'right-2'} top-full w-0 h-0 
-                border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900
-              `}></div>
-            </div>
           </button>
         </div>
 
