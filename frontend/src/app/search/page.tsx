@@ -812,6 +812,13 @@ export default function AdvancedSearchPage() {
         {/* Results Info */}
         <div className="flex items-center justify-between mb-6">
           <div className={`flex items-center ${isRTL ? 'space-x-reverse' : 'space-x-4'}`}>
+            {/* Results Count - LEFT SIDE */}
+            {carListings !== null && (
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Showing {carListings.totalElements || 0} of {carListings.totalElements || 0} cars
+              </div>
+            )}
+            
             {/* Sort Dropdown - LEFT SIDE */}
             <SortDropdown
               selectedSort={selectedSort}
