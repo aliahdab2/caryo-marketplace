@@ -1,11 +1,13 @@
 package com.autotrader.autotraderbackend.integration;
 
+import com.autotrader.autotraderbackend.config.TestEmailConfiguration;
 import com.autotrader.autotraderbackend.service.storage.S3StorageService;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -23,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(TestEmailConfiguration.class)
 public class ListingMediaS3IntegrationTest extends IntegrationTestWithS3 {
 
     @Autowired
