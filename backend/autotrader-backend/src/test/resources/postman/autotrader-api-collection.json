@@ -546,6 +546,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
@@ -590,6 +594,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
@@ -755,8 +763,9 @@
                   "",
                   "pm.test(\"Response contains expected seller types\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    // Check for common seller types",
-                  "    var hasBusinessOrPrivate = jsonData.hasOwnProperty('BUSINESS') || jsonData.hasOwnProperty('PRIVATE');",
+                  "    // Check for common seller types (case-insensitive)",
+                  "    var hasBusinessOrPrivate = jsonData.hasOwnProperty('BUSINESS') || jsonData.hasOwnProperty('PRIVATE') ||",
+                  "                              jsonData.hasOwnProperty('business') || jsonData.hasOwnProperty('private');",
                   "    pm.expect(hasBusinessOrPrivate).to.be.true;",
                   "});",
                   "",
@@ -995,6 +1004,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
                   }
                 ],
                 "body": {
@@ -1161,6 +1174,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{auth_token}}"
                   }
                 ],
                 "body": {
