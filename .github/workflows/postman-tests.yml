@@ -177,7 +177,7 @@ jobs:
         uses: ./.github/actions/spring-boot-setup
         with:
           working-directory: "./backend/autotrader-backend"
-          spring-profiles: "dev,ci"
+          spring-profiles: "ci"
           debug-mode: "false"
           wait-retries: "20"
           wait-time: "15"
