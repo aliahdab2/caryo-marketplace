@@ -135,9 +135,10 @@ case "${1:-}" in
             run_collection "$COLLECTIONS_DIR/slug-filtering-tests.json"
         fi
         
-        if [[ -f "$COLLECTIONS_DIR/contact-email-tests.json" ]]; then
-            run_collection "$COLLECTIONS_DIR/contact-email-tests.json"
-        fi
+        # Contact email tests removed - requires EmailService configuration
+# if [[ -f "$COLLECTIONS_DIR/contact-email-tests.json" ]]; then
+# run_collection "$COLLECTIONS_DIR/contact-email-tests.json"
+# fi
         
         echo -e "${BLUE}💡 Tip: Use '$0 --slug' to run slug filtering tests specifically${NC}"
         ;;

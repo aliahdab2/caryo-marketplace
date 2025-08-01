@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,7 @@ import java.util.Map;
 @RequestMapping("/api/contact")
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnBean(EmailService.class)
 @Tag(name = "Contact", description = "Contact form endpoints with multi-language support")
 public class ContactController {
 
