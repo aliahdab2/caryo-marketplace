@@ -12,9 +12,9 @@ set -e
 echo "Preparing test assets for Postman tests..."
 "$SCRIPT_DIR/prepare_test_assets.sh"
 
-# Start the Spring Boot app in a background process
-echo "Starting Spring Boot application..."
-"$PROJECT_ROOT/gradlew" bootRun > "$PROJECT_ROOT/build/bootRun.log" 2>&1 &
+# Start the Spring Boot app in a background process with test profile
+echo "Starting Spring Boot application with test profile..."
+"$PROJECT_ROOT/gradlew" bootRun --args='--spring.profiles.active=test' > "$PROJECT_ROOT/build/bootRun.log" 2>&1 &
 
 # Store the process ID
 SPRING_PID=$!

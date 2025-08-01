@@ -27,6 +27,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnProperty(name = "spring.mail.host")
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
