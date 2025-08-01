@@ -4,6 +4,7 @@ import com.autotrader.autotraderbackend.events.ListingApprovedEvent;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.service.AsyncTransactionService;
+import com.autotrader.autotraderbackend.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -25,9 +26,7 @@ public class ListingApprovedListener {
 
     private final ListingEventUtils eventUtils;
     private final AsyncTransactionService txService;
-    
-    // TODO: Inject email service when ready
-    // private final EmailService emailService;
+    private final EmailService emailService;
     
     /**
      * Handle the listing approved event.
@@ -69,10 +68,15 @@ public class ListingApprovedListener {
                     listing.getPrice()
             );
 
-            // TODO: Send email notification to the seller
-            // Optional.ofNullable(seller)
-            //     .map(User::getEmail)
-            //     .ifPresent(email -> emailService.sendListingApprovedEmail(email, listing));
+            // Send email notification to the seller
+            if (seller != null && seller.getEmail() != null) {
+                try {
+                    emailService.sendListingApprovedEmail(seller, listing);
+                    log.info("Listing approved email sent to seller: {}", seller.getEmail());
+                } catch (Exception e) {
+                    log.error("Failed to send listing approved email to seller: {}", seller.getEmail(), e);
+                }
+            }
 
             // TODO: Update analytics or reporting
         });

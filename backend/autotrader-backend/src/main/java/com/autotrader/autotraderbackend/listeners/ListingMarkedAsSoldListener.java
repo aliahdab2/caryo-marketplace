@@ -4,6 +4,7 @@ import com.autotrader.autotraderbackend.events.ListingMarkedAsSoldEvent;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.service.AsyncTransactionService;
+import com.autotrader.autotraderbackend.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -25,6 +26,7 @@ public class ListingMarkedAsSoldListener {
 
     private final ListingEventUtils eventUtils;
     private final AsyncTransactionService txService;
+    private final EmailService emailService;
     
     /**
      * Handle the listing marked as sold event.
@@ -68,12 +70,25 @@ public class ListingMarkedAsSoldListener {
                     listing.getPrice()
             );
 
-            // TODO: Send confirmation email to seller
-            // Optional.ofNullable(seller)
-            //     .map(User::getEmail)
-            //     .ifPresent(email -> emailService.sendListingSoldEmail(email, listing));
+            // Send confirmation email to seller
+            if (seller != null && seller.getEmail() != null) {
+                try {
+                    emailService.sendListingSoldEmail(seller, listing);
+                    log.info("Listing sold confirmation email sent to seller: {}", seller.getEmail());
+                } catch (Exception e) {
+                    log.error("Failed to send listing sold confirmation email to seller: {}", seller.getEmail(), e);
+                }
+            }
             
-            // TODO: Send feedback request to seller
+            // Send feedback request to seller (after a short delay to avoid email overload)
+            if (seller != null && seller.getEmail() != null) {
+                try {
+                    emailService.sendListingFeedbackRequestEmail(seller, listing);
+                    log.info("Listing feedback request email sent to seller: {}", seller.getEmail());
+                } catch (Exception e) {
+                    log.error("Failed to send listing feedback request email to seller: {}", seller.getEmail(), e);
+                }
+            }
         });
     }
 }

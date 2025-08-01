@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${language == 'ar' ? 'انتهت صلاحية إعلانك' : 'Your listing has expired'}">Listing Expired</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            color: #2c3e50;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .expired-message {
+            font-size: 18px;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .listing-details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #e74c3c;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .renew-button {
+            background-color: #27ae60;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        [dir="rtl"] {
+            text-align: right;
+        }
+    </style>
+</head>
+<body th:dir="${language == 'ar' ? 'rtl' : 'ltr'}">
+    <div class="container">
+        <div class="header">
+            <div class="logo">🚗 <span th:text="${websiteName}">AutoTrader</span></div>
+            <div class="expired-message" th:text="${language == 'ar' ? '⚠️ انتهت صلاحية إعلانك' : '⚠️ Your listing has expired'}">⚠️ Your listing has expired</div>
+        </div>
+        
+        <div class="content">
+            <p th:text="${language == 'ar' ? 'مرحباً ' + userName + '،' : 'Hello ' + userName + ','}">Hello User,</p>
+            
+            <p th:text="${language == 'ar' ? 'انتهت صلاحية إعلان سيارتك ولم يعد مرئياً للمشترين المحتملين.' : 'Your car listing has expired and is no longer visible to potential buyers.'}">
+                Your car listing has expired and is no longer visible to potential buyers.
+            </p>
+            
+            <div class="listing-details">
+                <h3 th:text="${language == 'ar' ? 'تفاصيل الإعلان المنتهي:' : 'Expired Listing Details:'}">Expired Listing Details:</h3>
+                <p th:text="${language == 'ar' ? 'العنوان: ' + listingTitle : 'Title: ' + listingTitle}">Title: Car Listing</p>
+                <p th:text="${language == 'ar' ? 'رقم الإعلان: ' + listingId : 'Listing ID: ' + listingId}">Listing ID: #123</p>
+            </div>
+            
+            <p th:text="${language == 'ar' ? 'لا تقلق! يمكنك تجديد إعلانك بسهولة ليبقى نشطاً ومرئياً للمشترين.' : 'Don&apos;t worry! You can easily renew your listing to keep it active and visible to buyers.'}">
+                Don't worry! You can easily renew your listing to keep it active and visible to buyers.
+            </p>
+            
+            <p th:text="${language == 'ar' ? 'عندما تجدد، سيكون إعلانك:' : 'When you renew, your listing will:'}">When you renew, your listing will:</p>
+            <ul>
+                <li th:text="${language == 'ar' ? 'مرئياً للمشترين مرة أخرى' : 'Become visible to buyers again'}">Become visible to buyers again</li>
+                <li th:text="${language == 'ar' ? 'يظهر في نتائج البحث' : 'Appear in search results'}">Appear in search results</li>
+                <li th:text="${language == 'ar' ? 'يستمر في استلام الاستفسارات' : 'Continue to receive inquiries'}">Continue to receive inquiries</li>
+                <li th:text="${language == 'ar' ? 'يحافظ على جميع تفاصيل إعلانك' : 'Maintain all your listing details'}">Maintain all your listing details</li>
+            </ul>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a th:href="${websiteUrl} + '/dashboard/listings/' + ${listingId} + '/renew'" class="cta-button renew-button" th:text="${language == 'ar' ? 'تجديد إعلانك' : 'Renew Your Listing'}">Renew Your Listing</a>
+                <br>
+                <a th:href="${websiteUrl} + '/dashboard/listings'" class="cta-button" th:text="${language == 'ar' ? 'إدارة جميع الإعلانات' : 'Manage All Listings'}">Manage All Listings</a>
+            </div>
+            
+            <p th:text="${language == 'ar' ? 'إذا كان لديك أي أسئلة حول تجديد إعلانك أو تحتاج إلى مساعدة، لا تتردد في التواصل مع فريق الدعم.' : 'If you have any questions about renewing your listing or need assistance, please contact our support team.'}">
+                If you have any questions about renewing your listing or need assistance, please contact our support team.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p th:text="${language == 'ar' ? 'شكراً لك على استخدام ' + websiteName + '!' : 'Thank you for using ' + websiteName + '!'}">Thank you for using AutoTrader!</p>
+            <p th:text="${language == 'ar' ? '© 2024 ' + websiteName + '. جميع الحقوق محفوظة.' : '© 2024 ' + websiteName + '. All rights reserved.'}">© 2024 AutoTrader. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html> 

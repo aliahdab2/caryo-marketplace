@@ -2,7 +2,9 @@ package com.autotrader.autotraderbackend.listeners;
 
 import com.autotrader.autotraderbackend.events.ListingRenewalInitiatedEvent;
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.service.AsyncTransactionService;
+import com.autotrader.autotraderbackend.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -25,6 +27,7 @@ public class ListingRenewalInitiatedListener {
 
     private final ListingEventUtils eventUtils;
     private final AsyncTransactionService txService;
+    private final EmailService emailService;
     
     /**
      * Handle the listing renewal initiated event.
@@ -51,11 +54,16 @@ public class ListingRenewalInitiatedListener {
             log.debug("Listing ID: {} renewed for {} days, estimated new expiration: {}", 
                     listing.getId(), renewalDays, estimatedNewExpiration);
 
-            // TODO: Send confirmation email to seller
-            // if (seller != null && seller.getEmail() != null) {
-            //     Date newExpirationDate = calculateNewExpirationDate(listing, renewalDays);
-            //     emailService.sendListingRenewedEmail(seller.getEmail(), listing, newExpirationDate);
-            // }
+            // Send confirmation email to seller
+            User seller = listing.getSeller();
+            if (seller != null && seller.getEmail() != null) {
+                try {
+                    emailService.sendListingRenewalEmail(seller, listing, renewalDays);
+                    log.info("Listing renewal email sent to seller: {}", seller.getEmail());
+                } catch (Exception e) {
+                    log.error("Failed to send listing renewal email to seller: {}", seller.getEmail(), e);
+                }
+            }
             
             // TODO: Update listing search prominence or boost as a "recently renewed" listing
         });
