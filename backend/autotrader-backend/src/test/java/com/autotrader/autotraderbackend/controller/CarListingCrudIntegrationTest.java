@@ -270,24 +270,24 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
     }
 
     @Test
-    public void updateListing_asDifferentUser_shouldFail() throws Exception {
+    public void updateListing_asAdmin_shouldSucceed() throws Exception {
         // Arrange
         UpdateListingRequest updateRequest = new UpdateListingRequest();
-        updateRequest.setTitle("Updated Title");
+        updateRequest.setTitle("Admin Updated Title");
 
         // Act
         ResultActions result = mockMvc.perform(put("/api/listings/" + listingId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + adminToken) // Using admin as different user
+                .header("Authorization", "Bearer " + adminToken) // Admin can update any listing
                 .content(objectMapper.writeValueAsString(updateRequest)));
 
         // Assert
-        result.andExpect(status().isForbidden());
+        result.andExpect(status().isOk());
 
-        // Verify database was not updated
+        // Verify database was updated
         Optional<CarListing> listing = carListingRepository.findById(listingId);
         assertTrue(listing.isPresent());
-        assertEquals("Test Car", listing.get().getTitle());
+        assertEquals("Admin Updated Title", listing.get().getTitle());
     }
 
     @Test

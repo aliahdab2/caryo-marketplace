@@ -166,6 +166,7 @@ public class CarListingCrudOperationsTest {
 
 
         when(carListingRepository.findById(TEST_LISTING_ID)).thenReturn(Optional.of(testListing));
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(testUser));
         when(locationRepository.findById(TEST_LOCATION_ID)).thenReturn(Optional.of(testLocation));
         when(carModelService.getModelById(TEST_CAR_MODEL_ID)).thenReturn(testCarModel); // Mock CarModelService
         
@@ -205,12 +206,20 @@ public class CarListingCrudOperationsTest {
     @Test
     void updateListing_notOwnedByUser_shouldThrowSecurityException() {
         // Arrange
+        User differentUser = new User();
+        differentUser.setId(3L);
+        differentUser.setUsername("differentuser");
+        Set<Role> diffUserRoles = new HashSet<>();
+        diffUserRoles.add(userRole); // Only user role, not admin
+        differentUser.setRoles(diffUserRoles);
+        
         UpdateListingRequest updateRequest = new UpdateListingRequest();
         updateRequest.setTitle("Updated Title");
         updateRequest.setModelId(TEST_CAR_MODEL_ID);
         updateRequest.setLocationId(TEST_LOCATION_ID);
         
         when(carListingRepository.findById(TEST_LISTING_ID)).thenReturn(Optional.of(testListing));
+        when(userRepository.findByUsername("differentuser")).thenReturn(Optional.of(differentUser));
 
         // Act & Assert
         Exception exception = assertThrows(SecurityException.class, () -> 
@@ -235,6 +244,44 @@ public class CarListingCrudOperationsTest {
             carListingService.updateListing(TEST_LISTING_ID, updateRequest, TEST_USERNAME));
         
         assertTrue(exception.getMessage().contains("CarListing not found with id : '1'"));
+    }
+    
+    @Test
+    void updateListing_asAdmin_shouldUpdateSuccessfully() {
+        // Arrange
+        UpdateListingRequest updateRequest = new UpdateListingRequest();
+        updateRequest.setTitle("Admin Updated Title");
+        updateRequest.setPrice(new BigDecimal("17000.00"));
+        updateRequest.setModelId(TEST_CAR_MODEL_ID);
+        updateRequest.setLocationId(TEST_LOCATION_ID);
+
+        when(carListingRepository.findById(TEST_LISTING_ID)).thenReturn(Optional.of(testListing));
+        when(userRepository.findByUsername(ADMIN_USERNAME)).thenReturn(Optional.of(adminUser));
+        when(locationRepository.findById(TEST_LOCATION_ID)).thenReturn(Optional.of(testLocation));
+        when(carModelService.getModelById(TEST_CAR_MODEL_ID)).thenReturn(testCarModel);
+        
+        when(carListingRepository.save(any(CarListing.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        
+        CarListingResponse updatedResponse = new CarListingResponse();
+        updatedResponse.setId(TEST_LISTING_ID);
+        updatedResponse.setTitle("Admin Updated Title");
+        updatedResponse.setPrice(new BigDecimal("17000.00"));
+        
+        when(carListingMapper.toCarListingResponse(any(CarListing.class))).thenReturn(updatedResponse);
+
+        // Act
+        CarListingResponse result = carListingService.updateListing(TEST_LISTING_ID, updateRequest, ADMIN_USERNAME);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(TEST_LISTING_ID, result.getId());
+        assertEquals("Admin Updated Title", result.getTitle());
+        assertEquals(0, new BigDecimal("17000.00").compareTo(result.getPrice()));
+        
+        verify(carListingRepository).save(argThat(listing -> 
+            "Admin Updated Title".equals(listing.getTitle()) &&
+            new BigDecimal("17000.00").equals(listing.getPrice())
+        ));
     }
 
     @Test
