@@ -28,10 +28,10 @@ export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwit
   return (
     <div className={`inline-flex items-center ${className || ''}`}>
       {/* Underline Style */}
-      <div className="relative flex items-center space-x-6">
+      <div className="relative flex items-center gap-4 rtl:gap-4">
         <button
           onClick={() => handleLanguageChange('en')}
-          className={`relative pb-1 text-sm font-medium transition-colors duration-200 ${
+          className={`relative pb-1 text-sm font-medium transition-colors duration-200 px-2 ${
             locale === 'en'
               ? 'text-gray-900 dark:text-white'
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
@@ -46,7 +46,7 @@ export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwit
         
         <button
           onClick={() => handleLanguageChange('ar')}
-          className={`relative pb-1 text-sm font-medium transition-colors duration-200 ${
+          className={`relative pb-1 text-sm font-medium transition-colors duration-200 px-2 ${
             locale === 'ar'
               ? 'text-gray-900 dark:text-white'
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'

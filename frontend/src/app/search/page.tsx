@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { MdNotificationsNone } from 'react-icons/md';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useOptimizedFiltering } from '@/hooks/useOptimizedFiltering';
 
@@ -19,6 +20,10 @@ import {
   CarListingFilterParams,
   Governorate
 } from '@/services/api';
+
+// Import public API functions
+import { fetchCarListingsPublic } from '@/services/publicApi';
+
 import { getSellerTypeCounts } from '@/services/sellerTypes';
 import { SellerTypeCounts } from '@/types/sellerTypes';
 import { useBodyStyleCounts } from '@/hooks/useBodyStyleCounts';
@@ -141,7 +146,24 @@ export default function AdvancedSearchPage() {
     selectedSort
   ]);
 
-  // Car listings state using optimized filtering
+  // Car listings state using optimized filtering with dynamic API selection
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
+
+  // Choose API function based on authentication status with proper type casting
+  const fetchListingsFunction = useMemo(() => {
+    if (isAuthenticated) {
+      return fetchCarListings;
+    } else {
+      // Wrap public API to match expected interface
+      return async (filters?: CarListingFilterParams): Promise<PageResponse<CarListing>> => {
+        const result = await fetchCarListingsPublic(filters);
+        // Cast the result to the expected type since the interfaces are compatible
+        return result as unknown as PageResponse<CarListing>;
+      };
+    }
+  }, [isAuthenticated]);
+
   const {
     data: carListings,
     isLoading: isLoadingListings,
@@ -150,7 +172,7 @@ export default function AdvancedSearchPage() {
     search: executeSearch
   } = useOptimizedFiltering<CarListingFilterParams, PageResponse<CarListing>>(
     listingFilters,
-    fetchCarListings,
+    fetchListingsFunction,
     {
       debounceMs: 300,
       minLoadingDelayMs: 150,
@@ -255,13 +277,6 @@ export default function AdvancedSearchPage() {
       const transmission = referenceData?.transmissions?.find(t => t.id === id);
       return transmission ? (currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn) : '';
     }, [referenceData?.transmissions, currentLanguage]
-  );
-
-    const getFuelTypeDisplayName = useMemo(() =>
-    (id: number): string => {
-      const fuelType = referenceData?.fuelTypes?.find(f => f.id === id);
-      return fuelType ? (currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn) : '';
-    }, [referenceData?.fuelTypes, currentLanguage]
   );
 
   const getFuelTypeDisplayNameFromSlug = useMemo(() =>
@@ -711,7 +726,7 @@ export default function AdvancedSearchPage() {
       default:
         return '';
     }
-  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getFuelTypeDisplayName, getFuelTypeDisplayNameFromSlug, getBodyStyleDisplayName, getSellerTypeDisplayName, currentLanguage]);
+  }, [filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getFuelTypeDisplayNameFromSlug, getBodyStyleDisplayName, getSellerTypeDisplayName, currentLanguage]);
 
   // Check if filter has active values - memoized to prevent re-renders
   const isFilterActive = useCallback((filterType: FilterType): boolean => {
@@ -812,13 +827,6 @@ export default function AdvancedSearchPage() {
         {/* Results Info */}
         <div className="flex items-center justify-between mb-6">
           <div className={`flex items-center ${isRTL ? 'space-x-reverse' : 'space-x-4'}`}>
-            {/* Results Count - LEFT SIDE */}
-            {carListings !== null && (
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Showing {carListings?.content?.length || 0} of {carListings?.totalElements || 0} cars
-              </div>
-            )}
-            
             {/* Sort Dropdown - LEFT SIDE */}
             <SortDropdown
               selectedSort={selectedSort}
@@ -873,6 +881,28 @@ export default function AdvancedSearchPage() {
               >
                 Next
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Subtle Registration CTA for Unauthenticated Users - Only if there are results */}
+        {!isAuthenticated && carListings && carListings.content && carListings.content.length > 0 && (
+          <div className="mt-12 text-center">
+            <div className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-4 py-3 rounded-lg">
+              <span>Want to contact sellers?</span>
+              <a 
+                href="/auth/signup" 
+                className="text-blue-600 hover:text-blue-700 font-medium underline"
+              >
+                Sign up free
+              </a>
+              <span>•</span>
+              <a 
+                href="/auth/signin" 
+                className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
+              >
+                Sign in
+              </a>
             </div>
           </div>
         )}

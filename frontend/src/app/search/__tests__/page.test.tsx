@@ -610,7 +610,7 @@ describe('AdvancedSearchPage', () => {
       render(<AdvancedSearchPage />, { wrapper: TestWrapper });
 
       expect(screen.getByText('Toyota Camry 2020')).toBeInTheDocument();
-      expect(screen.getByText('Showing 1 of 1 cars')).toBeInTheDocument();
+      // Results count removed for better UX
     });
 
     it('shows empty state when no results found', () => {
@@ -624,7 +624,7 @@ describe('AdvancedSearchPage', () => {
 
       render(<AdvancedSearchPage />, { wrapper: TestWrapper });
 
-      expect(screen.getByText('Showing 0 of 0 cars')).toBeInTheDocument();
+      // Empty state should be displayed but without intrusive count text
     });
   });
 

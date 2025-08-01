@@ -109,6 +109,11 @@ const mockProps = {
   isLoadingReferenceData: false,
   sellerTypeCounts: { dealer: 5 },
   bodyStyleCounts: { sedan: 3 },
+  transmissionCounts: { 
+    manual: 100, 
+    automatic: 200, 
+    cvt: 50 
+  },
   carListings: { 
     totalElements: 10, 
     content: [], 
@@ -644,7 +649,7 @@ describe('FilterModal', () => {
       render(<FilterModal {...mockProps} filterType="transmission" />);
       expect(screen.getByText('Transmission')).toBeInTheDocument();
       expect(screen.getByText('Manual')).toBeInTheDocument();
-      expect(screen.getByText('(0)')).toBeInTheDocument();
+      expect(screen.getByText('(100)')).toBeInTheDocument();
     });
 
     it('renders fuel type filter correctly', () => {
