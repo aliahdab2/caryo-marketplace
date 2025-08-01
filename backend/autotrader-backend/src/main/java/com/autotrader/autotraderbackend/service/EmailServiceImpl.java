@@ -5,6 +5,7 @@ import com.autotrader.autotraderbackend.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -25,6 +26,7 @@ import java.util.List;
  * Supports configurable website names and multi-language email templates.
  */
 @Service
+@Profile("!test & !ci") // Only create email service when not in test or ci environments
 @RequiredArgsConstructor
 @Slf4j
 public class EmailServiceImpl implements EmailService {
