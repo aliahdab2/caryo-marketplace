@@ -902,7 +902,7 @@ public class CarListingController {
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Update an existing car listing",
-        description = "Updates a car listing with the provided details. Only the owner of the listing can update it. The response includes the updated listing details with its media.",
+        description = "Updates a car listing with the provided details. Only the owner of the listing or an admin can update it. The response includes the updated listing details with its media.",
         security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
         responses = {
             @ApiResponse(responseCode = "200", description = "Listing updated successfully, includes media details", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),

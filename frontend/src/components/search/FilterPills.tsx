@@ -2,6 +2,19 @@ import React from 'react';
 import { MdFilterList } from 'react-icons/md';
 import { FilterType } from '@/hooks/useSearchFilters';
 
+// Utility function for consistent button styling
+const getButtonClasses = (isActive: boolean = false, isSticky: boolean = false) => {
+  const baseClasses = "group relative inline-flex items-center px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99]";
+  
+  const activeClasses = "bg-gradient-to-r from-blue-600 to-blue-700 border-2 border-blue-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 hover:from-blue-700 hover:to-blue-800";
+  
+  const inactiveClasses = "bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400";
+  
+  const stickyClasses = isSticky ? "sticky top-4 z-10" : "";
+  
+  return `${baseClasses} ${isActive ? activeClasses : inactiveClasses} ${stickyClasses}`.trim();
+};
+
 interface FilterPillsProps {
   setActiveFilterModal: (filterType: FilterType) => void;
   isFilterActive: (filterType: FilterType) => boolean;
@@ -23,11 +36,7 @@ const FilterPill = React.memo(({
   return (
     <button
       onClick={onClick}
-      className={`group relative inline-flex items-center px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99] ${
-        isActive
-          ? 'bg-gradient-to-r from-blue-600 to-blue-700 border-2 border-blue-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 hover:from-blue-700 hover:to-blue-800'
-          : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400'
-      }`}
+      className={getButtonClasses(isActive)}
       aria-label={`Filter by ${displayText}`}
     >
       <span className="relative z-10 flex items-center">
@@ -63,7 +72,7 @@ export default function FilterPills({
             {/* Show All Filters Button - Sticky */}
             <button
               onClick={() => setActiveFilterModal('allFilters')}
-              className="group relative inline-flex items-center px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 sticky top-4 z-10"
+              className={getButtonClasses(false, true)}
               aria-label="Show all filters"
             >
               <span className="relative z-10 flex items-center space-x-2">

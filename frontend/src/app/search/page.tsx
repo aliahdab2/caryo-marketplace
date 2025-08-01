@@ -815,7 +815,7 @@ export default function AdvancedSearchPage() {
             {/* Results Count - LEFT SIDE */}
             {carListings !== null && (
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Showing {carListings.totalElements || 0} of {carListings.totalElements || 0} cars
+                Showing {carListings?.content?.length || 0} of {carListings?.totalElements || 0} cars
               </div>
             )}
             
