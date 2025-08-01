@@ -940,7 +940,7 @@ public class CarListingController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
         summary = "Delete a car listing",
-        description = "Deletes a car listing. Only the owner of the listing can delete it.",
+        description = "Deletes a car listing. Only the owner of the listing or an admin can delete it.",
         security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
         responses = {
             @ApiResponse(responseCode = "204", description = "Listing deleted successfully"),

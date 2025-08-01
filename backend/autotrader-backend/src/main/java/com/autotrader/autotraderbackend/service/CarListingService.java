@@ -1113,7 +1113,7 @@ public class CarListingService {
      * @param id         The ID of the car listing to delete
      * @param username   The username of the user making the request
      * @throws ResourceNotFoundException If the listing does not exist
-     * @throws SecurityException If the user does not own the listing
+     * @throws SecurityException If the user does not own the listing and is not an admin
      */
     @Transactional
     public void deleteListing(Long id, String username) {
@@ -1122,11 +1122,23 @@ public class CarListingService {
         CarListing existingListing = carListingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", id));
         
-        // Check if the user owns this listing
-        if (!existingListing.getSeller().getUsername().equals(username)) {
-            log.warn("User {} attempted to delete listing {} owned by {}", 
+        // Check if the user owns this listing or is an admin
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+        
+        boolean isOwner = existingListing.getSeller().getUsername().equals(username);
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(role -> "ROLE_ADMIN".equals(role.getName()));
+        
+        if (!isOwner && !isAdmin) {
+            log.warn("User {} attempted to delete listing {} owned by {} (user is not owner or admin)", 
                     username, id, existingListing.getSeller().getUsername());
             throw new SecurityException("You are not authorized to delete this listing");
+        }
+        
+        if (isAdmin && !isOwner) {
+            log.info("Admin {} deleting listing {} owned by {}", 
+                    username, id, existingListing.getSeller().getUsername());
         }
         
         // If listing has media, delete all media files from storage

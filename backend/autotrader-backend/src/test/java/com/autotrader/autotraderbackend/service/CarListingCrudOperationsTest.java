@@ -6,6 +6,7 @@ import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.ListingMedia;
 import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.model.Country;
@@ -26,6 +27,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,10 +61,14 @@ public class CarListingCrudOperationsTest {
     private CarListing testListing;
     private CarListingResponse testListingResponse;
     private User testUser;
+    private User adminUser;
     private Location testLocation;
     private CarBrand testCarBrand;
     private CarModel testCarModel;
+    private Role userRole;
+    private Role adminRole;
     private static final String TEST_USERNAME = "testuser";
+    private static final String ADMIN_USERNAME = "admin";
     private static final Long TEST_LISTING_ID = 1L;
     private static final Long TEST_LOCATION_ID = 1L;
     private static final Long TEST_CAR_MODEL_ID = 1L;
@@ -70,10 +77,29 @@ public class CarListingCrudOperationsTest {
 
     @BeforeEach
     void setUp() {
-        // Set up test user
+        // Set up roles
+        userRole = new Role("ROLE_USER");
+        userRole.setId(1);
+        
+        adminRole = new Role("ROLE_ADMIN");
+        adminRole.setId(2);
+        
+        // Set up test user (regular user)
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername(TEST_USERNAME);
+        Set<Role> userRoles = new HashSet<>();
+        userRoles.add(userRole);
+        testUser.setRoles(userRoles);
+        
+        // Set up admin user
+        adminUser = new User();
+        adminUser.setId(2L);
+        adminUser.setUsername(ADMIN_USERNAME);
+        Set<Role> adminRoles = new HashSet<>();
+        adminRoles.add(userRole);
+        adminRoles.add(adminRole);
+        adminUser.setRoles(adminRoles);
 
         // Set up test location with country and governorate
         Country testCountry = new Country();
@@ -241,6 +267,7 @@ public class CarListingCrudOperationsTest {
     void deleteListing_ownedByUser_shouldDeleteSuccessfully() {
         // Arrange
         when(carListingRepository.findById(TEST_LISTING_ID)).thenReturn(Optional.of(testListing));
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(testUser));
         
         // Act
         carListingService.deleteListing(TEST_LISTING_ID, TEST_USERNAME);
@@ -253,7 +280,15 @@ public class CarListingCrudOperationsTest {
     @Test
     void deleteListing_notOwnedByUser_shouldThrowSecurityException() {
         // Arrange
+        User differentUser = new User();
+        differentUser.setId(3L);
+        differentUser.setUsername("differentuser");
+        Set<Role> diffUserRoles = new HashSet<>();
+        diffUserRoles.add(userRole); // Only user role, not admin
+        differentUser.setRoles(diffUserRoles);
+        
         when(carListingRepository.findById(TEST_LISTING_ID)).thenReturn(Optional.of(testListing));
+        when(userRepository.findByUsername("differentuser")).thenReturn(Optional.of(differentUser));
 
         // Act & Assert
         Exception exception = assertThrows(SecurityException.class, () -> 
@@ -274,6 +309,20 @@ public class CarListingCrudOperationsTest {
             carListingService.deleteListing(TEST_LISTING_ID, TEST_USERNAME));
         
         assertTrue(exception.getMessage().contains("CarListing not found with id : '1'"));
+    }
+    
+    @Test
+    void deleteListing_asAdmin_shouldDeleteSuccessfully() {
+        // Arrange
+        when(carListingRepository.findById(TEST_LISTING_ID)).thenReturn(Optional.of(testListing));
+        when(userRepository.findByUsername(ADMIN_USERNAME)).thenReturn(Optional.of(adminUser));
+        
+        // Act
+        carListingService.deleteListing(TEST_LISTING_ID, ADMIN_USERNAME);
+        
+        // Assert
+        testListing.getMedia().forEach(media -> verify(storageService).delete(media.getFileKey()));
+        verify(carListingRepository).delete(testListing);
     }
     
     @Test

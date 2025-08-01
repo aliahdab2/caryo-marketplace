@@ -305,17 +305,17 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
     }
 
     @Test
-    public void deleteListing_asDifferentUser_shouldFail() throws Exception {
+    public void deleteListing_asAdmin_shouldSucceed() throws Exception {
         // Act
         ResultActions result = mockMvc.perform(delete("/api/listings/" + listingId)
-                .header("Authorization", "Bearer " + adminToken)); // Using admin as different user
+                .header("Authorization", "Bearer " + adminToken)); // Admin can delete any listing
 
         // Assert
-        result.andExpect(status().isForbidden());
+        result.andExpect(status().isNoContent());
 
-        // Verify listing still exists
+        // Verify listing was deleted
         Optional<CarListing> listing = carListingRepository.findById(listingId);
-        assertTrue(listing.isPresent());
+        assertFalse(listing.isPresent());
     }
 
     @Test
