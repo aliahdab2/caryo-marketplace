@@ -78,6 +78,7 @@ export default function LocationDropdown({
             className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl z-50 max-h-72 flex flex-col backdrop-blur-sm animate-in slide-in-from-top-2 duration-300"
             role="listbox"
             aria-labelledby="location-filter-button"
+            dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}
           >
             {/* Scrollable location list */}
             <div className="flex-1 overflow-y-auto p-2 max-h-56" role="group" aria-label={t('locationOptions', 'Location options')}>
@@ -120,7 +121,7 @@ export default function LocationDropdown({
                         setFilters(updatedFilters);
                         // Don't update URL or search immediately - wait for "Show" button
                       }}
-                      className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 focus:ring-2 border-2 border-gray-300 rounded-md transition-all duration-200 group-hover:scale-105"
+                      className="mr-3 rtl:mr-0 rtl:ml-3 h-4 w-4 text-blue-600 focus:ring-blue-500 focus:ring-2 border-2 border-gray-300 rounded-md transition-all duration-200 group-hover:scale-105 flex-shrink-0"
                       aria-describedby={`location-${gov.id}-label`}
                     />
                     <span 
