@@ -21,11 +21,117 @@ Email tests use a dedicated test profile that provides:
 
 #### TestEmailConfig.java
 ```java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessagePreparator;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import org.thymeleaf.templatemode.TemplateMode;
+import jakarta.mail.internet.MimeMessage;
+
 @Configuration
 @Profile("test")
 public class TestEmailConfig {
-    // Provides mock JavaMailSender that logs email attempts
-    // Uses real ClassLoaderTemplateResolver for template testing
+    
+    private static final Logger logger = LoggerFactory.getLogger(TestEmailConfig.class);
+    
+    /**
+     * Mock JavaMailSender that logs email attempts instead of sending real emails
+     */
+    @Bean
+    @Primary
+    public JavaMailSender javaMailSender() {
+        return new JavaMailSender() {
+            @Override
+            public void send(SimpleMailMessage simpleMessage) {
+                logger.info("Mock email send: {} to {}", 
+                    simpleMessage.getSubject(), 
+                    simpleMessage.getTo() != null && simpleMessage.getTo().length > 0 
+                        ? simpleMessage.getTo()[0] : "unknown");
+            }
+            
+            @Override
+            public void send(MimeMessage mimeMessage) {
+                logger.info("Mock email send: MimeMessage (test mode)");
+            }
+            
+            @Override
+            public void send(MimeMessagePreparator mimeMessagePreparator) {
+                logger.info("Mock email send: MimeMessagePreparator (test mode)");
+            }
+            
+            @Override
+            public MimeMessage createMimeMessage() {
+                return new MockMimeMessage();
+            }
+            
+            @Override
+            public void send(SimpleMailMessage... simpleMessages) {
+                for (SimpleMailMessage message : simpleMessages) {
+                    send(message);
+                }
+            }
+            
+            @Override
+            public void send(MimeMessage... mimeMessages) {
+                for (MimeMessage message : mimeMessages) {
+                    send(message);
+                }
+            }
+            
+            @Override
+            public void send(MimeMessagePreparator... mimeMessagePreparators) {
+                for (MimeMessagePreparator preparator : mimeMessagePreparators) {
+                    send(preparator);
+                }
+            }
+            
+            @Override
+            public MimeMessage createMimeMessage(java.io.InputStream contentStream) {
+                return createMimeMessage();
+            }
+        };
+    }
+    
+    /**
+     * Simple mock MimeMessage for testing
+     */
+    private static class MockMimeMessage extends MimeMessage {
+        public MockMimeMessage() {
+            super((jakarta.mail.Session) null);
+        }
+        
+        @Override
+        public void saveChanges() {
+            // No-op for mock
+        }
+    }
+
+    /**
+     * Real template engine for testing actual email templates
+     */
+    @Bean
+    @Primary
+    public TemplateEngine templateEngine() {
+        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        
+        ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
+        templateResolver.setPrefix("templates/emails/");
+        templateResolver.setSuffix(".html");
+        templateResolver.setTemplateMode(TemplateMode.HTML);
+        templateResolver.setCharacterEncoding("UTF-8");
+        templateResolver.setCacheable(false);
+        
+        templateEngine.setTemplateResolver(templateResolver);
+        return templateEngine;
+    }
 }
 ```
 
