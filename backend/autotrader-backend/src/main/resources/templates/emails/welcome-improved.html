@@ -326,7 +326,7 @@
             <div class="support-section">
                 <div class="support-text" th:text="${language == 'ar' ? 'هل تحتاج إلى مساعدة؟ فريق الدعم الفني متاح على مدار الساعة لمساعدتك!' : 'Need help? Our technical support team is available 24/7 to assist you!'}">هل تحتاج إلى مساعدة؟ فريق الدعم الفني متاح على مدار الساعة لمساعدتك!</div>
                 <div class="support-contact">
-                    <span th:text="${language == 'ar' ? '📧 ' + supportEmail + ' | 📱 واتساب: +966-XXX-XXXX' : '📧 ' + supportEmail + ' | 📱 WhatsApp: +966-XXX-XXXX'}">📧 support@autotrader.com | 📱 واتساب: +966-XXX-XXXX</span>
+                    <span th:text="${language == 'ar' ? '📧 ' + supportEmail + ' | 📱 واتساب: ' + supportPhone : '📧 ' + supportEmail + ' | 📱 WhatsApp: ' + supportPhone}">📧 support@autotrader.com | 📱 واتساب: +963-XXX-XXXX</span>
                 </div>
             </div>
         </div>
@@ -342,7 +342,7 @@
                 <a th:href="${websiteUrl + '/terms'}" th:text="${language == 'ar' ? 'شروط الاستخدام' : 'Terms of Use'}">شروط الاستخدام</a>
             </div>
             
-            <div class="copyright" th:text="${language == 'ar' ? '© 2024 ' + websiteName + '. جميع الحقوق محفوظة. | صُنع بـ ❤️ في المملكة العربية السعودية' : '© 2024 ' + websiteName + '. All rights reserved. | Made with ❤️ in Saudi Arabia'}">© 2024 أوتو تريدر. جميع الحقوق محفوظة. | صُنع بـ ❤️ في المملكة العربية السعودية</div>
+            <div class="copyright" th:text="${language == 'ar' ? '© 2024 ' + websiteName + '. جميع الحقوق محفوظة. | صُنع بـ ❤️ في سوريا' : '© 2024 ' + websiteName + '. All rights reserved. | Made with ❤️ in Syria'}">© 2024 أوتو تريدر. جميع الحقوق محفوظة. | صُنع بـ ❤️ في سوريا</div>
         </div>
     </div>
 </body>

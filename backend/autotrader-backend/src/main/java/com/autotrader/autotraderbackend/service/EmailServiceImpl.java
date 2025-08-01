@@ -50,6 +50,9 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.website.support-email}")
     private String websiteSupportEmail;
     
+    @Value("${app.website.support-phone}")
+    private String websiteSupportPhone;
+    
     @Value("${app.email.default-language:en}")
     private String defaultLanguage;
     
@@ -85,6 +88,7 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("websiteName", getWebsiteName(language));
             context.setVariable("websiteUrl", websiteUrl);
             context.setVariable("supportEmail", websiteSupportEmail);
+            context.setVariable("supportPhone", websiteSupportPhone);
             context.setVariable("language", language);
             
             String htmlContent = templateEngine.process(templateName, context);
