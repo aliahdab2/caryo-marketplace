@@ -106,12 +106,29 @@ runs:
           echo "⚠️ WARNING: Cannot connect to MinIO on localhost:9000"
         fi
 
-        # Start with increased memory and proper options for CI environments
-        echo "Starting Spring Boot with bootRun and enhanced logging..."
-        nohup ./gradlew bootRun \
-          -Pargs="--spring.profiles.active=${{ inputs.spring-profiles }} --logging.level.org.springframework=DEBUG --logging.level.com.autotrader=DEBUG --spring.mail.enabled=false --spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration" \
-          -Dorg.gradle.jvmargs="-Xmx1024m -XX:+HeapDumpOnOutOfMemoryError" \
-          ${DEBUG_ARGS} > spring-boot.log 2>&1 &
+        # Build JAR first for faster CI startup
+        echo "Building Spring Boot JAR..."
+        ./gradlew bootJar -x test
+        
+        # Find the built JAR file
+        JAR_FILE=$(find build/libs -name "*.jar" -not -name "*-plain.jar" | head -1)
+        if [ ! -f "$JAR_FILE" ]; then
+          echo "❌ JAR file not found in build/libs/"
+          ls -la build/libs/
+          exit 1
+        fi
+        
+        echo "Found JAR: $JAR_FILE"
+        
+        # Start with java -jar instead of gradlew bootRun for better CI compatibility
+        echo "Starting Spring Boot with java -jar (faster CI startup)..."
+        nohup java -jar "$JAR_FILE" \
+          --spring.profiles.active=${{ inputs.spring-profiles }} \
+          --logging.level.org.springframework=INFO \
+          --logging.level.com.autotrader=INFO \
+          --server.port=${{ inputs.server-port }} \
+          -Xmx512m -XX:+HeapDumpOnOutOfMemoryError \
+          > spring-boot.log 2>&1 &
         
         # Store the PID
         APP_PID=$!
@@ -156,10 +173,13 @@ runs:
             free -h
             df -h
             
-            # Try one more time with additional JVM args
-            nohup ./gradlew bootRun \
-              -Pargs="--spring.profiles.active=${{ inputs.spring-profiles }} --logging.level.root=DEBUG --logging.level.org.springframework=DEBUG" \
-              -Dorg.gradle.jvmargs="-Xmx512m -XX:+HeapDumpOnOutOfMemoryError -verbose:gc" \
+            # Try one more time with java -jar approach
+            nohup java -jar "$JAR_FILE" \
+              --spring.profiles.active=${{ inputs.spring-profiles }} \
+              --logging.level.root=DEBUG \
+              --logging.level.org.springframework=DEBUG \
+              --server.port=${{ inputs.server-port }} \
+              -Xmx512m -XX:+HeapDumpOnOutOfMemoryError -verbose:gc \
               > spring-boot-restart.log 2>&1 &
             
             APP_PID=$!
