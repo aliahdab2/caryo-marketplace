@@ -28,6 +28,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnBean(JavaMailSender.class)
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
