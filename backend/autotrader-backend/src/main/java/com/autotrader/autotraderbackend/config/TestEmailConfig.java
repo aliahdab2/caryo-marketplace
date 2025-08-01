@@ -1,6 +1,5 @@
 package com.autotrader.autotraderbackend.config;
 
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -11,7 +10,7 @@ import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.StringTemplateResolver;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 import jakarta.mail.internet.MimeMessage;
 import java.io.InputStream;
@@ -95,15 +94,18 @@ public class TestEmailConfig {
     }
 
     /**
-     * Basic TemplateEngine for testing email templates.
+     * Template engine that can find actual email template files for testing.
      */
     @Bean
     @Primary
     public TemplateEngine templateEngine() {
         SpringTemplateEngine templateEngine = new SpringTemplateEngine();
         
-        StringTemplateResolver templateResolver = new StringTemplateResolver();
+        ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
+        templateResolver.setPrefix("templates/emails/");
+        templateResolver.setSuffix(".html");
         templateResolver.setTemplateMode(TemplateMode.HTML);
+        templateResolver.setCharacterEncoding("UTF-8");
         templateResolver.setCacheable(false);
         
         templateEngine.setTemplateResolver(templateResolver);
