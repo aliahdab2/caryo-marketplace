@@ -6,6 +6,7 @@ import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.service.AsyncTransactionService;
+import com.autotrader.autotraderbackend.service.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +33,9 @@ class ListingApprovedListenerTest {
     @Mock
     private ListingEventUtils eventUtils;
 
+    @Mock
+    private EmailService emailService;
+
     @Captor
     private ArgumentCaptor<Runnable> runnableCaptor;
 
@@ -44,7 +48,7 @@ class ListingApprovedListenerTest {
 
     @BeforeEach
     void setUp() {
-        listener = new ListingApprovedListener(eventUtils, txService);
+        listener = new ListingApprovedListener(eventUtils, txService, emailService);
         
         seller = new User();
         seller.setId(1L);

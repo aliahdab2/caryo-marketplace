@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${language == 'ar' ? 'تم تجديد إعلانك' : 'Your listing has been renewed'}">Listing Renewed</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            color: #2c3e50;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .renewal-message {
+            font-size: 18px;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .listing-details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #27ae60;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        [dir="rtl"] {
+            text-align: right;
+        }
+    </style>
+</head>
+<body th:dir="${language == 'ar' ? 'rtl' : 'ltr'}">
+    <div class="container">
+        <div class="header">
+            <div class="logo">🚗 <span th:text="${websiteName}">AutoTrader</span></div>
+            <div class="renewal-message" th:text="${language == 'ar' ? '✅ تم تجديد إعلانك!' : '✅ Your listing has been renewed!'}">✅ Your listing has been renewed!</div>
+        </div>
+        
+        <div class="content">
+            <p th:text="${language == 'ar' ? 'مرحباً ' + userName + '،' : 'Hello ' + userName + ','}">Hello User,</p>
+            
+            <p th:text="${language == 'ar' ? 'أخبار رائعة! تم تجديد إعلان سيارتك بنجاح وهو الآن نشط مرة أخرى.' : 'Great news! Your car listing has been successfully renewed and is now active again.'}">
+                Great news! Your car listing has been successfully renewed and is now active again.
+            </p>
+            
+            <div class="listing-details">
+                <h3 th:text="${language == 'ar' ? 'تفاصيل الإعلان المجدد:' : 'Renewed Listing Details:'}">Renewed Listing Details:</h3>
+                <p th:text="${language == 'ar' ? 'العنوان: ' + listingTitle : 'Title: ' + listingTitle}">Title: Car Listing</p>
+                <p th:text="${language == 'ar' ? 'رقم الإعلان: ' + listingId : 'Listing ID: ' + listingId}">Listing ID: #123</p>
+                <p th:text="${language == 'ar' ? 'فترة التجديد: ' + renewalDays + ' يوم' : 'Renewal Period: ' + renewalDays + ' days'}">Renewal Period: 30 days</p>
+            </div>
+            
+            <p th:text="${language == 'ar' ? 'إعلانك الآن:' : 'Your listing is now:'}">Your listing is now:</p>
+            <ul>
+                <li th:text="${language == 'ar' ? 'مرئياً للمشترين المحتملين' : 'Visible to potential buyers'}">Visible to potential buyers</li>
+                <li th:text="${language == 'ar' ? 'نشط في نتائج البحث' : 'Active in search results'}">Active in search results</li>
+                <li th:text="${language == 'ar' ? 'يستلم استفسارات من المشترين المهتمين' : 'Receiving inquiries from interested buyers'}">Receiving inquiries from interested buyers</li>
+                <li th:text="${language == 'ar' ? 'جاهز لمساعدتك في بيع سيارتك' : 'Ready to help you sell your car'}">Ready to help you sell your car</li>
+            </ul>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a th:href="${listingUrl}" class="cta-button" th:text="${language == 'ar' ? 'عرض إعلانك' : 'View Your Listing'}">View Your Listing</a>
+                <br>
+                <a th:href="${websiteUrl} + '/dashboard/listings'" class="cta-button" th:text="${language == 'ar' ? 'إدارة جميع الإعلانات' : 'Manage All Listings'}">Manage All Listings</a>
+            </div>
+            
+            <p th:text="${language == 'ar' ? 'شكراً لك على اختيار ' + websiteName + '! إذا كان لديك أي أسئلة أو تحتاج إلى مساعدة، لا تتردد في التواصل مع فريق الدعم.' : 'Thank you for choosing ' + websiteName + '! If you have any questions or need assistance, please contact our support team.'}">
+                Thank you for choosing AutoTrader! If you have any questions or need assistance, please contact our support team.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p th:text="${language == 'ar' ? 'شكراً لك على استخدام ' + websiteName + '!' : 'Thank you for using ' + websiteName + '!'}">Thank you for using AutoTrader!</p>
+            <p th:text="${language == 'ar' ? '© 2024 ' + websiteName + '. جميع الحقوق محفوظة.' : '© 2024 ' + websiteName + '. All rights reserved.'}">© 2024 AutoTrader. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html> 

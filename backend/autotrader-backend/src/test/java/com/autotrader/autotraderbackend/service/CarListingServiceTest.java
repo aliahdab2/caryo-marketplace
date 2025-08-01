@@ -901,7 +901,7 @@ class CarListingServiceTest {
             new Object[]{"diesel", 25L}
         );
         
-        when(carListingRepository.findAll(any(Specification.class))).thenReturn(Arrays.asList(
+        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(Arrays.asList(
             createTestListingWithFuelType("gasoline"),
             createTestListingWithFuelType("gasoline"),
             createTestListingWithFuelType("diesel")
@@ -916,7 +916,7 @@ class CarListingServiceTest {
         assertEquals(2L, result.get("gasoline"));
         assertEquals(1L, result.get("diesel"));
         
-        verify(carListingRepository, times(1)).findAll(any(Specification.class));
+        verify(carListingRepository, times(1)).findAll(ArgumentMatchers.<Specification<CarListing>>any());
         verify(carListingRepository, never()).findDistinctFuelTypesWithCounts();
     }
 
@@ -937,7 +937,7 @@ class CarListingServiceTest {
             createTestListingWithFuelType("electric")
         );
         
-        when(carListingRepository.findAll(any(Specification.class))).thenReturn(mockListings);
+        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(mockListings);
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -949,7 +949,7 @@ class CarListingServiceTest {
         assertEquals(1L, result.get("hybrid"));
         assertEquals(1L, result.get("electric"));
         
-        verify(carListingRepository, times(1)).findAll(any(Specification.class));
+        verify(carListingRepository, times(1)).findAll(ArgumentMatchers.<Specification<CarListing>>any());
     }
 
     @Test

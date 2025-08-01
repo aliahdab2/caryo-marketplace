@@ -4,6 +4,7 @@ import com.autotrader.autotraderbackend.events.ListingExpiredEvent;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.service.AsyncTransactionService;
+import com.autotrader.autotraderbackend.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -25,6 +26,7 @@ public class ListingExpiredListener {
 
     private final ListingEventUtils eventUtils;
     private final AsyncTransactionService txService;
+    private final EmailService emailService;
     
     /**
      * Handle the listing expired event.
@@ -53,9 +55,15 @@ public class ListingExpiredListener {
                 log.info("Preparing renewal options for seller {} for listing ID {}", 
                         user.getUsername(), listing.getId());
                         
-                // TODO: Send email with renewal options
-                // Optional.ofNullable(user.getEmail())
-                //     .ifPresent(email -> emailService.sendListingExpiredEmail(email, listing, getRenewalOptions()));
+                // Send email with renewal options
+                if (user.getEmail() != null) {
+                    try {
+                        emailService.sendListingExpiredEmail(user, listing);
+                        log.info("Listing expired email sent to seller: {}", user.getEmail());
+                    } catch (Exception e) {
+                        log.error("Failed to send listing expired email to seller: {}", user.getEmail(), e);
+                    }
+                }
             });
             
             // TODO: Update search index to exclude this listing
