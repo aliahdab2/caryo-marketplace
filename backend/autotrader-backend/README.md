@@ -120,10 +120,12 @@ chmod +x src/test/scripts/run_postman_tests.sh
 ```
 
 This script will:
-1. Start the Spring Boot application in the background
+1. Start the Spring Boot application with test profile (mock email service)
 2. Run Postman tests via Newman against the running application
 3. Generate HTML test reports
 4. Stop the application automatically when tests complete
+
+**Email Testing**: Contact form and email service functionality is comprehensively tested via EmailServiceTest.java (unit tests) and ContactControllerTest.java (integration tests) using mock JavaMailSender, ensuring reliable tests without external SMTP dependencies.
 
 The HTML test reports will be available at `build/test-reports/postman/report.html`.
 
@@ -175,13 +177,20 @@ We've chosen not to include API tests in the CI/CD pipeline for the following re
 - Unit & Integration Tests: 80%+ code coverage
 - Critical paths should have both unit tests and API tests
 
+### Test Profiles
+
+- **Default Profile**: Standard configuration for development
+- **Test Profile**: Used for application tests with mock email service and H2 database
+- **Integration Tests**: Use dedicated test configurations with mocks
+
 ### Test Tools
 
 - **JUnit 5**: Primary testing framework
-- **Spring Test**: For integration testing
-- **Mockito**: For mocking dependencies
-- **Postman/Newman**: For API testing
+- **Spring Test**: For integration testing with test profiles
+- **Mockito**: For mocking dependencies (email service, external APIs)
+- **Postman/Newman**: For API testing with test profile
 - **H2 Database**: In-memory database for testing
+- **Mock Email Service**: TestEmailConfig provides mock JavaMailSender for reliable email testing
 
 ## Security
 

@@ -177,6 +177,37 @@ db/migration/h2/V10__Complex_function.sql         # H2-specific parts
 
 Always test your migrations against both PostgreSQL and H2:
 
+### H2 Test Profile Migration Strategy
+
+For the test profile, we use H2-compatible migrations in `src/test/resources/db/test/`:
+
+```
+src/test/resources/db/test/R__reference_data_h2.sql
+```
+
+This approach:
+- **Uses H2's atomic `MERGE` syntax** for safe, idempotent operations
+- **Ensures data integrity** - no risk of partial failures leaving empty tables
+- **100% H2 compatibility** with proper upsert semantics
+- **Maintains same reference data** as production PostgreSQL
+- **Configured via** `spring.flyway.locations=classpath:db/migration,classpath:db/test` in test profile
+
+#### H2 MERGE Syntax Benefits
+
+```sql
+MERGE INTO table_name 
+USING (VALUES (...)) I (columns...)
+ON (table.key = I.key)
+WHEN MATCHED THEN UPDATE SET column = I.column
+WHEN NOT MATCHED THEN INSERT (columns...) VALUES (I.columns...)
+```
+
+**Why MERGE over DELETE/INSERT:**
+- ✅ **Atomic**: Each MERGE operation is indivisible
+- ✅ **Idempotent**: Running multiple times produces same result  
+- ✅ **Safe**: No risk of empty tables if migration fails partway
+- ✅ **Transactional**: Automatic rollback on any failure
+
 1. Test with PostgreSQL:
    ```bash
    ./gradlew bootRun --args='--spring.profiles.active=dev'

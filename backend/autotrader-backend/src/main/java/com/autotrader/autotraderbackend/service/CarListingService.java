@@ -1021,7 +1021,7 @@ public class CarListingService {
      * @param username   The username of the user making the request
      * @return The updated CarListingResponse
      * @throws ResourceNotFoundException If the listing does not exist
-     * @throws SecurityException If the user does not own the listing
+     * @throws SecurityException If the user does not own the listing and is not an admin
      */
     @Transactional
     public CarListingResponse updateListing(Long id, UpdateListingRequest request, String username) {
@@ -1030,11 +1030,23 @@ public class CarListingService {
         CarListing existingListing = carListingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", id));
         
-        // Check if the user owns this listing
-        if (!existingListing.getSeller().getUsername().equals(username)) {
-            log.warn("User {} attempted to update listing {} owned by {}", 
+        // Check if the user owns this listing or is an admin
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+        
+        boolean isOwner = existingListing.getSeller().getUsername().equals(username);
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(role -> "ROLE_ADMIN".equals(role.getName()));
+        
+        if (!isOwner && !isAdmin) {
+            log.warn("User {} attempted to update listing {} owned by {} (user is not owner or admin)", 
                     username, id, existingListing.getSeller().getUsername());
             throw new SecurityException("You are not authorized to update this listing");
+        }
+        
+        if (isAdmin && !isOwner) {
+            log.info("Admin {} updating listing {} owned by {}", 
+                    username, id, existingListing.getSeller().getUsername());
         }
 
         // Update only non-null fields
