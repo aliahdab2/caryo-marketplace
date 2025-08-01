@@ -177,6 +177,20 @@ db/migration/h2/V10__Complex_function.sql         # H2-specific parts
 
 Always test your migrations against both PostgreSQL and H2:
 
+### H2 Test Profile Migration Strategy
+
+For the test profile, we use H2-compatible migrations in `src/test/resources/db/test/`:
+
+```
+src/test/resources/db/test/R__reference_data_h2.sql
+```
+
+This approach:
+- Uses simple `DELETE/INSERT` statements instead of PostgreSQL's `MERGE`
+- Ensures 100% H2 compatibility for test environments
+- Maintains same reference data as production PostgreSQL
+- Configured via `spring.flyway.locations=classpath:db/migration,classpath:db/test` in test profile
+
 1. Test with PostgreSQL:
    ```bash
    ./gradlew bootRun --args='--spring.profiles.active=dev'

@@ -82,7 +82,7 @@ This document consolidates all testing improvements, Postman test fixes, and tes
    - Added proper email service verification
 
 4. **Email Service Testing** ✅ **NEW**
-   - Restored Postman email tests with mock JavaMailSender
+   - Removed redundant Postman email tests (comprehensive coverage via unit/integration tests)
    - Added TestEmailConfig for test profile consistency
    - Implemented CI-compatible email testing strategy
    - Fixed template resolution issues in test environment

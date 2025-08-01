@@ -1,6 +1,6 @@
 # Email Testing Guide
 
-This guide explains how email functionality is tested in the AutoTrader Marketplace application, including both integration tests and API tests.
+This guide explains how email functionality is tested in the AutoTrader Marketplace application using a comprehensive unit and integration test strategy.
 
 ## Overview
 
@@ -50,32 +50,33 @@ spring.thymeleaf.suffix=.html
 - **Coverage**: Service methods, error handling, validation
 
 ### 2. Integration Tests
-- **Location**: `AutotraderBackendApplicationTests.java`
-- **Strategy**: Use `@Import(TestEmailConfig.class)` with test profile
-- **Coverage**: Spring context loading, dependency injection
+- **Location**: `ContactControllerTest.java`
+- **Strategy**: MockMvc with standalone setup and mock EmailService
+- **Coverage**: HTTP endpoint testing, validation, error handling
 
-### 3. API Tests (Postman)
-- **Location**: `contact-email-tests.json`
-- **Strategy**: Test profile with mock email service
-- **Coverage**: End-to-end contact form functionality
+### 3. Application Context Tests
+- **Location**: `AutotraderBackendApplicationTests.java`
+- **Strategy**: Full Spring Boot context with `@Import(TestEmailConfig.class)`
+- **Coverage**: Spring context loading, dependency injection, real template resolution
 
 ## Running Email Tests
 
-### Integration Tests
+### All Email Tests
 ```bash
+# Runs all unit and integration tests
 ./gradlew test
 ```
 
-### API Tests
+### Specific Email Test Classes
 ```bash
-# Starts app with test profile automatically
-./src/test/scripts/run_postman_tests.sh
-```
+# Unit tests for EmailService
+./gradlew test --tests=EmailServiceTest
 
-### Individual Postman Email Tests
-```bash
-cd src/test/resources/postman
-newman run collections/contact-email-tests.json -e environment.json
+# Integration tests for ContactController  
+./gradlew test --tests=ContactControllerTest
+
+# Application context tests
+./gradlew test --tests=AutotraderBackendApplicationTests
 ```
 
 ## Test Scenarios Covered

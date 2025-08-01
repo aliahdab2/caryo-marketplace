@@ -64,11 +64,11 @@ Email sending is triggered by domain events:
 ### Test Coverage
 
 Comprehensive test suite covering:
-- **Unit Tests**: EmailServiceImpl methods (95% coverage)
-- **Integration Tests**: Email sending with mock JavaMailSender (TestEmailConfig)
-- **API Tests**: Postman tests with mock email service in test profile
+- **Unit Tests**: EmailServiceImpl methods (95% coverage) - `EmailServiceTest.java`
+- **Integration Tests**: Contact controller with mock JavaMailSender - `ContactControllerTest.java`
+- **Application Tests**: Full Spring Boot context with real templates - `AutotraderBackendApplicationTests.java`
 - **Event Tests**: Event listener email triggers
-- **Template Tests**: Email template rendering with real templates
+- **Template Tests**: Email template rendering with real Thymeleaf templates
 
 ### Test Data
 
@@ -135,7 +135,8 @@ email.template-directory=templates/email
 - `*ListenerTest.java` - Event listener tests with email mocking
 - `EmailIntegrationTest.java` - End-to-end email tests
 - `TestEmailConfig.java` - Mock JavaMailSender configuration for test profile
-- `contact-email-tests.json` - Postman API tests for contact form functionality
+- `ContactControllerTest.java` - Comprehensive HTTP integration tests for contact form
+- `EmailServiceTest.java` - Unit tests for all email service methods
 
 ## Status
 
