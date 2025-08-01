@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
  * Uses Spring's @Async for non-blocking email operations.
  */
 @Service
-@Profile("!test & !ci") // Only create async email service when not in test or ci environments
+@Profile("!ci") // Only create async email service when not in ci environments
 @RequiredArgsConstructor
 @Slf4j
 public class AsyncEmailService {

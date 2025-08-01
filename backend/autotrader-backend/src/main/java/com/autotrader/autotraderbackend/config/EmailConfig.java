@@ -14,7 +14,7 @@ import java.util.Properties;
  * Provides JavaMailSender bean based on application properties.
  */
 @Configuration
-@Profile("!test & !ci") // Active for all profiles except test and ci
+@Profile("!ci") // Active for all profiles except ci
 public class EmailConfig {
 
     @Value("${spring.mail.host:localhost}")

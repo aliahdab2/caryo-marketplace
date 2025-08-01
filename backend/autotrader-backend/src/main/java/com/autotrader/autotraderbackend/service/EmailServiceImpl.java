@@ -26,7 +26,7 @@ import java.util.List;
  * Supports configurable website names and multi-language email templates.
  */
 @Service
-@Profile("!test & !ci") // Only create email service when not in test or ci environments
+@Profile("!ci") // Only create email service when not in ci environments
 @RequiredArgsConstructor
 @Slf4j
 public class EmailServiceImpl implements EmailService {
