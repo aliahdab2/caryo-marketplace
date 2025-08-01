@@ -53,7 +53,7 @@ jobs:
         uses: ./.github/actions/docker-services-setup
         with:
           docker-compose-file: "./backend/autotrader-backend/docker-compose.dev.yml"
-          services: "db minio createbuckets redis"
+          services: "db minio createbuckets redis maildev"
           wait-time: '15' # Reduced from 60
           db-container-name: "autotrader-backend-db-1"
           db-user: "autotrader"
@@ -149,11 +149,27 @@ jobs:
             sql:
               init:
                 mode: always
+            # Configure mail to use maildev service (prevents connection hanging)
+            mail:
+              host: localhost
+              port: 1025
+              properties:
+                mail.smtp.auth: false
+                mail.smtp.starttls.enable: false
+                mail.smtp.connectiontimeout: 5000
+                mail.smtp.timeout: 5000
+                mail.smtp.writetimeout: 5000
           
           # Enable debug logging for DataInitializer
           logging:
             level:
               com.autotrader.autotraderbackend.config.DataInitializer: DEBUG
+          
+          # Disable health checks that might cause connection attempts
+          management:
+            health:
+              mail:
+                enabled: false
           EOF
       
       - name: Start Spring Boot Application
@@ -161,10 +177,10 @@ jobs:
         uses: ./.github/actions/spring-boot-setup
         with:
           working-directory: "./backend/autotrader-backend"
-          spring-profiles: "test"
+          spring-profiles: "dev"
           debug-mode: "false"
-          wait-retries: "30"
-          wait-time: "10"
+          wait-retries: "20"
+          wait-time: "15"
           skip-build: "false"
           server-port: "8080"
           
