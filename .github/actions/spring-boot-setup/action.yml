@@ -109,7 +109,7 @@ runs:
         # Start with increased memory and proper options for CI environments
         echo "Starting Spring Boot with bootRun and enhanced logging..."
         nohup ./gradlew bootRun \
-          -Pargs="--spring.profiles.active=${{ inputs.spring-profiles }} --logging.level.org.springframework=DEBUG --logging.level.com.autotrader=DEBUG" \
+          -Pargs="--spring.profiles.active=${{ inputs.spring-profiles }} --logging.level.org.springframework=DEBUG --logging.level.com.autotrader=DEBUG --spring.mail.enabled=false --spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration" \
           -Dorg.gradle.jvmargs="-Xmx1024m -XX:+HeapDumpOnOutOfMemoryError" \
           ${DEBUG_ARGS} > spring-boot.log 2>&1 &
         
