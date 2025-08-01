@@ -26,7 +26,6 @@ import java.util.Map;
 @RequestMapping("/api/contact")
 @RequiredArgsConstructor
 @Slf4j
-@ConditionalOnBean(EmailService.class)
 @Tag(name = "Contact", description = "Contact form endpoints with multi-language support")
 public class ContactController {
 
