@@ -6,6 +6,7 @@ import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.ListingMedia;
 import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.model.Country;
@@ -25,7 +26,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,10 +61,14 @@ public class CarListingCrudOperationsTest {
     private CarListing testListing;
     private CarListingResponse testListingResponse;
     private User testUser;
+    private User adminUser;
+    private Role userRole;
+    private Role adminRole;
     private Location testLocation;
     private CarBrand testCarBrand;
     private CarModel testCarModel;
     private static final String TEST_USERNAME = "testuser";
+    private static final String ADMIN_USERNAME = "admin";
     private static final Long TEST_LISTING_ID = 1L;
     private static final Long TEST_LOCATION_ID = 1L;
     private static final Long TEST_CAR_MODEL_ID = 1L;
@@ -70,10 +77,30 @@ public class CarListingCrudOperationsTest {
 
     @BeforeEach
     void setUp() {
+        // Set up roles
+        userRole = new Role();
+        userRole.setId(1);
+        userRole.setName("ROLE_USER");
+        
+        adminRole = new Role();
+        adminRole.setId(2);
+        adminRole.setName("ROLE_ADMIN");
+
         // Set up test user
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername(TEST_USERNAME);
+        Set<Role> userRoles = new HashSet<>();
+        userRoles.add(userRole);
+        testUser.setRoles(userRoles);
+        
+        // Set up admin user
+        adminUser = new User();
+        adminUser.setId(2L);
+        adminUser.setUsername(ADMIN_USERNAME);
+        Set<Role> adminRoles = new HashSet<>();
+        adminRoles.add(adminRole);
+        adminUser.setRoles(adminRoles);
 
         // Set up test location with country and governorate
         Country testCountry = new Country();
