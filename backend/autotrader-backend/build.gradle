@@ -167,6 +167,7 @@ flyway {
     locations = ['filesystem:src/main/resources/db/migration']
     baselineOnMigrate = true
     validateOnMigrate = true
+    validateMigrationNaming = true  // Fail fast if migration files don't follow naming conventions
     cleanDisabled = false  // Enable clean for development
 }
 
