@@ -117,5 +117,6 @@
   "sortMileageLow": "أقل مسافة أولاً",
   "sortMileageHigh": "أعلى مسافة أولاً",
   "sortDateNew": "المضاف حديثاً",
-  "createWatch": "إنشاء مراقبة"
+  "createWatch": "إنشاء تنبيه",
+  "createWatchTooltip": "احصل على إشعارات عند ظهور سيارات جديدة تطابق هذه الفلاتر"
 }

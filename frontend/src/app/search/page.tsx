@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { MdNotifications } from 'react-icons/md';
+import { MdNotificationsNone } from 'react-icons/md';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useOptimizedFiltering } from '@/hooks/useOptimizedFiltering';
@@ -812,6 +812,13 @@ export default function AdvancedSearchPage() {
         {/* Results Info */}
         <div className="flex items-center justify-between mb-6">
           <div className={`flex items-center ${isRTL ? 'space-x-reverse' : 'space-x-4'}`}>
+            {/* Results Count - LEFT SIDE */}
+            {carListings !== null && (
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Showing {carListings?.content?.length || 0} of {carListings?.totalElements || 0} cars
+              </div>
+            )}
+            
             {/* Sort Dropdown - LEFT SIDE */}
             <SortDropdown
               selectedSort={selectedSort}
@@ -828,10 +835,10 @@ export default function AdvancedSearchPage() {
               transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
               ${isRTL ? 'flex-row-reverse' : ''}
             `}
-            aria-label={t('search:createWatch', 'Create watch')}
+            aria-label={t('search:createWatch', 'Create Alert')}
           >
-            <MdNotifications size={20} className={isRTL ? "ml-2" : "mr-2"} />
-            <span>{t('search:createWatch', 'Create watch')}</span>
+            <MdNotificationsNone size={20} className={isRTL ? "ml-2" : "mr-2"} />
+            <span>{t('search:createWatch', 'Create Alert')}</span>
           </button>
         </div>
 
@@ -870,12 +877,7 @@ export default function AdvancedSearchPage() {
           </div>
         )}
 
-        {/* Results summary */}
-        {carListings && (
-          <div className="mt-4 text-center text-sm text-gray-600">
-            Showing {carListings.content.length} of {carListings.totalElements} cars
-          </div>
-        )}
+
 
         {/* Modal */}
         {activeFilterModal && (
