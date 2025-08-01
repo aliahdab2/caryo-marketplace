@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.lenient;
 
 /**
  * Comprehensive unit tests for EmailService.
@@ -50,13 +49,17 @@ class EmailServiceTest {
         ReflectionTestUtils.setField(emailService, "websiteNameAr", "أوتو تريدر");
         ReflectionTestUtils.setField(emailService, "websiteUrl", "http://localhost:3000");
         ReflectionTestUtils.setField(emailService, "websiteSupportEmail", "support@autotrader.com");
+        ReflectionTestUtils.setField(emailService, "websiteSupportPhone", "+963-XXX-XXXX");
         ReflectionTestUtils.setField(emailService, "defaultLanguage", "en");
-        
-        // Mock MimeMessage creation (lenient for tests that don't use templated emails)
-        lenient().when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
-        
-        // Mock template engine to return some HTML content (lenient for tests that don't use templated emails)
-        lenient().when(templateEngine.process(anyString(), any())).thenReturn("<html><body>Test Email</body></html>");
+    }
+    
+    /**
+     * Sets up mocks for templated email tests.
+     * Call this method in tests that use HTML email templates.
+     */
+    private void setupTemplatedEmailMocks() {
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(anyString(), any(Context.class))).thenReturn("<html><body>Test Email</body></html>");
     }
 
     // ==================== Simple Email Tests ====================
@@ -112,6 +115,7 @@ class EmailServiceTest {
     @Test
     void sendListingApprovedEmail_Success() {
         // Arrange
+        setupTemplatedEmailMocks();
         User seller = createTestUser();
         CarListing listing = createTestListing();
 
@@ -151,6 +155,7 @@ class EmailServiceTest {
     @Test
     void sendListingApprovedEmail_WithLanguage_Success() {
         // Arrange
+        setupTemplatedEmailMocks();
         User seller = createTestUser();
         CarListing listing = createTestListing();
 
@@ -176,6 +181,7 @@ class EmailServiceTest {
     @Test
     void sendListingExpiredEmail_Success() {
         // Arrange
+        setupTemplatedEmailMocks();
         User seller = createTestUser();
         CarListing listing = createTestListing();
 
@@ -189,6 +195,7 @@ class EmailServiceTest {
     @Test
     void sendListingExpiredEmail_WithLanguage_Success() {
         // Arrange
+        setupTemplatedEmailMocks();
         User seller = createTestUser();
         CarListing listing = createTestListing();
 
@@ -202,6 +209,7 @@ class EmailServiceTest {
     @Test
     void sendListingRenewalEmail_Success() {
         // Arrange
+        setupTemplatedEmailMocks();
         User seller = createTestUser();
         CarListing listing = createTestListing();
         int renewalDays = 30;
@@ -216,6 +224,7 @@ class EmailServiceTest {
     @Test
     void sendListingRenewalEmail_WithLanguage_Success() {
         // Arrange
+        setupTemplatedEmailMocks();
         User seller = createTestUser();
         CarListing listing = createTestListing();
         int renewalDays = 30;
@@ -254,6 +263,7 @@ class EmailServiceTest {
     @Test
     void sendWelcomeEmail_Success() {
         // Arrange
+        setupTemplatedEmailMocks();
         User user = createTestUser();
 
         // Act
@@ -266,6 +276,7 @@ class EmailServiceTest {
     @Test
     void sendWelcomeEmail_WithLanguage_Success() {
         // Arrange
+        setupTemplatedEmailMocks();
         User user = createTestUser();
 
         // Act
@@ -302,6 +313,7 @@ class EmailServiceTest {
     @Test
     void sendContactFormEmail_Success() {
         // Arrange
+        setupTemplatedEmailMocks();
         String name = "John Doe";
         String email = "john@example.com";
         String message = "Test message";
@@ -316,6 +328,7 @@ class EmailServiceTest {
     @Test
     void sendContactFormEmail_WithLanguage_Success() {
         // Arrange
+        setupTemplatedEmailMocks();
         String name = "أحمد محمد";
         String email = "ahmed@example.com";
         String message = "رسالة تجريبية";
@@ -362,6 +375,7 @@ class EmailServiceTest {
     @Test
     void sendContactFormConfirmation_Success() {
         // Arrange
+        setupTemplatedEmailMocks();
         String name = "John Doe";
         String email = "john@example.com";
 
@@ -375,6 +389,7 @@ class EmailServiceTest {
     @Test
     void sendContactFormConfirmation_WithLanguage_Success() {
         // Arrange
+        setupTemplatedEmailMocks();
         String name = "أحمد محمد";
         String email = "ahmed@example.com";
 

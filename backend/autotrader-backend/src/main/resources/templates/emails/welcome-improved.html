@@ -342,7 +342,7 @@
                 <a th:href="${websiteUrl + '/terms'}" th:text="${language == 'ar' ? 'شروط الاستخدام' : 'Terms of Use'}">شروط الاستخدام</a>
             </div>
             
-            <div class="copyright" th:text="${language == 'ar' ? '© 2024 ' + websiteName + '. جميع الحقوق محفوظة. | صُنع بـ ❤️ في سوريا' : '© 2024 ' + websiteName + '. All rights reserved. | Made with ❤️ in Syria'}">© 2024 أوتو تريدر. جميع الحقوق محفوظة. | صُنع بـ ❤️ في سوريا</div>
+            <div class="copyright" th:text="${language == 'ar' ? '© ' + #dates.format(#dates.createNow(), 'yyyy') + ' ' + websiteName + '. جميع الحقوق محفوظة. | صُنع بـ ❤️ في سوريا' : '© ' + #dates.format(#dates.createNow(), 'yyyy') + ' ' + websiteName + '. All rights reserved. | Made with ❤️ in Syria'}">© 2024 أوتو تريدر. جميع الحقوق محفوظة. | صُنع بـ ❤️ في سوريا</div>
         </div>
     </div>
 </body>
