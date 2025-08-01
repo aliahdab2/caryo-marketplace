@@ -1,9 +1,9 @@
 package com.autotrader.autotraderbackend.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessagePreparator;
@@ -16,7 +16,7 @@ import java.io.InputStream;
  * Provides mock JavaMailSender that doesn't actually send emails.
  */
 @Configuration
-@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "ci")
+@Profile("ci")
 public class CIEmailConfig {
 
     /**
