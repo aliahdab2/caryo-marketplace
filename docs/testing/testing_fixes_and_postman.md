@@ -57,6 +57,11 @@ This document consolidates all testing improvements, Postman test fixes, and tes
    - Listing approval/rejection
    - System administration functions
 
+4. **Contact Email Collection** ✅ **NEW**
+   - Contact form submission testing (English/Arabic)
+   - Email service integration with mock JavaMailSender
+   - Form validation and error handling
+
 ## Test Fixes Summary
 
 ### Backend Test Issues Resolved
@@ -75,6 +80,12 @@ This document consolidates all testing improvements, Postman test fixes, and tes
    - Enhanced ListingMarkedAsSoldListenerTest
    - Improved ListingArchivedListenerTest coverage
    - Added proper email service verification
+
+4. **Email Service Testing** ✅ **NEW**
+   - Restored Postman email tests with mock JavaMailSender
+   - Added TestEmailConfig for test profile consistency
+   - Implemented CI-compatible email testing strategy
+   - Fixed template resolution issues in test environment
 
 ### Frontend Test Issues Resolved
 

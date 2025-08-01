@@ -65,9 +65,10 @@ Email sending is triggered by domain events:
 
 Comprehensive test suite covering:
 - **Unit Tests**: EmailServiceImpl methods (95% coverage)
-- **Integration Tests**: Email sending with real SMTP
+- **Integration Tests**: Email sending with mock JavaMailSender (TestEmailConfig)
+- **API Tests**: Postman tests with mock email service in test profile
 - **Event Tests**: Event listener email triggers
-- **Template Tests**: Email template rendering
+- **Template Tests**: Email template rendering with real templates
 
 ### Test Data
 
@@ -133,6 +134,8 @@ email.template-directory=templates/email
 - `EmailServiceTest.java` - Unit tests for email service
 - `*ListenerTest.java` - Event listener tests with email mocking
 - `EmailIntegrationTest.java` - End-to-end email tests
+- `TestEmailConfig.java` - Mock JavaMailSender configuration for test profile
+- `contact-email-tests.json` - Postman API tests for contact form functionality
 
 ## Status
 
