@@ -21,7 +21,7 @@ Located in the `collections/` directory:
 - `transmissions-tests.json`: Tests for Transmission endpoints
 - `seller-types-tests.json`: Tests for Seller Type endpoints
 - `listings-media-tests.json`: Tests for Listings and Media endpoints
-- `contact-email-tests.json`: Tests for Contact Form and Email Service endpoints (uses mock email service)
+- `contact-email-tests.json`: **DISABLED** - Email functionality thoroughly tested by unit and integration tests
 
 ## Running the Tests
 
@@ -87,7 +87,7 @@ The run-collections.sh script requires a running backend instance to succeed. If
 
 ### Email Service Testing
 
-The `contact-email-tests.json` collection tests email functionality using a mock email service:
+Email testing has been moved to comprehensive unit and integration tests:
 
 - **Test Profile**: Tests run with `spring.profiles.active=test`
 - **Mock Email Service**: `TestEmailConfig` provides mock `JavaMailSender`

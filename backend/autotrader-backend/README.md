@@ -125,7 +125,7 @@ This script will:
 3. Generate HTML test reports
 4. Stop the application automatically when tests complete
 
-**Email Testing**: Contact form and email service functionality is tested using mock JavaMailSender in test profile, ensuring reliable tests without external SMTP dependencies.
+**Email Testing**: Contact form and email service functionality is comprehensively tested via EmailServiceTest.java (unit tests) and ContactControllerTest.java (integration tests) using mock JavaMailSender, ensuring reliable tests without external SMTP dependencies.
 
 The HTML test reports will be available at `build/test-reports/postman/report.html`.
 
@@ -180,7 +180,7 @@ We've chosen not to include API tests in the CI/CD pipeline for the following re
 ### Test Profiles
 
 - **Default Profile**: Standard configuration for development
-- **Test Profile**: Used for Postman API tests with mock email service and H2 database
+- **Test Profile**: Used for application tests with mock email service and H2 database
 - **Integration Tests**: Use dedicated test configurations with mocks
 
 ### Test Tools
