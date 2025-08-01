@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useLazyTranslation } from "@/hooks/useLazyTranslation";
 import { useEffect, useState } from "react";
 import HomeSearchBar from "@/components/search/HomeSearchBar";
-import { getFeaturedListings } from "@/services/listings";
-import { Listing } from "@/types/listings";
+import { fetchFeaturedListingsPublic } from "@/services/publicApi";
+import { CarListing } from "@/services/publicApi";
 import { transformMinioUrl } from "@/utils/mediaUtils";
 
 // Move namespaces outside component to prevent recreation on every render
@@ -13,13 +13,14 @@ const HOME_NAMESPACES = ['home', 'common'];
 
 export default function Home() {
   const { t, ready } = useLazyTranslation(HOME_NAMESPACES); // Removed i18n as it's unused
-  const [featuredCars, setFeaturedCars] = useState<Listing[]>([]);
+  const [featuredCars, setFeaturedCars] = useState<CarListing[]>([]);
   const [isLoadingListings, setIsLoadingListings] = useState(true);
 
   useEffect(() => {
     const loadFeaturedCars = async () => {
       try {
-        const listings = await getFeaturedListings();
+        // Use public API instead of authenticated API
+        const listings = await fetchFeaturedListingsPublic(6);
         setFeaturedCars(listings);
       } catch (error) {
         console.error('Error loading featured cars:', error);
@@ -126,7 +127,7 @@ export default function Home() {
               >
                 <div className="relative h-48">
                   <Image
-                    src={transformMinioUrl(car.image || car.media?.[0]?.url || '') || "/images/logo.png"}
+                    src={transformMinioUrl(car.media?.[0]?.url || '') || "/images/logo.png"}
                     alt={car.title}
                     fill
                     className="object-cover"
@@ -162,7 +163,7 @@ export default function Home() {
                           d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                         />
                       </svg>
-                      {car.location?.city || car.governorate?.nameEn || "Unknown"}
+                      {car.locationDetails?.displayNameEn || car.governorateDetails?.displayNameEn || "Unknown"}
                     </div>
                     <div className="flex items-center">
                       <svg
