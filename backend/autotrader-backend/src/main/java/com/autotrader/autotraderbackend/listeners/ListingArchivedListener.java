@@ -4,6 +4,7 @@ import com.autotrader.autotraderbackend.events.ListingArchivedEvent;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.service.AsyncTransactionService;
+import com.autotrader.autotraderbackend.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -25,6 +26,7 @@ public class ListingArchivedListener {
 
     private final ListingEventUtils eventUtils;
     private final AsyncTransactionService txService;
+    private final EmailService emailService;
     
     /**
      * Handle the listing archived event.
@@ -60,10 +62,16 @@ public class ListingArchivedListener {
                 log.info("Seller '{}' archived their own listing ID: {}", sellerName, listing.getId());
             }
 
-            // TODO: If archived by admin, may need to send an explanation to the seller
-            // if (isAdminAction && seller != null && seller.getEmail() != null) {
-            //     emailService.sendListingArchivedByAdminEmail(seller.getEmail(), listing);
-            // }
+            // If archived by admin, send notification email to the seller
+            if (isAdminAction && seller != null && seller.getEmail() != null) {
+                try {
+                    // No specific reason available from event, will use default message
+                    emailService.sendListingArchivedByAdminEmail(seller, listing, null);
+                    log.info("Listing archived by admin notification email sent to seller: {}", seller.getEmail());
+                } catch (Exception e) {
+                    log.error("Failed to send listing archived by admin email to seller: {}", seller.getEmail(), e);
+                }
+            }
         });
     }
 }

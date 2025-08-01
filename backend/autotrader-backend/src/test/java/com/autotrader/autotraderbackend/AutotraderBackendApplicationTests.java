@@ -1,22 +1,28 @@
 package com.autotrader.autotraderbackend;
 
+import com.autotrader.autotraderbackend.config.TestEmailConfig;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
-@ExtendWith(MockitoExtension.class)
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+@SpringBootTest
+@ActiveProfiles("test")
+@Import(TestEmailConfig.class)
 class AutotraderBackendApplicationTests {
 
     @Test
-    void applicationStarts() {
-        // Simple test to verify the main class exists
-        AutotraderBackendApplication application = new AutotraderBackendApplication();
-        assertNotNull(application);
+    void contextLoads() {
+        // This test verifies that the Spring application context loads successfully
+        // If the application context cannot be created, this test will fail
     }
     
-    private void assertNotNull(Object obj) {
-        if (obj == null) {
-            throw new AssertionError("Expected non-null value");
-        }
+    @Test
+    void applicationClassExists() {
+        // Verify the main application class can be instantiated
+        AutotraderBackendApplication application = new AutotraderBackendApplication();
+        assertNotNull(application);
     }
 }

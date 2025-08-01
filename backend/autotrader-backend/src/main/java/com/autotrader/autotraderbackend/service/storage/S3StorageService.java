@@ -59,6 +59,11 @@ public class S3StorageService implements StorageService {
                             .map(AwsErrorDetails::errorMessage)
                             .orElse("Unknown error"), e);
             throw new StorageException("Could not verify S3 bucket access", e);
+        } catch (Exception e) {
+            // Handle connection failures gracefully (e.g., MinIO not running in CI/testing)
+            log.warn("Could not connect to S3 service at initialization. This may be expected in testing environments. Error: {}", e.getMessage());
+            log.info("S3StorageService will continue to operate but file operations may fail until S3 connection is available");
+            // Don't throw exception - allow application to start
         }
     }
 

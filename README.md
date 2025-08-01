@@ -14,23 +14,27 @@ The project is currently in active development with these key features implement
 - CI/CD workflows with GitHub Actions
 - Secrets management with HashiCorp Vault
 
-## Project Documentation
+## 📚 Documentation
 
-For detailed information about this project, refer to these documents:
+**Complete project documentation is organized by category in the [docs/](docs/) directory:**
 
-- [Development Plan](DEVELOPMENT_PLAN.md) - Complete roadmap and current status
-- [System Design](docs/system_design.md) - Architecture and technology choices
-- [Frontend Environment](docs/frontend_environment_variables.md) - Environment setup guide
-- [Environment Checker](docs/environment_checker_script.md) - Script to verify configuration
-- [Testing Plan](docs/testing_plan.md) - Testing strategy and approach
-- [CI/CD Documentation](.github/workflows/README.md) - GitHub Actions workflows
-- [Secrets Management](docs/secrets_management.md) - HashiCorp Vault implementation
-- [Spring Vault Integration](docs/spring_vault_integration.md) - Spring Boot and Vault integration
-- [GitHub Actions and Vault](docs/vault_github_actions_integration.md) - CI/CD pipeline with Vault
-- [Migrating to Vault](docs/migrating_to_vault.md) - Strategy for migrating secrets
-- [Redis Integration](backend/autotrader-backend/docs/redis-integration-guide.md) - Guide for Redis caching
+### 🚀 Quick Start
+- **New Developers**: [Setup Guide](docs/README.md#for-new-developers) - Environment setup and system overview
+- **API Integration**: [API Documentation](backend/autotrader-backend/API.md) - Complete API reference with examples
+- **Current Status**: [Development Plan](DEVELOPMENT_PLAN.md) - Project roadmap and priorities
+
+### 📖 Documentation Categories
+- **🏗️ [Architecture](docs/README.md#️-architecture--design)** - System design, database schema, project structure
+- **⚙️ [Setup & Configuration](docs/README.md#️-setup--configuration)** - Environment setup, database, OAuth, secrets management  
+- **💻 [Development Guides](docs/README.md#-development-guides)** - Frontend development, translations, features
+- **🧪 [Testing & Troubleshooting](docs/README.md#-testing--troubleshooting)** - Testing strategies, debugging guides
+- **📋 [Implementation Summaries](docs/README.md#-implementation-summaries)** - Completed features and improvements
+
+### 🔗 External Documentation
+- [CI/CD Workflows](.github/workflows/README.md) - GitHub Actions setup and usage
+- [Backend API](backend/autotrader-backend/API.md) - Complete REST API documentation
+- [Redis Integration](backend/autotrader-backend/docs/redis-integration-guide.md) - Caching implementation
 - [MailDev Integration](backend/autotrader-backend/docs/maildev-integration-guide.md) - Email testing setup
-- [Translation Guide](docs/translation_guide_for_developers.md) - Internationalization best practices
 
 ## Getting Started
 

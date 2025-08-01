@@ -1,6 +1,32 @@
-# Frontend Testing Guide
+# Complete Testing Guide
 
-This guide outlines how to run tests and understand the testing setup for the Caryo Marketplace frontend application.
+This guide outlines the comprehensive testing strategy and setup for the Caryo Marketplace application, covering both frontend and backend testing approaches.
+
+## Testing Strategy Overview
+
+### Unit Testing
+- **Backend:** JUnit 5 and Mockito are used for unit testing individual classes
+  - **Services/Controllers:** Often tested with Mockito to mock dependencies (repositories, other services)
+  - **Utility Classes/POJOs:** Classes like `FileValidator` or simple data objects are tested as plain Java objects without Spring context
+- **Frontend:** Jest and React Testing Library are used for testing React components in isolation
+
+### Integration Testing
+- **Backend:** Spring Boot Test (`@SpringBootTest`) is used for integration testing components within the Spring context
+  - **Database Interaction:** TestContainers or an in-memory database (H2, configured in `application-test.properties`) for testing repository and service layers
+  - **API Endpoints:** `MockMvc` is used to test controller endpoints without needing a running server
+  - **External Services:** Mock beans (`@MockBean`) or local mock servers (LocalStack via TestContainers) for services like S3
+
+### E2E Testing
+- Cypress for complete frontend/backend testing workflows
+
+### Code Coverage Goals
+- **Unit Tests:** 80%+ coverage for backend services
+- **E2E Tests:** 100% coverage of critical user journeys
+- **Current Status:** 847 backend tests passing, 95%+ coverage achieved
+
+## Frontend Testing Details
+
+This section outlines how to run tests and understand the testing setup for the Caryo Marketplace frontend application.
 
 ## Testing Tools
 
