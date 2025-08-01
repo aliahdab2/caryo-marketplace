@@ -1,17 +1,18 @@
 package com.autotrader.autotraderbackend.config;
 
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.StringTemplateResolver;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 import jakarta.mail.internet.MimeMessage;
 import java.io.InputStream;
@@ -24,6 +25,8 @@ import java.io.InputStream;
 @Configuration
 @Profile("test")
 public class TestEmailConfig {
+
+    private static final Logger logger = LoggerFactory.getLogger(TestEmailConfig.class);
 
     /**
      * Mock JavaMailSender that doesn't actually send emails during tests.
@@ -50,7 +53,7 @@ public class TestEmailConfig {
             @Override
             public void send(MimeMessage mimeMessage) {
                 // Do nothing - this is a mock implementation
-                System.out.println("Mock email send: MimeMessage (test mode)");
+                logger.info("Mock email send: MimeMessage (test mode)");
             }
 
             @Override
@@ -81,7 +84,8 @@ public class TestEmailConfig {
             @Override
             public void send(SimpleMailMessage simpleMessage) {
                 // Do nothing - this is a mock implementation
-                System.out.println("Mock email send: " + simpleMessage.getSubject() + " to " + 
+                logger.info("Mock email send: {} to {}", 
+                    simpleMessage.getSubject(), 
                     (simpleMessage.getTo() != null && simpleMessage.getTo().length > 0 ? simpleMessage.getTo()[0] : "unknown"));
             }
 
@@ -95,15 +99,18 @@ public class TestEmailConfig {
     }
 
     /**
-     * Basic TemplateEngine for testing email templates.
+     * Template engine that can find actual email template files for testing.
      */
     @Bean
     @Primary
     public TemplateEngine templateEngine() {
         SpringTemplateEngine templateEngine = new SpringTemplateEngine();
         
-        StringTemplateResolver templateResolver = new StringTemplateResolver();
+        ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
+        templateResolver.setPrefix("templates/emails/");
+        templateResolver.setSuffix(".html");
         templateResolver.setTemplateMode(TemplateMode.HTML);
+        templateResolver.setCharacterEncoding("UTF-8");
         templateResolver.setCacheable(false);
         
         templateEngine.setTemplateResolver(templateResolver);
