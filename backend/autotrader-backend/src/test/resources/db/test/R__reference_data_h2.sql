@@ -1,6 +1,14 @@
 -- Migration R: reference_data (H2 Compatible)
 -- Created: 2025-08-01 - H2 compatible version for tests
--- Uses INSERT ... ON CONFLICT syntax supported by both PostgreSQL and H2
+-- Uses simple DELETE/INSERT approach for H2 compatibility
+
+-- Clear existing data first, then insert fresh data
+DELETE FROM car_conditions;
+DELETE FROM drive_types;
+DELETE FROM body_styles;
+DELETE FROM fuel_types;
+DELETE FROM transmissions;
+DELETE FROM seller_types;
 
 -- Car Conditions
 INSERT INTO car_conditions (name, display_name_en, display_name_ar, slug) VALUES 
@@ -10,22 +18,14 @@ INSERT INTO car_conditions (name, display_name_en, display_name_ar, slug) VALUES
     ('very_good', 'Very Good', 'جيد جداً', 'very-good'),
     ('good', 'Good', 'جيد', 'good'),
     ('fair', 'Fair', 'مقبول', 'fair'),
-    ('salvage', 'Salvage', 'للقطع', 'salvage')
-ON CONFLICT (name) DO UPDATE SET 
-    display_name_en = EXCLUDED.display_name_en,
-    display_name_ar = EXCLUDED.display_name_ar,
-    slug = EXCLUDED.slug;
+    ('salvage', 'Salvage', 'للقطع', 'salvage');
 
 -- Drive Types
 INSERT INTO drive_types (name, display_name_en, display_name_ar, slug) VALUES 
     ('fwd', 'Front-Wheel Drive', 'دفع أمامي', 'fwd'),
     ('rwd', 'Rear-Wheel Drive', 'دفع خلفي', 'rwd'),
     ('awd', 'All-Wheel Drive', 'دفع رباعي', 'awd'),
-    ('4wd', 'Four-Wheel Drive', 'دفع رباعي', '4wd')
-ON CONFLICT (name) DO UPDATE SET 
-    display_name_en = EXCLUDED.display_name_en,
-    display_name_ar = EXCLUDED.display_name_ar,
-    slug = EXCLUDED.slug;
+    ('4wd', 'Four-Wheel Drive', 'دفع رباعي', '4wd');
 
 -- Body Styles
 INSERT INTO body_styles (name, display_name_en, display_name_ar, slug) VALUES 
@@ -37,11 +37,7 @@ INSERT INTO body_styles (name, display_name_en, display_name_ar, slug) VALUES
     ('wagon', 'Wagon', 'عربة', 'wagon'),
     ('pickup', 'Pickup Truck', 'شاحنة صغيرة', 'pickup'),
     ('van', 'Van', 'فان', 'van'),
-    ('truck', 'Truck', 'شاحنة', 'truck')
-ON CONFLICT (name) DO UPDATE SET 
-    display_name_en = EXCLUDED.display_name_en,
-    display_name_ar = EXCLUDED.display_name_ar,
-    slug = EXCLUDED.slug;
+    ('truck', 'Truck', 'شاحنة', 'truck');
 
 -- Fuel Types
 INSERT INTO fuel_types (name, display_name_en, display_name_ar, slug) VALUES 
@@ -51,29 +47,17 @@ INSERT INTO fuel_types (name, display_name_en, display_name_ar, slug) VALUES
     ('hybrid', 'Hybrid', 'هجين', 'hybrid'),
     ('plugin_hybrid', 'Plug-in Hybrid', 'هجين قابل للشحن', 'plugin-hybrid'),
     ('cng', 'CNG', 'غاز طبيعي مضغوط', 'cng'),
-    ('lpg', 'LPG', 'غاز البترول المسال', 'lpg')
-ON CONFLICT (name) DO UPDATE SET 
-    display_name_en = EXCLUDED.display_name_en,
-    display_name_ar = EXCLUDED.display_name_ar,
-    slug = EXCLUDED.slug;
+    ('lpg', 'LPG', 'غاز البترول المسال', 'lpg');
 
 -- Transmissions
 INSERT INTO transmissions (name, display_name_en, display_name_ar, slug) VALUES 
     ('manual', 'Manual', 'يدوي', 'manual'),
     ('automatic', 'Automatic', 'أوتوماتيك', 'automatic'),
     ('cvt', 'CVT', 'سي في تي', 'cvt'),
-    ('semi_automatic', 'Semi-Automatic', 'شبه أوتوماتيك', 'semi-automatic')
-ON CONFLICT (name) DO UPDATE SET 
-    display_name_en = EXCLUDED.display_name_en,
-    display_name_ar = EXCLUDED.display_name_ar,
-    slug = EXCLUDED.slug;
+    ('semi_automatic', 'Semi-Automatic', 'شبه أوتوماتيك', 'semi-automatic');
 
 -- Seller Types
 INSERT INTO seller_types (name, display_name_en, display_name_ar, slug) VALUES 
     ('individual', 'Individual', 'فرد', 'individual'),
     ('dealer', 'Dealer', 'وكيل', 'dealer'),
-    ('company', 'Company', 'شركة', 'company')
-ON CONFLICT (name) DO UPDATE SET 
-    display_name_en = EXCLUDED.display_name_en,
-    display_name_ar = EXCLUDED.display_name_ar,
-    slug = EXCLUDED.slug;
+    ('company', 'Company', 'شركة', 'company');

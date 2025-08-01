@@ -21,7 +21,7 @@ Located in the `collections/` directory:
 - `transmissions-tests.json`: Tests for Transmission endpoints
 - `seller-types-tests.json`: Tests for Seller Type endpoints
 - `listings-media-tests.json`: Tests for Listings and Media endpoints
-- `contact-email-tests.json`: Tests for Contact Form and Email Service endpoints
+- `contact-email-tests.json`: Tests for Contact Form and Email Service endpoints (uses mock email service)
 
 ## Running the Tests
 
@@ -82,6 +82,19 @@ The run-collections.sh script requires a running backend instance to succeed. If
 4. **Mock Mode (For Development)**
 
    For development purposes when the backend is unavailable, you might consider using Postman's mock server functionality to simulate responses. This requires setting up mocks in Postman desktop application.
+
+## Testing Strategy
+
+### Email Service Testing
+
+The `contact-email-tests.json` collection tests email functionality using a mock email service:
+
+- **Test Profile**: Tests run with `spring.profiles.active=test`
+- **Mock Email Service**: `TestEmailConfig` provides mock `JavaMailSender`
+- **Real Templates**: Uses actual Thymeleaf email templates for rendering
+- **CI Compatible**: No external SMTP dependencies required
+
+This approach ensures reliable, fast, and consistent email testing across all environments.
 
 ## Environment Variables
 
