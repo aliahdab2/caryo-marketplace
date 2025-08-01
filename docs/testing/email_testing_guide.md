@@ -295,4 +295,6 @@ curl -X POST http://localhost:8080/api/contact \
 
 - [Spring Boot Testing Documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-testing)
 - [Thymeleaf Testing Guide](https://www.thymeleaf.org/doc/tutorials/3.0/usingthymeleaf.html#testing)
-- [MockMail Documentation](https://javaee.github.io/javamail/docs/api/javax/mail/Session.html)
+- [GreenMail - Test Email Server for Java](https://www.icegreen.com/greenmail/)
+- [Spring Boot Mail Testing](https://docs.spring.io/spring-boot/docs/current/reference/html/io.html#io.email)
+- [Mockito Documentation](https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html)
