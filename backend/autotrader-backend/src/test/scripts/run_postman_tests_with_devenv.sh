@@ -53,7 +53,7 @@ else
   echo -e "${YELLOW}Development environment is not running. Starting it now...${NC}"
   # Start the dev environment using dev-env.sh (which includes S3/MinIO container)
   echo -e "${YELLOW}Starting development environment with S3 container support...${NC}"
-  SPRING_PROFILES_ACTIVE=test ./dev-env.sh start
+  ./dev-env.sh start
   ENV_STARTED_BY_SCRIPT=true
 fi
 
