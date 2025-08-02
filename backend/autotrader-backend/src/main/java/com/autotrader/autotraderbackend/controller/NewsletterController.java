@@ -155,18 +155,5 @@ public class NewsletterController {
         }
     }
 
-    /**
-     * Get newsletter subscription statistics (admin only).
-     */
-    @GetMapping("/stats")
-    @Operation(summary = "Get newsletter statistics", description = "Get newsletter subscription statistics")
-    public ResponseEntity<Object> getStats() {
-        
-        long activeCount = newsletterService.getActiveSubscriptionCount();
-        
-        return ResponseEntity.ok(java.util.Map.of(
-            "activeSubscriptions", activeCount,
-            "timestamp", java.time.LocalDateTime.now()
-        ));
-    }
+
 }

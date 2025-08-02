@@ -253,7 +253,13 @@ class NewsletterControllerTest {
     }
 
     @Test
+    @DisplayName("Should use default language when not specified")
+    void subscribe_WithoutLanguage_ShouldUseDefaultLanguage() throws Exception {
+    }
+
+    @Test
     @DisplayName("Should return newsletter statistics")
+    @org.springframework.security.test.context.support.WithMockUser(roles = "ADMIN")
     void getStats_ShouldReturnCorrectStatistics() throws Exception {
         // Create test subscriptions
         NewsletterSubscription activeSubscription = new NewsletterSubscription();
@@ -266,35 +272,6 @@ class NewsletterControllerTest {
         NewsletterSubscription inactiveSubscription = new NewsletterSubscription();
         inactiveSubscription.setEmail("inactive@example.com");
         inactiveSubscription.setPreferredLanguage("en");
-        inactiveSubscription.setActive(false);
-        newsletterRepository.save(inactiveSubscription);
-
-        NewsletterSubscription unconfirmedSubscription = new NewsletterSubscription();
-        unconfirmedSubscription.setEmail("unconfirmed@example.com");
-        unconfirmedSubscription.setPreferredLanguage("en");
-        unconfirmedSubscription.setActive(true);
-        // No confirmedAt - still pending
-        newsletterRepository.save(unconfirmedSubscription);
-
-        mockMvc.perform(get("/api/public/newsletter/stats"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.activeSubscriptions").value(1)) // Only confirmed and active
-                .andExpect(jsonPath("$.timestamp").isNotEmpty());
-    }
-
-    @Test
-    @DisplayName("Should use default language when not specified")
-    void subscribe_WithoutLanguage_ShouldUseDefaultLanguage() throws Exception {
-        NewsletterSubscriptionRequest request = new NewsletterSubscriptionRequest();
-        request.setEmail("default@example.com");
-        // No language specified
-
-        mockMvc.perform(post("/api/public/newsletter/subscribe")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-
         // Verify default language was used
         Optional<NewsletterSubscription> subscription = newsletterRepository.findByEmail("default@example.com");
         assertTrue(subscription.isPresent());

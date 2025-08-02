@@ -1,11 +1,11 @@
 -- Migration: Create newsletter_subscriptions table
 -- Version: V1_36__Create_newsletter_subscriptions_table.sql
 -- Description: Add newsletter subscription functionality with email confirmation
--- Compatible with both H2 and PostgreSQL
+-- Compatible with PostgreSQL
 
 -- Create newsletter_subscriptions table
 CREATE TABLE newsletter_subscriptions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     preferred_language VARCHAR(2) DEFAULT 'en',
