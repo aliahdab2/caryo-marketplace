@@ -245,9 +245,10 @@ export async function fetchCarListingPublic(id: string | number): Promise<CarLis
 }
 
 /**
- * Fetch featured/latest listings for homepage (server-side, no authentication required)
+ * Fetch latest listings for homepage (server-side, no authentication required)
+ * Gets the most recently added cars, sorted by creation date
  */
-export async function fetchFeaturedListingsPublic(limit: number = 12): Promise<CarListing[]> {
+export async function fetchLatestListingsPublic(limit: number = 12): Promise<CarListing[]> {
   try {
     const queryParams = new URLSearchParams();
     queryParams.append('size', limit.toString());
@@ -265,17 +266,25 @@ export async function fetchFeaturedListingsPublic(limit: number = 12): Promise<C
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch featured listings: ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to fetch latest listings: ${response.status} ${response.statusText}`);
     }
 
     const result = await response.json();
-    console.log('Server-side featured listings fetched:', result.content?.length || 0, 'items');
+    console.log('Server-side latest listings fetched:', result.content?.length || 0, 'items');
     return result.content || [];
 
   } catch (error) {
-    console.error('Error fetching featured listings (server-side):', error);
+    console.error('Error fetching latest listings (server-side):', error);
     return []; // Return empty array on error
   }
+}
+
+/**
+ * Fetch featured/latest listings for homepage (server-side, no authentication required)
+ * @deprecated Use fetchLatestListingsPublic instead
+ */
+export async function fetchFeaturedListingsPublic(limit: number = 12): Promise<CarListing[]> {
+  return fetchLatestListingsPublic(limit);
 }
 
 /**
@@ -324,5 +333,59 @@ export async function getCarListingCountsPublic(filters?: CarListingFilterParams
   } catch (error) {
     console.error('Error fetching public listing count (server-side):', error);
     return 0; // Return 0 on error rather than throwing
+  }
+}
+
+/**
+ * Newsletter subscription interfaces and functions
+ */
+export interface NewsletterSubscriptionRequest {
+  email: string;
+  preferredLanguage?: string;
+  source?: string;
+}
+
+export interface NewsletterSubscriptionResponse {
+  success: boolean;
+  message: string;
+  email?: string;
+  alreadySubscribed?: boolean;
+  requiresConfirmation?: boolean;
+}
+
+/**
+ * Subscribe to newsletter (client-side)
+ */
+export async function subscribeToNewsletter(request: NewsletterSubscriptionRequest): Promise<NewsletterSubscriptionResponse> {
+  try {
+    const url = `${API_BASE_URL}/api/public/newsletter/subscribe`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        email: request.email,
+        preferredLanguage: request.preferredLanguage || 'en',
+        source: request.source || 'homepage'
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to subscribe to newsletter: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log('Newsletter subscription successful:', result.email);
+    return result;
+
+  } catch (error) {
+    console.error('Error subscribing to newsletter:', error);
+    return {
+      success: false,
+      message: 'Failed to subscribe to newsletter. Please try again later.'
+    };
   }
 }

@@ -54,6 +54,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/login").permitAll() // Retained for now, but likely unused
                 .requestMatchers("/api/auth/register").permitAll() // Retained for now, but likely unused
                 .requestMatchers("/api/contact").permitAll() // Allow public access to contact form
+                .requestMatchers("/api/public/**").permitAll() // Allow public access to all public endpoints
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/service-status").permitAll()
                 .requestMatchers("/actuator/health/**").permitAll()

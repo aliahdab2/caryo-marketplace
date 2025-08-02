@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -550,6 +549,91 @@ public class EmailServiceImpl implements EmailService {
         }
         if (renewalDays > 365) {
             throw new IllegalArgumentException("Renewal days cannot exceed 365, got: " + renewalDays);
+        }
+    }
+    
+    /**
+     * Send newsletter confirmation email.
+     */
+    @Override
+    public void sendNewsletterConfirmationEmail(String email, String confirmationUrl, String unsubscribeUrl) {
+        sendNewsletterConfirmationEmail(email, confirmationUrl, unsubscribeUrl, "en");
+    }
+    
+    /**
+     * Send newsletter confirmation email with specified language.
+     */
+    @Override
+    public void sendNewsletterConfirmationEmail(String email, String confirmationUrl, String unsubscribeUrl, String language) {
+        try {
+            validateNewsletterEmailInputs(email, language);
+            
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("email", email);
+            variables.put("confirmationUrl", confirmationUrl);
+            variables.put("unsubscribeUrl", unsubscribeUrl);
+            variables.put("websiteName", "en".equals(language) ? websiteName : websiteNameAr);
+            variables.put("websiteUrl", websiteUrl);
+            variables.put("supportEmail", supportEmail);
+            
+            String subject = "en".equals(language) 
+                ? "Confirm Your Newsletter Subscription - " + websiteName
+                : "تأكيد الاشتراك في النشرة الإخبارية - " + websiteNameAr;
+            
+            sendTemplatedEmail(email, subject, "newsletter-confirmation", variables, language);
+            log.info("Newsletter confirmation email sent to: {} in language: {}", email, language);
+            
+        } catch (Exception e) {
+            log.error("Failed to send newsletter confirmation email to: {} in language: {}", email, language, e);
+            throw new EmailSendException("Failed to send newsletter confirmation email", e);
+        }
+    }
+    
+    /**
+     * Send newsletter welcome email after confirmation.
+     */
+    @Override
+    public void sendNewsletterWelcomeEmail(String email, String unsubscribeUrl) {
+        sendNewsletterWelcomeEmail(email, unsubscribeUrl, "en");
+    }
+    
+    /**
+     * Send newsletter welcome email after confirmation with specified language.
+     */
+    @Override
+    public void sendNewsletterWelcomeEmail(String email, String unsubscribeUrl, String language) {
+        try {
+            validateNewsletterEmailInputs(email, language);
+            
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("email", email);
+            variables.put("unsubscribeUrl", unsubscribeUrl);
+            variables.put("websiteName", "en".equals(language) ? websiteName : websiteNameAr);
+            variables.put("websiteUrl", websiteUrl);
+            variables.put("supportEmail", supportEmail);
+            
+            String subject = "en".equals(language)
+                ? "Welcome to " + websiteName + " Newsletter!"
+                : "مرحباً بك في نشرة " + websiteNameAr + " الإخبارية!";
+            
+            sendTemplatedEmail(email, subject, "newsletter-welcome", variables, language);
+            log.info("Newsletter welcome email sent to: {} in language: {}", email, language);
+            
+        } catch (Exception e) {
+            log.error("Failed to send newsletter welcome email to: {} in language: {}", email, language, e);
+            throw new EmailSendException("Failed to send newsletter welcome email", e);
+        }
+    }
+    
+    /**
+     * Validate inputs for newsletter emails.
+     */
+    private void validateNewsletterEmailInputs(String email, String language) {
+        if (!StringUtils.hasText(email)) {
+            throw new IllegalArgumentException("Newsletter email cannot be null or empty");
+        }
+        if (!SUPPORTED_LANGUAGES.contains(language)) {
+            throw new IllegalArgumentException("Unsupported language: " + language);
         }
     }
     

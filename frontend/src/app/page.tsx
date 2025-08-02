@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useLazyTranslation } from "@/hooks/useLazyTranslation";
 import { useEffect, useState } from "react";
 import HomeSearchBar from "@/components/search/HomeSearchBar";
-import { fetchFeaturedListingsPublic } from "@/services/publicApi";
+import { fetchLatestListingsPublic, subscribeToNewsletter } from "@/services/publicApi";
 import { CarListing } from "@/services/publicApi";
 import { transformMinioUrl } from "@/utils/mediaUtils";
 
@@ -12,25 +12,63 @@ import { transformMinioUrl } from "@/utils/mediaUtils";
 const HOME_NAMESPACES = ['home', 'common'];
 
 export default function Home() {
-  const { t, ready } = useLazyTranslation(HOME_NAMESPACES); // Removed i18n as it's unused
-  const [featuredCars, setFeaturedCars] = useState<CarListing[]>([]);
+  const { t, i18n, ready } = useLazyTranslation(HOME_NAMESPACES);
+  const [latestCars, setLatestCars] = useState<CarListing[]>([]);
   const [isLoadingListings, setIsLoadingListings] = useState(true);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+  const [newsletterMessage, setNewsletterMessage] = useState('');
+  const [newsletterSuccess, setNewsletterSuccess] = useState(false);
 
   useEffect(() => {
-    const loadFeaturedCars = async () => {
+    const loadLatestCars = async () => {
       try {
-        // Use public API instead of authenticated API
-        const listings = await fetchFeaturedListingsPublic(6);
-        setFeaturedCars(listings);
+        // Use public API to fetch latest listings
+        const listings = await fetchLatestListingsPublic(6);
+        setLatestCars(listings);
       } catch (error) {
-        console.error('Error loading featured cars:', error);
+        console.error('Error loading latest cars:', error);
       } finally {
         setIsLoadingListings(false);
       }
     };
 
-    loadFeaturedCars();
+    loadLatestCars();
   }, []);
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newsletterEmail.trim()) {
+      setNewsletterMessage(t('emailRequired', { ns: 'home', defaultValue: 'Email is required' }));
+      return;
+    }
+
+    setNewsletterLoading(true);
+    setNewsletterMessage('');
+    
+    try {
+      const response = await subscribeToNewsletter({
+        email: newsletterEmail.trim(),
+        preferredLanguage: i18n.language === 'ar' ? 'ar' : 'en',
+        source: 'homepage'
+      });
+
+      if (response.success) {
+        setNewsletterSuccess(true);
+        setNewsletterMessage(t('newsletterSuccess', { ns: 'home', defaultValue: 'Please check your email to confirm your subscription!' }));
+        setNewsletterEmail('');
+      } else {
+        setNewsletterSuccess(false);
+        setNewsletterMessage(response.message);
+      }
+    } catch (error) {
+      setNewsletterSuccess(false);
+      setNewsletterMessage(t('newsletterError', { ns: 'home', defaultValue: 'Failed to subscribe. Please try again.' }));
+    } finally {
+      setNewsletterLoading(false);
+    }
+  };
 
   const isLoadingTranslations = !ready;
 
@@ -73,11 +111,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Featured Listings Section */}
+      {/* Latest Cars Section */}
       <section className="py-16 container mx-auto px-4">
         <div className="flex justify-between items-center mb-10">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-            {t('featuredTitle', { ns: 'home'})}
+            {t('latestCarsTitle', { ns: 'home'})}
           </h2>
           <Link
             href="/search"
@@ -120,8 +158,8 @@ export default function Home() {
                 </div>
               </div>
             ))
-          ) : featuredCars.length > 0 ? (
-            featuredCars.map((car) => (
+          ) : latestCars.length > 0 ? (
+            latestCars.map((car) => (
               <div
                 key={car.id}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
@@ -233,7 +271,7 @@ export default function Home() {
             // No data state
             <div className="col-span-full text-center py-12">
               <p className="text-gray-500 dark:text-gray-400">
-                No featured cars available at the moment.
+                {t('noLatestCars', { ns: 'home', defaultValue: 'No new cars available at the moment.' })}
               </p>
             </div>
           )}
@@ -277,17 +315,32 @@ export default function Home() {
         <div className="bg-blue-600 rounded-xl p-8 md:p-12 text-white text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">{t('stayUpdated', { ns: 'home', defaultValue: 'Stay Updated on the Latest Deals'})}</h2> 
           <p className="max-w-2xl mx-auto mb-8">{t('newsletterDescription', { ns: 'home', defaultValue: 'Subscribe to our newsletter to receive the latest news, updates, and special offers directly in your inbox.'})}</p> 
-          <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
+          
+          {newsletterMessage && (
+            <div className={`mb-6 p-3 rounded-md ${newsletterSuccess ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+              {newsletterMessage}
+            </div>
+          )}
+          
+          <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
             <input
               type="email"
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
               placeholder={t('emailPlaceholder', { ns: 'home', defaultValue: 'Enter your email address'})}
               className="flex-grow px-4 py-3 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              required
+              disabled={newsletterLoading}
             />
             <button
               type="submit"
-              className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-md hover:bg-gray-100 transition-colors duration-300"
+              disabled={newsletterLoading}
+              className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-md hover:bg-gray-100 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('subscribe', { ns: 'home', defaultValue: 'Subscribe'})}
+              {newsletterLoading 
+                ? t('subscribing', { ns: 'home', defaultValue: 'Subscribing...'})
+                : t('subscribe', { ns: 'home', defaultValue: 'Subscribe'})
+              }
             </button>
           </form>
         </div>

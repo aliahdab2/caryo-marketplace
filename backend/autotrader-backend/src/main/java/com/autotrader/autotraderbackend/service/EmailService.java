@@ -197,4 +197,40 @@ public interface EmailService {
      * @param language language code (en, ar)
      */
     void sendListingFeedbackRequestEmail(User seller, CarListing listing, String language);
+    
+    /**
+     * Send newsletter confirmation email.
+     * 
+     * @param email recipient email address
+     * @param confirmationUrl URL to confirm subscription
+     * @param unsubscribeUrl URL to unsubscribe
+     */
+    void sendNewsletterConfirmationEmail(String email, String confirmationUrl, String unsubscribeUrl);
+    
+    /**
+     * Send newsletter confirmation email with specified language.
+     * 
+     * @param email recipient email address
+     * @param confirmationUrl URL to confirm subscription
+     * @param unsubscribeUrl URL to unsubscribe
+     * @param language language code (en, ar)
+     */
+    void sendNewsletterConfirmationEmail(String email, String confirmationUrl, String unsubscribeUrl, String language);
+    
+    /**
+     * Send newsletter welcome email after confirmation.
+     * 
+     * @param email recipient email address
+     * @param unsubscribeUrl URL to unsubscribe
+     */
+    void sendNewsletterWelcomeEmail(String email, String unsubscribeUrl);
+    
+    /**
+     * Send newsletter welcome email after confirmation with specified language.
+     * 
+     * @param email recipient email address
+     * @param unsubscribeUrl URL to unsubscribe
+     * @param language language code (en, ar)
+     */
+    void sendNewsletterWelcomeEmail(String email, String unsubscribeUrl, String language);
 } 
