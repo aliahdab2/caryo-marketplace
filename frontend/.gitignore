@@ -38,3 +38,7 @@ npm-debug.log*
 # OS
 .DS_Store
 *.pem
+
+# Generated files (should not be committed)
+/public/sitemap.xml
+/public/robots.txt

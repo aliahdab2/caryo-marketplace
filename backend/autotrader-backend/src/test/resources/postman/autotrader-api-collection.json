@@ -1177,6 +1177,383 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Saved Searches",
+      "item": [
+        {
+          "name": "Setup - Register Saved Search User",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const randomUsername = 'savedsearch_user_' + Math.random().toString(36).substring(2, 10);",
+                  "const randomEmail = `${randomUsername}@example.com`;",
+                  "",
+                  "pm.environment.set('saved_search_test_username', randomUsername);",
+                  "pm.environment.set('saved_search_test_email', randomEmail);",
+                  "pm.environment.set('saved_search_test_password', 'password123');",
+                  "",
+                  "console.log(`Generated saved search test user: ${randomUsername}, ${randomEmail}`);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Registration successful message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include(\"successfully\");",
+                  "});",
+                  "",
+                  "console.log(\"Saved Search User Registration Response:\", pm.response.json());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{saved_search_test_username}}\",\n    \"email\": \"{{saved_search_test_email}}\",\n    \"password\": \"{{saved_search_test_password}}\",\n    \"role\": [\"user\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "Setup - Login Saved Search User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has access token\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token).to.exist;",
+                  "    pm.expect(jsonData.type).to.equal(\"Bearer\");",
+                  "    ",
+                  "    pm.environment.set(\"saved_search_auth_token\", jsonData.token);",
+                  "});",
+                  "",
+                  "console.log(\"Saved Search User Login Response:\", pm.response.json());",
+                  "console.log(\"Saved Search Auth Token:\", pm.environment.get(\"saved_search_auth_token\") ? (pm.environment.get(\"saved_search_auth_token\").substring(0, 15) + \"...\") : \"none\");"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{saved_search_test_username}}\",\n    \"password\": \"{{saved_search_test_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signin"]
+            }
+          }
+        },
+        {
+          "name": "Create Saved Search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has required fields\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('name');",
+                  "    pm.expect(jsonData).to.have.property('filters');",
+                  "    pm.expect(jsonData).to.have.property('notificationsEnabled');",
+                  "    pm.expect(jsonData).to.have.property('isActive');",
+                  "    ",
+                  "    pm.environment.set('test_saved_search_id', jsonData.id);",
+                  "});",
+                  "",
+                  "console.log(\"Created saved search:\", pm.response.json());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{saved_search_auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Test Toyota Search\",\n    \"description\": \"Looking for Toyota cars\",\n    \"filters\": {\n        \"brandSlugs\": [\"toyota\"],\n        \"maxPrice\": 30000\n    },\n    \"notificationsEnabled\": true,\n    \"emailNotifications\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches"]
+            }
+          }
+        },
+        {
+          "name": "Get All Saved Searches",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an array with at least one item\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "    pm.expect(jsonData.length).to.be.at.least(1);",
+                  "});",
+                  "",
+                  "console.log(\"All saved searches:\", pm.response.json());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{saved_search_auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches"]
+            }
+          }
+        },
+        {
+          "name": "Get Specific Saved Search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response matches expected saved search\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.equal(pm.environment.get('test_saved_search_id'));",
+                  "    pm.expect(jsonData.name).to.equal('Test Toyota Search');",
+                  "});",
+                  "",
+                  "console.log(\"Specific saved search:\", pm.response.json());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{saved_search_auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches/{{test_saved_search_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches", "{{test_saved_search_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Saved Search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Saved search was updated\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.name).to.equal('Updated Toyota Search');",
+                  "    pm.expect(jsonData.filters.maxPrice).to.equal(35000);",
+                  "});",
+                  "",
+                  "console.log(\"Updated saved search:\", pm.response.json());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{saved_search_auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Toyota Search\",\n    \"description\": \"Looking for Toyota cars (updated)\",\n    \"filters\": {\n        \"brandSlugs\": [\"toyota\"],\n        \"maxPrice\": 35000,\n        \"minYear\": 2018\n    },\n    \"notificationsEnabled\": true,\n    \"emailNotifications\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches/{{test_saved_search_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches", "{{test_saved_search_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Saved Search Count",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Count is a number >= 1\", function () {",
+                  "    var count = pm.response.json();",
+                  "    pm.expect(count).to.be.a('number');",
+                  "    pm.expect(count).to.be.at.least(1);",
+                  "});",
+                  "",
+                  "console.log(\"Saved search count:\", pm.response.json());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{saved_search_auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches", "count"]
+            }
+          }
+        },
+        {
+          "name": "Delete Saved Search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "console.log(\"Deleted saved search successfully\");"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{saved_search_auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches/{{test_saved_search_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches", "{{test_saved_search_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Unauthorized Access to Saved Searches",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "console.log(\"Unauthorized access correctly blocked\");"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches"]
+            }
+          }
+        }
+      ]
     }
   ]
 }

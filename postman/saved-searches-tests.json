@@ -1,0 +1,353 @@
+{
+  "info": {
+    "name": "SavedSearch API Tests",
+    "description": "Comprehensive test suite for SavedSearch API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "{{base_url}}"
+    },
+    {
+      "key": "savedSearchId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication Setup",
+      "item": [
+        {
+          "name": "Login as Test User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('accessToken');",
+                  "    pm.collectionVariables.set('authToken', responseJson.accessToken);",
+                  "    pm.collectionVariables.set('userId', responseJson.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user\",\n  \"password\": \"password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signin"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "SavedSearch CRUD Operations",
+      "item": [
+        {
+          "name": "Create SavedSearch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SavedSearch created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    var responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('id');",
+                  "    pm.expect(responseJson).to.have.property('nameEn', 'Test Search');",
+                  "    pm.expect(responseJson).to.have.property('nameAr', 'بحث تجريبي');",
+                  "    pm.expect(responseJson).to.have.property('isActive', true);",
+                  "    pm.collectionVariables.set('savedSearchId', responseJson.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nameEn\": \"Test Search\",\n  \"nameAr\": \"بحث تجريبي\",\n  \"filters\": {\n    \"make\": \"Toyota\",\n    \"model\": \"Camry\",\n    \"minPrice\": 10000,\n    \"maxPrice\": 30000,\n    \"minYear\": 2018,\n    \"maxYear\": 2023\n  },\n  \"notificationPreferences\": {\n    \"email\": true,\n    \"frequency\": \"immediate\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches"]
+            }
+          }
+        },
+        {
+          "name": "Get All SavedSearches",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SavedSearches retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.be.an('array');",
+                  "    pm.expect(responseJson.length).to.be.greaterThan(0);",
+                  "    pm.expect(responseJson[0]).to.have.property('id');",
+                  "    pm.expect(responseJson[0]).to.have.property('nameEn');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches"]
+            }
+          }
+        },
+        {
+          "name": "Get SavedSearch by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SavedSearch retrieved by ID successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('id', pm.collectionVariables.get('savedSearchId'));",
+                  "    pm.expect(responseJson).to.have.property('nameEn', 'Test Search');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches/{{savedSearchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches", "{{savedSearchId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update SavedSearch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SavedSearch updated successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('id', pm.collectionVariables.get('savedSearchId'));",
+                  "    pm.expect(responseJson).to.have.property('nameEn', 'Updated Test Search');",
+                  "    pm.expect(responseJson).to.have.property('nameAr', 'بحث محدث');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nameEn\": \"Updated Test Search\",\n  \"nameAr\": \"بحث محدث\",\n  \"filters\": {\n    \"make\": \"Honda\",\n    \"model\": \"Accord\",\n    \"minPrice\": 15000,\n    \"maxPrice\": 35000,\n    \"minYear\": 2019,\n    \"maxYear\": 2024\n  },\n  \"notificationPreferences\": {\n    \"email\": true,\n    \"frequency\": \"daily\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches/{{savedSearchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches", "{{savedSearchId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get SavedSearch Count",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SavedSearch count retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('count');",
+                  "    pm.expect(responseJson.count).to.be.a('number');",
+                  "    pm.expect(responseJson.count).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches", "count"]
+            }
+          }
+        },
+        {
+          "name": "Delete SavedSearch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SavedSearch deleted successfully', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches/{{savedSearchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches", "{{savedSearchId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Scenarios",
+      "item": [
+        {
+          "name": "Get Non-existent SavedSearch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Non-existent SavedSearch returns 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches", "00000000-0000-0000-0000-000000000000"]
+            }
+          }
+        },
+        {
+          "name": "Create SavedSearch with Invalid Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Invalid SavedSearch data returns 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nameEn\": \"\",\n  \"filters\": \"invalid-json\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches"]
+            }
+          }
+        },
+        {
+          "name": "Access SavedSearches Without Authentication",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Unauthenticated access returns 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
