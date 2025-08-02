@@ -63,6 +63,7 @@ public class CarListingService {
     private final TransmissionService transmissionService;
     private final FuelTypeService fuelTypeService;
     private final BodyStyleService bodyStyleService;
+    private final SavedSearchService savedSearchService;
 
     /**
      * Create a new car listing.
@@ -116,6 +117,16 @@ public class CarListingService {
         }
 
         log.info("Successfully created new listing with ID: {} for user: {}", savedListing.getId(), username);
+        
+        // Process the new listing for saved search notifications
+        try {
+            savedSearchService.processNewListingForNotifications(savedListing);
+        } catch (Exception e) {
+            log.error("Failed to process saved search notifications for new listing {}: {}", 
+                     savedListing.getId(), e.getMessage(), e);
+            // Don't fail the listing creation if notification processing fails
+        }
+        
         return carListingMapper.toCarListingResponse(savedListing);
     }
 
