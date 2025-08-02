@@ -209,15 +209,6 @@ jobs:
         
         echo "✅ All SEO utilities are present"
         
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./frontend/coverage/lcov.info
-        directory: ./frontend/coverage/
-        flags: seo,frontend
-        name: seo-coverage
-        fail_ci_if_error: false
-        
     - name: Archive test results
       uses: actions/upload-artifact@v4
       if: always()
