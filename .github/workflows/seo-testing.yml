@@ -285,10 +285,10 @@ jobs:
     - name: Run Lighthouse SEO audit
       uses: treosh/lighthouse-ci-action@v10
       with:
-        configPath: './.lighthouserc.json'
+        configPath: './frontend/.lighthouserc.json'
+        workingDirectory: './frontend'
         uploadArtifacts: true
         temporaryPublicStorage: true
-        runs: 3
         
     - name: Check SEO score threshold
       run: |
