@@ -2,17 +2,18 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Listing } from '@/types/listings';
+import { CarListing } from '@/services/publicApi';
 
 interface CarFeaturesProps {
-  listing: Listing;
+  listing: CarListing;
 }
 
-const CarFeatures: React.FC<CarFeaturesProps> = ({ listing }) => {
+const CarFeatures: React.FC<CarFeaturesProps> = ({ listing: _listing }) => {
   const { t } = useTranslation('listings');
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   
-  const features = listing.features || [];
+  // CarListing doesn't have features property yet, so we'll show a placeholder
+  const features: string[] = []; // listing.features || [];
   const hasFeatures = features.length > 0;
   const displayFeatures = showAllFeatures ? features : features.slice(0, 6);
   const hasMoreFeatures = features.length > 6;

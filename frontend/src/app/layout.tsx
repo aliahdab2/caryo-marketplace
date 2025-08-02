@@ -22,8 +22,61 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Caryo Marketplace",
-  description: "Your trusted platform for buying and selling vehicles",
+  title: {
+    default: "Caryo Marketplace - Buy & Sell Cars in Syria",
+    template: "%s | Caryo Marketplace"
+  },
+  description: "Your trusted platform for buying and selling vehicles across Syria. Find Toyota, Honda, BMW and more in Damascus, Aleppo, Homs. Browse thousands of verified car listings.",
+  keywords: ["cars", "vehicles", "Syria", "Damascus", "Aleppo", "Homs", "Toyota", "Honda", "BMW", "car marketplace", "used cars", "new cars", "automotive"],
+  authors: [{ name: "Caryo Team", url: "https://caryo.com" }],
+  creator: "Caryo Marketplace",
+  publisher: "Caryo Marketplace",
+  applicationName: "Caryo",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://caryo.com'),
+  alternates: {
+    canonical: "/",
+    languages: {
+      'en': '/en',
+      'ar': '/ar',
+      'x-default': '/'
+    }
+  },
+  openGraph: {
+    title: "Caryo Marketplace - Buy & Sell Cars in Syria",
+    description: "Your trusted platform for buying and selling vehicles across Syria",
+    url: "/",
+    siteName: "Caryo Marketplace",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Caryo Marketplace - Car Trading Platform"
+      }
+    ],
+    locale: "en_US",
+    alternateLocale: ["ar_SY"],
+    type: "website"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Caryo Marketplace - Buy & Sell Cars in Syria",
+    description: "Your trusted platform for buying and selling vehicles across Syria",
+    images: ["/twitter-image.jpg"]
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1
+    }
+  },
+  category: "automotive",
+  classification: "Business"
 };
 
 export default async function RootLayout({

@@ -573,7 +573,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
             onTransmissionChange={(transmissionId) => handleInputChange('transmissionId', transmissionId)}
             variant="dropdown"
             isLoading={isLoadingReferenceData}
-            t={t as any}
+            t={t as (key: string, fallback?: string) => string}
           />
         );
 
@@ -590,7 +590,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                 variant="cards"
                 isLoading={isLoadingReferenceData}
                 fuelTypeCounts={fuelTypeCounts}
-                t={t as any}
+                t={t as (key: string, fallback?: string) => string}
               />
             </div>
           </div>
@@ -609,7 +609,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                 variant="cards"
                 isLoading={isLoadingReferenceData}
                 bodyStyleCounts={bodyStyleCounts}
-                t={t as any}
+                t={t as (key: string, fallback?: string) => string}
               />
             </div>
           </div>
@@ -629,7 +629,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
               variant="cards"
               isLoading={isLoadingReferenceData}
               sellerTypeCounts={sellerTypeCounts}
-              t={t as any}
+              t={t as (key: string, fallback?: string) => string}
             />
           </div>
         );

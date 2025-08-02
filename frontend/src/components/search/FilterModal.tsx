@@ -624,7 +624,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                     variant="cards"
                     isLoading={_isLoadingReferenceData}
                     transmissionCounts={transmissionCounts}
-                    t={t as any}
+                    t={t as (key: string, fallback?: string) => string}
                   />
                 );
 
@@ -638,7 +638,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                     variant="cards"
                     isLoading={_isLoadingReferenceData}
                     fuelTypeCounts={fuelTypeCounts}
-                    t={t as any}
+                    t={t as (key: string, fallback?: string) => string}
                   />
                 );
 
@@ -652,7 +652,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                     variant="cards"
                     isLoading={_isLoadingReferenceData}
                     bodyStyleCounts={bodyStyleCounts}
-                    t={t as any}
+                    t={t as (key: string, fallback?: string) => string}
                   />
                 );
 
@@ -666,7 +666,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                     variant="cards"
                     isLoading={_isLoadingReferenceData}
                     sellerTypeCounts={sellerTypeCounts}
-                    t={t as any}
+                    t={t as (key: string, fallback?: string) => string}
                   />
                 );
 
@@ -851,7 +851,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 isLoading={_isLoadingReferenceData}
                 disableScroll={true}
                 fuelTypeCounts={fuelTypeCounts}
-                t={t as any}
+                t={t as (key: string, fallback?: string) => string}
               />
             </CollapsibleSection>
             
@@ -874,7 +874,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 isLoading={_isLoadingReferenceData}
                 disableScroll={true}
                 bodyStyleCounts={bodyStyleCounts}
-                t={t as any}
+                t={t as (key: string, fallback?: string) => string}
               />
             </CollapsibleSection>
             
@@ -897,7 +897,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 isLoading={_isLoadingReferenceData}
                 disableScroll={true}
                 sellerTypeCounts={sellerTypeCounts}
-                t={t as any}
+                t={t as (key: string, fallback?: string) => string}
               />
             </CollapsibleSection>
             
@@ -920,7 +920,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 isLoading={_isLoadingReferenceData}
                 disableScroll={true}
                 transmissionCounts={transmissionCounts}
-                t={t as any}
+                t={t as (key: string, fallback?: string) => string}
               />
             </CollapsibleSection>
           </div>

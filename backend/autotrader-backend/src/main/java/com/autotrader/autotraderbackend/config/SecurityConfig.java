@@ -35,11 +35,8 @@ public class SecurityConfig {
             .cors(cors -> cors.configure(http))
             // Don't authenticate these specific requests
             .authorizeHttpRequests(auth -> auth
-                // Admin role enforcement should come before permitAll for overlapping patterns
-                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/locations").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/locations/**").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/locations/**").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/locations/**").hasRole("ADMIN")
+                // Admin endpoints require admin role
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 // Test endpoint security configuration
                 .requestMatchers("/api/test/admin").hasRole("ADMIN")
                 .requestMatchers("/api/test/user").hasAnyRole("USER", "ADMIN")
@@ -54,6 +51,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/login").permitAll() // Retained for now, but likely unused
                 .requestMatchers("/api/auth/register").permitAll() // Retained for now, but likely unused
                 .requestMatchers("/api/contact").permitAll() // Allow public access to contact form
+                .requestMatchers("/api/public/**").permitAll() // Allow public access to all public endpoints
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/service-status").permitAll()
                 .requestMatchers("/actuator/health/**").permitAll()

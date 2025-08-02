@@ -1,0 +1,28 @@
+-- Migration: Create newsletter_subscriptions table
+-- Version: V1_36__Create_newsletter_subscriptions_table.sql
+-- Description: Add newsletter subscription functionality with email confirmation
+-- Compatible with PostgreSQL
+
+-- Create newsletter_subscriptions table
+CREATE TABLE newsletter_subscriptions (
+    id BIGSERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    preferred_language VARCHAR(2) DEFAULT 'en',
+    subscription_source VARCHAR(50) DEFAULT 'homepage',
+    confirmation_token VARCHAR(255),
+    confirmed_at TIMESTAMP,
+    unsubscribe_token VARCHAR(255),
+    unsubscribed_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes for performance
+CREATE INDEX idx_newsletter_email ON newsletter_subscriptions(email);
+CREATE INDEX idx_newsletter_active ON newsletter_subscriptions(active);
+CREATE INDEX idx_newsletter_confirmed ON newsletter_subscriptions(confirmed_at);
+CREATE INDEX idx_newsletter_confirmation_token ON newsletter_subscriptions(confirmation_token);
+CREATE INDEX idx_newsletter_unsubscribe_token ON newsletter_subscriptions(unsubscribe_token);
+CREATE INDEX idx_newsletter_language ON newsletter_subscriptions(preferred_language);
+CREATE INDEX idx_newsletter_created_at ON newsletter_subscriptions(created_at);
