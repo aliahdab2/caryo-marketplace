@@ -2,7 +2,7 @@ name: SEO Structured Data Testing
 
 on:
   push:
-    branches: [ main, develop, SEOImprovements ]
+    branches: [ main, develop ]
     paths:
       - 'frontend/src/**'
       - 'frontend/package*.json'
