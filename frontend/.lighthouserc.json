@@ -1,7 +1,7 @@
 {
   "ci": {
     "collect": {
-      "startServerCommand": "npm run dev",
+      "startServerCommand": "cd frontend && npm run dev",
       "startServerReadyPattern": "Ready in",
       "startServerReadyTimeout": 60000,
       "url": [
