@@ -57,9 +57,10 @@ export default function Home() {
         
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4 hero-absolute-content">
           <div className="text-center mb-4 xs:mb-6">
-            <h1 className="text-3xl xs:text-4xl md:text-5xl font-bold text-white mb-2 xs:mb-3">
+            <h1 className="text-xl xs:text-2xl md:text-3xl font-bold text-white mb-2 xs:mb-3">
               {t('heroTitle', { ns: 'home'})}
             </h1>
+            
             <p className="text-base xs:text-lg md:text-xl text-white">
               {t('heroSubtitle', { ns: 'home'})}
             </p>

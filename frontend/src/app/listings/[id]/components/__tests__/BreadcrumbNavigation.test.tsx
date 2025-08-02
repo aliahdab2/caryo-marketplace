@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import BreadcrumbNavigation from '../BreadcrumbNavigation';
-import { Listing } from '@/types/listings';
+import { CarListing } from '@/services/publicApi';
 
 // Mock the translation hook
 const mockT = jest.fn();
@@ -25,30 +25,52 @@ jest.mock('next/link', () => {
 });
 
 describe('BreadcrumbNavigation', () => {
-  const baseListing: Listing & {
-    brandNameEn?: string;
-    brandNameAr?: string;
-    modelNameEn?: string;
-    modelNameAr?: string;
-  } = {
-    id: '1',
+  const baseListing: CarListing = {
+    id: 1,
     title: 'Test Car',
     description: 'Test Description',
     price: 25000,
-    year: 2020,
+    modelYear: 2020,
     mileage: 50000,
-    isActive: true,
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01',
     brandNameEn: 'Toyota',
     brandNameAr: 'تويوتا',
     modelNameEn: 'Camry',
-    modelNameAr: 'كامري'
-  } as Listing & {
-    brandNameEn?: string;
-    brandNameAr?: string;
-    modelNameEn?: string;
-    modelNameAr?: string;
+    modelNameAr: 'كامري',
+    governorateNameEn: 'Dubai',
+    governorateNameAr: 'دبي',
+    locationDetails: {
+      id: 1,
+      displayNameEn: 'Dubai',
+      displayNameAr: 'دبي',
+      slug: 'dubai',
+      countryCode: 'AE',
+      governorateId: 1,
+      governorateNameEn: 'Dubai',
+      governorateNameAr: 'دبي',
+      region: 'Middle East',
+      active: true,
+    },
+    governorateDetails: {
+      id: 1,
+      displayNameEn: 'Dubai',
+      displayNameAr: 'دبي',
+      countryId: 1,
+      countryCode: 'AE',
+      countryNameEn: 'United Arab Emirates',
+      countryNameAr: 'الإمارات العربية المتحدة',
+      slug: 'dubai',
+    },
+    transmission: 'Automatic',
+    fuelType: 'Petrol',
+    media: [],
+    approved: true,
+    sellerId: 1,
+    sellerUsername: 'testuser',
+    createdAt: '2024-01-01',
+    isSold: false,
+    isArchived: false,
+    isUserActive: true,
+    isExpired: false,
   };
 
   beforeEach(() => {
@@ -110,8 +132,8 @@ describe('BreadcrumbNavigation', () => {
   it('should handle missing model gracefully', () => {
     const listingWithoutModel = {
       ...baseListing,
-      modelNameEn: undefined,
-      modelNameAr: undefined
+      modelNameEn: '',
+      modelNameAr: ''
     };
 
     render(<BreadcrumbNavigation listing={listingWithoutModel} />);
@@ -124,8 +146,8 @@ describe('BreadcrumbNavigation', () => {
   it('should handle missing brand gracefully', () => {
     const listingWithoutBrand = {
       ...baseListing,
-      brandNameEn: undefined,
-      brandNameAr: undefined
+      brandNameEn: '',
+      brandNameAr: ''
     };
 
     render(<BreadcrumbNavigation listing={listingWithoutBrand} />);

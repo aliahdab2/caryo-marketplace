@@ -7,6 +7,7 @@
     "build": "next build",
     "build:analyze": "ANALYZE=true npm run build",
     "build:check": "npm run type-check && npm run lint && npm run build",
+    "postbuild": "next-sitemap",
     "start": "next start",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx,.js --max-warnings 0",
@@ -18,7 +19,8 @@
     "test:coverage": "npm run test -- --coverage",
     "restart": "sh ./scripts/restart-dev.sh",
     "diagnose": "node ./scripts/diagnostics/simple-diagnostics.js",
-    "find-unused-translations": "node ./scripts/diagnostics/find-unused-translations.js"
+    "find-unused-translations": "node ./scripts/diagnostics/find-unused-translations.js",
+    "sitemap": "next-sitemap"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
@@ -35,11 +37,14 @@
     "lucide-react": "^0.511.0",
     "next": "^15.4.4",
     "next-auth": "^4.24.11",
+    "next-seo": "^6.8.0",
+    "next-sitemap": "^4.2.3",
     "punycode": "^2.3.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-i18next": "^15.5.1",
     "react-icons": "^5.5.0",
+    "schema-dts": "^1.1.5",
     "swr": "^2.3.3"
   },
   "devDependencies": {

@@ -2,22 +2,21 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Listing } from '@/types/listings';
+import { CarListing } from '@/services/publicApi';
 import { 
-  Car, 
   CalendarDays, 
   Fuel, 
   Cog, 
   Gauge, 
-  Palette, 
   ChevronUp,
   ChevronDown,
   Tag,
-  MapPin
+  MapPin,
+  Car
 } from 'lucide-react';
 
 interface CarFactsProps {
-  listing: Listing;
+  listing: CarListing;
 }
 
 const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
@@ -47,18 +46,18 @@ const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
     }] : []),
     
     // Model Year - from API - "Modellår"
-    ...(listing.year ? [{
+    ...(listing.modelYear ? [{
       label: t('modelYear'),
-      value: listing.year.toString(),
+      value: listing.modelYear.toString(),
       icon: <CalendarDays className="w-4 h-4 text-gray-600" />
     }] : []),
     
-    // Car Type - "Biltyp" (could be condition or a separate field)
-    ...(listing.condition ? [{
-      label: t('carType'),
-      value: listing.condition === 'new' ? t('new') : listing.condition === 'used' ? t('used') : listing.condition,
-      icon: <Car className="w-4 h-4 text-gray-600" />
-    }] : []),
+    // Car Type - commented out as condition doesn't exist in CarListing
+    // ...(listing.condition ? [{
+    //   label: t('carType'),
+    //   value: listing.condition === 'new' ? t('new') : listing.condition === 'used' ? t('used') : listing.condition,
+    //   icon: <Car className="w-4 h-4 text-gray-600" />
+    // }] : []),
     
     // Engine Size - "Motorstorlek" (if available from API)
     // Note: This field might not be available in current API
@@ -69,31 +68,31 @@ const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
     // Power/Horsepower - "Hästkrafter" (if available from API)
     // Note: This field might not be available in current API
     
-    // Exterior Color - from API (if available) - "Färg"
-    ...(listing.exteriorColor ? [{
-      label: t('color'),
-      value: listing.exteriorColor,
-      icon: <Palette className="w-4 h-4 text-gray-600" />
-    }] : []),
+    // Exterior Color - commented out as exteriorColor doesn't exist in CarListing
+    // ...(listing.exteriorColor ? [{
+    //   label: t('color'),
+    //   value: listing.exteriorColor,
+    //   icon: <Palette className="w-4 h-4 text-gray-600" />
+    // }] : []),
     
-    // Brand - from API - "Märke" (separate from model)
-    ...((listing.brandNameEn || listing.brand) ? [{
+    // Brand - from API
+    ...(listing.brandNameEn ? [{
       label: t('brand'),
-      value: listing.brandNameEn || listing.brand || '',
+      value: listing.brandNameEn,
       icon: <Tag className="w-4 h-4 text-gray-600" />
     }] : []),
     
-    // Model - from API - "Modell" (separate from brand)
-    ...((listing.modelNameEn || listing.model) ? [{
+    // Model - from API
+    ...(listing.modelNameEn ? [{
       label: t('model'),
-      value: listing.modelNameEn || listing.model || '',
-      icon: <Tag className="w-4 h-4 text-gray-600" />
+      value: listing.modelNameEn,
+      icon: <Car className="w-4 h-4 text-gray-600" />
     }] : []),
     
-    // Location - from API (if available)
-    ...((listing.governorateNameEn || listing.location?.city) ? [{
+    // Location - from API
+    ...(listing.governorateNameEn ? [{
       label: t('location'),
-      value: listing.governorateNameEn || listing.location?.city || '',
+      value: listing.governorateNameEn,
       icon: <MapPin className="w-4 h-4 text-gray-600" />
     }] : [])
   ];

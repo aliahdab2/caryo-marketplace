@@ -3,16 +3,11 @@
 import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { Listing } from '@/types/listings';
+import { CarListing } from '@/services/publicApi';
 import { buildBrandSearchUrl, buildModelSearchUrl, NAVIGATION_ROUTES } from '@/utils/navigationUtils';
 
 interface BreadcrumbNavigationProps {
-  listing: Listing & {
-    brandNameEn?: string;
-    brandNameAr?: string;
-    modelNameEn?: string;
-    modelNameAr?: string;
-  };
+  listing: CarListing;
 }
 
 interface BreadcrumbItem {
