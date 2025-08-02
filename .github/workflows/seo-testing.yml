@@ -3,8 +3,16 @@ name: SEO Structured Data Testing
 on:
   push:
     branches: [ main, develop, SEOImprovements ]
+    paths:
+      - 'frontend/src/**'
+      - 'frontend/package*.json'
+      - '.github/workflows/seo-testing.yml'
   pull_request:
     branches: [ main, develop ]
+    paths:
+      - 'frontend/src/**'
+      - 'frontend/package*.json'
+      - '.github/workflows/seo-testing.yml'
   
   # Allow manual triggering for testing
   workflow_dispatch:
@@ -23,18 +31,14 @@ jobs:
     name: SEO Structured Data Tests
     runs-on: ubuntu-latest
     
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Setup Node.js ${{ matrix.node-version }}
+    - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: '20.x'
         cache: 'npm'
         cache-dependency-path: frontend/package-lock.json
         
@@ -45,7 +49,7 @@ jobs:
     - name: Run SEO structured data tests
       working-directory: ./frontend
       run: |
-        npm test -- --testPathPattern=seo --coverage --coverageReporters=json-summary --coverageReporters=lcov --coverageReporters=text
+        npm test -- --testPathPattern=seo --coverage --coverageReporters=json-summary --coverageReporters=lcov --coverageReporters=text --watchAll=false
         
     - name: Generate detailed SEO test report
       working-directory: ./frontend
@@ -53,7 +57,7 @@ jobs:
         echo "# SEO Structured Data Test Results" > seo-test-report.md
         echo "" >> seo-test-report.md
         echo "## Test Summary" >> seo-test-report.md
-        echo "- **Node.js Version:** ${{ matrix.node-version }}" >> seo-test-report.md
+        echo "- **Node.js Version:** 20.x" >> seo-test-report.md
         echo "- **Test Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> seo-test-report.md
         echo "- **Branch:** ${{ github.ref_name }}" >> seo-test-report.md
         echo "- **Commit:** ${{ github.sha }}" >> seo-test-report.md
@@ -211,7 +215,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: seo-test-results-node-${{ matrix.node-version }}
+        name: seo-test-results
         path: |
           frontend/coverage/
           frontend/seo-test-report.md
@@ -232,7 +236,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## 🔍 SEO Structured Data Test Results (Node.js ${{ matrix.node-version }})
+              body: `## 🔍 SEO Structured Data Test Results
               
               ${report}
               
@@ -285,7 +289,7 @@ jobs:
   notification:
     name: Notify SEO Test Results
     runs-on: ubuntu-latest
-    needs: [seo-tests, seo-audit]
+    needs: [seo-tests]
     if: always()
     
     steps:
@@ -294,14 +298,29 @@ jobs:
         echo "📊 SEO Testing Results Summary:"
         echo "• SEO Tests: ${{ needs.seo-tests.result }}"
         
-        if [ "${{ needs.seo-audit.result }}" != "skipped" ]; then
-          echo "• SEO Audit: ${{ needs.seo-audit.result }}"
-        fi
-        
-        # Job succeeds if seo-tests pass, regardless of audit result
+        # Job succeeds if seo-tests pass
         if [ "${{ needs.seo-tests.result }}" == "success" ]; then
           echo "✅ SEO structured data tests passed successfully"
         else
           echo "❌ SEO structured data tests failed"
+          exit 1
+        fi
+
+  audit-notification:
+    name: Notify SEO Audit Results
+    runs-on: ubuntu-latest
+    needs: [seo-audit]
+    if: github.event_name == 'pull_request' && always()
+    
+    steps:
+    - name: Send audit notification
+      run: |
+        echo "🔍 SEO Audit Results Summary:"
+        echo "• SEO Audit: ${{ needs.seo-audit.result }}"
+        
+        if [ "${{ needs.seo-audit.result }}" == "success" ]; then
+          echo "✅ SEO performance audit completed successfully"
+        else
+          echo "❌ SEO performance audit failed"
           exit 1
         fi
