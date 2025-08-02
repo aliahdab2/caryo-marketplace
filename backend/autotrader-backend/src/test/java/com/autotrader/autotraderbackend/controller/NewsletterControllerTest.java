@@ -255,23 +255,16 @@ class NewsletterControllerTest {
     @Test
     @DisplayName("Should use default language when not specified")
     void subscribe_WithoutLanguage_ShouldUseDefaultLanguage() throws Exception {
-    }
+        NewsletterSubscriptionRequest request = new NewsletterSubscriptionRequest();
+        request.setEmail("default@example.com");
+        // No language specified
 
-    @Test
-    @DisplayName("Should return newsletter statistics")
-    @org.springframework.security.test.context.support.WithMockUser(roles = "ADMIN")
-    void getStats_ShouldReturnCorrectStatistics() throws Exception {
-        // Create test subscriptions
-        NewsletterSubscription activeSubscription = new NewsletterSubscription();
-        activeSubscription.setEmail("active@example.com");
-        activeSubscription.setPreferredLanguage("en");
-        activeSubscription.setActive(true);
-        activeSubscription.setConfirmedAt(LocalDateTime.now());
-        newsletterRepository.save(activeSubscription);
+        mockMvc.perform(post("/api/public/newsletter/subscribe")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
 
-        NewsletterSubscription inactiveSubscription = new NewsletterSubscription();
-        inactiveSubscription.setEmail("inactive@example.com");
-        inactiveSubscription.setPreferredLanguage("en");
         // Verify default language was used
         Optional<NewsletterSubscription> subscription = newsletterRepository.findByEmail("default@example.com");
         assertTrue(subscription.isPresent());
