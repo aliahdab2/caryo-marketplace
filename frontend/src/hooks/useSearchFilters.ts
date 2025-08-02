@@ -490,7 +490,7 @@ export function useSearchFilters({
       default:
         return '';
     }
-  }, [state.filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getFuelTypeDisplayName, getBodyStyleDisplayName, getSellerTypeDisplayName]);
+  }, [state.filters, t, getBrandDisplayNameFromSlug, getModelDisplayNameFromSlug, getTransmissionDisplayName, getFuelTypeDisplayNameFromSlug, getBodyStyleDisplayName, getSellerTypeDisplayName]);
 
   // Check if filter is active
   const isFilterActive = useCallback((filterType: FilterType): boolean => {
