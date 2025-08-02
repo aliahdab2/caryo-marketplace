@@ -73,13 +73,6 @@ jobs:
         echo "✅ **Status:** All SEO structured data tests passed" >> seo-test-report.md
         echo "📅 **Date:** $(date -u +"%Y-%m-%d %H:%M UTC")" >> seo-test-report.md
         echo "🌿 **Branch:** ${{ github.ref_name }}" >> seo-test-report.md
-      
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend_build
-        path: frontend/build/
-        retention-days: 1
         
     - name: Validate Schema.org structures
       working-directory: ./frontend
@@ -273,11 +266,9 @@ jobs:
       env:
         HUSKY: 0
       
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: frontend_build
-        path: frontend/build/
+    - name: Build application
+      working-directory: ./frontend
+      run: npm run build
       
     - name: Install Lighthouse CLI
       run: npm install -g lighthouse
@@ -375,6 +366,8 @@ jobs:
           else
             echo "⚠️  SEO performance audit was skipped or cancelled"
           fi
+        else
+          echo "ℹ️  SEO performance audit skipped (only runs on pull requests)"
         fi
         
         # Fail the job if critical tests failed
