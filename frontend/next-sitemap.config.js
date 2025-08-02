@@ -1,6 +1,6 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: process.env.SITE_URL || 'https://caryo-marketplace.com',
+  siteUrl: process.env.SITE_URL || 'http://localhost:3000',
   generateRobotsTxt: true, // (optional)
   generateIndexSitemap: false, // For smaller sites
   
@@ -51,7 +51,7 @@ module.exports = {
       },
     ],
     additionalSitemaps: [
-      `${process.env.SITE_URL || 'https://caryo-marketplace.com'}/sitemap.xml`,
+      `${process.env.SITE_URL || 'http://localhost:3000'}/sitemap.xml`,
     ],
   },
   
