@@ -1,4 +1,4 @@
-package com.autotrader.autotraderbackend.dto.response;
+package com.autotrader.autotraderbackend.payload.response;
 
 import lombok.Data;
 

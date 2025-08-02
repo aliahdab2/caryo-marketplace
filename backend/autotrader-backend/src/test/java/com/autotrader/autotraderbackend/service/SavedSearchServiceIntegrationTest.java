@@ -1,7 +1,7 @@
 package com.autotrader.autotraderbackend.service;
 
-import com.autotrader.autotraderbackend.dto.request.SavedSearchRequest;
-import com.autotrader.autotraderbackend.dto.response.SavedSearchResponse;
+import com.autotrader.autotraderbackend.payload.request.SavedSearchRequest;
+import com.autotrader.autotraderbackend.payload.response.SavedSearchResponse;
 import com.autotrader.autotraderbackend.model.*;
 import com.autotrader.autotraderbackend.repository.*;
 import org.junit.jupiter.api.BeforeEach;

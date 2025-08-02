@@ -1,7 +1,7 @@
 package com.autotrader.autotraderbackend.controller;
 
-import com.autotrader.autotraderbackend.dto.request.SavedSearchRequest;
-import com.autotrader.autotraderbackend.dto.response.SavedSearchResponse;
+import com.autotrader.autotraderbackend.payload.request.SavedSearchRequest;
+import com.autotrader.autotraderbackend.payload.response.SavedSearchResponse;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
 import com.autotrader.autotraderbackend.security.services.UserDetailsServiceImpl;

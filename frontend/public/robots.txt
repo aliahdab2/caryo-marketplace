@@ -12,7 +12,7 @@ Disallow: /_next/
 Disallow: /static/
 
 # Host
-Host: https://caryo-marketplace.com
+Host: http://localhost:3000
 
 # Sitemaps
-Sitemap: https://caryo-marketplace.com/sitemap.xml
+Sitemap: http://localhost:3000/sitemap.xml

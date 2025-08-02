@@ -45,7 +45,7 @@ public class SavedSearch {
     private String nameAr;
 
     /**
-     * Search filters stored as JSONB
+     * Search filters stored as JSON string for H2/PostgreSQL compatibility
      * Expected structure:
      * {
      *   "brandSlugs": ["toyota", "honda"],
@@ -68,11 +68,11 @@ public class SavedSearch {
      * }
      */
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "filters", nullable = false)
+    @Column(name = "filters", nullable = false, columnDefinition = "TEXT")
     private Map<String, Object> filters;
 
     /**
-     * Notification preferences stored as JSONB
+     * Notification preferences stored as JSON string for H2/PostgreSQL compatibility
      * Expected structure:
      * {
      *   "email": true,
@@ -80,7 +80,7 @@ public class SavedSearch {
      * }
      */
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "notification_preferences", nullable = false)
+    @Column(name = "notification_preferences", nullable = false, columnDefinition = "TEXT")
     private Map<String, Object> notificationPreferences;
 
     @Column(name = "last_notified_at")

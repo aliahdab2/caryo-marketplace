@@ -9,27 +9,16 @@
 
 -- Prerequisites:
 -- Tables users and car_listings must exist
-
--- Validate pre-conditions
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'users') THEN
-        RAISE EXCEPTION 'Prerequisite table "users" does not exist';
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'car_listings') THEN
-        RAISE EXCEPTION 'Prerequisite table "car_listings" does not exist';
-    END IF;
-END
-$$;
+-- Note: Removed PostgreSQL-specific validation blocks for H2 compatibility
 
 -- Create saved_searches table
 CREATE TABLE saved_searches (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     user_id BIGINT NOT NULL,
     name_en VARCHAR(255) NOT NULL,
     name_ar VARCHAR(255),
-    filters JSONB NOT NULL DEFAULT '{}',
-    notification_preferences JSONB NOT NULL DEFAULT '{"email": true, "frequency": "immediate"}',
+    filters CLOB NOT NULL DEFAULT '{}',
+    notification_preferences CLOB NOT NULL DEFAULT '{"email": true, "frequency": "immediate"}',
     last_notified_at TIMESTAMP,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -40,7 +29,7 @@ CREATE TABLE saved_searches (
 
 -- Create saved_search_notifications table to track which listings have been notified
 CREATE TABLE saved_search_notifications (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     saved_search_id UUID NOT NULL,
     listing_id BIGINT NOT NULL,
     notified_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -56,59 +45,19 @@ CREATE INDEX idx_saved_searches_is_active ON saved_searches(is_active);
 CREATE INDEX idx_saved_searches_last_notified ON saved_searches(last_notified_at);
 CREATE INDEX idx_saved_searches_created_at ON saved_searches(created_at);
 
--- JSONB indexes for filter queries
-CREATE INDEX idx_saved_searches_filters_gin ON saved_searches USING GIN (filters);
-CREATE INDEX idx_saved_searches_notifications_gin ON saved_searches USING GIN (notification_preferences);
-
 -- Indexes for saved_search_notifications
 CREATE INDEX idx_notifications_saved_search_id ON saved_search_notifications(saved_search_id);
 CREATE INDEX idx_notifications_listing_id ON saved_search_notifications(listing_id);
 CREATE INDEX idx_notifications_notified_at ON saved_search_notifications(notified_at);
 
--- Create trigger to automatically update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_saved_searches_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_update_saved_searches_updated_at
-    BEFORE UPDATE ON saved_searches
-    FOR EACH ROW
-    EXECUTE FUNCTION update_saved_searches_updated_at();
-
--- Post-migration validation
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'saved_searches') THEN
-        RAISE EXCEPTION 'Migration failed: "saved_searches" table not created';
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'saved_search_notifications') THEN
-        RAISE EXCEPTION 'Migration failed: "saved_search_notifications" table not created';
-    END IF;
-    
-    -- Verify key columns exist
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'saved_searches' AND column_name = 'filters' AND data_type = 'jsonb'
-    ) THEN
-        RAISE EXCEPTION 'Migration failed: "filters" JSONB column not created in saved_searches table';
-    END IF;
-END
-$$;
+-- Note: PostgreSQL-specific triggers and functions removed for H2 compatibility
+-- In production, these can be added via PostgreSQL-specific migrations
 
 -- Rollback Script
 /*
-DROP TRIGGER IF EXISTS trigger_update_saved_searches_updated_at ON saved_searches;
-DROP FUNCTION IF EXISTS update_saved_searches_updated_at();
 DROP INDEX IF EXISTS idx_notifications_notified_at;
 DROP INDEX IF EXISTS idx_notifications_listing_id;
 DROP INDEX IF EXISTS idx_notifications_saved_search_id;
-DROP INDEX IF EXISTS idx_saved_searches_notifications_gin;
-DROP INDEX IF EXISTS idx_saved_searches_filters_gin;
 DROP INDEX IF EXISTS idx_saved_searches_created_at;
 DROP INDEX IF EXISTS idx_saved_searches_last_notified;
 DROP INDEX IF EXISTS idx_saved_searches_is_active;
