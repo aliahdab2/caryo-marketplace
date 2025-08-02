@@ -291,6 +291,14 @@ jobs:
     steps:
     - name: Send notification
       run: |
+        echo "📊 SEO Testing Results Summary:"
+        echo "• SEO Tests: ${{ needs.seo-tests.result }}"
+        
+        if [ "${{ needs.seo-audit.result }}" != "skipped" ]; then
+          echo "• SEO Audit: ${{ needs.seo-audit.result }}"
+        fi
+        
+        # Job succeeds if seo-tests pass, regardless of audit result
         if [ "${{ needs.seo-tests.result }}" == "success" ]; then
           echo "✅ SEO structured data tests passed successfully"
         else
