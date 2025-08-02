@@ -35,6 +35,33 @@ Available test pages include:
 
 This hub makes it easier to test individual components in isolation and verify translations are working correctly.
 
+## SEO Files Generation
+
+**Important**: The `sitemap.xml` and `robots.txt` files are automatically generated and should NOT be committed to the repository.
+
+### How it works:
+- Files are generated during build via the `postbuild` script
+- Uses `next-sitemap` package with environment-based configuration
+- URLs are dynamically set based on `SITE_URL` environment variable
+
+### Environment Setup:
+```bash
+# Development (.env.local)
+SITE_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+# Production
+SITE_URL=https://caryo-marketplace.com
+NEXT_PUBLIC_SITE_URL=https://caryo-marketplace.com
+```
+
+### Manual Generation:
+```bash
+npm run postbuild  # Generates sitemap.xml and robots.txt
+```
+
+This prevents localhost URLs from being committed and ensures proper SEO configuration in production.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

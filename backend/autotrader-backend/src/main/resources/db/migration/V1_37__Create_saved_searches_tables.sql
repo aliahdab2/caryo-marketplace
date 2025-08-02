@@ -6,6 +6,14 @@
 -- Creates tables to support saved searches functionality similar to Blocket
 -- Includes saved_searches table for storing user search criteria
 -- Includes saved_search_notifications table for tracking sent notifications
+--
+-- Design Notes:
+-- 1. Bilingual Fields: Uses _en/_ar suffix pattern for user-displayable content (name fields)
+-- 2. JSON Storage: Uses TEXT fields for technical/functional data (filters, preferences)
+--    - This follows existing pattern (see search_parameters in V1__Initial_Schema.sql)
+--    - Technical data like {"minPrice": 10000} is inherently language-neutral
+--    - Avoids unnecessary duplication of identical technical criteria
+-- 3. Database Compatibility: Uses TEXT instead of JSON type for H2/PostgreSQL compatibility
 
 -- Prerequisites:
 -- Tables users and car_listings must exist
@@ -19,10 +27,19 @@ DROP TABLE IF EXISTS saved_searches;
 CREATE TABLE saved_searches (
     id UUID PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    name_en VARCHAR(255) NOT NULL,
-    name_ar VARCHAR(255),
-    filters TEXT NOT NULL DEFAULT '{}',
-    notification_preferences TEXT NOT NULL DEFAULT '{"email": true, "frequency": "immediate"}',
+    
+    -- Bilingual display names (following project _en/_ar pattern)
+    name_en VARCHAR(255) NOT NULL,    -- User-displayable name in English
+    name_ar VARCHAR(255),             -- User-displayable name in Arabic
+    
+    -- Technical/functional data stored as JSON (language-neutral)
+    -- Note: These fields contain technical search criteria and system settings,
+    -- not user-displayable content, so they don't require bilingual fields.
+    -- This follows the existing pattern used in search_parameters field.
+    filters TEXT NOT NULL DEFAULT '{}',                           -- Search criteria JSON
+    notification_preferences TEXT NOT NULL DEFAULT '{"email": true, "frequency": "immediate"}',  -- System preferences JSON
+    
+    -- System fields
     last_notified_at TIMESTAMP,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
