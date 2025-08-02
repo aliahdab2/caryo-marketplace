@@ -54,12 +54,16 @@ class SavedSearchServiceIntegrationTest {
     @Autowired
     private GovernorateRepository governorateRepository;
 
+    @Autowired
+    private CountryRepository countryRepository;
+
     @MockBean
     private JavaMailSender mailSender;
 
     private User testUser;
     private CarBrand toyotaBrand;
     private CarModel camryModel;
+    private Country testCountry;
     private Governorate riyadhGovernorate;
 
     @BeforeEach
@@ -87,11 +91,25 @@ class SavedSearchServiceIntegrationTest {
         camryModel.setBrand(toyotaBrand);
         camryModel = carModelRepository.save(camryModel);
 
-        // Create test governorate
+        // Create test country first (required for governorate)
+        // Check if country already exists to avoid unique constraint violations
+        testCountry = countryRepository.findByCountryCode("SA")
+                .orElseGet(() -> {
+                    Country newCountry = new Country();
+                    newCountry.setCountryCode("SA");
+                    newCountry.setDisplayNameEn("Saudi Arabia");
+                    newCountry.setDisplayNameAr("المملكة العربية السعودية");
+                    newCountry.setIsActive(true);
+                    return countryRepository.save(newCountry);
+                });
+
+        // Create test governorate with required country relationship
         riyadhGovernorate = new Governorate();
         riyadhGovernorate.setDisplayNameEn("Riyadh");
         riyadhGovernorate.setDisplayNameAr("الرياض");
         riyadhGovernorate.setSlug("riyadh");
+        riyadhGovernorate.setCountry(testCountry); // Set the required country reference
+        riyadhGovernorate.setIsActive(true);
         riyadhGovernorate = governorateRepository.save(riyadhGovernorate);
     }
 
