@@ -104,13 +104,17 @@ class SavedSearchServiceIntegrationTest {
                 });
 
         // Create test governorate with required country relationship
-        riyadhGovernorate = new Governorate();
-        riyadhGovernorate.setDisplayNameEn("Riyadh");
-        riyadhGovernorate.setDisplayNameAr("الرياض");
-        riyadhGovernorate.setSlug("riyadh");
-        riyadhGovernorate.setCountry(testCountry); // Set the required country reference
-        riyadhGovernorate.setIsActive(true);
-        riyadhGovernorate = governorateRepository.save(riyadhGovernorate);
+        // Check if governorate already exists to avoid unique constraint violations
+        riyadhGovernorate = governorateRepository.findBySlug("riyadh")
+                .orElseGet(() -> {
+                    Governorate newGovernorate = new Governorate();
+                    newGovernorate.setDisplayNameEn("Riyadh");
+                    newGovernorate.setDisplayNameAr("الرياض");
+                    newGovernorate.setSlug("riyadh");
+                    newGovernorate.setCountry(testCountry); // Set the required country reference
+                    newGovernorate.setIsActive(true);
+                    return governorateRepository.save(newGovernorate);
+                });
     }
 
     @Test

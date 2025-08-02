@@ -1724,6 +1724,292 @@ To run all API tests automatically:
   }
   ```
 
+## Saved Searches
+
+The Saved Search feature allows users to save their search criteria and receive notifications when new listings match their preferences.
+
+### Create Saved Search
+
+- **Endpoint**: `POST /api/saved-searches`
+- **Access**: Authenticated users
+- **Description**: Creates a new saved search with filter criteria and notification preferences
+- **Authentication**: Required (JWT token)
+- **Request Body**:
+  ```json
+  {
+    "name": "My Toyota Search",
+    "description": "Looking for Toyota cars under $30,000",
+    "filters": {
+      "brandSlugs": ["toyota"],
+      "minPrice": 10000,
+      "maxPrice": 30000,
+      "minYear": 2018,
+      "locations": ["damascus", "aleppo"]
+    },
+    "notificationsEnabled": true,
+    "emailNotifications": true
+  }
+  ```
+- **Response (201 Created)**:
+  ```json
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "name": "My Toyota Search",
+    "description": "Looking for Toyota cars under $30,000",
+    "filters": {
+      "brandSlugs": ["toyota"],
+      "minPrice": 10000,
+      "maxPrice": 30000,
+      "minYear": 2018,
+      "locations": ["damascus", "aleppo"]
+    },
+    "notificationsEnabled": true,
+    "emailNotifications": true,
+    "isActive": true,
+    "createdAt": "2025-08-02T12:34:56Z",
+    "updatedAt": "2025-08-02T12:34:56Z"
+  }
+  ```
+- **Response (400 Bad Request)**:
+  ```json
+  {
+    "message": "Validation failed",
+    "errors": {
+      "name": "Name is required",
+      "filters": "At least one filter criteria must be specified"
+    }
+  }
+  ```
+
+### Get User's Saved Searches
+
+- **Endpoint**: `GET /api/saved-searches`
+- **Access**: Authenticated users
+- **Description**: Retrieves all saved searches created by the authenticated user
+- **Authentication**: Required (JWT token)
+- **Response (200 OK)**:
+  ```json
+  [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "name": "My Toyota Search",
+      "description": "Looking for Toyota cars under $30,000",
+      "filters": {
+        "brandSlugs": ["toyota"],
+        "minPrice": 10000,
+        "maxPrice": 30000,
+        "minYear": 2018,
+        "locations": ["damascus", "aleppo"]
+      },
+      "notificationsEnabled": true,
+      "emailNotifications": true,
+      "isActive": true,
+      "createdAt": "2025-08-02T12:34:56Z",
+      "updatedAt": "2025-08-02T12:34:56Z"
+    }
+  ]
+  ```
+
+### Get Specific Saved Search
+
+- **Endpoint**: `GET /api/saved-searches/{id}`
+- **Access**: Authenticated users (owner only)
+- **Description**: Retrieves a specific saved search by ID
+- **Authentication**: Required (JWT token)
+- **Parameters**:
+  - `id` (path parameter): UUID of the saved search
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "name": "My Toyota Search",
+    "description": "Looking for Toyota cars under $30,000",
+    "filters": {
+      "brandSlugs": ["toyota"],
+      "minPrice": 10000,
+      "maxPrice": 30000,
+      "minYear": 2018,
+      "locations": ["damascus", "aleppo"]
+    },
+    "notificationsEnabled": true,
+    "emailNotifications": true,
+    "isActive": true,
+    "createdAt": "2025-08-02T12:34:56Z",
+    "updatedAt": "2025-08-02T12:34:56Z"
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "Saved search not found or access denied"
+  }
+  ```
+
+### Update Saved Search
+
+- **Endpoint**: `PUT /api/saved-searches/{id}`
+- **Access**: Authenticated users (owner only)
+- **Description**: Updates an existing saved search
+- **Authentication**: Required (JWT token)
+- **Parameters**:
+  - `id` (path parameter): UUID of the saved search
+- **Request Body**:
+  ```json
+  {
+    "name": "Updated Toyota Search",
+    "description": "Looking for newer Toyota cars",
+    "filters": {
+      "brandSlugs": ["toyota"],
+      "minPrice": 15000,
+      "maxPrice": 35000,
+      "minYear": 2020,
+      "locations": ["damascus"]
+    },
+    "notificationsEnabled": true,
+    "emailNotifications": false
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "name": "Updated Toyota Search",
+    "description": "Looking for newer Toyota cars",
+    "filters": {
+      "brandSlugs": ["toyota"],
+      "minPrice": 15000,
+      "maxPrice": 35000,
+      "minYear": 2020,
+      "locations": ["damascus"]
+    },
+    "notificationsEnabled": true,
+    "emailNotifications": false,
+    "isActive": true,
+    "createdAt": "2025-08-02T12:34:56Z",
+    "updatedAt": "2025-08-02T13:45:12Z"
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "Saved search not found or access denied"
+  }
+  ```
+
+### Deactivate Saved Search
+
+- **Endpoint**: `PATCH /api/saved-searches/{id}/deactivate`
+- **Access**: Authenticated users (owner only)
+- **Description**: Deactivates a saved search (stops notifications but keeps the search)
+- **Authentication**: Required (JWT token)
+- **Parameters**:
+  - `id` (path parameter): UUID of the saved search
+- **Response (204 No Content)**
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "Saved search not found or access denied"
+  }
+  ```
+
+### Delete Saved Search
+
+- **Endpoint**: `DELETE /api/saved-searches/{id}`
+- **Access**: Authenticated users (owner only)
+- **Description**: Permanently deletes a saved search and all associated notifications
+- **Authentication**: Required (JWT token)
+- **Parameters**:
+  - `id` (path parameter): UUID of the saved search
+- **Response (204 No Content)**
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "Saved search not found or access denied"
+  }
+  ```
+
+### Get Saved Search Count
+
+- **Endpoint**: `GET /api/saved-searches/count`
+- **Access**: Authenticated users
+- **Description**: Returns the count of active saved searches for the current user
+- **Authentication**: Required (JWT token)
+- **Response (200 OK)**:
+  ```json
+  5
+  ```
+
+#### Saved Search Filter Criteria
+
+The `filters` object in saved search requests supports the same criteria as the listing filter endpoints:
+
+- `brandSlugs` (array): Filter by brand slugs (e.g., ["toyota", "honda"])
+- `modelSlugs` (array): Filter by model slugs (e.g., ["camry", "civic"])
+- `minYear` (integer): Minimum model year
+- `maxYear` (integer): Maximum model year
+- `locations` (array): Filter by location slugs
+- `locationId` (integer): Filter by location ID
+- `minPrice` (decimal): Minimum price
+- `maxPrice` (decimal): Maximum price
+- `minMileage` (integer): Minimum mileage
+- `maxMileage` (integer): Maximum mileage
+- `sellerTypeIds` (array): Filter by seller type IDs
+- `transmissionIds` (array): Filter by transmission IDs
+- `fuelTypeSlugs` (array): Filter by fuel type slugs
+- `bodyStyleIds` (array): Filter by body style IDs
+- `searchQuery` (string): Text search in title/description
+
+#### Notification System
+
+When a saved search is created with `notificationsEnabled: true`, the system will automatically:
+
+1. **Check New Listings**: Monitor newly created listings that match the saved search criteria
+2. **Send Email Notifications**: If `emailNotifications: true`, send email alerts to the user
+3. **Process Batch Notifications**: Aggregate multiple matches to avoid spam
+4. **Respect User Preferences**: Honor notification frequency and delivery preferences
+
+#### Example Usage
+
+```bash
+# Create a saved search
+curl -X POST http://localhost:8080/api/saved-searches \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Affordable SUVs",
+    "description": "Looking for SUVs under $25,000",
+    "filters": {
+      "bodyStyleIds": [2],
+      "maxPrice": 25000,
+      "minYear": 2015
+    },
+    "notificationsEnabled": true,
+    "emailNotifications": true
+  }'
+
+# Get all saved searches
+curl -X GET http://localhost:8080/api/saved-searches \
+  -H "Authorization: Bearer $TOKEN"
+
+# Update a saved search
+curl -X PUT http://localhost:8080/api/saved-searches/550e8400-e29b-41d4-a716-446655440001 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated SUV Search",
+    "filters": {
+      "bodyStyleIds": [2],
+      "maxPrice": 30000,
+      "minYear": 2018
+    },
+    "notificationsEnabled": false
+  }'
+
+# Delete a saved search
+curl -X DELETE http://localhost:8080/api/saved-searches/550e8400-e29b-41d4-a716-446655440001 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
 ### Reference Data Endpoints
 
 #### Get Governorates

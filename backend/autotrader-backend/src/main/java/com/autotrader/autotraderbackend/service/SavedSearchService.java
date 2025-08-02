@@ -5,11 +5,15 @@ import com.autotrader.autotraderbackend.payload.response.SavedSearchResponse;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.SavedSearch;
+import com.autotrader.autotraderbackend.model.SavedSearchNotification;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.repository.SavedSearchRepository;
+import com.autotrader.autotraderbackend.repository.SavedSearchNotificationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +28,10 @@ import java.util.stream.Collectors;
 public class SavedSearchService {
 
     private final SavedSearchRepository savedSearchRepository;
+    private final SavedSearchNotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final SavedSearchMatchingService matchingService;
+    private final JavaMailSender mailSender;
 
     /**
      * Create a new saved search for the user
@@ -174,16 +181,88 @@ public class SavedSearchService {
             log.info("Found {} searches for immediate notification processing", 
                     immediateNotificationSearches.size());
             
-            // Note: Notification implementation would involve:
-            // 1. Check if new listing matches each saved search criteria (use SavedSearchMatchingService)
-            // 2. Send notifications for matching searches  
-            // 3. Record notification in saved_search_notifications table
-            // 4. Update lastNotifiedAt timestamp
+            // Process each matching search
+            for (SavedSearch savedSearch : immediateNotificationSearches) {
+                processNotificationForSearch(savedSearch, newListing);
+            }
             
         } catch (Exception e) {
             log.error("Error processing new listing {} for notifications: {}", 
                      newListing.getId(), e.getMessage(), e);
             // Don't throw the exception to avoid breaking listing creation
+        }
+    }
+    
+    /**
+     * Process notification for a specific saved search and listing
+     */
+    private void processNotificationForSearch(SavedSearch savedSearch, CarListing listing) {
+        try {
+            // Check if listing matches the search criteria
+            if (!matchingService.matches(savedSearch, listing)) {
+                log.debug("Listing {} does not match saved search {}", listing.getId(), savedSearch.getId());
+                return;
+            }
+            
+            // Check if notification already exists for this combination
+            if (notificationRepository.existsBySavedSearchAndListing(savedSearch, listing)) {
+                log.debug("Notification already exists for search {} and listing {}", 
+                         savedSearch.getId(), listing.getId());
+                return;
+            }
+            
+            // Create notification record
+            SavedSearchNotification notification = new SavedSearchNotification();
+            notification.setSavedSearch(savedSearch);
+            notification.setListing(listing);
+            notification.setNotifiedAt(LocalDateTime.now());
+            notificationRepository.save(notification);
+            
+            // Send email notification
+            sendEmailNotification(savedSearch, listing);
+            
+            // Update last notified timestamp
+            savedSearch.setLastNotifiedAt(LocalDateTime.now());
+            savedSearchRepository.save(savedSearch);
+            
+            log.info("Sent notification for saved search {} and listing {}", 
+                    savedSearch.getId(), listing.getId());
+            
+        } catch (Exception e) {
+            log.error("Error processing notification for search {} and listing {}: {}", 
+                     savedSearch.getId(), listing.getId(), e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Send email notification for a matching listing
+     */
+    private void sendEmailNotification(SavedSearch savedSearch, CarListing listing) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(savedSearch.getUser().getEmail());
+            message.setSubject("New Car Listing Matches Your Saved Search");
+            message.setText(String.format(
+                "A new car listing has been found that matches your saved search '%s':\n\n" +
+                "Car: %s\n" +
+                "Price: $%s\n" +
+                "Year: %d\n" +
+                "Mileage: %,d miles\n\n" +
+                "View the listing for more details.",
+                savedSearch.getNameEn(),
+                listing.getTitle(),
+                listing.getPrice(),
+                listing.getModelYear(),
+                listing.getMileage()
+            ));
+            
+            mailSender.send(message);
+            log.debug("Email sent to {} for saved search {}", 
+                     savedSearch.getUser().getEmail(), savedSearch.getId());
+            
+        } catch (Exception e) {
+            log.error("Failed to send email notification for search {} to {}: {}", 
+                     savedSearch.getId(), savedSearch.getUser().getEmail(), e.getMessage(), e);
         }
     }
 

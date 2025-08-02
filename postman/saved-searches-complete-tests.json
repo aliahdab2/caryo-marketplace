@@ -1,0 +1,406 @@
+{
+  "info": {
+    "name": "SavedSearch Complete API Tests",
+    "description": "Complete test suite for SavedSearch API including authentication",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Setup Authentication",
+      "item": [
+        {
+          "name": "Register Test User",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const randomUsername = 'user_' + Math.random().toString(36).substring(2, 10);",
+                  "const randomEmail = `${randomUsername}@example.com`;",
+                  "",
+                  "pm.environment.set('test_username', randomUsername);",
+                  "pm.environment.set('test_email', randomEmail);",
+                  "pm.environment.set('test_password', 'password123');",
+                  "",
+                  "console.log(`Generated test user: ${randomUsername}, ${randomEmail}`);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Registration successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Registration message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include(\"successfully\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{test_username}}\",\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "Login Test User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Login successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Token received\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token).to.exist;",
+                  "    pm.environment.set('auth_token', jsonData.token);",
+                  "});",
+                  "",
+                  "console.log('Auth token set:', pm.environment.get('auth_token') ? 'YES' : 'NO');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{test_username}}\",\n  \"password\": \"{{test_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signin"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "SavedSearch CRUD Tests",
+      "item": [
+        {
+          "name": "Create SavedSearch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"SavedSearch created successfully\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has saved search data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.exist;",
+                  "    pm.expect(jsonData.nameEn).to.eql('BMW M3 Search');",
+                  "    pm.environment.set('saved_search_id', jsonData.id);",
+                  "});",
+                  "",
+                  "console.log('Created SavedSearch ID:', pm.environment.get('saved_search_id'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nameEn\": \"BMW M3 Search\",\n  \"nameAr\": \"بحث BMW M3\",\n  \"filters\": {\n    \"brand\": \"BMW\",\n    \"model\": \"M3\",\n    \"minPrice\": 30000,\n    \"maxPrice\": 80000\n  },\n  \"notificationPreferences\": {\n    \"email\": true,\n    \"frequency\": \"daily\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches"]
+            }
+          }
+        },
+        {
+          "name": "Get All SavedSearches",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"SavedSearches retrieved successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains saved searches\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.content).to.be.an('array');",
+                  "    pm.expect(jsonData.content.length).to.be.greaterThan(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches"]
+            }
+          }
+        },
+        {
+          "name": "Get SavedSearch by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"SavedSearch retrieved successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has correct saved search\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.eql(pm.environment.get('saved_search_id'));",
+                  "    pm.expect(jsonData.nameEn).to.eql('BMW M3 Search');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches/{{saved_search_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches", "{{saved_search_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update SavedSearch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"SavedSearch updated successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has updated data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.nameEn).to.eql('Updated BMW M3 Search');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nameEn\": \"Updated BMW M3 Search\",\n  \"nameAr\": \"بحث BMW M3 المحدث\",\n  \"filters\": {\n    \"brand\": \"BMW\",\n    \"model\": \"M3\",\n    \"minPrice\": 35000,\n    \"maxPrice\": 90000\n  },\n  \"notificationPreferences\": {\n    \"email\": true,\n    \"frequency\": \"weekly\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches/{{saved_search_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches", "{{saved_search_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get SavedSearch Count",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"SavedSearch count retrieved successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has count\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.count).to.be.a('number');",
+                  "    pm.expect(jsonData.count).to.be.greaterThan(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches", "count"]
+            }
+          }
+        },
+        {
+          "name": "Delete SavedSearch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"SavedSearch deleted successfully\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "console.log('SavedSearch deleted successfully');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches/{{saved_search_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches", "{{saved_search_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Scenario Tests",
+      "item": [
+        {
+          "name": "Access without authentication",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Unauthenticated access returns 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches"]
+            }
+          }
+        },
+        {
+          "name": "Get non-existent SavedSearch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Non-existent SavedSearch returns 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/saved-searches/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "saved-searches", "00000000-0000-0000-0000-000000000000"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

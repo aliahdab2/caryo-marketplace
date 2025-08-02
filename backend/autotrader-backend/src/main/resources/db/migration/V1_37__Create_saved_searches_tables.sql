@@ -11,14 +11,18 @@
 -- Tables users and car_listings must exist
 -- Note: Removed PostgreSQL-specific validation blocks for H2 compatibility
 
+-- Drop tables if they exist (for development purposes)
+DROP TABLE IF EXISTS saved_search_notifications;
+DROP TABLE IF EXISTS saved_searches;
+
 -- Create saved_searches table
 CREATE TABLE saved_searches (
     id UUID PRIMARY KEY,
     user_id BIGINT NOT NULL,
     name_en VARCHAR(255) NOT NULL,
     name_ar VARCHAR(255),
-    filters CLOB NOT NULL DEFAULT '{}',
-    notification_preferences CLOB NOT NULL DEFAULT '{"email": true, "frequency": "immediate"}',
+    filters TEXT NOT NULL DEFAULT '{}',
+    notification_preferences TEXT NOT NULL DEFAULT '{"email": true, "frequency": "immediate"}',
     last_notified_at TIMESTAMP,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
