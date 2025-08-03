@@ -9,7 +9,8 @@ import { usePathname } from "next/navigation";
 import ToggleLanguageSwitcher from "@/components/ToggleLanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
 import { useAuthUser } from "@/hooks/useAuthSession";
-import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdSearch, MdNotificationsNone, MdNotifications } from "react-icons/md";
+import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdMail, MdMailOutline, MdBookmark, MdSearch, MdNotificationsNone, MdNotifications } from "react-icons/md";
+import { FiSearch } from "react-icons/fi";
 import { NAVIGATION_ROUTES } from "@/utils/navigationUtils";
 import type { ComponentProps } from "@/types/components";
 
@@ -90,18 +91,26 @@ export default function Navbar({ className }: ComponentProps) {
               {/* Messages - Larger style like Blocket */}
               <Link 
                 href={user ? "/dashboard/messages" : "/auth/signin"}
-                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
+                className={`flex flex-col items-center justify-center px-4 py-2.5 rounded-lg transition-colors min-w-[75px] max-w-[90px] h-14 ${
+                  pathname?.startsWith('/dashboard/messages') 
+                    ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
+                }`}
               >
-                <MdEmail className="h-5 w-5 mb-1 flex-shrink-0" />
-                <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('header.messages')}</span>
+                {pathname?.startsWith('/dashboard/messages') ? (
+                  <MdMail className="h-5 w-5 mb-1 flex-shrink-0" />
+                ) : (
+                  <MdMailOutline className="h-5 w-5 mb-1 flex-shrink-0" />
+                )}
+                <span className="text-xs leading-tight font-medium text-center w-full px-1">{t('header.messages')}</span>
               </Link>
               
               {/* Saved Searches - Larger style like Blocket */}
               <Link 
                 href={user ? "/saved/alerts" : "/auth/signin"}
-                className={`flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14 group ${
+                className={`flex flex-col items-center justify-center px-4 py-2.5 rounded-lg transition-colors min-w-[75px] max-w-[90px] h-14 group ${
                   pathname?.startsWith('/saved') 
-                    ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30' 
+                    ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
                 }`}
                 title="Saved Searches & Alerts"
@@ -111,16 +120,24 @@ export default function Navbar({ className }: ComponentProps) {
                 ) : (
                   <MdNotificationsNone className="h-5 w-5 mb-1 flex-shrink-0" />
                 )}
-                <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('header.savedSearches')}</span>
+                <span className="text-xs leading-tight font-medium text-center w-full px-1">{t('header.savedSearches')}</span>
               </Link>
               
               {/* Search - Simplified */}
               <Link 
                 href={NAVIGATION_ROUTES.SEARCH}
-                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14"
+                className={`flex flex-col items-center justify-center px-4 py-2.5 rounded-lg transition-colors min-w-[75px] max-w-[90px] h-14 ${
+                  pathname?.startsWith('/search') 
+                    ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
+                }`}
               >
-                <MdSearch className="h-5 w-5 mb-1 flex-shrink-0" />
-                <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('search:search')}</span>
+                {pathname?.startsWith('/search') ? (
+                  <FiSearch className="h-5 w-5 mb-1 flex-shrink-0" />
+                ) : (
+                  <MdSearch className="h-5 w-5 mb-1 flex-shrink-0" />
+                )}
+                <span className="text-xs leading-tight font-medium text-center w-full px-1">{t('search:search')}</span>
               </Link>
             </div>
             
@@ -198,11 +215,19 @@ export default function Navbar({ className }: ComponentProps) {
                     
                     <Link 
                       href="/dashboard/messages" 
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      className={`flex items-center px-4 py-2 text-sm transition-colors ${
+                        pathname?.startsWith('/dashboard/messages') 
+                          ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30' 
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
                       onClick={() => setUserMenuOpen(false)}
                       role="menuitem"
                     >
-                      <MdEmail className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                      {pathname?.startsWith('/dashboard/messages') ? (
+                        <MdMail className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                      ) : (
+                        <MdMailOutline className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                      )}
                       {t('header.messages')}
                     </Link>
                     
@@ -334,25 +359,41 @@ export default function Navbar({ className }: ComponentProps) {
           <div className="grid grid-cols-2 gap-2 px-3 py-3">
             <Link 
               href={NAVIGATION_ROUTES.SEARCH}
-              className="mobile-nav-link flex flex-col items-center px-3 py-3 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
+              className={`mobile-nav-link flex flex-col items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                pathname?.startsWith('/search') 
+                  ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 shadow-sm' 
+                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700'
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              <MdSearch className="h-6 w-6 mb-1.5" />
-              <span className="text-xs text-center leading-tight font-medium">{t('search:search')}</span>
+              {pathname?.startsWith('/search') ? (
+                <FiSearch className="h-6 w-6 mb-1.5" />
+              ) : (
+                <MdSearch className="h-6 w-6 mb-1.5" />
+              )}
+              <span className="text-xs text-center leading-tight font-medium w-full px-1">{t('search:search')}</span>
             </Link>
             <Link 
               href={user ? "/dashboard/messages" : "/auth/signin"}
-              className="mobile-nav-link flex flex-col items-center px-3 py-3 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
+              className={`mobile-nav-link flex flex-col items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                pathname?.startsWith('/dashboard/messages') 
+                  ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 shadow-sm' 
+                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700'
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              <MdEmail className="h-6 w-6 mb-1.5" />
-              <span className="text-xs text-center leading-tight font-medium">{t('header.messages')}</span>
+              {pathname?.startsWith('/dashboard/messages') ? (
+                <MdMail className="h-6 w-6 mb-1.5" />
+              ) : (
+                <MdMailOutline className="h-6 w-6 mb-1.5" />
+              )}
+              <span className="text-xs text-center leading-tight font-medium w-full px-1">{t('header.messages')}</span>
             </Link>
             <Link 
               href={user ? "/saved/alerts" : "/auth/signin"}
-              className={`mobile-nav-link flex flex-col items-center px-3 py-3 rounded-md text-sm font-medium transition-colors ${
+              className={`mobile-nav-link flex flex-col items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                 pathname?.startsWith('/saved') 
-                  ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30' 
+                  ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 shadow-sm' 
                   : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700'
               }`}
               onClick={() => setMobileMenuOpen(false)}
@@ -362,7 +403,7 @@ export default function Navbar({ className }: ComponentProps) {
               ) : (
                 <MdBookmark className="h-6 w-6 mb-1.5" />
               )}
-              <span className="text-xs text-center leading-tight font-medium">{t('header.savedSearches')}</span>
+              <span className="text-xs text-center leading-tight font-medium w-full px-1">{t('header.savedSearches')}</span>
             </Link>
           </div>
           
