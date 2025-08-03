@@ -18,7 +18,6 @@ import {
   MdHelp,
   MdFavorite,
   MdEmail,
-  MdAnalytics,
   MdSupportAgent,
   MdAdd,
   MdAdminPanelSettings
@@ -171,6 +170,12 @@ export default function DashboardLayout({
       icon: <MdEmail className="text-xl" />,
       tooltip: t('dashboard.messagesTooltip') || 'Your messages'
     },
+    { 
+      name: t('header.savedSearches', { ns: 'common' }), 
+      href: "/saved/alerts", 
+      icon: <MdNotifications className="text-xl" />,
+      tooltip: t('header.savedSearches', { ns: 'common' }) || 'Your saved search alerts'
+    },
     // Admin navigation - only show to admin users
     ...(isAdmin() ? [{
       name: t('dashboard.adminPanel', 'Admin Panel'),
@@ -199,12 +204,6 @@ export default function DashboardLayout({
       href: "/dashboard/listings/new",
       icon: <MdAdd className="text-xl" />,
       tooltip: t('dashboard.createListing') || 'Create a new listing'
-    },
-    {
-      name: t('dashboard.analytics'),
-      href: "/dashboard/analytics",
-      icon: <MdAnalytics className="text-xl" />,
-      tooltip: t('dashboard.performance') || 'View your analytics'
     },
     {
       name: t('dashboard.support'),
