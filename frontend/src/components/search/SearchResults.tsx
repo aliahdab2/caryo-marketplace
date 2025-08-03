@@ -9,6 +9,7 @@ import SmoothTransition from '@/components/ui/SmoothTransition';
 import CarListingCard from '@/components/listings/CarListingCard';
 import { CarListing, PageResponse } from '@/services/api';
 import { EnhancedLoadingState, EnhancedErrorState } from '@/components/ui/EnhancedUX';
+import EmptyState from '@/components/ui/EmptyState';
 import SortDropdown from './SortDropdown';
 
 interface SearchResultsProps {
@@ -201,13 +202,21 @@ const SearchResults = React.memo<SearchResultsProps>(({
           ))
         ) : (
           <div className="col-span-full">
-            <EnhancedErrorState
-              type="not-found"
+            <EmptyState
+              type="search"
               title={t('noResultsFound', 'No cars found')}
               message={searchQuery 
                 ? t('noResultsMessage', `No cars match your search for "${searchQuery}". Try adjusting your filters or search terms.`)
                 : t('tryDifferentFilters', 'Try adjusting your search filters to see more results.')
               }
+              actionButton={{
+                text: t('clearAllFilters', 'Clear all filters'),
+                onClick: () => {
+                  // This could be handled by parent component
+                  window.location.href = '/search';
+                },
+                icon: <MdViewModule className="w-4 h-4" />
+              }}
             />
           </div>
         )}

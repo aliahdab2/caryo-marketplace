@@ -7,6 +7,7 @@ import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.SavedSearch;
 import com.autotrader.autotraderbackend.model.SavedSearchNotification;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.SavedSearchRepository;
 import com.autotrader.autotraderbackend.repository.SavedSearchNotificationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
@@ -31,6 +32,7 @@ public class SavedSearchService {
     private final SavedSearchNotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final SavedSearchMatchingService matchingService;
+    private final CarListingRepository carListingRepository;
     private final JavaMailSender mailSender;
 
     /**
@@ -275,6 +277,38 @@ public class SavedSearchService {
         return savedSearchRepository.countByUserAndIsActiveTrue(user);
     }
 
+    /**
+     * Calculate the number of current listings that match a saved search
+     */
+    @Transactional(readOnly = true)
+    public int calculateMatchCount(SavedSearch savedSearch) {
+        try {
+            // Get all active, approved, non-sold, non-archived listings
+            List<CarListing> activeListings = carListingRepository.findAll()
+                .stream()
+                .filter(listing -> listing.getApproved() != null && listing.getApproved())
+                .filter(listing -> listing.getSold() == null || !listing.getSold())
+                .filter(listing -> listing.getArchived() == null || !listing.getArchived())
+                .toList();
+
+            // Count how many match the search criteria
+            int matchCount = 0;
+            for (CarListing listing : activeListings) {
+                if (matchingService.matches(savedSearch, listing)) {
+                    matchCount++;
+                }
+            }
+
+            log.debug("Calculated match count {} for saved search {}", matchCount, savedSearch.getId());
+            return matchCount;
+
+        } catch (Exception e) {
+            log.error("Error calculating match count for saved search {}: {}", 
+                     savedSearch.getId(), e.getMessage(), e);
+            return 0;
+        }
+    }
+
     // --- Helper Methods ---
 
     private User findUserByUsername(String username) {
@@ -296,6 +330,10 @@ public class SavedSearchService {
         response.setIsActive(savedSearch.getIsActive());
         response.setCreatedAt(savedSearch.getCreatedAt());
         response.setUpdatedAt(savedSearch.getUpdatedAt());
+        
+        // Calculate and set match count
+        response.setMatchCount(calculateMatchCount(savedSearch));
+        
         return response;
     }
 }

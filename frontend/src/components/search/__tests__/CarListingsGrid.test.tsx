@@ -328,9 +328,17 @@ describe('CarListingsGrid', () => {
         totalElements: 0
       };
 
-      render(<CarListingsGrid {...defaultProps} carListings={emptyListings} />);
-      const noResultsContainer = screen.getByText('No cars found').closest('div');
-      expect(noResultsContainer).toHaveClass('col-span-full', 'text-center', 'py-12');
+      const { container } = render(<CarListingsGrid {...defaultProps} carListings={emptyListings} />);
+      
+      // Check for the col-span-full container that wraps EmptyState
+      const colSpanContainer = container.querySelector('.col-span-full');
+      expect(colSpanContainer).toBeInTheDocument();
+      expect(colSpanContainer).toHaveClass('col-span-full');
+      
+      // Check that EmptyState has text-center and py classes
+      const emptyStateContainer = container.querySelector('.text-center.py-16');
+      expect(emptyStateContainer).toBeInTheDocument();
+      expect(emptyStateContainer).toHaveClass('text-center', 'py-16', 'px-6');
     });
   });
 

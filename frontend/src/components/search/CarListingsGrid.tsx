@@ -5,6 +5,7 @@ import { MdDirectionsCar } from 'react-icons/md';
 import SmoothTransition from '@/components/ui/SmoothTransition';
 import CarListingCard, { CarListingCardData } from '@/components/listings/CarListingCard';
 import CarListingSkeleton from '@/components/ui/CarListingSkeleton';
+import EmptyState from '@/components/ui/EmptyState';
 import { PageResponse, CarListing } from '@/services/api';
 
 interface CarListingsGridProps {
@@ -99,10 +100,20 @@ const CarListingsGrid: React.FC<CarListingsGridProps> = ({
         })
       ) : (
         // No results state
-        <div className="col-span-full text-center py-12">
-          <MdDirectionsCar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noResultsFound', 'No cars found')}</h3>
-          <p className="text-gray-600">{t('tryDifferentFilters', 'Try adjusting your search filters to see more results.')}</p>
+        <div className="col-span-full">
+          <EmptyState
+            type="search"
+            title={t('noResultsFound', 'No cars found')}
+            message={t('tryDifferentFilters', 'Try adjusting your search filters to see more results.')}
+            actionButton={{
+              text: t('clearAllFilters', 'Clear all filters'),
+              onClick: () => {
+                // Reload page to clear filters
+                window.location.href = '/search';
+              },
+              icon: <MdDirectionsCar className="w-4 h-4" />
+            }}
+          />
         </div>
       )}
     </SmoothTransition>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { MdNotificationsNone } from 'react-icons/md';
+import { MdNotificationsNone, MdNotifications } from 'react-icons/md';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
@@ -41,6 +41,8 @@ import SearchBar from '@/components/search/SearchBar';
 import FilterPills from '@/components/search/FilterPills';
 import CarListingsGrid from '@/components/search/CarListingsGrid';
 import SortDropdown from '@/components/search/SortDropdown';
+import { createSavedSearch, deleteSavedSearch } from '@/services/savedSearches';
+import { SavedSearchRequest } from '@/services/savedSearches';
 
 
 // Move namespaces outside component to prevent recreation on every render
@@ -66,6 +68,9 @@ export default function AdvancedSearchPage() {
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [sellerTypeCounts, setSellerTypeCounts] = useState<SellerTypeCounts>({});
   const [selectedSort, setSelectedSort] = useState(DEFAULT_SORT);
+  const [isSavingAlert, setIsSavingAlert] = useState(false);
+  const [isMonitoring, setIsMonitoring] = useState(false);
+  const [savedSearchId, setSavedSearchId] = useState<string | null>(null);
   
   // New state for all models (for makeModel filter modal)
   const [allModels, setAllModels] = useState<CarModel[]>([]);
@@ -302,6 +307,13 @@ export default function AdvancedSearchPage() {
       }
       return '';
     }, [referenceData?.sellerTypes, currentLanguage]
+  );
+
+  const _getConditionDisplayName = useMemo(() => 
+    (id: number): string => {
+      const condition = referenceData?.carConditions?.find(c => c.id === id);
+      return condition ? (currentLanguage === 'ar' ? condition.displayNameAr : condition.displayNameEn) : '';
+    }, [referenceData?.carConditions, currentLanguage]
   );
 
   // Memoized filter count for UI display
@@ -756,6 +768,379 @@ export default function AdvancedSearchPage() {
     }
   }, [filters]);
 
+  // Check if there are any active filters
+  const hasActiveFilters = useMemo(() => {
+    // Check if there's a search query
+    if (searchQuery && searchQuery.trim()) {
+      return true;
+    }
+    
+    // Check if there are any filter values
+    return Object.values(filters).some(value => {
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+      if (typeof value === 'object' && value !== null) {
+        return Object.values(value).some(v => v !== null && v !== undefined && v !== '');
+      }
+      return value !== null && value !== undefined && value !== '';
+    });
+  }, [filters, searchQuery]);
+
+  // Helper function to extract clean model name from brand-model format
+  const extractModelName = useCallback((modelSlug: string, brandSlug?: string) => {
+    if (!modelSlug) return modelSlug;
+    
+    // If brand is provided and model starts with brand-, remove the brand prefix
+    if (brandSlug && modelSlug.toLowerCase().startsWith(brandSlug.toLowerCase() + '-')) {
+      const modelPart = modelSlug.substring(brandSlug.length + 1);
+      return modelPart
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    }
+    
+    // For compound model slugs like "honda-accord", try to extract just the model part
+    // by checking against actual brand slugs from the database
+    if (carMakes && carMakes.length > 0) {
+      for (const brand of carMakes) {
+        if (modelSlug.toLowerCase().startsWith(brand.slug + '-')) {
+          const modelPart = modelSlug.substring(brand.slug.length + 1);
+          return modelPart
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+        }
+      }
+    }
+    
+    // Otherwise, just format the model name nicely (capitalize each word)
+    return modelSlug
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }, [carMakes]);
+
+  // Helper function to get brand display name from slug
+  const _getBrandDisplayName = useCallback((brandSlug: string, isArabic: boolean) => {
+    const brand = carMakes?.find(b => b.slug === brandSlug);
+    if (brand) {
+      return isArabic ? brand.displayNameAr : brand.displayNameEn;
+    }
+    // Fallback to formatted slug
+    return brandSlug
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }, [carMakes]);
+
+  // Helper function to get model display name from slug
+  const _getModelDisplayName = useCallback((modelSlug: string, isArabic: boolean) => {
+    // First try to find by exact slug match in allModels
+    let model = allModels?.find(m => m.slug === modelSlug);
+    
+    // If not found and slug contains a dash, try to find by just the model part
+    if (!model && modelSlug.includes('-') && carMakes && carMakes.length > 0) {
+      // Extract the model part from compound slugs like "honda-accord" -> "accord"
+      // Use actual brand slugs from the database instead of hardcoded array
+      for (const brand of carMakes) {
+        if (modelSlug.toLowerCase().startsWith(brand.slug + '-')) {
+          const modelPart = modelSlug.substring(brand.slug.length + 1);
+          model = allModels?.find(m => m.slug === modelPart);
+          if (model) break;
+        }
+      }
+    }
+    
+    // If still not found and allModels is empty/insufficient, try availableModels as fallback
+    if (!model && availableModels && availableModels.length > 0) {
+      model = availableModels.find(m => m.slug === modelSlug);
+      
+      // Also try extracting model part from compound slugs for availableModels
+      if (!model && modelSlug.includes('-') && carMakes && carMakes.length > 0) {
+        for (const brand of carMakes) {
+          if (modelSlug.toLowerCase().startsWith(brand.slug + '-')) {
+            const modelPart = modelSlug.substring(brand.slug.length + 1);
+            model = availableModels.find(m => m.slug === modelPart);
+            if (model) break;
+          }
+        }
+      }
+    }
+    
+    if (model) {
+      return isArabic ? model.displayNameAr : model.displayNameEn;
+    }
+    
+    // If still no model found, try comprehensive fallback with popular models
+    // This handles cases where both allModels and availableModels are empty
+    const popularModels: Record<string, { en: string; ar: string }> = {
+      'camry': { en: 'Camry', ar: 'كامري' },
+      'corolla': { en: 'Corolla', ar: 'كورولا' },
+      'rav4': { en: 'RAV4', ar: 'رافـ4' },
+      'prius': { en: 'Prius', ar: 'بريوس' },
+      'highlander': { en: 'Highlander', ar: 'هايلاندر' },
+      'accord': { en: 'Accord', ar: 'أكورد' },
+      'civic': { en: 'Civic', ar: 'سيفيك' },
+      'cr-v': { en: 'CR-V', ar: 'سي آر-في' },
+      'pilot': { en: 'Pilot', ar: 'بايلوت' },
+      'odyssey': { en: 'Odyssey', ar: 'أوديسي' },
+      'f-150': { en: 'F-150', ar: 'إف-150' },
+      'escape': { en: 'Escape', ar: 'إسكيب' },
+      'mustang': { en: 'Mustang', ar: 'موستانغ' },
+      'explorer': { en: 'Explorer', ar: 'إكسبلورر' },
+      'altima': { en: 'Altima', ar: 'ألتيما' },
+      'sentra': { en: 'Sentra', ar: 'سينترا' },
+      'maxima': { en: 'Maxima', ar: 'ماكسيما' },
+      'rogue': { en: 'Rogue', ar: 'روغ' },
+      'x3': { en: 'X3', ar: 'X3' },
+      'x5': { en: 'X5', ar: 'X5' },
+      '3-series': { en: '3 Series', ar: 'الفئة الثالثة' },
+      '5-series': { en: '5 Series', ar: 'الفئة الخامسة' },
+      'c-class': { en: 'C-Class', ar: 'فئة سي' },
+      'e-class': { en: 'E-Class', ar: 'فئة إي' },
+      's-class': { en: 'S-Class', ar: 'فئة إس' },
+      'glc': { en: 'GLC', ar: 'جي إل سي' },
+      'a4': { en: 'A4', ar: 'إيه 4' },
+      'a6': { en: 'A6', ar: 'إيه 6' },
+      'q5': { en: 'Q5', ar: 'كيو 5' },
+      'q7': { en: 'Q7', ar: 'كيو 7' },
+      'elantra': { en: 'Elantra', ar: 'إلانترا' },
+      'sonata': { en: 'Sonata', ar: 'سوناتا' },
+      'tucson': { en: 'Tucson', ar: 'توكسون' },
+      'santa-fe': { en: 'Santa Fe', ar: 'سانتا في' },
+      'optima': { en: 'Optima', ar: 'أوبتيما' },
+      'sorento': { en: 'Sorento', ar: 'سورينتو' },
+      'sportage': { en: 'Sportage', ar: 'سبورتاج' },
+      'forte': { en: 'Forte', ar: 'فورتي' }
+    };
+    
+    // Try direct lookup first
+    const directMatch = popularModels[modelSlug];
+    if (directMatch) {
+      return isArabic ? directMatch.ar : directMatch.en;
+    }
+    
+    // If compound slug, extract model part and try popular models lookup
+    if (modelSlug.includes('-') && carMakes && carMakes.length > 0) {
+      for (const brand of carMakes) {
+        if (modelSlug.toLowerCase().startsWith(brand.slug + '-')) {
+          const modelPart = modelSlug.substring(brand.slug.length + 1);
+          const extractedMatch = popularModels[modelPart];
+          if (extractedMatch) {
+            return isArabic ? extractedMatch.ar : extractedMatch.en;
+          }
+          break;
+        }
+      }
+    }
+    
+    // Final fallback to extracted model name
+    return extractModelName(modelSlug);
+  }, [allModels, availableModels, extractModelName, carMakes]);
+
+  // Generate a descriptive name for the alert based on filters
+  // This function creates alert names by using the exact same text that appears in filter chips
+  const generateAlertName = useCallback((filters: AdvancedSearchFilters, searchQuery: string) => {
+    
+    // Helper function to get filter display text in any language (like chips do)
+    const getFilterDisplayTextInLanguage = (filterType: FilterType, targetLanguage: string): string => {
+      switch (filterType) {
+        case 'makeModel':
+          // Display slug-based selections with proper localized names
+          if (filters.brands && filters.brands.length > 0) {
+            const brandNames = filters.brands.map(slug => {
+              const brand = carMakes?.find(make => make.slug === slug);
+              return brand ? (targetLanguage === 'ar' ? brand.displayNameAr : brand.displayNameEn) : slug;
+            });
+            let display = brandNames.join(', ');
+            
+            if (filters.models && filters.models.length > 0) {
+              const modelNames = filters.models.map(slug => {
+                // First try to find in current availableModels
+                const model = availableModels?.find(model => model.slug === slug);
+                if (model) {
+                  return targetLanguage === 'ar' ? model.displayNameAr : model.displayNameEn;
+                }
+                
+                // If not found, try to extract display name from slug
+                const words = slug.split('-');
+                const displayName = words
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(' ');
+                
+                return displayName;
+              });
+              display += ` - ${modelNames.join(', ')}`;
+            }
+            return display;
+          }
+          break;
+        case 'price':
+          if (filters.minPrice && filters.maxPrice) return `${formatNumber(filters.minPrice, targetLanguage, { style: 'currency', currency: DEFAULT_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 0 })} - ${formatNumber(filters.maxPrice, targetLanguage, { style: 'currency', currency: DEFAULT_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+          if (filters.minPrice) return `${targetLanguage === 'ar' ? 'من' : 'From'} ${formatNumber(filters.minPrice, targetLanguage, { style: 'currency', currency: DEFAULT_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+          if (filters.maxPrice) return `${targetLanguage === 'ar' ? 'حتى' : 'Up to'} ${formatNumber(filters.maxPrice, targetLanguage, { style: 'currency', currency: DEFAULT_CURRENCY, minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+          break;
+        case 'year':
+          if (filters.minYear && filters.maxYear) return `${filters.minYear} - ${filters.maxYear}`;
+          if (filters.minYear) return `${targetLanguage === 'ar' ? 'من' : 'From'} ${filters.minYear}`;
+          if (filters.maxYear) return `${targetLanguage === 'ar' ? 'حتى' : 'Up to'} ${filters.maxYear}`;
+          break;
+        case 'mileage':
+          if (filters.minMileage && filters.maxMileage) return `${filters.minMileage} - ${filters.maxMileage}`;
+          if (filters.minMileage) return `${targetLanguage === 'ar' ? 'من' : 'From'} ${filters.minMileage}`;
+          if (filters.maxMileage) return `${targetLanguage === 'ar' ? 'حتى' : 'Up to'} ${filters.maxMileage}`;
+          break;
+        case 'transmission':
+          if (filters.transmissionId) {
+            const transmission = referenceData?.transmissions?.find(t => t.id === filters.transmissionId);
+            return transmission ? (targetLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn) : '';
+          }
+          break;
+        case 'fuelType':
+          if (filters.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0) {
+            return filters.fuelTypeSlugs.map(slug => {
+              const fuelType = referenceData?.fuelTypes?.find(f => f.slug === slug);
+              return fuelType ? (targetLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn) : '';
+            }).join(', ');
+          }
+          break;
+        case 'bodyStyle':
+          if (filters.bodyType && filters.bodyType.length > 0) {
+            if (filters.bodyType.length === 1) {
+              const bodyStyle = referenceData?.bodyStyles?.find(b => b.slug === filters.bodyType![0]);
+              return bodyStyle ? (targetLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn) : '';
+            } else {
+              return `${filters.bodyType.length} ${targetLanguage === 'ar' ? 'أنواع هيكل' : 'Body types'}`;
+            }
+          }
+          break;
+        case 'sellerType':
+          if (filters.sellerTypeIds && filters.sellerTypeIds.length > 0) {
+            if (filters.sellerTypeIds.length === 1) {
+              const sellerType = referenceData?.sellerTypes?.find(s => s.id === filters.sellerTypeIds![0]);
+              if (sellerType && typeof sellerType === 'object' && 'displayNameEn' in sellerType && 'displayNameAr' in sellerType) {
+                const typedSellerType = sellerType as { displayNameEn: string; displayNameAr: string };
+                return targetLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn;
+              }
+            } else {
+              return `${filters.sellerTypeIds.length} ${targetLanguage === 'ar' ? 'أنواع بائع' : 'Seller types'}`;
+            }
+          }
+          break;
+      }
+      return '';
+    };
+
+    // Helper function to generate chip texts for a specific language
+    const generateChipTextsForLanguage = (targetLanguage: string): string[] => {
+      const chipTexts: string[] = [];
+
+      // Add search query if present
+      if (searchQuery && searchQuery.trim()) {
+        chipTexts.push(`"${searchQuery.trim()}"`);
+      }
+
+      // Get the exact text from each active filter chip
+      const filterTypes: FilterType[] = ['makeModel', 'price', 'year', 'mileage', 'transmission', 'fuelType', 'bodyStyle', 'sellerType'];
+      
+      for (const filterType of filterTypes) {
+        if (isFilterActive(filterType)) {
+          const chipText = getFilterDisplayTextInLanguage(filterType, targetLanguage);
+          if (chipText) {
+            chipTexts.push(chipText);
+          }
+        }
+      }
+
+      // Add location if specified (this is not in filter chips, so handle separately)
+      if (filters.locations && filters.locations.length > 0) {
+        if (filters.locations.length === 1) {
+          chipTexts.push(`${targetLanguage === 'ar' ? 'في' : 'in'} ${filters.locations[0]}`);
+        } else if (filters.locations.length <= 3) {
+          chipTexts.push(`${targetLanguage === 'ar' ? 'في' : 'in'} ${filters.locations.join(targetLanguage === 'ar' ? '، ' : ', ')}`);
+        } else {
+          chipTexts.push(`${targetLanguage === 'ar' ? 'في' : 'in'} ${filters.locations.length} ${targetLanguage === 'ar' ? 'مناطق' : 'areas'}`);
+        }
+      }
+
+      return chipTexts;
+    };
+
+    // Generate chip texts for both languages
+    const englishChipTexts = generateChipTextsForLanguage('en');
+    const arabicChipTexts = generateChipTextsForLanguage('ar');
+
+    // Create alert names by joining chip texts with commas
+    const nameEn = englishChipTexts.length === 0 
+      ? 'Car Search' 
+      : englishChipTexts.join(', ');
+
+    const nameAr = arabicChipTexts.length === 0 
+      ? 'بحث سيارات' 
+      : arabicChipTexts.join('، ');
+
+    return { nameEn, nameAr };
+  }, [isFilterActive, carMakes, availableModels, referenceData]);
+
+  // Handle creating/removing an alert (toggle functionality)
+  const handleCreateAlert = useCallback(async () => {
+    if (!session?.user) {
+      // Redirect to login if not authenticated
+      router.push('/auth/signin');
+      return;
+    }
+
+    // Don't allow creating alert without filters
+    if (!hasActiveFilters) {
+      return;
+    }
+
+    setIsSavingAlert(true);
+    
+    try {
+      const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
+      
+      if (isMonitoring && savedSearchId) {
+        // Remove the existing alert
+        await deleteSavedSearch(savedSearchId, token);
+        setIsMonitoring(false);
+        setSavedSearchId(null);
+      } else {
+        // Create a new alert
+        const filtersWithQuery = {
+          ...filters,
+          searchQuery: searchQuery // Include the search query in filters
+        };
+        
+        const { nameEn, nameAr } = generateAlertName(filters, searchQuery);
+        
+        const savedSearchRequest: SavedSearchRequest = {
+          nameEn,
+          nameAr,
+          filters: filtersWithQuery as unknown as Record<string, unknown>,
+          notificationPreferences: {
+            email: true,
+            frequency: 'immediate' as const
+          },
+          isActive: true
+        };
+
+        const response = await createSavedSearch(savedSearchRequest, token);
+        
+        // Set monitoring state and save the ID for future removal
+        setIsMonitoring(true);
+        setSavedSearchId(response.id);
+      }
+      
+    } catch (error) {
+      console.error('Error with alert:', error);
+      // Remove alert popup - just log the error
+    } finally {
+      setIsSavingAlert(false);
+    }
+  }, [session, filters, searchQuery, router, isMonitoring, savedSearchId, hasActiveFilters, generateAlertName]);
+
   // Filter pill component with memo for performance
   const handleSearch = () => {
     setSearchLoading(true);
@@ -777,7 +1162,7 @@ export default function AdvancedSearchPage() {
   };
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${dirClass}`}>
+    <div className={`min-h-screen bg-gray-50 ${dirClass}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="container mx-auto px-4 py-6">
         {/* Compact Search Bar */}
         <SearchBar
@@ -802,6 +1187,7 @@ export default function AdvancedSearchPage() {
           getFilterDisplayText={getFilterDisplayText}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           t={t as any}
+          isRTL={isRTL}
         />
 
         {/* Filter Chips */}
@@ -822,6 +1208,7 @@ export default function AdvancedSearchPage() {
           referenceData={referenceData}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           t={t as any}
+          isRTL={isRTL}
         />
 
         {/* Results Info */}
@@ -835,19 +1222,38 @@ export default function AdvancedSearchPage() {
             />
           </div>
           
-          {/* Save Search Button - RIGHT SIDE */}
-          <button 
-            className={`
-              flex items-center text-gray-700 hover:text-gray-900 text-sm font-medium 
-              px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 
-              transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-              ${isRTL ? 'flex-row-reverse' : ''}
-            `}
-            aria-label={t('search:createWatch', 'Create Alert')}
-          >
-            <MdNotificationsNone size={20} className={isRTL ? "ml-2" : "mr-2"} />
-            <span>{t('search:createWatch', 'Create Alert')}</span>
-          </button>
+          {/* Save Search Button - RIGHT SIDE - Only show when filters are active */}
+          {hasActiveFilters && (
+            <button 
+              onClick={handleCreateAlert}
+              disabled={isSavingAlert}
+              className={`
+                flex items-center text-sm font-medium 
+                px-3 py-2 border rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                ${isRTL ? 'flex-row-reverse' : ''}
+                ${isSavingAlert ? 'opacity-50 cursor-not-allowed' : ''}
+                ${isMonitoring 
+                  ? 'text-blue-700 border-blue-300 bg-blue-50 hover:bg-blue-100' 
+                  : 'text-gray-700 hover:text-gray-900 border-gray-300 bg-white hover:bg-gray-50'
+                }
+              `}
+              aria-label={isMonitoring ? t('search:removeWatch', 'Remove Alert') : t('search:createWatch', 'Create Alert')}
+            >
+              {isMonitoring ? (
+                <MdNotifications size={20} className={`${isRTL ? "ml-2" : "mr-2"} text-blue-600`} />
+              ) : (
+                <MdNotificationsNone size={20} className={isRTL ? "ml-2" : "mr-2"} />
+              )}
+              <span>
+                {isSavingAlert 
+                  ? t('search:savingAlert', 'Saving...') 
+                  : isMonitoring 
+                    ? t('search:monitoring', 'Monitoring')
+                    : t('search:createWatch', 'Create Alert')
+                }
+              </span>
+            </button>
+          )}
         </div>
 
         {/* Car Listings Grid with Smooth Transitions */}
