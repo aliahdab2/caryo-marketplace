@@ -191,6 +191,11 @@ export async function getCarListingsForSavedSearch(
       mileage: listing.mileage,
       transmission: listing.transmission,
       fuelType: listing.fuelType,
+      // Enhanced listings now get bilingual data directly from backend
+      transmissionNameEn: listing.transmissionNameEn,
+      transmissionNameAr: listing.transmissionNameAr,
+      fuelTypeNameEn: listing.fuelTypeNameEn,
+      fuelTypeNameAr: listing.fuelTypeNameAr,
       createdAt: listing.createdAt,
       sellerUsername: listing.sellerUsername,
       governorateNameEn: listing.governorateNameEn,

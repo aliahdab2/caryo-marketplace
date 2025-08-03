@@ -4,9 +4,12 @@ import React from 'react';
 import { MdDirectionsCar } from 'react-icons/md';
 import SmoothTransition from '@/components/ui/SmoothTransition';
 import CarListingCard, { CarListingCardData } from '@/components/listings/CarListingCard';
+import CarListingListItem from '@/components/search/CarListingListItem';
 import CarListingSkeleton from '@/components/ui/CarListingSkeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import { PageResponse, CarListing } from '@/services/api';
+
+export type ViewMode = 'grid' | 'list';
 
 interface CarListingsGridProps {
   carListings: PageResponse<CarListing> | null;
@@ -14,6 +17,8 @@ interface CarListingsGridProps {
   isManualSearch: boolean;
   listingsError: string | null;
   executeSearch: (isManualSearch: boolean) => void;
+  viewMode: ViewMode;
+  isRTL?: boolean;
   t: (key: string, fallback?: string) => string;
 }
 
@@ -23,12 +28,18 @@ const CarListingsGrid: React.FC<CarListingsGridProps> = ({
   isManualSearch,
   listingsError,
   executeSearch,
+  viewMode = 'grid',
+  isRTL = false,
   t
 }) => {
+  const containerClassName = viewMode === 'grid' 
+    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+    : "flex flex-col gap-4";
+
   return (
     <SmoothTransition
       isLoading={isLoadingListings}
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+      className={containerClassName}
       loadingType={isManualSearch ? 'overlay' : 'full'}
       minimumLoadingTime={isManualSearch ? 100 : 200}
       loadingComponent={
@@ -75,10 +86,15 @@ const CarListingsGrid: React.FC<CarListingsGridProps> = ({
             mileage: listing.mileage,
             transmission: listing.transmission,
             fuelType: listing.fuelType,
+            transmissionNameEn: listing.transmissionNameEn,
+            transmissionNameAr: listing.transmissionNameAr,
+            fuelTypeNameEn: listing.fuelTypeNameEn,
+            fuelTypeNameAr: listing.fuelTypeNameAr,
             createdAt: listing.createdAt,
             sellerUsername: listing.sellerUsername,
             governorateNameEn: listing.governorateNameEn,
             governorateNameAr: listing.governorateNameAr,
+            governorateDetails: listing.governorateDetails,
             media: listing.media?.map(m => ({
               url: m.url,
               isPrimary: m.isPrimary,
@@ -88,13 +104,25 @@ const CarListingsGrid: React.FC<CarListingsGridProps> = ({
 
           return (
             <div key={listing.id} className="animate-fadeIn">
-              <CarListingCard
-                listing={cardData}
-                onFavoriteToggle={(_isFavorite) => {
-                  // Handle favorite toggle if needed
-                }}
-                initialFavorite={false}
-              />
+              {viewMode === 'grid' ? (
+                <CarListingCard
+                  listing={cardData}
+                  onFavoriteToggle={(_isFavorite) => {
+                    // Handle favorite toggle if needed
+                  }}
+                  initialFavorite={false}
+                />
+              ) : (
+                <CarListingListItem
+                  listing={cardData}
+                  onFavoriteToggle={(_isFavorite) => {
+                    // Handle favorite toggle if needed
+                  }}
+                  initialFavorite={false}
+                  t={t}
+                  isRTL={isRTL}
+                />
+              )}
             </div>
           );
         })

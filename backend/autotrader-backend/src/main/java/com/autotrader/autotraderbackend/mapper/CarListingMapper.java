@@ -53,9 +53,13 @@ public class CarListingMapper {
             // Set transmission and fuel type information
             if (Objects.nonNull(carListing.getTransmissionType())) {
                 response.setTransmission(carListing.getTransmissionType().getDisplayNameEn());
+                response.setTransmissionNameEn(carListing.getTransmissionType().getDisplayNameEn());
+                response.setTransmissionNameAr(carListing.getTransmissionType().getDisplayNameAr());
             }
             if (Objects.nonNull(carListing.getFuelType())) {
                 response.setFuelType(carListing.getFuelType().getDisplayNameEn());
+                response.setFuelTypeNameEn(carListing.getFuelType().getDisplayNameEn());
+                response.setFuelTypeNameAr(carListing.getFuelType().getDisplayNameAr());
             }
             
             // Set denormalized brand and model name fields
@@ -65,8 +69,15 @@ public class CarListingMapper {
             response.setModelNameAr(carListing.getModelNameAr());
             
             // Set denormalized governorate name fields
-            response.setGovernorateNameEn(carListing.getGovernorateNameEn());
-            response.setGovernorateNameAr(carListing.getGovernorateNameAr());
+            // First try denormalized fields from entity, then fallback to relationship
+            if (Objects.nonNull(carListing.getGovernorateNameEn()) || Objects.nonNull(carListing.getGovernorateNameAr())) {
+                response.setGovernorateNameEn(carListing.getGovernorateNameEn());
+                response.setGovernorateNameAr(carListing.getGovernorateNameAr());
+            } else if (Objects.nonNull(carListing.getGovernorate())) {
+                // Fallback: populate from governorate relationship
+                response.setGovernorateNameEn(carListing.getGovernorate().getDisplayNameEn());
+                response.setGovernorateNameAr(carListing.getGovernorate().getDisplayNameAr());
+            }
             
             // Use location
             if (Objects.nonNull(carListing.getLocation())) {
@@ -173,6 +184,8 @@ public class CarListingMapper {
             try {
                 if (Objects.nonNull(carListing.getTransmissionType())) {
                     response.setTransmission(carListing.getTransmissionType().getDisplayNameEn());
+                    response.setTransmissionNameEn(carListing.getTransmissionType().getDisplayNameEn());
+                    response.setTransmissionNameAr(carListing.getTransmissionType().getDisplayNameAr());
                 }
             } catch (Exception e) {
                 log.warn("Error setting transmission for listing ID {}", carListing.getId());
@@ -181,6 +194,8 @@ public class CarListingMapper {
             try {
                 if (Objects.nonNull(carListing.getFuelType())) {
                     response.setFuelType(carListing.getFuelType().getDisplayNameEn());
+                    response.setFuelTypeNameEn(carListing.getFuelType().getDisplayNameEn());
+                    response.setFuelTypeNameAr(carListing.getFuelType().getDisplayNameAr());
                 }
             } catch (Exception e) {
                 log.warn("Error setting fuel type for listing ID {}", carListing.getId());
@@ -193,6 +208,26 @@ public class CarListingMapper {
                 }
             } catch (Exception e) {
                 log.warn("Error setting location for listing ID {}", carListing.getId());
+            }
+            
+            // Set governorate safely
+            try {
+                // First try denormalized fields from entity, then fallback to relationship
+                if (Objects.nonNull(carListing.getGovernorateNameEn()) || Objects.nonNull(carListing.getGovernorateNameAr())) {
+                    response.setGovernorateNameEn(carListing.getGovernorateNameEn());
+                    response.setGovernorateNameAr(carListing.getGovernorateNameAr());
+                } else if (Objects.nonNull(carListing.getGovernorate())) {
+                    // Fallback: populate from governorate relationship
+                    response.setGovernorateNameEn(carListing.getGovernorate().getDisplayNameEn());
+                    response.setGovernorateNameAr(carListing.getGovernorate().getDisplayNameAr());
+                }
+                
+                // Also set governorate details
+                if (Objects.nonNull(carListing.getGovernorate())) {
+                    response.setGovernorateDetails(GovernorateResponse.fromEntity(carListing.getGovernorate()));
+                }
+            } catch (Exception e) {
+                log.warn("Error setting governorate for listing ID {}", carListing.getId());
             }
             
             try { response.setCreatedAt(carListing.getCreatedAt()); } 

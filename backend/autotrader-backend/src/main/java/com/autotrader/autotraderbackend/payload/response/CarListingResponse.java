@@ -32,6 +32,23 @@ public class CarListingResponse {
     private String fuelType; // Added field
     
     /**
+     * Denormalized transmission name in English for efficient display
+     */
+    private String transmissionNameEn;
+    /**
+     * Denormalized transmission name in Arabic for efficient display
+     */
+    private String transmissionNameAr;
+    /**
+     * Denormalized fuel type name in English for efficient display
+     */
+    private String fuelTypeNameEn;
+    /**
+     * Denormalized fuel type name in Arabic for efficient display
+     */
+    private String fuelTypeNameAr;
+    
+    /**
      * Denormalized brand name in English for efficient search
      */
     private String brandNameEn;
@@ -101,6 +118,10 @@ public class CarListingResponse {
     public String getCurrency() { return currency; }
     public String getTransmission() { return transmission; } // Added getter
     public String getFuelType() { return fuelType; } // Added getter
+    public String getTransmissionNameEn() { return transmissionNameEn; }
+    public String getTransmissionNameAr() { return transmissionNameAr; }
+    public String getFuelTypeNameEn() { return fuelTypeNameEn; }
+    public String getFuelTypeNameAr() { return fuelTypeNameAr; }
     
     public LocationResponse getLocationDetails() { return locationDetails; }
     public GovernorateResponse getGovernorateDetails() { return governorateDetails; }
@@ -133,6 +154,10 @@ public class CarListingResponse {
     public void setCurrency(String currency) { this.currency = currency; }
     public void setTransmission(String transmission) { this.transmission = transmission; } // Added setter
     public void setFuelType(String fuelType) { this.fuelType = fuelType; } // Added setter
+    public void setTransmissionNameEn(String transmissionNameEn) { this.transmissionNameEn = transmissionNameEn; }
+    public void setTransmissionNameAr(String transmissionNameAr) { this.transmissionNameAr = transmissionNameAr; }
+    public void setFuelTypeNameEn(String fuelTypeNameEn) { this.fuelTypeNameEn = fuelTypeNameEn; }
+    public void setFuelTypeNameAr(String fuelTypeNameAr) { this.fuelTypeNameAr = fuelTypeNameAr; }
     
     public void setLocationDetails(LocationResponse locationDetails) { this.locationDetails = locationDetails; }
     public void setGovernorateDetails(GovernorateResponse governorateDetails) { this.governorateDetails = governorateDetails; }

@@ -41,6 +41,8 @@ import SearchBar from '@/components/search/SearchBar';
 import FilterPills from '@/components/search/FilterPills';
 import CarListingsGrid from '@/components/search/CarListingsGrid';
 import SortDropdown from '@/components/search/SortDropdown';
+import ViewModeToggle from '@/components/search/ViewModeToggle';
+import { ViewMode } from '@/components/search/ViewModeToggle';
 import { createSavedSearch, deleteSavedSearch } from '@/services/savedSearches';
 import { SavedSearchRequest } from '@/services/savedSearches';
 
@@ -71,6 +73,7 @@ export default function AdvancedSearchPage() {
   const [isSavingAlert, setIsSavingAlert] = useState(false);
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [savedSearchId, setSavedSearchId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   
   // New state for all models (for makeModel filter modal)
   const [allModels, setAllModels] = useState<CarModel[]>([]);
@@ -315,6 +318,9 @@ export default function AdvancedSearchPage() {
       return condition ? (currentLanguage === 'ar' ? condition.displayNameAr : condition.displayNameEn) : '';
     }, [referenceData?.carConditions, currentLanguage]
   );
+
+  // Car listings are now enhanced directly by the backend with bilingual fields
+  const enhancedCarListings = carListings;
 
   // Memoized filter count for UI display
   const filterCount = useMemo(() => {
@@ -1213,16 +1219,25 @@ export default function AdvancedSearchPage() {
 
         {/* Results Info */}
         <div className="flex items-center justify-between mb-6">
-          <div className={`flex items-center ${isRTL ? 'space-x-reverse' : 'space-x-4'}`}>
-            {/* Sort Dropdown - LEFT SIDE */}
+          <div className="flex flex-col gap-3">
+            {/* Sort Dropdown - Top row, left aligned */}
             <SortDropdown
               selectedSort={selectedSort}
               onSortChange={setSelectedSort}
               onSearchTrigger={() => executeSearch(false)}
             />
+            
+            {/* View Mode Toggle - Bottom row, under sort */}
+            <ViewModeToggle
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              t={t as any}
+              isRTL={isRTL}
+            />
           </div>
           
-          {/* Save Search Button - RIGHT SIDE - Only show when filters are active */}
+          {/* Save Search Button - Positioned based on RTL */}
           {hasActiveFilters && (
             <button 
               onClick={handleCreateAlert}
@@ -1258,31 +1273,32 @@ export default function AdvancedSearchPage() {
 
         {/* Car Listings Grid with Smooth Transitions */}
         <CarListingsGrid
-          carListings={carListings}
+          carListings={enhancedCarListings}
           isLoadingListings={isLoadingListings}
           isManualSearch={isManualSearch}
           listingsError={listingsError}
           executeSearch={executeSearch}
-
+          viewMode={viewMode}
+          isRTL={isRTL}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           t={t as any}
         />
 
         {/* Pagination */}
-        {carListings && carListings.totalPages > 1 && (
+        {enhancedCarListings && enhancedCarListings.totalPages > 1 && (
           <div className="mt-8 flex justify-center">
             <div className="flex items-center space-x-2">
               <button
-                disabled={carListings.page === 0}
+                disabled={enhancedCarListings.page === 0}
                 className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
               <span className="px-3 py-2 text-sm text-gray-700">
-                Page {carListings.page + 1} of {carListings.totalPages}
+                Page {enhancedCarListings.page + 1} of {enhancedCarListings.totalPages}
               </span>
               <button
-                disabled={carListings.last}
+                disabled={enhancedCarListings.last}
                 className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
@@ -1292,7 +1308,7 @@ export default function AdvancedSearchPage() {
         )}
 
         {/* Subtle Registration CTA for Unauthenticated Users - Only if there are results */}
-        {!isAuthenticated && carListings && carListings.content && carListings.content.length > 0 && (
+        {!isAuthenticated && enhancedCarListings && enhancedCarListings.content && enhancedCarListings.content.length > 0 && (
           <div className="mt-12 text-center">
             <div className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-4 py-3 rounded-lg">
               <span>Want to contact sellers?</span>
@@ -1334,7 +1350,7 @@ export default function AdvancedSearchPage() {
             bodyStyleCounts={bodyStyleCounts}
             fuelTypeCounts={fuelTypeCounts}
             transmissionCounts={transmissionCounts}
-            carListings={carListings}
+            carListings={enhancedCarListings}
             currentLanguage={currentLanguage}
             isRTL={isRTL}
             dirClass={dirClass}

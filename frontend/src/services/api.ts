@@ -117,6 +117,10 @@ export interface CarListing {
   mileage: number;
   transmission: string;
   fuelType: string;
+  transmissionNameEn: string;
+  transmissionNameAr: string;
+  fuelTypeNameEn: string;
+  fuelTypeNameAr: string;
   description: string;
   media: ListingMediaResponse[];
   approved: boolean;

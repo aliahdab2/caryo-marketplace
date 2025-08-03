@@ -163,5 +163,10 @@
   "emptyFavoritesMessage": "Start exploring and save cars you like. Your favorites will appear here.",
   "browseCars": "Browse cars",
   "getStarted": "Get started",
-  "viewAllCars": "View all cars"
+  "viewAllCars": "View all cars",
+  "viewMode": "View",
+  "grid": "Grid",
+  "list": "List",
+  "gridView": "Grid view",
+  "listView": "List view"
 }

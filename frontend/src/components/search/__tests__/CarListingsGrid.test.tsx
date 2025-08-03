@@ -41,6 +41,8 @@ describe('CarListingsGrid', () => {
     isManualSearch: false,
     listingsError: null,
     executeSearch: mockExecuteSearch,
+    viewMode: 'grid' as const,
+    isRTL: false,
     t: mockT
   };
 
