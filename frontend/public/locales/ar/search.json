@@ -163,5 +163,10 @@
   "emptyFavoritesMessage": "ابدأ في الاستكشاف واحفظ السيارات التي تعجبك. ستظهر مفضلتك هنا.",
   "browseCars": "تصفح السيارات",
   "getStarted": "ابدأ",
-  "viewAllCars": "عرض جميع السيارات"
+  "viewAllCars": "عرض جميع السيارات",
+  "viewMode": "طريقة العرض",
+  "grid": "شبكة",
+  "list": "قائمة",
+  "gridView": "عرض الشبكة",
+  "listView": "عرض القائمة"
 }

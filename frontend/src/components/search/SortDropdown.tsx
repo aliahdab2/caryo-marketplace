@@ -60,12 +60,19 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
     <div className={`relative sort-dropdown-container ${dirClass}`}>
       <button 
         onClick={() => setShowSortDropdown(!showSortDropdown)}
-        className="flex items-center text-gray-700 hover:text-gray-900 text-sm font-medium px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        className={`flex items-center text-gray-700 hover:text-gray-900 text-sm font-medium px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
         aria-label={t('sortBy', 'Sort by')}
       >
-        <MdSort size={20} className={isRTL ? "ml-2" : "mr-2"} />
-        <span>{t('sortBy', 'Sort by')}: {getSortDisplayText(selectedSort, t)}</span>
-        <MdKeyboardArrowDown size={20} className={isRTL ? "mr-2" : "ml-2"} />
+        {/* Sort icon - always at the beginning (left side), normal appearance */}
+        <MdSort size={20} className="mr-3" />
+        
+        {/* Text content - in the middle with extra spacing */}
+        <span className={`flex-1 pl-2 ${isRTL ? 'text-right pr-2' : 'text-left'}`}>
+          {t('sortBy', 'Sort by')}: {getSortDisplayText(selectedSort, t)}
+        </span>
+        
+        {/* Dropdown arrow - always at the end (right side) */}
+        <MdKeyboardArrowDown size={20} className="ml-2" />
       </button>
       
       {/* Dropdown Menu */}
@@ -76,9 +83,9 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
               <button
                 key={option.value}
                 onClick={() => handleSortChange(option.value)}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
+                className={`w-full px-4 py-2 text-sm hover:bg-gray-100 ${
                   selectedSort === option.value ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                }`}
+                } ${isRTL ? 'text-right' : 'text-left'}`}
               >
                 {t(option.label, option.fallback)}
               </button>

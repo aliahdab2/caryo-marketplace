@@ -70,7 +70,7 @@ export default function FilterPills({
       <div className="flex flex-col space-y-2">
         {/* Filter Pills Section */}
         <div className="flex flex-col space-y-2">
-          <div className={`flex flex-wrap gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <div className={`flex flex-wrap gap-2 ${isRTL ? 'justify-start' : 'justify-start'}`}>
             {/* Show All Filters Button - Sticky */}
             <button
               onClick={() => setActiveFilterModal('allFilters')}
@@ -80,9 +80,7 @@ export default function FilterPills({
               <span className={`relative z-10 flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                 <MdFilterList className="w-4 h-4" />
                 <span>{t('showAllFilters', 'Show all filters')}</span>
-              </span>
-
-              {/* Ripple effect */}
+              </span>              {/* Ripple effect */}
               <div className="absolute inset-0 rounded-xl overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-700" />
               </div>

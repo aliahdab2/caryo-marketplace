@@ -41,6 +41,8 @@ import SearchBar from '@/components/search/SearchBar';
 import FilterPills from '@/components/search/FilterPills';
 import CarListingsGrid from '@/components/search/CarListingsGrid';
 import SortDropdown from '@/components/search/SortDropdown';
+import ViewModeToggle from '@/components/search/ViewModeToggle';
+import { ViewMode } from '@/components/search/ViewModeToggle';
 import { createSavedSearch, deleteSavedSearch } from '@/services/savedSearches';
 import { SavedSearchRequest } from '@/services/savedSearches';
 
@@ -71,6 +73,7 @@ export default function AdvancedSearchPage() {
   const [isSavingAlert, setIsSavingAlert] = useState(false);
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [savedSearchId, setSavedSearchId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   
   // New state for all models (for makeModel filter modal)
   const [allModels, setAllModels] = useState<CarModel[]>([]);
@@ -1213,16 +1216,25 @@ export default function AdvancedSearchPage() {
 
         {/* Results Info */}
         <div className="flex items-center justify-between mb-6">
-          <div className={`flex items-center ${isRTL ? 'space-x-reverse' : 'space-x-4'}`}>
-            {/* Sort Dropdown - LEFT SIDE */}
+          <div className="flex flex-col gap-3">
+            {/* Sort Dropdown - Top row, left aligned */}
             <SortDropdown
               selectedSort={selectedSort}
               onSortChange={setSelectedSort}
               onSearchTrigger={() => executeSearch(false)}
             />
+            
+            {/* View Mode Toggle - Bottom row, under sort */}
+            <ViewModeToggle
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              t={t as any}
+              isRTL={isRTL}
+            />
           </div>
           
-          {/* Save Search Button - RIGHT SIDE - Only show when filters are active */}
+          {/* Save Search Button - Positioned based on RTL */}
           {hasActiveFilters && (
             <button 
               onClick={handleCreateAlert}
@@ -1263,7 +1275,8 @@ export default function AdvancedSearchPage() {
           isManualSearch={isManualSearch}
           listingsError={listingsError}
           executeSearch={executeSearch}
-
+          viewMode={viewMode}
+          isRTL={isRTL}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           t={t as any}
         />

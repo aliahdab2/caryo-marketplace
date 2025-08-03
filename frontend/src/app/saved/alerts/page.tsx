@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { FaSearch, FaTrash } from 'react-icons/fa';
 import { getUserSavedSearches, SavedSearchResponse, getCarListingsForSavedSearch, deleteSavedSearch, updateSavedSearch } from '@/services/savedSearches';
 import type { CarListingCardData } from '@/components/listings/CarListingCard';
-import CarListingCard from '@/components/listings/CarListingCard';
+import CarListingListItem from '@/components/search/CarListingListItem';
 import EmptyState from '@/components/ui/EmptyState';
 
 export default function SavedAlertsPage() {
@@ -440,11 +440,17 @@ export default function SavedAlertsPage() {
                 {/* Content */}
                 <div className="p-6 relative min-h-[600px] transition-all duration-300 ease-in-out">
                   {matchingListings.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-200">
+                    <div className="space-y-4 transition-opacity duration-200">
                       {matchingListings.map((listing) => (
-                        <CarListingCard
+                        <CarListingListItem
                           key={listing.id}
                           listing={listing}
+                          onFavoriteToggle={(isFavorite) => {
+                            // Handle favorite toggle if needed
+                            console.log('Favorite toggled:', isFavorite);
+                          }}
+                          t={(key: string, fallback?: string) => fallback ? t(key, fallback) : t(key)}
+                          isRTL={isRTL}
                         />
                       ))}
                     </div>
