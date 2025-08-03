@@ -244,233 +244,229 @@ export default function SavedAlertsPage() {
         </nav>
       </div>
 
-      {/* Main Layout - Split like Blocket */}
-      <div className="grid grid-cols-12 gap-6 transition-all duration-200 ease-in-out">
-        {/* Left Sidebar - Alert List */}
-        <div className="col-span-12 lg:col-span-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-fit lg:sticky lg:top-6 transition-transform duration-200 ease-in-out">
-            {/* Header */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {t('search:alerts', 'Alerts')}
-              </h1>
-            </div>
-
-            {/* Alert List */}
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {isLoading ? (
-                <div className="p-4 text-center">
-                  <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
-                </div>
-              ) : savedSearches.length === 0 ? (
-                <div className="p-4">
-                  <EmptyState
-                    type="alerts"
-                    actionButton={{
-                      text: t('search:searchForCars', 'Search for cars'),
-                      href: '/search',
-                      icon: <FaSearch className="w-4 h-4" />
-                    }}
-                  />
-                </div>
-              ) : (
-                savedSearches.map((search) => (
-                  <div
-                    key={search.id}
-                    className={`p-4 cursor-pointer transition-all duration-200 relative ${
-                      selectedSearch?.id === search.id 
-                        ? 'bg-blue-50 dark:bg-blue-900/20 shadow-sm' 
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-700'
-                    } ${isRTL ? 'text-right' : 'text-left'}`}
-                    onClick={() => handleSelectSearch(search)}
-                  >
-                    {/* Active indicator line */}
-                    {selectedSearch?.id === search.id && (
-                      <div className={`absolute top-0 bottom-0 w-1 bg-blue-500 ${isRTL ? 'right-0' : 'left-0'}`}></div>
-                    )}
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-1">
-                      {isRTL ? search.nameAr || search.nameEn : search.nameEn}
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {search.matchCount || 0} {t('search:newListings', 'listings')}
-                    </p>
-                  </div>
-                ))
-              )}
-            </div>
-
-            {/* Settings Section */}
-            <div className="border-t border-gray-200 dark:border-gray-700">
-              <div className="p-4">
-                <h3 className="font-medium text-gray-900 dark:text-white mb-3">
-                  {t('search:alertSettings', 'Settings for my alerts')}
-                </h3>
-                
-                <div className="space-y-3">
-                  <label className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse text-right' : ''}`}>
-                    <input
-                      type="checkbox"
-                      className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      defaultChecked
-                    />
-                    <div>
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {t('search:hideRemoveListings', 'Hide sold and removed listings')}
-                      </div>
-                    </div>
-                  </label>
-                  
-                  <label className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse text-right' : ''}`}>
-                    <input
-                      type="checkbox"
-                      className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <div>
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {t('search:alertByEmail', 'Alert by email')}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {t('search:emailAlertDescription', 'Get a summary of your alerts via email once a day.')}
-                      </div>
-                    </div>
-                  </label>
-                </div>
-              </div>
-            </div>
+      {/* Main Layout - Conditional based on alerts existence */}
+      {!isLoading && savedSearches.length === 0 ? (
+        /* No alerts - Full width empty state */
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <EmptyState
+              type="alerts"
+              title={t('search:emptyAlertsTitle', 'No alerts yet!')}
+              message={t('search:emptyAlertsMessage', 'Create your first search alert to get notified when new cars matching your criteria are listed.')}
+              actionButton={{
+                text: t('search:searchForCars', 'Search for cars'),
+                href: '/search',
+                icon: <FaSearch className="w-4 h-4" />
+              }}
+            />
           </div>
         </div>
-
-        {/* Right Content Area */}
-        <div className="col-span-12 lg:col-span-8">
-          <div className="min-h-[600px]"> {/* Minimum height to prevent layout shifts */}
-            {selectedSearch ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                {/* Header */}
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between min-h-[2.5rem]">
-                  <div className="flex-1">
-                    {isEditingName ? (
-                      <div className="flex items-center gap-2 h-10">
-                        <input
-                          type="text"
-                          value={editingName}
-                          onChange={(e) => setEditingName(e.target.value)}
-                          className={`text-xl font-semibold text-gray-900 dark:text-white bg-transparent border-b-2 border-blue-500 focus:outline-none focus:border-blue-600 min-w-0 flex-1 h-8 ${isRTL ? 'text-right' : 'text-left'}`}
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleSaveEditName();
-                            } else if (e.key === 'Escape') {
-                              handleCancelEditName();
-                            }
-                          }}
-                        />
-                        <div className="flex gap-2 shrink-0">
-                          <button
-                            onClick={handleSaveEditName}
-                            className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-blue-600 bg-blue-600 text-white rounded hover:bg-blue-700 hover:border-blue-700 transition-colors h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
-                          >
-                            {t('common:save', 'Save')}
-                          </button>
-                          <button
-                            onClick={handleCancelEditName}
-                            className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
-                          >
-                            {t('common:cancel', 'Cancel')}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <h2 className={`text-xl font-semibold text-gray-900 dark:text-white h-10 flex items-center ${isRTL ? 'text-right' : 'text-left'}`}>
-                        {isRTL ? selectedSearch.nameAr || selectedSearch.nameEn : selectedSearch.nameEn}
-                      </h2>
-                    )}
-                  </div>
-                  {!isEditingName && (
-                    <div className="flex gap-2 shrink-0">
-                      <button 
-                        onClick={handleStartEditName}
-                        className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
-                      >
-                        <FaSearch className="w-4 h-4" />
-                        {t('search:editName', 'Edit name')}
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteAlert(selectedSearch.id)}
-                        disabled={isDeleting}
-                        className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50 transition-colors disabled:opacity-50 h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
-                      >
-                        {isDeleting ? (
-                          <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <FaTrash className="w-4 h-4" />
-                        )}
-                        {t('search:remove', 'Remove')}
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <p className={`text-sm mt-2 ${isRTL ? 'text-right' : 'text-left'}`}>
-                  {t('search:searchingFor', 'Searching for:')}{' '}
-                  <a 
-                    href={generateSearchUrlWithoutLocation(selectedSearch)}
-                    className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                    title={t('search:viewAllLocations', 'View cars in all governorates with current filters')}
-                  >
-                    {t('search:carsInSyria', 'Cars for sale in all of Syria')}
-                  </a>
-                </p>
+      ) : (
+        /* Has alerts - Split layout */
+        <div className="grid grid-cols-12 gap-6 transition-all duration-200 ease-in-out">
+          {/* Left Sidebar - Alert List */}
+          <div className="col-span-12 lg:col-span-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-fit lg:sticky lg:top-6 transition-transform duration-200 ease-in-out">
+              {/* Header */}
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {t('search:alerts', 'Alerts')}
+                </h1>
               </div>
 
-              {/* Content */}
-              <div className="p-6 relative min-h-[600px] transition-all duration-300 ease-in-out">
-                {matchingListings.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-200">
-                    {matchingListings.map((listing) => (
-                      <CarListingCard
-                        key={listing.id}
-                        listing={listing}
-                      />
-                    ))}
+              {/* Alert List */}
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                {isLoading ? (
+                  <div className="p-4 text-center">
+                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
                   </div>
                 ) : (
-                  <EmptyState
-                    type="search"
-                    title={t('search:noResultsFound', 'No cars found')}
-                    message={t('search:noMatchingCars', 'No cars found matching this alert criteria. Try adjusting your search filters.')}
-                    actionButton={{
-                      text: t('search:clearAllFilters', 'Clear all filters'),
-                      href: generateSearchUrlWithoutLocation(selectedSearch),
-                      icon: <FaSearch className="w-4 h-4" />
-                    }}
-                  />
+                  savedSearches.map((search) => (
+                    <div
+                      key={search.id}
+                      className={`p-4 cursor-pointer transition-all duration-200 relative ${
+                        selectedSearch?.id === search.id 
+                          ? 'bg-blue-50 dark:bg-blue-900/20 shadow-sm' 
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                      } ${isRTL ? 'text-right' : 'text-left'}`}
+                      onClick={() => handleSelectSearch(search)}
+                    >
+                      {/* Active indicator line */}
+                      {selectedSearch?.id === search.id && (
+                        <div className={`absolute top-0 bottom-0 w-1 bg-blue-500 ${isRTL ? 'right-0' : 'left-0'}`}></div>
+                      )}
+                      <h3 className="font-medium text-gray-900 dark:text-white mb-1">
+                        {isRTL ? search.nameAr || search.nameEn : search.nameEn}
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {search.matchCount || 0} {t('search:newListings', 'listings')}
+                      </p>
+                    </div>
+                  ))
                 )}
               </div>
+
+              {/* Settings Section - Only show when there are alerts */}
+              {savedSearches.length > 0 && (
+                <div className="border-t border-gray-200 dark:border-gray-700">
+                  <div className="p-4">
+                    <h3 className="font-medium text-gray-900 dark:text-white mb-3">
+                      {t('search:alertSettings', 'Settings for my alerts')}
+                    </h3>
+                    
+                    <div className="space-y-3">
+                      <label className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse text-right' : ''}`}>
+                        <input
+                          type="checkbox"
+                          className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          defaultChecked
+                        />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {t('search:hideRemoveListings', 'Hide sold and removed listings')}
+                          </div>
+                        </div>
+                      </label>
+                      
+                      <label className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse text-right' : ''}`}>
+                        <input
+                          type="checkbox"
+                          className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {t('search:alertByEmail', 'Alert by email')}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {t('search:emailAlertDescription', 'Get a summary of your alerts via email once a day.')}
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          ) : savedSearches.length === 0 ? (
-            /* Empty State when no alerts exist */
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-              <EmptyState
-                type="alerts"
-                title={t('search:emptyAlertsTitle', 'No alerts yet!')}
-                message={t('search:emptyAlertsMessage', 'Create your first search alert to get notified when new cars matching your criteria are listed.')}
-                actionButton={{
-                  text: t('search:searchForCars', 'Search for cars'),
-                  href: '/search',
-                  icon: <FaSearch className="w-4 h-4" />
-                }}
-              />
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-              <p className="text-gray-500 text-center">
-                {t('search:selectAlert', 'Select an alert from the left to view details')}
-              </p>
-            </div>
-          )}
+          </div>
+
+          {/* Right Content Area */}
+          <div className="col-span-12 lg:col-span-8">
+            <div className="min-h-[600px]"> {/* Minimum height to prevent layout shifts */}
+              {selectedSearch ? (
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  {/* Header */}
+                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between min-h-[2.5rem]">
+                    <div className="flex-1">
+                      {isEditingName ? (
+                        <div className="flex items-center gap-2 h-10">
+                          <input
+                            type="text"
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            className={`text-xl font-semibold text-gray-900 dark:text-white bg-transparent border-b-2 border-blue-500 focus:outline-none focus:border-blue-600 min-w-0 flex-1 h-8 ${isRTL ? 'text-right' : 'text-left'}`}
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleSaveEditName();
+                              } else if (e.key === 'Escape') {
+                                handleCancelEditName();
+                              }
+                            }}
+                          />
+                          <div className="flex gap-2 shrink-0">
+                            <button
+                              onClick={handleSaveEditName}
+                              className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-blue-600 bg-blue-600 text-white rounded hover:bg-blue-700 hover:border-blue-700 transition-colors h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
+                            >
+                              {t('common:save', 'Save')}
+                            </button>
+                            <button
+                              onClick={handleCancelEditName}
+                              className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
+                            >
+                              {t('common:cancel', 'Cancel')}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <h2 className={`text-xl font-semibold text-gray-900 dark:text-white h-10 flex items-center ${isRTL ? 'text-right' : 'text-left'}`}>
+                          {isRTL ? selectedSearch.nameAr || selectedSearch.nameEn : selectedSearch.nameEn}
+                        </h2>
+                      )}
+                    </div>
+                    {!isEditingName && (
+                      <div className="flex gap-2 shrink-0">
+                        <button 
+                          onClick={handleStartEditName}
+                          className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
+                        >
+                          <FaSearch className="w-4 h-4" />
+                          {t('search:editName', 'Edit name')}
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteAlert(selectedSearch.id)}
+                          disabled={isDeleting}
+                          className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50 transition-colors disabled:opacity-50 h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
+                        >
+                          {isDeleting ? (
+                            <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <FaTrash className="w-4 h-4" />
+                          )}
+                          {t('search:remove', 'Remove')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <p className={`text-sm mt-2 ${isRTL ? 'text-right' : 'text-left'}`}>
+                    {t('search:searchingFor', 'Searching for:')}{' '}
+                    <a 
+                      href={generateSearchUrlWithoutLocation(selectedSearch)}
+                      className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                      title={t('search:viewAllLocations', 'View cars in all governorates with current filters')}
+                    >
+                      {t('search:carsInSyria', 'Cars for sale in all of Syria')}
+                    </a>
+                  </p>
+                </div>
+
+                {/* Content */}
+                <div className="p-6 relative min-h-[600px] transition-all duration-300 ease-in-out">
+                  {matchingListings.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-200">
+                      {matchingListings.map((listing) => (
+                        <CarListingCard
+                          key={listing.id}
+                          listing={listing}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      type="search"
+                      title={t('search:noResultsFound', 'No cars found')}
+                      message={t('search:noMatchingCars', 'No cars found matching this alert criteria. Try adjusting your search filters.')}
+                      actionButton={{
+                        text: t('search:clearAllFilters', 'Clear all filters'),
+                        href: generateSearchUrlWithoutLocation(selectedSearch),
+                        icon: <FaSearch className="w-4 h-4" />
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <p className="text-gray-500 text-center">
+                  {t('search:selectAlert', 'Select an alert from the left to view details')}
+                </p>
+              </div>
+            )}
           </div> {/* Close the min-h-[600px] wrapper div */}
-        </div>
+        </div> {/* Close the right content area */}
       </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {alertToDelete && (
