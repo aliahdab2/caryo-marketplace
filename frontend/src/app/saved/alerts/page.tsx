@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import { FaSearch, FaTrash } from 'react-icons/fa';
 import { getUserSavedSearches, SavedSearchResponse, getCarListingsForSavedSearch, deleteSavedSearch, updateSavedSearch } from '@/services/savedSearches';
 import type { CarListingCardData } from '@/components/listings/CarListingCard';
@@ -238,7 +239,12 @@ export default function SavedAlertsPage() {
       {/* Breadcrumb */}
       <div className="mb-6">
         <nav className="text-sm text-gray-500">
-          <span>{t('common:home', 'Home')}</span>
+          <Link 
+            href="/search" 
+            className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors cursor-pointer"
+          >
+            {t('listings:allCars', 'All Cars')}
+          </Link>
           <span className={`mx-2 ${isRTL ? 'rotate-180' : ''}`}>›</span>
           <span className="text-gray-900 dark:text-white">{t('search:savedAlerts', 'Saved Alerts')}</span>
         </nav>
