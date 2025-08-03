@@ -23,18 +23,56 @@ const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
   const { t } = useTranslation('listings');
   const [showAllFacts, setShowAllFacts] = useState(false);
 
+  // Helper function to get translated transmission text
+  const getTransmissionText = (transmission?: string) => {
+    if (!transmission) return '';
+    
+    // Try different key formats to match against translation keys
+    const normalized = transmission.toLowerCase();
+    
+    // Try direct translation key lookup
+    const translatedKey = `search.transmissions.${normalized}`;
+    const translated = t(translatedKey, '');
+    
+    if (translated && translated !== translatedKey) {
+      return translated;
+    }
+    
+    // Fallback to original value
+    return transmission;
+  };
+
+  // Helper function to get translated fuel type text
+  const getFuelTypeText = (fuelType?: string) => {
+    if (!fuelType) return '';
+    
+    // Try different key formats to match against translation keys
+    const normalized = fuelType.toLowerCase();
+    
+    // Try direct translation key lookup
+    const translatedKey = `search.fuelTypes.${normalized}`;
+    const translated = t(translatedKey, '');
+    
+    if (translated && translated !== translatedKey) {
+      return translated;
+    }
+    
+    // Fallback to original value
+    return fuelType;
+  };
+
   const allFacts = [
     // Fuel Type - from API (if available) - "Bränsle"
     ...(listing.fuelType ? [{
       label: t('fuelType'),
-      value: listing.fuelType,
+      value: getFuelTypeText(listing.fuelType),
       icon: <Fuel className="w-4 h-4 text-gray-600" />
     }] : []),
     
     // Transmission - from API (if available) - "Växellåda"
     ...(listing.transmission ? [{
       label: t('transmission'),
-      value: listing.transmission,
+      value: getTransmissionText(listing.transmission),
       icon: <Cog className="w-4 h-4 text-gray-600" />
     }] : []),
     

@@ -319,6 +319,9 @@ export default function AdvancedSearchPage() {
     }, [referenceData?.carConditions, currentLanguage]
   );
 
+  // Car listings are now enhanced directly by the backend with bilingual fields
+  const enhancedCarListings = carListings;
+
   // Memoized filter count for UI display
   const filterCount = useMemo(() => {
     return (
@@ -1270,7 +1273,7 @@ export default function AdvancedSearchPage() {
 
         {/* Car Listings Grid with Smooth Transitions */}
         <CarListingsGrid
-          carListings={carListings}
+          carListings={enhancedCarListings}
           isLoadingListings={isLoadingListings}
           isManualSearch={isManualSearch}
           listingsError={listingsError}
@@ -1282,20 +1285,20 @@ export default function AdvancedSearchPage() {
         />
 
         {/* Pagination */}
-        {carListings && carListings.totalPages > 1 && (
+        {enhancedCarListings && enhancedCarListings.totalPages > 1 && (
           <div className="mt-8 flex justify-center">
             <div className="flex items-center space-x-2">
               <button
-                disabled={carListings.page === 0}
+                disabled={enhancedCarListings.page === 0}
                 className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
               <span className="px-3 py-2 text-sm text-gray-700">
-                Page {carListings.page + 1} of {carListings.totalPages}
+                Page {enhancedCarListings.page + 1} of {enhancedCarListings.totalPages}
               </span>
               <button
-                disabled={carListings.last}
+                disabled={enhancedCarListings.last}
                 className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
@@ -1305,7 +1308,7 @@ export default function AdvancedSearchPage() {
         )}
 
         {/* Subtle Registration CTA for Unauthenticated Users - Only if there are results */}
-        {!isAuthenticated && carListings && carListings.content && carListings.content.length > 0 && (
+        {!isAuthenticated && enhancedCarListings && enhancedCarListings.content && enhancedCarListings.content.length > 0 && (
           <div className="mt-12 text-center">
             <div className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-4 py-3 rounded-lg">
               <span>Want to contact sellers?</span>
@@ -1347,7 +1350,7 @@ export default function AdvancedSearchPage() {
             bodyStyleCounts={bodyStyleCounts}
             fuelTypeCounts={fuelTypeCounts}
             transmissionCounts={transmissionCounts}
-            carListings={carListings}
+            carListings={enhancedCarListings}
             currentLanguage={currentLanguage}
             isRTL={isRTL}
             dirClass={dirClass}

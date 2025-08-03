@@ -29,6 +29,9 @@ export default function SavedAlertsPage() {
     setMounted(true);
   }, []);
 
+  // Matching listings are now enhanced directly by the backend with bilingual fields
+  const enhancedMatchingListings = matchingListings;
+
   const loadMatchingListings = useCallback(async (savedSearch: SavedSearchResponse) => {
     try {
       const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
@@ -439,9 +442,9 @@ export default function SavedAlertsPage() {
 
                 {/* Content */}
                 <div className="p-6 relative min-h-[600px] transition-all duration-300 ease-in-out">
-                  {matchingListings.length > 0 ? (
+                  {enhancedMatchingListings.length > 0 ? (
                     <div className="space-y-4 transition-opacity duration-200">
-                      {matchingListings.map((listing) => (
+                      {enhancedMatchingListings.map((listing) => (
                         <CarListingListItem
                           key={listing.id}
                           listing={listing}
