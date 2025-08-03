@@ -11,6 +11,7 @@ import {
   SavedSearchResponse 
 } from '@/services/savedSearches';
 import SuccessAlert from '@/components/ui/SuccessAlert';
+import EmptyState from '@/components/ui/EmptyState';
 
 interface SavedSearchesManagerProps {
   onEditSearch?: (search: SavedSearchResponse) => void;
@@ -127,50 +128,16 @@ export default function SavedSearchesManager({
 
   if (savedSearches.length === 0) {
     return (
-      <div className="text-center py-16">
-        {/* Empty State Illustration */}
-        <div className="flex justify-center mb-6">
-          <div className="relative">
-            {/* Person Icon */}
-            <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
-              <svg 
-                className="w-12 h-12 text-gray-400 dark:text-gray-500" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={1.5} 
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" 
-                />
-              </svg>
-            </div>
-            {/* Search/Bell Badge */}
-            <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-              <MdNotificationsNone className="w-4 h-4 text-white" />
-            </div>
-          </div>
-        </div>
-        
-        {/* Empty State Message */}
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-          {t('search:emptyStateTitle', 'Here it was empty!')}
-        </h3>
-        <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-          {t('search:emptyStateMessage', 'No alerts found. Create your first alert to get notified when new cars match your criteria.')}
-        </p>
-        
-        {/* Call to Action */}
-        <a
-          href="/search"
-          className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
-        >
-          <MdNotificationsNone className="w-5 h-5 mr-2" />
-          {t('search:createFirstAlert', 'Create Your First Alert')}
-        </a>
-      </div>
+      <EmptyState
+        type="alerts"
+        title={t('search:emptyStateTitle', 'Here it was empty!')}
+        message={t('search:emptyStateMessage', 'No alerts found. Create your first alert to get notified when new cars match your criteria.')}
+        actionButton={{
+          text: t('search:createFirstAlert', 'Create Your First Alert'),
+          href: '/search',
+          icon: <MdNotificationsNone className="w-5 h-5" />
+        }}
+      />
     );
   }
 

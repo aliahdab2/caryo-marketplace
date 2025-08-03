@@ -30,16 +30,12 @@ export default function SavedAlertsPage() {
 
   const loadMatchingListings = useCallback(async (savedSearch: SavedSearchResponse) => {
     try {
-      try {
-        const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
-        const listings = await getCarListingsForSavedSearch(savedSearch, token);
-        setMatchingListings(listings);
-      } catch (error) {
-        console.error('Error loading matching listings:', error);
-        setMatchingListings([]);
-      }
+      const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
+      const listings = await getCarListingsForSavedSearch(savedSearch, token);
+      setMatchingListings(listings);
     } catch (error) {
-      console.error('Error in loadMatchingListings:', error);
+      console.error('Error loading matching listings:', error);
+      setMatchingListings([]);
     }
   }, [session]);
 
@@ -249,7 +245,7 @@ export default function SavedAlertsPage() {
       </div>
 
       {/* Main Layout - Split like Blocket */}
-      <div className={`grid grid-cols-12 gap-6 ${isRTL ? 'rtl:space-x-reverse' : ''} transition-all duration-200 ease-in-out`}>
+      <div className="grid grid-cols-12 gap-6 transition-all duration-200 ease-in-out">
         {/* Left Sidebar - Alert List */}
         <div className="col-span-12 lg:col-span-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-fit lg:sticky lg:top-6 transition-transform duration-200 ease-in-out">
@@ -467,11 +463,12 @@ export default function SavedAlertsPage() {
             </div>
           ) : (
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-              <p className={`text-gray-500 text-center ${isRTL ? 'text-center' : 'text-center'}`}>
+              <p className="text-gray-500 text-center">
                 {t('search:selectAlert', 'Select an alert from the left to view details')}
               </p>
             </div>
           )}
+          </div> {/* Close the min-h-[600px] wrapper div */}
         </div>
       </div>
 
@@ -501,7 +498,7 @@ export default function SavedAlertsPage() {
               </div>
 
               {/* Buttons */}
-              <div className={`flex space-x-3 ${isRTL ? 'space-x-reverse flex-row-reverse' : ''}`}>
+              <div className={`flex gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <button
                   onClick={cancelDeleteAlert}
                   className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 font-medium rounded-xl transition-colors duration-200"
@@ -514,8 +511,8 @@ export default function SavedAlertsPage() {
                   className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium rounded-xl transition-colors duration-200 disabled:cursor-not-allowed"
                 >
                   {isDeleting ? (
-                    <div className="flex items-center justify-center">
-                      <div className={`animate-spin rounded-full h-4 w-4 border-b-2 border-white ${isRTL ? 'ml-2' : 'mr-2'}`}></div>
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       {t('common:deleting', 'Deleting...')}
                     </div>
                   ) : (
@@ -527,7 +524,6 @@ export default function SavedAlertsPage() {
           </div>
         </div>
       )}
-      </div> {/* Close the min-h wrapper div */}
     </div>
   );
 }
