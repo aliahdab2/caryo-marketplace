@@ -24,6 +24,7 @@ interface FilterChipsProps {
   selectedModel: number | null;
   referenceData?: { fuelTypes?: Array<{ id: number; name: string; displayNameEn: string; displayNameAr: string }> } | null;
   t: (key: string, fallback?: string, options?: { brand?: string; model?: string }) => string;
+  isRTL?: boolean;
 }
 
 export default function FilterChips({
@@ -40,7 +41,8 @@ export default function FilterChips({
   getSellerTypeDisplayName,
   selectedMake,
   selectedModel,
-  t
+  t,
+  isRTL = false
 }: FilterChipsProps) {
 
 
@@ -55,7 +57,7 @@ export default function FilterChips({
 
   return (
     <div className="mb-4">
-      <div className="flex flex-wrap gap-2 items-center">
+      <div className={`flex flex-wrap gap-2 items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
         {/* Clear All Button - positioned first */}
         <button
           onClick={() => {
@@ -81,7 +83,7 @@ export default function FilterChips({
           className="group inline-flex items-center px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99] shadow-sm hover:shadow-md"
           aria-label={t('clearAllFilters', 'Clear all filters')}
         >
-          <MdDeleteSweep className="w-4 h-4 mr-2 transition-transform group-hover:rotate-6" />
+          <MdDeleteSweep className={`w-4 h-4 transition-transform group-hover:rotate-6 ${isRTL ? 'ml-2' : 'mr-2'}`} />
           {t('clear', 'Clear')} ({filterCount})
         </button>
 

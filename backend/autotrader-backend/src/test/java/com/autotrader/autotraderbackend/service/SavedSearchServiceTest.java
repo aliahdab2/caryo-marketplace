@@ -7,6 +7,7 @@ import com.autotrader.autotraderbackend.model.SavedSearch;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.repository.SavedSearchRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +30,12 @@ class SavedSearchServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private CarListingRepository carListingRepository;
+
+    @Mock
+    private SavedSearchMatchingService matchingService;
 
     @InjectMocks
     private SavedSearchService savedSearchService;
@@ -69,6 +76,9 @@ class SavedSearchServiceTest {
         testRequest.setNameAr("بحث تويوتا");
         testRequest.setFilters(filters);
         testRequest.setNotificationPreferences(notificationPrefs);
+
+        // Setup default mocks for match count calculation (lenient to avoid unnecessary stubbing errors)
+        lenient().when(carListingRepository.findAll()).thenReturn(Collections.emptyList());
     }
 
     @Test

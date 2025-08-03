@@ -5,15 +5,17 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
+import { usePathname } from "next/navigation";
 import ToggleLanguageSwitcher from "@/components/ToggleLanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
 import { useAuthUser } from "@/hooks/useAuthSession";
-import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdSearch, MdNotificationsNone } from "react-icons/md";
+import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdEmail, MdBookmark, MdSearch, MdNotificationsNone, MdNotifications } from "react-icons/md";
 import { NAVIGATION_ROUTES } from "@/utils/navigationUtils";
 import type { ComponentProps } from "@/types/components";
 
 export default function Navbar({ className }: ComponentProps) {
   const user = useAuthUser(); // Use optimized hook instead of full session
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [logoSrc] = useState("/images/logo.svg");
@@ -96,11 +98,19 @@ export default function Navbar({ className }: ComponentProps) {
               
               {/* Saved Searches - Larger style like Blocket */}
               <Link 
-                href={user ? "/dashboard/saved-searches" : "/auth/signin"}
-                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14 group"
+                href={user ? "/saved/alerts" : "/auth/signin"}
+                className={`flex flex-col items-center justify-center px-3 py-2.5 rounded-md transition-colors min-w-[70px] max-w-[85px] h-14 group ${
+                  pathname?.startsWith('/saved') 
+                    ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30' 
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
+                }`}
                 title="Saved Searches & Alerts"
               >
-                <MdNotificationsNone className="h-5 w-5 mb-1 flex-shrink-0" />
+                {pathname?.startsWith('/saved') ? (
+                  <MdNotifications className="h-5 w-5 mb-1 flex-shrink-0" />
+                ) : (
+                  <MdNotificationsNone className="h-5 w-5 mb-1 flex-shrink-0" />
+                )}
                 <span className="text-xs leading-tight font-medium whitespace-nowrap">{t('header.savedSearches')}</span>
               </Link>
               
@@ -197,12 +207,20 @@ export default function Navbar({ className }: ComponentProps) {
                     </Link>
                     
                     <Link 
-                      href="/dashboard/saved-searches" 
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      href="/saved/alerts" 
+                      className={`flex items-center px-4 py-2 text-sm transition-colors ${
+                        pathname?.startsWith('/saved') 
+                          ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30' 
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
                       onClick={() => setUserMenuOpen(false)}
                       role="menuitem"
                     >
-                      <MdBookmark className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                      {pathname?.startsWith('/saved') ? (
+                        <MdNotifications className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                      ) : (
+                        <MdBookmark className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                      )}
                       {t('header.savedSearches')}
                     </Link>
                     
@@ -331,11 +349,19 @@ export default function Navbar({ className }: ComponentProps) {
               <span className="text-xs text-center leading-tight font-medium">{t('header.messages')}</span>
             </Link>
             <Link 
-              href={user ? "/dashboard/saved-searches" : "/auth/signin"}
-              className="mobile-nav-link flex flex-col items-center px-3 py-3 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
+              href={user ? "/saved/alerts" : "/auth/signin"}
+              className={`mobile-nav-link flex flex-col items-center px-3 py-3 rounded-md text-sm font-medium transition-colors ${
+                pathname?.startsWith('/saved') 
+                  ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30' 
+                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700'
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              <MdBookmark className="h-6 w-6 mb-1.5" />
+              {pathname?.startsWith('/saved') ? (
+                <MdNotifications className="h-6 w-6 mb-1.5" />
+              ) : (
+                <MdBookmark className="h-6 w-6 mb-1.5" />
+              )}
               <span className="text-xs text-center leading-tight font-medium">{t('header.savedSearches')}</span>
             </Link>
           </div>

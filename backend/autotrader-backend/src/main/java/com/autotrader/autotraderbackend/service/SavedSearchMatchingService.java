@@ -75,6 +75,11 @@ public class SavedSearchMatchingService {
                 return false;
             }
 
+            // Condition filter
+            if (!matchesCondition(filters, listing)) {
+                return false;
+            }
+
             log.debug("Listing {} matches saved search {}", listing.getId(), savedSearch.getId());
             return true;
 
@@ -87,12 +92,12 @@ public class SavedSearchMatchingService {
 
     @SuppressWarnings("unchecked")
     private boolean matchesBrands(Map<String, Object> filters, CarListing listing) {
-        Object brandSlugs = filters.get("brandSlugs");
-        if (brandSlugs == null) {
+        Object brands = filters.get("brands"); // Updated from "brandSlugs" to "brands"
+        if (brands == null) {
             return true; // No brand filter
         }
 
-        if (brandSlugs instanceof List<?> brandList && !brandList.isEmpty()) {
+        if (brands instanceof List<?> brandList && !brandList.isEmpty()) {
             if (listing.getModel() == null || listing.getModel().getBrand() == null) {
                 return false;
             }
@@ -106,12 +111,12 @@ public class SavedSearchMatchingService {
 
     @SuppressWarnings("unchecked")
     private boolean matchesModels(Map<String, Object> filters, CarListing listing) {
-        Object modelSlugs = filters.get("modelSlugs");
-        if (modelSlugs == null) {
+        Object models = filters.get("models"); // Updated from "modelSlugs" to "models"
+        if (models == null) {
             return true; // No model filter
         }
 
-        if (modelSlugs instanceof List<?> modelList && !modelList.isEmpty()) {
+        if (models instanceof List<?> modelList && !modelList.isEmpty()) {
             if (listing.getModel() == null) {
                 return false;
             }
@@ -188,19 +193,22 @@ public class SavedSearchMatchingService {
 
     @SuppressWarnings("unchecked")
     private boolean matchesLocation(Map<String, Object> filters, CarListing listing) {
-        Object governorateIds = filters.get("governorateIds");
-        if (governorateIds == null) {
+        Object locations = filters.get("locations"); // Updated from "governorateIds" to "locations"
+        if (locations == null) {
             return true; // No location filter
         }
 
-        if (governorateIds instanceof List<?> governorateList && !governorateList.isEmpty()) {
+        if (locations instanceof List<?> locationList && !locationList.isEmpty()) {
             if (listing.getGovernorate() == null) {
                 return false;
             }
             
-            Long listingGovernorateId = listing.getGovernorate().getId();
-            return governorateList.contains(listingGovernorateId) || 
-                   governorateList.contains(listingGovernorateId.intValue());
+            // The frontend sends location names, so we need to match against governorate names
+            String listingGovernorateName = listing.getGovernorate().getDisplayNameEn();
+            String listingGovernorateNameAr = listing.getGovernorate().getDisplayNameAr();
+            
+            return locationList.contains(listingGovernorateName) || 
+                   locationList.contains(listingGovernorateNameAr);
         }
 
         return true;
@@ -208,17 +216,17 @@ public class SavedSearchMatchingService {
 
     @SuppressWarnings("unchecked")
     private boolean matchesBodyTypes(Map<String, Object> filters, CarListing listing) {
-        Object bodyTypes = filters.get("bodyTypes");
-        if (bodyTypes == null) {
+        Object bodyType = filters.get("bodyType"); // Updated from "bodyTypes" to "bodyType"
+        if (bodyType == null) {
             return true; // No body type filter
         }
 
-        if (bodyTypes instanceof List<?> bodyTypeList && !bodyTypeList.isEmpty()) {
+        if (bodyType instanceof List<?> bodyTypeList && !bodyTypeList.isEmpty()) {
             if (listing.getBodyStyle() == null) {
                 return false;
             }
             
-            String listingBodyType = listing.getBodyStyle().getName();
+            String listingBodyType = listing.getBodyStyle().getSlug(); // Use slug for matching
             return bodyTypeList.contains(listingBodyType);
         }
 
@@ -227,17 +235,17 @@ public class SavedSearchMatchingService {
 
     @SuppressWarnings("unchecked")
     private boolean matchesFuelTypes(Map<String, Object> filters, CarListing listing) {
-        Object fuelTypes = filters.get("fuelTypes");
-        if (fuelTypes == null) {
+        Object fuelTypeSlugs = filters.get("fuelTypeSlugs"); // Updated from "fuelTypes" to "fuelTypeSlugs"
+        if (fuelTypeSlugs == null) {
             return true; // No fuel type filter
         }
 
-        if (fuelTypes instanceof List<?> fuelTypeList && !fuelTypeList.isEmpty()) {
+        if (fuelTypeSlugs instanceof List<?> fuelTypeList && !fuelTypeList.isEmpty()) {
             if (listing.getFuelType() == null) {
                 return false;
             }
             
-            String listingFuelType = listing.getFuelType().getName();
+            String listingFuelType = listing.getFuelType().getSlug(); // Use slug for matching
             return fuelTypeList.contains(listingFuelType);
         }
 
@@ -245,18 +253,36 @@ public class SavedSearchMatchingService {
     }
 
     private boolean matchesTransmission(Map<String, Object> filters, CarListing listing) {
-        Object transmission = filters.get("transmission");
-        if (transmission == null) {
+        Object transmissionId = filters.get("transmissionId"); // Updated from "transmission" to "transmissionId"
+        if (transmissionId == null) {
             return true; // No transmission filter
         }
 
-        if (transmission instanceof String transmissionStr) {
+        if (transmissionId instanceof Number transmissionIdNum) {
             if (listing.getTransmissionType() == null) {
                 return false;
             }
             
-            String listingTransmission = listing.getTransmissionType().getName();
-            return transmissionStr.equalsIgnoreCase(listingTransmission);
+            Long listingTransmissionId = listing.getTransmissionType().getId();
+            return transmissionIdNum.longValue() == listingTransmissionId;
+        }
+
+        return true;
+    }
+
+    private boolean matchesCondition(Map<String, Object> filters, CarListing listing) {
+        Object conditionId = filters.get("conditionId");
+        if (conditionId == null) {
+            return true; // No condition filter
+        }
+
+        if (conditionId instanceof Number conditionIdNum) {
+            if (listing.getCondition() == null) {
+                return false;
+            }
+            
+            Long listingConditionId = listing.getCondition().getId();
+            return conditionIdNum.longValue() == listingConditionId;
         }
 
         return true;

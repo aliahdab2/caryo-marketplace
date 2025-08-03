@@ -20,6 +20,7 @@ interface FilterPillsProps {
   isFilterActive: (filterType: FilterType) => boolean;
   getFilterDisplayText: (filterType: FilterType) => string;
   t: (key: string, fallback?: string) => string;
+  isRTL?: boolean;
 }
 
 const FilterPill = React.memo(({ 
@@ -61,21 +62,22 @@ export default function FilterPills({
   setActiveFilterModal,
   isFilterActive,
   getFilterDisplayText,
-  t
+  t,
+  isRTL = false
 }: FilterPillsProps) {
   return (
     <div className="mb-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 shadow-sm">
       <div className="flex flex-col space-y-2">
         {/* Filter Pills Section */}
         <div className="flex flex-col space-y-2">
-          <div className="flex flex-wrap gap-2">
+          <div className={`flex flex-wrap gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
             {/* Show All Filters Button - Sticky */}
             <button
               onClick={() => setActiveFilterModal('allFilters')}
               className={getButtonClasses(false, true)}
               aria-label="Show all filters"
             >
-              <span className="relative z-10 flex items-center space-x-2">
+              <span className={`relative z-10 flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                 <MdFilterList className="w-4 h-4" />
                 <span>{t('showAllFilters', 'Show all filters')}</span>
               </span>

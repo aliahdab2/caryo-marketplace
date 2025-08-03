@@ -36,7 +36,7 @@ class SavedSearchMatchingServiceTest {
 
         // Create saved search with filters
         Map<String, Object> filters = new HashMap<>();
-        filters.put("brandSlugs", List.of("toyota", "honda"));
+        filters.put("brands", List.of("toyota", "honda"));
         filters.put("minPrice", 15000);
         filters.put("maxPrice", 30000);
         filters.put("minYear", 2020);
@@ -159,9 +159,10 @@ class SavedSearchMatchingServiceTest {
     void matches_WithTransmissionFilter_ShouldMatchCorrectly() {
         // Arrange
         Map<String, Object> filters = savedSearch.getFilters();
-        filters.put("transmission", "automatic");
+        filters.put("transmissionId", 1L); // Use transmissionId instead of transmission
 
         Transmission automatic = new Transmission();
+        automatic.setId(1L);
         automatic.setName("automatic");
         carListing.setTransmissionType(automatic);
 
@@ -172,7 +173,7 @@ class SavedSearchMatchingServiceTest {
         assertTrue(result);
 
         // Test with non-matching transmission
-        filters.put("transmission", "manual");
+        filters.put("transmissionId", 2L); // Different ID
         result = matchingService.matches(savedSearch, carListing);
         assertFalse(result);
     }
