@@ -43,25 +43,6 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
             t={(key: string, fallback?: string) => t(`search:${key}`, fallback)}
             isRTL={isRTL}
           />
-          
-          <Link
-            href="/search"
-            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center"
-          >
-            {t('viewAllListings', 'View All')}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 ml-1"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </Link>
         </div>
       </div>
 

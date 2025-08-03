@@ -1112,7 +1112,7 @@ export default function AdvancedSearchPage() {
         await deleteSavedSearch(savedSearchId, token);
         setIsMonitoring(false);
         setSavedSearchId(null);
-      } else {
+            } else {
         // Create a new alert
         const filtersWithQuery = {
           ...filters,

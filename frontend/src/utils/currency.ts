@@ -127,10 +127,12 @@ export function formatCurrency(
   const formattingLocale = getOptimalLocale(locale);
 
   // Syrian marketplace-specific formatting
+  // Only show decimals when the number has a fractional part
+  const hasDecimals = num % 1 !== 0;
   const defaultOptions: Intl.NumberFormatOptions = {
     style: 'currency',
     currency: currencyInfo.code,
-    minimumFractionDigits: currencyInfo.decimalPlaces,
+    minimumFractionDigits: hasDecimals ? currencyInfo.decimalPlaces : 0,
     maximumFractionDigits: currencyInfo.decimalPlaces,
     ...options
   };
