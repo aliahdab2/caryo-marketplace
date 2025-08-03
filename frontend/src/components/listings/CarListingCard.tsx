@@ -171,7 +171,7 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
             {timeAgo(listing.createdAt, i18n.language)}
             {(listing.governorateNameEn || listing.governorateNameAr || listing.governorateDetails) && (
               <div className="mt-1">
-                {`${t('listing.from', 'From')} `}
+
                 {(() => {
                   // Try direct fields first
                   if (listing.governorateNameEn || listing.governorateNameAr) {
