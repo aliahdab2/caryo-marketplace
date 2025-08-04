@@ -4,7 +4,7 @@ import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdClose, MdNotificationsNone, MdEmail, MdSchedule } from 'react-icons/md';
 import { useLanguage } from '@/components/EnhancedLanguageProvider';
-import { createSavedSearch, SavedSearchRequest } from '@/services/savedSearches';
+import { createSavedSearch, SavedSearchRequest, SavedSearchResponse } from '@/services/savedSearches';
 import { AdvancedSearchFilters } from '@/hooks/useSearchFilters';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 
@@ -33,6 +33,8 @@ export default function CreateAlertModal({
   const [frequency, setFrequency] = useState<'immediate' | 'daily' | 'weekly'>('daily');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [lastResponse, setLastResponse] = useState<SavedSearchResponse | null>(null);
 
   // Generate a default alert name based on filters
   const generateDefaultName = useCallback((): string => {
@@ -72,6 +74,8 @@ export default function CreateAlertModal({
       setFrequency('daily');
       setIsSubmitting(false);
       setShowSuccess(false);
+      setErrorMessage('');
+      setLastResponse(null);
     }
   }, [isOpen, generateDefaultName]);
 
@@ -114,8 +118,10 @@ export default function CreateAlertModal({
         isActive: true
       };
       
-      await createSavedSearch(request);
+      const response = await createSavedSearch(request);
       
+      // Store response and show success message
+      setLastResponse(response);
       setShowSuccess(true);
       
       // Close modal after success message
@@ -124,9 +130,31 @@ export default function CreateAlertModal({
         onSuccess?.();
       }, 2000);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating alert:', error);
-      // TODO: Show error message
+      
+      // Extract error message from various possible locations
+      const errorMsg = 
+        error?.response?.data?.message ||  // Backend error response
+        error?.message ||                  // Direct error message
+        error?.response?.data?.error ||    // Alternative error field
+        error?.response?.statusText ||     // HTTP status text
+        'Failed to create alert. Please try again.';
+      
+      console.log('Extracted error message:', errorMsg);
+      
+      // Handle different types of errors with appropriate UI feedback
+      if (errorMsg.includes('maximum limit')) {
+        // For user limits, don't auto-suggest - user needs to manage their searches
+        setErrorMessage(errorMsg);
+      } else if (errorMsg.includes('exceed 100 characters')) {
+        // For length validation, truncate the name
+        setErrorMessage(errorMsg);
+        setAlertName(alertName.substring(0, 100));
+      } else {
+        // Generic error handling - no name conflicts should occur anymore
+        setErrorMessage(errorMsg);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -167,14 +195,29 @@ export default function CreateAlertModal({
                 type="text"
                 id="alertName"
                 value={alertName}
-                onChange={(e) => setAlertName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
+                onChange={(e) => {
+                  setAlertName(e.target.value);
+                  if (errorMessage) setErrorMessage(''); // Clear error when user types
+                }}
+                className={`w-full px-3 py-2 border rounded-md 
                          bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                         focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                         focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                         ${errorMessage ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'}`}
                 placeholder={t('search:alertNamePlaceholder', 'Enter a name for your alert')}
+                maxLength={100}
                 required
                 disabled={isSubmitting}
               />
+              {errorMessage && (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                  <span>⚠️</span>
+                  {errorMessage}
+                </p>
+              )}
+              {/* Character counter */}
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {alertName.length}/100 characters
+              </p>
             </div>
 
             {/* Current Search Summary */}
@@ -300,7 +343,11 @@ export default function CreateAlertModal({
       {/* Success Alert */}
       <SuccessAlert
         visible={showSuccess}
-        message={t('search:alertCreatedSuccess', 'Alert created successfully! You will be notified when new cars match your criteria.')}
+        message={
+          lastResponse?.wasUpdated 
+            ? t('search:alertUpdatedSuccess', 'Updated your existing search criteria with name "{name}"! Your notification preferences have been saved.', { name: lastResponse.nameEn })
+            : t('search:alertCreatedSuccess', 'Alert created successfully! You will be notified when new cars match your criteria.')
+        }
         onComplete={() => setShowSuccess(false)}
       />
     </>

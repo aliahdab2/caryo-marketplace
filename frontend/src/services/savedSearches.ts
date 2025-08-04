@@ -30,6 +30,7 @@ export interface SavedSearchResponse {
   createdAt: string;
   updatedAt: string;
   matchCount?: number;
+  wasUpdated?: boolean; // Indicates if this was an update vs create operation
 }
 
 /**
@@ -40,8 +41,17 @@ export async function createSavedSearch(request: SavedSearchRequest, token?: str
     const customHeaders = token ? { 'Authorization': `Bearer ${token}` } : undefined;
     const response = await api.post<SavedSearchResponse>('/api/saved-searches', request as unknown as Record<string, unknown>, customHeaders);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating saved search:', error);
+    
+    // Enhanced error handling for better debugging
+    if (error.response?.data) {
+      console.error('Error response data:', error.response.data);
+    }
+    if (error.message) {
+      console.error('Error message:', error.message);
+    }
+    
     throw error;
   }
 }
@@ -59,6 +69,8 @@ export async function getUserSavedSearches(token?: string): Promise<SavedSearchR
     throw error;
   }
 }
+
+
 
 /**
  * Get a specific saved search by ID

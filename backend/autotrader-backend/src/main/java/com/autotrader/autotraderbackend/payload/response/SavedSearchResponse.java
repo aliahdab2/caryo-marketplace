@@ -22,4 +22,5 @@ public class SavedSearchResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Integer matchCount; // Optional: number of current matches
+    private Boolean wasUpdated; // Indicates if this was an update vs create operation
 }

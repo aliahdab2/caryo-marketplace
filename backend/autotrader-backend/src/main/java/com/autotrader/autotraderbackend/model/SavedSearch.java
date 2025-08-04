@@ -96,6 +96,13 @@ public class SavedSearch {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    /**
+     * Normalized search query hash for easy duplicate detection
+     * Example: "brand=toyota&model=camry&minPrice=10000&maxPrice=50000"
+     */
+    @Column(name = "search_query_hash", length = 500)
+    private String searchQueryHash;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

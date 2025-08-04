@@ -19,8 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,11 +35,18 @@ public class SavedSearchService {
     private final JavaMailSender mailSender;
 
     /**
-     * Create a new saved search for the user
+     * Create a new saved search or update existing one with same criteria
+     * 
+     * Logic:
+     * - If criteria already exist for this user → Update existing search (name can change)
+     * - If criteria are new for this user → Create new search (name can be duplicate)
+     * 
+     * We only care about search criteria, not names. Users can have multiple searches
+     * with the same name as long as the criteria are different.
      */
     @Transactional
     public SavedSearchResponse createSavedSearch(SavedSearchRequest request, String username) {
-        log.info("Creating saved search for user: {}", username);
+        log.info("Creating/updating saved search for user: {}", username);
         
         if (request == null) {
             throw new IllegalArgumentException("SavedSearchRequest cannot be null");
@@ -48,21 +54,60 @@ public class SavedSearchService {
         if (request.getFilters() == null || request.getFilters().isEmpty()) {
             throw new IllegalArgumentException("Search filters cannot be null or empty");
         }
+        if (request.getNameEn() == null || request.getNameEn().trim().isEmpty()) {
+            throw new IllegalArgumentException("Search name cannot be null or empty");
+        }
+        if (request.getNameEn().trim().length() > 100) {
+            throw new IllegalArgumentException("Search name cannot exceed 100 characters");
+        }
         
         User user = findUserByUsername(username);
+        String queryHash = generateSearchQueryHash(request.getFilters());
         
+        // Validate query hash is not empty
+        if (queryHash.isEmpty()) {
+            throw new IllegalArgumentException("Invalid search criteria - no meaningful filters provided");
+        }
+        
+        String trimmedName = request.getNameEn().trim();
+        
+        // Check if user already has a search with same criteria
+        SavedSearch existingSearch = savedSearchRepository.findByUserAndSearchQueryHashAndIsActiveTrue(user, queryHash);
+        
+        if (existingSearch != null) {
+            // Update existing search with same criteria (name can be anything)
+            log.info("Found existing search with same criteria, updating search ID: {} for user: {}", existingSearch.getId(), username);
+            
+            existingSearch.setNameEn(trimmedName);
+            existingSearch.setNameAr(request.getNameAr() != null ? request.getNameAr().trim() : null);
+            existingSearch.setNotificationPreferences(request.getNotificationPreferences());
+            
+            SavedSearch updated = savedSearchRepository.save(existingSearch);
+            return mapToResponse(updated, true); // wasUpdated = true
+        }
+        
+        // Different criteria = create new search (names can be duplicated)
+        
+        // Check user limits for new searches (max 20 saved searches per user)
+        long userSearchCount = savedSearchRepository.countByUserAndIsActiveTrue(user);
+        if (userSearchCount >= 20) {
+            throw new IllegalArgumentException("You have reached the maximum limit of 20 saved searches. Please delete some existing searches before creating new ones.");
+        }
+        
+        // Create new search
         SavedSearch savedSearch = new SavedSearch(
             user,
-            request.getNameEn(),
-            request.getNameAr(),
+            request.getNameEn().trim(),
+            request.getNameAr() != null ? request.getNameAr().trim() : null,
             request.getFilters(),
             request.getNotificationPreferences()
         );
         
+        savedSearch.setSearchQueryHash(queryHash);
         SavedSearch saved = savedSearchRepository.save(savedSearch);
-        log.info("Created saved search with ID: {} for user: {}", saved.getId(), username);
         
-        return mapToResponse(saved);
+        log.info("Created new saved search with ID: {} for user: {}", saved.getId(), username);
+        return mapToResponse(saved, false); // wasUpdated = false
     }
 
     /**
@@ -320,6 +365,10 @@ public class SavedSearchService {
     }
 
     private SavedSearchResponse mapToResponse(SavedSearch savedSearch) {
+        return mapToResponse(savedSearch, false);
+    }
+
+    private SavedSearchResponse mapToResponse(SavedSearch savedSearch, boolean wasUpdated) {
         SavedSearchResponse response = new SavedSearchResponse();
         response.setId(savedSearch.getId());
         response.setNameEn(savedSearch.getNameEn());
@@ -330,10 +379,74 @@ public class SavedSearchService {
         response.setIsActive(savedSearch.getIsActive());
         response.setCreatedAt(savedSearch.getCreatedAt());
         response.setUpdatedAt(savedSearch.getUpdatedAt());
+        response.setWasUpdated(wasUpdated);
         
         // Calculate and set match count
         response.setMatchCount(calculateMatchCount(savedSearch));
         
         return response;
+    }
+
+
+
+    /**
+     * Generate a normalized query hash from search filters for duplicate detection
+     * Example output: "brand=toyota&model=camry&minPrice=10000&maxPrice=50000"
+     */
+    private String generateSearchQueryHash(Map<String, Object> filters) {
+        if (filters == null || filters.isEmpty()) {
+            return "";
+        }
+        
+        Map<String, String> queryParams = new TreeMap<>(); // TreeMap for sorted keys
+        
+        try {
+            for (Map.Entry<String, Object> entry : filters.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                
+                // Skip null, empty, or meaningless values
+                if (value == null) continue;
+                if (value instanceof String && ((String) value).trim().isEmpty()) continue;
+                if (value instanceof List && ((List<?>) value).isEmpty()) continue;
+                if (value instanceof Number && ((Number) value).doubleValue() == 0 && isMinFilter(key)) continue;
+                
+                // Handle different value types with better null safety
+                if (value instanceof List) {
+                    List<?> list = (List<?>) value;
+                    String sortedValues = list.stream()
+                        .filter(Objects::nonNull) // Filter out null values
+                        .map(Object::toString)
+                        .filter(s -> !s.trim().isEmpty()) // Filter out empty strings
+                        .sorted()
+                        .collect(Collectors.joining(","));
+                    if (!sortedValues.isEmpty()) {
+                        queryParams.put(key, sortedValues);
+                    }
+                } else {
+                    String stringValue = value.toString().trim();
+                    if (!stringValue.isEmpty()) {
+                        queryParams.put(key, stringValue);
+                    }
+                }
+            }
+            
+            // Build query string with sorted parameters
+            return queryParams.entrySet().stream()
+                .map(entry -> entry.getKey() + "=" + entry.getValue())
+                .collect(Collectors.joining("&"));
+                
+        } catch (Exception e) {
+            log.warn("Error generating search query hash for filters: {}", filters, e);
+            // Fallback to a simple hash based on filter map structure
+            return "fallback_" + filters.hashCode();
+        }
+    }
+    
+    /**
+     * Check if a filter key represents a minimum value filter
+     */
+    private boolean isMinFilter(String key) {
+        return key.startsWith("min") || key.equals("year") || key.equals("mileage");
     }
 }

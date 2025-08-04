@@ -75,6 +75,8 @@ public class SavedSearchController {
         return ResponseEntity.ok(savedSearches);
     }
 
+
+
     @Operation(
         summary = "Get a specific saved search",
         description = "Retrieve a specific saved search by ID (user must own the search)"

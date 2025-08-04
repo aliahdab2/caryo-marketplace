@@ -48,4 +48,24 @@ public interface SavedSearchRepository extends JpaRepository<SavedSearch, UUID> 
      * Count active saved searches for a user
      */
     long countByUserAndIsActiveTrue(User user);
+
+    /**
+     * Check if a saved search with the given name already exists for the user
+     */
+    boolean existsByUserAndNameEnAndIsActiveTrue(User user, String nameEn);
+
+    /**
+     * Find saved search by user and name (for duplicate checking)
+     */
+    SavedSearch findByUserAndNameEnAndIsActiveTrue(User user, String nameEn);
+
+    /**
+     * Check if a saved search with the same query hash already exists for the user
+     */
+    boolean existsByUserAndSearchQueryHashAndIsActiveTrue(User user, String searchQueryHash);
+
+    /**
+     * Find saved search by user and query hash (for duplicate checking)
+     */
+    SavedSearch findByUserAndSearchQueryHashAndIsActiveTrue(User user, String searchQueryHash);
 }
