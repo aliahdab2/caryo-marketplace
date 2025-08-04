@@ -516,5 +516,7 @@
   "minimumPrice": "الحد الأدنى للسعر",
   "maximumPrice": "الحد الأقصى للسعر",
   "minPrice": "أقل سعر",
-  "maxPrice": "أعلى سعر"
+  "maxPrice": "أعلى سعر",
+  "listing.km": "كم",
+  "listings.addToFavorites": "أضف إلى المفضلة"
 }
