@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { MdNotificationsNone, MdNotifications } from 'react-icons/md';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -43,7 +43,7 @@ import CarListingsGrid from '@/components/search/CarListingsGrid';
 import SortDropdown from '@/components/search/SortDropdown';
 import ViewModeToggle from '@/components/search/ViewModeToggle';
 import { ViewMode } from '@/components/search/ViewModeToggle';
-import { createSavedSearch, deleteSavedSearch } from '@/services/savedSearches';
+import { createSavedSearch } from '@/services/savedSearches';
 import { SavedSearchRequest } from '@/services/savedSearches';
 
 
@@ -72,7 +72,7 @@ export default function AdvancedSearchPage() {
   const [selectedSort, setSelectedSort] = useState(DEFAULT_SORT);
   const [isSavingAlert, setIsSavingAlert] = useState(false);
   const [isMonitoring, setIsMonitoring] = useState(false);
-  const [savedSearchId, setSavedSearchId] = useState<string | null>(null);
+  const prevFiltersRef = useRef<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   
   // New state for all models (for makeModel filter modal)
@@ -440,6 +440,23 @@ export default function AdvancedSearchPage() {
     setFilters(initialFilters);
     setHasInitialized(true);
   }, [hasInitialized, searchParams]);
+
+  // Reset monitoring state when filters actually change (not when isMonitoring changes)
+  useEffect(() => {
+    if (!hasInitialized) return;
+    
+    const currentFiltersString = JSON.stringify({ filters, searchQuery });
+    
+    // Only reset if filters actually changed (not on first render or isMonitoring change)
+    if (prevFiltersRef.current && prevFiltersRef.current !== currentFiltersString && isMonitoring) {
+      console.log('🔄 Filters changed, resetting monitoring state');
+      setIsMonitoring(false);
+    }
+    
+    prevFiltersRef.current = currentFiltersString;
+  }, [filters, searchQuery, hasInitialized, isMonitoring]);
+
+
 
   // Function to update URL when filters change
   // URLs use clean singular form (brand/model) for SEO and UX
@@ -1089,7 +1106,7 @@ export default function AdvancedSearchPage() {
     return { nameEn, nameAr };
   }, [isFilterActive, carMakes, availableModels, referenceData]);
 
-  // Handle creating/removing an alert (toggle functionality)
+  // Handle creating an alert (simple with monitoring state)
   const handleCreateAlert = useCallback(async () => {
     if (!session?.user) {
       // Redirect to login if not authenticated
@@ -1107,45 +1124,54 @@ export default function AdvancedSearchPage() {
     try {
       const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
       
-      if (isMonitoring && savedSearchId) {
-        // Remove the existing alert
-        await deleteSavedSearch(savedSearchId, token);
-        setIsMonitoring(false);
-        setSavedSearchId(null);
-            } else {
-        // Create a new alert
-        const filtersWithQuery = {
-          ...filters,
-          searchQuery: searchQuery // Include the search query in filters
-        };
-        
-        const { nameEn, nameAr } = generateAlertName(filters, searchQuery);
-        
-        const savedSearchRequest: SavedSearchRequest = {
-          nameEn,
-          nameAr,
-          filters: filtersWithQuery as unknown as Record<string, unknown>,
-          notificationPreferences: {
-            email: true,
-            frequency: 'immediate' as const
-          },
-          isActive: true
-        };
+      // Transform frontend filters to backend format (same as CreateAlertModal)
+      const backendFilters: Record<string, unknown> = {};
+      
+      if (filters.brands) backendFilters.brandSlugs = filters.brands;
+      if (filters.models) backendFilters.modelSlugs = filters.models;
+      if (filters.locations) backendFilters.location = filters.locations;
+      if (filters.minPrice) backendFilters.minPrice = filters.minPrice;
+      if (filters.maxPrice) backendFilters.maxPrice = filters.maxPrice;
+      if (filters.minYear) backendFilters.minYear = filters.minYear;
+      if (filters.maxYear) backendFilters.maxYear = filters.maxYear;
+      if (filters.minMileage) backendFilters.minMileage = filters.minMileage;
+      if (filters.maxMileage) backendFilters.maxMileage = filters.maxMileage;
+      if (filters.transmissionId) backendFilters.transmissionId = filters.transmissionId;
+      if (filters.fuelTypeSlugs) backendFilters.fuelTypeSlugs = filters.fuelTypeSlugs;
+      if (filters.bodyType) backendFilters.bodyType = filters.bodyType;
+      if (filters.sellerTypeIds) backendFilters.sellerTypeIds = filters.sellerTypeIds;
+      if (searchQuery) backendFilters.searchQuery = searchQuery;
+      
+      const { nameEn, nameAr } = generateAlertName(filters, searchQuery);
+      
+      const savedSearchRequest: SavedSearchRequest = {
+        nameEn,
+        nameAr,
+        filters: backendFilters,
+        notificationPreferences: {
+          email: true,
+          frequency: 'immediate' as const
+        },
+        isActive: true
+      };
 
-        const response = await createSavedSearch(savedSearchRequest, token);
-        
-        // Set monitoring state and save the ID for future removal
-        setIsMonitoring(true);
-        setSavedSearchId(response.id);
+      const response = await createSavedSearch(savedSearchRequest, token);
+      
+      // Simple feedback and set monitoring state
+      setIsMonitoring(true); // Now monitoring these criteria
+      
+      if (response.wasUpdated) {
+        console.log('✅ Alert updated with new criteria!');
+      } else {
+        console.log('✅ New alert created successfully!');
       }
       
     } catch (error) {
-      console.error('Error with alert:', error);
-      // Remove alert popup - just log the error
+      console.error('Error creating alert:', error);
     } finally {
       setIsSavingAlert(false);
     }
-  }, [session, filters, searchQuery, router, isMonitoring, savedSearchId, hasActiveFilters, generateAlertName]);
+  }, [session, filters, searchQuery, router, hasActiveFilters, generateAlertName]);
 
   // Filter pill component with memo for performance
   const handleSearch = () => {
@@ -1237,7 +1263,7 @@ export default function AdvancedSearchPage() {
             />
           </div>
           
-          {/* Save Search Button - Positioned based on RTL */}
+          {/* Save Search Button - Simple with monitoring state */}
           {hasActiveFilters && (
             <button 
               onClick={handleCreateAlert}
@@ -1248,21 +1274,21 @@ export default function AdvancedSearchPage() {
                 ${isRTL ? 'flex-row-reverse' : ''}
                 ${isSavingAlert ? 'opacity-50 cursor-not-allowed' : ''}
                 ${isMonitoring 
-                  ? 'text-blue-700 border-blue-300 bg-blue-50 hover:bg-blue-100' 
+                  ? 'text-white bg-blue-600 border-blue-600 hover:bg-blue-700 shadow-md' 
                   : 'text-gray-700 hover:text-gray-900 border-gray-300 bg-white hover:bg-gray-50'
                 }
               `}
-              aria-label={isMonitoring ? t('search:removeWatch', 'Remove Alert') : t('search:createWatch', 'Create Alert')}
+              aria-label={isMonitoring ? t('search:monitoring', 'Monitoring') : t('search:createWatch', 'Create Alert')}
             >
               {isMonitoring ? (
-                <MdNotifications size={20} className={`${isRTL ? "ml-2" : "mr-2"} text-blue-600`} />
+                <MdNotifications size={20} className={`${isRTL ? "ml-2" : "mr-2"} text-white`} />
               ) : (
                 <MdNotificationsNone size={20} className={isRTL ? "ml-2" : "mr-2"} />
               )}
               <span>
                 {isSavingAlert 
                   ? t('search:savingAlert', 'Saving...') 
-                  : isMonitoring 
+                  : isMonitoring
                     ? t('search:monitoring', 'Monitoring')
                     : t('search:createWatch', 'Create Alert')
                 }
