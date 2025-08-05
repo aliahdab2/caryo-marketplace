@@ -33,8 +33,10 @@
   "tabRemoved": "Removed",
   "statusSold": "Sold",
   "statusExpired": "Expired",
-  "removeAll": "Remove all saved vehicles",
-  "removingAll": "Removing all...",
+  "removeAll": "Remove All",
+  "removingAll": "Removing All...",
+  "removeAllTitle": "Remove All Favorites?",
+  "removeAllMessage": "Are you sure you want to remove all your favorite cars?",
   "removeAllConfirm": "Are you sure you want to remove all saved vehicles from your favorites?",
   "@title": {
     "description": "Page title for the favorites section"
@@ -57,6 +59,12 @@
   },
   "@statusExpired": {
     "description": "Status badge for expired vehicles"
+  },
+  "@removeAllTitle": {
+    "description": "Title for remove all favorites confirmation modal"
+  },
+  "@removeAllMessage": {
+    "description": "Message for remove all favorites confirmation modal"
   },
   "@removeAllConfirm": {
     "description": "Confirmation dialog message for removing all favorites"

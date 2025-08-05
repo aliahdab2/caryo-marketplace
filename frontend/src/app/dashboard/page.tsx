@@ -20,6 +20,7 @@ import {
   MdArrowForward,
   MdCalendarToday
 } from "react-icons/md";
+import { api } from "@/services/api";
 
 // Move namespaces outside component to prevent recreation on every render
 const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings', 'search'];
@@ -32,6 +33,7 @@ export default function Dashboard() {
   const [favoritesCount, setFavoritesCount] = useState<number>(0);
   const [alertsCount, setAlertsCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [recentListings, setRecentListings] = useState<any[]>([]);
 
   // Fetch favorites and alerts count when component mounts or session changes
   useEffect(() => {
@@ -123,6 +125,57 @@ export default function Dashboard() {
     };
   }, [user, session]);
 
+  // Load recent listings
+  useEffect(() => {
+    const loadRecentListings = async () => {
+      if (!user) {
+        setRecentListings([]);
+        return;
+      }
+
+      try {
+        // For now, we'll use sample data since we don't have a recent listings API
+        // In a real implementation, you would fetch from an API endpoint
+        const sampleListings = [
+          {
+            id: '1',
+            title: '2019 Toyota Camry',
+            price: 25000,
+            currency: 'USD',
+            status: 'active',
+            views: 45,
+            created: '2024-01-15T10:30:00Z'
+          },
+          {
+            id: '2',
+            title: '2020 Honda Civic',
+            price: 22000,
+            currency: 'USD',
+            status: 'pending',
+            views: 23,
+            created: '2024-01-10T14:20:00Z'
+          },
+          {
+            id: '3',
+            title: '2018 BMW X3',
+            price: 35000,
+            currency: 'USD',
+            status: 'sold',
+            views: 67,
+            created: '2024-01-05T09:15:00Z'
+          }
+        ];
+        
+        setRecentListings(sampleListings);
+      } catch (error) {
+        console.error('Failed to load recent listings:', error);
+        setRecentListings([]);
+      }
+    };
+
+    loadRecentListings();
+  }, [user]);
+
   if (!ready) {
     return <div>Loading translations...</div>;
   }
@@ -155,43 +208,11 @@ export default function Dashboard() {
       value: isLoading ? '...' : String(favoritesCount),
       icon: <MdStarBorder className="text-2xl md:text-3xl" />,
       color: 'amber',
-      link: '/dashboard/favorites'
+      link: '/favorites'
     }
   ];
 
-  // Recent listings with more detailed mock data
-  const recentListings = [
-    {
-      id: "1",
-      image: "/images/vehicles/car1.jpg",
-      title: "Toyota Camry 2020",
-      price: 25000,
-      currency: "SYP",
-      status: "active",
-      created: new Date(2023, 4, 15),
-      views: 120
-    },
-    {
-      id: "2",
-      image: "/images/vehicles/car1.jpg",
-      title: "Honda Civic 2019",
-      price: 18500,
-      currency: "SYP",
-      status: "active",
-      created: new Date(2023, 4, 10),
-      views: 85
-    },
-    {
-      id: "3",
-      image: "/images/vehicles/car1.jpg",
-      title: "Mercedes E-Class 2018",
-      price: 32000,
-      currency: "SYP",
-      status: "expired",
-      created: new Date(2023, 3, 20),
-      views: 210
-    }
-  ];
+
 
   // Helper function to get status styles
   const getStatusStyle = (status: string) => {
@@ -257,6 +278,20 @@ export default function Dashboard() {
     };
     
     return colorStyles[color as keyof typeof colorStyles] || colorStyles.blue;
+  };
+
+  // Handle delete listing
+  const handleDelete = async (id: string) => {
+    if (window.confirm(t('listings.confirmDelete'))) {
+      try {
+        await api.delete(`/api/listings/${id}`);
+        // Remove from recent listings
+        setRecentListings(prev => prev.filter(listing => listing.id !== id));
+      } catch (error) {
+        console.error('Failed to delete listing:', error);
+        alert(t('listings.deleteError'));
+      }
+    }
   };
 
   return (
@@ -392,6 +427,7 @@ export default function Dashboard() {
                           <MdEditNote size={22} />
                         </button>
                         <button 
+                          onClick={() => handleDelete(listing.id)}
                           className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                           aria-label={t('delete')}
                           title={t('delete')}

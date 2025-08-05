@@ -3,16 +3,19 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaSearch, FaTrash } from 'react-icons/fa';
 import { getUserSavedSearches, SavedSearchResponse, getCarListingsForSavedSearch, deleteSavedSearch, updateSavedSearch } from '@/services/savedSearches';
 import type { CarListingCardData } from '@/components/listings/CarListingCard';
 import CarListingListItem from '@/components/search/CarListingListItem';
 import EmptyState from '@/components/ui/EmptyState';
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 
 export default function SavedAlertsPage() {
   const { t, i18n } = useTranslation(['search', 'common']);
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,6 +27,8 @@ export default function SavedAlertsPage() {
   const [alertToDelete, setAlertToDelete] = useState<SavedSearchResponse | null>(null);
   const hasAutoSelectedRef = useRef(false);
   const isRTL = i18n.language === 'ar';
+
+
 
   useEffect(() => {
     setMounted(true);
@@ -274,10 +279,10 @@ export default function SavedAlertsPage() {
         /* Has alerts - Split layout */
         <div className="grid grid-cols-12 gap-6 transition-all duration-200 ease-in-out">
           {/* Left Sidebar - Alert List */}
-          <div className="col-span-12 lg:col-span-4">
+          <div className="col-span-12 lg:col-span-3">
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-fit lg:sticky lg:top-6 transition-transform duration-200 ease-in-out">
               {/* Header */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="p-3 border-b border-gray-200 dark:border-gray-700">
                 <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
                   {t('search:alerts', 'Alerts')}
                 </h1>
@@ -293,7 +298,7 @@ export default function SavedAlertsPage() {
                   savedSearches.map((search) => (
                     <div
                       key={search.id}
-                      className={`p-4 cursor-pointer transition-all duration-200 relative ${
+                      className={`p-3 cursor-pointer transition-all duration-200 relative ${
                         selectedSearch?.id === search.id 
                           ? 'bg-blue-50 dark:bg-blue-900/20 shadow-sm' 
                           : 'hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -318,7 +323,7 @@ export default function SavedAlertsPage() {
               {/* Settings Section - Only show when there are alerts */}
               {savedSearches.length > 0 && (
                 <div className="border-t border-gray-200 dark:border-gray-700">
-                  <div className="p-4">
+                  <div className="p-3">
                     <h3 className="font-medium text-gray-900 dark:text-white mb-3">
                       {t('search:alertSettings', 'Settings for my alerts')}
                     </h3>
@@ -359,7 +364,7 @@ export default function SavedAlertsPage() {
           </div>
 
           {/* Right Content Area */}
-          <div className="col-span-12 lg:col-span-8">
+          <div className="col-span-12 lg:col-span-9">
             <div className="min-h-[600px]"> {/* Minimum height to prevent layout shifts */}
               {selectedSearch ? (
                 <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -484,57 +489,19 @@ export default function SavedAlertsPage() {
       )}
 
       {/* Delete Confirmation Modal */}
-      {alertToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
-            <div className="p-6">
-              {/* Header */}
-              <div className="text-center mb-6">
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 mb-4">
-                  <FaTrash className="h-6 w-6 text-red-600 dark:text-red-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {t('search:confirmDeleteTitle', 'Delete Alert?')}
-                </h3>
-              </div>
-
-              {/* Message */}
-              <div className="text-center mb-6">
-                <p className="text-gray-600 dark:text-gray-300 mb-2">
-                  {t('search:confirmDeleteMessage', 'Are you sure you want to delete the alert')}
-                </p>
-                <p className="font-medium text-gray-900 dark:text-gray-100 px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  &quot;{(isRTL ? alertToDelete.nameAr || alertToDelete.nameEn : alertToDelete.nameEn) || t('search:untitledAlert', 'Untitled Alert')}&quot;
-                </p>
-              </div>
-
-              {/* Buttons */}
-              <div className={`flex gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                <button
-                  onClick={cancelDeleteAlert}
-                  className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 font-medium rounded-xl transition-colors duration-200"
-                >
-                  {t('common:cancel', 'Cancel')}
-                </button>
-                <button
-                  onClick={confirmDeleteAlert}
-                  disabled={isDeleting}
-                  className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium rounded-xl transition-colors duration-200 disabled:cursor-not-allowed"
-                >
-                  {isDeleting ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      {t('common:deleting', 'Deleting...')}
-                    </div>
-                  ) : (
-                    t('common:delete', 'Delete')
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={!!alertToDelete}
+        onClose={cancelDeleteAlert}
+        onConfirm={confirmDeleteAlert}
+        title={t('search:confirmDeleteTitle', 'Delete Alert?')}
+        message={t('search:confirmDeleteMessage', 'Are you sure you want to delete the alert')}
+        itemName={(isRTL ? alertToDelete?.nameAr || alertToDelete?.nameEn : alertToDelete?.nameEn) || t('search:untitledAlert', 'Untitled Alert')}
+        isLoading={isDeleting}
+        loadingText={t('common:deleting', 'Deleting...')}
+        confirmText={t('common:delete', 'Delete')}
+        cancelText={t('common:cancel', 'Cancel')}
+        type="danger"
+      />
     </div>
   );
 }

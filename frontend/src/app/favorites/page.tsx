@@ -12,6 +12,7 @@ import FavoriteButton from '@/components/common/FavoriteButton';
 import { Listing } from '@/types/listings';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
 import EmptyState from '@/components/ui/EmptyState';
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import { FaHeart, FaTrash } from 'react-icons/fa';
 
 type FilterTab = 'all' | 'available' | 'removed';
@@ -26,6 +27,7 @@ export default function FavoritesPage() {
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
   const [isLoading, setIsLoading] = useState(true);
   const [isRemovingAll, setIsRemovingAll] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -97,8 +99,10 @@ export default function FavoritesPage() {
   };
 
   const handleRemoveAll = async () => {
-    if (!confirm(t('removeAllConfirm'))) return;
-    
+    setShowDeleteModal(true);
+  };
+
+  const confirmRemoveAll = async () => {
     setIsRemovingAll(true);
     try {
       const removePromises = favorites.map(listing => 
@@ -106,12 +110,17 @@ export default function FavoritesPage() {
       );
       await Promise.all(removePromises);
       setFavorites([]);
+      setShowDeleteModal(false);
     } catch (err) {
       console.error('Error removing all favorites:', err);
       setError(t('errorRemoving'));
     } finally {
       setIsRemovingAll(false);
     }
+  };
+
+  const cancelRemoveAll = () => {
+    setShowDeleteModal(false);
   };
 
   const getTabCount = (tab: FilterTab) => {
@@ -176,33 +185,7 @@ export default function FavoritesPage() {
           </div>
         )}
 
-        {/* Remove All Button */}
-        {!isLoading && !error && favorites.length > 0 && (
-          <div className="mb-6">
-            <button
-              onClick={handleRemoveAll}
-              disabled={isRemovingAll}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isRemovingAll ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  {t('removingAll')}
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  {t('removeAll')}
-                </>
-              )}
-            </button>
-          </div>
-        )}
+
         
         {isLoading && (
           <div className="text-center py-12">
@@ -337,6 +320,20 @@ export default function FavoritesPage() {
             </div>
           </>
         )}
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmationModal
+          isOpen={showDeleteModal}
+          onClose={cancelRemoveAll}
+          onConfirm={confirmRemoveAll}
+          title={t('removeAllTitle', 'Remove All Favorites?')}
+          message={t('removeAllMessage', 'Are you sure you want to remove all your favorite cars?')}
+          isLoading={isRemovingAll}
+          loadingText={t('removingAll')}
+          confirmText={t('removeAll')}
+          cancelText={t('common:cancel', 'Cancel')}
+          type="danger"
+        />
       </div>
     </div>
   );
