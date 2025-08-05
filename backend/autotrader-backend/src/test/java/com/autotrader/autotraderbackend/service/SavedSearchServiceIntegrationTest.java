@@ -280,8 +280,4 @@ class SavedSearchServiceIntegrationTest {
         request.setNotificationPreferences(notificationPrefs);
         return request;
     }
-
-    private SavedSearchRequest createSavedSearchRequest(String name) {
-        return createSavedSearchRequest(name, "toyota");
-    }
 }
