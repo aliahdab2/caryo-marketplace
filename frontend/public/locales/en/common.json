@@ -122,5 +122,6 @@
   "dashboard.accountSettings": "Account Settings",
   "listings.viewDetails": "View Details",
   "listing.km": "km",
-  "listings.addToFavorites": "Add to Favorites"
+  "listings.addToFavorites": "Add to Favorites",
+  "retry": "Retry"
 }

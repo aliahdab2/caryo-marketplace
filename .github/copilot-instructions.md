@@ -148,6 +148,24 @@ backend/
 - Document environment-specific configurations
 - Follow the [Translation Guide for Developers](docs/translation_guide_for_developers.md) for i18n implementation
 
+### Translation Guidelines
+- **ALWAYS** follow the established translation patterns in the project
+- Use the existing translation files in `frontend/public/locales/` as reference
+- Maintain consistency with existing translation keys and naming conventions
+- When adding new features, ensure both English and Arabic translations are provided
+- Follow the bilingual field pattern: `name_en` and `name_ar` for database fields
+- Use the [Translation Guide for Developers](docs/development/translation_guide_for_developers.md) for proper i18n implementation patterns
+- Test translations in both languages before committing changes
+
+#### Key Translation Rules:
+1. **Namespace Organization**: Use component/route namespaces (e.g., `login.json`, `dashboard.json`) not content types
+2. **Flat Key Structure**: Use flat keys with camelCase naming (e.g., `"signIn"`, `"passwordRequirements"`)
+3. **Completeness**: Ensure all keys exist in both English and Arabic files
+4. **RTL Support**: Use CSS logical properties and test in both RTL/LTR modes
+5. **Performance**: Use lazy loading of translation namespaces
+6. **Type Safety**: Use TypeScript for translation key validation
+7. **Backend Integration**: Use database-driven translations with `name_en`/`name_ar` fields
+
 ### Testing
 - Write tests for both H2 and PostgreSQL environments
 - Include rollback scenarios in tests

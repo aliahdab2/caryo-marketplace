@@ -16,7 +16,7 @@ import { FaHeart, FaTrash } from 'react-icons/fa';
 
 type FilterTab = 'all' | 'available' | 'removed';
 
-export default function FavoritesPage() {
+export default function DashboardFavoritesPage() {
   const { t, i18n } = useTranslation(['favorites', 'common']);
   const status = useAuthStatus();
   const router = useRouter();
@@ -69,6 +69,9 @@ export default function FavoritesPage() {
       setIsLoading(true);
       setError(null);
       const data = await getUserFavorites();
+      
+      // Debug: Log the favorites data to see what we're working with
+      console.log('Favorites data:', data);
       
       // Ensure we have valid data
       if (Array.isArray(data)) {
@@ -134,11 +137,11 @@ export default function FavoritesPage() {
         {/* Breadcrumbs */}
         <nav className="mb-6">
           <ol className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                         <li>
-               <Link href="/dashboard" className="hover:text-blue-600 dark:hover:text-blue-400">
-                 {t('dashboard.dashboard', { ns: 'dashboard' })}
-               </Link>
-             </li>
+            <li>
+              <Link href="/dashboard" className="hover:text-blue-600 dark:hover:text-blue-400">
+                {t('dashboard.dashboard', { ns: 'dashboard' })}
+              </Link>
+            </li>
             <li className="flex items-center">
               <span className="mx-2">/</span>
               <span className="text-gray-900 dark:text-white">{t('title')}</span>
@@ -176,33 +179,7 @@ export default function FavoritesPage() {
           </div>
         )}
 
-        {/* Remove All Button */}
-        {!isLoading && !error && favorites.length > 0 && (
-          <div className="mb-6">
-            <button
-              onClick={handleRemoveAll}
-              disabled={isRemovingAll}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isRemovingAll ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  {t('removingAll')}
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  {t('removeAll')}
-                </>
-              )}
-            </button>
-          </div>
-        )}
+
         
         {isLoading && (
           <div className="text-center py-12">
@@ -249,7 +226,7 @@ export default function FavoritesPage() {
           </div>
         )}
         
-                {!isLoading && !error && filteredFavorites.length > 0 && (
+        {!isLoading && !error && filteredFavorites.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredFavorites.map((listing) => (
@@ -340,4 +317,4 @@ export default function FavoritesPage() {
       </div>
     </div>
   );
-}
+} 

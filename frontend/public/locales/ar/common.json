@@ -518,5 +518,6 @@
   "minPrice": "أقل سعر",
   "maxPrice": "أعلى سعر",
   "listing.km": "كم",
-  "listings.addToFavorites": "أضف إلى المفضلة"
+  "listings.addToFavorites": "أضف إلى المفضلة",
+  "retry": "إعادة المحاولة"
 }
