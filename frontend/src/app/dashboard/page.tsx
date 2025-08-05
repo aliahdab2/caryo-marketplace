@@ -1,6 +1,6 @@
 "use client";
 
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useAuthUser } from "@/hooks/useAuthSession";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -10,7 +10,8 @@ import { useEffect, useState } from "react";
 import { 
   MdStarBorder, 
   MdEmail, 
-  MdVisibility, 
+  MdNotifications, 
+  MdVisibility,
   MdDirectionsCar, 
   MdAddCircleOutline,
   MdEditNote,
@@ -21,66 +22,92 @@ import {
 } from "react-icons/md";
 
 // Move namespaces outside component to prevent recreation on every render
-const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings'];
+const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings', 'search'];
 
 export default function Dashboard() {
   const user = useAuthUser();
+  const { data: session } = useSession();
   const router = useRouter();
   const { t, i18n, ready } = useLazyTranslation(DASHBOARD_NAMESPACES);
   const [favoritesCount, setFavoritesCount] = useState<number>(0);
+  const [alertsCount, setAlertsCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch favorites count when component mounts or session changes
+  // Fetch favorites and alerts count when component mounts or session changes
   useEffect(() => {
     let mounted = true;
 
-    const loadFavoritesCount = async () => {
+    const loadCounts = async () => {
       if (!user) {
         setFavoritesCount(0);
+        setAlertsCount(0);
         setIsLoading(false);
         return;
       }
 
       try {
-        // Import apiRequest to make authenticated requests
+        // Import required services
         const { apiRequest } = await import('@/services/auth/session-manager');
-        const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/favorites`;
-
-        // apiRequest handles authentication, session validation, and token refresh automatically
-        const response = await apiRequest(url, { 
+        const { getUserSavedSearches } = await import('@/services/savedSearches');
+        
+        // Fetch favorites count
+        const favoritesUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/favorites`;
+        const favoritesResponse = await apiRequest(favoritesUrl, { 
           method: 'GET'
         });
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch favorites: ${response.status}`);
-        }
+        if (favoritesResponse.ok) {
+          const text = await favoritesResponse.text();
+          let data;
+          try {
+            data = text ? JSON.parse(text) : [];
+          } catch (e) {
+            console.error('[DASHBOARD] Error parsing favorites JSON:', e);
+            data = [];
+          }
 
-        const text = await response.text();
-
-        let data;
-        try {
-          data = text ? JSON.parse(text) : [];
-        } catch (e) {
-          console.error('[DASHBOARD] Error parsing JSON:', e);
-          data = [];
-        }
-
-        if (mounted) {
-          // Handle different response formats
-          if (Array.isArray(data)) {
-            setFavoritesCount(data.length);
-          } else if (data && Array.isArray(data.favorites)) {
-            setFavoritesCount(data.favorites.length);
-          } else if (data && Array.isArray(data.data)) {
-            setFavoritesCount(data.data.length);
-          } else {
-            setFavoritesCount(0);
+          if (mounted) {
+            // Handle different response formats
+            if (Array.isArray(data)) {
+              setFavoritesCount(data.length);
+            } else if (data && Array.isArray(data.favorites)) {
+              setFavoritesCount(data.favorites.length);
+            } else if (data && Array.isArray(data.data)) {
+              setFavoritesCount(data.data.length);
+            } else {
+              setFavoritesCount(0);
+            }
           }
         }
+
+        // Fetch alerts count - only if we have a session with access token
+        if (session?.accessToken) {
+          try {
+            const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
+            console.log('[DASHBOARD] Fetching alerts with token:', token ? 'present' : 'missing');
+            const savedSearches = await getUserSavedSearches(token);
+            console.log('[DASHBOARD] Retrieved saved searches:', savedSearches.length);
+            if (mounted) {
+              setAlertsCount(savedSearches.length);
+            }
+          } catch (error) {
+            console.error('[DASHBOARD] Error fetching alerts:', error);
+            if (mounted) {
+              setAlertsCount(0);
+            }
+          }
+        } else {
+          console.log('[DASHBOARD] No session or access token available for alerts');
+          if (mounted) {
+            setAlertsCount(0);
+          }
+        }
+
       } catch (error) {
-        console.error('[DASHBOARD] Error fetching favorites:', error);
+        console.error('[DASHBOARD] Error fetching counts:', error);
         if (mounted) {
           setFavoritesCount(0);
+          setAlertsCount(0);
         }
       } finally {
         if (mounted) {
@@ -89,18 +116,18 @@ export default function Dashboard() {
       }
     };
 
-    loadFavoritesCount();
+    loadCounts();
 
     return () => {
       mounted = false;
     };
-  }, [user]);
+  }, [user, session]);
 
   if (!ready) {
     return <div>Loading translations...</div>;
   }
 
-  // Dashboard overview stats with real favorites count
+  // Dashboard overview stats with real favorites and alerts count
   const stats = [
     {
       title: t('activeListings'),
@@ -110,11 +137,11 @@ export default function Dashboard() {
       link: '/dashboard/listings'
     },
     {
-      title: t('views'),
-      value: formatNumber(245, i18n.language),
-      icon: <MdVisibility className="text-2xl md:text-3xl" />,
+      title: t('alerts', { ns: 'search' }),
+      value: isLoading ? '...' : String(alertsCount),
+      icon: <MdNotifications className="text-2xl md:text-3xl" />,
       color: 'green',
-      link: '/dashboard/analytics'
+      link: '/saved/alerts'
     },
     {
       title: t('messages'),

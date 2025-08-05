@@ -240,9 +240,9 @@ class SavedSearchServiceIntegrationTest {
     @Test
     void getUserSavedSearches_ShouldReturnUserSearchesOnly() {
         // Arrange
-        // Create searches for test user
-        SavedSearchRequest request1 = createSavedSearchRequest("Search 1");
-        SavedSearchRequest request2 = createSavedSearchRequest("Search 2");
+        // Create searches for test user with different filters
+        SavedSearchRequest request1 = createSavedSearchRequest("Search 1", "toyota");
+        SavedSearchRequest request2 = createSavedSearchRequest("Search 2", "honda");
         
         savedSearchService.createSavedSearch(request1, testUser.getUsername());
         savedSearchService.createSavedSearch(request2, testUser.getUsername());
@@ -254,7 +254,7 @@ class SavedSearchServiceIntegrationTest {
         otherUser.setPassword("password");
         otherUser = userRepository.save(otherUser);
 
-        SavedSearchRequest request3 = createSavedSearchRequest("Other User Search");
+        SavedSearchRequest request3 = createSavedSearchRequest("Other User Search", "bmw");
         savedSearchService.createSavedSearch(request3, otherUser.getUsername());
 
         // Act
@@ -266,9 +266,9 @@ class SavedSearchServiceIntegrationTest {
             search.getNameEn().equals("Search 1") || search.getNameEn().equals("Search 2")));
     }
 
-    private SavedSearchRequest createSavedSearchRequest(String name) {
+    private SavedSearchRequest createSavedSearchRequest(String name, String brand) {
         Map<String, Object> filters = new HashMap<>();
-        filters.put("brandSlugs", List.of("toyota"));
+        filters.put("brandSlugs", List.of(brand));
 
         Map<String, Object> notificationPrefs = new HashMap<>();
         notificationPrefs.put("email", true);
