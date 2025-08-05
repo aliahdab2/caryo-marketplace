@@ -160,21 +160,21 @@ export default function DashboardLayout({
     },
     { 
       name: t('dashboard.favorites'), 
-      href: "/dashboard/favorites", 
+      href: "/favorites", 
       icon: <MdFavorite className="text-xl" />,
       tooltip: t('dashboard.favoritesTooltip') || 'Your saved vehicles'
-    },
-    { 
-      name: t('dashboard.messages'), 
-      href: "/dashboard/messages", 
-      icon: <MdEmail className="text-xl" />,
-      tooltip: t('dashboard.messagesTooltip') || 'Your messages'
     },
     { 
       name: t('header.savedSearches', { ns: 'common' }), 
       href: "/saved/alerts", 
       icon: <MdNotifications className="text-xl" />,
       tooltip: t('header.savedSearches', { ns: 'common' }) || 'Your saved search alerts'
+    },
+    { 
+      name: t('dashboard.messages'), 
+      href: "/dashboard/messages", 
+      icon: <MdEmail className="text-xl" />,
+      tooltip: t('dashboard.messagesTooltip') || 'Your messages'
     },
     // Admin navigation - only show to admin users
     ...(isAdmin() ? [{

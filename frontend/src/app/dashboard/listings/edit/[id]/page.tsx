@@ -3,13 +3,15 @@ import ClientPage from './client-page';
 
 // Using 'any' type here to bypass the Next.js App Router type issue
 // This is a temporary workaround until a better solution is found
-export default function Page({ params }: any) {
-  return <ClientPage id={params.id} />;
+export default async function Page({ params }: any) {
+  const { id } = await params;
+  return <ClientPage id={id} />;
 }
 
 // Separate metadata function also using 'any'
 export async function generateMetadata({ params }: any) {
+  const { id } = await params;
   return {
-    title: `Edit Listing ${params.id}`,
+    title: `Edit Listing ${id}`,
   };
 }
