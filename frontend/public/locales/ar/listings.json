@@ -299,5 +299,16 @@
   "showLess": "عرض أقل",
   "showLessFacts": "عرض حقائق أقل",
   "showMore": "عرض المزيد",
-  "showMoreFacts": "عرض المزيد من الحقائق"
+  "showMoreFacts": "عرض المزيد من الحقائق",
+  "refreshTable": "تحديث الجدول",
+  "searchFields": "حقول البحث",
+  "noListings": "لا توجد إعلانات",
+  "confirmDelete": "هل أنت متأكد من حذف هذا الإعلان؟",
+  "confirmBulkDelete": "هل أنت متأكد من حذف الإعلانات المحددة؟",
+  "renewAll": "تجديد الكل",
+  "deleteSelected": "حذف المحدد",
+  "renewSelected": "تجديد المحدد",
+  "clearSelection": "مسح التحديد",
+  "expiresIn": "ينتهي في {{days}} يوم",
+  "renew": "تجديد"
 }

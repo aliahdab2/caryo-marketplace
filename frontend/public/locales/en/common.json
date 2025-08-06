@@ -126,5 +126,17 @@
   "listings.viewDetails": "View Details",
   "listing.km": "km",
   "listings.addToFavorites": "Add to Favorites",
-  "retry": "Retry"
+  "retry": "Retry",
+  "all": "All",
+  "sortBy": "Sort by",
+  "date": "Date",
+  "title": "Title",
+  "views": "Views",
+  "actions": "Actions",
+  "clearFilters": "Clear filters",
+  "selectAll": "Select all",
+  "status": "Status",
+  "view": "View",
+  "learnMore": "Learn more",
+  "error": "Error"
 }
