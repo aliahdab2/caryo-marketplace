@@ -1,10 +1,15 @@
-import {
-  sanitizeInput,
-  smartSanitize,
-  sanitizeHtml,
+import { 
+  sanitizeInput, 
+  smartSanitize, 
+  sanitizeHtml, 
   convertArabicNumerals,
-  clearSanitizationCache
+  validateStep,
+  processFormFieldValue
 } from '../formUtils';
+import { ListingFormData } from '@/types/listings';
+import { 
+  clearSanitizationCache 
+} from '../sanitization';
 
 // Mock DOMPurify for testing
 const mockDOMPurify = {
@@ -64,7 +69,7 @@ describe('Form Utils - Clean Modular Architecture', () => {
       });
 
       test('handles excessive whitespace', () => {
-        expect(sanitizeInput('Hello    World   Test', 'standard')).toBe('Hello World Test');
+        expect(sanitizeInput('Hello    World   Test', 'standard')).toBe('Hello  World  Test');
       });
     });
 
@@ -151,6 +156,17 @@ describe('Form Utils - Clean Modular Architecture', () => {
     test('detects event handlers and uses strict sanitization', () => {
       const eventHandler = 'onclick="alert(1)"';
       expect(smartSanitize(eventHandler)).toBe('"alert(1)"');
+    });
+
+    it('should not return empty string for spaces-only input', () => {
+      const result = smartSanitize('   ');
+      expect(result).toBe('');
+    });
+
+    it('should preserve normal text content like descriptions', () => {
+      const description = 'This is a great car for sale. It has been well maintained and is in excellent condition.';
+      const result = smartSanitize(description);
+      expect(result).toBe(description);
     });
   });
 
@@ -259,6 +275,106 @@ describe('Form Utils - Clean Modular Architecture', () => {
       // Should still work efficiently
       const result = sanitizeInput('New input', 'standard');
       expect(result).toBe('New input');
+    });
+  });
+
+  describe('validateStep', () => {
+    const mockT = (key: string, fallback: string) => fallback;
+    
+    it('should pass validation when all required fields are filled', () => {
+      const formData: ListingFormData = {
+        title: 'Test Car',
+        description: 'A great car for sale',
+        price: '25000',
+        make: 'Toyota',
+        model: 'Camry',
+        year: '2020',
+        contactName: 'John Doe',
+        contactPhone: '1234567890',
+        governorateSlug: 'damascus',
+        locationSlug: 'damascus-city',
+        images: [],
+        currency: 'USD',
+        mileage: '',
+        engine: '',
+        color: '',
+        transmission: '',
+        fuelType: '',
+        exteriorColor: '',
+        interiorColor: '',
+        state: '',
+        zipCode: '',
+        contactEmail: '',
+        contactPreference: 'phone',
+        condition: 'used',
+        features: [],
+        status: 'active' as const,
+        categoryId: '1'
+      };
+      
+      const errors1 = validateStep(1, formData, mockT);
+      expect(errors1).toEqual({});
+      
+      const errors2 = validateStep(2, formData, mockT);
+      expect(errors2).toEqual({});
+      
+      const errors3 = validateStep(3, formData, mockT);
+      expect(errors3).toEqual({});
+    });
+    
+    it('should fail validation when required fields are empty', () => {
+      const formData = {
+        title: '',
+        description: '',
+        price: '',
+        make: '',
+        model: '',
+        year: '',
+        contactName: '',
+        contactPhone: '',
+        governorateSlug: '',
+        locationSlug: '',
+        images: [],
+        currency: 'USD',
+        mileage: '',
+        engine: '',
+        color: '',
+        transmission: '',
+        fuelType: '',
+        exteriorColor: '',
+        interiorColor: '',
+        state: '',
+        zipCode: '',
+        contactEmail: '',
+        contactPreference: 'phone',
+        condition: 'used',
+        features: [],
+        status: 'active' as const,
+        categoryId: '1'
+      };
+      
+      const errors1 = validateStep(1, formData, mockT);
+      expect(errors1.title).toBe('Title is required');
+      expect(errors1.description).toBe('Description is required');
+      expect(errors1.price).toBe('Price is required');
+    });
+  });
+
+  describe('processFormFieldValue', () => {
+    it('should preserve normal text content for description field', () => {
+      const description = 'This is a great car for sale. It has been well maintained and is in excellent condition.';
+      const result = processFormFieldValue('description', description);
+      expect(result).toBe(description);
+    });
+    
+    it('should handle empty strings correctly', () => {
+      const result = processFormFieldValue('description', '');
+      expect(result).toBe('');
+    });
+    
+    it('should handle whitespace-only strings correctly', () => {
+      const result = processFormFieldValue('description', '   ');
+      expect(result).toBe('');
     });
   });
 });

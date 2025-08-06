@@ -59,7 +59,7 @@ export default function Navbar({ className }: ComponentProps) {
             <Link 
               href="/" 
               className="flex items-center nav-focus-visible"
-              aria-label={t('header.home')}
+              aria-label={t('headerHome')}
             >
               <Image 
                 className="h-9 w-auto xs:h-10 sm:h-11 md:h-12" 
@@ -85,7 +85,7 @@ export default function Navbar({ className }: ComponentProps) {
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-md text-sm font-medium flex items-center justify-center transition-colors min-w-[100px] max-w-[120px] h-12 shadow-sm"
               >
                 <MdAdd className="h-5 w-5 mr-2 flex-shrink-0" />
-                <span className="text-sm font-medium whitespace-nowrap">{t('header.postAd')}</span>
+                <span className="text-sm font-medium whitespace-nowrap">{t('headerPostAd')}</span>
               </Link>
               
               {/* Messages - Larger style like Blocket */}
@@ -102,7 +102,7 @@ export default function Navbar({ className }: ComponentProps) {
                 ) : (
                   <MdMailOutline className="h-5 w-5 mb-1 flex-shrink-0" />
                 )}
-                <span className="text-xs leading-tight font-medium text-center w-full px-1">{t('header.messages')}</span>
+                <span className="text-xs leading-tight font-medium text-center w-full px-1">{t('headerMessages')}</span>
               </Link>
               
               {/* Saved Searches - Larger style like Blocket */}
@@ -120,7 +120,7 @@ export default function Navbar({ className }: ComponentProps) {
                 ) : (
                   <MdNotificationsNone className="h-5 w-5 mb-1 flex-shrink-0" />
                 )}
-                <span className="text-xs leading-tight font-medium text-center w-full px-1">{t('header.savedSearches')}</span>
+                <span className="text-xs leading-tight font-medium text-center w-full px-1">{t('headerSavedSearches')}</span>
               </Link>
               
               {/* Search - Simplified */}
@@ -210,7 +210,7 @@ export default function Navbar({ className }: ComponentProps) {
                       role="menuitem"
                     >
                       <MdDashboard className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
-                      {t('header.dashboard')}
+                      {t('headerDashboard')}
                     </Link>
                     
                     <Link 
@@ -228,7 +228,7 @@ export default function Navbar({ className }: ComponentProps) {
                       ) : (
                         <MdMailOutline className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
                       )}
-                      {t('header.messages')}
+                      {t('headerMessages')}
                     </Link>
                     
                     <Link 
@@ -246,7 +246,7 @@ export default function Navbar({ className }: ComponentProps) {
                       ) : (
                         <MdBookmark className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
                       )}
-                      {t('header.savedSearches')}
+                      {t('headerSavedSearches')}
                     </Link>
                     
                     <Link 
@@ -276,7 +276,7 @@ export default function Navbar({ className }: ComponentProps) {
                       role="menuitem"
                     >
                       <MdLogout className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4" aria-hidden="true" />
-                      {t('header.logout')}
+                      {t('headerLogout')}
                     </button>
                   </div>
                 </div>
@@ -293,9 +293,9 @@ export default function Navbar({ className }: ComponentProps) {
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors mobile-touch-target nav-focus-visible"
               aria-expanded={mobileMenuOpen ? "true" : "false"}
               aria-controls="mobile-menu"
-              aria-label={mobileMenuOpen ? t('header.closeMenu') : t('header.openMenu')}
+              aria-label={mobileMenuOpen ? t('headerCloseMenu') : t('headerOpenMenu')}
             >
-              <span className="sr-only">{mobileMenuOpen ? t('header.closeMenu') : t('header.openMenu')}</span>
+              <span className="sr-only">{mobileMenuOpen ? t('headerCloseMenu') : t('headerOpenMenu')}</span>
               {mobileMenuOpen ? (
                 <svg
                   className="block h-6 w-6"
@@ -352,7 +352,7 @@ export default function Navbar({ className }: ComponentProps) {
             onClick={() => setMobileMenuOpen(false)}
           >
             <MdAdd className="h-6 w-6 mb-1.5" />
-            <span className="text-sm font-medium">{t('header.postAd')}</span>
+            <span className="text-sm font-medium">{t('headerPostAd')}</span>
           </Link>
           
           {/* Navigation Links in Blocket order - Larger grid */}
@@ -387,7 +387,7 @@ export default function Navbar({ className }: ComponentProps) {
               ) : (
                 <MdMailOutline className="h-6 w-6 mb-1.5" />
               )}
-              <span className="text-xs text-center leading-tight font-medium w-full px-1">{t('header.messages')}</span>
+              <span className="text-xs text-center leading-tight font-medium w-full px-1">{t('headerMessages')}</span>
             </Link>
             <Link 
               href={user ? "/saved/alerts" : "/auth/signin"}
@@ -403,7 +403,7 @@ export default function Navbar({ className }: ComponentProps) {
               ) : (
                 <MdBookmark className="h-6 w-6 mb-1.5" />
               )}
-              <span className="text-xs text-center leading-tight font-medium w-full px-1">{t('header.savedSearches')}</span>
+              <span className="text-xs text-center leading-tight font-medium w-full px-1">{t('headerSavedSearches')}</span>
             </Link>
           </div>
           
@@ -447,7 +447,7 @@ export default function Navbar({ className }: ComponentProps) {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <MdDashboard className="mr-3 h-5 w-5" />
-                  {t('header.dashboard')}
+                  {t('headerDashboard')}
                 </Link>
                 <Link 
                   href="/dashboard/settings"
@@ -472,7 +472,7 @@ export default function Navbar({ className }: ComponentProps) {
                   className="mobile-nav-link w-full flex items-center px-3 py-2 rounded-md text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 transition-colors nav-focus-visible"
                 >
                   <MdLogout className="mr-3 h-5 w-5" />
-                  {t('header.logout')}
+                  {t('headerLogout')}
                 </button>
               </div>
             ) : (

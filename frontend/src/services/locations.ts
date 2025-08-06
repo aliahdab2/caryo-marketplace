@@ -11,6 +11,7 @@ export interface Location {
   latitude?: number;
   longitude?: number;
   isActive: boolean;
+  governorateId?: number;
 }
 
 /**
@@ -34,6 +35,32 @@ export async function getLocationsByCountry(countryCode: string): Promise<Locati
     return await api.get<Location[]>(`/api/locations/country/${countryCode}`);
   } catch (error) {
     console.error(`Error fetching locations for country ${countryCode}:`, error);
+    return [];
+  }
+}
+
+/**
+ * Get locations for a specific governorate
+ * @param governorateId The governorate ID
+ */
+export async function getLocationsByGovernorate(governorateId: number): Promise<Location[]> {
+  try {
+    return await api.get<Location[]>(`/api/locations/governorate/${governorateId}`);
+  } catch (error) {
+    console.error(`Error fetching locations for governorate ${governorateId}:`, error);
+    return [];
+  }
+}
+
+/**
+ * Get locations for a specific governorate by slug
+ * @param governorateSlug The governorate slug
+ */
+export async function getLocationsByGovernorateSlug(governorateSlug: string): Promise<Location[]> {
+  try {
+    return await api.get<Location[]>(`/api/locations/governorate/slug/${governorateSlug}`);
+  } catch (error) {
+    console.error(`Error fetching locations for governorate slug ${governorateSlug}:`, error);
     return [];
   }
 }

@@ -21,6 +21,7 @@ public class CacheConfig {
             "locations",
             "locationsByCountry",
             "locationsByGovernorate",
+            "locationsByGovernorateSlug",
             
             // Car reference data caches
             "carBrands",           // All brands

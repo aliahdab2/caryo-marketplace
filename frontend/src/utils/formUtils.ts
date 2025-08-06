@@ -199,34 +199,52 @@ export const validateStep = (step: number, formData: ListingFormData, t: (key: s
   
   switch (step) {
     case 1:
-      if (!formData.title) errors.title = t('listings:newListing.validation.titleRequired', 'Title is required');
-      if (!formData.description) errors.description = t('listings:newListing.validation.descriptionRequired', 'Description is required');
-      if (!formData.price) errors.price = t('listings:newListing.validation.priceRequired', 'Price is required');
-      if (formData.price && isNaN(Number(formData.price))) {
-        errors.price = t('listings:newListing.validation.priceInvalid', 'Price must be a valid number');
+      if (!formData.title || formData.title.trim().length === 0) {
+        errors.title = t('listings:newListing.validation.titleRequired', 'Title is required');
       }
-      if (formData.price && Number(formData.price) <= 0) {
+      if (!formData.description || formData.description.trim().length === 0) {
+        errors.description = t('listings:newListing.validation.descriptionRequired', 'Description is required');
+      }
+      if (!formData.price || formData.price.trim().length === 0) {
+        errors.price = t('listings:newListing.validation.priceRequired', 'Price is required');
+      } else if (isNaN(Number(formData.price))) {
+        errors.price = t('listings:newListing.validation.priceInvalid', 'Price must be a valid number');
+      } else if (Number(formData.price) <= 0) {
         errors.price = t('listings:newListing.validation.pricePositive', 'Price must be greater than zero');
       }
       break;
       
     case 2:
-      if (!formData.make) errors.make = t('listings:newListing.validation.makeRequired', 'Make is required');
-      if (!formData.model) errors.model = t('listings:newListing.validation.modelRequired', 'Model is required');
-      if (!formData.year) errors.year = t('listings:newListing.validation.yearRequired', 'Year is required');
-      if (formData.year && (isNaN(Number(formData.year)) || Number(formData.year) < 1900 || Number(formData.year) > new Date().getFullYear() + 1)) {
+      if (!formData.make || formData.make.trim().length === 0) {
+        errors.make = t('listings:newListing.validation.makeRequired', 'Make is required');
+      }
+      if (!formData.model || formData.model.trim().length === 0) {
+        errors.model = t('listings:newListing.validation.modelRequired', 'Model is required');
+      }
+      if (!formData.year || formData.year.trim().length === 0) {
+        errors.year = t('listings:newListing.validation.yearRequired', 'Year is required');
+      } else if (isNaN(Number(formData.year)) || Number(formData.year) < 1900 || Number(formData.year) > new Date().getFullYear() + 1) {
         errors.year = t('listings:newListing.validation.yearInvalid', 'Please enter a valid year');
       }
-      if (formData.mileage && isNaN(Number(formData.mileage))) {
+      if (formData.mileage && formData.mileage.trim().length > 0 && isNaN(Number(formData.mileage))) {
         errors.mileage = t('listings:newListing.validation.mileageInvalid', 'Mileage must be a valid number');
       }
       break;
       
     case 3:
-      if (!formData.contactName) errors.contactName = t('listings:newListing.validation.contactNameRequired', 'Contact name is required');
-      if (!formData.contactPhone) errors.contactPhone = t('listings:newListing.validation.contactPhoneRequired', 'Contact phone is required');
-      if (!formData.governorateId) errors.governorateId = t('listings:newListing.validation.governorateRequired', 'Governorate is required');
-      if (formData.contactEmail && !_isValidEmail(formData.contactEmail)) {
+      if (!formData.contactName || formData.contactName.trim().length === 0) {
+        errors.contactName = t('listings:newListing.validation.contactNameRequired', 'Contact name is required');
+      }
+      if (!formData.contactPhone || formData.contactPhone.trim().length === 0) {
+        errors.contactPhone = t('listings:newListing.validation.contactPhoneRequired', 'Contact phone is required');
+      }
+      if (!formData.governorateSlug || formData.governorateSlug.trim().length === 0) {
+        errors.governorateSlug = t('listings:newListing.validation.governorateRequired', 'Governorate is required');
+      }
+      if (!formData.locationSlug || formData.locationSlug.trim().length === 0) {
+        errors.locationSlug = t('listings:newListing.validation.locationRequired', 'Location is required');
+      }
+      if (formData.contactEmail && formData.contactEmail.trim().length > 0 && !_isValidEmail(formData.contactEmail)) {
         errors.contactEmail = t('listings:newListing.validation.emailInvalid', 'Please enter a valid email address');
       }
       break;

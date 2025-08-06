@@ -8,12 +8,15 @@ import {
   ListingFormData,
   ListingMedia,
   LocationDetails,
+  ReferenceData,
+  ReferenceDataItem,
   UpdateListingData
 } from '@/types/listings';
 import { api } from './api';
 import { ApiError } from '@/utils/apiErrorHandler';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
 import { getAuthHeaders } from '@/utils/auth';
+import { Location } from './locations';
 
 // Utility functions for data transformation
 function determineListingStatus(item: ApiListingItem): 'active' | 'pending' | 'sold' | 'expired' {
@@ -425,8 +428,42 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
   try {
     const headers = await getAuthHeaders();
     
+    console.log('[Create Listing] Starting with form data:', {
+      title: formData.title,
+      imagesCount: formData.images?.length || 0,
+      hasImages: formData.images && formData.images.length > 0
+    });
+
+    // Validate that locationSlug is provided
+    if (!formData.locationSlug || formData.locationSlug.trim() === '') {
+      throw new ApiError('Location is required', 400);
+    }
+    
+    // Get location ID from slug
+    let locationId: number;
+    try {
+      const locationResponse = await api.get<Location>(`/api/locations/slug/${formData.locationSlug}`);
+      locationId = locationResponse.id;
+    } catch (error) {
+      console.error('Error fetching location by slug:', error);
+      throw new ApiError('Invalid location selected', 400);
+    }
+    
     // Convert form data to match the backend CreateListingRequest exactly
-    const apiData = {
+    const apiData: {
+      title: string;
+      description: string;
+      modelId: number;
+      modelYear: number;
+      mileage: number;
+      price: number;
+      currency: string;
+      locationId: number;
+      transmissionId?: number;
+      fuelTypeId?: number;
+      isSold: boolean;
+      isArchived: boolean;
+    } = {
       title: formData.title,
       description: formData.description || '',
       modelId: parseInt(formData.categoryId || '0', 10), // Backend expects Long modelId
@@ -434,10 +471,49 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       mileage: parseInt(formData.mileage, 10),
       price: parseFloat(formData.price),
       currency: formData.currency || 'USD', // Include currency in API request
-      locationId: parseInt(formData.governorateId, 10), // Backend expects Long locationId
+      locationId: locationId, // Use the converted location ID
       isSold: false, // Optional field - default to false
       isArchived: false // Optional field - default to false
     };
+
+    // Add transmission and fuel type IDs if provided
+    let referenceData: ReferenceData | null = null;
+    
+    if (formData.transmission || formData.fuelType) {
+      try {
+        // Fetch reference data to get transmission and fuel type mappings
+        const referenceDataResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/reference-data`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': headers.Authorization
+            },
+            credentials: 'include'
+          }
+        );
+        
+        if (referenceDataResponse.ok) {
+          referenceData = await referenceDataResponse.json() as ReferenceData;
+        }
+      } catch (error) {
+        console.warn('[Create Listing] Failed to fetch reference data:', error);
+      }
+    }
+
+    if (formData.transmission && referenceData) {
+      const transmission = referenceData.transmissions?.find((t: ReferenceDataItem) => t.slug === formData.transmission);
+      if (transmission) {
+        apiData.transmissionId = transmission.id;
+      }
+    }
+
+    if (formData.fuelType && referenceData) {
+      const fuelType = referenceData.fuelTypes?.find((f: ReferenceDataItem) => f.slug === formData.fuelType);
+      if (fuelType) {
+        apiData.fuelTypeId = fuelType.id;
+      }
+    }
 
     // Validate the API data before sending
     if (!apiData.modelId || apiData.modelId === 0) {
@@ -448,6 +524,15 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
     }
     if (!apiData.title || apiData.title.trim() === '') {
       throw new ApiError('Title is required', 400);
+    }
+    if (!apiData.description || apiData.description.trim() === '') {
+      throw new ApiError('Description is required', 400);
+    }
+    if (!formData.make) {
+      throw new ApiError('Car make is required', 400);
+    }
+    if (!formData.model) {
+      throw new ApiError('Car model is required', 400);
     }
     if (!apiData.modelYear || apiData.modelYear < 1920 || apiData.modelYear > new Date().getFullYear()) {
       throw new ApiError('Valid model year is required', 400);
@@ -516,6 +601,61 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
     
     const response = await fetchResponse.json() as ApiListingItem;
     
+    // Upload additional images if there are more than one
+    if (formData.images && formData.images.length > 1) {
+      console.log(`[Create Listing] Uploading ${formData.images.length - 1} additional images`);
+      
+      // Upload remaining images (skip the first one as it was already uploaded)
+      for (let i = 1; i < formData.images.length; i++) {
+        try {
+          const additionalImage = formData.images[i];
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', additionalImage, additionalImage.name);
+          
+          const uploadResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/${response.id}/upload-image`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': headers.Authorization
+              },
+              body: uploadFormData,
+              credentials: 'include'
+            }
+          );
+          
+          if (!uploadResponse.ok) {
+            console.warn(`[Create Listing] Failed to upload additional image ${i + 1}:`, await uploadResponse.text());
+          } else {
+            console.log(`[Create Listing] Successfully uploaded additional image ${i + 1}`);
+          }
+        } catch (error) {
+          console.warn(`[Create Listing] Error uploading additional image ${i + 1}:`, error);
+        }
+      }
+      
+      // Fetch the updated listing to get all media
+      try {
+        const updatedResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/${response.id}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': headers.Authorization
+            },
+            credentials: 'include'
+          }
+        );
+        
+        if (updatedResponse.ok) {
+          const updatedListing = await updatedResponse.json() as ApiListingItem;
+          response.media = updatedListing.media; // Use the updated media array
+        }
+      } catch (error) {
+        console.warn('[Create Listing] Failed to fetch updated listing with all media:', error);
+      }
+    }
+    
     // Transform the API response to our frontend Listing type
     const { mainImageUrl, mediaItems } = getMediaUrls(response.media || []);
     const location = extractLocationInfo(response.locationDetails);
@@ -561,6 +701,6 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
     if (error instanceof ApiError) {
       throw error;
     }
-    throw new Error('Failed to create listing');
+    throw new ApiError('Failed to create listing', 500);
   }
 }

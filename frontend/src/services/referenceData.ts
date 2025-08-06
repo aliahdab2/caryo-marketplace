@@ -1,22 +1,7 @@
 // Reference data service
 import { api } from './api';
 import { getAuthHeaders } from '@/utils/auth';
-
-export interface ReferenceDataItem {
-  id: number;
-  name: string;
-  displayNameEn: string;
-  displayNameAr: string;
-}
-
-export interface ReferenceData {
-  carConditions: ReferenceDataItem[];
-  driveTypes: ReferenceDataItem[];
-  bodyStyles: ReferenceDataItem[];
-  fuelTypes: ReferenceDataItem[];
-  transmissions: ReferenceDataItem[];
-  sellerTypes: ReferenceDataItem[];
-}
+import { ReferenceData, ReferenceDataItem } from '@/types/listings';
 
 export interface CarBrand {
   id: number;

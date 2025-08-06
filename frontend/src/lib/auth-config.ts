@@ -63,19 +63,34 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const response = await serverAuth.login({
-            username: credentials.username,
-            password: credentials.password
+          // Use fetch directly for client-side authentication
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+          const response = await fetch(`${API_URL}/api/auth/signin`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              username: credentials.username,
+              password: credentials.password
+            }),
           });
+
+          if (!response.ok) {
+            console.error('Authentication failed:', response.status, response.statusText);
+            return null;
+          }
+
+          const data = await response.json();
           
-          if (response && response.token && response.user) {
+          if (data && data.token && data.username) {
             return {
-              id: response.user.id.toString(),
-              name: response.user.username,
-              email: response.user.email,
-              roles: response.user.roles || [],
+              id: data.id?.toString() || data.username,
+              name: data.username,
+              email: data.email || `${data.username}@autotrader.com`,
+              roles: data.roles || [],
               provider: "credentials",
-              token: response.token,
+              token: data.token,
             } as AugmentedUser;
           }
           
