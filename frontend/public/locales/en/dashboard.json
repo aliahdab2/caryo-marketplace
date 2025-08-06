@@ -128,5 +128,6 @@
   "headerLogout": "Logout",
   "loading": "Loading...",
   "search": "Search",
-  "listings.active": "Active"
+  "listings.active": "Active",
+  "noListings": "No listings found"
 }

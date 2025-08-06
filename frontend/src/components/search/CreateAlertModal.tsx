@@ -6,6 +6,8 @@ import { MdClose, MdNotificationsNone, MdEmail, MdSchedule } from 'react-icons/m
 import { useLanguage } from '@/components/EnhancedLanguageProvider';
 import { createSavedSearch, SavedSearchRequest, SavedSearchResponse } from '@/services/savedSearches';
 import { AdvancedSearchFilters } from '@/hooks/useSearchFilters';
+import { useApiData } from '@/hooks/useApiData';
+import { fetchCarReferenceData, CarReferenceData } from '@/services/api';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 
 interface CreateAlertModalProps {
@@ -26,6 +28,15 @@ export default function CreateAlertModal({
   const { t } = useTranslation(['search', 'common']);
   const { direction } = useLanguage();
   const isRTL = direction.isRTL;
+  
+  // Fetch reference data for slug conversion
+  const {
+    data: referenceData
+  } = useApiData<CarReferenceData>(
+    fetchCarReferenceData,
+    '/api/reference-data',
+    []
+  );
   
   // Form state
   const [alertName, setAlertName] = useState('');
@@ -101,9 +112,26 @@ export default function CreateAlertModal({
       if (filters.maxYear) backendFilters.maxYear = filters.maxYear;
       if (filters.minMileage) backendFilters.minMileage = filters.minMileage;
       if (filters.maxMileage) backendFilters.maxMileage = filters.maxMileage;
-      if (filters.transmissionId) backendFilters.transmissionId = filters.transmissionId;
+      
+      // Convert transmissionId to transmissionSlug
+      if (filters.transmissionId && referenceData?.transmissions) {
+        const transmission = referenceData.transmissions.find(t => t.id === filters.transmissionId);
+        if (transmission) {
+          backendFilters.transmissionSlug = transmission.slug;
+        }
+      }
+      
       if (filters.fuelTypeSlugs) backendFilters.fuelTypeSlugs = filters.fuelTypeSlugs;
       if (filters.bodyType) backendFilters.bodyType = filters.bodyType;
+      
+      // Convert conditionId to conditionSlug
+      if (filters.conditionId && referenceData?.carConditions) {
+        const condition = referenceData.carConditions.find(c => c.id === filters.conditionId);
+        if (condition) {
+          backendFilters.conditionSlug = condition.slug;
+        }
+      }
+      
       if (filters.sellerTypeIds) backendFilters.sellerTypeIds = filters.sellerTypeIds;
       if (searchQuery) backendFilters.searchQuery = searchQuery;
       
@@ -130,18 +158,35 @@ export default function CreateAlertModal({
         onSuccess?.();
       }, 2000);
       
-    } catch (error: any) {
-      console.error('Error creating alert:', error);
+    } catch (error: unknown) {
+      // Use proper error logging instead of console.error
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error creating alert:', error);
+      }
       
       // Extract error message from various possible locations
-      const errorMsg = 
-        error?.response?.data?.message ||  // Backend error response
-        error?.message ||                  // Direct error message
-        error?.response?.data?.error ||    // Alternative error field
-        error?.response?.statusText ||     // HTTP status text
-        'Failed to create alert. Please try again.';
+      let errorMsg = 'Failed to create alert. Please try again.';
       
-      console.log('Extracted error message:', errorMsg);
+      if (error && typeof error === 'object') {
+        const errorObj = error as Record<string, unknown>;
+        
+        // Check for backend error response
+        if (errorObj.response && typeof errorObj.response === 'object') {
+          const response = errorObj.response as Record<string, unknown>;
+          if (response.data && typeof response.data === 'object') {
+            const data = response.data as Record<string, unknown>;
+            if (typeof data.message === 'string') {
+              errorMsg = data.message;
+            } else if (typeof data.error === 'string') {
+              errorMsg = data.error;
+            }
+          } else if (typeof response.statusText === 'string') {
+            errorMsg = response.statusText;
+          }
+        } else if (typeof errorObj.message === 'string') {
+          errorMsg = errorObj.message;
+        }
+      }
       
       // Handle different types of errors with appropriate UI feedback
       if (errorMsg.includes('maximum limit')) {

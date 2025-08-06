@@ -10,7 +10,7 @@ import FavoriteButton from '@/components/common/FavoriteButton';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
 
 // Move namespaces outside component to prevent recreation on every render
-const COMMON_NAMESPACES = ['common'];
+const COMMON_NAMESPACES = ['common', 'search'];
 
 // Unified interface for car listing data
 export interface CarListingCardData {
@@ -79,8 +79,8 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
     
     // Fallback to translation lookup for backwards compatibility
     const normalized = transmission.toLowerCase();
-    const translatedKey = `search.transmissions.${normalized}`;
-    const translated = t(translatedKey, '');
+    const translatedKey = `transmissions${normalized.charAt(0).toUpperCase() + normalized.slice(1)}`;
+    const translated = t(translatedKey, { ns: 'search' });
     
     if (translated && translated !== translatedKey) {
       return translated;
@@ -103,8 +103,8 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
     
     // Fallback to translation lookup for backwards compatibility
     const normalized = fuelType.toLowerCase();
-    const translatedKey = `search.fuelTypes.${normalized}`;
-    const translated = t(translatedKey, '');
+    const translatedKey = `fuelTypes${normalized.charAt(0).toUpperCase() + normalized.slice(1)}`;
+    const translated = t(translatedKey, { ns: 'search' });
     
     if (translated && translated !== translatedKey) {
       return translated;

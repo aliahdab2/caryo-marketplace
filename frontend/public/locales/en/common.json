@@ -138,5 +138,8 @@
   "status": "Status",
   "view": "View",
   "learnMore": "Learn more",
-  "error": "Error"
+  "error": "Error",
+  "gridView": "Grid view",
+  "listView": "List view",
+  "priceRange": "Price Range"
 }

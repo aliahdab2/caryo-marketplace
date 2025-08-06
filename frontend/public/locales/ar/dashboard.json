@@ -128,5 +128,6 @@
   "headerLogout": "تسجيل الخروج",
   "loading": "جارٍ التحميل...",
   "search": "بحث",
-  "listings.active": "نشط"
+  "listings.active": "نشط",
+  "noListings": "لم يتم العثور على إعلانات"
 }
