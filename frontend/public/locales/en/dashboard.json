@@ -124,5 +124,9 @@
   "tip1": "Keep your listings updated with fresh photos and accurate information",
   "tip2": "Respond quickly to inquiries to increase your chances of selling",
   "tip3": "Consider renewing expired listings to maintain visibility",
-  "expiredRenewalDesc": "Renew expired listings to keep them visible to potential buyers"
+  "expiredRenewalDesc": "Renew expired listings to keep them visible to potential buyers",
+  "headerLogout": "Logout",
+  "loading": "Loading...",
+  "search": "Search",
+  "listings.active": "Active"
 }
