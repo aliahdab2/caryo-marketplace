@@ -415,12 +415,12 @@
   "search.conditions.new": "جديد",
   "search.conditions.used": "مستعمل",
   "search.conditions.certified": "معتمد",
-  "search.transmissions.automatic": "أوتوماتيك",
-  "search.transmissions.manual": "يدوي",
-  "search.fuelTypes.gasoline": "بنزين",
-  "search.fuelTypes.diesel": "ديزل",
-  "search.fuelTypes.electric": "كهربائي",
-  "search.fuelTypes.hybrid": "هجين",
+  "searchTransmissionsAutomatic": "أوتوماتيك",
+  "searchTransmissionsManual": "يدوي",
+  "searchFuelTypesGasoline": "بنزين",
+  "searchFuelTypesDiesel": "ديزل",
+  "searchFuelTypesElectric": "كهربائي",
+  "searchFuelTypesHybrid": "هجين",
   "search.colors.white": "أبيض",
   "search.colors.black": "أسود",
   "search.colors.silver": "فضي",
@@ -522,5 +522,8 @@
   "maxPrice": "أعلى سعر",
   "listing.km": "كم",
   "listings.addToFavorites": "أضف إلى المفضلة",
-  "retry": "إعادة المحاولة"
+  "retry": "إعادة المحاولة",
+  "gridView": "عرض الشبكة",
+  "listView": "عرض القائمة",
+  "priceRange": "نطاق السعر"
 }

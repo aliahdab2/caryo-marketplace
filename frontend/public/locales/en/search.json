@@ -172,5 +172,16 @@
   "grid": "Grid",
   "list": "List",
   "gridView": "Grid view",
-  "listView": "List view"
+  "listView": "List view",
+  "gridViewSelected": "Grid view selected",
+  "listViewSelected": "List view selected",
+  "fuelTypesGasoline": "Gasoline",
+  "fuelTypesDiesel": "Diesel",
+  "fuelTypesElectric": "Electric",
+  "fuelTypesHybrid": "Hybrid",
+  "fuelTypesPetrol": "Petrol",
+  "transmissionsAutomatic": "Automatic",
+  "transmissionsManual": "Manual",
+  "transmissionsCvt": "CVT",
+  "transmissionsSemiAutomatic": "Semi-Automatic"
 }

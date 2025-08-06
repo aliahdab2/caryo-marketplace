@@ -100,7 +100,56 @@ describe('AdvancedSearchPage', () => {
       };
     });
   });
-  const mockT = jest.fn((key: string, defaultValue?: string) => defaultValue || key);
+  const mockT = jest.fn((key: string, defaultValueOrOptions?: string | Record<string, unknown>, _options?: Record<string, unknown>) => {
+    // Always return a string, never an object
+    if (typeof key !== 'string') {
+      return typeof defaultValueOrOptions === 'string' ? defaultValueOrOptions : 'translation';
+    }
+    
+    // Handle namespace:key format
+    if (key.includes(':')) {
+      const parts = key.split(':');
+      const actualKey = parts[1] || key;
+      return typeof defaultValueOrOptions === 'string' ? defaultValueOrOptions : actualKey;
+    }
+    
+    // Handle common translation keys
+    const commonTranslations: Record<string, string> = {
+      'makeAndModel': 'Make and model',
+      'price': 'Price',
+      'year': 'Year',
+      'mileage': 'Mileage',
+      'transmission': 'Transmission',
+      'fuelType': 'Fuel type',
+      'bodyStyle': 'Body style',
+      'sellerType': 'Seller type',
+      'from': 'From',
+      'upTo': 'Up to',
+      'bodyStyles': 'Body types',
+      'sellerTypes': 'Seller types',
+      'errorTitle': 'Something went wrong',
+      'loadingError': 'Error loading filter options. Please refresh the page.',
+      'monitoring': 'Monitoring',
+      'createWatch': 'Create Alert',
+      'savingAlert': 'Saving...',
+      'priceRange': 'Price Range',
+      'yearRange': 'Year Range',
+      'mileageRange': 'Mileage Range',
+      'transmissionsAutomatic': 'Automatic',
+      'transmissionsManual': 'Manual',
+      'transmissionsCvt': 'CVT',
+      'transmissionsSemiAutomatic': 'Semi-Automatic',
+      'fuelTypesGasoline': 'Gasoline',
+      'fuelTypesDiesel': 'Diesel',
+      'fuelTypesElectric': 'Electric',
+      'fuelTypesHybrid': 'Hybrid',
+      'fuelTypesPetrol': 'Petrol',
+      'listing.km': 'km',
+    };
+    
+    // Return the common translation if it exists, otherwise return the key or default value
+    return commonTranslations[key] || (typeof defaultValueOrOptions === 'string' ? defaultValueOrOptions : key);
+  });
   const mockExecuteSearch = jest.fn();
 
   // Test wrapper component that provides required context
@@ -691,6 +740,7 @@ describe('AdvancedSearchPage', () => {
       (useLazyTranslation as jest.Mock).mockReturnValue({
         t: mockT,
         i18n: { language: 'ar' },
+        ready: true,
       });
 
       const mockSearchParams = {

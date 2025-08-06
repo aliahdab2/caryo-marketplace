@@ -1,23 +1,27 @@
 package com.autotrader.autotraderbackend.service;
 
-import com.autotrader.autotraderbackend.payload.request.SavedSearchRequest;
-import com.autotrader.autotraderbackend.payload.response.SavedSearchResponse;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.SavedSearch;
 import com.autotrader.autotraderbackend.model.SavedSearchNotification;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.payload.request.SavedSearchRequest;
+import com.autotrader.autotraderbackend.payload.response.SavedSearchResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
-import com.autotrader.autotraderbackend.repository.SavedSearchRepository;
 import com.autotrader.autotraderbackend.repository.SavedSearchNotificationRepository;
+import com.autotrader.autotraderbackend.repository.SavedSearchRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.repository.specification.CarListingSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.criteria.Predicate;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -323,35 +327,132 @@ public class SavedSearchService {
     }
 
     /**
-     * Calculate the number of current listings that match a saved search
+     * Calculate the number of current listings that match a saved search criteria
      */
     @Transactional(readOnly = true)
     public int calculateMatchCount(SavedSearch savedSearch) {
         try {
-            // Get all active, approved, non-sold, non-archived listings
-            List<CarListing> activeListings = carListingRepository.findAll()
-                .stream()
-                .filter(listing -> listing.getApproved() != null && listing.getApproved())
-                .filter(listing -> listing.getSold() == null || !listing.getSold())
-                .filter(listing -> listing.getArchived() == null || !listing.getArchived())
-                .toList();
-
-            // Count how many match the search criteria
-            int matchCount = 0;
-            for (CarListing listing : activeListings) {
-                if (matchingService.matches(savedSearch, listing)) {
-                    matchCount++;
-                }
-            }
-
-            log.debug("Calculated match count {} for saved search {}", matchCount, savedSearch.getId());
-            return matchCount;
+            // Create a specification for the saved search filters
+            Specification<CarListing> spec = createSpecificationFromSavedSearch(savedSearch);
+            
+            // Add the standard filters for approved, not sold, not archived listings
+            spec = spec.and(CarListingSpecification.isApproved())
+                      .and(CarListingSpecification.isNotSold())
+                      .and(CarListingSpecification.isNotArchived())
+                      .and(CarListingSpecification.isUserActive());
+            
+            // Count using the specification (database-level filtering)
+            long count = carListingRepository.count(spec);
+            
+            log.debug("Calculated match count {} for saved search {}", count, savedSearch.getId());
+            return (int) count;
 
         } catch (Exception e) {
             log.error("Error calculating match count for saved search {}: {}", 
                      savedSearch.getId(), e.getMessage(), e);
             return 0;
         }
+    }
+
+    /**
+     * Create a specification from saved search filters
+     */
+    private Specification<CarListing> createSpecificationFromSavedSearch(SavedSearch savedSearch) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            Map<String, Object> filters = savedSearch.getFilters();
+
+            try {
+                // Brand filter
+                if (filters.get("brandSlugs") instanceof List<?> brandSlugs && !((List<?>) filters.get("brandSlugs")).isEmpty()) {
+                    List<String> brands = ((List<?>) filters.get("brandSlugs")).stream()
+                        .map(Object::toString)
+                        .collect(Collectors.toList());
+                    predicates.add(root.get("model").get("brand").get("slug").in(brands));
+                }
+
+                // Model filter
+                if (filters.get("modelSlugs") instanceof List<?> modelSlugs && !((List<?>) filters.get("modelSlugs")).isEmpty()) {
+                    List<String> models = ((List<?>) filters.get("modelSlugs")).stream()
+                        .map(Object::toString)
+                        .collect(Collectors.toList());
+                    predicates.add(root.get("model").get("slug").in(models));
+                }
+
+                // Price range filter
+                if (filters.get("minPrice") instanceof Number) {
+                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("price"), 
+                        BigDecimal.valueOf(((Number) filters.get("minPrice")).doubleValue())));
+                }
+                if (filters.get("maxPrice") instanceof Number) {
+                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("price"), 
+                        BigDecimal.valueOf(((Number) filters.get("maxPrice")).doubleValue())));
+                }
+
+                // Year range filter
+                if (filters.get("minYear") instanceof Number) {
+                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("modelYear"), 
+                        ((Number) filters.get("minYear")).intValue()));
+                }
+                if (filters.get("maxYear") instanceof Number) {
+                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("modelYear"), 
+                        ((Number) filters.get("maxYear")).intValue()));
+                }
+
+                // Mileage range filter
+                if (filters.get("minMileage") instanceof Number) {
+                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("mileage"), 
+                        ((Number) filters.get("minMileage")).intValue()));
+                }
+                if (filters.get("maxMileage") instanceof Number) {
+                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("mileage"), 
+                        ((Number) filters.get("maxMileage")).intValue()));
+                }
+
+                // Transmission filter
+                if (filters.get("transmissionSlug") instanceof String transmissionSlug) {
+                    predicates.add(criteriaBuilder.equal(root.get("transmissionType").get("slug"), transmissionSlug));
+                }
+
+                // Fuel type filter
+                if (filters.get("fuelTypeSlugs") instanceof List<?> fuelTypeSlugs && !((List<?>) filters.get("fuelTypeSlugs")).isEmpty()) {
+                    List<String> fuelTypes = ((List<?>) filters.get("fuelTypeSlugs")).stream()
+                        .map(Object::toString)
+                        .collect(Collectors.toList());
+                    predicates.add(root.get("fuelType").get("slug").in(fuelTypes));
+                }
+
+                // Body type filter
+                if (filters.get("bodyType") instanceof List<?> bodyTypes && !((List<?>) filters.get("bodyType")).isEmpty()) {
+                    List<String> bodyTypeSlugs = ((List<?>) filters.get("bodyType")).stream()
+                        .map(Object::toString)
+                        .collect(Collectors.toList());
+                    predicates.add(root.get("bodyStyle").get("slug").in(bodyTypeSlugs));
+                }
+
+                // Condition filter
+                if (filters.get("conditionSlug") instanceof String conditionSlug) {
+                    predicates.add(criteriaBuilder.equal(root.get("condition").get("slug"), conditionSlug));
+                }
+
+                // Location filter (governorate)
+                if (filters.get("location") instanceof List<?> locations && !((List<?>) filters.get("location")).isEmpty()) {
+                    List<String> locationNames = ((List<?>) filters.get("location")).stream()
+                        .map(Object::toString)
+                        .collect(Collectors.toList());
+                    predicates.add(criteriaBuilder.or(
+                        root.get("governorate").get("displayNameEn").in(locationNames),
+                        root.get("governorate").get("displayNameAr").in(locationNames)
+                    ));
+                }
+
+                return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+
+            } catch (Exception e) {
+                log.error("Error creating specification from saved search filters: {}", e.getMessage(), e);
+                return criteriaBuilder.conjunction(); // Return true (no filtering) on error
+            }
+        };
     }
 
     // --- Helper Methods ---

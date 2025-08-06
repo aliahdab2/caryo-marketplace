@@ -172,5 +172,16 @@
   "grid": "شبكة",
   "list": "قائمة",
   "gridView": "عرض الشبكة",
-  "listView": "عرض القائمة"
+  "listView": "عرض القائمة",
+  "gridViewSelected": "تم اختيار عرض الشبكة",
+  "listViewSelected": "تم اختيار عرض القائمة",
+  "fuelTypesGasoline": "بنزين",
+  "fuelTypesDiesel": "ديزل",
+  "fuelTypesElectric": "كهربائي",
+  "fuelTypesHybrid": "هجين",
+  "fuelTypesPetrol": "بنزين",
+  "transmissionsAutomatic": "أوتوماتيك",
+  "transmissionsManual": "يدوي",
+  "transmissionsCvt": "متغير مستمر",
+  "transmissionsSemiAutomatic": "شبه أوتوماتيك"
 }

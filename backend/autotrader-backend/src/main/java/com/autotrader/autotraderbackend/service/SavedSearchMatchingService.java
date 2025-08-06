@@ -92,7 +92,7 @@ public class SavedSearchMatchingService {
 
     @SuppressWarnings("unchecked")
     private boolean matchesBrands(Map<String, Object> filters, CarListing listing) {
-        Object brands = filters.get("brands"); // Updated from "brandSlugs" to "brands"
+        Object brands = filters.get("brandSlugs"); // Updated to match saved search field name
         if (brands == null) {
             return true; // No brand filter
         }
@@ -111,7 +111,7 @@ public class SavedSearchMatchingService {
 
     @SuppressWarnings("unchecked")
     private boolean matchesModels(Map<String, Object> filters, CarListing listing) {
-        Object models = filters.get("models"); // Updated from "modelSlugs" to "models"
+        Object models = filters.get("modelSlugs"); // Updated to match saved search field name
         if (models == null) {
             return true; // No model filter
         }
@@ -193,7 +193,7 @@ public class SavedSearchMatchingService {
 
     @SuppressWarnings("unchecked")
     private boolean matchesLocation(Map<String, Object> filters, CarListing listing) {
-        Object locations = filters.get("locations"); // Updated from "governorateIds" to "locations"
+        Object locations = filters.get("governorateIds"); // Updated from "governorateIds" to "locations"
         if (locations == null) {
             return true; // No location filter
         }
@@ -253,38 +253,26 @@ public class SavedSearchMatchingService {
     }
 
     private boolean matchesTransmission(Map<String, Object> filters, CarListing listing) {
-        Object transmissionId = filters.get("transmissionId"); // Updated from "transmission" to "transmissionId"
-        if (transmissionId == null) {
-            return true; // No transmission filter
-        }
-
-        if (transmissionId instanceof Number transmissionIdNum) {
+        Object transmissionSlug = filters.get("transmissionSlug");
+        if (transmissionSlug instanceof String transmissionSlugStr) {
             if (listing.getTransmissionType() == null) {
                 return false;
             }
-            
-            Long listingTransmissionId = listing.getTransmissionType().getId();
-            return transmissionIdNum.longValue() == listingTransmissionId;
+            String listingTransmissionSlug = listing.getTransmissionType().getSlug();
+            return transmissionSlugStr.equals(listingTransmissionSlug);
         }
-
-        return true;
+        return true; // No transmission filter
     }
 
     private boolean matchesCondition(Map<String, Object> filters, CarListing listing) {
-        Object conditionId = filters.get("conditionId");
-        if (conditionId == null) {
-            return true; // No condition filter
-        }
-
-        if (conditionId instanceof Number conditionIdNum) {
+        Object conditionSlug = filters.get("conditionSlug");
+        if (conditionSlug instanceof String conditionSlugStr) {
             if (listing.getCondition() == null) {
                 return false;
             }
-            
-            Long listingConditionId = listing.getCondition().getId();
-            return conditionIdNum.longValue() == listingConditionId;
+            String listingConditionSlug = listing.getCondition().getSlug();
+            return conditionSlugStr.equals(listingConditionSlug);
         }
-
-        return true;
+        return true; // No condition filter
     }
 }

@@ -43,9 +43,8 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
     // Fallback to translation lookup for backwards compatibility
     const normalized = transmission.toLowerCase();
     const keyPatterns = [
-      `search.transmissions.${normalized}`,
-      `common:search.transmissions.${normalized}`,
-      `transmissions.${normalized}`,
+      `transmissions${normalized.charAt(0).toUpperCase() + normalized.slice(1)}`,
+      `search:transmissions${normalized.charAt(0).toUpperCase() + normalized.slice(1)}`,
       `${normalized}`
     ];
     
@@ -73,9 +72,8 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
     // Fallback to translation lookup for backwards compatibility
     const normalized = fuelType.toLowerCase();
     const keyPatterns = [
-      `search.fuelTypes.${normalized}`,
-      `common:search.fuelTypes.${normalized}`,
-      `fuelTypes.${normalized}`,
+      `fuelTypes${normalized.charAt(0).toUpperCase() + normalized.slice(1)}`,
+      `search:fuelTypes${normalized.charAt(0).toUpperCase() + normalized.slice(1)}`,
       `${normalized}`
     ];
     

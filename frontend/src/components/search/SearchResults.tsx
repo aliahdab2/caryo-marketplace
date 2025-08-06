@@ -84,6 +84,32 @@ const SearchResults = React.memo<SearchResultsProps>(({
     }
   };
 
+  // Helper function to get translation with fallback
+  const getTranslation = (key: string, fallback: string) => {
+    // Try the key as is first
+    let translated = t(key, '');
+    if (translated && translated !== key) {
+      return translated;
+    }
+    
+    // Try with search namespace prefix
+    const searchKey = `search:${key}`;
+    translated = t(searchKey, '');
+    if (translated && translated !== searchKey) {
+      return translated;
+    }
+    
+    // Try with common namespace prefix
+    const commonKey = `common:${key}`;
+    translated = t(commonKey, '');
+    if (translated && translated !== commonKey) {
+      return translated;
+    }
+    
+    // Return fallback if no translation found
+    return fallback;
+  };
+
   return (
     <div ref={resultsRef} role="complementary" className={`space-y-4 ${className}`}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -106,7 +132,7 @@ const SearchResults = React.memo<SearchResultsProps>(({
             aria-labelledby="view-mode-label"
           >
             <span id="view-mode-label" className="sr-only">
-              {t('viewModeControls', 'View mode controls')}
+              {getTranslation('viewModeControls', 'View mode controls')}
             </span>
             <button
               onClick={() => onViewModeChange('grid')}
@@ -115,7 +141,7 @@ const SearchResults = React.memo<SearchResultsProps>(({
                   ? 'bg-white dark:bg-gray-600 shadow-sm'
                   : 'hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
-              aria-label={t('gridView', 'Grid view')}
+              aria-label={getTranslation('gridView', 'Grid view')}
               aria-pressed={viewMode === 'grid'}
             >
               <MdViewModule className="w-4 h-4" />
@@ -127,7 +153,7 @@ const SearchResults = React.memo<SearchResultsProps>(({
                   ? 'bg-white dark:bg-gray-600 shadow-sm'
                   : 'hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
-              aria-label={t('listView', 'List view')}
+              aria-label={getTranslation('listView', 'List view')}
               aria-pressed={viewMode === 'list'}
             >
               <MdViewList className="w-4 h-4" />

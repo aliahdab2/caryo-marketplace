@@ -21,6 +21,8 @@ import {
   MdCalendarToday
 } from "react-icons/md";
 import { api } from "@/services/api";
+import { getMyListings } from "@/services/listings";
+import { Listing } from "@/types/listings";
 
 // Move namespaces outside component to prevent recreation on every render
 const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings', 'search'];
@@ -33,7 +35,8 @@ export default function Dashboard() {
   const [favoritesCount, setFavoritesCount] = useState<number>(0);
   const [alertsCount, setAlertsCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [recentListings, setRecentListings] = useState<any[]>([]);
+  const [recentListings, setRecentListings] = useState<Listing[]>([]);
+  const [listingsLoading, setListingsLoading] = useState(true);
 
   // Fetch favorites and alerts count when component mounts or session changes
   useEffect(() => {
@@ -86,9 +89,7 @@ export default function Dashboard() {
         if (session?.accessToken) {
           try {
             const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
-            console.log('[DASHBOARD] Fetching alerts with token:', token ? 'present' : 'missing');
             const savedSearches = await getUserSavedSearches(token);
-            console.log('[DASHBOARD] Retrieved saved searches:', savedSearches.length);
             if (mounted) {
               setAlertsCount(savedSearches.length);
             }
@@ -125,51 +126,35 @@ export default function Dashboard() {
     };
   }, [user, session]);
 
-  // Load recent listings
+  // Load recent listings using real data
   useEffect(() => {
     const loadRecentListings = async () => {
       if (!user) {
         setRecentListings([]);
+        setListingsLoading(false);
         return;
       }
 
       try {
-        // For now, we'll use sample data since we don't have a recent listings API
-        // In a real implementation, you would fetch from an API endpoint
-        const sampleListings = [
-          {
-            id: '1',
-            title: '2019 Toyota Camry',
-            price: 25000,
-            currency: 'USD',
-            status: 'active',
-            views: 45,
-            created: '2024-01-15T10:30:00Z'
-          },
-          {
-            id: '2',
-            title: '2020 Honda Civic',
-            price: 22000,
-            currency: 'USD',
-            status: 'pending',
-            views: 23,
-            created: '2024-01-10T14:20:00Z'
-          },
-          {
-            id: '3',
-            title: '2018 BMW X3',
-            price: 35000,
-            currency: 'USD',
-            status: 'sold',
-            views: 67,
-            created: '2024-01-05T09:15:00Z'
-          }
-        ];
+        setListingsLoading(true);
         
-        setRecentListings(sampleListings);
+        // Fetch real listings from the API
+        const myListings = await getMyListings();
+        
+        // Sort by creation date (newest first) and take the first 5
+        const sortedListings = myListings
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 5);
+        
+        setRecentListings(sortedListings);
       } catch (error) {
-        console.error('Failed to load recent listings:', error);
+        // Use proper error logging instead of console.error
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[DASHBOARD] Failed to load recent listings:', error);
+        }
         setRecentListings([]);
+      } finally {
+        setListingsLoading(false);
       }
     };
 
@@ -184,7 +169,7 @@ export default function Dashboard() {
   const stats = [
     {
       title: t('activeListings'),
-      value: '3',
+      value: String(recentListings.filter(listing => listing.status === 'active').length),
       icon: <MdDirectionsCar className="text-2xl md:text-3xl" />,
       color: 'blue',
       link: '/dashboard/listings'
@@ -212,8 +197,6 @@ export default function Dashboard() {
     }
   ];
 
-
-
   // Helper function to get status styles
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -234,6 +217,12 @@ export default function Dashboard() {
           bg: 'bg-yellow-100 dark:bg-yellow-900/30',
           text: 'text-yellow-800 dark:text-yellow-400',
           dotColor: 'bg-yellow-500'
+        };
+      case 'sold':
+        return {
+          bg: 'bg-gray-100 dark:bg-gray-900/30',
+          text: 'text-gray-800 dark:text-gray-400',
+          dotColor: 'bg-gray-500'
         };
       default:
         return {
@@ -282,14 +271,14 @@ export default function Dashboard() {
 
   // Handle delete listing
   const handleDelete = async (id: string) => {
-    if (window.confirm(t('listings.confirmDelete'))) {
+    if (window.confirm(t('listings:confirmDelete'))) {
       try {
         await api.delete(`/api/listings/${id}`);
         // Remove from recent listings
         setRecentListings(prev => prev.filter(listing => listing.id !== id));
       } catch (error) {
         console.error('Failed to delete listing:', error);
-        alert(t('listings.deleteError'));
+        alert(t('listings:deleteError'));
       }
     }
   };
@@ -363,84 +352,118 @@ export default function Dashboard() {
         </div>
         
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800/50 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                <th className="py-3.5 px-5">{t('image')}</th>
-                <th className="py-3.5 px-5">{t('title')}</th>
-                <th className="py-3.5 px-5">{t('price')}</th>
-                <th className="py-3.5 px-5">{t('date')}</th>
-                <th className="py-3.5 px-5">{t('views')}</th>
-                <th className="py-3.5 px-5">{t('status')}</th>
-                <th className="py-3.5 px-5">{t('actions')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {recentListings.map((listing) => {
-                const statusStyle = getStatusStyle(listing.status);
-                
-                return (
-                  <tr 
-                    key={listing.id} 
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                  >
-                    <td className="py-4 px-5">
-                      <div className="w-16 h-12 bg-gray-200 dark:bg-gray-700 rounded-md overflow-hidden relative">
-                        {/* This would be an actual image in production */}
-                        <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                          <MdDirectionsCar size={24} />
+          {listingsLoading ? (
+            <div className="p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-gray-500 dark:text-gray-400">{t('loading')}</p>
+            </div>
+          ) : recentListings.length === 0 ? (
+            <div className="p-8 text-center">
+              <MdDirectionsCar className="mx-auto text-gray-400 text-4xl mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 mb-4">{t('noListings')}</p>
+              <Link 
+                href="/dashboard/listings/new"
+                className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+              >
+                <MdAddCircleOutline className="mr-2" />
+                {t('createListing')}
+              </Link>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-gray-800/50 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="py-3.5 px-5">{t('image')}</th>
+                  <th className="py-3.5 px-5">{t('title')}</th>
+                  <th className="py-3.5 px-5">{t('price')}</th>
+                  <th className="py-3.5 px-5">{t('date')}</th>
+                  <th className="py-3.5 px-5">{t('views')}</th>
+                  <th className="py-3.5 px-5">{t('status')}</th>
+                  <th className="py-3.5 px-5">{t('actions')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {recentListings.map((listing) => {
+                  const statusStyle = getStatusStyle(listing.status || 'pending');
+                  const currency = (listing.currency ?? 'USD') as string;
+                  
+                  return (
+                    <tr 
+                      key={listing.id} 
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    >
+                      <td className="py-4 px-5">
+                        <div className="w-16 h-12 bg-gray-200 dark:bg-gray-700 rounded-md overflow-hidden relative">
+                          {listing.image ? (
+                            <img 
+                              src={listing.image} 
+                              alt={listing.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                target.nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
+                          ) : null}
+                          <div className={`absolute inset-0 flex items-center justify-center text-gray-400 ${listing.image ? 'hidden' : ''}`}>
+                            <MdDirectionsCar size={24} />
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-5 font-medium text-gray-900 dark:text-white">
-                      {listing.title}
-                    </td>
-                    <td className="py-4 px-5 text-gray-700 dark:text-gray-300 font-medium">
-                      {formatNumber(listing.price, i18n.language, { style: 'currency', currency: listing.currency })}
-                    </td>
-                    <td className="py-4 px-5 text-gray-600 dark:text-gray-400 text-sm whitespace-nowrap">
-                      <div className="flex items-center">
-                        <MdCalendarToday className="mr-1.5 text-gray-400" size={14} />
-                        {formatDate(listing.created, i18n.language, { dateStyle: 'medium' })}
-                      </div>
-                    </td>
-                    <td className="py-4 px-5 text-gray-600 dark:text-gray-400">
-                      <div className="flex items-center">
-                        <MdVisibility className="mr-1.5 text-gray-400" size={16} />
-                        {formatNumber(listing.views, i18n.language)}
-                      </div>
-                    </td>
-                    <td className="py-4 px-5">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotColor} mr-1.5`}></span>
-                        {t(`listings:${listing.status}`) || listing.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-5">
-                      <div className="flex items-center space-x-3 rtl:space-x-reverse rtl:gap-3">
-                        <button 
-                          onClick={() => router.push(`/dashboard/listings/edit/${listing.id}`)}
-                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                          aria-label={t('edit')}
-                          title={t('edit')}
-                        >
-                          <MdEditNote size={22} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(listing.id)}
-                          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                          aria-label={t('delete')}
-                          title={t('delete')}
-                        >
-                          <MdDelete size={20} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="py-4 px-5 font-medium text-gray-900 dark:text-white">
+                        {listing.title}
+                      </td>
+                      <td className="py-4 px-5 text-gray-700 dark:text-gray-300 font-medium">
+                        {formatNumber(listing.price, i18n.language, { 
+                          style: 'currency', 
+                          currency: currency 
+                        })}
+                      </td>
+                      <td className="py-4 px-5 text-gray-600 dark:text-gray-400 text-sm whitespace-nowrap">
+                        <div className="flex items-center">
+                          <MdCalendarToday className="mr-1.5 text-gray-400" size={14} />
+                          {formatDate(listing.createdAt, i18n.language, { dateStyle: 'medium' })}
+                        </div>
+                      </td>
+                      <td className="py-4 px-5 text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center">
+                          <MdVisibility className="mr-1.5 text-gray-400" size={16} />
+                          {formatNumber(listing.views || 0, i18n.language)}
+                        </div>
+                      </td>
+                      <td className="py-4 px-5">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotColor} mr-1.5`}></span>
+                          {t(`listings:${listing.status}`) || listing.status}
+                        </span>
+                      </td>
+                      <td className="py-4 px-5">
+                        <div className="flex items-center space-x-3 rtl:space-x-reverse rtl:gap-3">
+                          <button 
+                            onClick={() => router.push(`/dashboard/listings/edit/${listing.id}`)}
+                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                            aria-label={t('edit')}
+                            title={t('edit')}
+                          >
+                            <MdEditNote size={22} />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(listing.id)}
+                            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                            aria-label={t('delete')}
+                            title={t('delete')}
+                          >
+                            <MdDelete size={20} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
@@ -495,7 +518,7 @@ export default function Dashboard() {
               <MdLogout className="text-red-600 dark:text-red-400 text-2xl" />
             </div>
             <h3 className="font-medium text-lg text-red-700 dark:text-red-400">
-                              {t('headerLogout', { ns: 'common' })}
+              {t('headerLogout', { ns: 'common' })}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
               {t('logoutDesc')}

@@ -9,6 +9,7 @@ export interface CarCondition {
   name: string;
   displayNameEn: string;
   displayNameAr: string;
+  slug: string;
 }
 
 export interface Transmission {
@@ -16,6 +17,7 @@ export interface Transmission {
   name: string;
   displayNameEn: string;
   displayNameAr: string;
+  slug: string;
 }
 
 export interface FuelType {

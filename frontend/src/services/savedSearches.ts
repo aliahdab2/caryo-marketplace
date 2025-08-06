@@ -145,11 +145,13 @@ export async function getCarListingsForSavedSearch(
     };
 
     // Map the saved search filters to API parameters to match fetchCarListingsPublic implementation
-    if (filters.brands && Array.isArray(filters.brands)) {
-      searchParams.brands = filters.brands; // This gets mapped to 'brandSlugs' in the API call
+    // Note: Saved search stores filters with field names like brandSlugs, modelSlugs, etc.
+    // but the backend service expects brands, models, etc.
+    if (filters.brandSlugs && Array.isArray(filters.brandSlugs)) {
+      searchParams.brands = filters.brandSlugs;
     }
-    if (filters.models && Array.isArray(filters.models)) {
-      searchParams.models = filters.models; // This gets mapped to 'modelSlugs' in the API call
+    if (filters.modelSlugs && Array.isArray(filters.modelSlugs)) {
+      searchParams.models = filters.modelSlugs;
     }
     if (filters.minPrice) {
       searchParams.minPrice = filters.minPrice;
@@ -181,11 +183,8 @@ export async function getCarListingsForSavedSearch(
     if (filters.conditionId) {
       searchParams.conditionId = filters.conditionId;
     }
-    if (filters.locations && Array.isArray(filters.locations)) {
-      searchParams.locations = filters.locations; // This gets mapped to 'location' in the API call
-    }
-    if (filters.searchQuery) {
-      searchParams.searchQuery = filters.searchQuery;
+    if (filters.location && Array.isArray(filters.location)) {
+      searchParams.locations = filters.location;
     }
     if (filters.searchQuery) {
       searchParams.searchQuery = filters.searchQuery;
