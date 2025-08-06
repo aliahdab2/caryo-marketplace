@@ -11,7 +11,6 @@ import {
   ChevronUp,
   ChevronDown,
   Tag,
-  MapPin,
   Car
 } from 'lucide-react';
 
@@ -20,22 +19,19 @@ interface CarFactsProps {
 }
 
 const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
-  const { t } = useTranslation('listings');
+  const { t, i18n } = useTranslation('listings');
   const [showAllFacts, setShowAllFacts] = useState(false);
 
   // Helper function to get translated transmission text
   const getTransmissionText = (transmission?: string) => {
     if (!transmission) return '';
     
-    // Try different key formats to match against translation keys
-    const normalized = transmission.toLowerCase();
-    
-    // Try direct translation key lookup
-    const translatedKey = `search.transmissions.${normalized}`;
-    const translated = t(translatedKey, '');
-    
-    if (translated && translated !== translatedKey) {
-      return translated;
+    // Use bilingual fields directly from backend if available
+    if (listing.transmissionNameEn || listing.transmissionNameAr) {
+      const isRTL = i18n.language === 'ar';
+      return isRTL ? 
+        (listing.transmissionNameAr || listing.transmissionNameEn || transmission) :
+        (listing.transmissionNameEn || listing.transmissionNameAr || transmission);
     }
     
     // Fallback to original value
@@ -46,15 +42,12 @@ const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
   const getFuelTypeText = (fuelType?: string) => {
     if (!fuelType) return '';
     
-    // Try different key formats to match against translation keys
-    const normalized = fuelType.toLowerCase();
-    
-    // Try direct translation key lookup
-    const translatedKey = `search.fuelTypes.${normalized}`;
-    const translated = t(translatedKey, '');
-    
-    if (translated && translated !== translatedKey) {
-      return translated;
+    // Use bilingual fields directly from backend if available
+    if (listing.fuelTypeNameEn || listing.fuelTypeNameAr) {
+      const isRTL = i18n.language === 'ar';
+      return isRTL ? 
+        (listing.fuelTypeNameAr || listing.fuelTypeNameEn || fuelType) :
+        (listing.fuelTypeNameEn || listing.fuelTypeNameAr || fuelType);
     }
     
     // Fallback to original value
@@ -116,23 +109,18 @@ const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
     // Brand - from API
     ...(listing.brandNameEn ? [{
       label: t('brand'),
-      value: listing.brandNameEn,
+      value: i18n.language === 'ar' ? (listing.brandNameAr || listing.brandNameEn) : (listing.brandNameEn || listing.brandNameAr),
       icon: <Tag className="w-4 h-4 text-gray-600" />
     }] : []),
     
     // Model - from API
     ...(listing.modelNameEn ? [{
       label: t('model'),
-      value: listing.modelNameEn,
+      value: i18n.language === 'ar' ? (listing.modelNameAr || listing.modelNameEn) : (listing.modelNameEn || listing.modelNameAr),
       icon: <Car className="w-4 h-4 text-gray-600" />
-    }] : []),
-    
-    // Location - from API
-    ...(listing.governorateNameEn ? [{
-      label: t('location'),
-      value: listing.governorateNameEn,
-      icon: <MapPin className="w-4 h-4 text-gray-600" />
     }] : [])
+    
+    // Location removed - not a car fact, should be displayed elsewhere
   ];
 
   // Show first 6 facts by default, then toggle to show all

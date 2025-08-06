@@ -34,22 +34,5 @@ export interface CarTrim {
   modelId?: number; // Reference to model instead of full model object
 }
 
-/**
- * Interface for reference data item
- */
-export interface ReferenceDataItem {
-  id: string | number;
-  name: string;
-  displayNameEn: string;
-  displayNameAr: string;
-}
-
-/**
- * Interface for all reference data
- */
-export interface ReferenceData {
-  conditions: ReferenceDataItem[];
-  transmissions: ReferenceDataItem[];
-  fuelTypes: ReferenceDataItem[];
-  bodyStyles: ReferenceDataItem[];
-}
+// Import reference data types from listings.ts to avoid duplication
+export type { ReferenceDataItem, ReferenceData } from './listings';

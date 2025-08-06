@@ -253,8 +253,8 @@ class CarListingServiceTest {
         testListing.setApproved(true); // Explicitly set for clarity
         testListingResponse.setApproved(true); // Match expected response
 
-        // Mock the repository call for an approved listing
-        when(carListingRepository.findByIdAndApprovedTrue(listingId)).thenReturn(Optional.of(testListing));
+        // Mock the repository call for an approved listing with media
+        when(carListingRepository.findByIdAndApprovedTrueWithMedia(listingId)).thenReturn(Optional.of(testListing));
         // Mock the mapper call
         when(carListingMapper.toCarListingResponse(testListing)).thenReturn(testListingResponse);
 
@@ -265,7 +265,7 @@ class CarListingServiceTest {
         assertNotNull(response);
         assertEquals(testListingResponse, response);
         // Verify the correct repository method was called
-        verify(carListingRepository).findByIdAndApprovedTrue(listingId);
+        verify(carListingRepository).findByIdAndApprovedTrueWithMedia(listingId);
         verify(carListingMapper).toCarListingResponse(testListing);
     }
 
@@ -274,7 +274,7 @@ class CarListingServiceTest {
         // Arrange
         Long nonExistentId = 999L;
         // Mock the repository call for an approved listing - returns empty
-        when(carListingRepository.findByIdAndApprovedTrue(nonExistentId)).thenReturn(Optional.empty());
+        when(carListingRepository.findByIdAndApprovedTrueWithMedia(nonExistentId)).thenReturn(Optional.empty());
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -282,7 +282,7 @@ class CarListingServiceTest {
         });
         assertEquals("CarListing not found with id : '999'", exception.getMessage());
         // Verify the correct repository method was called
-        verify(carListingRepository).findByIdAndApprovedTrue(nonExistentId);
+        verify(carListingRepository).findByIdAndApprovedTrueWithMedia(nonExistentId);
         verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
     }
 
@@ -292,8 +292,8 @@ class CarListingServiceTest {
         Long listingId = 1L;
         testListing.setApproved(false); // Ensure the listing exists but is not approved
 
-        // Mock findByIdAndApprovedTrue to return empty, simulating it wasn't found because it's not approved
-        when(carListingRepository.findByIdAndApprovedTrue(listingId)).thenReturn(Optional.empty());
+        // Mock findByIdAndApprovedTrueWithMedia to return empty, simulating it wasn't found because it's not approved
+        when(carListingRepository.findByIdAndApprovedTrueWithMedia(listingId)).thenReturn(Optional.empty());
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -304,7 +304,7 @@ class CarListingServiceTest {
         assertEquals("CarListing not found with id : '1'", exception.getMessage());
 
         // Verify the correct repository method was called
-        verify(carListingRepository).findByIdAndApprovedTrue(listingId);
+        verify(carListingRepository).findByIdAndApprovedTrueWithMedia(listingId);
         // Ensure the mapper is never called
         verify(carListingMapper, never()).toCarListingResponse(any());
     }

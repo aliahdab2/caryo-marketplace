@@ -144,6 +144,46 @@ public class LocationController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/governorate/{governorateId}")
+    @Operation(
+        summary = "Get locations by governorate",
+        description = "Returns all active locations for a specific governorate.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "List of locations retrieved successfully")
+        }
+    )
+    public ResponseEntity<List<LocationResponse>> getLocationsByGovernorate(
+            @Parameter(description = "Governorate ID", required = true)
+            @PathVariable Long governorateId) {
+        log.debug("Request received to get locations for governorate: {}", governorateId);
+        List<LocationResponse> locations = locationService.getLocationsByGovernorate(governorateId);
+        log.debug("Returning {} locations for governorate: {}", locations.size(), governorateId);
+        return ResponseEntity.ok(locations);
+    }
+
+    @GetMapping("/governorate/slug/{governorateSlug}")
+    @Operation(
+        summary = "Get locations by governorate slug",
+        description = "Returns all active locations for a specific governorate using its slug.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "List of locations retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Governorate not found")
+        }
+    )
+    public ResponseEntity<List<LocationResponse>> getLocationsByGovernorateSlug(
+            @Parameter(description = "Governorate slug", required = true)
+            @PathVariable String governorateSlug) {
+        log.debug("Request received to get locations for governorate slug: {}", governorateSlug);
+        try {
+            List<LocationResponse> locations = locationService.getLocationsByGovernorateSlug(governorateSlug);
+            log.debug("Returning {} locations for governorate slug: {}", locations.size(), governorateSlug);
+            return ResponseEntity.ok(locations);
+        } catch (ResourceNotFoundException e) {
+            log.warn("Governorate not found with slug: {}", governorateSlug);
+            throw e;
+        }
+    }
+
     // Admin-only endpoints
 
     @PostMapping

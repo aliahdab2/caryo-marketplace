@@ -495,7 +495,7 @@ export default function Dashboard() {
               <MdLogout className="text-red-600 dark:text-red-400 text-2xl" />
             </div>
             <h3 className="font-medium text-lg text-red-700 dark:text-red-400">
-              {t('header.logout', { ns: 'common' })}
+                              {t('headerLogout', { ns: 'common' })}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
               {t('logoutDesc')}

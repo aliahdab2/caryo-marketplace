@@ -165,10 +165,10 @@ export default function DashboardLayout({
       tooltip: t('dashboard.favoritesTooltip') || 'Your saved vehicles'
     },
     { 
-      name: t('header.savedSearches', { ns: 'common' }), 
+      name: t('headerSavedSearches', { ns: 'common' }), 
       href: "/saved/alerts", 
       icon: <MdNotifications className="text-xl" />,
-      tooltip: t('header.savedSearches', { ns: 'common' }) || 'Your saved search alerts'
+      tooltip: t('headerSavedSearches', { ns: 'common' }) || 'Your saved search alerts'
     },
     { 
       name: t('dashboard.messages'), 
@@ -308,10 +308,10 @@ export default function DashboardLayout({
                 className="flex items-center w-full p-3 text-red-500 rounded-lg 
                          hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 
                          hover:shadow-sm"
-                aria-label={t('header.logout')}
+                aria-label={t('headerLogout')}
               >
                 <MdLogout className="mr-3 text-xl" />
-                <span>{t('header.logout')}</span>
+                <span>{t('headerLogout')}</span>
               </button>
             </li>
           </ul>
@@ -382,10 +382,10 @@ export default function DashboardLayout({
             className="w-full flex items-center justify-center p-2 mt-2 text-red-500 rounded-lg 
                      border border-gray-200 dark:border-gray-700 hover:bg-red-50 
                      dark:hover:bg-red-900/20 transition-all duration-200 hover:shadow-sm"
-            aria-label={t('header.logout')}
+            aria-label={t('headerLogout')}
           >
             <MdLogout className="mr-2" />
-            {t('header.logout')}
+            {t('headerLogout')}
           </button>
         </div>
       </aside>

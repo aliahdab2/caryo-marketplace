@@ -88,8 +88,8 @@ export function sanitizeCore(input: string, level: SanitizationLevel): string {
       break;
   }
   
-  // Remove excessive whitespace
-  sanitized = sanitized.replace(SECURITY_PATTERNS.EXCESSIVE_WHITESPACE, ' ').trim();
+  // Remove excessive whitespace (only 3+ consecutive spaces, preserve normal spacing)
+  sanitized = sanitized.replace(/ {3,}/g, '  ').trim();
   
   // Length limiting for DoS prevention
   if (sanitized.length > MAX_SANITIZED_LENGTH) {
@@ -119,8 +119,8 @@ export function smartSanitize(input: string): string {
     sanitized = sanitized.replace(/on\w+\s*=\s*"([^"]*)"/gi, '"$1"');
     sanitized = sanitized.replace(SECURITY_PATTERNS.CONTROL_CHARS, '');
     
-    // Remove excessive whitespace
-    sanitized = sanitized.replace(SECURITY_PATTERNS.EXCESSIVE_WHITESPACE, ' ').trim();
+    // Only remove excessive whitespace (3+ consecutive spaces) but preserve normal spacing
+    sanitized = sanitized.replace(/ {3,}/g, '  ').trim();
     
     // Length limiting for DoS prevention
     if (sanitized.length > 1000) {
@@ -130,7 +130,17 @@ export function smartSanitize(input: string): string {
     return sanitized;
   }
   
-  return sanitizeCore(input, 'standard');
+  // For regular text without HTML/JS, just do basic sanitization without aggressive whitespace removal
+  let sanitized = input.trim();
+  sanitized = sanitized.replace(SECURITY_PATTERNS.SCRIPT_TAGS, '');
+  sanitized = sanitized.replace(SECURITY_PATTERNS.HTML_TAGS, '');
+  sanitized = sanitized.replace(SECURITY_PATTERNS.JS_PROTOCOLS, '');
+  sanitized = sanitized.replace(SECURITY_PATTERNS.CONTROL_CHARS, '');
+  
+  // Only remove excessive whitespace (3+ consecutive spaces) but preserve normal spacing
+  sanitized = sanitized.replace(/ {3,}/g, '  ').trim();
+  
+  return sanitized;
 }
 
 /**

@@ -64,6 +64,8 @@
   "placeholder": "Search for cars... (e.g. \"Toyota Camry\", \"BMW X3\", \"تويوتا كامري\")",
   "search": "Search",
   "searchLabel": "Search for cars by make, model, or governorate",
+  "gridView": "Grid view",
+  "listView": "List view",
   "searchButton": "Search for cars",
   "searchHelp": "Enter car make, model, or governorate and press Enter or click Search button",
   "searching": "Searching...",

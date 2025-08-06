@@ -8,6 +8,7 @@ import { Governorate, fetchGovernorates } from '@/services/api';
 import { getListingById, updateListing } from '@/services/listings';
 import { SUPPORTED_CURRENCIES } from '@/utils/currency';
 import ListingExpiry from "../../components/ListingExpiry";
+import NumericInput from '@/components/ui/NumericInput';
 
 // Client component
 export default function EditListingPageClient({ id }: { id: string }) {
@@ -71,8 +72,8 @@ export default function EditListingPageClient({ id }: { id: string }) {
           fuelType: listing.fuelType || "",
           features: listing.features || [],
           location: listing.location?.city || "",
-          governorateId: "1", // This needs to be mapped from the location data
-          city: listing.location?.city || "",
+          governorateSlug: "", // Will be populated from location data
+          locationSlug: "", // Will be populated from location data
           state: "", // Default empty for edit form
           zipCode: "", // Default empty for edit form
           contactName: listing.seller?.name || "",
@@ -104,8 +105,19 @@ export default function EditListingPageClient({ id }: { id: string }) {
   }, [id]);
 
   // Handle input change
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | string, fieldName?: string) => {
+    let name: string;
+    let value: string;
+    
+    // Handle both event objects and direct string values (for NumericInput)
+    if (typeof e === 'string') {
+      name = fieldName!;
+      value = e;
+    } else {
+      name = e.target.name;
+      value = e.target.value;
+    }
+    
     setFormData(prev => {
       if (!prev) return prev;
       return {
@@ -268,7 +280,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
           name="title"
           type="text"
           value={formData.title}
-          onChange={handleChange}
+          onChange={(e) => handleChange(e)}
           placeholder="e.g., Toyota Camry 2020"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -282,7 +294,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
           id="description"
           name="description"
           value={formData.description}
-          onChange={handleChange}
+          onChange={(e) => handleChange(e)}
           placeholder="Detailed description of the car"
           required
           rows={4}
@@ -293,19 +305,19 @@ export default function EditListingPageClient({ id }: { id: string }) {
       {/* Governorate and Location */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="governorateId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Governorate</label>
+          <label htmlFor="governorateSlug" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Governorate</label>
           <select
-            id="governorateId"
-            name="governorateId"
-            value={formData.governorateId}
-            onChange={handleChange}
+            id="governorateSlug"
+            name="governorateSlug"
+            value={formData.governorateSlug}
+            onChange={(e) => handleChange(e)}
             required
             disabled={isLoadingGovernorates}
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           >
             <option value="">{isLoadingGovernorates ? "Loading governorates..." : "Select Governorate"}</option>
             {governorates.map((gov) => (
-              <option key={gov.id} value={String(gov.id)}>
+              <option key={gov.id} value={gov.slug}>
                 {gov.displayNameEn}
               </option>
             ))}
@@ -318,7 +330,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
             name="location"
             type="text"
             value={formData.location || ''}
-            onChange={handleChange}
+            onChange={(e) => handleChange(e)}
             placeholder="e.g., Street Name, Building No."
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           />
@@ -333,7 +345,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
           name="make"
           type="text"
           value={formData.make}
-          onChange={handleChange}
+          onChange={(e) => handleChange(e)}
           placeholder="e.g., Toyota"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -348,7 +360,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
           name="model"
           type="text"
           value={formData.model}
-          onChange={handleChange}
+          onChange={(e) => handleChange(e)}
           placeholder="e.g., Camry"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -358,12 +370,11 @@ export default function EditListingPageClient({ id }: { id: string }) {
       {/* Year */}
       <div>
         <label htmlFor="year" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Year</label>
-        <input
+        <NumericInput
           id="year"
           name="year"
-          type="number"
           value={formData.year}
-          onChange={handleChange}
+          onChange={(value) => handleChange(value, 'year')}
           placeholder="e.g., 2020"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -373,12 +384,11 @@ export default function EditListingPageClient({ id }: { id: string }) {
       {/* Price */}
       <div>
         <label htmlFor="price" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price</label>
-        <input
+        <NumericInput
           id="price"
           name="price"
-          type="text"
           value={formData.price}
-          onChange={handleChange}
+          onChange={(value) => handleChange(value, 'price')}
           placeholder="e.g., 25000"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -392,7 +402,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
           id="currency"
           name="currency"
           value={formData.currency}
-          onChange={handleChange}
+          onChange={(e) => handleChange(e)}
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         >
@@ -409,7 +419,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
           id="condition"
           name="condition"
           value={formData.condition}
-          onChange={handleChange}
+          onChange={(e) => handleChange(e)}
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         >
@@ -421,15 +431,13 @@ export default function EditListingPageClient({ id }: { id: string }) {
       {/* Mileage */}
       <div>
         <label htmlFor="mileage" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mileage (km)</label>
-        <input
+        <NumericInput
           id="mileage"
           name="mileage"
-          type="text"
           value={formData.mileage}
-          onChange={handleChange}
+          onChange={(value) => handleChange(value, 'mileage')}
           placeholder="e.g., 45000"
           required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         />
       </div>
 
@@ -441,7 +449,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
           name="exteriorColor"
           type="text"
           value={formData.exteriorColor}
-          onChange={handleChange}
+          onChange={(e) => handleChange(e)}
           placeholder="e.g., Silver"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -456,7 +464,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
           name="interiorColor"
           type="text"
           value={formData.interiorColor}
-          onChange={handleChange}
+          onChange={(e) => handleChange(e)}
           placeholder="e.g., Black"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -470,7 +478,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
           id="transmission"
           name="transmission"
           value={formData.transmission}
-          onChange={handleChange}
+          onChange={(e) => handleChange(e)}
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         >
@@ -486,7 +494,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
           id="fuelType"
           name="fuelType"
           value={formData.fuelType}
-          onChange={handleChange}
+          onChange={(e) => handleChange(e)}
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         >

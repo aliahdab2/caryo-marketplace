@@ -23,6 +23,10 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
     // Find by id and approved
     Optional<CarListing> findByIdAndApprovedTrue(Long id);
     
+    // Find by id and approved with media (eager fetch)
+    @Query("SELECT cl FROM CarListing cl LEFT JOIN FETCH cl.media WHERE cl.id = :id AND cl.approved = true")
+    Optional<CarListing> findByIdAndApprovedTrueWithMedia(@Param("id") Long id);
+    
     // Find by various criteria with pagination
     Page<CarListing> findByBrandNameEnAndApprovedTrue(String brandNameEn, Pageable pageable);
     

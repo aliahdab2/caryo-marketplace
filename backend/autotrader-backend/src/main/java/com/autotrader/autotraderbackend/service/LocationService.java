@@ -71,6 +71,24 @@ public class LocationService {
     }
 
     /**
+     * Get active locations by governorate slug
+     * @param governorateSlug The governorate slug
+     * @return List of active locations for the given governorate
+     */
+    public List<LocationResponse> getLocationsByGovernorateSlug(String governorateSlug) {
+        log.debug("Fetching locations for governorate slug: {}", governorateSlug);
+        
+        // First find the governorate by slug
+        Governorate governorate = governorateRepository.findBySlug(governorateSlug)
+                .orElseThrow(() -> new ResourceNotFoundException("Governorate", "slug", governorateSlug));
+        
+        // Then get locations for that governorate
+        return locationRepository.findByGovernorateIdAndIsActiveTrue(governorate.getId()).stream()
+                .map(LocationResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Get a location by its ID
      * @param id The location ID
      * @return The location

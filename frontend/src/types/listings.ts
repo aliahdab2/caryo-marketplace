@@ -201,8 +201,8 @@ export interface ListingFormData {
   categoryId?: string; // Added categoryId, make it optional or required based on your logic
   attributes?: Record<string, unknown>; // For dynamic attributes based on category
   location?: string; 
-  governorateId: string; 
-  city: string; // This was in the original form state, ensure it's needed
+  governorateSlug: string; // Changed from governorateId to governorateSlug
+  locationSlug: string; // Changed from locationId to locationSlug
   state: string; // State or province
   zipCode: string; // Postal/ZIP code
   contactName: string; // Added
@@ -244,6 +244,7 @@ export interface Governorate {
   nameAr: string;
   displayNameEn: string; // Added for direct use in dropdowns
   displayNameAr: string; // Added for direct use in dropdowns
+  slug: string; // Added slug field
   countryCode?: string;
 }
 
@@ -265,3 +266,26 @@ export interface ListingWithLanguage extends Listing {
  * Defines the fields that can be localized.
  */
 export type LocalizedField = 'title' | 'description';
+
+/**
+ * Interface for reference data items (transmissions, fuel types, etc.)
+ */
+export interface ReferenceDataItem {
+  id: number;
+  name: string;
+  displayNameEn: string;
+  displayNameAr: string;
+  slug: string;
+}
+
+/**
+ * Interface for reference data from the API
+ */
+export interface ReferenceData {
+  carConditions: ReferenceDataItem[];
+  driveTypes: ReferenceDataItem[];
+  bodyStyles: ReferenceDataItem[];
+  fuelTypes: ReferenceDataItem[];
+  transmissions: ReferenceDataItem[];
+  sellerTypes: ReferenceDataItem[];
+}

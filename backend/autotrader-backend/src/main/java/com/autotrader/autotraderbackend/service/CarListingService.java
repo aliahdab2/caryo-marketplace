@@ -161,7 +161,10 @@ public class CarListingService {
             media.setFileName(file.getOriginalFilename());
             media.setContentType(file.getContentType());
             media.setSize(file.getSize());
-            media.setSortOrder(0); // TODO: Determine sort order logic if multiple images
+            
+            // Calculate proper sort order for multiple images
+            int nextSortOrder = listing.getMedia().size(); // Next image gets the next sort order
+            media.setSortOrder(nextSortOrder);
             media.setIsPrimary(listing.getMedia().isEmpty()); // First image is primary
             media.setMediaType("image"); // Assuming all uploads here are images
             
@@ -193,8 +196,8 @@ public class CarListingService {
     @Transactional(readOnly = true)
     public CarListingResponse getListingById(Long id) {
         log.debug("Fetching approved listing details for ID: {}", id);
-        // Use findByIdAndApprovedTrue to ensure only approved listings are returned publicly
-        CarListing carListing = carListingRepository.findByIdAndApprovedTrue(id)
+        // Use findByIdAndApprovedTrueWithMedia to ensure media is loaded
+        CarListing carListing = carListingRepository.findByIdAndApprovedTrueWithMedia(id)
                 .orElseThrow(() -> {
                     log.warn("Approved CarListing lookup failed for ID: {}", id);
                     return new ResourceNotFoundException("CarListing", "id", id);

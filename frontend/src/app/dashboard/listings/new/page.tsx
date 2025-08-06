@@ -12,6 +12,8 @@ import { FormErrors, StepConfig } from "@/types/forms";
 import { SUPPORTED_CURRENCIES } from '@/utils/currency';
 import { validateStep, calculateProgress, processFormFieldValue } from '@/utils/formUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
+import NumericInput from '@/components/ui/NumericInput';
+import { getLocationsByGovernorateSlug, Location } from '@/services/locations';
 
 // Constants
 const TOTAL_STEPS = 4;
@@ -43,8 +45,10 @@ export default function NewListingPage() {
   // State management
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [_governorates, setGovernorates] = useState<Governorate[]>([]);
-  const [_isLoadingGovernorates, setIsLoadingGovernorates] = useState(true);
+  const [governorates, setGovernorates] = useState<Governorate[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [isLoadingGovernorates, setIsLoadingGovernorates] = useState(true);
+  const [isLoadingLocations, setIsLoadingLocations] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [carMakes, setCarMakes] = useState<CarBrand[]>([]);
@@ -68,8 +72,8 @@ export default function NewListingPage() {
     fuelType: "",
     exteriorColor: "",
     interiorColor: "",
-    governorateId: "",
-    city: "",
+    governorateSlug: "",
+    locationSlug: "",
     state: "",
     zipCode: "",
     contactPhone: "",
@@ -96,13 +100,47 @@ export default function NewListingPage() {
 
   type FieldName = keyof ListingFormData;
 
-  // Optimized form change handler with smart field processing
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    const fieldName = name as FieldName;
+  // Load locations when governorate changes
+  useEffect(() => {
+    const loadLocations = async () => {
+      if (formData.governorateSlug && formData.governorateSlug.trim() !== '') {
+        try {
+          setIsLoadingLocations(true);
+          setLocations([]); // Clear previous locations
+          const locationData = await getLocationsByGovernorateSlug(formData.governorateSlug);
+          setLocations(locationData);
+        } catch (error) {
+          console.error('Failed to load locations:', error);
+          setError(t('errors:failedToLoadLocations', 'Failed to load locations. Please try again.'));
+        } finally {
+          setIsLoadingLocations(false);
+        }
+      } else {
+        setLocations([]);
+      }
+    };
+
+    loadLocations();
+  }, [formData.governorateSlug, t]);
+
+  // Enhanced form change handler with smart field processing
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | string, fieldName?: string) => {
+    let name: string;
+    let value: string;
     
-    // Use centralized field processing utility
-    const finalValue = processFormFieldValue(fieldName, value);
+    // Handle both event objects and direct string values (for NumericInput)
+    if (typeof e === 'string') {
+      name = fieldName!;
+      value = e;
+    } else {
+      name = e.target.name;
+      value = e.target.value;
+    }
+    
+    const fieldNameType = name as FieldName;
+    
+    // Use centralized field processing utility for non-numeric fields
+    const finalValue = processFormFieldValue(fieldNameType, value);
     
     setFormData(prev => {
       const updates: Partial<ListingFormData> = {
@@ -112,6 +150,11 @@ export default function NewListingPage() {
       // Reset model when make changes
       if (name === 'make') {
         updates.model = '';
+      }
+      
+      // Reset location when governorate changes
+      if (name === 'governorateSlug') {
+        updates.locationSlug = '';
       }
       
       return {
@@ -192,25 +235,38 @@ export default function NewListingPage() {
     return targetStep === currentStep + 1;
   }, [currentStep, formData, t]);
 
+  // Helper function to handle validation errors
+  const handleValidationErrors = useCallback((stepErrors: FormErrors) => {
+    if (Object.keys(stepErrors).length > 0) {
+      setFormErrors(stepErrors);
+      
+      // Focus on first field with error for better UX
+      const firstErrorField = Object.keys(stepErrors)[0];
+      const errorElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement;
+      if (errorElement) {
+        errorElement.focus();
+      }
+      
+      // Show specific field errors instead of generic message
+      const errorMessages = Object.values(stepErrors).filter(Boolean);
+      if (errorMessages.length > 0) {
+        const specificError = errorMessages.length === 1 
+          ? errorMessages[0] 
+          : `${errorMessages.slice(0, -1).join(', ')} and ${errorMessages[errorMessages.length - 1]}`;
+        setError(specificError);
+      }
+      return true; // Indicates validation failed
+    }
+    return false; // Indicates validation passed
+  }, []);
+
   // Enhanced step navigation with validation
   const handleStepChange = useCallback((step: number) => {
     if (!isStepAccessible(step)) {
       // Show specific message when trying to access locked step
       if (step > currentStep) {
         const stepErrors = validateStep(currentStep, formData, t);
-        if (Object.keys(stepErrors).length > 0) {
-          setFormErrors(stepErrors);
-          
-          // Focus on first field with error for better UX
-          const firstErrorField = Object.keys(stepErrors)[0];
-          const errorElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement;
-          if (errorElement) {
-            errorElement.focus();
-          }
-          
-          // Show a more user-friendly message
-          setError(t('listings:newListing.completeCurrentStep', 'Please complete all required fields in the current step before proceeding.'));
-        }
+        handleValidationErrors(stepErrors);
       }
       return;
     }
@@ -218,23 +274,15 @@ export default function NewListingPage() {
     // Validate current step before moving forward
     if (step > currentStep) {
       const stepErrors = validateStep(currentStep, formData, t);
-      if (Object.keys(stepErrors).length > 0) {
-        setFormErrors(stepErrors);
-        
-        // Focus on first field with error for better UX
-        const firstErrorField = Object.keys(stepErrors)[0];
-        const errorElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement;
-        if (errorElement) {
-          errorElement.focus();
-        }
-        
+      if (handleValidationErrors(stepErrors)) {
         return;
       }
     }
     
     setCurrentStep(step);
     setFormErrors({}); // Clear errors when changing steps
-  }, [currentStep, formData, t, isStepAccessible]);
+    setError(null); // Clear any existing error messages
+  }, [currentStep, formData, t, isStepAccessible, handleValidationErrors]);
 
   // Handle previous step
   const handlePreviousStep = useCallback(() => {
@@ -244,16 +292,19 @@ export default function NewListingPage() {
     }
   }, [currentStep]);
 
-  // Enhanced data loading with error handling
+  // Enhanced data loading with error handling and retry mechanism
   useEffect(() => {
     const loadInitialData = async () => {
       try {
         setIsLoadingGovernorates(true);
+        setError(null); // Clear any existing errors
         const governorateData = await fetchGovernorates();
         setGovernorates(governorateData);
       } catch (error) {
         console.error('Failed to load governorates:', error);
         setError(t('errors:failedToLoadData', 'Failed to load required data. Please refresh the page.'));
+        // Set empty array to prevent undefined errors
+        setGovernorates([]);
       } finally {
         setIsLoadingGovernorates(false);
       }
@@ -262,7 +313,7 @@ export default function NewListingPage() {
     loadInitialData();
   }, [t]);
 
-  // Load car makes when component mounts
+  // Load car makes when component mounts with better error handling
   useEffect(() => {
     const loadCarMakes = async () => {
       try {
@@ -271,7 +322,9 @@ export default function NewListingPage() {
         setCarMakes(makes);
       } catch (error) {
         console.error('Failed to load car makes:', error);
-        // Use fallback data or show error
+        // Set empty array to prevent undefined errors
+        setCarMakes([]);
+        // Don't show error for car makes as it's not critical for form submission
       } finally {
         setIsLoadingMakes(false);
       }
@@ -280,7 +333,7 @@ export default function NewListingPage() {
     loadCarMakes();
   }, []);
 
-  // Load car models when make changes
+  // Load car models when make changes with better error handling
   useEffect(() => {
     if (formData.make) {
       const loadModels = async () => {
@@ -290,6 +343,8 @@ export default function NewListingPage() {
           setCarModels(models);
         } catch (error) {
           console.error("Error loading car models:", error);
+          // Set empty array to prevent undefined errors
+          setCarModels([]);
         } finally {
           setIsLoadingModels(false);
         }
@@ -519,18 +574,14 @@ export default function NewListingPage() {
                       {t('listings:newListing.price', 'Price')}
                       <span className="text-red-500 ml-1">*</span>
                     </label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
+                    <NumericInput
                       id="price"
                       name="price"
                       value={formData.price}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 ${
-                        formErrors.price ? 'border-red-300 dark:border-red-600' : 'border-gray-300'
-                      }`}
+                      onChange={(value) => handleChange(value, 'price')}
                       placeholder={t('listings:newListing.pricePlaceholder', '25000')}
                       required
+                      error={!!formErrors.price}
                       aria-describedby={formErrors.price ? 'price-error' : 'price-hint'}
                     />
                     <ErrorMessage error={formErrors.price} id="price-error" />
@@ -697,17 +748,14 @@ export default function NewListingPage() {
                     >
                       {t('listings:newListing.year', 'Year')} <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
+                    <NumericInput
                       id="year"
                       name="year"
                       value={formData.year}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                        formErrors.year ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                      }`}
+                      onChange={(value) => handleChange(value, 'year')}
                       placeholder={t('listings:newListing.yearPlaceholder', '2020')}
+                      required
+                      error={!!formErrors.year}
                       aria-invalid={!!formErrors.year}
                       aria-describedby={formErrors.year ? 'year-error' : 'year-hint'}
                     />
@@ -725,15 +773,13 @@ export default function NewListingPage() {
                     >
                       {t('listings:newListing.mileage', 'Mileage')}
                     </label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
+                    <NumericInput
                       id="mileage"
                       name="mileage"
                       value={formData.mileage}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      onChange={(value) => handleChange(value, 'mileage')}
                       placeholder={t('listings:newListing.mileagePlaceholder', '50000')}
+                      error={!!formErrors.mileage}
                       aria-describedby="mileage-hint"
                     />
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="mileage-hint">
@@ -868,80 +914,85 @@ export default function NewListingPage() {
                     {t('listings:newListing.locationInfo', 'Location Information')}
                   </h3>
                   
-                  {/* City and State Grid */}
+                  {/* Governorate and Location Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* City */}
+                    {/* Governorate */}
                     <div className="space-y-3">
                       <label 
-                        htmlFor="city" 
+                        htmlFor="governorateSlug" 
                         className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                       >
-                        {t('listings:newListing.city', 'City')} <span className="text-red-500">*</span>
+                        {t('listings:newListing.governorate', 'Governorate')} <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="text"
-                        id="city"
-                        name="city"
-                        value={formData.city}
+                      <select
+                        id="governorateSlug"
+                        name="governorateSlug"
+                        value={formData.governorateSlug}
                         onChange={handleChange}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.city ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        }`}
-                        placeholder={t('listings:newListing.cityPlaceholder', 'Enter your city')}
-                        aria-invalid={!!formErrors.city}
-                        aria-describedby={formErrors.city ? 'city-error' : 'city-hint'}
-                      />
-                      <ErrorMessage error={formErrors.city} id="city-error" />
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="city-hint">
-                        {t('listings:newListing.cityHint', 'City where the car is located')}
+                        disabled={isLoadingGovernorates}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          formErrors.governorateSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                        } ${isLoadingGovernorates ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        aria-invalid={!!formErrors.governorateSlug}
+                        aria-describedby={formErrors.governorateSlug ? 'governorateSlug-error' : 'governorateSlug-hint'}
+                      >
+                        <option value="">
+                          {isLoadingGovernorates 
+                            ? t('listings:newListing.loadingGovernorates', 'Loading governorates...') 
+                            : t('listings:newListing.selectGovernorate', 'Select a governorate')
+                          }
+                        </option>
+                        {governorates.map((gov) => (
+                          <option key={gov.id} value={gov.slug}>
+                            {i18n.language === 'ar' ? gov.displayNameAr : gov.displayNameEn}
+                          </option>
+                        ))}
+                      </select>
+                      <ErrorMessage error={formErrors.governorateSlug} id="governorateSlug-error" />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="governorateSlug-hint">
+                        {t('listings:newListing.governorateHint', 'Select the governorate where the car is located')}
                       </p>
                     </div>
 
-                    {/* State */}
+                    {/* Location */}
                     <div className="space-y-3">
                       <label 
-                        htmlFor="state" 
+                        htmlFor="locationSlug" 
                         className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                       >
-                        {t('listings:newListing.state', 'State')}
+                        {t('listings:newListing.location', 'Location')} <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="text"
-                        id="state"
-                        name="state"
-                        value={formData.state}
+                      <select
+                        id="locationSlug"
+                        name="locationSlug"
+                        value={formData.locationSlug}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        placeholder={t('listings:newListing.statePlaceholder', 'Enter your state')}
-                        aria-describedby="state-hint"
-                      />
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="state-hint">
-                        {t('listings:newListing.stateHint', 'State or province')}
+                        disabled={isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === ''}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          formErrors.locationSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                        } ${(isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === '') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        aria-invalid={!!formErrors.locationSlug}
+                        aria-describedby={formErrors.locationSlug ? 'locationSlug-error' : 'locationSlug-hint'}
+                      >
+                        <option value="">
+                          {!formData.governorateSlug || formData.governorateSlug.trim() === ''
+                            ? t('listings:newListing.selectGovernorateFirst', 'Select a governorate first')
+                            : isLoadingLocations
+                            ? t('listings:newListing.loadingLocations', 'Loading locations...')
+                            : t('listings:newListing.selectLocation', 'Select a location')
+                          }
+                        </option>
+                        {locations.map((location) => (
+                          <option key={location.id} value={location.slug}>
+                            {i18n.language === 'ar' ? location.displayNameAr : location.displayNameEn}
+                          </option>
+                        ))}
+                      </select>
+                      <ErrorMessage error={formErrors.locationSlug} id="locationSlug-error" />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="locationSlug-hint">
+                        {t('listings:newListing.locationHint', 'Select the specific location within the governorate')}
                       </p>
                     </div>
-                  </div>
-
-                  {/* ZIP Code */}
-                  <div className="space-y-3 max-w-md">
-                    <label 
-                      htmlFor="zipCode" 
-                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                      {t('listings:newListing.zipCode', 'ZIP Code')}
-                    </label>
-                    <input
-                      type="text"
-                      id="zipCode"
-                      name="zipCode"
-                      value={formData.zipCode}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      placeholder={t('listings:newListing.zipCodePlaceholder', '12345')}
-                      aria-describedby="zipCode-hint"
-                    />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="zipCode-hint">
-                      {t('listings:newListing.zipCodeHint', 'Postal code for your area')}
-                    </p>
                   </div>
                 </div>
 
