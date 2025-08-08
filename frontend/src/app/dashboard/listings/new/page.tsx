@@ -44,6 +44,8 @@ export default function NewListingPage() {
   
 
   
+
+  
   // State management
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -252,15 +254,15 @@ export default function NewListingPage() {
       // Show specific field errors instead of generic message
       const errorMessages = Object.values(stepErrors).filter(Boolean);
       if (errorMessages.length > 0) {
-        const specificError = errorMessages.length === 1 
-          ? errorMessages[0] 
-          : `${errorMessages.slice(0, -1).join(', ')} and ${errorMessages[errorMessages.length - 1]}`;
+        // Use Intl.ListFormat for grammatically correct joining of errors
+        const listFormatter = new Intl.ListFormat(i18n.language, { style: 'long', type: 'conjunction' });
+        const specificError = listFormatter.format(errorMessages);
         setError(specificError);
       }
       return true; // Indicates validation failed
     }
     return false; // Indicates validation passed
-  }, []);
+  }, [i18n.language]);
 
   // Enhanced step navigation with validation
   const handleStepChange = useCallback((step: number) => {
