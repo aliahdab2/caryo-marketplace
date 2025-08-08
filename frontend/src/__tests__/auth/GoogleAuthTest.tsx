@@ -103,7 +103,7 @@ describe('GoogleSignInButton', () => {
     render(<GoogleSignInButton />);
     
     // Verify button content
-    const googleButton = screen.getByRole('button', { name: /continue with google/i });
+    const googleButton = screen.getByRole('button', { name: /continueWithGoogle/i });
     expect(googleButton).toBeInTheDocument();
     expect(screen.getByTestId('google-icon')).toBeInTheDocument();
   });
@@ -111,7 +111,7 @@ describe('GoogleSignInButton', () => {
   test('should call signIn with google provider when button is clicked', async () => {
     render(<GoogleSignInButton />);
     
-    const googleButton = screen.getByRole('button', { name: /continue with google/i });
+    const googleButton = screen.getByRole('button', { name: /continueWithGoogle/i });
     
     // Click the button
     await act(async () => {
@@ -135,7 +135,7 @@ describe('GoogleSignInButton', () => {
     (signIn as jest.Mock).mockReturnValue(signInPromise);
     
     render(<GoogleSignInButton />);
-    const googleButton = screen.getByRole('button', { name: /continue with google/i });
+    const googleButton = screen.getByRole('button', { name: /continueWithGoogle/i });
     
     // Click button and verify loading state
     await act(async () => {
@@ -168,7 +168,7 @@ describe('GoogleSignInButton', () => {
     (signIn as jest.Mock).mockRejectedValue(new Error('Google authentication failed'));
     
     render(<GoogleSignInButton />);
-    const googleButton = screen.getByRole('button', { name: /continue with google/i });
+    const googleButton = screen.getByRole('button', { name: /continueWithGoogle/i });
     
     // Click button
     await act(async () => {
@@ -196,7 +196,7 @@ describe('GoogleSignInButton', () => {
     });
     
     render(<GoogleSignInButton />);
-    const googleButton = screen.getByRole('button', { name: /continue with google/i });
+    const googleButton = screen.getByRole('button', { name: /continueWithGoogle/i });
     
     // Click button
     await act(async () => {
@@ -218,7 +218,7 @@ describe('GoogleSignInButton', () => {
   test('should handle custom callback URL', async () => {
     render(<GoogleSignInButton callbackUrl="/custom-page" />);
     
-    const googleButton = screen.getByRole('button', { name: /continue with google/i });
+    const googleButton = screen.getByRole('button', { name: /continueWithGoogle/i });
     
     // Click button
     await act(async () => {
@@ -235,7 +235,7 @@ describe('GoogleSignInButton', () => {
   test('should apply custom CSS class', () => {
     render(<GoogleSignInButton className="custom-class" />);
     
-    const googleButton = screen.getByRole('button', { name: /continue with google/i });
+    const googleButton = screen.getByRole('button', { name: /continueWithGoogle/i });
     expect(googleButton).toHaveClass('custom-class');
   });
   
@@ -247,7 +247,7 @@ describe('GoogleSignInButton', () => {
     (signIn as jest.Mock).mockResolvedValue(successResponse);
     
     render(<GoogleSignInButton redirect={false} onSuccess={mockOnSuccess} />);
-    const googleButton = screen.getByRole('button', { name: /continue with google/i });
+    const googleButton = screen.getByRole('button', { name: /continueWithGoogle/i });
     
     // Click button
     await act(async () => {
@@ -268,7 +268,7 @@ describe('GoogleSignInButton', () => {
     (signIn as jest.Mock).mockRejectedValue(error);
     
     render(<GoogleSignInButton onError={mockOnError} />);
-    const googleButton = screen.getByRole('button', { name: /continue with google/i });
+    const googleButton = screen.getByRole('button', { name: /continueWithGoogle/i });
     
     // Click button
     await act(async () => {

@@ -23,6 +23,7 @@
     "unauthorized": "Authentication required to view favorites."
   },
   "failedToLoadGovernorates": "Failed to load governorates. Please try again.",
+  "failedToLoadLocations": "Failed to load locations. Please try again.",
   "failedToLoadCarMakes": "Failed to load car makes. Please try again.",
   "failedToLoadCarModels": "Failed to load car models. Please try again.",
   "failedToLoadData": "Failed to load required data. Please refresh the page.",
