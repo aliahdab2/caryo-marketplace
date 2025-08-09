@@ -414,7 +414,7 @@ export default function ListingsPage() {
 							<option value="all">{t("common:all")}</option>
 							<option value="active">{t("listings:active")}</option>
 							<option value="expired">{t("listings:expired")}</option>
-							<option value="pending">{t("listings:listingStatus.pending")}</option>
+							<option value="pending">{t("listings:listingStatusPending")}</option>
 						</select>
 					</div>
 
@@ -620,7 +620,7 @@ export default function ListingsPage() {
 															<svg className="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
 																<path d="M12,2C8.13,2,5,5.13,5,9c0,5.25,7,13,7,13s7-7.75,7-13C19,5.13,15.87,2,12,2z M12,11.5c-1.38,0-2.5-1.12-2.5-2.5s1.12-2.5,2.5-2.5s2.5,1.12,2.5,2.5S13.38,11.5,12,11.5z"/>
 															</svg>
-															{listing.location?.city || listing.location?.country || 'Location not specified'}
+															{i18n.language === 'ar' ? (listing.location?.cityAr || listing.location?.country || t('listings:locationNotSpecified')) : (listing.location?.city || listing.location?.country || t('listings:locationNotSpecified'))}
 														</span>
 													</div>
 													<div className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
@@ -657,7 +657,7 @@ export default function ListingsPage() {
                               ? "bg-red-500"
                               : "bg-yellow-500"
                           }`}></span>
-                          {t(`listings.${listing.status}`)}
+                          {t(`listings:listingStatus${listing.status.charAt(0).toUpperCase() + listing.status.slice(1)}`)}
                         </span>
                         
                         {listing.status === "active" && expiryDate && (

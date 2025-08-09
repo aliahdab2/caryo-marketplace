@@ -94,11 +94,9 @@
   "all": "الكل",
   "listingsActive": "نشط",
   "listingsExpired": "منتهي الصلاحية",
-  "listingStatus": {
-    "pending": "قيد الانتظار",
-    "active": "نشط",
-    "expired": "منتهي الصلاحية"
-  },
+  "listingStatusPending": "قيد الانتظار",
+  "listingStatusActive": "نشط",
+  "listingStatusExpired": "منتهي الصلاحية",
   "sortBy": "ترتيب حسب",
   "date": "التاريخ",
   "title": "العنوان",
