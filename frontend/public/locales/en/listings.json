@@ -218,6 +218,7 @@
   "newListingColorHint": "Exterior color of the car",
   "newListingExteriorColor": "Exterior Color",
   "newListingInteriorColor": "Interior Color",
+  "newListingGovernorate": "Governorate",
   "newListingSelectGovernorate": "Select Governorate",
   "newListingLoadingGovernorates": "Loading governorates...",
   "newListingGovernorateHint": "Select the governorate where the car is located",
@@ -252,7 +253,12 @@
   "newListingRemoveImage": "Remove image",
   "newListingPrimaryImageNote": "Note:",
   "newListingPrimaryImageDescription": "The first image will be used as the primary image shown in search results.",
+  "newListingCarImages": "Car Images",
+  "newListingUploadImages": "Click to upload images",
+  "newListingImageFormats": "PNG, JPG, JPEG (MAX. 5MB each)",
+  "newListingImageUploadHint": "Upload multiple images to showcase your car. First image will be the main photo.",
   "newListingImagePreview": "Image Preview",
+  "newListingMainImage": "Main",
   "newListingPrimaryImage": "Primary",
   "newListingNoImagesSelected": "No images selected yet",
   "newListingUsingDefaultMakes": "Using default car makes - API connection issue",
@@ -395,5 +401,10 @@
   "make": "Make",
   "exteriorColor": "Exterior Color",
   "interiorColor": "Interior Color",
-  "images": "Images"
+  "images": "Images",
+  "carImages": "Car Images",
+  "uploadImages": "Click to upload images",
+  "imageFormats": "PNG, JPG, JPEG (MAX. 5MB each)",
+  "imageUploadHint": "Upload multiple images to showcase your car. First image will be the main photo.",
+  "mainImage": "Main"
 }

@@ -190,7 +190,12 @@
   "newListingRemoveImage": "إزالة الصورة",
   "newListingPrimaryImageNote": "ملاحظة:",
   "newListingPrimaryImageDescription": "ستستخدم الصورة الأولى كصورة أساسية تظهر في نتائج البحث.",
+  "newListingCarImages": "صور السيارة",
+  "newListingUploadImages": "انقر لتحميل الصور",
+  "newListingImageFormats": "PNG، JPG، JPEG (الحد الأقصى 5 ميجابايت لكل صورة)",
+  "newListingImageUploadHint": "قم بتحميل عدة صور لعرض سيارتك. ستكون الصورة الأولى هي الصورة الرئيسية.",
   "newListingImagePreview": "معاينة الصور",
+  "newListingMainImage": "رئيسية",
   "newListingPrimaryImage": "أساسية",
   "newListingNoImagesSelected": "لم يتم اختيار أي صور بعد",
   "newListingImageRequired": "مطلوب صورة واحدة على الأقل",
@@ -366,5 +371,10 @@
   "make": "الماركة",
   "exteriorColor": "لون السيارة الخارجي",
   "interiorColor": "لون السيارة الداخلي",
-  "images": "الصور"
+  "images": "الصور",
+  "carImages": "صور السيارة",
+  "uploadImages": "انقر لتحميل الصور",
+  "imageFormats": "PNG، JPG، JPEG (الحد الأقصى 5 ميجابايت لكل صورة)",
+  "imageUploadHint": "قم بتحميل عدة صور لعرض سيارتك. الصورة الأولى ستكون الصورة الرئيسية.",
+  "mainImage": "رئيسية"
 }

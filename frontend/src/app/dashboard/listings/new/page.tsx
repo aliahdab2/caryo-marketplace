@@ -42,6 +42,10 @@ export default function NewListingPage() {
   const router = useRouter();
   const { t, i18n } = useLazyTranslation(['dashboard', 'listings', 'common', 'errors']);
   
+
+  
+
+  
   // State management
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,10 +96,10 @@ export default function NewListingPage() {
 
   // Memoized step configuration
   const stepConfig = useMemo((): StepConfig[] => [
-    { step: 1, title: t('listings:newListing.step1Title', 'Basic Info'), icon: '📝', isComplete: currentStep > 1 },
-    { step: 2, title: t('listings:newListing.step2Title', 'Details'), icon: '🚗', isComplete: currentStep > 2 },
-    { step: 3, title: t('listings:newListing.step3Title', 'Location & Contact'), icon: '📍', isComplete: currentStep > 3 },
-    { step: 4, title: t('listings:newListing.step4Title', 'Images'), icon: '📸', isComplete: currentStep > 4 }
+    { step: 1, title: t('listings:newListingStep1Title', 'Basic Info'), icon: '📝', isComplete: currentStep > 1 },
+    { step: 2, title: t('listings:newListingStep2Title', 'Details'), icon: '🚗', isComplete: currentStep > 2 },
+    { step: 3, title: t('listings:newListingStep3Title', 'Location & Contact'), icon: '📍', isComplete: currentStep > 3 },
+    { step: 4, title: t('listings:newListingStep4Title', 'Images'), icon: '📸', isComplete: currentStep > 4 }
   ], [currentStep, t]);
 
   type FieldName = keyof ListingFormData;
@@ -250,15 +254,15 @@ export default function NewListingPage() {
       // Show specific field errors instead of generic message
       const errorMessages = Object.values(stepErrors).filter(Boolean);
       if (errorMessages.length > 0) {
-        const specificError = errorMessages.length === 1 
-          ? errorMessages[0] 
-          : `${errorMessages.slice(0, -1).join(', ')} and ${errorMessages[errorMessages.length - 1]}`;
+        // Use Intl.ListFormat for grammatically correct joining of errors
+        const listFormatter = new Intl.ListFormat(i18n.language, { style: 'long', type: 'conjunction' });
+        const specificError = listFormatter.format(errorMessages);
         setError(specificError);
       }
       return true; // Indicates validation failed
     }
     return false; // Indicates validation passed
-  }, []);
+  }, [i18n.language]);
 
   // Enhanced step navigation with validation
   const handleStepChange = useCallback((step: number) => {
@@ -415,7 +419,7 @@ export default function NewListingPage() {
             {t('dashboard:createListing', 'Create New Listing')}
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
-            {t('listings:newListing.subtitle', 'Share your car with potential buyers in a few simple steps')}
+            {t('listings:newListingSubtitle', 'Share your car with potential buyers in a few simple steps')}
           </p>
         </div>
 
@@ -478,7 +482,7 @@ export default function NewListingPage() {
             {/* Enhanced progress percentage with accessibility */}
             <div className="mt-6">
               <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-                <span>{t('listings:newListing.stepCounter', 'Step {{current}} of {{total}}', { current: currentStep, total: TOTAL_STEPS })}</span>
+                <span>{t('listings:newListingStepCounter', 'Step {{current}} of {{total}}', { current: currentStep, total: TOTAL_STEPS })}</span>
                 <span>{progressPercentage}% {t('common:complete', 'Complete')}</span>
               </div>
               <div 
@@ -510,7 +514,7 @@ export default function NewListingPage() {
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {t('listings:newListing.navigationHint', 'Use Alt + ← → or click step numbers to navigate')}
+                {t('listings:newListingNavigationHint', 'Use Alt + ← → or click step numbers to navigate')}
               </span>
             </p>
           </div>
@@ -528,12 +532,12 @@ export default function NewListingPage() {
               <div className="space-y-8">
                 {/* Step Header */}
                 <div className="text-center pb-6 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:newListing.step1Title', 'Basic Information')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:newListing.step1Description', 'Tell us about your car listing')}
-                  </p>
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                {t('listings:newListingStep1Title', 'Basic Information')}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300">
+                {t('listings:newListingStep1Description', 'Tell us about your car listing')}
+              </p>
                 </div>
 
                 {/* Title Field */}
@@ -542,7 +546,7 @@ export default function NewListingPage() {
                     <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded-full text-xs font-semibold mr-2 dark:bg-blue-900 dark:text-blue-300">
                       📝
                     </span>
-                    {t('listings:newListing.title', 'Listing Title')}
+                    {t('listings:newListingTitle', 'Listing Title')}
                     <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
@@ -554,13 +558,13 @@ export default function NewListingPage() {
                     className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 ${
                       formErrors.title ? 'border-red-300 dark:border-red-600' : 'border-gray-300'
                     }`}
-                    placeholder={t('listings:newListing.titlePlaceholder', 'e.g., 2020 Toyota Camry - Excellent Condition')}
+                    placeholder={t('listings:newListingTitlePlaceholder', 'e.g., 2020 Toyota Camry - Excellent Condition')}
                     required
                     aria-describedby={formErrors.title ? 'title-error' : 'title-hint'}
                   />
                   <ErrorMessage error={formErrors.title} id="title-error" />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="title-hint">
-                    {t('listings:newListing.titleHint', 'Make it descriptive and appealing to buyers')}
+                    {t('listings:newListingTitleHint', 'Make it descriptive and appealing to buyers')}
                   </p>
                 </div>
 
@@ -571,23 +575,23 @@ export default function NewListingPage() {
                       <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 text-green-600 rounded-full text-xs font-semibold mr-2 dark:bg-green-900 dark:text-green-300">
                         💰
                       </span>
-                      {t('listings:newListing.price', 'Price')}
-                      <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <NumericInput
-                      id="price"
-                      name="price"
-                      value={formData.price}
-                      onChange={(value) => handleChange(value, 'price')}
-                      placeholder={t('listings:newListing.pricePlaceholder', '25000')}
-                      required
-                      error={!!formErrors.price}
-                      aria-describedby={formErrors.price ? 'price-error' : 'price-hint'}
-                    />
-                    <ErrorMessage error={formErrors.price} id="price-error" />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="price-hint">
-                      {t('listings:newListing.priceHint', 'Enter the price in numbers only')}
-                    </p>
+                                          {t('listings:newListingPrice', 'Price')}
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <NumericInput
+                    id="price"
+                    name="price"
+                    value={formData.price}
+                    onChange={(value) => handleChange(value, 'price')}
+                    placeholder={t('listings:newListingPricePlaceholder', '25000')}
+                    required
+                    error={!!formErrors.price}
+                    aria-describedby={formErrors.price ? 'price-error' : 'price-hint'}
+                  />
+                  <ErrorMessage error={formErrors.price} id="price-error" />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="price-hint">
+                    {t('listings:newListingPriceHint', 'Enter the price in numbers only')}
+                  </p>
                   </div>
                   
                   <div className="group">
@@ -595,8 +599,8 @@ export default function NewListingPage() {
                       <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded-full text-xs font-semibold mr-2 dark:bg-blue-900 dark:text-blue-300">
                         💱
                       </span>
-                      {t('listings:newListing.currency', 'Currency')}
-                      <span className="text-red-500 ml-1">*</span>
+                                          {t('listings:newListingCurrency', 'Currency')}
+                    <span className="text-red-500 ml-1">*</span>
                     </label>
                     <select
                       id="currency"
@@ -623,7 +627,7 @@ export default function NewListingPage() {
                     <span className="inline-flex items-center justify-center w-5 h-5 bg-purple-100 text-purple-600 rounded-full text-xs font-semibold mr-2 dark:bg-purple-900 dark:text-purple-300">
                       📄
                     </span>
-                    {t('listings:newListing.description', 'Description')}
+                    {t('listings:newListingDescription', 'Description')}
                     <span className="text-red-500 ml-1">*</span>
                   </label>
                   <textarea
@@ -635,13 +639,13 @@ export default function NewListingPage() {
                     className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 resize-vertical ${
                       formErrors.description ? 'border-red-300 dark:border-red-600' : 'border-gray-300'
                     }`}
-                    placeholder={t('listings:newListing.descriptionPlaceholder', 'Describe your car in detail...')}
+                    placeholder={t('listings:newListingDescriptionPlaceholder', 'Describe your car in detail...')}
                     required
                     aria-describedby={formErrors.description ? 'description-error' : 'description-hint'}
                   />
                   <ErrorMessage error={formErrors.description} id="description-error" />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {t('listings:newListing.descriptionHint', 'Include key features, condition, and any special details')}
+                    {t('listings:newListingDescriptionHint', 'Include key features, condition, and any special details')}
                   </p>
                 </div>
               </div>
@@ -652,12 +656,12 @@ export default function NewListingPage() {
               <div className="space-y-8 animate-fadeIn">
                 {/* Step Header */}
                 <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:newListing.step2Title', 'Car Details')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:newListing.step2Description', 'Provide specific details about your vehicle')}
-                  </p>
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                {t('listings:newListingStep2Title', 'Car Details')}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300">
+                {t('listings:newListingStep2Description', 'Provide specific details about your vehicle')}
+              </p>
                 </div>
 
                 {/* Car Make */}
@@ -666,7 +670,7 @@ export default function NewListingPage() {
                     htmlFor="make" 
                     className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                   >
-                    {t('listings:newListing.make', 'Make')} <span className="text-red-500">*</span>
+                    {t('listings:newListingMake', 'Make')} <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="make"
@@ -682,8 +686,8 @@ export default function NewListingPage() {
                   >
                     <option value="">
                       {isLoadingMakes 
-                        ? t('listings:newListing.loadingMakes', 'Loading makes...') 
-                        : t('listings:newListing.selectMake', 'Select a make')
+                        ? t('listings:newListingLoadingMakes', 'Loading makes...') 
+                        : t('listings:newListingSelectMake', 'Select a make')
                       }
                     </option>
                     {carMakes.map((make) => (
@@ -694,7 +698,7 @@ export default function NewListingPage() {
                   </select>
                   <ErrorMessage error={formErrors.make} id="make-error" />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="make-hint">
-                    {t('listings:newListing.makeHint', 'Select the manufacturer of your car')}
+                    {t('listings:newListingMakeHint', 'Select the manufacturer of your car')}
                   </p>
                 </div>
 
@@ -704,7 +708,7 @@ export default function NewListingPage() {
                     htmlFor="model" 
                     className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                   >
-                    {t('listings:newListing.model', 'Model')} <span className="text-red-500">*</span>
+                    {t('listings:newListingModel', 'Model')} <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="model"
@@ -720,10 +724,10 @@ export default function NewListingPage() {
                   >
                     <option value="">
                       {!formData.make 
-                        ? t('listings:newListing.selectMakeFirst', 'Select a make first')
+                        ? t('listings:newListingSelectMakeFirst', 'Select a make first')
                         : isLoadingModels 
-                        ? t('listings:newListing.loadingModels', 'Loading models...') 
-                        : t('listings:newListing.selectModel', 'Select a model')
+                        ? t('listings:newListingLoadingModels', 'Loading models...') 
+                        : t('listings:newListingSelectModel', 'Select a model')
                       }
                     </option>
                     {carModels.map((model) => (
@@ -734,7 +738,7 @@ export default function NewListingPage() {
                   </select>
                   <ErrorMessage error={formErrors.model} id="model-error" />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="model-hint">
-                    {t('listings:newListing.modelHint', 'Select the specific model of your car')}
+                    {t('listings:newListingModelHint', 'Select the specific model of your car')}
                   </p>
                 </div>
 
@@ -746,23 +750,23 @@ export default function NewListingPage() {
                       htmlFor="year" 
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
-                      {t('listings:newListing.year', 'Year')} <span className="text-red-500">*</span>
-                    </label>
-                    <NumericInput
-                      id="year"
-                      name="year"
-                      value={formData.year}
-                      onChange={(value) => handleChange(value, 'year')}
-                      placeholder={t('listings:newListing.yearPlaceholder', '2020')}
-                      required
-                      error={!!formErrors.year}
-                      aria-invalid={!!formErrors.year}
-                      aria-describedby={formErrors.year ? 'year-error' : 'year-hint'}
-                    />
-                    <ErrorMessage error={formErrors.year} id="year-error" />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
-                      {t('listings:newListing.yearHint', 'Manufacturing year')}
-                    </p>
+                                          {t('listings:newListingYear', 'Year')} <span className="text-red-500">*</span>
+                  </label>
+                  <NumericInput
+                    id="year"
+                    name="year"
+                    value={formData.year}
+                    onChange={(value) => handleChange(value, 'year')}
+                    placeholder={t('listings:newListingYearPlaceholder', '2020')}
+                    required
+                    error={!!formErrors.year}
+                    aria-invalid={!!formErrors.year}
+                    aria-describedby={formErrors.year ? 'year-error' : 'year-hint'}
+                  />
+                  <ErrorMessage error={formErrors.year} id="year-error" />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
+                    {t('listings:newListingYearHint', 'Manufacturing year')}
+                  </p>
                   </div>
 
                   {/* Mileage */}
@@ -771,20 +775,20 @@ export default function NewListingPage() {
                       htmlFor="mileage" 
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
-                      {t('listings:newListing.mileage', 'Mileage')}
-                    </label>
-                    <NumericInput
-                      id="mileage"
-                      name="mileage"
-                      value={formData.mileage}
-                      onChange={(value) => handleChange(value, 'mileage')}
-                      placeholder={t('listings:newListing.mileagePlaceholder', '50000')}
-                      error={!!formErrors.mileage}
-                      aria-describedby="mileage-hint"
-                    />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="mileage-hint">
-                      {t('listings:newListing.mileageHint', 'Total kilometers driven')}
-                    </p>
+                                          {t('listings:newListingMileage', 'Mileage')}
+                  </label>
+                  <NumericInput
+                    id="mileage"
+                    name="mileage"
+                    value={formData.mileage}
+                    onChange={(value) => handleChange(value, 'mileage')}
+                    placeholder={t('listings:newListingMileagePlaceholder', '50000')}
+                    error={!!formErrors.mileage}
+                    aria-describedby="mileage-hint"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="mileage-hint">
+                    {t('listings:newListingMileageHint', 'Total kilometers driven')}
+                  </p>
                   </div>
                 </div>
 
@@ -796,21 +800,21 @@ export default function NewListingPage() {
                       htmlFor="engine" 
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
-                      {t('listings:newListing.engine', 'Engine')}
-                    </label>
-                    <input
-                      type="text"
-                      id="engine"
-                      name="engine"
-                      value={formData.engine}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      placeholder={t('listings:newListing.enginePlaceholder', 'e.g., 2.0L Turbo, V6, Hybrid')}
-                      aria-describedby="engine-hint"
-                    />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="engine-hint">
-                      {t('listings:newListing.engineHint', 'Engine type and size')}
-                    </p>
+                                          {t('listings:newListingEngine', 'Engine')}
+                  </label>
+                  <input
+                    type="text"
+                    id="engine"
+                    name="engine"
+                    value={formData.engine}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    placeholder={t('listings:newListingEnginePlaceholder', 'e.g., 2.0L Turbo, V6, Hybrid')}
+                    aria-describedby="engine-hint"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="engine-hint">
+                    {t('listings:newListingEngineHint', 'Engine type and size')}
+                  </p>
                   </div>
 
                   {/* Transmission */}
@@ -819,24 +823,24 @@ export default function NewListingPage() {
                       htmlFor="transmission" 
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
-                      {t('listings:newListing.transmission', 'Transmission')}
-                    </label>
-                    <select
-                      id="transmission"
-                      name="transmission"
-                      value={formData.transmission}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      aria-describedby="transmission-hint"
-                    >
-                      <option value="">{t('listings:newListing.transmissionSelect', 'Select transmission type')}</option>
-                      <option value="automatic">{t('listings:newListing.transmissionAutomatic', 'Automatic')}</option>
-                      <option value="manual">{t('listings:newListing.transmissionManual', 'Manual')}</option>
-                      <option value="cvt">{t('listings:newListing.transmissionCVT', 'CVT')}</option>
-                    </select>
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="transmission-hint">
-                      {t('listings:newListing.transmissionHint', 'Type of transmission')}
-                    </p>
+                                          {t('listings:newListingTransmission', 'Transmission')}
+                  </label>
+                  <select
+                    id="transmission"
+                    name="transmission"
+                    value={formData.transmission}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    aria-describedby="transmission-hint"
+                  >
+                    <option value="">{t('listings:newListingTransmissionSelect', 'Select transmission type')}</option>
+                    <option value="automatic">{t('listings:newListingTransmissionAutomatic', 'Automatic')}</option>
+                    <option value="manual">{t('listings:newListingTransmissionManual', 'Manual')}</option>
+                    <option value="cvt">{t('listings:newListingTransmissionCVT', 'CVT')}</option>
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="transmission-hint">
+                    {t('listings:newListingTransmissionHint', 'Type of transmission')}
+                  </p>
                   </div>
                 </div>
 
@@ -848,21 +852,21 @@ export default function NewListingPage() {
                       htmlFor="color" 
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
-                      {t('listings:newListing.color', 'Color')}
-                    </label>
-                    <input
-                      type="text"
-                      id="color"
-                      name="color"
-                      value={formData.color}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      placeholder={t('listings:newListing.colorPlaceholder', 'e.g., White, Black, Silver')}
-                      aria-describedby="color-hint"
-                    />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="color-hint">
-                      {t('listings:newListing.colorHint', 'Exterior color of the car')}
-                    </p>
+                                          {t('listings:newListingColor', 'Color')}
+                  </label>
+                  <input
+                    type="text"
+                    id="color"
+                    name="color"
+                    value={formData.color}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    placeholder={t('listings:newListingColorPlaceholder', 'e.g., White, Black, Silver')}
+                    aria-describedby="color-hint"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="color-hint">
+                    {t('listings:newListingColorHint', 'Exterior color of the car')}
+                  </p>
                   </div>
 
                   {/* Fuel Type */}
@@ -871,25 +875,25 @@ export default function NewListingPage() {
                       htmlFor="fuelType" 
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
-                      {t('listings:newListing.fuelType', 'Fuel Type')}
-                    </label>
-                    <select
-                      id="fuelType"
-                      name="fuelType"
-                      value={formData.fuelType}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      aria-describedby="fuelType-hint"
-                    >
-                      <option value="">{t('listings:newListing.fuelTypeSelect', 'Select fuel type')}</option>
-                      <option value="gasoline">{t('listings:newListing.fuelTypeGasoline', 'Gasoline')}</option>
-                      <option value="diesel">{t('listings:newListing.fuelTypeDiesel', 'Diesel')}</option>
-                      <option value="hybrid">{t('listings:newListing.fuelTypeHybrid', 'Hybrid')}</option>
-                      <option value="electric">{t('listings:newListing.fuelTypeElectric', 'Electric')}</option>
-                    </select>
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="fuelType-hint">
-                      {t('listings:newListing.fuelTypeHint', 'Type of fuel or power source')}
-                    </p>
+                                          {t('listings:newListingFuelType', 'Fuel Type')}
+                  </label>
+                  <select
+                    id="fuelType"
+                    name="fuelType"
+                    value={formData.fuelType}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    aria-describedby="fuelType-hint"
+                  >
+                    <option value="">{t('listings:newListingFuelTypeSelect', 'Select fuel type')}</option>
+                    <option value="gasoline">{t('listings:newListingFuelTypeGasoline', 'Gasoline')}</option>
+                    <option value="diesel">{t('listings:newListingFuelTypeDiesel', 'Diesel')}</option>
+                    <option value="hybrid">{t('listings:newListingFuelTypeHybrid', 'Hybrid')}</option>
+                    <option value="electric">{t('listings:newListingFuelTypeElectric', 'Electric')}</option>
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="fuelType-hint">
+                    {t('listings:newListingFuelTypeHint', 'Type of fuel or power source')}
+                  </p>
                   </div>
                 </div>
               </div>
@@ -901,17 +905,17 @@ export default function NewListingPage() {
                 {/* Step Header */}
                 <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:newListing.step3Title', 'Location & Contact')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:newListing.step3Description', 'Where to find you and how to get in touch')}
+                                    {t('listings:newListingStep3Title', 'Location & Contact')}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300">
+                {t('listings:newListingStep3Description', 'Where to find you and how to get in touch')}
                   </p>
                 </div>
 
                 {/* Location Information */}
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {t('listings:newListing.locationInfo', 'Location Information')}
+                    {t('listings:newListingLocationInfo', 'Location Information')}
                   </h3>
                   
                   {/* Governorate and Location Grid */}
@@ -922,7 +926,7 @@ export default function NewListingPage() {
                         htmlFor="governorateSlug" 
                         className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                       >
-                        {t('listings:newListing.governorate', 'Governorate')} <span className="text-red-500">*</span>
+                        {t('listings:newListingGovernorate', 'Governorate')} <span className="text-red-500">*</span>
                       </label>
                       <select
                         id="governorateSlug"
@@ -938,8 +942,8 @@ export default function NewListingPage() {
                       >
                         <option value="">
                           {isLoadingGovernorates 
-                            ? t('listings:newListing.loadingGovernorates', 'Loading governorates...') 
-                            : t('listings:newListing.selectGovernorate', 'Select a governorate')
+                            ? t('listings:newListingLoadingGovernorates', 'Loading governorates...') 
+                            : t('listings:newListingSelectGovernorate', 'Select a governorate')
                           }
                         </option>
                         {governorates.map((gov) => (
@@ -950,7 +954,7 @@ export default function NewListingPage() {
                       </select>
                       <ErrorMessage error={formErrors.governorateSlug} id="governorateSlug-error" />
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="governorateSlug-hint">
-                        {t('listings:newListing.governorateHint', 'Select the governorate where the car is located')}
+                        {t('listings:newListingGovernorateHint', 'Select the governorate where the car is located')}
                       </p>
                     </div>
 
@@ -960,7 +964,7 @@ export default function NewListingPage() {
                         htmlFor="locationSlug" 
                         className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                       >
-                        {t('listings:newListing.location', 'Location')} <span className="text-red-500">*</span>
+                        {t('listings:newListingLocation', 'Location')} <span className="text-red-500">*</span>
                       </label>
                       <select
                         id="locationSlug"
@@ -976,10 +980,10 @@ export default function NewListingPage() {
                       >
                         <option value="">
                           {!formData.governorateSlug || formData.governorateSlug.trim() === ''
-                            ? t('listings:newListing.selectGovernorateFirst', 'Select a governorate first')
+                            ? t('listings:newListingSelectGovernorateFirst', 'Select a governorate first')
                             : isLoadingLocations
-                            ? t('listings:newListing.loadingLocations', 'Loading locations...')
-                            : t('listings:newListing.selectLocation', 'Select a location')
+                            ? t('listings:newListingLoadingLocations', 'Loading locations...')
+                            : t('listings:newListingSelectLocation', 'Select a location')
                           }
                         </option>
                         {locations.map((location) => (
@@ -990,7 +994,7 @@ export default function NewListingPage() {
                       </select>
                       <ErrorMessage error={formErrors.locationSlug} id="locationSlug-error" />
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="locationSlug-hint">
-                        {t('listings:newListing.locationHint', 'Select the specific location within the governorate')}
+                        {t('listings:newListingLocationHint', 'Select the specific location within the governorate')}
                       </p>
                     </div>
                   </div>
@@ -999,7 +1003,7 @@ export default function NewListingPage() {
                 {/* Contact Information */}
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {t('listings:newListing.contactInfo', 'Contact Information')}
+                    {t('listings:newListingContactInfo', 'Contact Information')}
                   </h3>
                   
                   {/* Contact Name and Phone Grid */}
@@ -1010,7 +1014,7 @@ export default function NewListingPage() {
                         htmlFor="contactName" 
                         className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                       >
-                        {t('listings:newListing.contactName', 'Contact Name')} <span className="text-red-500">*</span>
+                        {t('listings:newListingContactName', 'Contact Name')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -1021,13 +1025,13 @@ export default function NewListingPage() {
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.contactName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                         }`}
-                        placeholder={t('listings:newListing.contactNamePlaceholder', 'Your full name')}
+                        placeholder={t('listings:newListingContactNamePlaceholder', 'Your Name')}
                         aria-invalid={!!formErrors.contactName}
                         aria-describedby={formErrors.contactName ? 'contactName-error' : 'contactName-hint'}
                       />
                       <ErrorMessage error={formErrors.contactName} id="contactName-error" />
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactName-hint">
-                        {t('listings:newListing.contactNameHint', 'Name for potential buyers to contact')}
+                        {t('listings:newListingContactNameHint', 'Name for potential buyers to contact')}
                       </p>
                     </div>
 
@@ -1037,7 +1041,7 @@ export default function NewListingPage() {
                         htmlFor="contactPhone" 
                         className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                       >
-                        {t('listings:newListing.contactPhone', 'Contact Phone')} <span className="text-red-500">*</span>
+                        {t('listings:newListingContactPhone', 'Contact Phone')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="tel"
@@ -1048,13 +1052,13 @@ export default function NewListingPage() {
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.contactPhone ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                         }`}
-                        placeholder={t('listings:newListing.contactPhonePlaceholder', '(555) 123-4567')}
+                        placeholder={t('listings:newListingContactPhonePlaceholder', 'e.g., +965 12345678')}
                         aria-invalid={!!formErrors.contactPhone}
                         aria-describedby={formErrors.contactPhone ? 'contactPhone-error' : 'contactPhone-hint'}
                       />
                       <ErrorMessage error={formErrors.contactPhone} id="contactPhone-error" />
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactPhone-hint">
-                        {t('listings:newListing.contactPhoneHint', 'Phone number for inquiries')}
+                        {t('listings:newListingContactPhoneHint', 'Phone number for inquiries')}
                       </p>
                     </div>
                   </div>
@@ -1065,7 +1069,7 @@ export default function NewListingPage() {
                       htmlFor="contactEmail" 
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
-                      {t('listings:newListing.contactEmail', 'Contact Email')} <span className="text-red-500">*</span>
+                      {t('listings:newListingContactEmail', 'Contact Email')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
@@ -1077,13 +1081,13 @@ export default function NewListingPage() {
                       className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                         formErrors.contactEmail ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                       }`}
-                      placeholder={t('listings:newListing.contactEmailPlaceholder', 'your.email@example.com')}
+                      placeholder={t('listings:newListingContactEmailPlaceholder', 'your.email@example.com')}
                       aria-invalid={!!formErrors.contactEmail}
                       aria-describedby={formErrors.contactEmail ? 'contactEmail-error' : 'contactEmail-hint'}
                     />
                     <ErrorMessage error={formErrors.contactEmail} id="contactEmail-error" />
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactEmail-hint">
-                      {t('listings:newListing.contactEmailHint', 'Email address for inquiries')}
+                      {t('listings:newListingContactEmailHint', 'Email address for inquiries')}
                     </p>
                   </div>
                 </div>
@@ -1096,16 +1100,16 @@ export default function NewListingPage() {
                 {/* Step 4 Header */}
                 <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                    {t('listings:newListing.step4Title', 'Upload Images')}
+                    {t('listings:newListingStep4Title', 'Upload Images')}
                   </h2>
                   <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                    {t('listings:newListing.step4Description', 'Add high-quality photos to showcase your car and attract potential buyers.')}
+                    {t('listings:newListingStep4Description', 'Add high-quality photos to showcase your car and attract potential buyers.')}
                   </p>
                 </div>
 
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {t('listings:newListing.carImages', 'Car Images')}
+                    {t('listings:newListingCarImages', 'Car Images')}
                   </h3>
                   
                   {/* Image Upload Section */}
@@ -1117,10 +1121,10 @@ export default function NewListingPage() {
                             <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
                           </svg>
                           <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                            <span className="font-semibold">{t('listings:newListing.uploadImages', 'Click to upload images')}</span>
+                            <span className="font-semibold">{t('listings:newListingUploadImages', 'Click to upload images')}</span>
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {t('listings:newListing.imageFormats', 'PNG, JPG, JPEG (MAX. 5MB each)')}
+                            {t('listings:newListingImageFormats', 'PNG, JPG, JPEG (MAX. 5MB each)')}
                           </p>
                         </div>
                         <input
@@ -1136,7 +1140,7 @@ export default function NewListingPage() {
                     </div>
                     <ErrorMessage error={formErrors.images} id="images-error" />
                     <p className="text-xs text-gray-500 dark:text-gray-400" id="image-upload-hint">
-                      {t('listings:newListing.imageUploadHint', 'Upload multiple images to showcase your car. First image will be the main photo.')}
+                      {t('listings:newListingImageUploadHint', 'Upload multiple images to showcase your car. First image will be the main photo.')}
                     </p>
                   </div>
 
@@ -1144,7 +1148,7 @@ export default function NewListingPage() {
                   {formData.images.length > 0 && (
                     <div className="space-y-4">
                       <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
-                        {t('listings:newListing.imagePreview', 'Image Preview')} ({formData.images.length})
+                        {t('listings:newListingImagePreview', 'Image Preview')} ({formData.images.length})
                       </h4>
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {imagePreviewUrls.map((url: string, index: number) => (
@@ -1168,7 +1172,7 @@ export default function NewListingPage() {
                             </button>
                             {index === 0 && (
                               <div className="absolute bottom-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                                {t('listings:newListing.mainImage', 'Main')}
+                                {t('listings:newListingMainImage', 'Main')}
                               </div>
                             )}
                           </div>
@@ -1219,11 +1223,11 @@ export default function NewListingPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      {t('listings:newListing.submitting', 'Submitting...')}
+                      {t('listings:newListingSubmitting', 'Submitting...')}
                     </>
                   ) : (
                     <>
-                      {t('listings:newListing.submit', 'Submit Listing')}
+                      {t('listings:newListingSubmit', 'Submit Listing')}
                       <svg className={`w-4 h-4 ${i18n.language === 'ar' ? 'mr-2' : 'ml-2'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
@@ -1238,7 +1242,7 @@ export default function NewListingPage() {
 
       {/* Success Alert */}
       <SuccessAlert
-        message={t('listings:newListing.successMessage', 'Listing created successfully!')}
+        message={t('listings:newListingSuccessMessage', 'Listing created successfully!')}
         visible={showSuccessAlert}
         onComplete={handleSuccessAlertComplete}
         autoHideDuration={3000}

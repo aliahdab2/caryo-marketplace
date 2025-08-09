@@ -75,7 +75,7 @@ export default function SignUpPage() {
     }
     
     if (!isVerified) {
-      setError(t('verificationRequired', "Verification required before signup"));
+      setError(t('verificationRequired'));
       return;
     }
 
@@ -115,7 +115,7 @@ export default function SignUpPage() {
         }
       }, 1500);
     } catch (err) {
-      let message = t('registrationFailed', "Registration failed. Please try again.");
+      let message = t('registrationFailed');
       if (typeof err === "object" && err !== null) {
         if (
           "data" in err &&
@@ -198,7 +198,7 @@ export default function SignUpPage() {
         
         <div className="z-10 p-6 md:p-8 lg:p-10 text-sm">
           <p className="mb-2 opacity-80">&copy; {new Date().getFullYear()} {t('appName')}</p>
-          <p className="opacity-60">{t('privacy_policy')} • {t('terms_of_service')}</p>
+          <p className="opacity-60">{t('privacyPolicy')} • {t('termsOfService')}</p>
         </div>
       </div>
       
@@ -210,7 +210,7 @@ export default function SignUpPage() {
             <div className="flex items-center responsive-fade-in">
               <Image 
                 src="/images/logo.svg" 
-                alt={t('logo', 'Caryo Logo')} 
+                alt={t('logo')} 
                 width={40} 
                 height={40} 
                 className="mr-2.5 sm:mr-3 w-8 h-8 sm:w-10 sm:h-10 object-contain" 
@@ -221,7 +221,7 @@ export default function SignUpPage() {
           
           <div className="bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 md:p-8 lg:p-10 auth-form">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-1 auth-heading">{t('sign_up')}</h2>
+              <h2 className="text-2xl font-bold mb-1 auth-heading">{t('signUp')}</h2>
               <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">{t('createAccountDescription')}</p>
             </div>
             
@@ -345,7 +345,7 @@ export default function SignUpPage() {
                     minLength={6}
                     disabled={loading}
                     className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-                    placeholder={t('confirmPasswordPlaceholder', "Confirm your password")}
+                    placeholder={t('confirmPasswordPlaceholder')}
                   />
                 </div>
               </div>
@@ -384,7 +384,7 @@ export default function SignUpPage() {
                       {t('loading')}
                     </div>
                   ) : (
-                    t('sign_up')
+                    t('signUp')
                   )}
                 </button>
                 
@@ -418,7 +418,7 @@ export default function SignUpPage() {
                   href="/auth/signin"
                   className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                 >
-                  {t('signin')}
+                  {t('signIn')}
                 </Link>
               </p>
             </div>
