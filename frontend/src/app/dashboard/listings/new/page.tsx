@@ -416,7 +416,7 @@ export default function NewListingPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            {t('dashboard:createListing', 'Create New Listing')}
+            {t('listings:newListingTitle', 'Create New Listing')}
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
             {t('listings:newListingSubtitle', 'Share your car with potential buyers in a few simple steps')}
@@ -532,12 +532,12 @@ export default function NewListingPage() {
               <div className="space-y-8">
                 {/* Step Header */}
                 <div className="text-center pb-6 border-b border-gray-200 dark:border-gray-700">
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                {t('listings:newListingStep1Title', 'Basic Information')}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-300">
-                {t('listings:newListingStep1Description', 'Tell us about your car listing')}
-              </p>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {t('listings:newListingStep1Title', 'Basic Information')}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {t('listings:newListingStep1Description', 'Tell us about your car listing')}
+                  </p>
                 </div>
 
                 {/* Title Field */}
@@ -575,23 +575,23 @@ export default function NewListingPage() {
                       <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 text-green-600 rounded-full text-xs font-semibold mr-2 dark:bg-green-900 dark:text-green-300">
                         💰
                       </span>
-                                          {t('listings:newListingPrice', 'Price')}
-                    <span className="text-red-500 ml-1">*</span>
-                  </label>
-                  <NumericInput
-                    id="price"
-                    name="price"
-                    value={formData.price}
-                    onChange={(value) => handleChange(value, 'price')}
-                    placeholder={t('listings:newListingPricePlaceholder', '25000')}
-                    required
-                    error={!!formErrors.price}
-                    aria-describedby={formErrors.price ? 'price-error' : 'price-hint'}
-                  />
-                  <ErrorMessage error={formErrors.price} id="price-error" />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="price-hint">
-                    {t('listings:newListingPriceHint', 'Enter the price in numbers only')}
-                  </p>
+                      {t('listings:newListingPrice', 'Price')}
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <NumericInput
+                      id="price"
+                      name="price"
+                      value={formData.price}
+                      onChange={(value) => handleChange(value, 'price')}
+                      placeholder={t('listings:newListingPricePlaceholder', '25000')}
+                      required
+                      error={!!formErrors.price}
+                      aria-describedby={formErrors.price ? 'price-error' : 'price-hint'}
+                    />
+                    <ErrorMessage error={formErrors.price} id="price-error" />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="price-hint">
+                      {t('listings:newListingPriceHint', 'Enter the price in numbers only')}
+                    </p>
                   </div>
                   
                   <div className="group">
@@ -599,8 +599,8 @@ export default function NewListingPage() {
                       <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded-full text-xs font-semibold mr-2 dark:bg-blue-900 dark:text-blue-300">
                         💱
                       </span>
-                                          {t('listings:newListingCurrency', 'Currency')}
-                    <span className="text-red-500 ml-1">*</span>
+                      {t('listings:newListingCurrency', 'Currency')}
+                      <span className="text-red-500 ml-1">*</span>
                     </label>
                     <select
                       id="currency"
@@ -656,12 +656,12 @@ export default function NewListingPage() {
               <div className="space-y-8 animate-fadeIn">
                 {/* Step Header */}
                 <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                {t('listings:newListingStep2Title', 'Car Details')}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-300">
-                {t('listings:newListingStep2Description', 'Provide specific details about your vehicle')}
-              </p>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {t('listings:newListingStep2Title', 'Car Details')}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {t('listings:newListingStep2Description', 'Provide specific details about your vehicle')}
+                  </p>
                 </div>
 
                 {/* Car Make */}
@@ -750,23 +750,25 @@ export default function NewListingPage() {
                       htmlFor="year" 
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
-                                          {t('listings:newListingYear', 'Year')} <span className="text-red-500">*</span>
-                  </label>
-                  <NumericInput
-                    id="year"
-                    name="year"
-                    value={formData.year}
-                    onChange={(value) => handleChange(value, 'year')}
-                    placeholder={t('listings:newListingYearPlaceholder', '2020')}
-                    required
-                    error={!!formErrors.year}
-                    aria-invalid={!!formErrors.year}
-                    aria-describedby={formErrors.year ? 'year-error' : 'year-hint'}
-                  />
-                  <ErrorMessage error={formErrors.year} id="year-error" />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
-                    {t('listings:newListingYearHint', 'Manufacturing year')}
-                  </p>
+
+                      {t('listings:newListingYear', 'Year')} <span className="text-red-500">*</span>
+                    </label>
+                    <NumericInput
+                      id="year"
+                      name="year"
+                      value={formData.year}
+                      onChange={(value) => handleChange(value, 'year')}
+                      placeholder={t('listings:newListingYearPlaceholder', '2020')}
+                      required
+                      error={!!formErrors.year}
+                      aria-invalid={!!formErrors.year}
+                      aria-describedby={formErrors.year ? 'year-error' : 'year-hint'}
+                    />
+                    <ErrorMessage error={formErrors.year} id="year-error" />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
+                      {t('listings:newListingYearHint', 'Manufacturing year')}
+                    </p>
+
                   </div>
 
                   {/* Mileage */}
@@ -775,20 +777,22 @@ export default function NewListingPage() {
                       htmlFor="mileage" 
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
-                                          {t('listings:newListingMileage', 'Mileage')}
-                  </label>
-                  <NumericInput
-                    id="mileage"
-                    name="mileage"
-                    value={formData.mileage}
-                    onChange={(value) => handleChange(value, 'mileage')}
-                    placeholder={t('listings:newListingMileagePlaceholder', '50000')}
-                    error={!!formErrors.mileage}
-                    aria-describedby="mileage-hint"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="mileage-hint">
-                    {t('listings:newListingMileageHint', 'Total kilometers driven')}
-                  </p>
+
+                      {t('listings:newListingMileage', 'Mileage')}
+                    </label>
+                    <NumericInput
+                      id="mileage"
+                      name="mileage"
+                      value={formData.mileage}
+                      onChange={(value) => handleChange(value, 'mileage')}
+                      placeholder={t('listings:newListingMileagePlaceholder', '50000')}
+                      error={!!formErrors.mileage}
+                      aria-describedby="mileage-hint"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="mileage-hint">
+                      {t('listings:newListingMileageHint', 'Total kilometers driven')}
+                    </p>
+
                   </div>
                 </div>
 
@@ -800,21 +804,23 @@ export default function NewListingPage() {
                       htmlFor="engine" 
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
-                                          {t('listings:newListingEngine', 'Engine')}
-                  </label>
-                  <input
-                    type="text"
-                    id="engine"
-                    name="engine"
-                    value={formData.engine}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    placeholder={t('listings:newListingEnginePlaceholder', 'e.g., 2.0L Turbo, V6, Hybrid')}
-                    aria-describedby="engine-hint"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="engine-hint">
-                    {t('listings:newListingEngineHint', 'Engine type and size')}
-                  </p>
+
+                      {t('listings:newListingEngine', 'Engine')}
+                    </label>
+                    <input
+                      type="text"
+                      id="engine"
+                      name="engine"
+                      value={formData.engine}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      placeholder={t('listings:newListingEnginePlaceholder', 'e.g., 2.0L Turbo, V6, Hybrid')}
+                      aria-describedby="engine-hint"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="engine-hint">
+                      {t('listings:newListingEngineHint', 'Engine type and size')}
+                    </p>
+
                   </div>
 
                   {/* Transmission */}
@@ -823,24 +829,26 @@ export default function NewListingPage() {
                       htmlFor="transmission" 
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
-                                          {t('listings:newListingTransmission', 'Transmission')}
-                  </label>
-                  <select
-                    id="transmission"
-                    name="transmission"
-                    value={formData.transmission}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    aria-describedby="transmission-hint"
-                  >
-                    <option value="">{t('listings:newListingTransmissionSelect', 'Select transmission type')}</option>
-                    <option value="automatic">{t('listings:newListingTransmissionAutomatic', 'Automatic')}</option>
-                    <option value="manual">{t('listings:newListingTransmissionManual', 'Manual')}</option>
-                    <option value="cvt">{t('listings:newListingTransmissionCVT', 'CVT')}</option>
-                  </select>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="transmission-hint">
-                    {t('listings:newListingTransmissionHint', 'Type of transmission')}
-                  </p>
+
+                      {t('listings:newListingTransmission', 'Transmission')}
+                    </label>
+                    <select
+                      id="transmission"
+                      name="transmission"
+                      value={formData.transmission}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      aria-describedby="transmission-hint"
+                    >
+                      <option value="">{t('listings:newListingTransmissionSelect', 'Select transmission type')}</option>
+                      <option value="automatic">{t('listings:newListingTransmissionAutomatic', 'Automatic')}</option>
+                      <option value="manual">{t('listings:newListingTransmissionManual', 'Manual')}</option>
+                      <option value="cvt">{t('listings:newListingTransmissionCVT', 'CVT')}</option>
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="transmission-hint">
+                      {t('listings:newListingTransmissionHint', 'Type of transmission')}
+                    </p>
+
                   </div>
                 </div>
 
@@ -852,21 +860,23 @@ export default function NewListingPage() {
                       htmlFor="color" 
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
-                                          {t('listings:newListingColor', 'Color')}
-                  </label>
-                  <input
-                    type="text"
-                    id="color"
-                    name="color"
-                    value={formData.color}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    placeholder={t('listings:newListingColorPlaceholder', 'e.g., White, Black, Silver')}
-                    aria-describedby="color-hint"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="color-hint">
-                    {t('listings:newListingColorHint', 'Exterior color of the car')}
-                  </p>
+
+                      {t('listings:newListingColor', 'Color')}
+                    </label>
+                    <input
+                      type="text"
+                      id="color"
+                      name="color"
+                      value={formData.color}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      placeholder={t('listings:newListingColorPlaceholder', 'e.g., White, Black, Silver')}
+                      aria-describedby="color-hint"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="color-hint">
+                      {t('listings:newListingColorHint', 'Exterior color of the car')}
+                    </p>
+
                   </div>
 
                   {/* Fuel Type */}
@@ -875,25 +885,27 @@ export default function NewListingPage() {
                       htmlFor="fuelType" 
                       className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
-                                          {t('listings:newListingFuelType', 'Fuel Type')}
-                  </label>
-                  <select
-                    id="fuelType"
-                    name="fuelType"
-                    value={formData.fuelType}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    aria-describedby="fuelType-hint"
-                  >
-                    <option value="">{t('listings:newListingFuelTypeSelect', 'Select fuel type')}</option>
-                    <option value="gasoline">{t('listings:newListingFuelTypeGasoline', 'Gasoline')}</option>
-                    <option value="diesel">{t('listings:newListingFuelTypeDiesel', 'Diesel')}</option>
-                    <option value="hybrid">{t('listings:newListingFuelTypeHybrid', 'Hybrid')}</option>
-                    <option value="electric">{t('listings:newListingFuelTypeElectric', 'Electric')}</option>
-                  </select>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="fuelType-hint">
-                    {t('listings:newListingFuelTypeHint', 'Type of fuel or power source')}
-                  </p>
+
+                      {t('listings:newListingFuelType', 'Fuel Type')}
+                    </label>
+                    <select
+                      id="fuelType"
+                      name="fuelType"
+                      value={formData.fuelType}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      aria-describedby="fuelType-hint"
+                    >
+                      <option value="">{t('listings:newListingFuelTypeSelect', 'Select fuel type')}</option>
+                      <option value="gasoline">{t('listings:newListingFuelTypeGasoline', 'Gasoline')}</option>
+                      <option value="diesel">{t('listings:newListingFuelTypeDiesel', 'Diesel')}</option>
+                      <option value="hybrid">{t('listings:newListingFuelTypeHybrid', 'Hybrid')}</option>
+                      <option value="electric">{t('listings:newListingFuelTypeElectric', 'Electric')}</option>
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="fuelType-hint">
+                      {t('listings:newListingFuelTypeHint', 'Type of fuel or power source')}
+                    </p>
+
                   </div>
                 </div>
               </div>
@@ -905,10 +917,12 @@ export default function NewListingPage() {
                 {/* Step Header */}
                 <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                                    {t('listings:newListingStep3Title', 'Location & Contact')}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-300">
-                {t('listings:newListingStep3Description', 'Where to find you and how to get in touch')}
+
+                    {t('listings:newListingStep3Title', 'Location & Contact')}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {t('listings:newListingStep3Description', 'Where to find you and how to get in touch')}
+
                   </p>
                 </div>
 
@@ -1025,7 +1039,9 @@ export default function NewListingPage() {
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.contactName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                         }`}
-                        placeholder={t('listings:newListingContactNamePlaceholder', 'Your Name')}
+
+                        placeholder={t('listings:newListingContactNamePlaceholder', 'Your full name')}
+
                         aria-invalid={!!formErrors.contactName}
                         aria-describedby={formErrors.contactName ? 'contactName-error' : 'contactName-hint'}
                       />
@@ -1052,7 +1068,9 @@ export default function NewListingPage() {
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.contactPhone ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                         }`}
+
                         placeholder={t('listings:newListingContactPhonePlaceholder', 'e.g., +965 12345678')}
+
                         aria-invalid={!!formErrors.contactPhone}
                         aria-describedby={formErrors.contactPhone ? 'contactPhone-error' : 'contactPhone-hint'}
                       />

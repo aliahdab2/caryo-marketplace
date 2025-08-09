@@ -1,7 +1,7 @@
 // Reference data service
 import { api } from './api';
 import { getAuthHeaders } from '@/utils/auth';
-import { ReferenceData, ReferenceDataItem } from '@/types/listings';
+import { ReferenceData } from '@/types/listings';
 
 export interface CarBrand {
   id: number;

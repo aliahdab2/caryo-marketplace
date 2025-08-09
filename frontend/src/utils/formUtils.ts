@@ -223,10 +223,10 @@ export const validateStep = (step: number, formData: ListingFormData, t: (key: s
       }
       if (!formData.year || formData.year.trim().length === 0) {
         errors.year = t('listings:newListingValidationYearRequired', 'Year is required');
-      } else if (isNaN(Number(formData.year)) || Number(formData.year) < 1900 || Number(formData.year) > new Date().getFullYear() + 1) {
+      } else if (isNaN(Number(formData.year)) || Number(formData.year) < 1920 || Number(formData.year) > new Date().getFullYear()) {
         errors.year = t('listings:newListingValidationYearInvalid', 'Please enter a valid year');
       }
-      if (formData.mileage && formData.mileage.trim().length > 0 && isNaN(Number(formData.mileage))) {
+      if (formData.mileage && formData.mileage.trim().length > 0 && (isNaN(Number(formData.mileage)) || Number(formData.mileage) < 0)) {
         errors.mileage = t('listings:newListingValidationMileageInvalid', 'Mileage must be a valid number');
       }
       break;
@@ -250,10 +250,9 @@ export const validateStep = (step: number, formData: ListingFormData, t: (key: s
       break;
       
     case 4:
-      if (formData.images.length === 0) {
+      if (!formData.images || formData.images.length === 0) {
         errors.images = t('listings:newListingValidationImagesRequired', 'At least one image is required');
-      }
-      if (formData.images.length > 10) {
+      } else if (formData.images.length > 10) {
         errors.images = t('listings:newListingValidationTooManyImages', 'Maximum 10 images allowed');
       }
       break;

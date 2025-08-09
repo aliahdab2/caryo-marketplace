@@ -1,13 +1,11 @@
 "use client";
 import Image from "next/image";
-import Link from "next/link";
 import { useLazyTranslation } from "@/hooks/useLazyTranslation";
 import { useEffect, useState } from "react";
 import HomeSearchBar from "@/components/search/HomeSearchBar";
 import HomeCarListings from "@/components/home/HomeCarListings";
 import { fetchLatestListingsPublic, subscribeToNewsletter } from "@/services/publicApi";
 import { CarListing } from "@/services/publicApi";
-import { transformMinioUrl } from "@/utils/mediaUtils";
 
 // Move namespaces outside component to prevent recreation on every render
 const HOME_NAMESPACES = ['home', 'common'];
