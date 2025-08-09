@@ -49,7 +49,7 @@ export default function SuccessAlert({
 
   return (
     <div
-      className={`fixed top-5 right-5 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-green-200 dark:border-green-700 p-4 flex items-center gap-3 transition-all duration-300 ease-in-out transform ${
+      className={`fixed top-5 ${isVisible ? 'right-5' : '-right-full'} z-50 bg-white dark:bg-gray-800 rounded-xl shadow-xl border-2 border-green-300 dark:border-green-600 py-4 px-6 flex items-center gap-4 transition-all duration-500 ease-in-out transform ${
         isVisible ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'
       } ${className}`}
       role="alert"
@@ -59,14 +59,14 @@ export default function SuccessAlert({
       {showIcon && (
         <div className="flex-shrink-0">
           <MdCheckCircle 
-            className="text-green-600 dark:text-green-400 text-xl" 
+            className="text-green-500 dark:text-green-400 text-2xl animate-bounce" 
             aria-hidden="true" 
           />
         </div>
       )}
       
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 break-words">
+        <p className="text-base font-semibold text-gray-900 dark:text-gray-100 break-words leading-snug">
           {message}
         </p>
       </div>
@@ -74,7 +74,7 @@ export default function SuccessAlert({
       {dismissible && (
         <button
           onClick={handleClose}
-          className="flex-shrink-0 ml-2 p-1 rounded-full text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          className="flex-shrink-0 ml-2 p-1.5 rounded-full text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 hover:bg-gray-100 dark:hover:bg-gray-700"
           aria-label="Close notification"
         >
           <MdClose className="text-lg" aria-hidden="true" />

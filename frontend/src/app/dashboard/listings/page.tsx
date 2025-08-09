@@ -414,7 +414,7 @@ export default function ListingsPage() {
 							<option value="all">{t("common:all")}</option>
 							<option value="active">{t("listings:active")}</option>
 							<option value="expired">{t("listings:expired")}</option>
-							<option value="pending">{t("listings:pending")}</option>
+							<option value="pending">{t("listings:listingStatus.pending")}</option>
 						</select>
 					</div>
 
