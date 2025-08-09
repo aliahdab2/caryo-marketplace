@@ -657,7 +657,7 @@ export default function ListingsPage() {
                               ? "bg-red-500"
                               : "bg-yellow-500"
                           }`}></span>
-                          {t(`listings:listingStatus${listing.status.charAt(0).toUpperCase() + listing.status.slice(1)}`)}
+                          {t(`listings:listingStatus${listing?.status ? listing.status.charAt(0).toUpperCase() + listing.status.slice(1) : 'Pending'}`)}
                         </span>
                         
                         {listing.status === "active" && expiryDate && (
