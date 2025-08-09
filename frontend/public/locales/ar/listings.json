@@ -97,6 +97,8 @@
   "listingStatusPending": "قيد الانتظار",
   "listingStatusActive": "نشط",
   "listingStatusExpired": "منتهي الصلاحية",
+  "currencySYP": "ليرة سورية",
+  "currencyUSD": "دولار أمريكي",
   "sortBy": "ترتيب حسب",
   "date": "التاريخ",
   "title": "العنوان",

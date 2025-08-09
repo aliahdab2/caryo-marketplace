@@ -298,6 +298,8 @@
   "listingStatusPending": "Pending",
   "listingStatusActive": "Active",
   "listingStatusExpired": "Expired",
+  "currencySYP": "Syrian Pound",
+  "currencyUSD": "US Dollar",
   "sortBy": "Sort by",
   "date": "Date",
   "title": "Title",
