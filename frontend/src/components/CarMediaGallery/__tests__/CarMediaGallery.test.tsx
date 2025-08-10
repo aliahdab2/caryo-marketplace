@@ -138,6 +138,8 @@ jest.mock('lucide-react', () => ({
   ChevronLeft: function ChevronLeft() { return <div data-testid="prev-icon" />; },
   ChevronRight: function ChevronRight() { return <div data-testid="next-icon" />; },
   Play: function Play() { return <div data-testid="play-icon" />; },
+  Camera: function Camera() { return <div data-testid="camera-icon" />; },
+  Video: function Video() { return <div data-testid="video-icon" />; },
 }));
 
 describe('CarMediaGallery', () => {
