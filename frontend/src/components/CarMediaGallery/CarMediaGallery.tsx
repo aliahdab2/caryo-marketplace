@@ -7,7 +7,7 @@ import 'keen-slider/keen-slider.min.css';
 
 // Import components and icons
 import { Dialog } from '@headlessui/react';
-import { X, ChevronLeft, ChevronRight, Play, Camera, Video } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 
 // RTL support
 import { useLanguageDirection } from '@/utils/languageDirection';
@@ -29,7 +29,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
   // RTL support
   const { isRTL } = useLanguageDirection();
   
-  // Translation support (using dedicated mediaGallery namespace with flat keys as per translation guide)
+  // Translation support (using dedicated mediaGallery namespace as per translation guide)
   const { t } = useTranslation('mediaGallery');
   
   // State management
@@ -220,16 +220,16 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                 {media.length === 1 ? (
                   // For single item, show just the type icon
                   currentMedia?.type === 'image' ? (
-                    <Camera className="w-6 h-6" />
+                    <span className="text-lg">📷</span>
                   ) : (
-                    <Video className="w-6 h-6" />
+                    <span className="text-lg">📹</span>
                   )
                 ) : (
                   // For multiple items, show counts
                   <>
                     {videos.length > 0 && (
                       <>
-                        <Video className="w-6 h-6" />
+                        <span className="text-lg">📹</span>
                         <span>{videos.length}</span>
                       </>
                     )}
@@ -238,7 +238,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                     )}
                     {images.length > 0 && (
                       <>
-                        <Camera className="w-6 h-6" />
+                        <span className="text-lg">📷</span>
                         <span>{images.length}</span>
                       </>
                     )}
@@ -264,7 +264,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
               <span>{media.length === 1 ? t('viewImage') : t('viewGallery')}</span>
             </button>
             
-            {/* Navigation arrows for all media */}
+            {/* Navigation arrows for all media - AutoTrader style */}
             {media.length > 1 && (
               <>
                 <button
@@ -272,10 +272,10 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                     e.stopPropagation();
                     setCurrentMediaIndex(prev => (prev === 0 ? media.length - 1 : prev - 1));
                   }}
-                  className={`absolute ${isRTL ? 'right-2' : 'left-2'} top-1/2 transform -translate-y-1/2 z-10 p-1.5 bg-black bg-opacity-20 rounded-full text-white hover:bg-opacity-40 transition-opacity`}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 p-3 bg-white shadow-lg rounded-full text-gray-800 hover:bg-gray-50 transition-all duration-200 border border-gray-200"
                   aria-label="Previous media"
                 >
-                  {isRTL ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+                  <ChevronLeft className="w-6 h-6" />
                 </button>
 
                 <button
@@ -283,20 +283,18 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                     e.stopPropagation();
                     setCurrentMediaIndex(prev => (prev === media.length - 1 ? 0 : prev + 1));
                   }}
-                  className={`absolute ${isRTL ? 'left-2' : 'right-2'} top-1/2 transform -translate-y-1/2 z-10 p-1.5 bg-black bg-opacity-20 rounded-full text-white hover:bg-opacity-40 transition-opacity`}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 p-3 bg-white shadow-lg rounded-full text-gray-800 hover:bg-gray-50 transition-all duration-200 border border-gray-200"
                   aria-label="Next media"
                 >
-                  {isRTL ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                  <ChevronRight className="w-6 h-6" />
                 </button>
               </>
             )}
             
-            {/* Current media indicator - only show for multiple items */}
-            {media.length > 1 && (
-              <div className={`absolute bottom-3 ${isRTL ? 'right-3' : 'left-3'} px-2 py-1 bg-black bg-opacity-50 text-white text-xs rounded`}>
-                {t('mediaCount', { current: currentMediaIndex + 1, total: media.length })}
-              </div>
-            )}
+            {/* Media counter - AutoTrader style (always show) */}
+            <div className="absolute bottom-4 right-4 px-3 py-1.5 bg-black bg-opacity-75 text-white text-sm font-medium rounded-lg">
+              {currentMediaIndex + 1}/{media.length}
+            </div>
           </>
         )}
       </div>
@@ -327,7 +325,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                     />
                     {/* Image type indicator */}
                     <div className="absolute top-1 right-1">
-                      <Camera className="w-5 h-5 text-white drop-shadow-lg" />
+                      <span className="text-white text-lg drop-shadow-lg">📷</span>
                     </div>
                   </>
                 ) : (
@@ -345,7 +343,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                     </div>
                     {/* Video type indicator */}
                     <div className="absolute top-1 right-1">
-                      <Video className="w-5 h-5 text-white drop-shadow-lg" />
+                      <span className="text-white text-lg drop-shadow-lg">📹</span>
                     </div>
                     <div className="absolute top-1 left-1 bg-black bg-opacity-60 rounded px-1 py-0.5 text-white text-xs">
                       Video

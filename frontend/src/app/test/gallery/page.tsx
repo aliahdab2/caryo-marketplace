@@ -270,14 +270,16 @@ export default function GalleryTestPage() {
           </div>
         </div>
 
-        {/* Gallery Container */}
-        <div className="gallery-container">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+        {/* CarMediaGallery Component Test */}
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Debug info */}
             <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 text-xs text-gray-600 dark:text-gray-300 border-b">
               <span>Debug: Total media: {currentScenario.media.length} | Images: {currentScenario.media.filter(m => m.type === 'image').length} | Videos: {currentScenario.media.filter(m => m.type === 'video').length} | Scenario: {selectedScenario} | Initial index: {initialIndex}</span>
             </div>
-            <div className="min-h-72 sm:min-h-80 md:min-h-96 lg:min-h-[500px] p-4">
+            
+            {/* Pure Gallery Component Test */}
+            <div className="p-4">
               <CarMediaGallery
                 media={currentScenario.media}
                 initialIndex={initialIndex}
@@ -287,56 +289,6 @@ export default function GalleryTestPage() {
             </div>
           </div>
         </div>
-
-        {/* Media Details */}
-        {currentScenario.media.length > 0 && (
-          <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Media Details
-            </h3>
-            <div className="space-y-4">
-              {currentScenario.media.map((item, index) => (
-                <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div className="flex-shrink-0">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      item.type === 'image' 
-                        ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
-                        : 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400'
-                    }`}>
-                      {item.type === 'image' ? (
-                        <span className="text-xs font-bold">{index + 1}</span>
-                      ) : (
-                        <Play className="w-4 h-4" />
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex-grow">
-                    <div className="flex items-center mb-1">
-                      <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full mr-2 ${
-                        item.type === 'image'
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                      }`}>
-                        {item.type.toUpperCase()}
-                      </span>
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">
-                        {item.alt}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 break-all">
-                      URL: {item.url}
-                    </p>
-                    {item.thumbnailUrl && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 break-all">
-                        Thumbnail: {item.thumbnailUrl}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Testing Notes */}
         <div className="mt-8 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-6 border border-yellow-200 dark:border-yellow-800">
