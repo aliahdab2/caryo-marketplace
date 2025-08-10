@@ -64,6 +64,11 @@ const nextConfig: NextConfig = {
         hostname: 'images.unsplash.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+        pathname: '/**',
+      },
       // MinIO configuration based on environment
       ...(minioUrl ? [{
         protocol: minioUrl.protocol.replace(':', '') as 'http' | 'https',

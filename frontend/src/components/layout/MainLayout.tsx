@@ -12,6 +12,11 @@ const DevTools = dynamic(() => import("@/components/debug/DevTools"), {
   ssr: false,
 });
 
+// Dynamically import DevNavLink for development navigation
+const DevNavLink = dynamic(() => import("@/components/dev/DevNavLink"), {
+  ssr: false,
+});
+
 export default function MainLayout({ children }: MainLayoutProps) {
   const { isLoading } = useAuthStatus();
   
@@ -35,6 +40,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
       
       {/* DevTools will only render in development mode */}
       <DevTools />
+      
+      {/* Dev Navigation Link for easy access to test pages */}
+      <DevNavLink />
     </div>
   );
 }
