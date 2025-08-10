@@ -42,8 +42,44 @@ export default function NewListingPage() {
   const router = useRouter();
   const { t, i18n } = useLazyTranslation(['dashboard', 'listings', 'common', 'errors']);
   
+  // Video feature configuration
+  const isVideoUploadEnabled = process.env.NEXT_PUBLIC_VIDEO_UPLOAD_ENABLED === 'true';
+  const isVideoUrlEnabled = process.env.NEXT_PUBLIC_VIDEO_URL_ENABLED === 'true';
+  const isAnyVideoFeatureEnabled = isVideoUploadEnabled || isVideoUrlEnabled;
 
-  
+  // Video URL utilities
+  const getYouTubeVideoId = (url: string): string | null => {
+    const patterns = [
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+      /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
+
+  const getVimeoVideoId = (url: string): string | null => {
+    const pattern = /(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(\d+)/;
+    const match = url.match(pattern);
+    return match ? match[1] : null;
+  };
+
+  const getVideoEmbedUrl = (url: string): string | null => {
+    const youtubeId = getYouTubeVideoId(url);
+    if (youtubeId) {
+      return `https://www.youtube.com/embed/${youtubeId}`;
+    }
+    
+    const vimeoId = getVimeoVideoId(url);
+    if (vimeoId) {
+      return `https://player.vimeo.com/video/${vimeoId}`;
+    }
+    
+    return null;
+  };
 
   
   // State management
@@ -88,11 +124,15 @@ export default function NewListingPage() {
     features: [],
     status: "active" as const,
     images: [],
+    videos: [],
+    videoUrls: [],
     categoryId: "1"
   });
 
   // Store image object URLs for preview
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+  // Store video object URLs for preview
+  const [videoPreviewUrls, setVideoPreviewUrls] = useState<string[]>([]);
 
   // Memoized step configuration
   const stepConfig = useMemo((): StepConfig[] => [
@@ -372,6 +412,21 @@ export default function NewListingPage() {
     };
   }, [formData.images]);
 
+  useEffect(() => {
+    // Create managed object URLs for video previews
+    if (formData.videos && formData.videos.length > 0) {
+      const newUrls = formData.videos.map(file => URL.createObjectURL(file));
+      setVideoPreviewUrls(newUrls);
+
+      // Cleanup: revoke object URLs to prevent memory leaks
+      return () => {
+        newUrls.forEach(url => URL.revokeObjectURL(url));
+      };
+    } else {
+      setVideoPreviewUrls([]);
+    }
+  }, [formData.videos]);
+
   // Image handling functions
   const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -402,6 +457,110 @@ export default function NewListingPage() {
     setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
+    }));
+  }, []);
+
+  // Video handling functions
+  const handleVideoUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isVideoUploadEnabled) {
+      setFormErrors(prev => ({ ...prev, videos: 'Video uploads are currently disabled' }));
+      return;
+    }
+    
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate video files
+    const validFiles = files.filter(file => {
+      if (file.size > 100 * 1024 * 1024) { // 100MB limit
+        setFormErrors(prev => ({ ...prev, videos: t('listings:videoTooLarge', 'Video file too large (max 100MB)') }));
+        return false;
+      }
+      if (!file.type.startsWith('video/')) {
+        setFormErrors(prev => ({ ...prev, videos: t('listings:invalidVideoFormat', 'Invalid video format') }));
+        return false;
+      }
+      return true;
+    });
+
+    // Check video limit (max 1 video file)
+    if (formData.videos && formData.videos.length > 0) {
+      setFormErrors(prev => ({ ...prev, videos: t('listings:videoLimitReached', 'Maximum video limit reached') }));
+      return;
+    }
+
+    if (validFiles.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        videos: [validFiles[0]] // Only take the first video file
+      }));
+      setFormErrors(prev => {
+        const { videos: _videos, ...rest } = prev;
+        return rest;
+      });
+    }
+  }, [formData.videos, t, isVideoUploadEnabled]);
+
+  const removeVideo = useCallback((index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      videos: prev.videos?.filter((_, i) => i !== index) || []
+    }));
+  }, []);
+
+  const handleVideoUrlChange = useCallback((url: string) => {
+    if (!isVideoUrlEnabled) {
+      setFormErrors(prev => ({ ...prev, videoUrls: 'External video URLs are currently disabled' }));
+      return;
+    }
+    
+    // Basic URL validation for YouTube and Vimeo
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[a-zA-Z0-9_-]{11}.*$/;
+    const vimeoRegex = /^(https?:\/\/)?(www\.)?vimeo\.com\/\d+.*$/;
+    const generalUrlRegex = /^https?:\/\/.+/;
+
+    if (url.trim() === '') {
+      setFormData(prev => ({
+        ...prev,
+        videoUrls: []
+      }));
+      setFormErrors(prev => {
+        const { videoUrls: _videoUrls, ...rest } = prev;
+        return rest;
+      });
+      return;
+    }
+
+    if (!youtubeRegex.test(url) && !vimeoRegex.test(url) && !generalUrlRegex.test(url)) {
+      setFormErrors(prev => ({ ...prev, videoUrls: t('listings:invalidVideoUrl', 'Invalid video URL format') }));
+      // Still update the formData to show the invalid URL in the input
+      setFormData(prev => ({
+        ...prev,
+        videoUrls: [url]
+      }));
+      return;
+    }
+
+    // Check external video limit (max 1 external video) - but allow updating existing URL
+    if (formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0] !== url) {
+      setFormErrors(prev => ({ ...prev, videoUrls: t('listings:videoLimitReached', 'Maximum video limit reached') }));
+      return;
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      videoUrls: [url]
+    }));
+    setFormErrors(prev => {
+      const { videoUrls: _videoUrls, ...rest } = prev;
+      return rest;
+    });
+  }, [formData.videoUrls, t, isVideoUrlEnabled]);
+
+  const removeVideoUrl = useCallback((index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      videoUrls: prev.videoUrls?.filter((_, i) => i !== index) || []
     }));
   }, []);
 
@@ -1197,6 +1356,178 @@ export default function NewListingPage() {
                         ))}
                       </div>
                     </div>
+                  )}
+
+                  {/* Video Section - Conditionally rendered based on configuration */}
+                  {isAnyVideoFeatureEnabled && (
+                  <div className="space-y-6 pt-8 border-t border-gray-200 dark:border-gray-700">
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                        {t('listings:videoFieldsTitle', 'Videos (Optional)')}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        {t('listings:videoFieldsSubtitle', 'Add videos to showcase your vehicle')}
+                      </p>
+                    </div>
+
+                    {/* Video File Upload - Only show if video uploads are enabled */}
+                    {isVideoUploadEnabled && (
+                      <>
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-center w-full">
+                            <label htmlFor="video-upload" className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600 transition-all duration-200">
+                              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <svg className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                </svg>
+                                <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                                  <span className="font-semibold">{t('listings:uploadVideoLabel', 'Upload Video File')}</span>
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  {t('listings:uploadVideoHelp', 'Maximum 1 video file, 100MB max, 3 minutes max duration')}
+                                </p>
+                              </div>
+                              <input
+                                id="video-upload"
+                                type="file"
+                                className="hidden"
+                                accept="video/*"
+                                onChange={handleVideoUpload}
+                                aria-describedby="video-upload-hint"
+                                disabled={formData.videos && formData.videos.length > 0}
+                              />
+                            </label>
+                          </div>
+                          <ErrorMessage error={formErrors.videos} id="videos-error" />
+                        </div>
+
+                        {/* Video Preview */}
+                        {formData.videos && formData.videos.length > 0 && videoPreviewUrls.length > 0 && (
+                          <div className="space-y-4">
+                            <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
+                              {t('listings:videoPreview', 'Video preview')}
+                            </h4>
+                            <div className="relative">
+                              <video
+                                src={videoPreviewUrls[0]}
+                                controls
+                                className="w-full max-w-md mx-auto rounded-lg shadow-lg"
+                                style={{ maxHeight: '300px' }}
+                              >
+                                Your browser does not support the video tag.
+                              </video>
+                              <button
+                                type="button"
+                                onClick={() => removeVideo(0)}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200"
+                                aria-label="Remove video"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* External Video URL - Only show if video URLs are enabled */}
+                    {isVideoUrlEnabled && (
+                      <>
+                        <div className="space-y-4">
+                          <div>
+                            <label htmlFor="video-url" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              {t('listings:videoUrlLabel', 'External Video URL')}
+                            </label>
+                            <input
+                              type="url"
+                              id="video-url"
+                              placeholder={t('listings:videoUrlPlaceholder', 'https://youtube.com/watch?v=... or https://vimeo.com/...')}
+                              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white transition-colors duration-200"
+                              value={formData.videoUrls?.[0] || ''}
+                              onChange={(e) => handleVideoUrlChange(e.target.value)}
+                              aria-describedby="video-url-hint"
+                            />
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1" id="video-url-hint">
+                              {t('listings:videoUrlHelp', 'YouTube, Vimeo, or other video URL')}
+                            </p>
+                          </div>
+                          <ErrorMessage error={formErrors.videoUrls} id="video-urls-error" />
+                        </div>
+
+                        {/* External Video Preview */}
+                        {formData.videoUrls && formData.videoUrls.length > 0 && (
+                          <div className="space-y-4">
+                            <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
+                              {t('listings:videoPreview', 'Video preview')} - External
+                            </h4>
+                            
+                            {/* Video Embed Preview */}
+                            {(() => {
+                              const embedUrl = getVideoEmbedUrl(formData.videoUrls[0]);
+                              if (embedUrl) {
+                                return (
+                                  <div className="relative">
+                                    <div className="aspect-video w-full max-w-md mx-auto rounded-lg overflow-hidden shadow-lg bg-gray-100 dark:bg-gray-800">
+                                      <iframe
+                                        src={embedUrl}
+                                        className="w-full h-full"
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                        title="External video preview"
+                                      />
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeVideoUrl(0)}
+                                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200 z-10"
+                                      aria-label="Remove video URL"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                );
+                              }
+                              
+                              // Fallback for non-embeddable URLs
+                              return (
+                                <div className="relative p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex-1">
+                                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                                        External Video URL
+                                      </p>
+                                      <p className="text-sm text-blue-700 dark:text-blue-300 break-all">
+                                        {formData.videoUrls[0]}
+                                      </p>
+                                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                        Preview not available for this URL format
+                                      </p>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeVideoUrl(0)}
+                                      className="ml-4 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200"
+                                      aria-label="Remove video URL"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                            
+                            {/* URL Info */}
+                            <div className="text-center">
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Source: {formData.videoUrls[0]}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                   )}
                 </div>
               </div>

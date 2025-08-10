@@ -44,7 +44,10 @@ const nextConfig: NextConfig = {
     // For development simplicity, we provide a default MinIO URL if not set
     // This prevents unnecessary warnings and errors during development
     // In production, proper configuration should be provided via environment variables
-    NEXT_PUBLIC_MINIO_URL: process.env.NEXT_PUBLIC_MINIO_URL || 'http://localhost:9000'
+    NEXT_PUBLIC_MINIO_URL: process.env.NEXT_PUBLIC_MINIO_URL || 'http://localhost:9000',
+    // Video feature configuration
+    NEXT_PUBLIC_VIDEO_UPLOAD_ENABLED: process.env.NEXT_PUBLIC_VIDEO_UPLOAD_ENABLED || 'true',
+    NEXT_PUBLIC_VIDEO_URL_ENABLED: process.env.NEXT_PUBLIC_VIDEO_URL_ENABLED || 'true'
   },
   
   images: {

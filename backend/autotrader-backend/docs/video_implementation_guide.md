@@ -11,7 +11,7 @@ The Caryo Marketplace backend now supports video content for car listings, follo
 - **Secondary Method**: Direct video file uploads
 - **Video Limits**: 1 uploaded video + 1 external video URL per listing
 - **Duration Limit**: 3 minutes (180 seconds) maximum
-- **File Size Limit**: 500MB maximum for uploads
+- **File Size Limit**: 100MB maximum for uploads
 
 ### 📊 **Supported Video Formats**
 Following AutoTrader's supported formats:
@@ -54,7 +54,7 @@ POST /api/files/upload
 Content-Type: multipart/form-data
 
 Parameters:
-- file: Video file (max 500MB, 3 minutes)
+- file: Video file (max 100MB, 3 minutes)
 - listingId: Car listing ID
 ```
 
@@ -105,7 +105,7 @@ Authorization: Bearer {token}
 - ✅ Total videos ≤ 2 per listing
 
 ### File Upload Validation
-- ✅ File size ≤ 500MB
+- ✅ File size ≤ 100MB
 - ✅ Content type in allowed list
 - ✅ Duration ≤ 180 seconds (when provided)
 
@@ -154,12 +154,44 @@ Authorization: Bearer {token}
 
 ## Configuration
 
+### Video Feature Control
+
+The system allows granular control over video features through configuration properties:
+
+- **`app.upload.video-upload-enabled`**: Controls whether users can upload video files directly
+  - `true`: Enable video file uploads (default: `false`)
+  - `false`: Disable video file uploads, users will see a disabled upload area
+  
+- **`app.upload.video-url-enabled`**: Controls whether users can add external video URLs
+  - `true`: Enable external video URLs (default: `true`)
+  - `false`: Disable external video URL input
+
+### Use Cases
+
+1. **URLs Only (Current Configuration)**: 
+   - `video-upload-enabled=false` + `video-url-enabled=true`
+   - Users can only add YouTube/Vimeo URLs, no file uploads
+   - Reduces server storage and bandwidth costs
+   - Follows AutoTrader UK's primary pattern
+
+2. **Full Video Support**: 
+   - `video-upload-enabled=true` + `video-url-enabled=true`
+   - Users can both upload videos and add external URLs
+   - Maximum flexibility for users
+
+3. **No Video Support**: 
+   - `video-upload-enabled=false` + `video-url-enabled=false`
+   - Completely disables video functionality
+   - Video section won't appear in the listing form
+
 ### Application Properties
 ```properties
 # Video Configuration (Following AutoTrader best practices)
-spring.servlet.multipart.max-file-size=500MB
-spring.servlet.multipart.max-request-size=500MB
-app.upload.max-video-size=524288000
+app.upload.video-upload-enabled=false
+app.upload.video-url-enabled=true
+spring.servlet.multipart.max-file-size=100MB
+spring.servlet.multipart.max-request-size=100MB
+app.upload.max-video-size=104857600
 app.upload.max-video-duration=180
 app.upload.max-videos-per-listing=1
 app.upload.max-external-videos-per-listing=1
@@ -218,7 +250,7 @@ const addYouTubeVideo = async (listingId, youtubeUrl) => {
 
 // Invalid file size
 {
-  "error": "Video file size exceeds maximum limit of 500MB"
+  "error": "Video file size exceeds maximum limit of 100MB"
 }
 
 // Invalid YouTube URL

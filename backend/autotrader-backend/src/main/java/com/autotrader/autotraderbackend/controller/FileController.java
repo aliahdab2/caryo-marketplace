@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -32,6 +33,12 @@ public class FileController {
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
 
     private final StorageService storageService;
+    
+    @Value("${app.upload.video-upload-enabled:true}")
+    private boolean videoUploadEnabled;
+    
+    @Value("${app.upload.max-video-size:104857600}")
+    private long maxVideoSize;
 
     public FileController(StorageService storageService) {
         this.storageService = storageService;
@@ -240,11 +247,15 @@ public class FileController {
             return; // Not a video, skip validation
         }
         
-        // Check file size - AutoTrader suggests reasonable limits for 3-minute videos
-        // Typical 3-minute 1080p video: ~100-500MB depending on quality
-        long maxVideoSize = 500 * 1024 * 1024; // 500MB limit
+        // Check if video uploads are enabled
+        if (!videoUploadEnabled) {
+            throw new StorageException("Video file uploads are currently disabled. Please use external video URLs instead.");
+        }
+        
+        // Check file size
         if (file.getSize() > maxVideoSize) {
-            throw new StorageException("Video file size exceeds maximum limit of 500MB");
+            long maxVideoSizeMB = maxVideoSize / (1024 * 1024);
+            throw new StorageException("Video file size exceeds maximum limit of " + maxVideoSizeMB + "MB");
         }
         
         // Note: Duration validation will be handled by external tools or frontend

@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -40,7 +41,8 @@ public class VideoController {
     @Autowired
     private UserRepository userRepository;
 
-
+    @Value("${app.upload.video-url-enabled:true}")
+    private boolean videoUrlEnabled;
 
     // YouTube URL validation pattern (supports various YouTube URL formats)
     private static final Pattern YOUTUBE_URL_PATTERN = Pattern.compile(
@@ -67,6 +69,11 @@ public class VideoController {
             @AuthenticationPrincipal UserDetails userDetails) {
 
         log.info("Adding external video to listing {}: {}", listingId, request.getUrl());
+
+        // Check if video URLs are enabled
+        if (!videoUrlEnabled) {
+            throw new RuntimeException("External video URLs are currently disabled");
+        }
 
         // Get user from authentication
         String username = userDetails.getUsername();

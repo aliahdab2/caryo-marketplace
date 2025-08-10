@@ -210,6 +210,8 @@ export interface ListingFormData {
   contactEmail?: string; // Added, optional
   contactPreference: string; // This was in the original form state, ensure it's needed
   images: File[];
+  videos?: File[]; // Video files for upload
+  videoUrls?: string[]; // External video URLs (YouTube, Vimeo, etc.)
   status: 'active' | 'expired' | 'pending' | '';
   created?: string;
   expires?: string;

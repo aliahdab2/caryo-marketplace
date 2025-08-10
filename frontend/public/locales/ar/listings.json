@@ -355,5 +355,20 @@
   "newListingDragAndDrop": "اسحب وأفلت الصور هنا أو انقر للتصفح",
   "newListingChooseFiles": "اختيار الملفات",
   "newListingUsingDefaultMakes": "استخدام ماركات السيارات الافتراضية - مشكلة في الاتصال بواجهة برمجة التطبيقات",
-  "newListingUsingDefaultModels": "استخدام الموديلات الافتراضية - مشكلة في الاتصال بواجهة برمجة التطبيقات"
+  "newListingUsingDefaultModels": "استخدام الموديلات الافتراضية - مشكلة في الاتصال بواجهة برمجة التطبيقات",
+  "videoFieldsTitle": "الفيديوهات (اختياري)",
+  "videoFieldsSubtitle": "أضف فيديوهات لعرض مركبتك",
+  "uploadVideoLabel": "رفع ملف فيديو",
+  "uploadVideoHelp": "حد أقصى ملف فيديو واحد، 100 ميجابايت كحد أقصى، مدة 3 دقائق كحد أقصى",
+  "videoUrlLabel": "رابط فيديو خارجي",
+  "videoUrlPlaceholder": "https://youtube.com/watch?v=... أو https://vimeo.com/...",
+  "videoUrlHelp": "رابط فيديو من يوتيوب أو فيميو أو مواقع أخرى",
+  "removeVideo": "إزالة الفيديو",
+  "videoPreview": "معاينة الفيديو",
+  "videoUploaded": "تم رفع الفيديو بنجاح",
+  "videoLimitReached": "تم الوصول للحد الأقصى للفيديوهات",
+  "invalidVideoFormat": "تنسيق فيديو غير صحيح",
+  "invalidVideoUrl": "تنسيق رابط الفيديو غير صحيح",
+  "videoTooLarge": "ملف الفيديو كبير جداً (حد أقصى 100 ميجابايت)",
+  "videoTooLong": "الفيديو طويل جداً (حد أقصى 3 دقائق)"
 }

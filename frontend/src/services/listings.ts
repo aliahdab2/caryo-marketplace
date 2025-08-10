@@ -431,7 +431,11 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
     console.log('[Create Listing] Starting with form data:', {
       title: formData.title,
       imagesCount: formData.images?.length || 0,
-      hasImages: formData.images && formData.images.length > 0
+      hasImages: formData.images && formData.images.length > 0,
+      videosCount: formData.videos?.length || 0,
+      hasVideos: formData.videos && formData.videos.length > 0,
+      videoUrlsCount: formData.videoUrls?.length || 0,
+      hasVideoUrls: formData.videoUrls && formData.videoUrls.length > 0
     });
 
     // Validate that locationSlug is provided
@@ -634,7 +638,7 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
         }
       }
       
-      // Fetch the updated listing to get all media
+      // Fetch the updated listing to get all media after image uploads
       try {
         const updatedResponse = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/${response.id}`,
@@ -653,6 +657,102 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
         }
       } catch (error) {
         console.warn('[Create Listing] Failed to fetch updated listing with all media:', error);
+      }
+    }
+
+    // Upload video files if present
+    if (formData.videos && formData.videos.length > 0) {
+      console.log(`[Create Listing] Uploading ${formData.videos.length} video files`);
+      
+      for (let i = 0; i < formData.videos.length; i++) {
+        try {
+          const videoFile = formData.videos[i];
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', videoFile, videoFile.name);
+          uploadFormData.append('listingId', response.id.toString());
+          
+          const uploadResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/files/upload`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': headers.Authorization
+              },
+              body: uploadFormData,
+              credentials: 'include'
+            }
+          );
+          
+          if (!uploadResponse.ok) {
+            console.warn(`[Create Listing] Failed to upload video ${i + 1}:`, await uploadResponse.text());
+          } else {
+            console.log(`[Create Listing] Successfully uploaded video ${i + 1}`);
+          }
+        } catch (error) {
+          console.warn(`[Create Listing] Error uploading video ${i + 1}:`, error);
+        }
+      }
+    }
+
+    // Add external video URLs if present
+    if (formData.videoUrls && formData.videoUrls.length > 0) {
+      console.log(`[Create Listing] Adding ${formData.videoUrls.length} external video URLs`);
+      
+      for (let i = 0; i < formData.videoUrls.length; i++) {
+        try {
+          const videoUrl = formData.videoUrls[i];
+          const videoData = {
+            url: videoUrl,
+            title: `External Video ${i + 1}`,
+            durationSeconds: undefined // Let the backend handle duration detection if possible
+          };
+          
+          const videoResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/${response.id}/videos/external`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': headers.Authorization
+              },
+              body: JSON.stringify(videoData),
+              credentials: 'include'
+            }
+          );
+          
+          if (!videoResponse.ok) {
+            console.warn(`[Create Listing] Failed to add external video URL ${i + 1}:`, await videoResponse.text());
+          } else {
+            console.log(`[Create Listing] Successfully added external video URL ${i + 1}`);
+          }
+        } catch (error) {
+          console.warn(`[Create Listing] Error adding external video URL ${i + 1}:`, error);
+        }
+      }
+    }
+
+    // Fetch the final updated listing to get all media (images + videos)
+    if ((formData.images && formData.images.length > 1) || 
+        (formData.videos && formData.videos.length > 0) || 
+        (formData.videoUrls && formData.videoUrls.length > 0)) {
+      try {
+        const finalResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/${response.id}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': headers.Authorization
+            },
+            credentials: 'include'
+          }
+        );
+        
+        if (finalResponse.ok) {
+          const finalListing = await finalResponse.json() as ApiListingItem;
+          response.media = finalListing.media; // Use the final media array with all content
+        }
+      } catch (error) {
+        console.warn('[Create Listing] Failed to fetch final updated listing with all media:', error);
       }
     }
     
