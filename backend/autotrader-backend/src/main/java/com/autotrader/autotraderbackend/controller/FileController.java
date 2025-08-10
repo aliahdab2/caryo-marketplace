@@ -74,6 +74,9 @@ public class FileController {
             throw new StorageException("Unsupported file type: " + contentType);
         }
         
+        // Additional validation for video files
+        validateVideoFile(file);
+        
         // Generate a unique key for the file
         String originalFilename = file.getOriginalFilename();
         String fileExtension = "";
@@ -211,9 +214,40 @@ public class FileController {
      */
     private boolean isAllowedFileType(String contentType) {
         List<String> allowedTypes = Arrays.asList(
-            "image/jpeg", "image/png", "image/gif", "image/webp", 
+            // Image types
+            "image/jpeg", "image/png", "image/gif", "image/webp",
+            // Video types (following AutoTrader supported formats)
+            "video/mp4", "video/quicktime", "video/x-msvideo", "video/webm",
+            "video/x-ms-wmv", "video/x-flv", "video/mpeg", "video/3gpp",
+            // Document types
             "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         );
         return allowedTypes.contains(contentType);
+    }
+    
+    /**
+     * Checks if the content type is a video format
+     */
+    private boolean isVideoFile(String contentType) {
+        return contentType != null && contentType.startsWith("video/");
+    }
+    
+    /**
+     * Validates video file constraints following AutoTrader best practices
+     */
+    private void validateVideoFile(MultipartFile file) {
+        if (!isVideoFile(file.getContentType())) {
+            return; // Not a video, skip validation
+        }
+        
+        // Check file size - AutoTrader suggests reasonable limits for 3-minute videos
+        // Typical 3-minute 1080p video: ~100-500MB depending on quality
+        long maxVideoSize = 500 * 1024 * 1024; // 500MB limit
+        if (file.getSize() > maxVideoSize) {
+            throw new StorageException("Video file size exceeds maximum limit of 500MB");
+        }
+        
+        // Note: Duration validation will be handled by external tools or frontend
+        // as it requires video metadata extraction which is complex in Java
     }
 }

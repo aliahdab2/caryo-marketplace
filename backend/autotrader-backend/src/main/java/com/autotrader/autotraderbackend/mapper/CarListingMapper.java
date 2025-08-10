@@ -356,9 +356,25 @@ public class CarListingMapper {
         mediaResponse.setIsPrimary(media.getIsPrimary());
         mediaResponse.setMediaType(media.getMediaType());
         
-        // Generate signed URL for this media item
-        String signedUrl = generateSignedUrl(listingId, media.getFileKey());
-        mediaResponse.setUrl(signedUrl);
+        // Handle URL generation based on video source type (following AutoTrader patterns)
+        String mediaUrl;
+        if (media.isExternalVideo()) {
+            // For external videos (YouTube, Vimeo, etc.), use the external URL directly
+            mediaUrl = media.getExternalUrl();
+            log.debug("Using external URL for {} video: {}", media.getVideoSource(), 
+                Objects.nonNull(mediaUrl) ? "[URL Present]" : "[URL Null]");
+        } else {
+            // For uploaded files (images and uploaded videos), generate signed URL
+            mediaUrl = generateSignedUrl(listingId, media.getFileKey());
+        }
+        mediaResponse.setUrl(mediaUrl);
+        
+        // Set video-specific fields
+        if ("video".equals(media.getMediaType())) {
+            mediaResponse.setVideoSource(media.getVideoSource());
+            mediaResponse.setExternalUrl(media.getExternalUrl());
+            mediaResponse.setDurationSeconds(media.getDurationSeconds());
+        }
         
         return mediaResponse;
     }
