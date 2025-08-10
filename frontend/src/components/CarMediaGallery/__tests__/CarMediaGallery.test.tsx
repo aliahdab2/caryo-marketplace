@@ -4,6 +4,25 @@ import '@testing-library/jest-dom';
 import CarMediaGallery from '../CarMediaGallery';
 import { CarMedia } from '../types';
 
+// Mock i18next for translations
+jest.mock('react-i18next', () => ({
+  useTranslation: (namespace: string) => ({
+    t: (key: string, options?: { current?: number; total?: number }) => {
+      const translations: { [key: string]: string } = {
+        'viewGallery': 'View gallery',
+        'viewImage': 'View image',
+        'mediaCount': options ? `${options.current} of ${options.total}` : 'N of N'
+      };
+      return translations[key] || key;
+    },
+  }),
+}));
+
+// Mock language direction hook
+jest.mock('@/utils/languageDirection', () => ({
+  useLanguageDirection: () => ({ isRTL: false }),
+}));
+
 // Mock Next.js Image component
 jest.mock('next/image', () => {
   // Mock component has to use an img element, which is ok for tests
@@ -144,18 +163,21 @@ describe('CarMediaGallery', () => {
   it('renders correctly with images and video', () => {
     render(<CarMediaGallery media={sampleMedia} />);
     
-    // Should display the main gallery container
-    const gallery = screen.getByText('Car front view');
-    expect(gallery).toBeInTheDocument();
+    // Should display the main gallery container and thumbnails
+    const frontViewImages = screen.getAllByText('Car front view');
+    expect(frontViewImages.length).toBeGreaterThan(0); // Both main view and thumbnail
     
-    // Should show play icon on video slide
+    // Should show play icon on video thumbnail
     const playIcons = screen.getAllByTestId('play-icon');
     expect(playIcons.length).toBeGreaterThan(0);
     
-    // Should render all media items as slides
-    expect(screen.getByText('Car front view')).toBeInTheDocument();
-    expect(screen.getByText('Car interior')).toBeInTheDocument();
-    expect(screen.getByText('Car video tour')).toBeInTheDocument();
+    // Should render all media items (both in main view and thumbnails)
+    expect(screen.getAllByText('Car front view').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Car interior').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Car video tour').length).toBeGreaterThan(0);
+    
+    // Should show the "View gallery" button
+    expect(screen.getByText('View gallery')).toBeInTheDocument();
   });
 
   it('handles empty media array gracefully', () => {
@@ -167,55 +189,60 @@ describe('CarMediaGallery', () => {
     render(<CarMediaGallery media={sampleMedia} />);
     
     // Check that the gallery container exists
-    expect(screen.getByText('Car front view')).toBeInTheDocument();
+    expect(screen.getAllByText('Car front view').length).toBeGreaterThan(0);
     
-    // The component should render the keen-slider container
-    const sliderContainer = screen.getByText('Car front view').closest('.keen-slider');
-    expect(sliderContainer).toBeInTheDocument();
+    // Should show navigation arrows (since we have multiple media items)
+    expect(screen.getByLabelText('Previous media')).toBeInTheDocument();
+    expect(screen.getByLabelText('Next media')).toBeInTheDocument();
     
-    // Verify all media items are rendered in slides
-    expect(screen.getByText('Car interior')).toBeInTheDocument();
-    expect(screen.getByText('Car video tour')).toBeInTheDocument();
+    // Should show media counter (1/3 format)
+    expect(screen.getByText('1/3')).toBeInTheDocument();
+    
+    // Verify all media items are rendered in thumbnails
+    expect(screen.getAllByText('Car interior').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Car video tour').length).toBeGreaterThan(0);
   });
 
   it('respects initialIndex prop', () => {
     render(<CarMediaGallery media={sampleMedia} initialIndex={1} />);
     
     // Verify the component renders with the media
-    expect(screen.getByText('Car front view')).toBeInTheDocument();
-    expect(screen.getByText('Car interior')).toBeInTheDocument();
-    expect(screen.getByText('Car video tour')).toBeInTheDocument();
+    expect(screen.getAllByText('Car front view').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Car interior').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Car video tour').length).toBeGreaterThan(0);
     
-    // Check that all media items are rendered as slides
-    const allSlides = screen.getAllByText(/Car/);
-    expect(allSlides.length).toEqual(sampleMedia.length);
+    // Should show media counter starting at index 1 (which is 2/3)
+    expect(screen.getByText('2/3')).toBeInTheDocument();
   });
 
-  it('navigates between images using the slider', () => {
+  it('navigates between images using navigation arrows', () => {
     render(<CarMediaGallery media={sampleMedia} />);
     
-    // Verify the slider container is present
-    const sliderContainer = screen.getByText('Car front view').closest('.keen-slider');
-    expect(sliderContainer).toBeInTheDocument();
+    // Verify initial state shows first media item
+    expect(screen.getByText('1/3')).toBeInTheDocument();
     
-    // Verify only image items are rendered in the main slider (not videos)
-    expect(screen.getByText('Car front view')).toBeInTheDocument();
-    expect(screen.getByText('Car interior')).toBeInTheDocument();
-    // Video should be in separate section, not in main slider
-    expect(screen.getByText('Car video tour')).toBeInTheDocument();
+    // Click next arrow
+    const nextButton = screen.getByLabelText('Next media');
+    fireEvent.click(nextButton);
     
-    // Navigation is handled by keen-slider, so we just verify the image slides exist
-    const slides = sliderContainer?.querySelectorAll('.keen-slider__slide');
-    // Should only have 2 slides (images only), not 3 (since video is separate)
-    expect(slides?.length).toBe(2);
+    // Should advance to next media item (2/3)
+    expect(screen.getByText('2/3')).toBeInTheDocument();
+    
+    // Click previous arrow
+    const prevButton = screen.getByLabelText('Previous media');
+    fireEvent.click(prevButton);
+    
+    // Should go back to first media item (1/3)
+    expect(screen.getByText('1/3')).toBeInTheDocument();
   });
 
   it('opens the modal when clicking on the main image', () => {
     render(<CarMediaGallery media={sampleMedia} />);
     
-    // Get the main slider and click on it
-    const mainSlider = screen.getByText('Car front view').closest('.keen-slider');
-    fireEvent.click(mainSlider as HTMLElement);
+    // Click on the main gallery area to open modal
+    const mainViews = screen.getAllByText('Car front view');
+    const mainView = mainViews[0].closest('div[class*="cursor-pointer"]'); // Get the first one (main view)
+    fireEvent.click(mainView as HTMLElement);
     
     // Verify the modal is open
     const modal = screen.getByTestId('modal-dialog');
@@ -229,13 +256,12 @@ describe('CarMediaGallery', () => {
   it('displays photo counter when there are multiple media items', async () => {
     render(<CarMediaGallery media={sampleMedia} />);
     
-    // Wait for the photo counter to appear (after the created callback is called)
-    const photoCounter = await screen.findByText('1 of 2');
+    // Should show the media counter in new format (1/3)
+    const photoCounter = await screen.findByText('1/3');
     expect(photoCounter).toBeInTheDocument();
-    expect(photoCounter).toHaveClass('absolute', 'bottom-2', 'right-2');
   });
 
-  it('does not display photo counter when there is only one media item', () => {
+  it('displays single image correctly', () => {
     const singleMedia: CarMedia[] = [
       {
         type: 'image',
@@ -248,7 +274,14 @@ describe('CarMediaGallery', () => {
     
     render(<CarMediaGallery media={singleMedia} />);
     
-    // Verify the photo counter is not displayed
-    expect(screen.queryByText('1 of 1')).not.toBeInTheDocument();
+    // Should show the media counter even for single item (1/1)
+    expect(screen.getByText('1/1')).toBeInTheDocument();
+    
+    // Should show "View image" instead of "View gallery"
+    expect(screen.getByText('View image')).toBeInTheDocument();
+    
+    // Should not show navigation arrows for single item
+    expect(screen.queryByLabelText('Next media')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Previous media')).not.toBeInTheDocument();
   });
 });

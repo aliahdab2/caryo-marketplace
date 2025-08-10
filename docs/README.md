@@ -28,6 +28,7 @@ This directory contains comprehensive documentation for the Caryo Marketplace pr
 **Essential guides for feature development**
 
 - [Frontend Development Plan](development/frontend_development_plan.md) - Complete frontend architecture and implementation
+- [Component Testing](development/component_testing.md) - Test pages and component testing utilities
 - [Translation Guide for Developers](development/translation_guide_for_developers.md) - Internationalization best practices
 - [Translation System Updates](development/translation_system_updates.md) - Recent i18n improvements
 - [Social Login Best Practices](development/social_login_best_practices.md) - OAuth implementation guidelines
@@ -92,6 +93,7 @@ This directory contains comprehensive documentation for the Caryo Marketplace pr
 3. **Development Guidelines**:
    - [Translation Guide for Developers](development/translation_guide_for_developers.md)
    - [Frontend Development Plan](development/frontend_development_plan.md)
+   - [Component Testing](development/component_testing.md) - Test pages and utilities
 
 ### For API Integration
 
