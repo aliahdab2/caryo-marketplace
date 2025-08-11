@@ -149,22 +149,76 @@ backend/
 - Follow the [Translation Guide for Developers](docs/translation_guide_for_developers.md) for i18n implementation
 
 ### Translation Guidelines
-- **ALWAYS** follow the established translation patterns in the project
-- Use the existing translation files in `frontend/public/locales/` as reference
-- Maintain consistency with existing translation keys and naming conventions
-- When adding new features, ensure both English and Arabic translations are provided
-- Follow the bilingual field pattern: `name_en` and `name_ar` for database fields
-- Use the [Translation Guide for Developers](docs/development/translation_guide_for_developers.md) for proper i18n implementation patterns
-- Test translations in both languages before committing changes
+**CRITICAL: ALL translations must follow the project's translation guide strictly.**
 
-#### Key Translation Rules:
-1. **Namespace Organization**: Use component/route namespaces (e.g., `login.json`, `dashboard.json`) not content types
-2. **Flat Key Structure**: Use flat keys with camelCase naming (e.g., `"signIn"`, `"passwordRequirements"`)
-3. **Completeness**: Ensure all keys exist in both English and Arabic files
-4. **RTL Support**: Use CSS logical properties and test in both RTL/LTR modes
-5. **Performance**: Use lazy loading of translation namespaces
-6. **Type Safety**: Use TypeScript for translation key validation
-7. **Backend Integration**: Use database-driven translations with `name_en`/`name_ar` fields
+- **MANDATORY**: Follow the [Translation Guide for Developers](docs/development/translation_guide_for_developers.md) for ALL i18n implementation
+- **NO HARDCODED STRINGS**: Never use hardcoded text in UI components - always use translation keys
+- **RTL COMPLIANCE**: The project supports Arabic RTL layout - all UI must work in both LTR and RTL modes
+- **BILINGUAL SYSTEM**: Every user-facing string requires both English and Arabic translations
+
+#### Critical Translation Rules:
+1. **Flat Key Structure**: 
+   - ✅ DO: `{"signIn": "Sign In", "username": "Username"}`
+   - ❌ DON'T: `{"auth": {"signIn": "Sign In"}}`
+
+2. **Namespace Organization**: 
+   - ✅ DO: Organize by component/route (`login.json`, `dashboard.json`, `listings.json`)
+   - ❌ DON'T: Organize by content type (`buttons.json`, `errors.json`)
+
+3. **Key Naming**: 
+   - ✅ DO: Use camelCase (`passwordRequirements`, `videoProTip`)
+   - ❌ DON'T: Mix styles (`password_requirements`, `video-pro-tip`)
+
+4. **Usage in Components**:
+   ```typescript
+   // ✅ Correct usage
+   const { t } = useTranslation('listings');
+   t('videoProTip', 'Pro tip: Videos increase engagement');
+   
+   // ❌ Wrong - hardcoded text
+   "Pro tip: Videos increase engagement"
+   
+   // ❌ Wrong - nested key access
+   t('listings.videoProTip')
+   ```
+
+5. **Complete Coverage**: 
+   - Every key in `en/*.json` MUST exist in `ar/*.json`
+   - Include fallback values in `t()` calls
+   - Test in both languages before committing
+
+6. **RTL Support**:
+   - Use CSS logical properties (`margin-inline-start` not `margin-left`)
+   - Test UI layout in both Arabic (RTL) and English (LTR)
+   - Ensure text direction works correctly
+
+7. **Database Fields**: 
+   - Use `name_en` and `name_ar` pattern for bilingual database fields
+   - Return localized content based on Accept-Language header
+   - Support both single-language and bilingual API responses
+
+8. **Performance**: 
+   - Use `useLazyTranslation` for on-demand namespace loading
+   - Load only required namespaces per component
+   - Check `ready` state before rendering translated content
+
+#### Common Translation Mistakes to Avoid:
+- ❌ **Hardcoded strings**: `"Pro tip: Videos increase engagement"`
+- ❌ **Partial translations**: Only English provided, missing Arabic
+- ❌ **Nested keys in flat structure**: `t('auth.signIn')` when using namespace
+- ❌ **Missing fallbacks**: `t('key')` without fallback value
+- ❌ **Wrong namespace**: Using `common:` when key should be in specific namespace
+- ❌ **Inconsistent naming**: Mixing `camelCase`, `snake_case`, `kebab-case`
+- ❌ **RTL issues**: Using `margin-left` instead of `margin-inline-start`
+
+#### Pre-commit Translation Checklist:
+1. ✅ All UI text uses translation keys
+2. ✅ Both English and Arabic translations provided
+3. ✅ Keys follow flat camelCase structure
+4. ✅ Proper namespace organization
+5. ✅ Fallback values included in `t()` calls
+6. ✅ Tested in both LTR and RTL modes
+7. ✅ No hardcoded strings remaining
 
 ### Testing
 - Write tests for both H2 and PostgreSQL environments

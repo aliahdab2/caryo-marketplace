@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -32,6 +33,12 @@ public class FileController {
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
 
     private final StorageService storageService;
+    
+    @Value("${app.upload.video-upload-enabled:true}")
+    private boolean videoUploadEnabled;
+    
+    @Value("${app.upload.max-video-size:104857600}")
+    private long maxVideoSize;
 
     public FileController(StorageService storageService) {
         this.storageService = storageService;
@@ -73,6 +80,9 @@ public class FileController {
         if (contentType == null || !isAllowedFileType(contentType)) {
             throw new StorageException("Unsupported file type: " + contentType);
         }
+        
+        // Additional validation for video files
+        validateVideoFile(file);
         
         // Generate a unique key for the file
         String originalFilename = file.getOriginalFilename();
@@ -211,9 +221,44 @@ public class FileController {
      */
     private boolean isAllowedFileType(String contentType) {
         List<String> allowedTypes = Arrays.asList(
-            "image/jpeg", "image/png", "image/gif", "image/webp", 
+            // Image types
+            "image/jpeg", "image/png", "image/gif", "image/webp",
+            // Video types (following AutoTrader supported formats)
+            "video/mp4", "video/quicktime", "video/x-msvideo", "video/webm",
+            "video/x-ms-wmv", "video/x-flv", "video/mpeg", "video/3gpp",
+            // Document types
             "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         );
         return allowedTypes.contains(contentType);
+    }
+    
+    /**
+     * Checks if the content type is a video format
+     */
+    private boolean isVideoFile(String contentType) {
+        return contentType != null && contentType.startsWith("video/");
+    }
+    
+    /**
+     * Validates video file constraints following AutoTrader best practices
+     */
+    private void validateVideoFile(MultipartFile file) {
+        if (!isVideoFile(file.getContentType())) {
+            return; // Not a video, skip validation
+        }
+        
+        // Check if video uploads are enabled
+        if (!videoUploadEnabled) {
+            throw new StorageException("Video file uploads are currently disabled. Please use external video URLs instead.");
+        }
+        
+        // Check file size
+        if (file.getSize() > maxVideoSize) {
+            long maxVideoSizeMB = maxVideoSize / (1024 * 1024);
+            throw new StorageException("Video file size exceeds maximum limit of " + maxVideoSizeMB + "MB");
+        }
+        
+        // Note: Duration validation will be handled by external tools or frontend
+        // as it requires video metadata extraction which is complex in Java
     }
 }

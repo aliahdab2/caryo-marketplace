@@ -7,7 +7,7 @@ import 'keen-slider/keen-slider.min.css';
 
 // Import components and icons
 import { Dialog } from '@headlessui/react';
-import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Play, Camera, Video } from 'lucide-react';
 
 // RTL support
 import { useLanguageDirection } from '@/utils/languageDirection';
@@ -214,33 +214,30 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
               </div>
             )}
 
-            {/* Media count stamp - like car dealership sites */}
+            {/* Media count stamp - AutoTrader style */}
             <div className={`absolute top-3 z-20 ${isRTL ? 'right-3' : 'left-3'}`}>
-              <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'} bg-black bg-opacity-70 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm font-medium`}>
+              <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'} bg-gray-900 bg-opacity-90 backdrop-blur-sm rounded-md px-2.5 py-1.5 text-white text-sm font-medium`}>
                 {media.length === 1 ? (
                   // For single item, show just the type icon
                   currentMedia?.type === 'image' ? (
-                    <span className="text-lg">📷</span>
+                    <Camera className="w-5 h-5" />
                   ) : (
-                    <span className="text-lg">📹</span>
+                    <Video className="w-5 h-5" />
                   )
                 ) : (
-                  // For multiple items, show counts
+                  // For multiple items, show counts like AutoTrader
                   <>
                     {videos.length > 0 && (
-                      <>
-                        <span className="text-lg">📹</span>
-                        <span>{videos.length}</span>
-                      </>
-                    )}
-                    {images.length > 0 && videos.length > 0 && (
-                      <span className="text-gray-300 mx-1">•</span>
+                      <div className="flex items-center space-x-1">
+                        <Video className="w-5 h-5" />
+                        {videos.length > 1 && <span>{videos.length}</span>}
+                      </div>
                     )}
                     {images.length > 0 && (
-                      <>
-                        <span className="text-lg">📷</span>
-                        <span>{images.length}</span>
-                      </>
+                      <div className="flex items-center space-x-1">
+                        <Camera className="w-5 h-5" />
+                        {images.length > 1 && <span>{images.length}</span>}
+                      </div>
                     )}
                   </>
                 )}
@@ -325,7 +322,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                     />
                     {/* Image type indicator */}
                     <div className="absolute top-1 right-1">
-                      <span className="text-white text-lg drop-shadow-lg">📷</span>
+                      <Camera className="w-5 h-5 text-white drop-shadow-lg" />
                     </div>
                   </>
                 ) : (
@@ -343,7 +340,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                     </div>
                     {/* Video type indicator */}
                     <div className="absolute top-1 right-1">
-                      <span className="text-white text-lg drop-shadow-lg">📹</span>
+                      <Video className="w-5 h-5 text-white drop-shadow-lg" />
                     </div>
                     <div className="absolute top-1 left-1 bg-black bg-opacity-60 rounded px-1 py-0.5 text-white text-xs">
                       Video
