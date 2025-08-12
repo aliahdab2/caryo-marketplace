@@ -34,8 +34,10 @@ export interface LocationDetails {
  * Interface for governorate details from the backend
  */
 export interface GovernorateDetails {
+  id: number;
   displayNameEn: string;
   displayNameAr: string;
+  slug: string;
 }
 
 /**
@@ -146,6 +148,20 @@ export interface Listing {
     nameEn: string;
     nameAr: string;
   };
+  // Add details objects for ID access (from API response)
+  locationDetails?: {
+    id: number;
+    displayNameEn: string;
+    displayNameAr: string;
+    slug: string;
+    countryCode: string;
+  };
+  governorateDetails?: {
+    id: number;
+    displayNameEn: string;
+    displayNameAr: string;
+    slug: string;
+  };
   media?: { 
     url: string; 
     type?: string; 
@@ -201,8 +217,11 @@ export interface ListingFormData {
   categoryId?: string; // Added categoryId, make it optional or required based on your logic
   attributes?: Record<string, unknown>; // For dynamic attributes based on category
   location?: string; 
-  governorateSlug: string; // Changed from governorateId to governorateSlug
-  locationSlug: string; // Changed from locationId to locationSlug
+  governorateSlug: string; // For URL generation and form display
+  locationSlug: string; // For URL generation and form display
+  // Add direct IDs for efficient API calls
+  governorateId?: number; // Direct ID for API efficiency
+  locationId?: number; // Direct ID for API efficiency
   state: string; // State or province
   zipCode: string; // Postal/ZIP code
   contactName: string; // Added
@@ -212,7 +231,9 @@ export interface ListingFormData {
   images: File[];
   videos?: File[]; // Video files for upload
   videoUrls?: string[]; // External video URLs (YouTube, Vimeo, etc.)
-  status: 'active' | 'expired' | 'pending' | '';
+  existingImageUrls?: string[]; // URLs of existing images (for edit mode)
+  existingVideoUrls?: string[]; // URLs of existing videos (for edit mode)
+  status: 'active' | 'expired' | 'pending' | 'sold' | '';
   created?: string;
   expires?: string;
   views?: number;

@@ -2,25 +2,7 @@
 import { api } from './api';
 import { getAuthHeaders } from '@/utils/auth';
 import { ReferenceData } from '@/types/listings';
-
-export interface CarBrand {
-  id: number;
-  name: string;
-  slug: string;
-  displayNameEn: string;
-  displayNameAr: string;
-  isActive: boolean;
-}
-
-export interface CarModel {
-  id: number;
-  name: string;
-  slug: string;
-  displayNameEn: string;
-  displayNameAr: string;
-  isActive: boolean;
-  brandId: number; // Added to match DTO structure
-}
+import { CarBrand, CarModel } from '@/types/referenceData';
 
 /**
  * Get all car reference data (conditions, drive types, body styles, etc.)

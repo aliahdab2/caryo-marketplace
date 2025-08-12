@@ -319,11 +319,6 @@ export default function ListingsPage() {
         }}
       />
 
-			{/* Pagination - could be implemented here */}
-			<div className="flex justify-center mt-6">
-				{/* Pagination would go here */}
-			</div>
-
 			{/* Help box */}
 			<div className="mt-8 bg-blue-50 dark:bg-blue-900/30 rounded-lg p-6 border border-blue-100 dark:border-blue-800">
 				<h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-2">
