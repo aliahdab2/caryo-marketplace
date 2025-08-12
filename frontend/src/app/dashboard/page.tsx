@@ -16,8 +16,7 @@ import {
   MdLogout,
   MdArrowForward
 } from "react-icons/md";
-import { api } from "@/services/api";
-import { getMyListings } from "@/services/listings";
+import { getMyListings, deleteListingById } from "@/services/listings";
 import { Listing } from "@/types/listings";
 import { RecentListingsTable } from '@/components/listings';
 
@@ -168,28 +167,28 @@ export default function Dashboard() {
     {
       title: t('activeListings'),
       value: String(recentListings.filter(listing => listing.status === 'active').length),
-      icon: <MdDirectionsCar className="text-2xl md:text-3xl" />,
+      icon: <MdDirectionsCar className="w-5 h-5 lg:w-6 lg:h-6" />,
       color: 'blue',
       link: '/dashboard/listings'
     },
     {
       title: t('alerts', { ns: 'search' }),
       value: isLoading ? '...' : String(alertsCount),
-      icon: <MdNotifications className="text-2xl md:text-3xl" />,
+      icon: <MdNotifications className="w-5 h-5 lg:w-6 lg:h-6" />,
       color: 'green',
       link: '/saved/alerts'
     },
     {
       title: t('messages'),
       value: formatNumber(12, i18n.language),
-      icon: <MdEmail className="text-2xl md:text-3xl" />,
+      icon: <MdEmail className="w-5 h-5 lg:w-6 lg:h-6" />,
       color: 'purple',
       link: '/dashboard/messages'
     },
     {
       title: t('favorites'),
       value: isLoading ? '...' : String(favoritesCount),
-      icon: <MdStarBorder className="text-2xl md:text-3xl" />,
+      icon: <MdStarBorder className="w-5 h-5 lg:w-6 lg:h-6" />,
       color: 'amber',
       link: '/favorites'
     }
@@ -249,7 +248,7 @@ export default function Dashboard() {
       </div>
       
       {/* Dashboard Stats - Redesigned cards with modern appearance */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-10">
         {stats.map((stat, index) => {
           const colorStyle = getCardColorStyle(stat.color);
           
@@ -257,30 +256,30 @@ export default function Dashboard() {
             <Link 
               key={index}
               href={stat.link}
-              className={`${colorStyle.bg} border ${colorStyle.border} rounded-xl p-5 
+              className={`${colorStyle.bg} border ${colorStyle.border} rounded-xl p-4 lg:p-5 
                         transition-all duration-300 hover:shadow-lg ${colorStyle.shadow}
-                        hover:translate-y-[-2px] group`}
+                        hover:translate-y-[-2px] group min-h-[140px]`}
             >
-              <div className="flex items-start">
-                <div className={`${colorStyle.iconBg} p-3 rounded-lg ${colorStyle.text}`}>
+              <div className="flex items-start rtl:flex-row-reverse">
+                <div className={`${colorStyle.iconBg} p-2.5 lg:p-3 rounded-lg ${colorStyle.text} flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center`}>
                   {stat.icon}
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-gray-500 dark:text-gray-400 font-medium text-sm">
+                <div className="ml-4 rtl:ml-0 rtl:mr-4 flex-1 min-w-0">
+                  <h3 className="text-gray-500 dark:text-gray-400 font-medium text-xs lg:text-sm leading-tight mb-2 rtl:text-right">
                     {stat.title}
                   </h3>
-                  <div className="flex items-end mt-2">
-                    <span className={`text-2xl md:text-3xl font-bold ${colorStyle.text}`}>
+                  <div className="rtl:text-right">
+                    <span className={`text-lg md:text-xl lg:text-2xl font-bold tracking-wide ${colorStyle.text} break-words`}>
                       {stat.value}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-end mt-4">
-                <span className="text-xs text-gray-500 dark:text-gray-400 opacity-70 mr-1.5 group-hover:mr-2.5 transition-all">
+              <div className="flex items-center justify-end mt-4 rtl:flex-row-reverse">
+                <span className="text-xs text-gray-500 dark:text-gray-400 opacity-70 mr-1.5 rtl:mr-0 rtl:ml-1.5 group-hover:mr-2.5 rtl:group-hover:mr-1.5 rtl:group-hover:ml-2.5 transition-all">
                   {t('viewDetails')}
                 </span>
-                <MdArrowForward className={`opacity-0 group-hover:opacity-100 transition-opacity ${colorStyle.text}`} />
+                <MdArrowForward className={`opacity-0 group-hover:opacity-100 transition-opacity ${colorStyle.text} rtl:rotate-180`} />
               </div>
             </Link>
           );
@@ -295,8 +294,13 @@ export default function Dashboard() {
         showViewAllLink={true}
         maxRows={5}
         onDelete={async (id: string) => {
-          await api.delete(`/api/listings/${id}`);
-          setRecentListings(prev => prev.filter(listing => listing.id !== id));
+          try {
+            await deleteListingById(id);
+            setRecentListings(prev => prev.filter(listing => listing.id !== id));
+          } catch (error) {
+            console.error('Failed to delete listing:', error);
+            // Optionally show an error message to the user
+          }
         }}
         className="mb-8"
       />

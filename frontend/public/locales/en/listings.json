@@ -292,6 +292,7 @@
   "dashboardMyListings": "My Listings",
   "listingsRefreshTable": "Refresh table",
   "dashboardCreateListing": "Create Listing",
+  "createListing": "Create Listing",
   "filtersAndSort": "Filters & Sort",
   "listingsSearchPlaceholder": "Search listings...",
   "listingsSearchFields": "Search fields",
@@ -307,6 +308,7 @@
   "currencyUSD": "US Dollar",
   "sortBy": "Sort by",
   "date": "Date",
+  "dateNotAvailable": "Date not available",
   "title": "Title",
   "views": "Views",
   "listingsExpiry": "Expiry",
@@ -344,6 +346,7 @@
   "expiryProgress": "Expiry progress",
   "noMatchingListings": "No listings match your filters",
   "noListings": "No listings found",
+  "noListingsDesc": "You haven't created any listings yet. Start by creating your first listing to showcase your vehicle!",
   "confirmDelete": "Are you sure you want to delete this listing?",
   "confirmBulkDelete": "Are you sure you want to delete the selected listings?",
   "confirmDeleteMessage": "This action cannot be undone.",
@@ -429,5 +432,7 @@
   "videoSectionSubtitleUrlOnly": "Add a YouTube or Vimeo link to showcase your vehicle",
   "videoSectionTitleBoth": "Choose how you'd like to add videos to your listing",
   "videoSectionTitleUploadOnly": "Upload a video file to showcase your vehicle",
-  "videoSectionTitleUrlOnly": "Add a video URL to showcase your vehicle"
+  "videoSectionTitleUrlOnly": "Add a video URL to showcase your vehicle",
+  "recentListings": "Recent Listings",
+  "recentlyAdded": "Recently added"
 }
