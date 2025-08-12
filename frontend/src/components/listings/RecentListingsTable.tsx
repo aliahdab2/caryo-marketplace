@@ -198,113 +198,111 @@ export default function RecentListingsTable({
                   className="group bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 transition-all duration-200 hover:shadow-md overflow-hidden"
                 >
                   <div className="p-4">
-                    <div className="flex items-start space-x-4 rtl:space-x-reverse">
-                      {/* Clean Image Section */}
-                      <div className="relative flex-shrink-0">
-                        <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500">
-                          {listing.image ? (
-                            <Image 
-                              src={listing.image} 
-                              alt={listing.title || 'Vehicle image'}
-                              width={96}
-                              height={96}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                target.nextElementSibling?.classList.remove('hidden');
-                              }}
-                              priority={false}
-                            />
-                          ) : null}
-                          <div className={`absolute inset-0 flex items-center justify-center text-gray-400 ${listing.image ? 'hidden' : ''}`}>
-                            <MdDirectionsCar size={32} />
-                          </div>
-                        </div>
-                        {/* Simple Status Badge */}
-                        <div className="absolute -top-1 -right-1">
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusStyle(listing.status || 'pending')}`}>
-                            {listing?.status 
-                              ? t(`listings:listingStatus${listing.status.charAt(0).toUpperCase() + listing.status.slice(1)}`)
-                              : t('listings:listingStatusPending')
-                            }
-                          </span>
-                        </div>
-                      </div>
+                 <div className="flex items-start space-x-4 rtl:space-x-reverse">
+                   {/* Clean Image Section */}
+                   <div className="relative flex-shrink-0">
+                     <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500">
+                       {listing.image ? (
+                         <Image 
+                           src={listing.image} 
+                           alt={listing.title || 'Vehicle image'}
+                           width={96}
+                           height={96}
+                           className="w-full h-full object-cover"
+                           onError={(e) => {
+                             const target = e.target as HTMLImageElement;
+                             target.style.display = 'none';
+                             target.nextElementSibling?.classList.remove('hidden');
+                           }}
+                           priority={false}
+                         />
+                       ) : null}
+                       <div className={`absolute inset-0 flex items-center justify-center text-gray-400 ${listing.image ? 'hidden' : ''}`}>
+                         <MdDirectionsCar size={32} />
+                       </div>
+                     </div>
+                     {/* Simple Status Badge */}
+                     <div className="absolute -top-1 -right-1">
+                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusStyle(listing.status || 'pending')}`}>
+                         {listing?.status 
+                           ? t(`listings:listingStatus${listing.status.charAt(0).toUpperCase() + listing.status.slice(1)}`)
+                           : t('listings:listingStatusPending')
+                         }
+                       </span>
+                     </div>
+                   </div>
 
-                      {/* Content Section */}
-                      <div className="flex-1 min-w-0">
-                        <div className="mb-2">
-                          <div className="flex items-start justify-between mb-1">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex-1 mr-3 rtl:mr-0 rtl:ml-3">
-                              {listing.title}
-                            </h3>
-                            
-                            {/* Price Section - Compact right side */}
-                            {hasValidPrice && (
-                              <div className="text-right flex-shrink-0">
-                                <div className="text-base font-bold text-blue-600 dark:text-blue-400">
-                                  {formatCurrencyDisplay(listing.price, currency)}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                            <div className="flex items-center">
-                              <MdLocationOn className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-blue-500" />
-                              <span className="truncate">
-                                {formatLocation(listing)}
-                              </span>
-                            </div>
-                            {formatListingDate(listing) && (
-                              <div className="flex items-center ml-3 rtl:ml-0 rtl:mr-3">
-                                <MdAccessTime className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-green-500" />
-                                <span>
-                                  {formatListingDate(listing)}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                   {/* Content Section */}
+                   <div className="flex-1 min-w-0">
+                     {/* Top Row: Title and Price */}
+                     <div className="flex items-start justify-between mb-3">
+                       <h3 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex-1 mr-3 rtl:mr-0 rtl:ml-3">
+                         {listing.title}
+                       </h3>
+                       {hasValidPrice && (
+                         <div className="text-right flex-shrink-0">
+                           <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                             {formatCurrencyDisplay(listing.price, currency)}
+                           </div>
+                         </div>
+                       )}
+                     </div>
 
-                        {/* Additional Details & Actions */}
-                        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-600">
-                          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                            <span className="flex items-center">
-                              <MdCalendarToday className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-purple-500" />
-                              {listing.year || listing.modelYear}
-                            </span>
-                                                     {hasValidMileage && (
-                           <span className="flex items-center ml-3 rtl:ml-0 rtl:mr-3">
-                             <MdSpeed className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-orange-500" />
-                             {listing.mileage.toLocaleString()}
+                     {/* Middle Row: Car Details (Year & Mileage) */}
+                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-2">
+                       <span className="flex items-center">
+                         <MdCalendarToday className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-purple-500" />
+                         {listing.year || listing.modelYear}
+                       </span>
+                       {hasValidMileage && (
+                         <span className="flex items-center ml-4 rtl:ml-0 rtl:mr-4">
+                           <MdSpeed className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-orange-500" />
+                           {listing.mileage.toLocaleString()}
+                         </span>
+                       )}
+                     </div>
+
+                     {/* Bottom Row: Location and Date */}
+                     <div className="flex items-center justify-between">
+                       <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                         <div className="flex items-center">
+                           <MdLocationOn className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-blue-500" />
+                           <span className="truncate">
+                             {formatLocation(listing)}
                            </span>
+                         </div>
+                         {formatListingDate(listing) && (
+                           <div className="flex items-center ml-4 rtl:ml-0 rtl:mr-4">
+                             <MdAccessTime className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-green-500" />
+                             <span>
+                               {formatListingDate(listing)}
+                             </span>
+                           </div>
                          )}
-                          </div>
+                       </div>
 
-                          {/* Actions */}
-                          {showActions && (
-                            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                              <Link
-                                href={`/dashboard/listings/edit/${listing.id}`}
-                                className="p-2.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors duration-200"
-                                title={t('edit', { ns: 'common' })}
-                              >
-                                <MdEditNote size={22} />
-                              </Link>
-                              <button 
-                                onClick={() => handleDelete(listing.id)}
-                                className="p-2.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors duration-200"
-                                title={t('delete', { ns: 'common' })}
-                              >
-                                <MdDelete size={22} />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                       {/* Actions */}
+                       {showActions && (
+                         <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                           <Link
+                             href={`/dashboard/listings/edit/${listing.id}`}
+                             className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors duration-200"
+                             title={t('edit', { ns: 'common' })}
+                           >
+                             <MdEditNote size={20} />
+                           </Link>
+                           <button 
+                             onClick={() => handleDelete(listing.id)}
+                             className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors duration-200"
+                             title={t('delete', { ns: 'common' })}
+                           >
+                             <MdDelete size={20} />
+                           </button>
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                 </div>
                   </div>
                 </div>
               );
