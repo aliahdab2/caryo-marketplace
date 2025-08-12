@@ -14,7 +14,7 @@ import {
   MdCalendarToday,
   MdAccessTime,
   MdLocationOn,
-  MdAttachMoney
+  MdSpeed
 } from "react-icons/md";
 import DeleteConfirmationModal from "../ui/DeleteConfirmationModal";
 import { useDeleteConfirmation } from "../../hooks/useDeleteConfirmation";
@@ -276,12 +276,12 @@ export default function RecentListingsTable({
                               <MdCalendarToday className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-purple-500" />
                               {listing.year || listing.modelYear}
                             </span>
-                            {hasValidMileage && (
-                              <span className="flex items-center ml-3 rtl:ml-0 rtl:mr-3">
-                                <MdAttachMoney className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-orange-500" />
-                                {listing.mileage.toLocaleString()}
-                              </span>
-                            )}
+                                                     {hasValidMileage && (
+                           <span className="flex items-center ml-3 rtl:ml-0 rtl:mr-3">
+                             <MdSpeed className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-orange-500" />
+                             {listing.mileage.toLocaleString()}
+                           </span>
+                         )}
                           </div>
 
                           {/* Actions */}
