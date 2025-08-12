@@ -11,18 +11,14 @@ import { Listing } from "../../../types/listings";
 import { 
   MdSearch, 
   MdFilterListAlt, 
-  MdInfoOutline, 
-  MdMoreVert, 
   MdEdit, 
   MdDelete, 
   MdRefresh,
   MdClose,
   MdArrowUpward,
   MdArrowDownward,
-  MdHelpOutline,
   MdCheckBox,
   MdCheckBoxOutlineBlank,
-  MdViewList,
   MdRefresh as MdReload,
   MdOutlineNotificationsActive
 } from "react-icons/md";
@@ -508,13 +504,15 @@ export default function ListingsPage() {
         </div>
       )}
 
+
+
 			{/* Listings Table */}
-			<div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-				<div className="overflow-x-auto">
-					<table className="w-full">
+			<div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
+				<div className="min-w-0">
+					<table className="w-full table-fixed">
 						<thead ref={tableHeaderRef} className="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider sticky top-0 z-10">
 							<tr>
-                <th className="py-3 px-4">
+                <th className="py-3 px-4 w-12">
                   <div 
                     className="cursor-pointer"
                     onClick={toggleAllSelection}
@@ -527,7 +525,7 @@ export default function ListingsPage() {
                     )}
                   </div>
                 </th>
-								<th className="py-3 px-4">
+								<th className="py-3 px-4 w-1/3">
                   <span 
                     onClick={() => handleSort("title")}
                     className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
@@ -535,7 +533,7 @@ export default function ListingsPage() {
                     {t("common:title")} {getSortIcon("title")}
                   </span>
                 </th>
-								<th className="py-3 px-4">
+								<th className="py-3 px-4 w-24">
                   <span 
                     onClick={() => handleSort("price")}
                     className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
@@ -543,8 +541,8 @@ export default function ListingsPage() {
                     {t("common:price")} {getSortIcon("price")}
                   </span>
                 </th>
-								<th className="py-3 px-4">{t("common:status")}</th>
-								<th className="py-3 px-4">
+								<th className="py-3 px-4 w-24">{t("common:status")}</th>
+								<th className="py-3 px-4 w-32">
                   <span 
                     onClick={() => handleSort("expiry")}
                     className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
@@ -552,20 +550,7 @@ export default function ListingsPage() {
                     {t("common:date")} {getSortIcon("expiry")}
                   </span>
                 </th>
-								<th className="py-3 px-4">
-                  <div className="flex items-center">
-                    <span 
-                      onClick={() => handleSort("views")}
-                      className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
-                    >
-                      {t("common:views")} {getSortIcon("views")}
-                    </span>
-                    <div className="ml-1">
-                      <MdHelpOutline size={16} className="text-gray-400" />
-                    </div>
-                  </div>
-                </th>
-								<th className="py-3 px-4">{t("common:actions")}</th>
+								<th className="py-3 px-4 w-24">{t("common:actions")}</th>
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -664,8 +649,13 @@ export default function ListingsPage() {
 											</div>
 										</td>
 										<td className="py-4 px-4">
-                      <div className="font-medium text-gray-900 dark:text-white text-lg">
-											  {formatNumber(listing.price, i18n.language, { style: 'currency', currency: listing.currency })}
+                                              <div className="font-medium text-gray-900 dark:text-white text-lg">
+											  {formatNumber(listing.price, i18n.language, { 
+                            style: 'currency', 
+                            currency: listing.currency,
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
+                          })}
                         <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           {t(`listings:currency${listing.currency || 'USD'}`)}
                         </div>
@@ -739,14 +729,6 @@ export default function ListingsPage() {
                       </div>
                     </td>
 										<td className="py-4 px-4">
-                      <div className="flex items-center">
-                        <span className="font-medium text-lg">{formatNumber(listing.views || 0, i18n.language)}</span>
-                        <div className="ml-1.5 bg-gray-100 dark:bg-gray-700 rounded-full p-1">
-                          <MdInfoOutline className="text-gray-500 dark:text-gray-400" size={16} />
-                        </div>
-                      </div>
-                    </td>
-										<td className="py-4 px-4">
                       <div className="flex items-center gap-2">
                         <Link
                           href={`/dashboard/listings/edit/${listing.id}`}
@@ -774,24 +756,7 @@ export default function ListingsPage() {
                           </button>
                         )}
                         
-                        <div className="relative ml-1 group">
-                          <button className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors">
-                            <MdMoreVert size={18} />
-                          </button>
-                          
-                          {/* Dropdown menu */}
-                          <div className="absolute right-0 mt-1 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 w-40 py-1 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all z-10">
-                            <Link
-                              href={`/listings/view/${listing.id}`}
-                              className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                            >
-                              <MdViewList size={16} className="mr-2 text-gray-600 dark:text-gray-400" />
-                              {t("listings:view")}
-                            </Link>
-                            
-                            {/* More actions could go here */}
-                          </div>
-                        </div>
+
                       </div>
 										</td>
 									</tr>
@@ -800,7 +765,7 @@ export default function ListingsPage() {
 							) : (
 								<tr>
 									<td
-										colSpan={8}
+										colSpan={7}
 										className="py-6 px-4 text-center text-gray-500 dark:text-gray-400"
 									>
 										{search || statusFilter !== "all"

@@ -2,29 +2,24 @@
 
 import { signOut, useSession } from "next-auth/react";
 import { useAuthUser } from "@/hooks/useAuthSession";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLazyTranslation } from '../../hooks/useLazyTranslation';
-import { formatDate, formatNumber } from "../../utils/localization";
+import { formatNumber } from "../../utils/localization";
 import { useEffect, useState } from "react";
 import { 
   MdStarBorder, 
   MdEmail, 
   MdNotifications, 
-  MdVisibility,
   MdDirectionsCar, 
   MdAddCircleOutline,
   MdEditNote,
-  MdDelete,
   MdLogout,
-  MdArrowForward,
-  MdCalendarToday
+  MdArrowForward
 } from "react-icons/md";
 import { api } from "@/services/api";
 import { getMyListings } from "@/services/listings";
 import { Listing } from "@/types/listings";
-import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
-import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
+import { RecentListingsTable } from '@/components/listings';
 
 // Move namespaces outside component to prevent recreation on every render
 const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings', 'search'];
@@ -32,7 +27,6 @@ const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings', 'search'];
 export default function Dashboard() {
   const user = useAuthUser();
   const { data: session } = useSession();
-  const router = useRouter();
   const { t, i18n, ready } = useLazyTranslation(DASHBOARD_NAMESPACES);
   const [favoritesCount, setFavoritesCount] = useState<number>(0);
   const [alertsCount, setAlertsCount] = useState<number>(0);
@@ -40,17 +34,7 @@ export default function Dashboard() {
   const [recentListings, setRecentListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
   
-  // Delete confirmation hook
-  const deleteConfirmation = useDeleteConfirmation({
-    namespace: 'listings',
-    onDelete: async (id: string) => {
-      await api.delete(`/api/listings/${id}`);
-      setRecentListings(prev => prev.filter(listing => listing.id !== id));
-    },
-    onError: (error) => {
-      console.error('Failed to delete listing:', error);
-    }
-  });
+
 
   // Fetch favorites and alerts count when component mounts or session changes
   useEffect(() => {
@@ -211,41 +195,7 @@ export default function Dashboard() {
     }
   ];
 
-  // Helper function to get status styles
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case 'active':
-        return {
-          bg: 'bg-green-100 dark:bg-green-900/30',
-          text: 'text-green-800 dark:text-green-400',
-          dotColor: 'bg-green-500'
-        };
-      case 'expired':
-        return {
-          bg: 'bg-red-100 dark:bg-red-900/30',
-          text: 'text-red-800 dark:text-red-400',
-          dotColor: 'bg-red-500'
-        };
-      case 'pending':
-        return {
-          bg: 'bg-yellow-100 dark:bg-yellow-900/30',
-          text: 'text-yellow-800 dark:text-yellow-400',
-          dotColor: 'bg-yellow-500'
-        };
-      case 'sold':
-        return {
-          bg: 'bg-gray-100 dark:bg-gray-900/30',
-          text: 'text-gray-800 dark:text-gray-400',
-          dotColor: 'bg-gray-500'
-        };
-      default:
-        return {
-          bg: 'bg-gray-100 dark:bg-gray-900/30',
-          text: 'text-gray-800 dark:text-gray-400',
-          dotColor: 'bg-gray-500'
-        };
-    }
-  };
+
 
   // Get card color style
   const getCardColorStyle = (color: string) => {
@@ -283,11 +233,7 @@ export default function Dashboard() {
     return colorStyles[color as keyof typeof colorStyles] || colorStyles.blue;
   };
 
-  // Handle delete listing
-  const handleDelete = (id: string) => {
-    const listing = recentListings.find(l => l.id === id);
-    deleteConfirmation.openSingleDelete(id, listing?.title);
-  };
+
 
   return (
     <div>
@@ -341,140 +287,19 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* Recent Listings - Enhanced table with thumbnails and status indicators */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 mb-8">
-        <div className="flex flex-wrap justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-            <MdDirectionsCar className="mr-2 text-primary" />
-            {t('recentListings')}
-          </h2>
-          <Link 
-            href="/dashboard/listings"
-            className="text-primary hover:text-primary-dark flex items-center text-sm font-medium transition-colors"
-          >
-            {t('viewAll')}
-            <MdArrowForward className="ml-1 rtl:rotate-180" />
-          </Link>
-        </div>
-        
-        <div className="overflow-x-auto">
-          {listingsLoading ? (
-            <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-gray-500 dark:text-gray-400">{t('loading')}</p>
-            </div>
-          ) : recentListings.length === 0 ? (
-            <div className="p-8 text-center">
-              <MdDirectionsCar className="mx-auto text-gray-400 text-4xl mb-4" />
-              <p className="text-gray-500 dark:text-gray-400 mb-4">{t('noListings')}</p>
-              <Link 
-                href="/dashboard/listings/new"
-                className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <MdAddCircleOutline className="mr-2" />
-                {t('createListing')}
-              </Link>
-            </div>
-          ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800/50 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  <th className="py-3.5 px-5">{t('image')}</th>
-                  <th className="py-3.5 px-5">{t('title')}</th>
-                  <th className="py-3.5 px-5">{t('price')}</th>
-                  <th className="py-3.5 px-5">{t('date')}</th>
-                  <th className="py-3.5 px-5">{t('views')}</th>
-                  <th className="py-3.5 px-5">{t('status')}</th>
-                  <th className="py-3.5 px-5">{t('actions')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {recentListings.map((listing) => {
-                  const statusStyle = getStatusStyle(listing.status || 'pending');
-                  const currency = (listing.currency ?? 'USD') as string;
-                  
-                  return (
-                    <tr 
-                      key={listing.id} 
-                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                    >
-                      <td className="py-4 px-5">
-                        <div className="w-16 h-12 bg-gray-200 dark:bg-gray-700 rounded-md overflow-hidden relative">
-                          {listing.image ? (
-                            <img 
-                              src={listing.image} 
-                              alt={listing.title}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                target.nextElementSibling?.classList.remove('hidden');
-                              }}
-                            />
-                          ) : null}
-                          <div className={`absolute inset-0 flex items-center justify-center text-gray-400 ${listing.image ? 'hidden' : ''}`}>
-                            <MdDirectionsCar size={24} />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-5 font-medium text-gray-900 dark:text-white">
-                        {listing.title}
-                      </td>
-                      <td className="py-4 px-5 text-gray-700 dark:text-gray-300 font-medium">
-                        {formatNumber(listing.price, i18n.language, { 
-                          style: 'currency', 
-                          currency: currency 
-                        })}
-                      </td>
-                      <td className="py-4 px-5 text-gray-600 dark:text-gray-400 text-sm whitespace-nowrap">
-                        <div className="flex items-center">
-                          <MdCalendarToday className="mr-1.5 text-gray-400" size={14} />
-                          {formatDate(listing.createdAt, i18n.language, { dateStyle: 'medium' })}
-                        </div>
-                      </td>
-                      <td className="py-4 px-5 text-gray-600 dark:text-gray-400">
-                        <div className="flex items-center">
-                          <MdVisibility className="mr-1.5 text-gray-400" size={16} />
-                          {formatNumber(listing.views || 0, i18n.language)}
-                        </div>
-                      </td>
-                      <td className="py-4 px-5">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotColor} mr-1.5`}></span>
-                          {listing?.status 
-                            ? t(`listings:listingStatus${listing.status.charAt(0).toUpperCase() + listing.status.slice(1)}`)
-                            : t('listings:listingStatusPending')
-                          }
-                        </span>
-                      </td>
-                      <td className="py-4 px-5">
-                        <div className="flex items-center space-x-3 rtl:space-x-reverse rtl:gap-3">
-                          <button 
-                            onClick={() => router.push(`/dashboard/listings/edit/${listing.id}`)}
-                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                            aria-label={t('edit')}
-                            title={t('edit')}
-                          >
-                            <MdEditNote size={22} />
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(listing.id)}
-                            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                            aria-label={t('delete')}
-                            title={t('delete')}
-                          >
-                            <MdDelete size={20} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
+      {/* Recent Listings - Using shared component */}
+      <RecentListingsTable
+        listings={recentListings}
+        loading={listingsLoading}
+        showActions={true}
+        showViewAllLink={true}
+        maxRows={5}
+        onDelete={async (id: string) => {
+          await api.delete(`/api/listings/${id}`);
+          setRecentListings(prev => prev.filter(listing => listing.id !== id));
+        }}
+        className="mb-8"
+      />
 
       {/* Quick Actions - Modern action cards */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-5">
@@ -536,8 +361,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal {...deleteConfirmation.modalProps} />
     </div>
   );
 }
