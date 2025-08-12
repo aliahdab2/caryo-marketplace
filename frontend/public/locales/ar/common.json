@@ -145,8 +145,7 @@
   "listings.expired": "منتهي الصلاحية",
   "listings.pending": "قيد الانتظار",
   "listings.expiry": "تاريخ الانتهاء",
-  "listings.confirmDelete": "هل أنت متأكد من رغبتك في حذف هذا الإعلان؟ لا يمكن التراجع عن هذا الإجراء.",
-  "listings.confirmBulkDelete": "هل أنت متأكد من رغبتك في حذف الإعلانات المحددة؟ لا يمكن التراجع عن هذا الإجراء.",
+
   "listings.renewAll": "تجديد الكل",
   "listings.searchFields": "حقول البحث",
   "listings.filterByStatus": "تصفية حسب الحالة",

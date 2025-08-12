@@ -804,3 +804,29 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
     throw new ApiError('Failed to create listing', 500);
   }
 }
+
+// Delete a single listing by ID
+export async function deleteListingById(id: string): Promise<void> {
+  try {
+    const headers = await getAuthHeaders();
+    await api.delete(`/api/listings/${id}`, headers);
+  } catch (error) {
+    console.error('[Delete Listing] Error:', error);
+    throw error;
+  }
+}
+
+// Delete multiple listings by IDs
+export async function deleteMultipleListings(ids: string[]): Promise<void> {
+  try {
+    const headers = await getAuthHeaders();
+    // If the backend supports bulk delete, use it
+    // await api.delete('/api/listings/bulk', { ...headers, body: JSON.stringify({ ids }) });
+    
+    // Otherwise, delete one by one
+    await Promise.all(ids.map(id => api.delete(`/api/listings/${id}`, headers)));
+  } catch (error) {
+    console.error('[Delete Multiple Listings] Error:', error);
+    throw error;
+  }
+}
