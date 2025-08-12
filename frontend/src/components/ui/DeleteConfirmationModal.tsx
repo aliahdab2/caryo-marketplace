@@ -3,21 +3,7 @@
 import React from 'react';
 import { FaTrash, FaExclamationTriangle } from 'react-icons/fa';
 import { useLanguageDirection } from '@/utils/languageDirection';
-
-interface DeleteConfirmationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  message: string;
-  itemName?: string;
-  isLoading?: boolean;
-  loadingText?: string;
-  confirmText?: string;
-  cancelText?: string;
-  type?: 'danger' | 'warning';
-  className?: string;
-}
+import type { DeleteConfirmationModalProps } from '@/types/ui';
 
 const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   isOpen,

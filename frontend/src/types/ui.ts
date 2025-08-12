@@ -79,3 +79,39 @@ export interface PriceSliderProps {
   // Locale for number formatting
   locale?: string;
 }
+
+/**
+ * Delete Confirmation Types
+ */
+export interface DeleteConfirmationState {
+  isOpen: boolean;
+  isLoading: boolean;
+  type: 'single' | 'bulk';
+  itemId?: string;
+  itemName?: string;
+  itemIds?: string[];
+  itemCount?: number;
+}
+
+export interface UseDeleteConfirmationOptions {
+  namespace?: string;
+  onDelete?: (id: string) => Promise<void>;
+  onBulkDelete?: (ids: string[]) => Promise<void>;
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+}
+
+export interface DeleteConfirmationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+  itemName?: string;
+  isLoading?: boolean;
+  loadingText?: string;
+  confirmText?: string;
+  cancelText?: string;
+  type?: 'danger' | 'warning';
+  className?: string;
+}

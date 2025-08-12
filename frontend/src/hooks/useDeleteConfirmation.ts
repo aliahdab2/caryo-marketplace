@@ -1,38 +1,18 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToastHelpers } from '@/components/ui/ToastProvider';
+import type { 
+  DeleteConfirmationState, 
+  UseDeleteConfirmationOptions, 
+  DeleteConfirmationModalProps 
+} from '@/types/ui';
 
-export interface DeleteConfirmationState {
-  isOpen: boolean;
-  isLoading: boolean;
-  type: 'single' | 'bulk';
-  itemId?: string;
-  itemName?: string;
-  itemIds?: string[];
-  itemCount?: number;
-}
-
-export interface UseDeleteConfirmationOptions {
-  namespace?: string;
-  onDelete?: (id: string) => Promise<void>;
-  onBulkDelete?: (ids: string[]) => Promise<void>;
-  onSuccess?: () => void;
-  onError?: (error: Error) => void;
-}
-
-export interface DeleteConfirmationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  message: string;
-  itemName?: string;
-  isLoading: boolean;
-  loadingText: string;
-  confirmText: string;
-  cancelText: string;
-  type: 'danger' | 'warning';
-}
+// Re-export types for backward compatibility
+export type { 
+  DeleteConfirmationState, 
+  UseDeleteConfirmationOptions, 
+  DeleteConfirmationModalProps 
+};
 
 export function useDeleteConfirmation({
   namespace = 'listings',
@@ -127,7 +107,7 @@ export function useDeleteConfirmation({
     loadingText: t('common:deleting', 'Deleting...'),
     confirmText: t('common:delete', 'Delete'),
     cancelText: t('common:cancel', 'Cancel'),
-    type: 'danger' as const
+    type: 'danger'
   };
 
   return {
