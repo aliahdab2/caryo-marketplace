@@ -434,5 +434,12 @@
   "videoSectionTitleUploadOnly": "Upload a video file to showcase your vehicle",
   "videoSectionTitleUrlOnly": "Add a video URL to showcase your vehicle",
   "recentListings": "Recent Listings",
-  "recentlyAdded": "Recently added"
+  "recentlyAdded": "Recently added",
+  "filterAndSort": "Filters & Sort",
+  "searchListings": "Search your listings...",
+  "allStatuses": "All Statuses",
+  "newest": "Newest First",
+  "ascending": "Ascending",
+  "descending": "Descending",
+  "myListings": "My Listings"
 }

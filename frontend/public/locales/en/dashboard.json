@@ -129,5 +129,7 @@
   "loading": "Loading...",
   "search": "Search",
   "listings.active": "Active",
-  "noListings": "No listings found"
+  "noListings": "No listings found",
+  "addNewListing": "Add New Listing",
+  "manageYourListingsDesc": "Manage and track your vehicle listings"
 }

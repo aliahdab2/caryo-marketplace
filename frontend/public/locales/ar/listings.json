@@ -399,5 +399,12 @@
   "videoSectionTitleUploadOnly": "ارفع ملف فيديو لعرض سيارتك",
   "videoSectionTitleUrlOnly": "أضف رابط فيديو لعرض سيارتك",
   "recentListings": "القوائم الحديثة",
-  "recentlyAdded": "تمت الإضافة مؤخراً"
+  "recentlyAdded": "تمت الإضافة مؤخراً",
+  "filterAndSort": "فلترة وترتيب",
+  "searchListings": "ابحث في إعلاناتك...",
+  "allStatuses": "جميع الحالات",
+  "newest": "الأحدث أولاً",
+  "ascending": "تصاعدي",
+  "descending": "تنازلي",
+  "myListings": "إعلاناتي"
 }

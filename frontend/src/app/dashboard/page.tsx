@@ -18,7 +18,7 @@ import {
 } from "react-icons/md";
 import { getMyListings, deleteListingById } from "@/services/listings";
 import { Listing } from "@/types/listings";
-import { RecentListingsTable } from '@/components/listings';
+import { ListingsView } from '@/components/listings';
 
 // Move namespaces outside component to prevent recreation on every render
 const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings', 'search'];
@@ -287,12 +287,14 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Listings - Using shared component */}
-      <RecentListingsTable
+      <ListingsView
         listings={recentListings}
         loading={listingsLoading}
+        variant="summary"
+        maxRows={5}
         showActions={true}
         showViewAllLink={true}
-        maxRows={5}
+        headerTitle={t('recentListings')}
         onDelete={async (id: string) => {
           try {
             await deleteListingById(id);

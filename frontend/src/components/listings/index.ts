@@ -1,1 +1,1 @@
-export { default as RecentListingsTable } from './RecentListingsTable';
+export { default as ListingsView } from './ListingsView';
