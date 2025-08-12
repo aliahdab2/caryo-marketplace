@@ -23,6 +23,8 @@ import {
 import { api } from "@/services/api";
 import { getMyListings } from "@/services/listings";
 import { Listing } from "@/types/listings";
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
+import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
 
 // Move namespaces outside component to prevent recreation on every render
 const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings', 'search'];
@@ -37,6 +39,18 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [recentListings, setRecentListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
+  
+  // Delete confirmation hook
+  const deleteConfirmation = useDeleteConfirmation({
+    namespace: 'listings',
+    onDelete: async (id: string) => {
+      await api.delete(`/api/listings/${id}`);
+      setRecentListings(prev => prev.filter(listing => listing.id !== id));
+    },
+    onError: (error) => {
+      console.error('Failed to delete listing:', error);
+    }
+  });
 
   // Fetch favorites and alerts count when component mounts or session changes
   useEffect(() => {
@@ -270,17 +284,9 @@ export default function Dashboard() {
   };
 
   // Handle delete listing
-  const handleDelete = async (id: string) => {
-    if (window.confirm(t('listings:confirmDelete'))) {
-      try {
-        await api.delete(`/api/listings/${id}`);
-        // Remove from recent listings
-        setRecentListings(prev => prev.filter(listing => listing.id !== id));
-      } catch (error) {
-        console.error('Failed to delete listing:', error);
-        alert(t('listings:deleteError'));
-      }
-    }
+  const handleDelete = (id: string) => {
+    const listing = recentListings.find(l => l.id === id);
+    deleteConfirmation.openSingleDelete(id, listing?.title);
   };
 
   return (
@@ -435,7 +441,10 @@ export default function Dashboard() {
                       <td className="py-4 px-5">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotColor} mr-1.5`}></span>
-                          {t(`listings:${listing.status}`) || listing.status}
+                          {listing?.status 
+                            ? t(`listings:listingStatus${listing.status.charAt(0).toUpperCase() + listing.status.slice(1)}`)
+                            : t('listings:listingStatusPending')
+                          }
                         </span>
                       </td>
                       <td className="py-4 px-5">
@@ -526,6 +535,9 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal {...deleteConfirmation.modalProps} />
     </div>
   );
 }

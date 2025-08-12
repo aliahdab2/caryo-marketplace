@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import { getSession } from "next-auth/react";
 import { formatDate, formatNumber } from "../../../utils/localization";
-import { getMyListings } from "../../../services/listings";
+import { getMyListings, deleteListingById, deleteMultipleListings } from "../../../services/listings";
 import { Listing } from "../../../types/listings";
 import { 
   MdSearch, 
@@ -26,6 +26,8 @@ import {
   MdRefresh as MdReload,
   MdOutlineNotificationsActive
 } from "react-icons/md";
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
+import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
 
 export default function ListingsPage() {
 	const { t, i18n } = useTranslation(["dashboard", "listings", "common"]);
@@ -40,6 +42,23 @@ export default function ListingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
+  
+  // Delete confirmation hook
+  const deleteConfirmation = useDeleteConfirmation({
+    namespace: 'listings',
+    onDelete: async (id: string) => {
+      await deleteListingById(id);
+      setListings(prev => prev.filter(listing => listing.id !== id));
+    },
+    onBulkDelete: async (ids: string[]) => {
+      await deleteMultipleListings(ids);
+      setListings(prev => prev.filter(listing => !ids.includes(listing.id)));
+      setSelectedItems([]);
+    },
+    onError: (error) => {
+      console.error('Failed to delete listing(s):', error);
+    }
+  });
   
   // Load user's listings from API
   useEffect(() => {
@@ -158,14 +177,11 @@ export default function ListingsPage() {
 
   // Function to handle listing delete
   const handleDelete = (id: string) => {
-    if (window.confirm(t("listings:confirmDelete"))) {
-      setListings((prev) => prev.filter((listing) => listing.id !== id));
-      // Also remove from selected items if present
-      if (selectedItems.includes(id)) {
-        setSelectedItems(prev => prev.filter(itemId => itemId !== id));
-      }
-    }
+    const listing = listings.find(l => l.id === id);
+    deleteConfirmation.openSingleDelete(id, listing?.title);
   };
+
+
 
   // Function to handle listing renewal
   const handleRenew = (id: string) => {
@@ -190,10 +206,7 @@ export default function ListingsPage() {
   // Handle bulk operations
   const handleBulkAction = (action: 'delete' | 'renew') => {
     if (action === 'delete') {
-      if (window.confirm(t("listings:confirmBulkDelete"))) {
-        setListings(prev => prev.filter(listing => !selectedItems.includes(listing.id)));
-        setSelectedItems([]);
-      }
+      deleteConfirmation.openBulkDelete(selectedItems);
     } else if (action === 'renew') {
       setListings(prev => 
         prev.map(listing => {
@@ -210,8 +223,11 @@ export default function ListingsPage() {
           return listing;
         })
       );
+      setSelectedItems([]);
     }
   };
+
+
 
   // Toggle item selection
   const toggleItemSelection = (id: string) => {
@@ -673,7 +689,10 @@ export default function ListingsPage() {
                               ? "bg-red-500"
                               : "bg-yellow-500"
                           }`}></span>
-                          {t(`listings:listingStatus${listing?.status ? listing.status.charAt(0).toUpperCase() + listing.status.slice(1) : 'Pending'}`)}
+                          {listing?.status 
+                            ? t(`listings:listingStatus${listing.status.charAt(0).toUpperCase() + listing.status.slice(1)}`)
+                            : t('listings:listingStatusPending')
+                          }
                         </span>
                         
                         {listing.status === "active" && expiryDate && (
@@ -820,6 +839,8 @@ export default function ListingsPage() {
         </div>
       </div>
       </div>
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal {...deleteConfirmation.modalProps} />
     </div>
   );
 }

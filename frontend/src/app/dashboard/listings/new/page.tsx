@@ -763,7 +763,7 @@ export default function NewListingPage() {
     if (!isVideoUploadEnabled) {
       setFormErrors(prev => ({ 
         ...prev, 
-        videos: 'Video uploads are temporarily unavailable. You can still add video URLs if that option is enabled.' 
+        videos: t('listings:newListingValidationVideoUploadDisabled', 'Video uploads are temporarily unavailable. You can still add video URLs if that option is enabled.') 
       }));
       return;
     }
@@ -815,7 +815,7 @@ export default function NewListingPage() {
         return rest;
       });
     }
-  }, [formData.videos, isVideoUploadEnabled]);
+  }, [formData.videos, isVideoUploadEnabled, t]);
 
   const removeVideo = useCallback((index: number) => {
     setFormData(prev => ({
