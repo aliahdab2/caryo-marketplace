@@ -819,3 +819,105 @@ select option {
     -webkit-tap-highlight-color: transparent;
   }
 }
+
+/* Enhanced Delete Modal Animations */
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modal-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes icon-bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.1);
+  }
+  60% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-modal-fade-in {
+  animation: modal-fade-in 0.2s ease-out;
+}
+
+.animate-modal-zoom-in {
+  animation: modal-zoom-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-modal-slide-up {
+  animation: modal-slide-up 0.3s ease-out;
+}
+
+.animate-icon-bounce {
+  animation: icon-bounce 0.6s ease-in-out;
+}
+
+/* Delete Modal Backdrop */
+.delete-modal-backdrop {
+  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* Focus ring improvements for modal */
+.modal-focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* Close button specific animation */
+@keyframes close-button-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) rotate(-180deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.animate-close-button {
+  animation: close-button-appear 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+  opacity: 0; /* Start invisible */
+}
+
+/* Smooth button transitions */
+.modal-button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-button:hover {
+  transform: translateY(-1px);
+}
+
+.modal-button:active {
+  transform: translateY(0);
+}
