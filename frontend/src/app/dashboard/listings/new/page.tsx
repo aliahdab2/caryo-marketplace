@@ -536,6 +536,15 @@ export default function NewListingPage() {
     }
   }, [isVideoUploadEnabled, isVideoUrlEnabled]);
 
+  // Helper function to check if a file is already uploaded
+  const isDuplicateImage = useCallback((newFile: File, existingImages: File[]) => {
+    return existingImages.some(existingFile => 
+      existingFile.name === newFile.name &&
+      existingFile.size === newFile.size &&
+      existingFile.lastModified === newFile.lastModified
+    );
+  }, []);
+
   // Image handling functions
   const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -548,7 +557,7 @@ export default function NewListingPage() {
         const fileSizeMB = (file.size / 1024 / 1024).toFixed(1);
         setFormErrors(prev => ({
           ...prev,
-          images: `The file "${file.name}" is ${fileSizeMB}MB, which is larger than our 5MB limit. Please try a smaller image or compress it first.`
+          images: t('listings:newListingValidationFileTooLarge', `The file "${file.name}" is ${fileSizeMB}MB, which is larger than our 5MB limit. Please try a smaller image or compress it first.`)
         }));
         hasErrors = true;
         return false;
@@ -556,7 +565,15 @@ export default function NewListingPage() {
       if (!file.type.startsWith('image/')) {
         setFormErrors(prev => ({
           ...prev,
-          images: `The file "${file.name}" isn't an image file. Please select PNG, JPG, or JPEG files only.`
+          images: t('listings:newListingValidationNotImage', `The file "${file.name}" isn't an image file. Please select PNG, JPG, or JPEG files only.`)
+        }));
+        hasErrors = true;
+        return false;
+      }
+      if (isDuplicateImage(file, formData.images)) {
+        setFormErrors(prev => ({
+          ...prev,
+          images: t('listings:newListingValidationDuplicateImage', `The file "${file.name}" has already been uploaded. Please select a different image.`)
         }));
         hasErrors = true;
         return false;
@@ -571,8 +588,14 @@ export default function NewListingPage() {
         ...prev,
         images: [...prev.images, ...validFiles]
       }));
+      
+      // Clear any existing image errors when images are successfully added
+      setFormErrors(prev => {
+        const { images: _images, ...rest } = prev;
+        return rest;
+      });
     }
-  }, []);
+  }, [formData.images, isDuplicateImage, t]);
 
   const removeImage = useCallback((index: number) => {
     setFormData(prev => ({
@@ -613,12 +636,12 @@ export default function NewListingPage() {
       if (nonImageFiles.length === 1) {
         setFormErrors(prev => ({
           ...prev,
-          images: `The file "${nonImageFiles[0].name}" isn't an image. Please drop PNG, JPG, or JPEG files only.`
+          images: t('listings:newListingValidationNotImage', `The file "${nonImageFiles[0].name}" isn't an image. Please drop PNG, JPG, or JPEG files only.`)
         }));
       } else {
         setFormErrors(prev => ({
           ...prev,
-          images: `None of the dropped files are images. Please drop PNG, JPG, or JPEG files only.`
+          images: t('listings:newListingValidationNotImages', `None of the dropped files are images. Please drop PNG, JPG, or JPEG files only.`)
         }));
       }
       return;
@@ -631,7 +654,15 @@ export default function NewListingPage() {
         const fileSizeMB = (file.size / 1024 / 1024).toFixed(1);
         setFormErrors(prev => ({
           ...prev,
-          images: `The file "${file.name}" is ${fileSizeMB}MB, which is larger than our 5MB limit. Please try a smaller image or compress it first.`
+          images: t('listings:newListingValidationFileTooLarge', `The file "${file.name}" is ${fileSizeMB}MB, which is larger than our 5MB limit. Please try a smaller image or compress it first.`)
+        }));
+        hasValidationErrors = true;
+        return false;
+      }
+      if (isDuplicateImage(file, formData.images)) {
+        setFormErrors(prev => ({
+          ...prev,
+          images: t('listings:newListingValidationDuplicateImage', `The file "${file.name}" has already been uploaded. Please select a different image.`)
         }));
         hasValidationErrors = true;
         return false;
@@ -650,7 +681,7 @@ export default function NewListingPage() {
       const rejected = validFiles.length - filesToAdd.length;
       setFormErrors(prev => ({
         ...prev,
-        images: `You can only upload ${remainingSlots} more image${remainingSlots !== 1 ? 's' : ''} (maximum 10 total). ${rejected} file${rejected !== 1 ? 's were' : ' was'} not added.`
+        images: t('listings:newListingValidationTooManyImages', `Maximum 10 images allowed. ${rejected} file${rejected !== 1 ? 's were' : ' was'} not added.`)
       }));
     }
 
@@ -666,7 +697,7 @@ export default function NewListingPage() {
         return rest;
       });
     }
-  }, [formData.images.length]);
+  }, [formData.images, isDuplicateImage, t]);
 
   // Image reordering handlers
   const handleImageDragStart = useCallback((e: React.DragEvent, index: number) => {
@@ -797,7 +828,7 @@ export default function NewListingPage() {
     if (!isVideoUrlEnabled) {
       setFormErrors(prev => ({ 
         ...prev, 
-        videoUrls: 'External video URLs are temporarily unavailable. You can still upload video files if that option is enabled.' 
+        videoUrls: t('listings:newListingValidationVideoUrlsDisabled', 'External video URLs are temporarily unavailable. You can still upload video files if that option is enabled.') 
       }));
       return;
     }
@@ -1219,7 +1250,7 @@ export default function NewListingPage() {
                     />
                     <ErrorMessage error={formErrors.year} id="year-error" />
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
-                      {t('listings:newListingYearHint', 'Manufacturing year')}
+                      {t('listings:newListingYearHint', 'Manufacturing year', { currentYear: new Date().getFullYear() })}
                     </p>
 
                   </div>
