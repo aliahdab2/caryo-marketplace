@@ -85,17 +85,16 @@ export default function RecentListingsTable({
   };
 
   const formatCurrencyDisplay = (price: number, currency: string) => {
-    // For USD, just show the number since it's the default
+    // For USD, show icon + number without $ symbol
     if (currency === 'USD') {
-      return formatNumber(price, i18n.language, { 
-        style: 'currency', 
-        currency: 'USD',
+      const formattedNumber = formatNumber(price, i18n.language, { 
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       });
+      return `$ ${formattedNumber}`;
     }
     
-    // For other currencies, show number + currency code with better spacing
+    // For other currencies, show number + currency code
     const formattedNumber = formatNumber(price, i18n.language, { 
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
