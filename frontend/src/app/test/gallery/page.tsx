@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import CarMediaGallery from '@/components/CarMediaGallery/CarMediaGallery';
 import { CarMedia } from '@/components/CarMediaGallery/types';
-import { ArrowLeft, Settings, RotateCcw, Play } from 'lucide-react';
+import { ArrowLeft, Settings, RotateCcw } from 'lucide-react';
 
 export default function GalleryTestPage() {
   const [selectedScenario, setSelectedScenario] = useState('full');
@@ -300,8 +300,8 @@ export default function GalleryTestPage() {
           <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
             <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">📹 Mixed Media Behavior:</h4>
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              When you have both images and videos (like "Full Gallery"), images appear in the main slider, 
-              and videos show as clickable thumbnails below with a "Video Content" section header.
+              When you have both images and videos (like &quot;Full Gallery&quot;), images appear in the main slider, 
+              and videos show as clickable thumbnails below with a &quot;Video Content&quot; section header.
             </p>
           </div>
           

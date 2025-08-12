@@ -6,7 +6,7 @@ import { CarMedia } from '../types';
 
 // Mock i18next for translations
 jest.mock('react-i18next', () => ({
-  useTranslation: (namespace: string) => ({
+  useTranslation: (_namespace: string) => ({
     t: (key: string, options?: { current?: number; total?: number }) => {
       const translations: { [key: string]: string } = {
         'viewGallery': 'View gallery',

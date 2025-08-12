@@ -129,5 +129,7 @@
   "loading": "جارٍ التحميل...",
   "search": "بحث",
   "listings.active": "نشط",
-  "noListings": "لم يتم العثور على إعلانات"
+  "noListings": "لم يتم العثور على إعلانات",
+  "addNewListing": "إضافة إعلان جديد",
+  "manageYourListingsDesc": "إدارة وتتبع إعلانات سيارتك"
 }

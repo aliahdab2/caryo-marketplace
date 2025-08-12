@@ -61,7 +61,7 @@ export default function Home() {
         setNewsletterSuccess(false);
         setNewsletterMessage(response.message);
       }
-    } catch (error) {
+    } catch (_error) {
       setNewsletterSuccess(false);
       setNewsletterMessage(t('newsletterError', { ns: 'home', defaultValue: 'Failed to subscribe. Please try again.' }));
     } finally {
