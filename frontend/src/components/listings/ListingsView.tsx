@@ -16,14 +16,12 @@ import {
   MdLocationOn,
   MdSpeed,
   MdSearch,
-  MdFilterListAlt,
-  MdRefresh,
   MdCheckBox,
   MdCheckBoxOutlineBlank
 } from "react-icons/md";
 import DeleteConfirmationModal from "../ui/DeleteConfirmationModal";
 import { useDeleteConfirmation } from "../../hooks/useDeleteConfirmation";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback } from "react";
 
 // Move namespaces outside component to prevent recreation on every render
 const LISTINGS_NAMESPACES = ['listings', 'common'];
@@ -51,7 +49,7 @@ interface ListingsViewProps {
   onDelete?: (id: string) => Promise<void>;
   onBulkDelete?: (ids: string[]) => Promise<void>;
   onSearch?: (term: string) => void;
-  onFilter?: (filter: any) => void;
+  onFilter?: (filter: Record<string, unknown>) => void;
   onSort?: (sortBy: string, order: 'asc' | 'desc') => void;
   
   // Styling
@@ -71,12 +69,12 @@ export default function ListingsView({
   showSearch = false,
   showFilters = false,
   showBulkActions = false,
-  showPagination = false,
+  showPagination = false, // eslint-disable-line @typescript-eslint/no-unused-vars
   onDelete,
   onBulkDelete,
   onSearch,
-  onFilter,
-  onSort,
+  onFilter, // eslint-disable-line @typescript-eslint/no-unused-vars
+  onSort, // eslint-disable-line @typescript-eslint/no-unused-vars
   className = ""
 }: ListingsViewProps) {
   const { t, i18n } = useTranslation(LISTINGS_NAMESPACES);
@@ -85,7 +83,7 @@ export default function ListingsView({
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [sortOrder] = useState<"asc" | "desc">("desc");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   
   // Delete confirmation hook
@@ -538,14 +536,7 @@ export default function ListingsView({
       </div>
 
       {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
-        isOpen={deleteConfirmation.isOpen}
-        onClose={deleteConfirmation.close}
-        onConfirm={deleteConfirmation.confirmDelete}
-        title={deleteConfirmation.title}
-        message={deleteConfirmation.message}
-        loading={deleteConfirmation.loading}
-      />
+      <DeleteConfirmationModal {...deleteConfirmation.modalProps} />
     </div>
   );
 }

@@ -41,15 +41,17 @@ export async function createSavedSearch(request: SavedSearchRequest, token?: str
     const customHeaders = token ? { 'Authorization': `Bearer ${token}` } : undefined;
     const response = await api.post<SavedSearchResponse>('/api/saved-searches', request as unknown as Record<string, unknown>, customHeaders);
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating saved search:', error);
     
     // Enhanced error handling for better debugging
-    if (error.response?.data) {
-      console.error('Error response data:', error.response.data);
+    const apiError = error as { response?: { data?: unknown } };
+    if (apiError.response?.data) {
+      console.error('Error response data:', apiError.response.data);
     }
-    if (error.message) {
-      console.error('Error message:', error.message);
+    const errorWithMessage = error as { message?: string };
+    if (errorWithMessage.message) {
+      console.error('Error message:', errorWithMessage.message);
     }
     
     throw error;
