@@ -216,6 +216,20 @@ export async function getListingById(id: string | number): Promise<Listing> {
       modelNameAr: response.modelNameAr,
       location,
       governorate,
+      // Include details objects for ID access
+      locationDetails: response.locationDetails ? {
+        id: response.locationDetails.id,
+        displayNameEn: response.locationDetails.displayNameEn,
+        displayNameAr: response.locationDetails.displayNameAr,
+        slug: response.locationDetails.slug,
+        countryCode: response.locationDetails.countryCode
+      } : undefined,
+      governorateDetails: response.governorateDetails ? {
+        id: response.governorateDetails.id,
+        displayNameEn: response.governorateDetails.displayNameEn,
+        displayNameAr: response.governorateDetails.displayNameAr,
+        slug: response.governorateDetails.slug
+      } : undefined,
       image: mainImageUrl,
       media: mediaItems,
       fuelType: response.fuelType || '',
@@ -259,6 +273,8 @@ export async function getListingById(id: string | number): Promise<Listing> {
     throw new Error('An unexpected error occurred while fetching the listing');
   }
 }
+
+
 
 // UpdateListingData interface is now imported from '@/types/listings'
 
@@ -307,6 +323,20 @@ export async function updateListing(id: string | number, data: UpdateListingData
       modelNameAr: response.modelNameAr,
       location,
       governorate,
+      // CRITICAL FIX: Include details objects for ID access in update response
+      locationDetails: response.locationDetails ? {
+        id: response.locationDetails.id,
+        displayNameEn: response.locationDetails.displayNameEn,
+        displayNameAr: response.locationDetails.displayNameAr,
+        slug: response.locationDetails.slug,
+        countryCode: response.locationDetails.countryCode
+      } : undefined,
+      governorateDetails: response.governorateDetails ? {
+        id: response.governorateDetails.id,
+        displayNameEn: response.governorateDetails.displayNameEn,
+        displayNameAr: response.governorateDetails.displayNameAr,
+        slug: response.governorateDetails.slug
+      } : undefined,
       image: mainImageUrl,
       media: mediaItems,
       fuelType: '',
@@ -384,6 +414,20 @@ export async function getMyListings(): Promise<Listing[]> {
         modelNameAr: item.modelNameAr,
         location,
         governorate,
+        // CRITICAL FIX: Include details objects for ID access in getMyListings
+        locationDetails: item.locationDetails ? {
+          id: item.locationDetails.id,
+          displayNameEn: item.locationDetails.displayNameEn,
+          displayNameAr: item.locationDetails.displayNameAr,
+          slug: item.locationDetails.slug,
+          countryCode: item.locationDetails.countryCode
+        } : undefined,
+        governorateDetails: item.governorateDetails ? {
+          id: item.governorateDetails.id,
+          displayNameEn: item.governorateDetails.displayNameEn,
+          displayNameAr: item.governorateDetails.displayNameAr,
+          slug: item.governorateDetails.slug
+        } : undefined,
         image: mainImageUrl,
         media: mediaItems,
         fuelType: item.fuelType || '',
@@ -802,6 +846,47 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       throw error;
     }
     throw new ApiError('Failed to create listing', 500);
+  }
+}
+
+/**
+ * Get a specific listing owned by the current user (regardless of approval status)
+ * @param id Listing ID
+ * @returns The listing data
+ */
+export async function getMyListingById(id: string | number): Promise<Listing> {
+  try {
+    console.log(`[Get My Listing] Fetching listing with ID: ${id}`);
+    
+    // First get all user's listings (this uses the authenticated endpoint)
+    const myListings = await getMyListings();
+    console.log(`[Get My Listing] Found ${myListings.length} total listings for user`);
+    
+    // Find the specific listing by ID
+    const listing = myListings.find(listing => listing.id === id.toString());
+    
+    if (!listing) {
+      console.error(`[Get My Listing] Listing with ID ${id} not found in user's listings`);
+      throw new Error('Listing not found or you do not have permission to edit this listing');
+    }
+    
+    console.log(`[Get My Listing] Successfully found listing:`, {
+      id: listing.id,
+      title: listing.title,
+      hasMedia: listing.media && listing.media.length > 0,
+      mediaCount: listing.media?.length || 0,
+      hasSeller: !!listing.seller,
+      hasLocation: !!listing.location,
+      hasGovernorate: !!listing.governorate
+    });
+    
+    return listing;
+  } catch (error) {
+    console.error('[Get My Listing] Error:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Failed to fetch listing data');
   }
 }
 

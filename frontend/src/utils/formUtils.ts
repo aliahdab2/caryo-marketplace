@@ -250,10 +250,35 @@ export const validateStep = (step: number, formData: ListingFormData, t: (key: s
       break;
       
     case 4:
-      if (!formData.images || formData.images.length === 0) {
+      // Check for images - either new uploaded images or existing images (for edit mode)
+      const imagesCount = formData.images?.length || 0;
+      const existingImagesCount = formData.existingImageUrls?.length || 0;
+      const totalImages = imagesCount + existingImagesCount;
+      
+      console.log('[validateStep] Step 4 image validation:', {
+        imagesCount,
+        existingImagesCount,
+        totalImages,
+        formDataImages: formData.images,
+        formDataExistingImageUrls: formData.existingImageUrls,
+        formDataKeys: Object.keys(formData),
+        hasExistingImageUrls: 'existingImageUrls' in formData,
+        existingImageUrlsType: typeof formData.existingImageUrls,
+        existingImageUrlsLength: formData.existingImageUrls?.length,
+        formDataImagesType: typeof formData.images,
+        formDataImagesLength: formData.images?.length,
+        formDataImagesIsArray: Array.isArray(formData.images),
+        formDataExistingImageUrlsIsArray: Array.isArray(formData.existingImageUrls)
+      });
+      
+      if (totalImages === 0) {
+        console.log('[validateStep] No images found, adding error');
         errors.images = t('listings:newListingValidationImagesRequired', 'At least one image is required');
-      } else if (formData.images.length > 10) {
+      } else if (imagesCount > 10) {
+        console.log('[validateStep] Too many new images:', imagesCount);
         errors.images = t('listings:newListingValidationTooManyImages', 'Maximum 10 images allowed');
+      } else {
+        console.log('[validateStep] Image validation passed, total images:', totalImages);
       }
       break;
       
