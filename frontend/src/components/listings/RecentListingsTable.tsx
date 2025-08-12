@@ -84,6 +84,26 @@ export default function RecentListingsTable({
     return statusStyles[status as keyof typeof statusStyles] || statusStyles.pending;
   };
 
+  const formatCurrencyDisplay = (price: number, currency: string) => {
+    // For USD, just show the number since it's the default
+    if (currency === 'USD') {
+      return formatNumber(price, i18n.language, { 
+        style: 'currency', 
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      });
+    }
+    
+    // For other currencies, show number + currency code with better spacing
+    const formattedNumber = formatNumber(price, i18n.language, { 
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
+    
+    return `${formattedNumber} ${currency}`;
+  };
+
   // Handle delete listing
   const handleDelete = (id: string) => {
     const listing = listings.find(l => l.id === id);
@@ -215,47 +235,38 @@ export default function RecentListingsTable({
 
                       {/* Content Section */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        <div className="mb-2">
+                          <div className="flex items-start justify-between mb-1">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex-1 mr-3 rtl:mr-0 rtl:ml-3">
                               {listing.title}
                             </h3>
-                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
-                              <div className="flex items-center">
-                                <MdLocationOn className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-blue-500" />
-                                <span className="truncate">
-                                  {formatLocation(listing)}
-                                </span>
-                              </div>
-                              {formatListingDate(listing) && (
-                                <div className="flex items-center ml-3 rtl:ml-0 rtl:mr-3">
-                                  <MdAccessTime className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-green-500" />
-                                  <span>
-                                    {formatListingDate(listing)}
-                                  </span>
+                            
+                            {/* Price Section - Compact right side */}
+                            {hasValidPrice && (
+                              <div className="text-right flex-shrink-0">
+                                <div className="text-base font-bold text-blue-600 dark:text-blue-400">
+                                  {formatCurrencyDisplay(listing.price, currency)}
                                 </div>
-                              )}
-                            </div>
+                              </div>
+                            )}
                           </div>
                           
-                          {/* Price Section */}
-                          {hasValidPrice && (
-                            <div className="text-right ml-3 rtl:ml-0 rtl:mr-3">
-                              <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                                {formatNumber(listing.price, i18n.language, { 
-                                  style: 'currency', 
-                                  currency: currency,
-                                  minimumFractionDigits: 0,
-                                  maximumFractionDigits: 0
-                                })}
-                              </div>
-                              {currency && currency !== 'USD' && (
-                                <div className="text-xs text-gray-400 dark:text-gray-500">
-                                  {currency}
-                                </div>
-                              )}
+                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            <div className="flex items-center">
+                              <MdLocationOn className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-blue-500" />
+                              <span className="truncate">
+                                {formatLocation(listing)}
+                              </span>
                             </div>
-                          )}
+                            {formatListingDate(listing) && (
+                              <div className="flex items-center ml-3 rtl:ml-0 rtl:mr-3">
+                                <MdAccessTime className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-green-500" />
+                                <span>
+                                  {formatListingDate(listing)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {/* Additional Details & Actions */}
