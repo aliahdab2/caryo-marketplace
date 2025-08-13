@@ -210,6 +210,17 @@ export const validateStep = (step: number, formData: ListingFormData, t: (key: s
       } else if (isNaN(Number(formData.year)) || Number(formData.year) < 1920 || Number(formData.year) > new Date().getFullYear()) {
         errors.year = t('listings:newListingValidationYearInvalid', 'Please enter a valid year');
       }
+
+      // Also require basic content fields at step 1 for early feedback
+      if (!formData.title || formData.title.trim().length === 0) {
+        errors.title = t('listings:newListingValidationTitleRequired', 'Title is required');
+      }
+      if (!formData.description || formData.description.trim().length === 0) {
+        errors.description = t('listings:newListingValidationDescriptionRequired', 'Description is required');
+      }
+      if (!formData.price || formData.price.trim().length === 0) {
+        errors.price = t('listings:newListingValidationPriceRequired', 'Price is required');
+      }
       break;
       
     case 2: // Vehicle Details (Mileage, Engine, etc.)
