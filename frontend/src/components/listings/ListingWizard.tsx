@@ -1050,7 +1050,7 @@ export default function ListingWizard({
                       handleStepChange(step, e as any);
                     }
                   }}
-                  tabIndex={step}
+                  tabIndex={100 + step}
                   className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 font-semibold text-lg relative z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                     currentStep >= step 
                       ? 'bg-blue-600 text-white shadow-lg hover:bg-blue-700 cursor-pointer transform hover:scale-105' 
@@ -1530,8 +1530,14 @@ export default function ListingWizard({
                 <button
                   type="button"
                   onClick={(e) => handleStepChange(currentStep - 1, e)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      if (currentStep > 1) handleStepChange(currentStep - 1, e as any);
+                    }
+                  }}
                   disabled={currentStep === 1}
-                  tabIndex={10}
+                  tabIndex={200}
                   className="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1545,7 +1551,13 @@ export default function ListingWizard({
                 <button
                   type="button"
                   onClick={(e) => handleStepChange(currentStep + 1, e)}
-                  tabIndex={11}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleStepChange(currentStep + 1, e as any);
+                    }
+                  }}
+                  tabIndex={201}
                   className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 order-1 sm:order-2"
                 >
                   {t('common:next')}
@@ -1557,7 +1569,7 @@ export default function ListingWizard({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  tabIndex={11}
+                  tabIndex={201}
                   className="inline-flex items-center px-8 py-3 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 order-1 sm:order-2"
                 >
                   {isSubmitting ? (
