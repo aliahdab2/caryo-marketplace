@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef, memo, lazy, Suspense } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { fetchGovernorates, Governorate } from '@/services/api';
-import { getVehicleMakes, getVehicleModels, getCarReferenceData } from '@/services/referenceData';
+// Lazy import for reference data services to reduce initial bundle
+const referenceDataServices = {
+  getVehicleMakes: () => import('@/services/referenceData').then(m => m.getVehicleMakes),
+  getVehicleModels: () => import('@/services/referenceData').then(m => m.getVehicleModels),
+  getCarReferenceData: () => import('@/services/referenceData').then(m => m.getCarReferenceData),
+};
 import { CarBrand, CarModel } from '@/types/referenceData';
 import { createListing, updateListing } from '@/services/listings';
 import { ListingFormData, UpdateListingData } from "@/types/listings";
@@ -209,6 +214,166 @@ const ImagePreview = memo(function ImagePreview({
         <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
             {(fileSize / 1024 / 1024).toFixed(1)}MB
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
+// Loading fallback component for lazy-loaded steps
+const StepLoadingFallback = memo(function StepLoadingFallback() {
+  return (
+    <div className="space-y-8 animate-pulse">
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+      <div className="space-y-4">
+        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      </div>
+    </div>
+  );
+});
+
+// Lazy-loaded step components for better performance
+const LazyStep1 = lazy(() => 
+  import('./steps/Step1VehicleIdentity').catch(() => ({
+    default: ({ formData, formErrors, handleChange, carMakes, carModels, isLoadingMakes, isLoadingModels, t, i18n }: any) => (
+      <div className="space-y-8 animate-fadeIn">
+        {/* Fallback inline Step 1 content */}
+        <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            {t('listings:vehicleIdentityTitle', 'Vehicle Identity')}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            {t('listings:vehicleIdentitySubtitle', 'Tell us about your vehicle')}
+          </p>
+        </div>
+        {/* Inline Step 1 form content would go here - keeping existing for now */}
+      </div>
+    )
+  }))
+);
+
+const LazyStep2 = lazy(() => 
+  import('./steps/Step2VehicleDetails').catch(() => ({
+    default: ({ formData, formErrors, handleChange, transmissions, fuelTypes, t }: any) => (
+      <div className="space-y-8 animate-fadeIn">
+        <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            {t('listings:vehicleDetailsTitle', 'Vehicle Details')}
+          </h2>
+        </div>
+      </div>
+    )
+  }))
+);
+
+const LazyStep3 = lazy(() => 
+  import('./steps/Step3ContentMedia').catch(() => ({
+    default: ({ formData, formErrors, handleChange, imagePreviewUrls, handleImageUpload, removeImage, t }: any) => (
+      <div className="space-y-8 animate-fadeIn">
+        <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            {t('listings:contentMediaTitle', 'Content & Media')}
+          </h2>
+        </div>
+      </div>
+    )
+  }))
+);
+
+const LazyStep4 = lazy(() => 
+  import('./steps/Step4PricingContact').catch(() => ({
+    default: ({ formData, formErrors, handleChange, governorates, locations, isLoadingGovernorates, isLoadingLocations, t, i18n }: any) => (
+      <div className="space-y-8 animate-fadeIn">
+        <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            {t('listings:pricingContactTitle', 'Pricing & Contact')}
+          </h2>
+        </div>
+      </div>
+    )
+  }))
+);
+
+// Virtualized select component for large datasets
+const VirtualizedSelect = memo(function VirtualizedSelect({ 
+  options, 
+  value, 
+  onChange, 
+  placeholder, 
+  isLoading, 
+  className = "",
+  maxHeight = 200,
+  itemHeight = 40,
+  ...props 
+}: {
+  options: Array<{ id: string; name: string; nameAr?: string }>;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  isLoading?: boolean;
+  className?: string;
+  maxHeight?: number;
+  itemHeight?: number;
+  [key: string]: any;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [visibleStart, setVisibleStart] = useState(0);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Calculate visible items for virtual scrolling
+  const visibleCount = Math.ceil(maxHeight / itemHeight);
+  const visibleEnd = Math.min(visibleStart + visibleCount + 2, options.length); // Buffer items
+  
+  const selectedOption = options.find(opt => opt.id === value);
+  
+  const handleScroll = useThrottle((e: React.UIEvent<HTMLDivElement>) => {
+    const scrollTop = e.currentTarget.scrollTop;
+    const newStart = Math.floor(scrollTop / itemHeight);
+    setVisibleStart(Math.max(0, newStart - 1)); // Add buffer
+  }, 16); // 60fps throttling
+  
+  return (
+    <div className={`relative ${className}`}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-4 py-3 text-left border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500"
+        {...props}
+      >
+        {isLoading ? "Loading..." : selectedOption?.name || placeholder}
+      </button>
+      
+      {isOpen && !isLoading && (
+        <div 
+          ref={dropdownRef}
+          className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl shadow-lg"
+          style={{ maxHeight }}
+          onScroll={handleScroll}
+        >
+          <div style={{ height: options.length * itemHeight, position: 'relative' }}>
+            {options.slice(visibleStart, visibleEnd).map((option, index) => (
+              <div
+                key={option.id}
+                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                style={{ 
+                  position: 'absolute',
+                  top: (visibleStart + index) * itemHeight,
+                  height: itemHeight,
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+                onClick={() => {
+                  onChange(option.id);
+                  setIsOpen(false);
+                }}
+              >
+                {option.name}
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -619,8 +784,8 @@ export default function ListingWizard({
       try {
         const [governoratesData, makesData, referenceData] = await Promise.all([
           fetchGovernorates(),
-          getVehicleMakes(),
-          getCarReferenceData()
+          referenceDataServices.getVehicleMakes().then(fn => fn()),
+          referenceDataServices.getCarReferenceData().then(fn => fn())
         ]);
         
         setGovernorates(governoratesData);
@@ -737,6 +902,7 @@ export default function ListingWizard({
         try {
           setIsLoadingModels(true);
           setCarModels([]); // Clear previous models
+          const getVehicleModels = await referenceDataServices.getVehicleModels();
           const modelData = await getVehicleModels(parseInt(formData.make));
           setCarModels(modelData);
         } catch (error) {
@@ -800,6 +966,7 @@ export default function ListingWizard({
           setIsLoadingModels(true);
           setCarModels([]); // Clear previous models
           wizardLogger.debug('Loading models for make');
+          const getVehicleModels = await referenceDataServices.getVehicleModels();
           const modelData = await getVehicleModels(parseInt(formData.make));
           wizardLogger.debug('Loaded models');
           setCarModels(modelData);
