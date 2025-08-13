@@ -398,10 +398,10 @@ export default function ListingsView({
               }`}
             >
               <div className="p-4 sm:p-5">
-                <div className="flex items-start space-x-4 rtl:space-x-reverse sm:space-x-5 rtl:sm:space-x-reverse">
+                <div className="flex items-center space-x-4 rtl:space-x-reverse sm:space-x-5 rtl:sm:space-x-reverse">
                   {/* Selection checkbox for full variant with bulk actions */}
                   {variant === 'full' && showBulkActions && (
-                    <div className="flex items-center pt-2">
+                    <div className="flex items-center">
                       <button
                         onClick={() => handleSelectItem(listing.id)}
                         className="p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded"
