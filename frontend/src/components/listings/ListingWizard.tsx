@@ -1506,23 +1506,451 @@ export default function ListingWizard({
                   </p>
                 </div>
 
-                {/* Images and Videos Section */}
+                {/* Enhanced Images and Videos Section */}
+                <div className="space-y-8">
+                  {/* Enhanced Images Section Header */}
+                  <div className="space-y-6">
+                    <div className="text-center space-y-2">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                        {t('listings:newListingCarImages', 'Car Images')} <span className="text-red-500">*</span>
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400">
+                        {t('listings:newListingImageUploadSubtitle', 'Upload high-quality photos to attract potential buyers')}
+                      </p>
+                    </div>
+
+                    {/* Enhanced Drag & Drop Upload Area */}
+                    <div className="space-y-6">
+                      <div 
+                        className={`w-full transition-all duration-300 ${
+                          isDragOver 
+                            ? 'scale-[1.02] shadow-xl ring-4 ring-blue-200 dark:ring-blue-700' 
+                            : 'hover:shadow-lg'
+                        }`}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                      >
+                        <label 
+                          htmlFor="image-upload" 
+                          className={`group flex flex-col items-center justify-center w-full h-72 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 focus-within:ring-4 focus-within:ring-blue-200 dark:focus-within:ring-blue-800 ${
+                            isDragOver
+                              ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                              : 'border-gray-300 dark:border-gray-600 bg-gray-50/80 dark:bg-gray-800/50 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                          }`}
+                          role="button"
+                          tabIndex={0}
+                          aria-label="Upload car images by clicking or dragging files here"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              document.getElementById('image-upload')?.click();
+                            }
+                          }}
+                        >
+                          <div className="flex flex-col items-center justify-center pt-8 pb-8 space-y-6">
+                            {/* Enhanced Upload Icon */}
+                            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                              isDragOver 
+                                ? 'bg-blue-100 dark:bg-blue-800/50 scale-110' 
+                                : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 group-hover:scale-105'
+                            }`}>
+                              <svg className={`w-10 h-10 transition-colors duration-300 ${
+                                isDragOver 
+                                  ? 'text-blue-600 dark:text-blue-400' 
+                                  : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'
+                              }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                              </svg>
+                            </div>
+
+                            {/* Main Text */}
+                            <div className="text-center space-y-3">
+                              <h4 className={`text-xl font-semibold transition-colors duration-300 ${
+                                isDragOver 
+                                  ? 'text-blue-800 dark:text-blue-200' 
+                                  : 'text-gray-700 dark:text-gray-200'
+                              }`}>
+                                {isDragOver 
+                                  ? t('listings:dropImagesHere', 'Drop your images here!')
+                                  : t('listings:newListingUploadImages', 'Upload Car Images')
+                                }
+                              </h4>
+                              
+                              <p className={`text-base transition-colors duration-300 ${
+                                isDragOver 
+                                  ? 'text-blue-600 dark:text-blue-300' 
+                                  : 'text-gray-600 dark:text-gray-400'
+                              }`}>
+                                {isDragOver 
+                                  ? 'Release to add images to your listing'
+                                  : 'Drag & drop images here, or click to browse'
+                                }
+                              </p>
+
+                              {/* Format info moved below and muted */}
+                              <div className="pt-2 space-y-1">
+                                <p className="text-sm text-gray-500 dark:text-gray-500">
+                                  {t('listings:newListingImageUploadHint', 'Upload multiple images to showcase your car. First image will be the main photo.')}
+                                </p>
+                                <div className="flex items-center justify-center space-x-6 text-xs text-gray-400 dark:text-gray-500">
+                                  <div className="flex items-center space-x-1">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span>PNG, JPG, JPEG</span>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span>Max 5MB each</span>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span>Up to 10 images</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <input
+                            id="image-upload"
+                            type="file"
+                            className="sr-only"
+                            multiple
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            aria-describedby="image-upload-hint"
+                            aria-label="Select car images to upload (PNG, JPG, JPEG, max 5MB each, up to 10 images)"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                    {formErrors.images && <ErrorMessage error={formErrors.images} id="images-error" />}
+                  </div>
+
+                  {/* Enhanced Image Preview Grid with Drag & Drop Reordering */}
+                  {formData.images.length > 0 && (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                              {t('listings:newListingImagePreview', 'Image Preview')} ({formData.images.length})
+                            </h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Drag images to reorder • First image is your main photo
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500 dark:text-gray-500">
+                            {formData.images.length}/10 images
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        {imagePreviewUrls.map((url: string, index: number) => (
+                          <div
+                            key={`${url}-${index}`}
+                            className={`relative group cursor-move transition-all duration-300 ${
+                              draggedImageIndex === index
+                                ? 'scale-105 rotate-2 opacity-75 z-10'
+                                : dragOverImageIndex === index
+                                ? 'scale-105 ring-4 ring-blue-300 dark:ring-blue-600'
+                                : 'hover:scale-[1.02]'
+                            }`}
+                            draggable
+                            onDragStart={(e) => handleImageDragStart(e, index)}
+                            onDragOver={(e) => handleImageDragOver(e, index)}
+                            onDragLeave={handleImageDragLeave}
+                            onDrop={(e) => handleImageDrop(e, index)}
+                            onDragEnd={handleImageDragEnd}
+                          >
+                            {/* Image Container */}
+                            <div className={`aspect-square rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700 relative border-2 transition-all duration-300 ${
+                              index === 0 
+                                ? 'border-blue-400 dark:border-blue-500 shadow-lg' 
+                                : 'border-gray-200 dark:border-gray-600 group-hover:border-gray-300 dark:group-hover:border-gray-500'
+                            }`}>
+                              <Image
+                                src={url}
+                                alt={`Car listing image ${index + 1} - uploaded preview for ${formData.title || 'new listing'}`}
+                                fill
+                                className="object-cover transition-transform duration-300 group-hover:scale-110"
+                                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+                                draggable={false}
+                              />
+                              
+                              {/* Drag Handle Overlay */}
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                  <div className="bg-white/90 dark:bg-gray-800/90 rounded-lg p-2 backdrop-blur-sm">
+                                    <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Enhanced Remove Button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeImage(index);
+                              }}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110"
+                              aria-label={`Remove image ${index + 1}`}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+
+                            {/* Enhanced Main Photo Badge */}
+                            {index === 0 && (
+                              <div className="absolute bottom-2 start-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center space-x-1">
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                </svg>
+                                <span className="font-medium">{t('listings:newListingMainImage', 'Main Photo')}</span>
+                              </div>
+                            )}
+
+                            {/* Image Number Badge */}
+                            <div className="absolute top-2 start-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                              {index + 1}
+                            </div>
+
+                            {/* File Info on Hover */}
+                            <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                                {(formData.images[index]?.size / 1024 / 1024).toFixed(1)}MB
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Reordering Instructions */}
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-800/50 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                              💡 How to reorder your photos
+                            </h5>
+                            <p className="text-xs text-blue-700 dark:text-blue-300">
+                              Drag and drop images to change their order. The first image will be your main listing photo that buyers see first.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Enhanced Videos Section */}
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {t('listings:newListingCarImages', 'Car Images')}
-                  </h3>
-                  
-                  {/* Images Upload Placeholder */}
-                  <div className="text-center py-12 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-800">
-                    <div className="text-gray-500 dark:text-gray-400">
-                      <svg className="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                      </svg>
-                      <h4 className="text-lg font-medium mb-2">Images & Videos Upload</h4>
-                      <p className="text-sm">Professional drag & drop upload will be implemented here</p>
-                      <p className="text-xs mt-2 text-gray-400">Following the original excellent UX from main branch</p>
+                  <div className="text-center space-y-2">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                      {t('listings:newListingCarVideos', 'Car Videos')} 
+                      <span className="text-gray-500 text-base font-normal ml-2">(Optional)</span>
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {t('listings:newListingVideoUploadSubtitle', 'Add videos to showcase your car in action')}
+                    </p>
+                  </div>
+
+                  {/* Video Upload Options */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Upload Video Files */}
+                    <div className="space-y-4">
+                      <label 
+                        htmlFor="video-upload" 
+                        className="group flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer bg-gray-50/80 dark:bg-gray-800/50 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all duration-300 focus-within:ring-4 focus-within:ring-blue-200 dark:focus-within:ring-blue-800"
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Upload car videos by clicking or selecting files"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            document.getElementById('video-upload')?.click();
+                          }
+                        }}
+                      >
+                        <div className="flex flex-col items-center justify-center pt-6 pb-6 space-y-4">
+                          <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 group-hover:scale-105 flex items-center justify-center transition-all duration-300">
+                            <svg className="w-6 h-6 text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                          <div className="text-center space-y-2">
+                            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 group-hover:text-gray-800 dark:group-hover:text-gray-100 transition-colors duration-300">
+                              {t('listings:newListingUploadVideos', 'Upload Video Files')}
+                            </h4>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              Click to browse video files
+                            </p>
+                            <div className="flex items-center justify-center space-x-4 text-xs text-gray-400 dark:text-gray-500">
+                              <div className="flex items-center space-x-1">
+                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                <span>MP4, MOV, AVI</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                <span>Max 50MB</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <input
+                          id="video-upload"
+                          type="file"
+                          className="sr-only"
+                          multiple
+                          accept="video/*"
+                          onChange={handleVideoUpload}
+                          aria-describedby="video-upload-hint"
+                          aria-label="Select car videos to upload (MP4, MOV, AVI, max 50MB each)"
+                        />
+                      </label>
+                    </div>
+
+                    {/* Add Video URLs */}
+                    <div className="space-y-4">
+                      <button
+                        type="button"
+                        onClick={addVideoUrl}
+                        className="group flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50/80 dark:bg-gray-800/50 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-800"
+                        aria-label="Add video URL from YouTube, Vimeo, or other platforms"
+                      >
+                        <div className="flex flex-col items-center justify-center pt-6 pb-6 space-y-4">
+                          <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 group-hover:scale-105 flex items-center justify-center transition-all duration-300">
+                            <svg className="w-6 h-6 text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                          </div>
+                          <div className="text-center space-y-2">
+                            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 group-hover:text-gray-800 dark:group-hover:text-gray-100 transition-colors duration-300">
+                              {t('listings:newListingAddVideoUrl', 'Add Video URL')}
+                            </h4>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              YouTube, Vimeo, or other video links
+                            </p>
+                            <div className="flex items-center justify-center space-x-4 text-xs text-gray-400 dark:text-gray-500">
+                              <div className="flex items-center space-x-1">
+                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                <span>YouTube</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                <span>Vimeo</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </button>
                     </div>
                   </div>
+
+                  {/* Video Preview Grid */}
+                  {(formData.videos && formData.videos.length > 0) || (formData.videoUrls && formData.videoUrls.length > 0) ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-6 h-6 rounded-md bg-purple-500 flex items-center justify-center">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                          {t('listings:newListingVideoPreview', 'Video Preview')} 
+                          ({(formData.videos?.length || 0) + (formData.videoUrls?.length || 0)})
+                        </h4>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {/* Uploaded Video Files */}
+                        {formData.videos && formData.videos.map((_, index) => (
+                          <div key={`video-${index}`} className="relative group">
+                            <div className="aspect-video rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 relative border-2 border-gray-200 dark:border-gray-600 group-hover:border-gray-300 dark:group-hover:border-gray-500 transition-all duration-300">
+                              <video
+                                src={videoPreviewUrls[index]}
+                                className="w-full h-full object-cover"
+                                controls
+                                preload="metadata"
+                              />
+                              
+                              <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                                Video {index + 1}
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeVideo(index);
+                              }}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110"
+                              aria-label={`Remove video ${index + 1}`}
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+
+                        {/* Video URLs */}
+                        {formData.videoUrls && formData.videoUrls.map((url, index) => (
+                          <div key={`video-url-${index}`} className="relative group">
+                            <div className="aspect-video rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 relative border-2 border-gray-200 dark:border-gray-600 group-hover:border-gray-300 dark:group-hover:border-gray-500 transition-all duration-300 flex items-center justify-center">
+                              <div className="text-center space-y-2 p-4">
+                                <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-800/50 flex items-center justify-center mx-auto">
+                                  <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                  </svg>
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 break-all">
+                                  {url.length > 40 ? `${url.substring(0, 40)}...` : url}
+                                </p>
+                              </div>
+                              
+                              <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                                URL {index + 1}
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeVideoUrl(index);
+                              }}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110"
+                              aria-label={`Remove video URL ${index + 1}`}
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             )}
