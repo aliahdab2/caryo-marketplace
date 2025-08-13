@@ -2037,7 +2037,7 @@ export default function ListingWizard({
                           <button
                             type="button"
                             onClick={() => setShowVideoUpload(!showVideoUpload)}
-                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${rtl.text.align} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-800 ${
+                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${rtl.text.align} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-800 min-h-[160px] ${
                               showVideoUpload || (formData.videos && formData.videos.length > 0)
                                 ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 text-blue-900 dark:text-blue-100 shadow-lg'
                                 : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/10'
@@ -2048,9 +2048,10 @@ export default function ListingWizard({
                             aria-expanded={showVideoUpload}
                             aria-describedby="video-upload-description"
                           >
-                            <div className="flex items-start justify-between">
-                              <div className={`flex items-start ${rtl.spacing.spaceX('4')}`}>
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                            <div className="flex flex-col h-full">
+                              <div className="flex items-start justify-between">
+                                <div className={`flex items-start ${rtl.spacing.spaceX('4')} flex-1`}>
+                                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
                                   showVideoUpload || (formData.videos && formData.videos.length > 0)
                                     ? 'bg-blue-500 text-white shadow-lg'
                                     : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/40'
@@ -2086,13 +2087,14 @@ export default function ListingWizard({
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                              <div className={`transform transition-all duration-300 ${
-                                showVideoUpload ? 'rotate-90 scale-110' : 'group-hover:scale-105'
-                              }`}>
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                </svg>
+                                </div>
+                                <div className={`transform transition-all duration-300 ${
+                                  showVideoUpload ? 'rotate-90 scale-110' : 'group-hover:scale-105'
+                                }`}>
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </div>
                               </div>
                             </div>
                             {(formData.videos && formData.videos.length > 0) && (
@@ -2112,7 +2114,7 @@ export default function ListingWizard({
                           <button
                             type="button"
                             onClick={() => setShowVideoUrl(!showVideoUrl)}
-                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${rtl.text.align} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-800 ${
+                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${rtl.text.align} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-800 min-h-[160px] ${
                               showVideoUrl || (formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0])
                                 ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 text-purple-900 dark:text-purple-100 shadow-lg'
                                 : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 bg-white dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/10'
@@ -2123,9 +2125,10 @@ export default function ListingWizard({
                             aria-expanded={showVideoUrl}
                             aria-describedby="video-url-description"
                           >
-                            <div className="flex items-start justify-between">
-                              <div className={`flex items-start ${rtl.spacing.spaceX('4')}`}>
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                            <div className="flex flex-col h-full">
+                              <div className="flex items-start justify-between">
+                                <div className={`flex items-start ${rtl.spacing.spaceX('4')} flex-1`}>
+                                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
                                   showVideoUrl || (formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0])
                                     ? 'bg-purple-500 text-white shadow-lg'
                                     : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 group-hover:bg-purple-200 dark:group-hover:bg-purple-800/40'
@@ -2161,13 +2164,14 @@ export default function ListingWizard({
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                              <div className={`transform transition-all duration-300 ${
-                                showVideoUrl ? 'rotate-90 scale-110' : 'group-hover:scale-105'
-                              }`}>
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                </svg>
+                                </div>
+                                <div className={`transform transition-all duration-300 ${
+                                  showVideoUrl ? 'rotate-90 scale-110' : 'group-hover:scale-105'
+                                }`}>
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </div>
                               </div>
                             </div>
                             {(formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0]) && (
