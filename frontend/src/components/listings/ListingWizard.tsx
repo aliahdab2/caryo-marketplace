@@ -1149,6 +1149,7 @@ export default function ListingWizard({
                     value={formData.make}
                     onChange={handleChange}
                     disabled={isLoadingMakes}
+                    tabIndex={1}
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                       formErrors.make ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                     } ${isLoadingMakes ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1187,6 +1188,7 @@ export default function ListingWizard({
                     value={formData.model}
                     onChange={handleChange}
                     disabled={isLoadingModels || !formData.make}
+                    tabIndex={2}
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                       formErrors.model ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                     } ${(isLoadingModels || !formData.make) ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1227,6 +1229,7 @@ export default function ListingWizard({
                     value={formData.year}
                     onChange={handleChange}
                     required
+                    tabIndex={3}
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                       formErrors.year ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                     }`}
@@ -1284,8 +1287,9 @@ export default function ListingWizard({
                     onChange={(value) => handleChange(value, 'mileage')}
                     placeholder={t('listings:newListingMileagePlaceholder', '50000')}
                     error={!!formErrors.mileage}
+                    tabIndex={4}
                     aria-describedby="mileage-hint"
-                    className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   />
                   {formErrors.mileage && <ErrorMessage error={formErrors.mileage} />}
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="mileage-hint">
