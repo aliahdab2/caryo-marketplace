@@ -15,6 +15,7 @@ import { ListingDataService } from '@/services/ListingDataService';
 import { SUPPORTED_CURRENCIES } from '@/utils/currency';
 import { validateStep, calculateProgress, processFormFieldValue } from '@/utils/formUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
+import { createLogger } from '@/utils/logger';
 import NumericInput from '@/components/ui/NumericInput';
 import AutoSaveIndicator from '@/components/ui/AutoSaveIndicator';
 import { getLocationsByGovernorateSlug, Location } from '@/services/locations';
@@ -29,6 +30,11 @@ import {
 
 // Constants
 const TOTAL_STEPS = 4;
+const wizardLogger = createLogger({
+  enabled: process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_WIZARD === 'true',
+  level: 'debug',
+  prefix: 'LISTING_WIZARD'
+});
 const DEFAULT_CURRENCY = "USD";
 
 const ErrorMessage: React.FC<ErrorMessageProps> = React.memo(function ErrorMessage({ error, id, className = "" }) {
@@ -196,10 +202,10 @@ export default function ListingWizard({
     enabled: autoSave && mode === 'create',
     mode,
     onSave: (draftId) => {
-      console.log('[ListingWizard] Auto-save completed:', draftId);
+      wizardLogger.info('Auto-save completed ' + String(draftId));
     },
-    onError: (error) => {
-      console.error('[ListingWizard] Auto-save error:', error);
+    onError: (_error) => {
+      wizardLogger.error('Auto-save error');
     }
   });
 
@@ -222,52 +228,50 @@ export default function ListingWizard({
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    console.log('[ListingWizard] Form submit triggered, current step:', currentStep, 'mode:', mode);
-    console.log('[ListingWizard] TOTAL_STEPS constant:', TOTAL_STEPS);
-    console.log('[ListingWizard] currentStep === TOTAL_STEPS?', currentStep === TOTAL_STEPS);
+    wizardLogger.debug('Form submit triggered ' + JSON.stringify({ currentStep, mode }));
+    wizardLogger.debug('TOTAL_STEPS constant ' + String(TOTAL_STEPS));
+    wizardLogger.debug('currentStep === TOTAL_STEPS? ' + String(currentStep === TOTAL_STEPS));
 
     // IMPORTANT: Only process actual final submissions, not navigation
     // The submit event should only fire when clicking the Submit button on step 4
     if (currentStep !== TOTAL_STEPS) {
-      console.log('[ListingWizard] Ignoring form submit - not on final step. Current:', currentStep, 'Total:', TOTAL_STEPS);
+      wizardLogger.debug('Ignoring submit - not final step ' + JSON.stringify({ currentStep, TOTAL_STEPS }));
       return;
     }
 
-    console.log('[ListingWizard] Processing final submission (step 4)');
+    wizardLogger.info('Processing final submission (step 4)');
 
     // For final submission (step 4), validate ALL steps
     if (currentStep === TOTAL_STEPS) {
-      console.log('[ListingWizard] Final submission - validating ALL steps');
-      console.log('[ListingWizard] Complete form data:', formData);
+      wizardLogger.debug('Final submission - validating ALL steps');
       
       // Validate all steps for final submission
       let allErrors: FormErrors = {};
       for (let step = 1; step <= TOTAL_STEPS; step++) {
         const stepErrors = validateStep(step, formData, t);
         allErrors = { ...allErrors, ...stepErrors };
-        console.log(`[ListingWizard] Step ${step} validation errors:`, stepErrors);
+        wizardLogger.debug(`Step ${step} validation errors ${JSON.stringify(stepErrors)}`);
       }
       
-      console.log('[ListingWizard] All validation errors:', allErrors);
+      wizardLogger.debug('All validation errors ' + JSON.stringify(allErrors));
       if (Object.keys(allErrors).length > 0) {
-        console.log('[ListingWizard] Final validation failed, stopping submission');
-        console.log('[ListingWizard] All error fields:', Object.keys(allErrors));
+        wizardLogger.info('Final validation failed, stopping submission');
         setFormErrors(allErrors);
         return;
       }
-      console.log('[ListingWizard] All validation passed!');
+      wizardLogger.info('All validation passed!');
     } else {
       // Validate current step only for navigation
-      console.log('[ListingWizard] Validating step:', currentStep);
+      wizardLogger.debug('Validating step ' + String(currentStep));
       const stepErrors = validateStep(currentStep, formData, t);
-      console.log('[ListingWizard] Validation errors:', stepErrors);
+      wizardLogger.debug('Validation errors ' + JSON.stringify(stepErrors));
       if (Object.keys(stepErrors).length > 0) {
-        console.log('[ListingWizard] Validation failed, stopping submission');
+        wizardLogger.info('Validation failed, stopping submission');
         setFormErrors(stepErrors);
         return;
       }
     }
-    console.log('[ListingWizard] Validation passed, proceeding...');
+    wizardLogger.info('Validation passed, proceeding...');
 
     // Clear errors for valid step
     setFormErrors({});
@@ -286,7 +290,7 @@ export default function ListingWizard({
         setShowSuccessAlert(true);
         onSuccess?.(result.id);
       } else if (mode === 'edit' && listingId) {
-        console.log('[ListingWizard] Starting update process for listing:', listingId);
+        wizardLogger.info('Starting update for listing ' + String(listingId));
         console.log('[ListingWizard] Form data before update:', {
           title: formData.title,
           description: formData.description,
@@ -304,28 +308,25 @@ export default function ListingWizard({
         });
 
         // Form data already contains IDs for make/model, just need to convert location
-        console.log('[ListingWizard] Processing form data for API...');
-        console.log('[ListingWizard] Make/Model IDs:', { makeId: formData.make, modelId: formData.model });
-        console.log('[ListingWizard] Location data from form (ID-first approach):', {
+        wizardLogger.debug('Processing form data for API...');
+        wizardLogger.debug('Make/Model IDs ' + JSON.stringify({ makeId: formData.make, modelId: formData.model }));
+        wizardLogger.debug('Location data (ID-first) ' + JSON.stringify({
           locationId: formData.locationId,
           locationSlug: formData.locationSlug,
           location: formData.location,
           governorateId: formData.governorateId,
           governorateSlug: formData.governorateSlug
-        });
+        }));
         
         // Direct ID usage - no more complex lookups needed!
         const locationId = formData.locationId;
         const governorateId = formData.governorateId;
         
-        console.log('[ListingWizard] Using direct IDs - much faster!:', {
-          locationId,
-          governorateId
-        });
+        wizardLogger.debug('Using direct IDs ' + JSON.stringify({ locationId, governorateId }));
         
         // Use the form's make/model IDs directly
         const finalModelId = formData.model ? parseInt(formData.model) : undefined;
-        console.log('[ListingWizard] Final model ID to send:', finalModelId);
+        wizardLogger.debug('Final model ID ' + String(finalModelId));
         
         // Build update data with direct IDs - much simpler and faster!
         const updateData: UpdateListingData = {
@@ -349,9 +350,9 @@ export default function ListingWizard({
           }
         });
         
-        console.log('[ListingWizard] Update data being sent:', updateData);
-        console.log('[ListingWizard] IMPORTANT - locationId in update data:', updateData.locationId);
-        console.log('[ListingWizard] Form data fields being updated:', {
+        wizardLogger.debug('Update payload ' + JSON.stringify(updateData));
+        wizardLogger.debug('locationId in update data ' + String(updateData.locationId));
+        wizardLogger.debug('Fields being updated ' + JSON.stringify({
           title: formData.title,
           description: formData.description,
           price: formData.price,
@@ -365,32 +366,20 @@ export default function ListingWizard({
           location: formData.location,
           governorateSlug: formData.governorateSlug,
           locationSlug: formData.locationSlug
-        });
+        }));
         
         const result = await updateListing(listingId, updateData);
-        console.log('[ListingWizard] Update successful, result:', result);
-        console.log('[ListingWizard] Updated listing data returned from API:');
-        console.log('- Location name:', result.location?.city || result.location?.address);
-        console.log('- Location object:', result.location);
-        console.log('- Governorate name:', result.governorate?.nameEn);
-        console.log('- Governorate object:', result.governorate);
+        wizardLogger.info('Update successful');
         
         // Note: Contact information (email, phone, name) is tied to the user account
         // and cannot be updated via the listing update API. Users need to update
         // their profile information separately.
-        console.log('[ListingWizard] Note: Contact info updates require separate user profile API calls');
+        wizardLogger.info('Note: Contact info updates require separate profile API calls');
         setShowSuccessAlert(true);
         onSuccess?.(result.id);
       }
     } catch (error) {
-      console.error('[ListingWizard] Error during submission:', error);
-      console.error('[ListingWizard] Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        mode,
-        listingId,
-        currentStep
-      });
+      wizardLogger.error('Error during submission');
       setError(error instanceof Error ? error.message : t('common:unexpectedError'));
     } finally {
       setIsSubmitting(false);
@@ -423,7 +412,7 @@ export default function ListingWizard({
         
         console.log('[ListingWizard] Data auto-loaded successfully');
       } catch (error) {
-        console.error('[ListingWizard] Error auto-loading data:', error);
+        wizardLogger.error('Error auto-loading data');
         setLoadError(error instanceof Error ? error.message : 'Failed to load listing data');
       } finally {
         setIsLoadingData(false);
@@ -436,7 +425,7 @@ export default function ListingWizard({
   // Update form data when initialData changes (for manual data passing)
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0 && !autoLoad) {
-      console.log('[ListingWizard] Updating form data with manual initialData:', initialData);
+      wizardLogger.debug('Updating form data with manual initialData');
       setFormData(prevFormData => ({
         ...prevFormData,
         ...initialData,
@@ -465,10 +454,7 @@ export default function ListingWizard({
         setCarMakes(makesData);
         setTransmissions(referenceData.transmissions || []);
         setFuelTypes(referenceData.fuelTypes || []);
-        console.log('[ListingWizard] Loaded reference data:', {
-          transmissions: referenceData.transmissions?.length || 0,
-          fuelTypes: referenceData.fuelTypes?.length || 0
-        });
+        wizardLogger.debug('Loaded reference data counts');
       } catch (error) {
         console.error("Error loading initial data:", error);
         setError(t('common:failedToLoadData'));
@@ -497,7 +483,7 @@ export default function ListingWizard({
   // Enhanced handler for location changes - slug-based approach
   const handleLocationChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedSlug = e.target.value;
-    console.log('[ListingWizard] Location dropdown changed to slug:', selectedSlug);
+    wizardLogger.debug('Location dropdown changed to slug ' + selectedSlug);
     
     // Find the location object to get all its properties
     const selectedLocation = locations.find(loc => loc.slug === selectedSlug);
@@ -507,12 +493,7 @@ export default function ListingWizard({
         ? selectedLocation.displayNameAr 
         : selectedLocation.displayNameEn;
         
-      console.log('[ListingWizard] Updating location with slug-based approach:', {
-        id: selectedLocation.id,
-        slug: selectedLocation.slug,
-        displayName: locationDisplayName,
-        selectedLocationObject: selectedLocation
-      });
+      wizardLogger.debug('Updating location via slug');
       
       setFormData(prev => ({
         ...prev,
@@ -530,7 +511,7 @@ export default function ListingWizard({
         });
       }
     } else if (selectedSlug === '') {
-      console.log('[ListingWizard] Location cleared');
+      wizardLogger.debug('Location cleared');
       // Handle empty selection
       setFormData(prev => ({
         ...prev,
@@ -539,7 +520,7 @@ export default function ListingWizard({
         location: ''
       }));
     } else {
-      console.warn('[ListingWizard] Location not found for slug:', selectedSlug);
+      wizardLogger.warn('Location not found for slug');
     }
   }, [locations, i18n.language, formErrors.locationSlug]);
 
@@ -608,15 +589,15 @@ export default function ListingWizard({
         try {
           setIsLoadingLocations(true);
           setLocations([]); // Clear previous locations
-          console.log('[ListingWizard] Loading locations for governorate:', formData.governorateSlug);
+          wizardLogger.debug('Loading locations for governorate');
           const locationData = await getLocationsByGovernorateSlug(formData.governorateSlug);
-          console.log('[ListingWizard] Loaded locations:', locationData.length, 'locations');
+          wizardLogger.debug('Loaded locations count ' + String(locationData.length));
           
           // CRITICAL FIX: Set governorate ID from location data
           if (!formData.governorateId && locationData.length > 0) {
             const governorateId = locationData[0].governorateId;
             if (governorateId) {
-              console.log('[ListingWizard] Setting missing governorate ID:', governorateId);
+              wizardLogger.debug('Setting missing governorate ID');
               setFormData(prev => ({
                 ...prev,
                 governorateId: governorateId
@@ -645,9 +626,9 @@ export default function ListingWizard({
         try {
           setIsLoadingModels(true);
           setCarModels([]); // Clear previous models
-          console.log('[ListingWizard] Loading models for make ID:', formData.make);
+          wizardLogger.debug('Loading models for make');
           const modelData = await getVehicleModels(parseInt(formData.make));
-          console.log('[ListingWizard] Loaded models:', modelData);
+          wizardLogger.debug('Loaded models');
           setCarModels(modelData);
         } catch (error) {
           console.error('Failed to load models:', error);
@@ -684,42 +665,42 @@ export default function ListingWizard({
 
   // Check if a step can be accessed based on validation
   const isStepAccessible = useCallback((targetStep: number) => {
-    console.log(`[ListingWizard] isStepAccessible called: targetStep=${targetStep}, currentStep=${currentStep}`);
+    wizardLogger.debug(`isStepAccessible targetStep=${targetStep} currentStep=${currentStep}`);
     
     // Always allow going to previous steps
     if (targetStep <= currentStep) {
-      console.log(`[ListingWizard] Step ${targetStep} is accessible (previous or current step)`);
+      wizardLogger.debug(`Step ${targetStep} is accessible`);
       return true;
     }
     
     // For next step, validate all previous steps
     for (let step = 1; step < targetStep; step++) {
-      console.log(`[ListingWizard] Validating step ${step} for accessibility`);
+      wizardLogger.debug(`Validating step ${step} for accessibility`);
       const stepErrors = validateStep(step, formData, t);
-      console.log(`[ListingWizard] Step ${step} validation errors:`, stepErrors);
+      wizardLogger.debug(`Step ${step} validation errors ${JSON.stringify(stepErrors)}`);
       if (Object.keys(stepErrors).length > 0) {
-        console.log(`[ListingWizard] Step ${targetStep} is NOT accessible due to step ${step} validation errors`);
+        wizardLogger.info(`Step ${targetStep} is NOT accessible due to step ${step} errors`);
         return false;
       }
     }
     
     // Only allow accessing the next immediate step
     const isNextImmediateStep = targetStep === currentStep + 1;
-    console.log(`[ListingWizard] Step ${targetStep} accessibility check: isNextImmediateStep=${isNextImmediateStep}`);
+    wizardLogger.debug(`Step ${targetStep} accessibility: nextImmediate=${isNextImmediateStep}`);
     return isNextImmediateStep;
   }, [currentStep, formData, t]);
 
   // Helper function to handle validation errors
   const handleValidationErrors = useCallback((stepErrors: FormErrors) => {
-    console.log(`[ListingWizard] handleValidationErrors called with:`, stepErrors);
+    wizardLogger.debug('handleValidationErrors');
     
     if (Object.keys(stepErrors).length > 0) {
-      console.log(`[ListingWizard] Setting form errors:`, stepErrors);
+      wizardLogger.debug('Setting form errors');
       setFormErrors(stepErrors);
       
       // Focus on first field with error for better UX
       const firstErrorField = Object.keys(stepErrors)[0];
-      console.log(`[ListingWizard] Focusing on first error field:`, firstErrorField);
+      wizardLogger.debug('Focusing first error field ' + firstErrorField);
       const errorElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement;
       if (errorElement) {
         errorElement.focus();
@@ -731,13 +712,13 @@ export default function ListingWizard({
         // Use Intl.ListFormat for grammatically correct joining of errors
         const listFormatter = new Intl.ListFormat(i18n.language, { style: 'long', type: 'conjunction' });
         const specificError = listFormatter.format(errorMessages);
-        console.log(`[ListingWizard] Setting error message:`, specificError);
+        wizardLogger.debug('Setting error message');
         setError(specificError);
       }
-      console.log(`[ListingWizard] Validation failed, returning true`);
+      wizardLogger.debug('Validation failed');
       return true; // Indicates validation failed
     }
-    console.log(`[ListingWizard] No validation errors, returning false`);
+    wizardLogger.debug('No validation errors');
     return false; // Indicates validation passed
   }, [i18n.language]);
 
@@ -748,7 +729,7 @@ export default function ListingWizard({
       e.stopPropagation();
     }
     
-    console.log(`[ListingWizard] handleStepChange called: step=${step}, currentStep=${currentStep}`);
+    wizardLogger.debug(`handleStepChange step=${step} currentStep=${currentStep}`);
     console.log(`[ListingWizard] Current form data:`, {
       title: formData.title,
       description: formData.description,
@@ -757,11 +738,11 @@ export default function ListingWizard({
     });
     
     if (!isStepAccessible(step)) {
-      console.log(`[ListingWizard] Step ${step} is not accessible`);
+      wizardLogger.debug(`Step ${step} not accessible`);
       // Show specific message when trying to access locked step
       if (step > currentStep) {
         const stepErrors = validateStep(currentStep, formData, t);
-        console.log(`[ListingWizard] Step ${currentStep} validation errors:`, stepErrors);
+        wizardLogger.debug(`Step ${currentStep} validation errors ${JSON.stringify(stepErrors)}`);
         handleValidationErrors(stepErrors);
       }
       return;
@@ -769,17 +750,17 @@ export default function ListingWizard({
 
     // Validate current step before moving forward
     if (step > currentStep) {
-      console.log(`[ListingWizard] Validating step ${currentStep} before moving to step ${step}`);
+      wizardLogger.debug(`Validating step ${currentStep} before moving to step ${step}`);
       const stepErrors = validateStep(currentStep, formData, t);
-      console.log(`[ListingWizard] Step ${currentStep} validation errors:`, stepErrors);
+      wizardLogger.debug(`Step ${currentStep} validation errors ${JSON.stringify(stepErrors)}`);
       if (handleValidationErrors(stepErrors)) {
-        console.log(`[ListingWizard] Validation failed, staying on step ${currentStep}`);
+        wizardLogger.debug('Validation failed, stay on current step');
         return;
       }
-      console.log(`[ListingWizard] Step ${currentStep} validation passed`);
+      wizardLogger.debug('Current step validation passed');
     }
     
-    console.log(`[ListingWizard] Navigating to step ${step} from step ${currentStep}`);
+    wizardLogger.debug(`Navigating to step ${step} from ${currentStep}`);
     setCurrentStep(step);
     setFormErrors({}); // Clear errors when changing steps
     setError(null); // Clear any existing error messages
@@ -798,7 +779,7 @@ export default function ListingWizard({
     const files = e.target.files;
     if (!files) return;
 
-    console.log('[ListingWizard] handleImageUpload called with files:', files);
+    wizardLogger.debug('handleImageUpload');
 
     const validFiles: File[] = [];
     const newUrls: string[] = [];
@@ -811,13 +792,13 @@ export default function ListingWizard({
       }
     }
 
-    console.log('[ListingWizard] Valid files found:', validFiles.length);
-    console.log('[ListingWizard] New URLs created:', newUrls.length);
+    wizardLogger.debug('Valid files: ' + String(validFiles.length));
+    wizardLogger.debug('New URLs: ' + String(newUrls.length));
 
     if (validFiles.length > 0) {
       setFormData(prev => {
         const newImages = [...prev.images, ...validFiles];
-        console.log('[ListingWizard] Updated formData.images:', newImages.length);
+        wizardLogger.debug('Updated images length ' + String(newImages.length));
         return {
           ...prev,
           images: newImages
@@ -825,7 +806,7 @@ export default function ListingWizard({
       });
       setImagePreviewUrls(prev => {
         const newPreviewUrls = [...prev, ...newUrls];
-        console.log('[ListingWizard] Updated imagePreviewUrls:', newPreviewUrls.length);
+        wizardLogger.debug('Updated preview URLs length ' + String(newPreviewUrls.length));
         return newPreviewUrls;
       });
     }
@@ -875,7 +856,7 @@ export default function ListingWizard({
     setIsDragOver(false);
 
     const files = Array.from(e.dataTransfer.files);
-    console.log('[ListingWizard] handleDrop called with files:', files);
+    wizardLogger.debug('handleDrop');
 
     const validFiles: File[] = [];
     const newUrls: string[] = [];
@@ -887,13 +868,13 @@ export default function ListingWizard({
       }
     });
 
-    console.log('[ListingWizard] Valid files from drop:', validFiles.length);
-    console.log('[ListingWizard] New URLs from drop:', newUrls.length);
+    wizardLogger.debug('Valid files from drop ' + String(validFiles.length));
+    wizardLogger.debug('New URLs from drop ' + String(newUrls.length));
 
     if (validFiles.length > 0) {
       setFormData(prev => {
         const newImages = [...prev.images, ...validFiles];
-        console.log('[ListingWizard] Updated formData.images from drop:', newImages.length);
+        wizardLogger.debug('Updated images from drop ' + String(newImages.length));
         return {
           ...prev,
           images: newImages
@@ -901,7 +882,7 @@ export default function ListingWizard({
       });
       setImagePreviewUrls(prev => {
         const newPreviewUrls = [...prev, ...newUrls];
-        console.log('[ListingWizard] Updated imagePreviewUrls from drop:', newPreviewUrls.length);
+        wizardLogger.debug('Updated preview URLs from drop ' + String(newPreviewUrls.length));
         return newPreviewUrls;
       });
     }
