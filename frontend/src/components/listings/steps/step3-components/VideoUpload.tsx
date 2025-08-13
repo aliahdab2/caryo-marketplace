@@ -1,6 +1,7 @@
 "use client";
 
 import React, { memo } from 'react';
+import { useDirection } from '@/utils/direction';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
@@ -22,12 +23,13 @@ const VideoUpload = memo(function VideoUpload({
   removeVideo
 }: VideoUploadProps) {
   const { t } = useLazyTranslation(['listings']);
+  const { isRTL } = useDirection();
 
   return (
     <div className="animate-in slide-in-from-top-4 duration-500 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 rounded-2xl p-6 border border-blue-200 dark:border-blue-800 shadow-lg">
       <div className="space-y-6">
         {/* Upload Header */}
-        <div className="flex items-center space-x-3">
+        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
           <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center">
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16l13-8z" />
@@ -103,8 +105,8 @@ const VideoUpload = memo(function VideoUpload({
       {/* Enhanced Video Preview */}
       {formData.videos && formData.videos.length > 0 && videoPreviewUrls.length > 0 && (
         <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-4 mt-6 pt-6 border-t border-blue-200 dark:border-blue-700">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-between">
+              <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
               <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -122,7 +124,7 @@ const VideoUpload = memo(function VideoUpload({
             <button
               type="button"
               onClick={() => removeVideo(0)}
-              className="flex items-center space-x-2 px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg transition-colors duration-200 text-sm font-medium"
+              className={`flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'} px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg transition-colors duration-200 text-sm font-medium`}
               aria-label="Remove video"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

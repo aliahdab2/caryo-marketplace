@@ -13,6 +13,8 @@ export function getRTLSpacing(isRTL: boolean) {
     // Margin classes
     ml: (size: string) => isRTL ? `mr-${size}` : `ml-${size}`,
     mr: (size: string) => isRTL ? `ml-${size}` : `mr-${size}`,
+    ms: (size: string) => `ms-${size}`, // Tailwind handles RTL automatically
+    me: (size: string) => `me-${size}`, // Tailwind handles RTL automatically
     
     // Padding classes  
     pl: (size: string) => isRTL ? `pr-${size}` : `pl-${size}`,
