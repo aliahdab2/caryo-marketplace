@@ -1822,15 +1822,15 @@ export default function ListingWizard({
                                   {t('listings:newListingImageUploadHint', 'Upload multiple images to showcase your car. First image will be the main photo.')}
                                 </p>
                                 <div className={`flex items-center justify-center ${isRTL ? 'space-x-reverse space-x-6' : 'space-x-6'} text-xs text-gray-400 dark:text-gray-500`}>
-                                  <div className="flex items-center space-x-1">
+                                  <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <span>PNG, JPG, JPEG</span>
-                  </div>
-                                  <div className="flex items-center space-x-1">
+                                  </div>
+                                  <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <span>Max 5MB each</span>
-                </div>
-                                  <div className="flex items-center space-x-1">
+                                  </div>
+                                  <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <span>Up to 10 images</span>
                                   </div>
@@ -1859,7 +1859,7 @@ export default function ListingWizard({
                   {(formData.images.length > 0 || imagePreviewUrls.length > 0) && (
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
+                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
                           <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
                             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -1968,7 +1968,7 @@ export default function ListingWizard({
 
                       {/* Reordering Instructions */}
                       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700">
-                        <div className="flex items-center space-x-3">
+                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
                           <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-800/50 flex items-center justify-center">
                             <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
