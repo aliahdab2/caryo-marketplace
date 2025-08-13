@@ -2037,7 +2037,7 @@ export default function ListingWizard({
                           <button
                             type="button"
                             onClick={() => setShowVideoUpload(!showVideoUpload)}
-                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${rtl.text.align} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-800 min-h-[160px] ${
+                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${rtl.text.textStart} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-800 min-h-[160px] ${
                               showVideoUpload || (formData.videos && formData.videos.length > 0)
                                 ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 text-blue-900 dark:text-blue-100 shadow-lg'
                                 : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/10'
@@ -2114,7 +2114,7 @@ export default function ListingWizard({
                           <button
                             type="button"
                             onClick={() => setShowVideoUrl(!showVideoUrl)}
-                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${rtl.text.align} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-800 min-h-[160px] ${
+                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${rtl.text.textStart} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-800 min-h-[160px] ${
                               showVideoUrl || (formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0])
                                 ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 text-purple-900 dark:text-purple-100 shadow-lg'
                                 : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 bg-white dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/10'
@@ -2305,7 +2305,7 @@ export default function ListingWizard({
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                                 </svg>
                               </div>
-                              <div className={rtl.text.align}>
+                              <div className={rtl.text.textStart}>
                                 <h4 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
                                   {t('listings:videoPreview', 'Video Preview')}
                                 </h4>
@@ -2336,7 +2336,7 @@ export default function ListingWizard({
                             >
                               Your browser does not support the video tag.
                             </video>
-                            <div className={`absolute top-4 ${rtl.position.start('4')} bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1`}>
+                            <div className={`absolute top-4 ${rtl.spacing.start('4')} bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1`}>
                               <span className="text-white text-sm font-medium">{t('listings:readyToUpload', 'Ready to upload')}</span>
                             </div>
                           </div>
@@ -2356,7 +2356,7 @@ export default function ListingWizard({
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                             </svg>
                           </div>
-                          <div className={rtl.text.align}>
+                          <div className={rtl.text.textStart}>
                             <h5 className="font-semibold text-purple-900 dark:text-purple-100">
                               {t('listings:addVideoUrl', 'Add Video URL')}
                             </h5>
@@ -2425,7 +2425,7 @@ export default function ListingWizard({
                       {/* External Video Preview */}
                       {formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0] && (
                         <div className="space-y-4">
-                          <h4 className={`text-md font-medium text-gray-900 dark:text-gray-100 ${rtl.text.align}`}>
+                          <h4 className={`text-md font-medium text-gray-900 dark:text-gray-100 ${rtl.text.textStart}`}>
                             {t('listings:videoPreview', 'Video preview')} - {t('listings:external', 'External')}
                           </h4>
                           
@@ -2461,7 +2461,7 @@ export default function ListingWizard({
                             return (
                               <div className="relative p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                                 <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
-                                  <div className={`flex-1 ${rtl.text.align}`}>
+                                  <div className={`flex-1 ${rtl.text.textStart}`}>
                                     <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
                                       {t('listings:externalVideoUrl', 'External Video URL')}
                                     </p>
@@ -2486,7 +2486,7 @@ export default function ListingWizard({
                           })()}
                           
                           {/* URL Info */}
-                          <div className={`text-center ${rtl.text.align}`}>
+                          <div className={`text-center ${rtl.text.textStart}`}>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
                               {t('listings:source', 'Source')}: {formData.videoUrls[0]}
                             </p>
