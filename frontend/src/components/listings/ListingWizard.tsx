@@ -26,6 +26,8 @@ import AutoSaveIndicator from '@/components/ui/AutoSaveIndicator';
 import { getLocationsByGovernorateSlug, Location } from '@/services/locations';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useMemo as useMemoPerf, useCallback as useCallbackPerf } from 'react';
+import { useDirection } from '@/utils/direction';
+import { createRTLHelpers } from '@/utils/rtlHelpers';
 
 // Performance optimized debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -119,7 +121,8 @@ const ImagePreview = memo(function ImagePreview({
   onDragOver,
   onDragLeave,
   onDrop,
-  onDragEnd
+  onDragEnd,
+  isRTL
 }: {
   url: string;
   index: number;
@@ -133,6 +136,7 @@ const ImagePreview = memo(function ImagePreview({
   onDragLeave: () => void;
   onDrop: (e: React.DragEvent) => void;
   onDragEnd: () => void;
+  isRTL: boolean;
 }) {
   return (
     <div
@@ -195,7 +199,7 @@ const ImagePreview = memo(function ImagePreview({
 
       {/* Main Photo Badge */}
       {isMainPhoto && (
-        <div className="absolute bottom-2 start-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center space-x-1">
+        <div className={`absolute bottom-2 ${isRTL ? 'end-2' : 'start-2'} bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
           </svg>
@@ -206,15 +210,15 @@ const ImagePreview = memo(function ImagePreview({
       {/* Image Number Badge */}
       <div className="absolute top-2 start-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
         {index + 1}
-      </div>
+          </div>
 
       {/* File Info on Hover */}
       {fileSize && (
         <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
             {(fileSize / 1024 / 1024).toFixed(1)}MB
-          </div>
         </div>
+      </div>
       )}
     </div>
   );
@@ -312,7 +316,7 @@ const VirtualizedSelect = memo(function VirtualizedSelect({
                 }}
               >
                 {option.name}
-              </div>
+      </div>
             ))}
           </div>
         </div>
@@ -335,6 +339,8 @@ export default function ListingWizard({
 }: ListingWizardProps & { showHeader?: boolean }) {
   const router = useRouter();
   const { t, i18n, ready } = useLazyTranslation(['listings', 'common']);
+  const { isRTL } = useDirection();
+  const rtl = createRTLHelpers(isRTL);
   
   // Refs for keyboard navigation
   const formRef = useRef<HTMLFormElement>(null);
@@ -973,7 +979,7 @@ export default function ListingWizard({
         return;
       }
     }
-
+    
     if (!isStepAccessible(step)) {
       wizardLogger.debug(`Step ${step} not accessible`);
       // Show specific message when trying to access locked step
@@ -1280,14 +1286,14 @@ export default function ListingWizard({
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         {showHeader && (
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              {mode === 'create' ? t('listings:newListing') : t('listings:editListing')}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              {mode === 'create' ? t('listings:newListingSubtitle') : t('listings:editListingSubtitle')}
-            </p>
-          </div>
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            {mode === 'create' ? t('listings:newListing') : t('listings:editListing')}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            {mode === 'create' ? t('listings:newListingSubtitle') : t('listings:editListingSubtitle')}
+          </p>
+        </div>
         )}
 
         {/* Step Navigation */}
@@ -1731,11 +1737,11 @@ export default function ListingWizard({
                 {/* Enhanced Images and Videos Section */}
                 <div className="space-y-8">
                   {/* Enhanced Images Section Header */}
-                  <div className="space-y-6">
+                <div className="space-y-6">
                     <div className="text-center space-y-2">
                       <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                         {t('listings:newListingCarImages', 'Car Images')} <span className="text-red-500">*</span>
-                      </h3>
+                  </h3>
                       <p className="text-gray-600 dark:text-gray-400">
                         {t('listings:newListingImageUploadSubtitle', 'Upload high-quality photos to attract potential buyers')}
                       </p>
@@ -1782,9 +1788,9 @@ export default function ListingWizard({
                                   ? 'text-blue-600 dark:text-blue-400' 
                                   : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'
                               }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                              </svg>
-                            </div>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                      </svg>
+                    </div>
 
                             {/* Main Text */}
                             <div className="text-center space-y-3">
@@ -1819,11 +1825,11 @@ export default function ListingWizard({
                                   <div className="flex items-center space-x-1">
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <span>PNG, JPG, JPEG</span>
-                                  </div>
+                  </div>
                                   <div className="flex items-center space-x-1">
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <span>Max 5MB each</span>
-                                  </div>
+                </div>
                                   <div className="flex items-center space-x-1">
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <span>Up to 10 images</span>
@@ -2746,8 +2752,8 @@ export default function ListingWizard({
                   disabled={currentStep === 1}
                   className="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                  <svg className={`w-4 h-4 ${rtl.spacing.mr('2')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={rtl.arrows.leftArrow} />
                   </svg>
                   {t('common:previous')}
                 </button>
@@ -2761,8 +2767,8 @@ export default function ListingWizard({
                   className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 order-1 sm:order-2"
                 >
                   {t('common:next')}
-                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                  <svg className={`w-4 h-4 ${rtl.spacing.ml('2')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={rtl.arrows.rightArrow} />
                   </svg>
                 </button>
               ) : (
