@@ -80,6 +80,11 @@ export interface ApiListingItem {
   isExpired: boolean;
   transmission?: string;
   fuelType?: string;
+  // Bilingual names for transmission and fuel type (from backend)
+  transmissionNameEn?: string;
+  transmissionNameAr?: string;
+  fuelTypeNameEn?: string;
+  fuelTypeNameAr?: string;
 }
 
 /**
@@ -169,6 +174,11 @@ export interface Listing {
   }[];
   fuelType?: string;
   transmission?: string;
+  // Bilingual names for transmission and fuel type (from backend)
+  transmissionNameEn?: string;
+  transmissionNameAr?: string;
+  fuelTypeNameEn?: string;
+  fuelTypeNameAr?: string;
   listingDate?: Date;
   createdAt: string;
   updatedAt?: string;

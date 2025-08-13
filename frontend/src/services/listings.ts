@@ -100,6 +100,11 @@ function mapApiResponseToListings(apiResponse: ListingApiResponse): { listings: 
       media: mediaItems,
       fuelType: item.fuelType || '',
       transmission: item.transmission || '',
+      // Bilingual names from backend
+      transmissionNameEn: item.transmissionNameEn,
+      transmissionNameAr: item.transmissionNameAr,
+      fuelTypeNameEn: item.fuelTypeNameEn,
+      fuelTypeNameAr: item.fuelTypeNameAr,
       createdAt: item.createdAt,
       description: item.description,
       status: determineListingStatus(item),
@@ -234,6 +239,11 @@ export async function getListingById(id: string | number): Promise<Listing> {
       media: mediaItems,
       fuelType: response.fuelType || '',
       transmission: response.transmission || '',
+      // Bilingual names from backend
+      transmissionNameEn: response.transmissionNameEn,
+      transmissionNameAr: response.transmissionNameAr,
+      fuelTypeNameEn: response.fuelTypeNameEn,
+      fuelTypeNameAr: response.fuelTypeNameAr,
       createdAt: response.createdAt,
       description: response.description,
       status: determineListingStatus(response),

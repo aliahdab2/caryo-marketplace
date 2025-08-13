@@ -80,36 +80,20 @@ export default function ListingsView({
 }: ListingsViewProps) {
   const { t, i18n } = useTranslation(LISTINGS_NAMESPACES);
   
-  // Helper function to get translated transmission text
-  const getTransmissionText = (transmission?: string) => {
-    if (!transmission) return '';
-    
-    // Fallback to translation lookup
-    const normalized = transmission.toLowerCase();
-    const translatedKey = `transmissions${normalized.charAt(0).toUpperCase() + normalized.slice(1)}`;
-    const translated = t(translatedKey, { ns: 'search' });
-    
-    if (translated && translated !== translatedKey) {
-      return translated;
+  // Helper function to get bilingual transmission display name from backend data
+  const getTransmissionText = (listing: Listing) => {
+    if (i18n.language === 'ar') {
+      return listing.transmissionNameAr || listing.transmissionNameEn || listing.transmission || '';
     }
-    
-    return transmission;
+    return listing.transmissionNameEn || listing.transmissionNameAr || listing.transmission || '';
   };
 
-  // Helper function to get translated fuel type text
-  const getFuelTypeText = (fuelType?: string) => {
-    if (!fuelType) return '';
-    
-    // Fallback to translation lookup
-    const normalized = fuelType.toLowerCase();
-    const translatedKey = `fuelTypes${normalized.charAt(0).toUpperCase() + normalized.slice(1)}`;
-    const translated = t(translatedKey, { ns: 'search' });
-    
-    if (translated && translated !== translatedKey) {
-      return translated;
+  // Helper function to get bilingual fuel type display name from backend data
+  const getFuelTypeText = (listing: Listing) => {
+    if (i18n.language === 'ar') {
+      return listing.fuelTypeNameAr || listing.fuelTypeNameEn || listing.fuelType || '';
     }
-    
-    return fuelType;
+    return listing.fuelTypeNameEn || listing.fuelTypeNameAr || listing.fuelType || '';
   };
   
   // State for full variant features
@@ -539,16 +523,16 @@ export default function ListingsView({
                                   {listing.mileage.toLocaleString()} {t('common:km')}
                                 </span>
                               )}
-                              {listing.fuelType && (
+                              {(listing.fuelType || listing.fuelTypeNameEn || listing.fuelTypeNameAr) && (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700/50 text-green-700 dark:text-green-300 text-xs">
                                   <MdLocalGasStation className="w-3 h-3" />
-                                  {getFuelTypeText(listing.fuelType)}
+                                  {getFuelTypeText(listing)}
                                 </span>
                               )}
-                              {listing.transmission && (
+                              {(listing.transmission || listing.transmissionNameEn || listing.transmissionNameAr) && (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700/50 text-purple-700 dark:text-purple-300 text-xs">
                                   <MdSettings className="w-3 h-3" />
-                                  {getTransmissionText(listing.transmission)}
+                                  {getTransmissionText(listing)}
                                 </span>
                               )}
                             </div>
