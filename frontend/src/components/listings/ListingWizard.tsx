@@ -212,10 +212,10 @@ export default function ListingWizard({
 
   // Memoized step configuration
   const stepConfig = useMemo((): StepConfig[] => [
-    { step: 1, title: t('listings:vehicleIdentityTitle', 'Vehicle Identity'), icon: '🚗', isComplete: currentStep > 1 },
-    { step: 2, title: t('listings:vehicleDetailsTitle', 'Vehicle Details'), icon: '📋', isComplete: currentStep > 2 },
-    { step: 3, title: t('listings:contentMediaTitle', 'Content & Media'), icon: '📝', isComplete: currentStep > 3 },
-    { step: 4, title: t('listings:pricingContactTitle', 'Pricing & Contact'), icon: '💰', isComplete: currentStep > 4 }
+    { step: 1, title: t('listings:newListingStep1Title', 'Basic Info'), icon: '📝', isComplete: currentStep > 1 },
+    { step: 2, title: t('listings:newListingStep2Title', 'Details'), icon: '🚗', isComplete: currentStep > 2 },
+    { step: 3, title: t('listings:newListingStep3Title', 'Location & Contact'), icon: '📍', isComplete: currentStep > 3 },
+    { step: 4, title: t('listings:newListingStep4Title', 'Images'), icon: '📸', isComplete: currentStep > 4 }
   ], [currentStep, t]);
 
   // Handler functions
@@ -1111,16 +1111,98 @@ export default function ListingWizard({
         {/* Form Steps */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
           <form onSubmit={handleSubmit}>
-            {/* Step 1: Vehicle Identity */}
+            {/* Step 1: Basic Info - Simplified for now */}
             {currentStep === 1 && (
+              <div className="space-y-6">
+                <div className="text-center pb-6 border-b border-gray-200 dark:border-gray-700">
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                    {t('listings:basicInformation')}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {t('listings:basicInformationSubtitle')}
+                  </p>
+                </div>
+
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('listings:title')} *
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    placeholder={t('listings:titlePlaceholder')}
+                  />
+                  {formErrors.title && <ErrorMessage error={formErrors.title} />}
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('listings:description')} *
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-vertical"
+                    placeholder={t('listings:descriptionPlaceholder', 'Describe your car in detail...')}
+                  />
+                  {formErrors.description && <ErrorMessage error={formErrors.description} />}
+                </div>
+
+                {/* Price */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      {t('listings:price')} *
+                    </label>
+                    <NumericInput
+                      name="price"
+                      value={formData.price}
+                      onChange={(value) => handleChange(value, 'price')}
+                      placeholder="0"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    />
+                    {formErrors.price && <ErrorMessage error={formErrors.price} />}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      {t('listings:currency')} *
+                    </label>
+                    <select
+                      name="currency"
+                      value={formData.currency}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    >
+                      {SUPPORTED_CURRENCIES.map(currency => (
+                        <option key={currency.code} value={currency.code}>
+                          {currency.symbol} {currency.code}
+                        </option>
+                      ))}
+                    </select>
+                    {formErrors.currency && <ErrorMessage error={formErrors.currency} />}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Car Details */}
+            {currentStep === 2 && (
               <div className="space-y-8 animate-fadeIn">
                 {/* Step Header */}
                 <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:vehicleIdentityTitle', 'Vehicle Identity')}
+                    {t('listings:newListingStep2Title', 'Car Details')}
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:vehicleIdentitySubtitle', 'Start by telling us what vehicle you\'re selling')}
+                    {t('listings:newListingStep2Description', 'Provide specific details about your vehicle')}
                   </p>
                 </div>
 
@@ -1202,67 +1284,55 @@ export default function ListingWizard({
                   </p>
                 </div>
 
-                {/* Year */}
-                <div className="space-y-3">
-                  <label 
-                    htmlFor="year" 
-                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    {t('listings:newListingYear', 'Year')} <span className="text-red-500">*</span>
-                  </label>
-                  <NumericInput
-                    id="year"
-                    name="year"
-                    value={formData.year}
-                    onChange={(value) => handleChange(value, 'year')}
-                    placeholder={t('listings:newListingYearPlaceholder', '2020')}
-                    required
-                    error={!!formErrors.year}
-                    aria-invalid={!!formErrors.year}
-                    aria-describedby={formErrors.year ? 'year-error' : 'year-hint'}
-                    className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  />
-                  {formErrors.year && <ErrorMessage error={formErrors.year} />}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
-                    {t('listings:newListingYearHint', 'Manufacturing year')}
-                  </p>
-                </div>
-              </div>
-            )}
+                {/* Year and Mileage Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Year */}
+                  <div className="space-y-3">
+                    <label 
+                      htmlFor="year" 
+                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    >
+                      {t('listings:newListingYear', 'Year')} <span className="text-red-500">*</span>
+                    </label>
+                    <NumericInput
+                      id="year"
+                      name="year"
+                      value={formData.year}
+                      onChange={(value) => handleChange(value, 'year')}
+                      placeholder={t('listings:newListingYearPlaceholder', '2020')}
+                      required
+                      error={!!formErrors.year}
+                      aria-invalid={!!formErrors.year}
+                      aria-describedby={formErrors.year ? 'year-error' : 'year-hint'}
+                      className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    />
+                    {formErrors.year && <ErrorMessage error={formErrors.year} />}
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
+                      {t('listings:newListingYearHint', 'Manufacturing year')}
+                    </p>
+                  </div>
 
-            {/* Step 2: Car Details */}
-            {currentStep === 2 && (
-              <div className="space-y-8 animate-fadeIn">
-                {/* Step Header */}
-                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:vehicleDetailsTitle', 'Vehicle Details')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:vehicleDetailsSubtitle', 'Tell us more about your vehicle\'s condition and features')}
-                  </p>
-                </div>
-
-                {/* Mileage */}
-                <div className="space-y-3">
-                  <label 
-                    htmlFor="mileage" 
-                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    {t('listings:newListingMileage', 'Mileage')}
-                  </label>
-                  <NumericInput
-                    id="mileage"
-                    name="mileage"
-                    value={formData.mileage}
-                    onChange={(value) => handleChange(value, 'mileage')}
-                    placeholder={t('listings:newListingMileagePlaceholder', '50000')}
-                    error={!!formErrors.mileage}
-                    aria-describedby="mileage-hint"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="mileage-hint">
-                    {t('listings:newListingMileageHint', 'Total kilometers driven')}
-                  </p>
+                  {/* Mileage */}
+                  <div className="space-y-3">
+                    <label 
+                      htmlFor="mileage" 
+                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    >
+                      {t('listings:newListingMileage', 'Mileage')}
+                    </label>
+                    <NumericInput
+                      id="mileage"
+                      name="mileage"
+                      value={formData.mileage}
+                      onChange={(value) => handleChange(value, 'mileage')}
+                      placeholder={t('listings:newListingMileagePlaceholder', '50000')}
+                      error={!!formErrors.mileage}
+                      aria-describedby="mileage-hint"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="mileage-hint">
+                      {t('listings:newListingMileageHint', 'Total kilometers driven')}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Engine and Transmission Grid */}
@@ -1395,285 +1465,17 @@ export default function ListingWizard({
               </div>
             )}
 
-            {/* Step 3: Content & Media */}
+            {/* Step 3: Location and Contact */}
             {currentStep === 3 && (
               <div className="space-y-8 animate-fadeIn">
                 {/* Step Header */}
                 <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:contentMediaTitle', 'Content & Media')}
+                    {t('listings:newListingStep3Title', 'Location & Contact')}
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:contentMediaSubtitle', 'Create your listing content and add photos')}
+                    {t('listings:newListingStep3Description', 'Where to find you and how to get in touch')}
                   </p>
-                </div>
-
-                {/* Title */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    {t('listings:title')} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                      formErrors.title ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                    }`}
-                    placeholder={t('listings:titlePlaceholder')}
-                    aria-invalid={!!formErrors.title}
-                  />
-                  {formErrors.title && <ErrorMessage error={formErrors.title} />}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {t('listings:titleHint', 'Create an attractive title for your listing')}
-                  </p>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    {t('listings:description')} <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    rows={6}
-                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 resize-vertical ${
-                      formErrors.description ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                    }`}
-                    placeholder={t('listings:descriptionPlaceholder', 'Describe your car in detail...')}
-                    aria-invalid={!!formErrors.description}
-                  />
-                  {formErrors.description && <ErrorMessage error={formErrors.description} />}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {t('listings:descriptionHint', 'Provide detailed information about your vehicle\'s condition, features, and history')}
-                  </p>
-                </div>
-
-                {/* Images Section */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {t('listings:newListingCarImages', 'Car Images')}
-                  </h3>
-                  
-                  {/* Enhanced Image Upload Section with Drag & Drop */}
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-center w-full">
-                      <div
-                        className={`w-full transition-all duration-300 ${
-                          isDragOver 
-                            ? 'scale-[1.02] shadow-xl ring-4 ring-blue-200 dark:ring-blue-700' 
-                            : 'hover:shadow-lg'
-                        }`}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                      >
-                        <label 
-                          htmlFor="image-upload" 
-                          className={`group flex flex-col items-center justify-center w-full h-72 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 focus-within:ring-4 focus-within:ring-blue-200 dark:focus-within:ring-blue-800 ${
-                            isDragOver
-                              ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                              : 'border-gray-300 dark:border-gray-600 bg-gray-50/80 dark:bg-gray-800/50 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50'
-                          }`}
-                          role="button"
-                          tabIndex={0}
-                          aria-label="Upload car images by clicking or dragging files here"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              document.getElementById('image-upload')?.click();
-                            }
-                          }}
-                        >
-                          <div className="flex flex-col items-center justify-center pt-8 pb-8 space-y-6">
-                            {/* Enhanced Upload Icon */}
-                            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                              isDragOver 
-                                ? 'bg-blue-100 dark:bg-blue-800/50 scale-110' 
-                                : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 group-hover:scale-105'
-                            }`}>
-                              <svg className={`w-10 h-10 transition-colors duration-300 ${
-                                isDragOver 
-                                  ? 'text-blue-600 dark:text-blue-400' 
-                                  : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'
-                              }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                              </svg>
-                            </div>
-
-                            {/* Main Text */}
-                            <div className="text-center space-y-3">
-                              <h4 className={`text-xl font-semibold transition-colors duration-300 ${
-                                isDragOver 
-                                  ? 'text-blue-800 dark:text-blue-200' 
-                                  : 'text-gray-700 dark:text-gray-200'
-                              }`}>
-                                {isDragOver 
-                                  ? t('listings:newListingDropToUpload', 'Drop your photos here!')
-                                  : t('listings:newListingDragPhotos', 'Drag & drop your car photos here')
-                                }
-                              </h4>
-                              
-                              <div className="flex items-center justify-center space-x-2">
-                                <span className="text-sm text-gray-500 dark:text-gray-400">
-                                  {t('listings:newListingOr', 'or')}
-                                </span>
-                                <span className={`text-sm font-medium transition-colors duration-300 ${
-                                  isDragOver 
-                                    ? 'text-blue-600 dark:text-blue-400' 
-                                    : 'text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300'
-                                }`}>
-                                  {t('listings:newListingClickToSelect', 'click to select files')}
-                                </span>
-                              </div>
-                              
-                              <p className="text-xs text-gray-400 dark:text-gray-500 max-w-sm">
-                                {t('listings:newListingImageLimits', 'PNG, JPG, WebP up to 10MB each. Maximum 10 photos.')}
-                              </p>
-                            </div>
-
-
-                          </div>
-                        </label>
-
-                        <input
-                          id="image-upload"
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                          aria-describedby="image-upload-description"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Image Upload Status and Description */}
-                    <div className="text-center space-y-2">
-                      <p id="image-upload-description" className="text-sm text-gray-600 dark:text-gray-400">
-                        {t('listings:newListingImageUploadTip', 'High-quality photos help sell your car faster. Include exterior, interior, and engine photos.')}
-                      </p>
-                      
-                      {formErrors.images && (
-                        <div className="text-red-600 dark:text-red-400 text-sm font-medium">
-                          {formErrors.images}
-                        </div>
-                      )}
-                      
-                      {formData.images && formData.images.length > 0 && (
-                        <p className="text-sm text-green-600 dark:text-green-400 font-medium">
-                          {t('listings:newListingImagesUploaded', '{{count}} photo(s) uploaded', { count: formData.images.length })}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Image Previews */}
-                    {imagePreviewUrls.length > 0 && (
-                      <div className="space-y-4">
-                        <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
-                          {t('listings:newListingImagePreview', 'Image Preview')}
-                        </h4>
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                          {imagePreviewUrls.map((url, index) => (
-                            <div key={`${url}-${index}`} className="relative group">
-                              <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 shadow-sm group-hover:shadow-md transition-shadow duration-200">
-                                <img
-                                  src={url}
-                                  alt={`Preview ${index + 1}`}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              
-                              {/* Main Photo Badge */}
-                              {index === 0 && (
-                                <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-md font-medium">
-                                  {t('listings:newListingMainImage', 'Main Photo')}
-                                </div>
-                              )}
-                              
-                              {/* Remove Button */}
-                              <button
-                                type="button"
-                                onClick={() => removeImage(index)}
-                                className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                                aria-label={`Remove image ${index + 1}`}
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                              </button>
-                              
-
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {/* Step 4: Pricing & Contact */}
-            {currentStep === 4 && (
-              <div className="space-y-8 animate-fadeIn">
-                {/* Step Header */}
-                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:pricingContactTitle', 'Pricing & Contact')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:pricingContactSubtitle', 'Set your price and contact information')}
-                  </p>
-                </div>
-
-                {/* Price */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      {t('listings:price')} <span className="text-red-500">*</span>
-                    </label>
-                    <NumericInput
-                      name="price"
-                      value={formData.price}
-                      onChange={(value) => handleChange(value, 'price')}
-                      placeholder="0"
-                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                        formErrors.price ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                      }`}
-                      aria-invalid={!!formErrors.price}
-                    />
-                    {formErrors.price && <ErrorMessage error={formErrors.price} />}
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      {t('listings:priceHint', 'Set a competitive price for your vehicle')}
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      {t('listings:currency')} <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="currency"
-                      value={formData.currency}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                        formErrors.currency ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                      }`}
-                    >
-                      {SUPPORTED_CURRENCIES.map(currency => (
-                        <option key={currency.code} value={currency.code}>
-                          {currency.symbol} {currency.code}
-                        </option>
-                      ))}
-                    </select>
-                    {formErrors.currency && <ErrorMessage error={formErrors.currency} />}
-                  </div>
                 </div>
 
                 {/* Location Information */}
@@ -1853,8 +1655,8 @@ export default function ListingWizard({
               </div>
             )}
 
-            {/* Images Section - Will be moved to Step 3 later */}
-            {false && (
+            {/* Step 4: Images and Videos */}
+            {currentStep === 4 && (
               <div className="space-y-8 animate-fadeIn">
                 {/* Step 4 Header */}
                 <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
@@ -2141,7 +1943,7 @@ export default function ListingWizard({
                     </div>
 
                     {/* Video Previews */}
-                    {((formData.videos?.length ?? 0) > 0 || (formData.videoUrls?.length ?? 0) > 0) && (
+                    {((formData.videos && formData.videos.length > 0) || (formData.videoUrls && formData.videoUrls.length > 0)) && (
                       <div className="space-y-4">
                         <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
                           {t('listings:videoPreview', 'Video Preview')}
