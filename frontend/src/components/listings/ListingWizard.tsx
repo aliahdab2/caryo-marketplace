@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
+import React, { useState, useEffect, useCallback, useRef, memo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
@@ -12,7 +12,7 @@ const referenceDataServices = {
   getCarReferenceData: () => import('@/services/referenceData').then(m => m.getCarReferenceData),
 };
 import { CarBrand, CarModel } from '@/types/referenceData';
-import { createListing, updateListing } from '@/services/listings';
+import { createListing, updateListing, uploadListingImage } from '@/services/listings';
 import { ListingFormData, UpdateListingData } from "@/types/listings";
 
 import { FormErrors, StepConfig } from "@/types/forms";
@@ -607,6 +607,29 @@ export default function ListingWizard({
         
         const result = await updateListing(listingId, updateData);
         wizardLogger.info('Update successful');
+        
+        // Handle image uploads for edit mode
+        if (formData.images && formData.images.length > 0) {
+          wizardLogger.info(`Uploading ${formData.images.length} new images for listing ${listingId}`);
+          
+          try {
+            // Upload new images one by one (API limitation: one image per request)
+            for (let i = 0; i < formData.images.length; i++) {
+              const image = formData.images[i];
+              wizardLogger.debug(`Uploading image ${i + 1}/${formData.images.length}: ${image.name}`);
+              
+              const uploadResult = await uploadListingImage(listingId, image);
+              wizardLogger.debug(`Image upload successful: ${uploadResult.imageKey}`);
+            }
+            
+            wizardLogger.info('All images uploaded successfully');
+          } catch (imageError) {
+            wizardLogger.error('Error uploading images:', imageError);
+            // Don't fail the entire update if image upload fails
+            // But inform the user
+            setError(`Listing updated successfully, but there was an error uploading images: ${imageError instanceof Error ? imageError.message : 'Unknown error'}`);
+          }
+        }
         
         // Note: Contact information (email, phone, name) is tied to the user account
         // and cannot be updated via the listing update API. Users need to update

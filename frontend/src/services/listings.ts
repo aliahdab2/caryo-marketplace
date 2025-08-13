@@ -890,6 +890,63 @@ export async function getMyListingById(id: string | number): Promise<Listing> {
   }
 }
 
+// Upload image for an existing listing
+export async function uploadListingImage(listingId: string | number, imageFile: File): Promise<{ message: string; imageKey: string }> {
+  try {
+    // Import getSession at runtime to avoid SSR issues
+    const { getSession } = await import('next-auth/react');
+    const session = await getSession();
+    
+    if (!session?.accessToken) {
+      throw new ApiError('You need to log in to upload images', 401);
+    }
+    
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('file', imageFile, imageFile.name);
+    
+    // Use fetch directly for file upload
+    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/${listingId}/upload-image`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.accessToken}`
+        // Do NOT set Content-Type - let browser set it with boundary for multipart/form-data
+      },
+      body: formData,
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[Upload Image] HTTP ${response.status}:`, errorText);
+      
+      switch (response.status) {
+        case 401:
+          throw new ApiError('You need to log in to upload images', 401);
+        case 403:
+          throw new ApiError('You do not have permission to upload images for this listing', 403);
+        case 404:
+          throw new ApiError('Listing not found', 404);
+        case 413:
+          throw new ApiError('Image file is too large', 413);
+        case 415:
+          throw new ApiError('Image format not supported. Please use JPEG, PNG, GIF, or WebP', 415);
+        default:
+          throw new ApiError(`Failed to upload image: ${errorText}`, response.status);
+      }
+    }
+    
+    const result = await response.json();
+    console.log('[Upload Image] Success:', result);
+    return result;
+  } catch (error) {
+    console.error('[Upload Image] Error:', error);
+    throw error instanceof ApiError ? error : new ApiError('Failed to upload image', 500);
+  }
+}
+
 // Delete a single listing by ID
 export async function deleteListingById(id: string): Promise<void> {
   try {
