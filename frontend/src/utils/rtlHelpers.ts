@@ -52,6 +52,9 @@ export function getRTLArrows(isRTL: boolean) {
     // Expand/collapse arrows  
     expandRight: isRTL ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7",
     expandDown: "M19 9l-7 7-7-7",
+    
+    // Play icon (triangle pointing in direction of reading)
+    playIcon: isRTL ? "M17 4v16l-13-8z" : "M7 4v16l13-8z",
   };
 }
 

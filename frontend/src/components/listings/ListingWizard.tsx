@@ -2056,7 +2056,7 @@ export default function ListingWizard({
                                     : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/40'
                                 }`}>
                                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16l13-8z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={rtl.arrows.playIcon} />
                                   </svg>
                                 </div>
                                 <div className="flex-1">
@@ -2221,7 +2221,7 @@ export default function ListingWizard({
                         <div className={`flex items-center ${rtl.spacing.spaceX('3')}`}>
                           <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center">
                             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16l13-8z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={rtl.arrows.playIcon} />
                             </svg>
                           </div>
                           <div>
@@ -2294,14 +2294,14 @@ export default function ListingWizard({
                       {/* Enhanced Video Preview */}
                       {formData.videos && formData.videos.length > 0 && videoPreviewUrls.length > 0 && (
                         <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-4 mt-6 pt-6 border-t border-blue-200 dark:border-blue-700">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
+                          <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex items-center ${rtl.spacing.spaceX('3')}`}>
                               <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
                                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                                 </svg>
                               </div>
-                              <div>
+                              <div className={rtl.text.align}>
                                 <h4 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
                                   {t('listings:videoPreview', 'Video Preview')}
                                 </h4>
@@ -2313,13 +2313,13 @@ export default function ListingWizard({
                             <button
                               type="button"
                               onClick={() => removeVideo(0)}
-                              className="flex items-center space-x-2 px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg transition-colors duration-200 text-sm font-medium"
+                              className={`flex items-center ${rtl.spacing.spaceX('2')} px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg transition-colors duration-200 text-sm font-medium`}
                               aria-label="Remove video"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
-                              <span>Remove</span>
+                              <span>{t('listings:remove', 'Remove')}</span>
                             </button>
                           </div>
                           <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl">
@@ -2332,8 +2332,8 @@ export default function ListingWizard({
                             >
                               Your browser does not support the video tag.
                             </video>
-                            <div className="absolute top-4 start-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1">
-                              <span className="text-white text-sm font-medium">Ready to upload</span>
+                            <div className={`absolute top-4 ${rtl.position.start('4')} bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1`}>
+                              <span className="text-white text-sm font-medium">{t('listings:readyToUpload', 'Ready to upload')}</span>
                             </div>
                           </div>
                         </div>
@@ -2346,18 +2346,18 @@ export default function ListingWizard({
                     <div className="animate-in slide-in-from-top-4 duration-500 bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10 rounded-2xl p-6 border border-purple-200 dark:border-purple-800 shadow-lg">
                       <div className="space-y-6">
                         {/* URL Header */}
-                        <div className="flex items-center space-x-3">
+                        <div className={`flex items-center ${rtl.spacing.spaceX('3')}`}>
                           <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center">
                             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                             </svg>
                           </div>
-                          <div>
+                          <div className={rtl.text.align}>
                             <h5 className="font-semibold text-purple-900 dark:text-purple-100">
-                              Add Video URL
+                              {t('listings:addVideoUrl', 'Add Video URL')}
                             </h5>
                             <p className="text-sm text-purple-700 dark:text-purple-300">
-                              Paste your video link below
+                              {t('listings:pasteVideoLinkBelow', 'Paste your video link below')}
                             </p>
                           </div>
                         </div>
@@ -2400,17 +2400,19 @@ export default function ListingWizard({
 
                           {/* Platform Examples */}
                           <div className="grid grid-cols-2 gap-3 pt-2">
-                            <div className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-800">
+                            <div className={`flex items-center ${rtl.spacing.spaceX('2')} p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-800`}>
                               <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center">
-                                <span className="text-white text-xs font-bold">▶</span>
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={rtl.arrows.playIcon} />
+                                </svg>
                               </div>
-                              <span className="text-sm font-medium text-red-700 dark:text-red-300">YouTube</span>
+                              <span className="text-sm font-medium text-red-700 dark:text-red-300">{t('listings:youTube', 'YouTube')}</span>
                             </div>
-                            <div className="flex items-center space-x-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                            <div className={`flex items-center ${rtl.spacing.spaceX('2')} p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800`}>
                               <div className="w-6 h-6 bg-blue-500 rounded flex items-center justify-center">
                                 <span className="text-white text-xs font-bold">V</span>
                               </div>
-                              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Vimeo</span>
+                              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{t('listings:vimeo', 'Vimeo')}</span>
                             </div>
                           </div>
                         </div>
@@ -2419,8 +2421,8 @@ export default function ListingWizard({
                       {/* External Video Preview */}
                       {formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0] && (
                         <div className="space-y-4">
-                          <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
-                            {t('listings:videoPreview', 'Video preview')} - External
+                          <h4 className={`text-md font-medium text-gray-900 dark:text-gray-100 ${rtl.text.align}`}>
+                            {t('listings:videoPreview', 'Video preview')} - {t('listings:external', 'External')}
                           </h4>
                           
                           {/* Video Embed Preview */}
@@ -2442,7 +2444,7 @@ export default function ListingWizard({
                                   <button
                                     type="button"
                                     onClick={() => removeVideoUrl(0)}
-                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200 z-10"
+                                    className={`absolute -top-2 ${isRTL ? '-left-2' : '-right-2'} bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200 z-10`}
                                     aria-label="Remove video URL"
                                   >
                                     ×
@@ -2454,22 +2456,22 @@ export default function ListingWizard({
                             // Fallback for non-embeddable URLs
                             return (
                               <div className="relative p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex-1">
+                                <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                  <div className={`flex-1 ${rtl.text.align}`}>
                                     <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                                      External Video URL
+                                      {t('listings:externalVideoUrl', 'External Video URL')}
                                     </p>
                                     <p className="text-sm text-blue-700 dark:text-blue-300 break-all">
                                       {formData.videoUrls[0]}
                                     </p>
                                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                      Preview not available for this URL format
+                                      {t('listings:previewNotAvailable', 'Preview not available for this URL format')}
                                     </p>
                                   </div>
                                   <button
                                     type="button"
                                     onClick={() => removeVideoUrl(0)}
-                                    className="ms-4 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200"
+                                    className={`${rtl.spacing.ms('4')} bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200`}
                                     aria-label="Remove video URL"
                                   >
                                     ×
@@ -2480,9 +2482,9 @@ export default function ListingWizard({
                           })()}
                           
                           {/* URL Info */}
-                          <div className="text-center">
+                          <div className={`text-center ${rtl.text.align}`}>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              Source: {formData.videoUrls[0]}
+                              {t('listings:source', 'Source')}: {formData.videoUrls[0]}
                             </p>
                           </div>
                         </div>
