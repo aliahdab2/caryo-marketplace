@@ -613,13 +613,20 @@ export default function ListingWizard({
           wizardLogger.info(`Uploading ${formData.images.length} new images for listing ${listingId}`);
           
           try {
-            // Upload new images one by one (API limitation: one image per request)
-            for (let i = 0; i < formData.images.length; i++) {
-              const image = formData.images[i];
-              wizardLogger.debug(`Uploading image ${i + 1}/${formData.images.length}: ${image.name}`);
-              
-              const uploadResult = await uploadListingImage(listingId, image);
-              wizardLogger.debug(`Image upload successful: ${uploadResult.imageKey}`);
+            // Filter out any undefined/invalid images and upload valid ones
+            const validImages = formData.images.filter(image => image && image instanceof File);
+            
+            if (validImages.length === 0) {
+              wizardLogger.debug('No valid images to upload');
+            } else {
+              // Upload new images one by one (API limitation: one image per request)
+              for (let i = 0; i < validImages.length; i++) {
+                const image = validImages[i];
+                wizardLogger.debug(`Uploading image ${i + 1}/${validImages.length}: ${image.name}`);
+                
+                const uploadResult = await uploadListingImage(listingId, image);
+                wizardLogger.debug(`Image upload successful: ${uploadResult.imageKey}`);
+              }
             }
             
             wizardLogger.info('All images uploaded successfully');
