@@ -1111,84 +1111,121 @@ export default function ListingWizard({
         {/* Form Steps */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
           <form onSubmit={handleSubmit}>
-            {/* Step 1: Basic Info - Simplified for now */}
+            {/* Step 1: Vehicle Identity */}
             {currentStep === 1 && (
-              <div className="space-y-6">
-                <div className="text-center pb-6 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-                    {t('listings:basicInformation')}
+              <div className="space-y-8 animate-fadeIn">
+                {/* Step Header */}
+                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {t('listings:vehicleIdentityTitle', 'Vehicle Identity')}
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {t('listings:basicInformationSubtitle')}
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {t('listings:vehicleIdentitySubtitle', 'Start by telling us what vehicle you\'re selling')}
                   </p>
                 </div>
 
-                {/* Title */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {t('listings:title')} *
+                {/* Car Make */}
+                <div className="space-y-3">
+                  <label 
+                    htmlFor="make" 
+                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                  >
+                    {t('listings:newListingMake', 'Make')} <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
+                  <select
+                    id="make"
+                    name="make"
+                    value={formData.make}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    placeholder={t('listings:titlePlaceholder')}
-                  />
-                  {formErrors.title && <ErrorMessage error={formErrors.title} />}
+                    disabled={isLoadingMakes}
+                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                      formErrors.make ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                    } ${isLoadingMakes ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    aria-invalid={!!formErrors.make}
+                    aria-describedby={formErrors.make ? 'make-error' : 'make-hint'}
+                  >
+                    <option value="">
+                      {isLoadingMakes 
+                        ? t('listings:newListingLoadingMakes', 'Loading makes...') 
+                        : t('listings:newListingSelectMake', 'Select a make')
+                      }
+                    </option>
+                    {carMakes.map((make) => (
+                      <option key={make.id} value={make.id.toString()}>
+                        {i18n.language === 'ar' ? make.displayNameAr : make.displayNameEn}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.make && <ErrorMessage error={formErrors.make} />}
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="make-hint">
+                    {t('listings:newListingMakeHint', 'Select the manufacturer of your car')}
+                  </p>
                 </div>
 
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {t('listings:description')} *
+                {/* Car Model */}
+                <div className="space-y-3">
+                  <label 
+                    htmlFor="model" 
+                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                  >
+                    {t('listings:newListingModel', 'Model')} <span className="text-red-500">*</span>
                   </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
+                  <select
+                    id="model"
+                    name="model"
+                    value={formData.model}
                     onChange={handleChange}
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-vertical"
-                    placeholder={t('listings:descriptionPlaceholder', 'Describe your car in detail...')}
-                  />
-                  {formErrors.description && <ErrorMessage error={formErrors.description} />}
+                    disabled={!formData.make || isLoadingModels}
+                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                      formErrors.model ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                    } ${(!formData.make || isLoadingModels) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    aria-invalid={!!formErrors.model}
+                    aria-describedby={formErrors.model ? 'model-error' : 'model-hint'}
+                  >
+                    <option value="">
+                      {!formData.make 
+                        ? t('listings:newListingSelectMakeFirst', 'Select a make first')
+                        : isLoadingModels 
+                        ? t('listings:newListingLoadingModels', 'Loading models...') 
+                        : t('listings:newListingSelectModel', 'Select a model')
+                      }
+                    </option>
+                    {carModels.map((model) => (
+                      <option key={model.id} value={model.id.toString()}>
+                        {i18n.language === 'ar' ? model.displayNameAr : model.displayNameEn}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.model && <ErrorMessage error={formErrors.model} />}
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="model-hint">
+                    {t('listings:newListingModelHint', 'Select the specific model of your car')}
+                  </p>
                 </div>
 
-                {/* Price */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {t('listings:price')} *
-                    </label>
-                    <NumericInput
-                      name="price"
-                      value={formData.price}
-                      onChange={(value) => handleChange(value, 'price')}
-                      placeholder="0"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    />
-                    {formErrors.price && <ErrorMessage error={formErrors.price} />}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {t('listings:currency')} *
-                    </label>
-                    <select
-                      name="currency"
-                      value={formData.currency}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    >
-                      {SUPPORTED_CURRENCIES.map(currency => (
-                        <option key={currency.code} value={currency.code}>
-                          {currency.symbol} {currency.code}
-                        </option>
-                      ))}
-                    </select>
-                    {formErrors.currency && <ErrorMessage error={formErrors.currency} />}
-                  </div>
+                {/* Year */}
+                <div className="space-y-3">
+                  <label 
+                    htmlFor="year" 
+                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                  >
+                    {t('listings:newListingYear', 'Year')} <span className="text-red-500">*</span>
+                  </label>
+                  <NumericInput
+                    id="year"
+                    name="year"
+                    value={formData.year}
+                    onChange={(value) => handleChange(value, 'year')}
+                    placeholder={t('listings:newListingYearPlaceholder', '2020')}
+                    required
+                    error={!!formErrors.year}
+                    aria-invalid={!!formErrors.year}
+                    aria-describedby={formErrors.year ? 'year-error' : 'year-hint'}
+                    className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  />
+                  {formErrors.year && <ErrorMessage error={formErrors.year} />}
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
+                    {t('listings:newListingYearHint', 'Manufacturing year')}
+                  </p>
                 </div>
               </div>
             )}

@@ -198,23 +198,7 @@ export const validateStep = (step: number, formData: ListingFormData, t: (key: s
   const errors: FormErrors = {};
   
   switch (step) {
-    case 1:
-      if (!formData.title || formData.title.trim().length === 0) {
-        errors.title = t('listings:newListingValidationTitleRequired', 'Title is required');
-      }
-      if (!formData.description || formData.description.trim().length === 0) {
-        errors.description = t('listings:newListingValidationDescriptionRequired', 'Description is required');
-      }
-      if (!formData.price || formData.price.trim().length === 0) {
-        errors.price = t('listings:newListingValidationPriceRequired', 'Price is required');
-      } else if (isNaN(Number(formData.price))) {
-        errors.price = t('listings:newListingValidationPriceInvalid', 'Price must be a valid number');
-      } else if (Number(formData.price) <= 0) {
-        errors.price = t('listings:newListingValidationPricePositive', 'Price must be greater than zero');
-      }
-      break;
-      
-    case 2:
+    case 1: // Vehicle Identity (Make, Model, Year)
       if (!formData.make || formData.make.trim().length === 0) {
         errors.make = t('listings:newListingValidationMakeRequired', 'Make is required');
       }
@@ -226,6 +210,10 @@ export const validateStep = (step: number, formData: ListingFormData, t: (key: s
       } else if (isNaN(Number(formData.year)) || Number(formData.year) < 1920 || Number(formData.year) > new Date().getFullYear()) {
         errors.year = t('listings:newListingValidationYearInvalid', 'Please enter a valid year');
       }
+      break;
+      
+    case 2: // Vehicle Details (Mileage, Engine, etc.)
+      // Mileage is optional, but if provided, should be valid
       if (formData.mileage && formData.mileage.trim().length > 0 && (isNaN(Number(formData.mileage)) || Number(formData.mileage) < 0)) {
         errors.mileage = t('listings:newListingValidationMileageInvalid', 'Mileage must be a valid number');
       }
