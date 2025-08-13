@@ -2,6 +2,120 @@ import { useState, useCallback } from 'react';
 import { ListingFormData } from '@/types/listings';
 import { processFormFieldValue } from '@/utils/formUtils';
 
+// Phone number formatting utility
+const formatPhoneNumber = (value: string): string => {
+  // Remove all non-digit characters
+  const digitsOnly = value.replace(/\D/g, '');
+  
+  // Support for Jordan (+962) and Syria (+963) phone number patterns
+  // Jordan Mobile: +962 7X XXX XXXX or 07X XXX XXXX
+  // Jordan Landline: +962 X XXX XXXX or 0X XXX XXXX
+  // Syria Mobile: +963 9X XXX XXXX or 09X XXX XXXX
+  // Syria Landline: +963 XX XXX XXXX or 0XX XXX XXXX
+  
+  if (digitsOnly.length === 0) return '';
+  
+  // Handle international format starting with 962 (Jordan)
+  if (digitsOnly.startsWith('962')) {
+    const localNumber = digitsOnly.substring(3);
+    if (localNumber.length === 0) return '+962 ';
+    if (localNumber.length <= 1) return `+962 ${localNumber}`;
+    if (localNumber.length <= 4) return `+962 ${localNumber.substring(0, 1)} ${localNumber.substring(1)}`;
+    if (localNumber.length <= 7) return `+962 ${localNumber.substring(0, 1)} ${localNumber.substring(1, 4)} ${localNumber.substring(4)}`;
+    return `+962 ${localNumber.substring(0, 1)} ${localNumber.substring(1, 4)} ${localNumber.substring(4, 8)}`;
+  }
+  
+  // Handle international format starting with 963 (Syria)
+  if (digitsOnly.startsWith('963')) {
+    const localNumber = digitsOnly.substring(3);
+    if (localNumber.length === 0) return '+963 ';
+    if (localNumber.length <= 1) return `+963 ${localNumber}`;
+    if (localNumber.length <= 2) return `+963 ${localNumber}`;
+    if (localNumber.length <= 5) return `+963 ${localNumber.substring(0, 2)} ${localNumber.substring(2)}`;
+    if (localNumber.length <= 8) return `+963 ${localNumber.substring(0, 2)} ${localNumber.substring(2, 5)} ${localNumber.substring(5)}`;
+    return `+963 ${localNumber.substring(0, 2)} ${localNumber.substring(2, 5)} ${localNumber.substring(5, 9)}`;
+  }
+  
+  // Handle local format starting with 0
+  if (digitsOnly.startsWith('0')) {
+    if (digitsOnly.length === 1) return '0';
+    if (digitsOnly.length <= 2) return digitsOnly;
+    if (digitsOnly.length <= 5) return `${digitsOnly.substring(0, 2)} ${digitsOnly.substring(2)}`;
+    if (digitsOnly.length <= 8) return `${digitsOnly.substring(0, 2)} ${digitsOnly.substring(2, 5)} ${digitsOnly.substring(5)}`;
+    return `${digitsOnly.substring(0, 2)} ${digitsOnly.substring(2, 5)} ${digitsOnly.substring(5, 9)}`;
+  }
+  
+  // Handle numbers without country code or leading zero (assume local mobile)
+  if (digitsOnly.length <= 1) return digitsOnly;
+  if (digitsOnly.length <= 4) return `${digitsOnly.substring(0, 1)} ${digitsOnly.substring(1)}`;
+  if (digitsOnly.length <= 7) return `${digitsOnly.substring(0, 1)} ${digitsOnly.substring(1, 4)} ${digitsOnly.substring(4)}`;
+  return `${digitsOnly.substring(0, 1)} ${digitsOnly.substring(1, 4)} ${digitsOnly.substring(4, 8)}`;
+};
+
+// Phone number validation utility
+const validatePhoneNumber = (phone: string): string | null => {
+  if (!phone.trim()) return null; // Allow empty (will be caught by required field validation)
+  
+  const digitsOnly = phone.replace(/\D/g, '');
+  
+  // Jordan phone number validation (+962)
+  // Mobile: +962 7X XXX XXXX (8 digits after 962)
+  // Landline: +962 X XXX XXXX (8 digits after 962)
+  if (digitsOnly.startsWith('962')) {
+    const localNumber = digitsOnly.substring(3);
+    if (localNumber.length !== 8) {
+      return 'Invalid Jordan phone number format. Expected: +962 X XXX XXXX (8 digits after country code)';
+    }
+    // Check if mobile number starts with 7
+    if (localNumber.startsWith('7') && localNumber.length === 8) {
+      return null; // Valid Jordan mobile
+    }
+    // Check if landline (other digits)
+    if (!localNumber.startsWith('7') && localNumber.length === 8) {
+      return null; // Valid Jordan landline
+    }
+    return 'Invalid Jordan phone number. Mobile numbers should start with 7.';
+  }
+  
+  // Syria phone number validation (+963)
+  // Mobile: +963 9X XXX XXXX (9 digits after 963)
+  // Landline: +963 XX XXX XXXX (9 digits after 963)
+  if (digitsOnly.startsWith('963')) {
+    const localNumber = digitsOnly.substring(3);
+    if (localNumber.length !== 9) {
+      return 'Invalid Syria phone number format. Expected: +963 XX XXX XXXX (9 digits after country code)';
+    }
+    // Check if mobile number starts with 9
+    if (localNumber.startsWith('9')) {
+      return null; // Valid Syria mobile
+    }
+    // Check if landline (starts with area code like 11, 21, 31, etc.)
+    const areaCode = localNumber.substring(0, 2);
+    const validAreaCodes = ['11', '21', '31', '41', '51', '52', '53', '71', '81', '91'];
+    if (validAreaCodes.includes(areaCode)) {
+      return null; // Valid Syria landline
+    }
+    return 'Invalid Syria phone number. Mobile should start with 9, landline should start with valid area code.';
+  }
+  
+  // Local format starting with 0 (could be Jordan or Syria)
+  if (digitsOnly.startsWith('0')) {
+    // Jordan local: 07X XXX XXXX (9 digits) or 0X XXX XXXX (8-9 digits)
+    // Syria local: 09X XXX XXXX (10 digits) or 0XX XXX XXXX (10 digits)
+    if (digitsOnly.length >= 8 && digitsOnly.length <= 10) {
+      return null; // Accept local format, could be either country
+    }
+    return 'Invalid local phone number format. Expected 8-10 digits starting with 0.';
+  }
+  
+  // If no country code or leading zero, should be 8-9 digits
+  if (digitsOnly.length >= 8 && digitsOnly.length <= 9) {
+    return null; // Accept as local number
+  }
+  
+  return 'Phone number should be 8-9 digits or include country code (+962 for Jordan, +963 for Syria)';
+};
+
 interface UseFormStateOptions {
   initialData: Partial<ListingFormData>;
   onFormChange?: (formData: ListingFormData) => void;
@@ -114,7 +228,13 @@ export const useFormState = ({
   ) => {
     if (typeof e === 'string' && fieldName) {
       // Direct value update
-      const processedValue = processFormFieldValue(fieldName, e);
+      let processedValue = processFormFieldValue(fieldName, e);
+      
+      // Special handling for phone numbers
+      if (fieldName === 'contactPhone') {
+        processedValue = formatPhoneNumber(e);
+      }
+      
       updateField(fieldName as keyof ListingFormData, processedValue);
     } else if (typeof e === 'object' && 'target' in e) {
       // Event-based update
@@ -128,6 +248,9 @@ export const useFormState = ({
         processedValue = (target as HTMLInputElement).checked;
       } else if (type === 'number') {
         processedValue = value === '' ? '' : Number(value);
+      } else if (name === 'contactPhone') {
+        // Special handling for phone numbers
+        processedValue = formatPhoneNumber(value);
       } else {
         processedValue = processFormFieldValue(name, value);
       }
@@ -157,5 +280,8 @@ export const useFormState = ({
     hasFormChanges
   };
 };
+
+// Export validation utility for use in other components/hooks
+export { validatePhoneNumber };
 
 export default useFormState;

@@ -3,6 +3,7 @@ import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
 import { validateStep } from '@/utils/formUtils';
 import { createLogger } from '@/utils/logger';
+import { validatePhoneNumber } from './useFormState';
 
 interface UseFormValidationOptions {
   debugEnabled?: boolean;
@@ -56,6 +57,15 @@ export const useFormValidation = ({
     
     try {
       const errors = validateStep(step, formData, translationFunction, { mode });
+      
+      // Add phone number validation for step 4 (contact information)
+      if (step === 4 && formData.contactPhone) {
+        const phoneError = validatePhoneNumber(formData.contactPhone);
+        if (phoneError) {
+          errors.contactPhone = phoneError;
+        }
+      }
+      
       const hasErrors = Object.keys(errors).length > 0;
       
       if (hasErrors) {
