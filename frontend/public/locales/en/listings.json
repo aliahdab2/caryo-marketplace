@@ -508,4 +508,8 @@
   "newListingPricing": "Pricing Information",
   "newListingPriceHint": "Enter the asking price for your vehicle",
   "newListingCurrencyHint": "Select the currency for your price"
+  ,
+  "titleHint": "Create an attractive title for your listing",
+  "descriptionHint": "Provide detailed information about your vehicle's condition, features, and history",
+  "newListingImageUploadSubtitle": "Upload high-quality photos to attract potential buyers"
 }

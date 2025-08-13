@@ -478,4 +478,8 @@
   "newListingPricing": "معلومات التسعير",
   "newListingPriceHint": "أدخل السعر المطلوب لمركبتك",
   "newListingCurrencyHint": "اختر العملة لسعرك"
+  ,
+  "titleHint": "أنشئ عنواناً جذاباً لإعلانك",
+  "descriptionHint": "قدم معلومات مفصلة عن حالة مركبتك وميزاتها وتاريخها",
+  "newListingImageUploadSubtitle": "ارفع صوراً عالية الجودة لجذب المشترين المحتملين"
 }
