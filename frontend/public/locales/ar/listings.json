@@ -459,5 +459,20 @@
   "addVideoUrl": "إضافة رابط فيديو",
   "addYouTubeVimeo": "إضافة رابط يوتيوب أو فيميو",
   "videoPreview": "معاينة الفيديو",
-  "enterVideoUrl": "أدخل رابط الفيديو (يوتيوب، فيميو، إلخ)"
+  "enterVideoUrl": "أدخل رابط الفيديو (يوتيوب، فيميو، إلخ)",
+  "videoFieldsTitle": "الفيديوهات (اختياري)",
+  "videoFieldsSubtitle": "أضف فيديوهات لعرض مركبتك",
+  "videoSectionTitleBoth": "اختر كيف تريد إضافة فيديوهات لإعلانك",
+  "videoSectionTitleUploadOnly": "ارفع ملف فيديو لعرض مركبتك",
+  "videoSectionTitleUrlOnly": "أضف رابط فيديو لعرض مركبتك",
+  "addVideoUpload": "رفع ملف فيديو",
+  "videoUploadToggleHelp": "ارفع ملف فيديو من جهازك",
+  "videoUrlToggleHelp": "أضف رابط يوتيوب، فيميو، أو رابط فيديو آخر",
+  "videoProTip": "نصيحة: الفيديوهات تزيد من تفاعل الإعلان بـ 3 أضعاف",
+  "videoSectionSubtitleBoth": "ارفع ملف فيديو للحصول على أفضل جودة، أو أضف رابط يوتيوب/فيميو للمشاركة السهلة",
+  "videoSectionSubtitleUploadOnly": "ارفع ملف فيديو لإظهار مركبتك في الحركة",
+  "videoSectionSubtitleUrlOnly": "أضف رابط يوتيوب أو فيميو لعرض مركبتك",
+  "uploadVideoLabel": "اختر ملف الفيديو الخاص بك",
+  "videoUrlLabel": "رابط الفيديو",
+  "videoUrlHelp": "مدعوم: يوتيوب، فيميو، ومنصات فيديو أخرى"
 }

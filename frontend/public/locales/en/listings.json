@@ -489,5 +489,20 @@
   "addVideoUrl": "Add Video URL",
   "addYouTubeVimeo": "Add YouTube or Vimeo URL",
   "videoPreview": "Video Preview",
-  "enterVideoUrl": "Enter video URL (YouTube, Vimeo, etc.)"
+  "enterVideoUrl": "Enter video URL (YouTube, Vimeo, etc.)",
+  "videoFieldsTitle": "Videos (Optional)",
+  "videoFieldsSubtitle": "Add videos to showcase your vehicle",
+  "videoSectionTitleBoth": "Choose how you'd like to add videos to your listing",
+  "videoSectionTitleUploadOnly": "Upload a video file to showcase your vehicle",
+  "videoSectionTitleUrlOnly": "Add a video URL to showcase your vehicle",
+  "addVideoUpload": "Upload Video File",
+  "videoUploadToggleHelp": "Upload a video file from your device",
+  "videoUrlToggleHelp": "Add a YouTube, Vimeo, or other video URL",
+  "videoProTip": "Pro tip: Videos increase listing engagement by 3x",
+  "videoSectionSubtitleBoth": "Upload a video file for the best quality, or add a YouTube/Vimeo link for easy sharing",
+  "videoSectionSubtitleUploadOnly": "Upload a video file to show your vehicle in action",
+  "videoSectionSubtitleUrlOnly": "Add a YouTube or Vimeo link to showcase your vehicle",
+  "uploadVideoLabel": "Choose your video file",
+  "videoUrlLabel": "Video URL",
+  "videoUrlHelp": "Supported: YouTube, Vimeo, and other video platforms"
 }
