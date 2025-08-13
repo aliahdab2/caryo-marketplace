@@ -196,7 +196,7 @@
   "pricingContactSubtitle": "Set your price and contact information",
   "newListingYearPlaceholder": "2020",
   "newListingSelectYear": "Select year",
-  "newListingYearHint": "Enter manufacturing year (1920-{{currentYear}})",
+  "newListingYearHint": "Enter manufacturing year (1990-{{currentYear}})",
   "newListingMileage": "Mileage (km)",
   "newListingMileagePlaceholder": "50000",
   "newListingMileageHint": "Enter distance in kilometers",

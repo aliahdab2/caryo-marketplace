@@ -1243,7 +1243,7 @@ export default function ListingWizard({
                   </select>
                   {formErrors.year && <ErrorMessage error={formErrors.year} />}
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
-                    {t('listings:newListingYearHint', 'Enter manufacturing year (1920-{{currentYear}})', { currentYear: new Date().getFullYear() })}
+                    {t('listings:newListingYearHint', 'Enter manufacturing year (1990-{{currentYear}})', { currentYear: new Date().getFullYear() })}
                   </p>
                 </div>
               </div>
