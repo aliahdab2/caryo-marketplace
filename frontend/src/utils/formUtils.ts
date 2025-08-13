@@ -242,12 +242,45 @@ function applyRequiredFieldErrors(
   }
 }
 
-export const validateStep = (step: number, formData: ListingFormData, t: (key: string, fallback: string) => string): FormErrors => {
+type ValidationMode = 'final' | 'navigation' | 'accessibility';
+
+// Blocking-only required fields per step (used for navigation/accessibility)
+const BLOCKING_REQUIRED_FIELDS_BY_STEP: Record<number, Array<keyof ListingFormData>> = {
+  1: ['make', 'model', 'year'],
+  2: [],
+  3: ['title', 'description'],
+  4: ['price', 'contactName', 'contactPhone', 'governorateSlug', 'locationSlug']
+};
+
+function getRequiredFieldsForMode(step: number, mode: ValidationMode): Array<keyof ListingFormData> {
+  if (mode === 'final') return REQUIRED_FIELDS_BY_STEP[step] || [];
+  return BLOCKING_REQUIRED_FIELDS_BY_STEP[step] || [];
+}
+
+export const validateStep = (
+  step: number,
+  formData: ListingFormData,
+  t: (key: string, fallback: string) => string,
+  options?: { mode?: ValidationMode }
+): FormErrors => {
   const errors: FormErrors = {};
+  const mode: ValidationMode = options?.mode || 'final';
   
   switch (step) {
     case 1: // Vehicle Identity (Make, Model, Year)
-      applyRequiredFieldErrors(1, formData, t, errors);
+      {
+        // Required fields
+        const tmp: FormErrors = {};
+        const requiredFields = getRequiredFieldsForMode(step, mode);
+        for (const field of requiredFields) {
+          const value = formData[field];
+          if (!value || (typeof value === 'string' && value.trim().length === 0)) {
+            const i18nMeta = REQUIRED_FIELD_I18N[field as string];
+            if (i18nMeta) tmp[field] = t(i18nMeta.key, i18nMeta.fallback);
+          }
+        }
+        Object.assign(errors, tmp);
+      }
       if (formData.year && (isNaN(Number(formData.year)) || Number(formData.year) < 1920 || Number(formData.year) > new Date().getFullYear())) {
         errors.year = t('listings:newListingValidationYearInvalid', 'Please enter a valid year');
       }
@@ -261,11 +294,29 @@ export const validateStep = (step: number, formData: ListingFormData, t: (key: s
       break;
       
     case 3: // Content & Media (Title, Description, Photos)
-      applyRequiredFieldErrors(3, formData, t, errors);
+      {
+        const requiredFields = getRequiredFieldsForMode(step, mode);
+        for (const field of requiredFields) {
+          const value = formData[field];
+          if (!value || (typeof value === 'string' && value.trim().length === 0)) {
+            const i18nMeta = REQUIRED_FIELD_I18N[field as string];
+            if (i18nMeta) errors[field] = t(i18nMeta.key, i18nMeta.fallback);
+          }
+        }
+      }
       break;
       
     case 4: // Pricing & Contact (Price, Location, Contact, Images)
-      applyRequiredFieldErrors(4, formData, t, errors);
+      {
+        const requiredFields = getRequiredFieldsForMode(step, mode);
+        for (const field of requiredFields) {
+          const value = formData[field];
+          if (!value || (typeof value === 'string' && value.trim().length === 0)) {
+            const i18nMeta = REQUIRED_FIELD_I18N[field as string];
+            if (i18nMeta) errors[field] = t(i18nMeta.key, i18nMeta.fallback);
+          }
+        }
+      }
       if (formData.price && isNaN(Number(formData.price))) {
         errors.price = t('listings:newListingValidationPriceInvalid', 'Price must be a valid number');
       } else if (formData.price && Number(formData.price) <= 0) {

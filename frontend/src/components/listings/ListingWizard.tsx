@@ -263,7 +263,7 @@ export default function ListingWizard({
     } else {
       // Validate current step only for navigation
       wizardLogger.debug('Validating step ' + String(currentStep));
-      const stepErrors = validateStep(currentStep, formData, t);
+      const stepErrors = validateStep(currentStep, formData, t, { mode: 'navigation' });
       wizardLogger.debug('Validation errors ' + JSON.stringify(stepErrors));
       if (Object.keys(stepErrors).length > 0) {
         wizardLogger.info('Validation failed, stopping submission');
@@ -676,7 +676,7 @@ export default function ListingWizard({
     // For next step, validate all previous steps
     for (let step = 1; step < targetStep; step++) {
       wizardLogger.debug(`Validating step ${step} for accessibility`);
-      const stepErrors = validateStep(step, formData, t);
+      const stepErrors = validateStep(step, formData, t, { mode: 'accessibility' });
       wizardLogger.debug(`Step ${step} validation errors ${JSON.stringify(stepErrors)}`);
       if (Object.keys(stepErrors).length > 0) {
         wizardLogger.info(`Step ${targetStep} is NOT accessible due to step ${step} errors`);
@@ -741,7 +741,7 @@ export default function ListingWizard({
       wizardLogger.debug(`Step ${step} not accessible`);
       // Show specific message when trying to access locked step
       if (step > currentStep) {
-        const stepErrors = validateStep(currentStep, formData, t);
+        const stepErrors = validateStep(currentStep, formData, t, { mode: 'navigation' });
         wizardLogger.debug(`Step ${currentStep} validation errors ${JSON.stringify(stepErrors)}`);
         handleValidationErrors(stepErrors);
       }
