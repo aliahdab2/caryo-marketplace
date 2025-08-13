@@ -1465,178 +1465,22 @@ export default function ListingWizard({
                   </p>
                 </div>
 
-                {/* Location Information */}
+                {/* Images and Videos Section */}
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {t('listings:newListingLocationInfo', 'Location Information')}
+                    {t('listings:newListingCarImages', 'Car Images')}
                   </h3>
                   
-                  {/* Governorate and Location Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Governorate */}
-                    <div className="space-y-3">
-                      <label 
-                        htmlFor="governorateSlug" 
-                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {t('listings:newListingGovernorate', 'Governorate')} <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        id="governorateSlug"
-                        name="governorateSlug"
-                        value={formData.governorateSlug}
-                        onChange={handleChange}
-                        disabled={isLoadingGovernorates}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.governorateSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        } ${isLoadingGovernorates ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        aria-invalid={!!formErrors.governorateSlug}
-                        aria-describedby={formErrors.governorateSlug ? 'governorateSlug-error' : 'governorateSlug-hint'}
-                      >
-                        <option value="">
-                          {isLoadingGovernorates 
-                            ? t('listings:newListingLoadingGovernorates', 'Loading governorates...') 
-                            : t('listings:newListingSelectGovernorate', 'Select a governorate')
-                          }
-                        </option>
-                        {governorates.map((gov) => (
-                          <option key={gov.id} value={gov.slug}>
-                            {i18n.language === 'ar' ? gov.displayNameAr : gov.displayNameEn}
-                          </option>
-                        ))}
-                      </select>
-                      {formErrors.governorateSlug && <ErrorMessage error={formErrors.governorateSlug} />}
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="governorateSlug-hint">
-                        {t('listings:newListingGovernorateHint', 'Select the governorate where your car is located')}
-                      </p>
+                  {/* Images Upload Placeholder */}
+                  <div className="text-center py-12 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-800">
+                    <div className="text-gray-500 dark:text-gray-400">
+                      <svg className="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                      </svg>
+                      <h4 className="text-lg font-medium mb-2">Images & Videos Upload</h4>
+                      <p className="text-sm">Professional drag & drop upload will be implemented here</p>
+                      <p className="text-xs mt-2 text-gray-400">Following the original excellent UX from main branch</p>
                     </div>
-
-                    {/* Location */}
-                    <div className="space-y-3">
-                      <label 
-                        htmlFor="locationSlug" 
-                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {t('listings:newListingLocation', 'City/Area')} <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        id="locationSlug"
-                        name="locationSlug"
-                        value={formData.locationSlug || ''}
-                        onChange={handleLocationChange}
-                        disabled={!formData.governorateSlug || isLoadingLocations}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.locationSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        } ${(!formData.governorateSlug || isLoadingLocations) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        aria-invalid={!!formErrors.locationSlug}
-                        aria-describedby={formErrors.locationSlug ? 'locationSlug-error' : 'locationSlug-hint'}
-                      >
-                        <option value="">
-                          {!formData.governorateSlug 
-                            ? t('listings:newListingSelectGovernorateFirst', 'Select a governorate first')
-                            : isLoadingLocations 
-                            ? t('listings:newListingLoadingLocations', 'Loading locations...') 
-                            : t('listings:newListingSelectLocation', 'Select a city/area')
-                          }
-                        </option>
-                        {locations.map((location) => (
-                          <option key={location.id} value={location.slug}>
-                            {i18n.language === 'ar' ? location.displayNameAr : location.displayNameEn}
-                          </option>
-                        ))}
-                      </select>
-                      {formErrors.locationSlug && <ErrorMessage error={formErrors.locationSlug} />}
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="locationSlug-hint">
-                        {t('listings:newListingLocationHint', 'Select the specific city or area where your car is located')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contact Information */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {t('listings:newListingContactInfo', 'Contact Information')}
-                  </h3>
-                  
-                  {/* Contact Name and Phone Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Contact Name */}
-                    <div className="space-y-3">
-                      <label 
-                        htmlFor="contactName" 
-                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {t('listings:newListingContactName', 'Contact Name')} <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="contactName"
-                        name="contactName"
-                        value={formData.contactName}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.contactName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        }`}
-                        placeholder={t('listings:newListingContactNamePlaceholder', 'Your full name')}
-                        aria-invalid={!!formErrors.contactName}
-                        aria-describedby={formErrors.contactName ? 'contactName-error' : 'contactName-hint'}
-                      />
-                      {formErrors.contactName && <ErrorMessage error={formErrors.contactName} />}
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactName-hint">
-                        {t('listings:newListingContactNameHint', 'Name for buyers to contact you')}
-                      </p>
-                    </div>
-
-                    {/* Contact Phone */}
-                    <div className="space-y-3">
-                      <label 
-                        htmlFor="contactPhone" 
-                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {t('listings:newListingContactPhone', 'Phone Number')} <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        id="contactPhone"
-                        name="contactPhone"
-                        value={formData.contactPhone}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.contactPhone ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        }`}
-                        placeholder={t('listings:newListingContactPhonePlaceholder', '+963 XXX XXX XXX')}
-                        aria-invalid={!!formErrors.contactPhone}
-                        aria-describedby={formErrors.contactPhone ? 'contactPhone-error' : 'contactPhone-hint'}
-                      />
-                      {formErrors.contactPhone && <ErrorMessage error={formErrors.contactPhone} />}
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactPhone-hint">
-                        {t('listings:newListingContactPhoneHint', 'Phone number for buyers to contact you')}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Contact Email */}
-                  <div className="space-y-3">
-                    <label 
-                      htmlFor="contactEmail" 
-                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                      {t('listings:newListingContactEmail', 'Email Address')}
-                    </label>
-                    <input
-                      type="email"
-                      id="contactEmail"
-                      name="contactEmail"
-                      value={formData.contactEmail}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      placeholder={t('listings:newListingContactEmailPlaceholder', 'your.email@example.com')}
-                      aria-describedby="contactEmail-hint"
-                    />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactEmail-hint">
-                      {t('listings:newListingContactEmailHint', 'Optional: Email for buyers to contact you')}
-                    </p>
                   </div>
                 </div>
               </div>
@@ -1645,7 +1489,7 @@ export default function ListingWizard({
             {/* Step 4: Pricing & Contact */}
             {currentStep === 4 && (
               <div className="space-y-8 animate-fadeIn">
-                {/* Step 4 Header */}
+                {/* Step Header */}
                 <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                     {t('listings:pricingContactTitle', 'Pricing & Contact')}
@@ -1655,395 +1499,26 @@ export default function ListingWizard({
                   </p>
                 </div>
 
-                {/* Price */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      {t('listings:price')} <span className="text-red-500">*</span>
-                    </label>
-                    <NumericInput
-                      name="price"
-                      value={formData.price}
-                      onChange={(value) => handleChange(value, 'price')}
-                      placeholder="0"
-                      className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 border-gray-200 dark:border-gray-600 focus:border-blue-500"
-                    />
-                    {formErrors.price && <ErrorMessage error={formErrors.price} />}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      {t('listings:currency')} <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="currency"
-                      value={formData.currency}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 border-gray-200 dark:border-gray-600 focus:border-blue-500"
-                    >
-                      {SUPPORTED_CURRENCIES.map(currency => (
-                        <option key={currency.code} value={currency.code}>
-                          {currency.symbol} {currency.code}
-                        </option>
-                      ))}
-                    </select>
-                    {formErrors.currency && <ErrorMessage error={formErrors.currency} />}
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {t('listings:newListingCarImages', 'Car Images')}
-                  </h3>
-                  
-                  {/* Enhanced Image Upload Section with Drag & Drop */}
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-center w-full">
-                      <div
-                        className={`w-full transition-all duration-300 ${
-                          isDragOver 
-                            ? 'scale-[1.02] shadow-xl ring-4 ring-blue-200 dark:ring-blue-700' 
-                            : 'hover:shadow-lg'
-                        }`}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                      >
-                        <label 
-                          htmlFor="image-upload" 
-                          className={`group flex flex-col items-center justify-center w-full h-72 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 focus-within:ring-4 focus-within:ring-blue-200 dark:focus-within:ring-blue-800 ${
-                            isDragOver
-                              ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                              : 'border-gray-300 dark:border-gray-600 bg-gray-50/80 dark:bg-gray-800/50 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50'
-                          }`}
-                          role="button"
-                          tabIndex={0}
-                          aria-label="Upload car images by clicking or dragging files here"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              document.getElementById('image-upload')?.click();
-                            }
-                          }}
-                        >
-                          <div className="flex flex-col items-center justify-center pt-8 pb-8 space-y-6">
-                            {/* Enhanced Upload Icon */}
-                            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                              isDragOver 
-                                ? 'bg-blue-100 dark:bg-blue-800/50 scale-110' 
-                                : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 group-hover:scale-105'
-                            }`}>
-                              <svg className={`w-10 h-10 transition-colors duration-300 ${
-                                isDragOver 
-                                  ? 'text-blue-600 dark:text-blue-400' 
-                                  : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'
-                              }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                              </svg>
-                            </div>
-
-                            {/* Main Text */}
-                            <div className="text-center space-y-3">
-                              <h4 className={`text-xl font-semibold transition-colors duration-300 ${
-                                isDragOver 
-                                  ? 'text-blue-800 dark:text-blue-200' 
-                                  : 'text-gray-700 dark:text-gray-200'
-                              }`}>
-                                {isDragOver 
-                                  ? t('listings:dropImagesHere', 'Drop your images here!')
-                                  : t('listings:newListingUploadImages', 'Upload Car Images')
-                                }
-                              </h4>
-                              
-                              <p className={`text-base transition-colors duration-300 ${
-                                isDragOver 
-                                  ? 'text-blue-600 dark:text-blue-300' 
-                                  : 'text-gray-600 dark:text-gray-400'
-                              }`}>
-                                {isDragOver 
-                                  ? 'Release to add images to your listing'
-                                  : 'Drag & drop images here, or click to browse'
-                                }
-                              </p>
-
-                              {/* Format info */}
-                              <div className="pt-2 space-y-1">
-                                <p className="text-sm text-gray-500 dark:text-gray-500">
-                                  {t('listings:newListingImageUploadHint', 'Upload multiple images to showcase your car. First image will be the main photo.')}
-                                </p>
-                                <div className="flex items-center justify-center space-x-6 text-xs text-gray-400 dark:text-gray-500">
-                                  <div className="flex items-center space-x-1">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>PNG, JPG, JPEG</span>
-                                  </div>
-                                  <div className="flex items-center space-x-1">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>Max 5MB each</span>
-                                  </div>
-                                  <div className="flex items-center space-x-1">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>Up to 10 images</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <input
-                            id="image-upload"
-                            type="file"
-                            className="sr-only"
-                            multiple
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            aria-describedby="image-upload-hint"
-                            aria-label="Select car images to upload (PNG, JPG, JPEG, max 5MB each, up to 10 images)"
-                          />
-                        </label>
-                      </div>
-                    </div>
-                    {formErrors.images && <ErrorMessage error={formErrors.images} />}
-                  </div>
-
-                  {/* Enhanced Image Preview Grid with Drag & Drop Reordering */}
-                  {(existingImages.length > 0 || formData.images.length > 0) && (
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
-                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                          <div>
-                            <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                              {t('listings:newListingImagePreview', 'Image Preview')} ({imagePreviewUrls.length})
-                            </h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Drag images to reorder • First image is your main photo
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500 dark:text-gray-500">
-                            {imagePreviewUrls.length}/10 images
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {imagePreviewUrls.map((url: string, index: number) => (
-                          <div
-                            key={`${url}-${index}`}
-                            className={`relative group cursor-move transition-all duration-300 ${
-                              draggedImageIndex === index
-                                ? 'scale-105 rotate-2 opacity-75 z-10'
-                                : dragOverImageIndex === index
-                                ? 'scale-105 ring-4 ring-blue-300 dark:ring-blue-600'
-                                : 'hover:scale-[1.02]'
-                            }`}
-                            draggable
-                            onDragStart={(e) => handleImageDragStart(e, index)}
-                            onDragOver={(e) => handleImageDragOver(e, index)}
-                            onDragLeave={handleImageDragLeave}
-                            onDrop={(e) => handleImageDrop(e, index)}
-                            onDragEnd={handleImageDragEnd}
-                          >
-                            {/* Image Container */}
-                            <div className={`aspect-square rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700 relative border-2 transition-all duration-300 ${
-                              index === 0 
-                                ? 'border-blue-400 dark:border-blue-500 shadow-lg' 
-                                : 'border-gray-200 dark:border-gray-600 group-hover:border-gray-300 dark:group-hover:border-gray-500'
-                            }`}>
-                              <Image
-                                src={url}
-                                alt={`Car listing image ${index + 1} - uploaded preview for ${formData.title || 'new listing'}`}
-                                fill
-                                className="object-cover transition-transform duration-300 group-hover:scale-110"
-                                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
-                                draggable={false}
-                              />
-                              
-                              {/* Drag Handle Overlay */}
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                  <div className="bg-white/90 dark:bg-gray-800/90 rounded-lg p-2 backdrop-blur-sm">
-                                    <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                                    </svg>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Enhanced Remove Button */}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeImage(index);
-                              }}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110"
-                              aria-label={`Remove image ${index + 1}`}
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-
-                            {/* Enhanced Main Photo Badge */}
-                            {index === 0 && (
-                              <div className="absolute bottom-2 start-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center space-x-1">
-                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                </svg>
-                                <span className="font-medium">{t('listings:newListingMainImage', 'Main Photo')}</span>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Video Section */}
-                  <div className="space-y-6 pt-8 border-t border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                      {t('listings:newListingCarVideos', 'Car Videos')} ({t('listings:optional', 'Optional')})
-                    </h3>
-                    
-                    {/* Video Upload Options */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Upload Video File */}
-                      <div className="space-y-4">
-                        <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
-                          {t('listings:uploadVideoFile', 'Upload Video File')}
-                        </h4>
-                        <label 
-                          htmlFor="video-upload" 
-                          className="group flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300"
-                        >
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <svg className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              <span className="font-semibold">Click to upload</span> or drag and drop
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">MP4, MOV, AVI (MAX. 50MB)</p>
-                          </div>
-                          <input 
-                            id="video-upload" 
-                            type="file" 
-                            className="sr-only" 
-                            accept="video/*"
-                            onChange={handleVideoUpload}
-                          />
-                        </label>
-                      </div>
-
-                      {/* Add Video URL */}
-                      <div className="space-y-4">
-                        <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
-                          {t('listings:addVideoUrl', 'Add Video URL')}
-                        </h4>
-                        <button
-                          type="button"
-                          onClick={addVideoUrl}
-                          className="group flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300"
-                        >
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <svg className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                            </svg>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold">
-                              {t('listings:addYouTubeVimeo', 'Add YouTube or Vimeo URL')}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Paste your video link</p>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Video Previews */}
-                    {((formData.videos && formData.videos.length > 0) || (formData.videoUrls && formData.videoUrls.length > 0)) && (
-                      <div className="space-y-4">
-                        <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
-                          {t('listings:videoPreview', 'Video Preview')}
-                        </h4>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Uploaded Video Files */}
-                          {videoPreviewUrls.map((url, index) => (
-                            <div key={`video-${index}`} className="relative group">
-                              <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-                                <video 
-                                  src={url} 
-                                  className="w-full h-full object-cover"
-                                  controls
-                                  preload="metadata"
-                                />
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => removeVideo(index)}
-                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
-                                aria-label={`Remove video ${index + 1}`}
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </div>
-                          ))}
-
-                          {/* Video URLs */}
-                          {(formData.videoUrls || []).map((url, index) => (
-                            <div key={`video-url-${index}`} className="relative group">
-                              <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center">
-                                <div className="text-center">
-                                  <svg className="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                                  </svg>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate px-2" title={url}>
-                                    {url}
-                                  </p>
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => removeVideoUrl(index)}
-                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
-                                aria-label={`Remove video URL ${index + 1}`}
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                {/* Placeholder for Step 4 content */}
+                <div className="text-center py-12 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-800">
+                  <div className="text-gray-500 dark:text-gray-400">
+                    <svg className="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                    </svg>
+                    <h4 className="text-lg font-medium mb-2">Pricing & Contact</h4>
+                    <p className="text-sm">Price, currency, location, and contact information will be implemented here</p>
+                    <p className="text-xs mt-2 text-gray-400">Following the original excellent UX from main branch</p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between pt-8 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex gap-3">
+            {/* Form Navigation */}
+            <div className="flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-gray-200 dark:border-gray-700 space-y-4 sm:space-y-0">
+              <div className="order-2 sm:order-1">
                 <button
                   type="button"
-                  onClick={handleCancel}
-                  className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-                >
-                  {t('common:cancel')}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={handlePreviousStep}
+                  onClick={(e) => handleStepChange(currentStep - 1, e)}
                   disabled={currentStep === 1}
                   className="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 >
@@ -2058,7 +1533,7 @@ export default function ListingWizard({
                 <button
                   type="button"
                   onClick={(e) => handleStepChange(currentStep + 1, e)}
-                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 order-1 sm:order-2"
                 >
                   {t('common:next')}
                   <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2069,29 +1544,22 @@ export default function ListingWizard({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  onClick={(e) => {
-                    console.log('[ListingWizard] Submit button clicked directly');
-                    console.log('[ListingWizard] Button event:', e);
-                    console.log('[ListingWizard] Current step:', currentStep);
-                    console.log('[ListingWizard] Is submitting:', isSubmitting);
-                    // Don't prevent default here - let the form submit naturally
-                  }}
-                  className="inline-flex items-center px-8 py-3 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="inline-flex items-center px-8 py-3 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 order-1 sm:order-2"
                 >
                   {isSubmitting ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      {mode === 'create' ? t('listings:creating') : t('listings:updating')}
+                      {t('listings:submitting', 'Submitting...')}
                     </>
                   ) : (
                     <>
-                      {mode === 'create' ? t('listings:createListing') : t('listings:updateListing')}
-                      <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
+                      {mode === 'edit' ? t('listings:updateListing', 'Update Listing') : t('listings:createListing', 'Create Listing')}
                     </>
                   )}
                 </button>
@@ -2102,4 +1570,4 @@ export default function ListingWizard({
       </div>
     </div>
   );
-}
+};
