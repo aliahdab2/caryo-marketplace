@@ -417,13 +417,13 @@ export default function ListingsView({
 
                   {/* Image Section */}
                   <div className="relative flex-shrink-0">
-                    <div className="w-28 h-20 sm:w-32 sm:h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 shadow-sm">
+                    <div className="w-36 h-28 sm:w-40 sm:h-32 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 shadow-sm">
                       {listing.image ? (
                         <Image 
                           src={listing.image} 
                           alt={listing.title || 'Vehicle image'}
-                          width={128}
-                          height={96}
+                          width={160}
+                          height={128}
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
@@ -434,7 +434,7 @@ export default function ListingsView({
                         />
                       ) : null}
                       <div className={`absolute inset-0 flex items-center justify-center text-gray-400 bg-gray-50 dark:bg-gray-700 ${listing.image ? 'hidden' : ''}`}>
-                        <MdDirectionsCar size={28} className="text-gray-300 dark:text-gray-500" />
+                        <MdDirectionsCar size={36} className="text-gray-300 dark:text-gray-500" />
                       </div>
                     </div>
                     {/* Status Badge */}
