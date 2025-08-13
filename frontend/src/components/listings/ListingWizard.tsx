@@ -12,7 +12,7 @@ import { ListingFormData, UpdateListingData } from "@/types/listings";
 
 import { FormErrors, StepConfig } from "@/types/forms";
 import { ListingDataService } from '@/services/ListingDataService';
-import { SUPPORTED_CURRENCIES } from '@/utils/currency';
+// SUPPORTED_CURRENCIES removed - not used in this component
 import { validateStep, calculateProgress, processFormFieldValue } from '@/utils/formUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 import { createLogger } from '@/utils/logger';
@@ -496,7 +496,7 @@ export default function ListingWizard({
 
 
 
-  const handleCancel = useCallback(() => {
+  const _handleCancel = useCallback(() => {
     if (onCancel) {
       onCancel();
     } else {
@@ -505,7 +505,7 @@ export default function ListingWizard({
   }, [onCancel, router]);
 
   // Enhanced handler for location changes - slug-based approach
-  const handleLocationChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+  const _handleLocationChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedSlug = e.target.value;
     wizardLogger.debug('Location dropdown changed to slug ' + selectedSlug);
     
@@ -802,7 +802,7 @@ export default function ListingWizard({
     setError(null); // Clear any existing error messages
   }, [currentStep, formData, t, isStepAccessible, handleValidationErrors]);
 
-  const handlePreviousStep = useCallback(() => {
+  const _handlePreviousStep = useCallback(() => {
     console.log(`[ListingWizard] Going back from step ${currentStep} to step ${currentStep - 1}`);
     if (currentStep > 1) {
       setCurrentStep(prev => prev - 1);
@@ -1008,7 +1008,7 @@ export default function ListingWizard({
   }, [videoPreviewUrls]);
 
   // Add video URL handler
-  const addVideoUrl = useCallback(() => {
+  const _addVideoUrl = useCallback(() => {
     const url = prompt(t('listings:enterVideoUrl', 'Enter video URL (YouTube, Vimeo, etc.)'));
     if (url && url.trim()) {
       setFormData(prev => ({
@@ -2304,15 +2304,245 @@ export default function ListingWizard({
                   </p>
                 </div>
 
-                {/* Placeholder for Step 4 content */}
-                <div className="text-center py-12 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-800">
-                  <div className="text-gray-500 dark:text-gray-400">
-                    <svg className="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-                    </svg>
-                    <h4 className="text-lg font-medium mb-2">Pricing & Contact</h4>
-                    <p className="text-sm">Price, currency, location, and contact information will be implemented here</p>
-                    <p className="text-xs mt-2 text-gray-400">Following the original excellent UX from main branch</p>
+                {/* Pricing Information */}
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    {t('listings:newListingPricing', 'Pricing Information')}
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Price */}
+                    <div className="space-y-3">
+                      <label 
+                        htmlFor="price" 
+                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                      >
+                        {t('listings:newListingPrice', 'Price')} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        id="price"
+                        name="price"
+                        value={formData.price}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          formErrors.price ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                        }`}
+                        placeholder={t('listings:newListingPricePlaceholder', '25000')}
+                        aria-invalid={!!formErrors.price}
+                        aria-describedby={formErrors.price ? 'price-error' : 'price-hint'}
+                      />
+                      <ErrorMessage error={formErrors.price} id="price-error" />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="price-hint">
+                        {t('listings:newListingPriceHint', 'Enter the asking price for your vehicle')}
+                      </p>
+                    </div>
+
+                    {/* Currency */}
+                    <div className="space-y-3">
+                      <label 
+                        htmlFor="currency" 
+                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                      >
+                        {t('listings:newListingCurrency', 'Currency')} <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="currency"
+                        name="currency"
+                        value={formData.currency}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          formErrors.currency ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                        }`}
+                        aria-invalid={!!formErrors.currency}
+                        aria-describedby={formErrors.currency ? 'currency-error' : 'currency-hint'}
+                      >
+                        <option value="SYP">{t('listings:currencySYP', 'Syrian Pound (SYP)')}</option>
+                        <option value="USD">{t('listings:currencyUSD', 'US Dollar (USD)')}</option>
+                      </select>
+                      <ErrorMessage error={formErrors.currency} id="currency-error" />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="currency-hint">
+                        {t('listings:newListingCurrencyHint', 'Select the currency for your price')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location Information */}
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    {t('listings:newListingLocationInfo', 'Location Information')}
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Governorate */}
+                    <div className="space-y-3">
+                      <label 
+                        htmlFor="governorateSlug" 
+                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                      >
+                        {t('listings:newListingGovernorate', 'Governorate')} <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="governorateSlug"
+                        name="governorateSlug"
+                        value={formData.governorateSlug}
+                        onChange={handleChange}
+                        disabled={isLoadingGovernorates}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          formErrors.governorateSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                        } ${isLoadingGovernorates ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        aria-invalid={!!formErrors.governorateSlug}
+                        aria-describedby={formErrors.governorateSlug ? 'governorateSlug-error' : 'governorateSlug-hint'}
+                      >
+                        <option value="">
+                          {isLoadingGovernorates 
+                            ? t('listings:newListingLoadingGovernorates', 'Loading governorates...') 
+                            : t('listings:newListingSelectGovernorate', 'Select a governorate')
+                          }
+                        </option>
+                        {governorates.map((gov) => (
+                          <option key={gov.id} value={gov.slug}>
+                            {i18n.language === 'ar' ? gov.displayNameAr : gov.displayNameEn}
+                          </option>
+                        ))}
+                      </select>
+                      <ErrorMessage error={formErrors.governorateSlug} id="governorateSlug-error" />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="governorateSlug-hint">
+                        {t('listings:newListingGovernorateHint', 'Select the governorate where the car is located')}
+                      </p>
+                    </div>
+
+                    {/* Location */}
+                    <div className="space-y-3">
+                      <label 
+                        htmlFor="locationSlug" 
+                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                      >
+                        {t('listings:newListingLocation', 'Location')} <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="locationSlug"
+                        name="locationSlug"
+                        value={formData.locationSlug}
+                        onChange={handleChange}
+                        disabled={isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === ''}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          formErrors.locationSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                        } ${(isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === '') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        aria-invalid={!!formErrors.locationSlug}
+                        aria-describedby={formErrors.locationSlug ? 'locationSlug-error' : 'locationSlug-hint'}
+                      >
+                        <option value="">
+                          {!formData.governorateSlug || formData.governorateSlug.trim() === ''
+                            ? t('listings:newListingSelectGovernorateFirst', 'Select governorate first')
+                            : isLoadingLocations 
+                              ? t('listings:newListingLoadingLocations', 'Loading locations...')
+                              : t('listings:newListingSelectLocation', 'Select a location')
+                          }
+                        </option>
+                        {locations.map((loc) => (
+                          <option key={loc.id} value={loc.slug}>
+                            {i18n.language === 'ar' ? loc.displayNameAr : loc.displayNameEn}
+                          </option>
+                        ))}
+                      </select>
+                      <ErrorMessage error={formErrors.locationSlug} id="locationSlug-error" />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="locationSlug-hint">
+                        {t('listings:newListingLocationHint', 'Select the specific location within the governorate')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    {t('listings:newListingContactInfo', 'Contact Information')}
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Contact Name */}
+                    <div className="space-y-3">
+                      <label 
+                        htmlFor="contactName" 
+                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                      >
+                        {t('listings:newListingContactName', 'Contact Name')} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="contactName"
+                        name="contactName"
+                        value={formData.contactName}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          formErrors.contactName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                        }`}
+                        placeholder={t('listings:newListingContactNamePlaceholder', 'Your full name')}
+                        aria-invalid={!!formErrors.contactName}
+                        aria-describedby={formErrors.contactName ? 'contactName-error' : 'contactName-hint'}
+                      />
+                      <ErrorMessage error={formErrors.contactName} id="contactName-error" />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactName-hint">
+                        {t('listings:newListingContactNameHint', 'Name for potential buyers to contact')}
+                      </p>
+                    </div>
+
+                    {/* Contact Phone */}
+                    <div className="space-y-3">
+                      <label 
+                        htmlFor="contactPhone" 
+                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                      >
+                        {t('listings:newListingContactPhone', 'Contact Phone')} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        id="contactPhone"
+                        name="contactPhone"
+                        value={formData.contactPhone}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          formErrors.contactPhone ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                        }`}
+                        placeholder={t('listings:newListingContactPhonePlaceholder', 'e.g., +965 12345678')}
+                        aria-invalid={!!formErrors.contactPhone}
+                        aria-describedby={formErrors.contactPhone ? 'contactPhone-error' : 'contactPhone-hint'}
+                      />
+                      <ErrorMessage error={formErrors.contactPhone} id="contactPhone-error" />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactPhone-hint">
+                        {t('listings:newListingContactPhoneHint', 'Phone number for inquiries')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Contact Email */}
+                  <div className="space-y-3">
+                    <label 
+                      htmlFor="contactEmail" 
+                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    >
+                      {t('listings:newListingContactEmail', 'Contact Email')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      id="contactEmail"
+                      name="contactEmail"
+                      value={formData.contactEmail}
+                      onChange={handleChange}
+                      required
+                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                        formErrors.contactEmail ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                      }`}
+                      placeholder={t('listings:newListingContactEmailPlaceholder', 'your.email@example.com')}
+                      aria-invalid={!!formErrors.contactEmail}
+                      aria-describedby={formErrors.contactEmail ? 'contactEmail-error' : 'contactEmail-hint'}
+                    />
+                    <ErrorMessage error={formErrors.contactEmail} id="contactEmail-error" />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactEmail-hint">
+                      {t('listings:newListingContactEmailHint', 'Email address for inquiries')}
+                    </p>
                   </div>
                 </div>
               </div>

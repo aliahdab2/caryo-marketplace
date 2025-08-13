@@ -504,5 +504,8 @@
   "videoSectionSubtitleUrlOnly": "Add a YouTube or Vimeo link to showcase your vehicle",
   "uploadVideoLabel": "Choose your video file",
   "videoUrlLabel": "Video URL",
-  "videoUrlHelp": "Supported: YouTube, Vimeo, and other video platforms"
+  "videoUrlHelp": "Supported: YouTube, Vimeo, and other video platforms",
+  "newListingPricing": "Pricing Information",
+  "newListingPriceHint": "Enter the asking price for your vehicle",
+  "newListingCurrencyHint": "Select the currency for your price"
 }

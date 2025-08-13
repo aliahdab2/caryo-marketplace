@@ -474,5 +474,8 @@
   "videoSectionSubtitleUrlOnly": "أضف رابط يوتيوب أو فيميو لعرض مركبتك",
   "uploadVideoLabel": "اختر ملف الفيديو الخاص بك",
   "videoUrlLabel": "رابط الفيديو",
-  "videoUrlHelp": "مدعوم: يوتيوب، فيميو، ومنصات فيديو أخرى"
+  "videoUrlHelp": "مدعوم: يوتيوب، فيميو، ومنصات فيديو أخرى",
+  "newListingPricing": "معلومات التسعير",
+  "newListingPriceHint": "أدخل السعر المطلوب لمركبتك",
+  "newListingCurrencyHint": "اختر العملة لسعرك"
 }
