@@ -442,6 +442,11 @@ export async function getMyListings(): Promise<Listing[]> {
         media: mediaItems,
         fuelType: item.fuelType || '',
         transmission: item.transmission || '',
+        // Bilingual names from backend
+        transmissionNameEn: item.transmissionNameEn,
+        transmissionNameAr: item.transmissionNameAr,
+        fuelTypeNameEn: item.fuelTypeNameEn,
+        fuelTypeNameAr: item.fuelTypeNameAr,
         createdAt: item.createdAt,
         description: item.description,
         status: determineListingStatus(item),
