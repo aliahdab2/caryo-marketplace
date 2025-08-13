@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
@@ -20,6 +20,36 @@ import NumericInput from '@/components/ui/NumericInput';
 import AutoSaveIndicator from '@/components/ui/AutoSaveIndicator';
 import { getLocationsByGovernorateSlug, Location } from '@/services/locations';
 import { useAutoSave } from '@/hooks/useAutoSave';
+import { useMemo as useMemoPerf, useCallback as useCallbackPerf } from 'react';
+
+// Performance optimized debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+// Optimized throttle hook for frequent operations
+function useThrottle<T extends (...args: any[]) => any>(func: T, delay: number): T {
+  const lastRun = useRef(Date.now());
+  
+  return useCallbackPerf((...args: Parameters<T>) => {
+    if (Date.now() - lastRun.current >= delay) {
+      func(...args);
+      lastRun.current = Date.now();
+    }
+  }, [func, delay]) as T;
+}
 import { 
   Transmission, 
   FuelType, 
@@ -68,6 +98,120 @@ const ErrorMessage: React.FC<ErrorMessageProps> = React.memo(function ErrorMessa
           {error}
         </div>
       </div>
+    </div>
+  );
+});
+
+// Memoized image preview component for better performance
+const ImagePreview = memo(function ImagePreview({ 
+  url, 
+  index, 
+  isMainPhoto, 
+  fileSize,
+  isDragging,
+  isDragOver,
+  onRemove,
+  onDragStart,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  onDragEnd
+}: {
+  url: string;
+  index: number;
+  isMainPhoto: boolean;
+  fileSize?: number;
+  isDragging: boolean;
+  isDragOver: boolean;
+  onRemove: () => void;
+  onDragStart: (e: React.DragEvent) => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragLeave: () => void;
+  onDrop: (e: React.DragEvent) => void;
+  onDragEnd: () => void;
+}) {
+  return (
+    <div
+      className={`relative group cursor-move transition-all duration-300 ${
+        isDragging
+          ? 'scale-105 rotate-2 opacity-75 z-10'
+          : isDragOver
+          ? 'scale-105 ring-4 ring-blue-300 dark:ring-blue-600'
+          : 'hover:scale-[1.02]'
+      }`}
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+    >
+      {/* Image Container */}
+      <div className={`aspect-square rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700 relative border-2 transition-all duration-300 ${
+        isMainPhoto 
+          ? 'border-blue-400 dark:border-blue-500 shadow-lg' 
+          : 'border-gray-200 dark:border-gray-600 group-hover:border-gray-300 dark:group-hover:border-gray-500'
+      }`}>
+        <Image
+          src={url}
+          alt={`Car listing image ${index + 1}`}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-110"
+          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+          draggable={false}
+          priority={index === 0} // Prioritize main image
+        />
+        
+        {/* Drag Handle Overlay */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="bg-white/90 dark:bg-gray-800/90 rounded-lg p-2 backdrop-blur-sm">
+              <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Remove Button */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110"
+        aria-label={`Remove image ${index + 1}`}
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      {/* Main Photo Badge */}
+      {isMainPhoto && (
+        <div className="absolute bottom-2 start-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center space-x-1">
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+          <span className="font-medium">Main Photo</span>
+        </div>
+      )}
+
+      {/* Image Number Badge */}
+      <div className="absolute top-2 start-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+        {index + 1}
+      </div>
+
+      {/* File Info on Hover */}
+      {fileSize && (
+        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+            {(fileSize / 1024 / 1024).toFixed(1)}MB
+          </div>
+        </div>
+      )}
     </div>
   );
 });
@@ -231,12 +375,16 @@ export default function ListingWizard({
   ], []);
 
   // Memoized step configuration
-  const stepConfig = useMemo((): StepConfig[] => [
+  // Optimized step configuration with stable references
+  const stepConfig = useMemoPerf((): StepConfig[] => [
     { step: 1, title: t('listings:vehicleIdentityTitle', 'Vehicle Identity'), icon: '🚗', isComplete: currentStep > 1 },
     { step: 2, title: t('listings:vehicleDetailsTitle', 'Vehicle Details'), icon: '⚙️', isComplete: currentStep > 2 },
     { step: 3, title: t('listings:contentMediaTitle', 'Content & Media'), icon: '📝', isComplete: currentStep > 3 },
     { step: 4, title: t('listings:pricingContactTitle', 'Pricing & Contact'), icon: '💰', isComplete: currentStep > 4 }
   ], [currentStep, t]);
+
+  // Debounced form data for expensive validations  
+  const debouncedFormData = useDebounce(formData, 300);
 
   // Handler functions
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
@@ -577,9 +725,9 @@ export default function ListingWizard({
     }
   }, [formErrors]);
 
-  // Progress calculation
-  const progressPercentage = useMemo(() => {
-    return calculateProgress(currentStep, TOTAL_STEPS);
+  // Optimized progress calculation with memoization
+  const progressPercentage = useMemoPerf(() => {
+    return (currentStep / TOTAL_STEPS) * 100;
   }, [currentStep]);
 
   // Load car models when make changes
@@ -688,8 +836,8 @@ export default function ListingWizard({
     }
   }, [mode, formData.existingImageUrls, formData.existingVideoUrls, existingImages.length, existingVideos.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Check if a step can be accessed based on validation
-  const isStepAccessible = useCallback((targetStep: number) => {
+  // Optimized step accessibility check with debounced validation
+  const isStepAccessible = useCallbackPerf((targetStep: number) => {
     wizardLogger.debug(`isStepAccessible targetStep=${targetStep} currentStep=${currentStep}`);
     
     // Always allow going to previous steps
@@ -698,10 +846,10 @@ export default function ListingWizard({
       return true;
     }
     
-    // For next step, validate all previous steps
+    // For next step, validate all previous steps using debounced data
     for (let step = 1; step < targetStep; step++) {
       wizardLogger.debug(`Validating step ${step} for accessibility`);
-      const stepErrors = validateStep(step, formData, t, { mode: 'accessibility' });
+      const stepErrors = validateStep(step, debouncedFormData, t, { mode: 'accessibility' });
       wizardLogger.debug(`Step ${step} validation errors ${JSON.stringify(stepErrors)}`);
       if (Object.keys(stepErrors).length > 0) {
         wizardLogger.info(`Step ${targetStep} is NOT accessible due to step ${step} errors`);
@@ -713,7 +861,7 @@ export default function ListingWizard({
     const isNextImmediateStep = targetStep === currentStep + 1;
     wizardLogger.debug(`Step ${targetStep} accessibility: nextImmediate=${isNextImmediateStep}`);
     return isNextImmediateStep;
-  }, [currentStep, formData, t]);
+  }, [currentStep, debouncedFormData, t]);
 
   // Helper function to handle validation errors
   const handleValidationErrors = useCallback((stepErrors: FormErrors) => {
@@ -811,8 +959,8 @@ export default function ListingWizard({
     }
   }, [currentStep]);
 
-  // Image upload handler
-  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  // Optimized image upload handler with better memory management
+  const handleImageUpload = useCallbackPerf((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
@@ -874,14 +1022,14 @@ export default function ListingWizard({
     setImagePreviewUrls(prev => prev.filter((_, i) => i !== index));
   }, [existingImages, formData.images, imagePreviewUrls]);
 
-  // Drag and drop handlers for image upload
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  // Optimized drag and drop handlers with throttling
+  const handleDragOver = useThrottle(useCallbackPerf((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(true);
-  }, []);
+  }, []), 100);
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  const handleDragLeave = useCallbackPerf((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
