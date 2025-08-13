@@ -397,8 +397,8 @@ export default function ListingsView({
                 isSelected ? 'ring-2 ring-blue-500 border-blue-500' : ''
               }`}
             >
-              <div className="p-4">
-                <div className="flex items-start space-x-4 rtl:space-x-reverse">
+              <div className="p-4 sm:p-5">
+                <div className="flex items-start space-x-4 rtl:space-x-reverse sm:space-x-5 rtl:sm:space-x-reverse">
                   {/* Selection checkbox for full variant with bulk actions */}
                   {variant === 'full' && showBulkActions && (
                     <div className="flex items-center pt-2">
@@ -417,14 +417,14 @@ export default function ListingsView({
 
                   {/* Image Section */}
                   <div className="relative flex-shrink-0">
-                    <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500">
+                    <div className="w-28 h-20 sm:w-32 sm:h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 shadow-sm">
                       {listing.image ? (
                         <Image 
                           src={listing.image} 
                           alt={listing.title || 'Vehicle image'}
-                          width={96}
+                          width={128}
                           height={96}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
@@ -433,13 +433,13 @@ export default function ListingsView({
                           priority={false}
                         />
                       ) : null}
-                      <div className={`absolute inset-0 flex items-center justify-center text-gray-400 ${listing.image ? 'hidden' : ''}`}>
-                        <MdDirectionsCar size={32} />
+                      <div className={`absolute inset-0 flex items-center justify-center text-gray-400 bg-gray-50 dark:bg-gray-700 ${listing.image ? 'hidden' : ''}`}>
+                        <MdDirectionsCar size={28} className="text-gray-300 dark:text-gray-500" />
                       </div>
                     </div>
                     {/* Status Badge */}
-                    <div className="absolute -top-1 -right-1">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusStyle(listing.status || 'pending')}`}>
+                    <div className="absolute -top-2 -right-2 rtl:-left-2 rtl:right-auto">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium shadow-sm border border-white dark:border-gray-800 ${getStatusStyle(listing.status || 'pending')}`}>
                         {listing?.status 
                           ? t(`listings:listingStatus${listing.status.charAt(0).toUpperCase() + listing.status.slice(1)}`)
                           : t('listings:listingStatusPending')
@@ -449,15 +449,15 @@ export default function ListingsView({
                   </div>
 
                   {/* Content Section */}
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 flex flex-col justify-between">
                     {/* Title and Price */}
                     <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex-1 mr-3 rtl:mr-0 rtl:ml-3">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex-1 mr-3 rtl:mr-0 rtl:ml-3 leading-tight">
                         {listing.title}
                       </h3>
                       {hasValidPrice && (
-                        <div className="text-right flex-shrink-0">
-                          <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                        <div className="text-right rtl:text-left flex-shrink-0">
+                          <div className="text-lg sm:text-xl font-bold text-blue-600 dark:text-blue-400">
                             {formatCurrencyDisplay(listing.price, currency)}
                           </div>
                         </div>
@@ -530,18 +530,18 @@ export default function ListingsView({
                     )}
 
                     {/* Location, Date, and Actions */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center justify-between mt-auto pt-2">
+                      <div className="flex flex-wrap items-center text-sm text-gray-500 dark:text-gray-400 gap-4">
                         <div className="flex items-center">
-                          <MdLocationOn className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-blue-500" />
+                          <MdLocationOn className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-blue-500 flex-shrink-0" />
                           <span className="truncate">
                             {formatLocation(listing)}
                           </span>
                         </div>
                         {formatListingDate(listing) && (
-                          <div className="flex items-center ml-4 rtl:ml-0 rtl:mr-4">
-                            <MdAccessTime className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-green-500" />
-                            <span>
+                          <div className="flex items-center">
+                            <MdAccessTime className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-green-500 flex-shrink-0" />
+                            <span className="whitespace-nowrap">
                               {formatListingDate(listing)}
                             </span>
                           </div>
@@ -550,20 +550,20 @@ export default function ListingsView({
 
                       {/* Actions */}
                       {showActions && (
-                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                        <div className="flex items-center space-x-1 rtl:space-x-reverse flex-shrink-0 ml-3 rtl:ml-0 rtl:mr-3">
                           <Link
                             href={`/dashboard/listings/edit/${listing.id}`}
                             className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors duration-200"
                             title={t('edit', { ns: 'common' })}
                           >
-                            <MdEditNote size={20} />
+                            <MdEditNote size={18} />
                           </Link>
                           <button 
                             onClick={() => handleDelete(listing.id)}
                             className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors duration-200"
                             title={t('delete', { ns: 'common' })}
                           >
-                            <MdDelete size={20} />
+                            <MdDelete size={18} />
                           </button>
                         </div>
                       )}
