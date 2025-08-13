@@ -477,8 +477,12 @@
   "videoUrlHelp": "مدعوم: يوتيوب، فيميو، ومنصات فيديو أخرى",
   "newListingPricing": "معلومات التسعير",
   "newListingPriceHint": "أدخل السعر المطلوب لمركبتك",
-  "newListingCurrencyHint": "اختر العملة لسعرك"
-  ,
+  "newListingCurrencyHint": "اختر العملة لسعرك",
+  "newListingImageFormatsShort": "PNG، JPG، JPEG",
+  "newListingImageMaxSize": "الحد الأقصى 5 ميجابايت لكل صورة",
+  "newListingImageMaxCount": "حتى 10 صور",
+  "newListingReleaseToAdd": "حرر لإضافة الصور إلى إعلانك",
+  "reorderImagesHint": "اسحب الصور لإعادة ترتيبها • ستكون الصورة الأولى هي الرئيسية",
   "titleHint": "أنشئ عنواناً جذاباً لإعلانك",
   "descriptionHint": "قدم معلومات مفصلة عن حالة مركبتك وميزاتها وتاريخها",
   "newListingImageUploadSubtitle": "ارفع صوراً عالية الجودة لجذب المشترين المحتملين"

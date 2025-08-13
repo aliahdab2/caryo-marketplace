@@ -507,8 +507,12 @@
   "videoUrlHelp": "Supported: YouTube, Vimeo, and other video platforms",
   "newListingPricing": "Pricing Information",
   "newListingPriceHint": "Enter the asking price for your vehicle",
-  "newListingCurrencyHint": "Select the currency for your price"
-  ,
+  "newListingCurrencyHint": "Select the currency for your price",
+  "newListingImageFormatsShort": "PNG, JPG, JPEG",
+  "newListingImageMaxSize": "Max 5MB each",
+  "newListingImageMaxCount": "Up to 10 images",
+  "newListingReleaseToAdd": "Release to add images to your listing",
+  "reorderImagesHint": "Drag images to reorder • First image is your main photo",
   "titleHint": "Create an attractive title for your listing",
   "descriptionHint": "Provide detailed information about your vehicle's condition, features, and history",
   "newListingImageUploadSubtitle": "Upload high-quality photos to attract potential buyers"
