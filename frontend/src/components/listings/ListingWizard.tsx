@@ -1349,7 +1349,7 @@ export default function ListingWizard({
           {/* Progress Bar */}
           <div className="mt-6">
             <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400 mb-2">
-              <span>Step {currentStep} of {TOTAL_STEPS}</span>
+              <span>{t('listings:newListingStepCounter', 'Step {{current}} of {{total}}', { current: currentStep, total: TOTAL_STEPS })}</span>
               <div className="flex items-center gap-4">
                 {/* Auto-save indicator (only in create mode) */}
                 {mode === 'create' && autoSave && (
@@ -1359,7 +1359,7 @@ export default function ListingWizard({
                     className="text-xs"
                   />
                 )}
-                <span>{progressPercentage}% Complete</span>
+                <span>{t('listings:progressComplete', '{{percent}}% Complete', { percent: progressPercentage })}</span>
               </div>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">

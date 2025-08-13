@@ -482,7 +482,10 @@
   "newListingImageMaxSize": "الحد الأقصى 5 ميجابايت لكل صورة",
   "newListingImageMaxCount": "حتى 10 صور",
   "newListingReleaseToAdd": "حرر لإضافة الصور إلى إعلانك",
+  "progressComplete": "{{percent}}٪ مكتمل",
   "reorderImagesHint": "اسحب الصور لإعادة ترتيبها • ستكون الصورة الأولى هي الرئيسية",
+  "howToReorderTitle": "كيفية إعادة ترتيب الصور",
+  "howToReorderBody": "اسحب وأفلت الصور لتغيير ترتيبها. ستكون الصورة الأولى هي الصورة الرئيسية التي يراها المشترون أولاً.",
   "titleHint": "أنشئ عنواناً جذاباً لإعلانك",
   "descriptionHint": "قدم معلومات مفصلة عن حالة مركبتك وميزاتها وتاريخها",
   "newListingImageUploadSubtitle": "ارفع صوراً عالية الجودة لجذب المشترين المحتملين"

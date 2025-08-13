@@ -512,7 +512,10 @@
   "newListingImageMaxSize": "Max 5MB each",
   "newListingImageMaxCount": "Up to 10 images",
   "newListingReleaseToAdd": "Release to add images to your listing",
+  "progressComplete": "{{percent}}% Complete",
   "reorderImagesHint": "Drag images to reorder • First image is your main photo",
+  "howToReorderTitle": "How to reorder your photos",
+  "howToReorderBody": "Drag and drop images to change their order. The first image will be your main listing photo that buyers see first.",
   "titleHint": "Create an attractive title for your listing",
   "descriptionHint": "Provide detailed information about your vehicle's condition, features, and history",
   "newListingImageUploadSubtitle": "Upload high-quality photos to attract potential buyers"
