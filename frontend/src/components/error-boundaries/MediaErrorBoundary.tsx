@@ -137,7 +137,7 @@ interface MediaErrorFallbackProps {
   error: Error;
   mediaType: 'image' | 'video' | 'mixed';
   onRetry: () => void;
-  t: (key: string, fallback?: string) => string;
+  t: any; // Use any for translation function to avoid type conflicts
 }
 
 const MediaErrorFallback: React.FC<MediaErrorFallbackProps> = ({
@@ -267,7 +267,7 @@ interface MediaErrorMessageProps {
   error: Error;
   mediaType: 'image' | 'video' | 'mixed';
   onRetry: () => void;
-  t: (key: string, fallback?: string) => string;
+  t: any; // Use any for translation function to avoid type conflicts
 }
 
 const MediaErrorMessage: React.FC<MediaErrorMessageProps> = ({

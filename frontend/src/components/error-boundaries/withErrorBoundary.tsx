@@ -45,11 +45,11 @@ type ErrorBoundaryConfig = Omit<ErrorBoundaryProps, 'children'>;
  * ```
  */
 
-export function withErrorBoundary<T extends object>(
+export function withErrorBoundary<T extends object = {}>(
   WrappedComponent: ComponentType<T>,
   errorBoundaryConfig: ErrorBoundaryConfig = {}
-) {
-  const WithErrorBoundaryComponent = forwardRef<any, T>((props, ref) => {
+): ComponentType<T> {
+  const WithErrorBoundaryComponent: React.FC<T> = (props) => {
     const componentName = errorBoundaryConfig.componentName || 
                          WrappedComponent.displayName || 
                          WrappedComponent.name || 
@@ -62,22 +62,18 @@ export function withErrorBoundary<T extends object>(
       maxRetries: 2,
       resetOnPropsChange: true,
       ...errorBoundaryConfig,
-      children: <WrappedComponent {...props} ref={ref} />
+      children: React.createElement(WrappedComponent, props)
     };
 
     return <ErrorBoundary {...config} />;
-  });
+  };
 
   // Preserve component metadata
   WithErrorBoundaryComponent.displayName = `withErrorBoundary(${
     WrappedComponent.displayName || WrappedComponent.name || 'Component'
   })`;
 
-  // Copy static properties
-  Object.setPrototypeOf(WithErrorBoundaryComponent, WrappedComponent);
-  Object.assign(WithErrorBoundaryComponent, WrappedComponent);
-
-  return WithErrorBoundaryComponent as ComponentType<T>;
+  return WithErrorBoundaryComponent;
 }
 
 /**

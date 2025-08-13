@@ -108,7 +108,7 @@ interface FormErrorFallbackProps {
   formName: string;
   enableAutoSave: boolean;
   onRetry: () => void;
-  t: (key: string, fallback?: string) => string;
+  t: any; // Use any for translation function to avoid type conflicts
 }
 
 const FormErrorFallback: React.FC<FormErrorFallbackProps> = ({

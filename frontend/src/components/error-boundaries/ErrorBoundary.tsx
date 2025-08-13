@@ -192,7 +192,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
   };
 
-  render() {
+  render(): ReactNode {
     const { hasError, error, errorInfo, retryCount } = this.state;
     const { children, fallback, enableRetry = true, maxRetries = 3, componentName, level } = this.props;
 
@@ -208,7 +208,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       }
 
       // Custom fallback element
-      if (fallback) {
+      if (fallback && typeof fallback !== 'function') {
         return fallback;
       }
 
