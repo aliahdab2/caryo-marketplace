@@ -929,12 +929,19 @@ export default function ListingWizard({
       wizardLogger.debug('Setting form errors');
       setFormErrors(stepErrors);
       
-      // Focus on first field with error for better UX
+      // Focus and smooth-scroll to first field with error for better UX
       const firstErrorField = Object.keys(stepErrors)[0];
       wizardLogger.debug('Focusing first error field ' + firstErrorField);
-      const errorElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement;
+      const errorElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement | null;
       if (errorElement) {
-        errorElement.focus();
+        try {
+          errorElement.focus({ preventScroll: true } as any);
+        } catch {
+          errorElement.focus();
+        }
+        if (typeof errorElement.scrollIntoView === 'function') {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
       
       // Show specific field errors instead of generic message
@@ -2742,8 +2749,8 @@ export default function ListingWizard({
               </div>
             )}
 
-            {/* Form Navigation */}
-            <div className="flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-gray-200 dark:border-gray-700 space-y-4 sm:space-y-0">
+            {/* Form Navigation (sticky on mobile) */}
+            <div className="sticky bottom-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur supports-[backdrop-filter]:backdrop-blur flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-gray-200 dark:border-gray-700 space-y-4 sm:space-y-0">
               <div className="order-2 sm:order-1">
                 <button
                   ref={previousButtonRef}

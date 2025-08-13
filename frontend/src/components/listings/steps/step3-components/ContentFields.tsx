@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
@@ -18,6 +18,13 @@ const ContentFields = memo(function ContentFields({
   handleChange
 }: ContentFieldsProps) {
   const { t } = useLazyTranslation(['listings']);
+  
+  // Recommended character limits (soft limits for guidance only)
+  const titleRecommendedMax = 70;
+  const descriptionRecommendedMax = 1000;
+
+  const titleLength = useMemo(() => (formData.title || '').length, [formData.title]);
+  const descriptionLength = useMemo(() => (formData.description || '').length, [formData.description]);
 
   return (
     <div className="space-y-8">
@@ -36,9 +43,17 @@ const ContentFields = memo(function ContentFields({
           aria-invalid={!!formErrors.title}
         />
         {formErrors.title && <ErrorMessage error={formErrors.title} />}
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          {t('listings:titleHint', 'Create an attractive title for your listing')}
-        </p>
+        <div className="mt-1 flex items-center justify-between gap-3 text-xs">
+          <p className="text-gray-500 dark:text-gray-400">
+            {t('listings:titleHint', 'Create an attractive title for your listing')}
+          </p>
+          <span
+            aria-live="polite"
+            className={titleLength > titleRecommendedMax ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}
+          >
+            {titleLength}/{titleRecommendedMax}
+          </span>
+        </div>
       </div>
 
       {/* Description */}
@@ -56,9 +71,17 @@ const ContentFields = memo(function ContentFields({
           aria-invalid={!!formErrors.description}
         />
         {formErrors.description && <ErrorMessage error={formErrors.description} />}
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          {t('listings:descriptionHint', 'Provide detailed information about your vehicle\'s condition, features, and history')}
-        </p>
+        <div className="mt-1 flex items-center justify-between gap-3 text-xs">
+          <p className="text-gray-500 dark:text-gray-400">
+            {t('listings:descriptionHint', 'Provide detailed information about your vehicle\'s condition, features, and history')}
+          </p>
+          <span
+            aria-live="polite"
+            className={descriptionLength > descriptionRecommendedMax ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}
+          >
+            {descriptionLength}/{descriptionRecommendedMax}
+          </span>
+        </div>
       </div>
     </div>
   );
