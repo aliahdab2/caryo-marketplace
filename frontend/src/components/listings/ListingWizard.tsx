@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, useRef, memo, lazy, Suspense } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
@@ -18,7 +18,7 @@ import { ListingFormData, UpdateListingData } from "@/types/listings";
 import { FormErrors, StepConfig } from "@/types/forms";
 import { ListingDataService } from '@/services/ListingDataService';
 // SUPPORTED_CURRENCIES removed - not used in this component
-import { validateStep, calculateProgress, processFormFieldValue } from '@/utils/formUtils';
+import { validateStep, processFormFieldValue } from '@/utils/formUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 import { createLogger } from '@/utils/logger';
 import NumericInput from '@/components/ui/NumericInput';
@@ -59,8 +59,7 @@ import {
   Transmission, 
   FuelType, 
   ListingWizardProps, 
-  ErrorMessageProps,
-  UploadProgressProps 
+  ErrorMessageProps 
 } from '@/types/wizard';
 
 // Constants
@@ -235,67 +234,8 @@ const StepLoadingFallback = memo(function StepLoadingFallback() {
   );
 });
 
-// Lazy-loaded step components for better performance
-const LazyStep1 = lazy(() => 
-  import('./steps/Step1VehicleIdentity').catch(() => ({
-    default: ({ formData, formErrors, handleChange, carMakes, carModels, isLoadingMakes, isLoadingModels, t, i18n }: any) => (
-      <div className="space-y-8 animate-fadeIn">
-        {/* Fallback inline Step 1 content */}
-        <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            {t('listings:vehicleIdentityTitle', 'Vehicle Identity')}
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            {t('listings:vehicleIdentitySubtitle', 'Tell us about your vehicle')}
-          </p>
-        </div>
-        {/* Inline Step 1 form content would go here - keeping existing for now */}
-      </div>
-    )
-  }))
-);
-
-const LazyStep2 = lazy(() => 
-  import('./steps/Step2VehicleDetails').catch(() => ({
-    default: ({ formData, formErrors, handleChange, transmissions, fuelTypes, t }: any) => (
-      <div className="space-y-8 animate-fadeIn">
-        <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            {t('listings:vehicleDetailsTitle', 'Vehicle Details')}
-          </h2>
-        </div>
-      </div>
-    )
-  }))
-);
-
-const LazyStep3 = lazy(() => 
-  import('./steps/Step3ContentMedia').catch(() => ({
-    default: ({ formData, formErrors, handleChange, imagePreviewUrls, handleImageUpload, removeImage, t }: any) => (
-      <div className="space-y-8 animate-fadeIn">
-        <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            {t('listings:contentMediaTitle', 'Content & Media')}
-          </h2>
-        </div>
-      </div>
-    )
-  }))
-);
-
-const LazyStep4 = lazy(() => 
-  import('./steps/Step4PricingContact').catch(() => ({
-    default: ({ formData, formErrors, handleChange, governorates, locations, isLoadingGovernorates, isLoadingLocations, t, i18n }: any) => (
-      <div className="space-y-8 animate-fadeIn">
-        <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            {t('listings:pricingContactTitle', 'Pricing & Contact')}
-          </h2>
-        </div>
-      </div>
-    )
-  }))
-);
+// Note: Lazy step components removed for now to fix build issues
+// Will be implemented in future code splitting phase when step components are created
 
 // Virtualized select component for large datasets
 const VirtualizedSelect = memo(function VirtualizedSelect({ 
@@ -381,50 +321,7 @@ const VirtualizedSelect = memo(function VirtualizedSelect({
   );
 });
 
-// Upload Progress Component
-
-const _UploadProgress: React.FC<UploadProgressProps> = React.memo(function UploadProgress({ 
-  progress, fileName, isComplete 
-}) {
-  const roundedProgress = Math.round(progress);
-  
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-md border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <div 
-            className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors duration-200 ${
-              isComplete ? 'bg-green-500' : 'bg-blue-500'
-            }`}
-            aria-hidden="true"
-          >
-            {isComplete ? (
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-            ) : (
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-            )}
-          </div>
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={fileName}>
-            {fileName}
-          </span>
-        </div>
-        <span className="text-xs text-gray-500 dark:text-gray-400">
-          {roundedProgress}%
-        </span>
-      </div>
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-        <div 
-          className={`h-2 rounded-full transition-all duration-300 ${
-            isComplete ? 'bg-green-500' : 'bg-blue-500'
-          }`}
-          style={{ width: `${roundedProgress}%` }}
-        />
-      </div>
-    </div>
-  );
-});
+// Upload Progress Component removed - not used in current implementation
 
 export default function ListingWizard({ 
   mode, 
@@ -532,14 +429,8 @@ export default function ListingWizard({
     }
   });
 
-  // Memoized car features to prevent recreation on every render
-  const _carFeatures = useMemo(() => [
-    "airConditioning", "leatherSeats", "sunroof", "navigation",
-    "bluetoothConnectivity", "parkingSensors", "reverseCam",
-    "cruiseControl", "alloyWheels", "electricWindows"
-  ], []);
+  // Car features removed - not used in current implementation
 
-  // Memoized step configuration
   // Optimized step configuration with stable references
   const stepConfig = useMemoPerf((): StepConfig[] => [
     { step: 1, title: t('listings:vehicleIdentityTitle', 'Vehicle Identity'), icon: '🚗', isComplete: currentStep > 1 },
@@ -629,7 +520,7 @@ export default function ListingWizard({
         onSuccess?.(result.id);
       } else if (mode === 'edit' && listingId) {
         wizardLogger.info('Starting update for listing ' + String(listingId));
-        console.log('[ListingWizard] Form data before update:', {
+        wizardLogger.debug('[ListingWizard] Form data before update:', {
           title: formData.title,
           description: formData.description,
           price: formData.price,
@@ -733,7 +624,7 @@ export default function ListingWizard({
         setIsLoadingData(true);
         setLoadError(null);
         
-        console.log('[ListingWizard] Auto-loading data for mode:', mode, 'listingId:', listingId);
+        wizardLogger.debug('[ListingWizard] Auto-loading data for mode:', mode, 'listingId:', listingId);
         const loadedData = await ListingDataService.loadFormData(mode, listingId);
         
         setFormData(prevFormData => ({
@@ -748,7 +639,7 @@ export default function ListingWizard({
           features: loadedData.features || prevFormData.features || []
         }));
         
-        console.log('[ListingWizard] Data auto-loaded successfully');
+        wizardLogger.debug('[ListingWizard] Data auto-loaded successfully');
       } catch (error) {
         wizardLogger.error('Error auto-loading data');
         setLoadError(error instanceof Error ? error.message : 'Failed to load listing data');
@@ -794,7 +685,7 @@ export default function ListingWizard({
         setFuelTypes(referenceData.fuelTypes || []);
         wizardLogger.debug('Loaded reference data counts');
       } catch (error) {
-        console.error("Error loading initial data:", error);
+        wizardLogger.error("Error loading initial data:", error);
         setError(t('common:failedToLoadData'));
       } finally {
         setIsLoadingGovernorates(false);
@@ -810,13 +701,7 @@ export default function ListingWizard({
 
 
 
-  const _handleCancel = useCallback(() => {
-    if (onCancel) {
-      onCancel();
-    } else {
-      router.push('/dashboard/listings');
-    }
-  }, [onCancel, router]);
+  // handleCancel removed - not used in current implementation
 
   // Enhanced handler for location changes - slug-based approach
   const _handleLocationChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -906,7 +791,7 @@ export default function ListingWizard({
           const modelData = await getVehicleModels(parseInt(formData.make));
           setCarModels(modelData);
         } catch (error) {
-          console.error('Failed to load car models:', error);
+          wizardLogger.error('Failed to load car models:', error);
           setError(t('common:failedToLoadData'));
         } finally {
           setIsLoadingModels(false);
@@ -945,7 +830,7 @@ export default function ListingWizard({
           }
           setLocations(locationData);
         } catch (error) {
-          console.error('Failed to load locations:', error);
+          wizardLogger.error('Failed to load locations:', error);
           setError(t('common:failedToLoadData'));
         } finally {
           setIsLoadingLocations(false);
@@ -971,7 +856,7 @@ export default function ListingWizard({
           wizardLogger.debug('Loaded models');
           setCarModels(modelData);
         } catch (error) {
-          console.error('Failed to load models:', error);
+          wizardLogger.error('Failed to load models:', error);
           setError(t('common:failedToLoadData'));
         } finally {
           setIsLoadingModels(false);
@@ -1070,7 +955,7 @@ export default function ListingWizard({
     }
     
     wizardLogger.debug(`handleStepChange step=${step} currentStep=${currentStep}`);
-    console.log(`[ListingWizard] Current form data:`, {
+    wizardLogger.debug(`[ListingWizard] Current form data:`, {
       title: formData.title,
       description: formData.description,
       price: formData.price,
@@ -1118,13 +1003,7 @@ export default function ListingWizard({
     setError(null); // Clear any existing error messages
   }, [currentStep, formData, t, isStepAccessible, handleValidationErrors]);
 
-  const _handlePreviousStep = useCallback(() => {
-    console.log(`[ListingWizard] Going back from step ${currentStep} to step ${currentStep - 1}`);
-    if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
-      setFormErrors({});
-    }
-  }, [currentStep]);
+  // handlePreviousStep removed - not used in current implementation
 
   // Optimized image upload handler with better memory management
   const handleImageUpload = useCallbackPerf((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1166,7 +1045,7 @@ export default function ListingWizard({
 
   // Remove image handler
   const removeImage = useCallback((index: number) => {
-    const _allImagesCount = existingImages.length + formData.images.length;
+    // allImagesCount calculation removed - not used
     const isExistingImage = index < existingImages.length;
 
     if (isExistingImage) {
@@ -1323,16 +1202,7 @@ export default function ListingWizard({
     setVideoPreviewUrls(prev => prev.filter((_, i) => i !== index));
   }, [videoPreviewUrls]);
 
-  // Add video URL handler
-  const _addVideoUrl = useCallback(() => {
-    const url = prompt(t('listings:enterVideoUrl', 'Enter video URL (YouTube, Vimeo, etc.)'));
-    if (url && url.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        videoUrls: [...(prev.videoUrls || []), url.trim()]
-      }));
-    }
-  }, [t]);
+  // addVideoUrl removed - not used in current implementation
 
   // Remove video URL handler
   const removeVideoUrl = useCallback((index: number) => {
