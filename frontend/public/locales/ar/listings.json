@@ -503,6 +503,8 @@
   "previewNotAvailable": "المعاينة غير متوفرة لتنسيق الرابط هذا",
   "source": "المصدر",
   "pasteVideoLinkBelow": "الصق رابط الفيديو أدناه",
+  "videoFileReadyToUpload": "{{count}} ملف فيديو جاهز للرفع",
+  "videoUrlAddedAndReady": "تم إضافة رابط الفيديو وهو جاهز",
   "howToReorderTitle": "كيفية إعادة ترتيب الصور",
   "howToReorderBody": "اسحب وأفلت الصور لتغيير ترتيبها. ستكون الصورة الأولى هي الصورة الرئيسية التي يراها المشترون أولاً.",
   "titleHint": "أنشئ عنواناً جذاباً لإعلانك",

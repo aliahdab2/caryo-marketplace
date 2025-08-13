@@ -2056,7 +2056,7 @@ export default function ListingWizard({
                                     : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/40'
                                 }`}>
                                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={rtl.arrows.playIcon} />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16l13-8z" />
                                   </svg>
                                 </div>
                                 <div className="flex-1">
@@ -2096,10 +2096,10 @@ export default function ListingWizard({
                               </div>
                             </div>
                             {(formData.videos && formData.videos.length > 0) && (
-                              <div className="mt-3 flex items-center space-x-2">
+                              <div className={`mt-3 flex items-center ${rtl.spacing.spaceX('2')}`}>
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                                 <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                                  {formData.videos.length} video file ready to upload
+                                  {t('listings:videoFileReadyToUpload', '{{count}} video file ready to upload', { count: formData.videos.length })}
                                 </span>
                               </div>
                             )}
@@ -2171,10 +2171,10 @@ export default function ListingWizard({
                               </div>
                             </div>
                             {(formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0]) && (
-                              <div className="mt-3 flex items-center space-x-2">
+                              <div className={`mt-3 flex items-center ${rtl.spacing.spaceX('2')}`}>
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                                 <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                                  Video URL added and ready
+                                  {t('listings:videoUrlAddedAndReady', 'Video URL added and ready')}
                                 </span>
                               </div>
                             )}
@@ -2221,7 +2221,7 @@ export default function ListingWizard({
                         <div className={`flex items-center ${rtl.spacing.spaceX('3')}`}>
                           <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center">
                             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={rtl.arrows.playIcon} />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16l13-8z" />
                             </svg>
                           </div>
                           <div>
@@ -2403,7 +2403,7 @@ export default function ListingWizard({
                             <div className={`flex items-center ${rtl.spacing.spaceX('2')} p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-800`}>
                               <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center">
                                 <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={rtl.arrows.playIcon} />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16l13-8z" />
                                 </svg>
                               </div>
                               <span className="text-sm font-medium text-red-700 dark:text-red-300">{t('listings:youTube', 'YouTube')}</span>

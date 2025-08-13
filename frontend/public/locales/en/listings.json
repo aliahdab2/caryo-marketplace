@@ -533,6 +533,8 @@
   "previewNotAvailable": "Preview not available for this URL format",
   "source": "Source",
   "pasteVideoLinkBelow": "Paste your video link below",
+  "videoFileReadyToUpload": "{{count}} video file ready to upload",
+  "videoUrlAddedAndReady": "Video URL added and ready",
   "howToReorderTitle": "How to reorder your photos",
   "howToReorderBody": "Drag and drop images to change their order. The first image will be your main listing photo that buyers see first.",
   "titleHint": "Create an attractive title for your listing",
