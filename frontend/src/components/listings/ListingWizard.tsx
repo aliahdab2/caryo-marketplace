@@ -748,6 +748,18 @@ export default function ListingWizard({
       currency: formData.currency
     });
     
+    // Fast-path for moving from Step 1 to Step 2: validate blocking-only fields and proceed
+    if (step === currentStep + 1 && currentStep === 1) {
+      const navErrors = validateStep(1, formData, t, { mode: 'navigation' });
+      if (Object.keys(navErrors).length === 0) {
+        wizardLogger.debug('Fast-path: Step 1 blocking fields valid, moving to Step 2');
+        setFormErrors({});
+        setError(null);
+        setCurrentStep(2);
+        return;
+      }
+    }
+
     if (!isStepAccessible(step)) {
       wizardLogger.debug(`Step ${step} not accessible`);
       // Show specific message when trying to access locked step
