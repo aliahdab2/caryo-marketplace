@@ -465,7 +465,7 @@ export default function ListingsView({
                     </div>
 
                     {/* Make and Model - Enhanced with year */}
-                    <div className="mb-3">
+                    <div className="mb-2">
                       {(listing.brandNameEn || listing.brandNameAr || listing.make || listing.brand) && (
                         <div className="flex flex-wrap items-center gap-2">
                           {/* Primary vehicle info */}
@@ -499,16 +499,22 @@ export default function ListingsView({
                           </div>
                           
                           {/* Additional specs if available */}
-                          {(listing.fuelType || listing.transmission) && (
-                            <div className="flex items-center gap-1.5">
+                          {(listing.fuelType || listing.transmission || hasValidMileage) && (
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {hasValidMileage && (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-700/50 text-orange-700 dark:text-orange-300 text-xs">
+                                  <MdSpeed className="w-3 h-3" />
+                                  {listing.mileage.toLocaleString()} {t('common:km')}
+                                </span>
+                              )}
                               {listing.fuelType && (
-                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs">
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700/50 text-green-700 dark:text-green-300 text-xs">
                                   <MdLocalGasStation className="w-3 h-3" />
                                   {listing.fuelType}
                                 </span>
                               )}
                               {listing.transmission && (
-                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs">
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700/50 text-purple-700 dark:text-purple-300 text-xs">
                                   <MdSettings className="w-3 h-3" />
                                   {listing.transmission}
                                 </span>
@@ -519,18 +525,8 @@ export default function ListingsView({
                       )}
                     </div>
 
-                    {/* Car Details - Mileage and other specs */}
-                    {hasValidMileage && (
-                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-2">
-                        <span className="flex items-center">
-                          <MdSpeed className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-orange-500" />
-                          {listing.mileage.toLocaleString()} {t('common:km')}
-                        </span>
-                      </div>
-                    )}
-
                     {/* Location, Date, and Actions */}
-                    <div className="flex items-center justify-between mt-auto pt-2">
+                    <div className="flex items-center justify-between mt-auto pt-1">
                       <div className="flex flex-wrap items-center text-sm text-gray-500 dark:text-gray-400 gap-4">
                         <div className="flex items-center">
                           <MdLocationOn className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-blue-500 flex-shrink-0" />
