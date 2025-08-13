@@ -198,23 +198,7 @@ export const validateStep = (step: number, formData: ListingFormData, t: (key: s
   const errors: FormErrors = {};
   
   switch (step) {
-    case 1:
-      if (!formData.title || formData.title.trim().length === 0) {
-        errors.title = t('listings:newListingValidationTitleRequired', 'Title is required');
-      }
-      if (!formData.description || formData.description.trim().length === 0) {
-        errors.description = t('listings:newListingValidationDescriptionRequired', 'Description is required');
-      }
-      if (!formData.price || formData.price.trim().length === 0) {
-        errors.price = t('listings:newListingValidationPriceRequired', 'Price is required');
-      } else if (isNaN(Number(formData.price))) {
-        errors.price = t('listings:newListingValidationPriceInvalid', 'Price must be a valid number');
-      } else if (Number(formData.price) <= 0) {
-        errors.price = t('listings:newListingValidationPricePositive', 'Price must be greater than zero');
-      }
-      break;
-      
-    case 2:
+    case 1: // Vehicle Identity (Make, Model, Year)
       if (!formData.make || formData.make.trim().length === 0) {
         errors.make = t('listings:newListingValidationMakeRequired', 'Make is required');
       }
@@ -226,18 +210,43 @@ export const validateStep = (step: number, formData: ListingFormData, t: (key: s
       } else if (isNaN(Number(formData.year)) || Number(formData.year) < 1920 || Number(formData.year) > new Date().getFullYear()) {
         errors.year = t('listings:newListingValidationYearInvalid', 'Please enter a valid year');
       }
+      break;
+      
+    case 2: // Vehicle Details (Mileage, Engine, etc.)
+      // Mileage is optional, but if provided, should be valid
       if (formData.mileage && formData.mileage.trim().length > 0 && (isNaN(Number(formData.mileage)) || Number(formData.mileage) < 0)) {
         errors.mileage = t('listings:newListingValidationMileageInvalid', 'Mileage must be a valid number');
       }
       break;
       
-    case 3:
+    case 3: // Content & Media (Title, Description, Photos)
+      if (!formData.title || formData.title.trim().length === 0) {
+        errors.title = t('listings:newListingValidationTitleRequired', 'Title is required');
+      }
+      if (!formData.description || formData.description.trim().length === 0) {
+        errors.description = t('listings:newListingValidationDescriptionRequired', 'Description is required');
+      }
+      break;
+      
+    case 4: // Pricing & Contact (Price, Location, Contact, Images)
+      // Pricing validation
+      if (!formData.price || formData.price.trim().length === 0) {
+        errors.price = t('listings:newListingValidationPriceRequired', 'Price is required');
+      } else if (isNaN(Number(formData.price))) {
+        errors.price = t('listings:newListingValidationPriceInvalid', 'Price must be a valid number');
+      } else if (Number(formData.price) <= 0) {
+        errors.price = t('listings:newListingValidationPricePositive', 'Price must be greater than zero');
+      }
+      
+      // Contact validation
       if (!formData.contactName || formData.contactName.trim().length === 0) {
         errors.contactName = t('listings:newListingValidationContactNameRequired', 'Contact name is required');
       }
       if (!formData.contactPhone || formData.contactPhone.trim().length === 0) {
         errors.contactPhone = t('listings:newListingValidationContactPhoneRequired', 'Contact phone is required');
       }
+      
+      // Location validation
       if (!formData.governorateSlug || formData.governorateSlug.trim().length === 0) {
         errors.governorateSlug = t('listings:newListingValidationGovernorateRequired', 'Governorate is required');
       }
@@ -247,9 +256,7 @@ export const validateStep = (step: number, formData: ListingFormData, t: (key: s
       if (formData.contactEmail && formData.contactEmail.trim().length > 0 && !_isValidEmail(formData.contactEmail)) {
         errors.contactEmail = t('listings:newListingValidationEmailInvalid', 'Please enter a valid email address');
       }
-      break;
       
-    case 4:
       // Check for images - either new uploaded images or existing images (for edit mode)
       const imagesCount = formData.images?.length || 0;
       const existingImagesCount = formData.existingImageUrls?.length || 0;
