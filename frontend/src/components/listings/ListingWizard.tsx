@@ -189,7 +189,7 @@ const ImagePreview = memo(function ImagePreview({
           e.stopPropagation();
           onRemove();
         }}
-        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110"
+        className={`absolute -top-2 ${isRTL ? '-left-2' : '-right-2'} bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110`}
         aria-label={`Remove image ${index + 1}`}
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,17 +208,17 @@ const ImagePreview = memo(function ImagePreview({
       )}
 
       {/* Image Number Badge */}
-      <div className="absolute top-2 start-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+      <div className={`absolute top-2 ${isRTL ? 'end-2' : 'start-2'} bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm`}>
         {index + 1}
-          </div>
+      </div>
 
       {/* File Info on Hover */}
       {fileSize && (
-        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className={`absolute bottom-2 ${isRTL ? 'left-2' : 'right-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
           <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
             {(fileSize / 1024 / 1024).toFixed(1)}MB
+          </div>
         </div>
-      </div>
       )}
     </div>
   );
@@ -1821,7 +1821,7 @@ export default function ListingWizard({
                                 <p className="text-sm text-gray-500 dark:text-gray-500">
                                   {t('listings:newListingImageUploadHint', 'Upload multiple images to showcase your car. First image will be the main photo.')}
                                 </p>
-                                <div className="flex items-center justify-center space-x-6 text-xs text-gray-400 dark:text-gray-500">
+                                <div className={`flex items-center justify-center ${isRTL ? 'space-x-reverse space-x-6' : 'space-x-6'} text-xs text-gray-400 dark:text-gray-500`}>
                                   <div className="flex items-center space-x-1">
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <span>PNG, JPG, JPEG</span>
@@ -1933,7 +1933,7 @@ export default function ListingWizard({
                                 e.stopPropagation();
                                 removeImage(index);
                               }}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110"
+                              className={`absolute -top-2 ${isRTL ? '-left-2' : '-right-2'} bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110`}
                               aria-label={`Remove image ${index + 1}`}
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1943,7 +1943,7 @@ export default function ListingWizard({
 
                             {/* Enhanced Main Photo Badge */}
                             {index === 0 && (
-                              <div className="absolute bottom-2 start-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center space-x-1">
+                              <div className={`absolute bottom-2 ${isRTL ? 'end-2' : 'start-2'} bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                 </svg>
@@ -1952,12 +1952,12 @@ export default function ListingWizard({
                             )}
 
                             {/* Image Number Badge */}
-                            <div className="absolute top-2 start-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                            <div className={`absolute top-2 ${isRTL ? 'end-2' : 'start-2'} bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm`}>
                               {index + 1}
                             </div>
 
                             {/* File Info on Hover */}
-                            <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div className={`absolute bottom-2 ${isRTL ? 'left-2' : 'right-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
                               <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
                                 {(formData.images[index]?.size / 1024 / 1024).toFixed(1)}MB
                               </div>
