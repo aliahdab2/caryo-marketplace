@@ -37,6 +37,36 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   
+  // Performance optimizations
+  experimental: {
+    // Enable optimizePackageImports for better tree shaking
+    optimizePackageImports: [
+      'lucide-react',
+      'react-icons',
+      '@heroicons/react',
+      'lodash-es'
+    ]
+  },
+  
+  // Turbopack optimizations
+  turbopack: {
+    // Add turbopack-specific options here if needed in the future
+  },
+  
+  // Compression
+  compress: true,
+  
+  // Bundle optimization
+  webpack: (config, { dev, isServer }) => {
+    // Resolve alias for better tree shaking
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'lodash': 'lodash-es',
+    };
+    
+    return config;
+  },
+  
   env: {
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
@@ -96,10 +126,7 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Using the stable turbopack configuration
-  turbopack: {
-    // You can add Turbopack-specific options here if needed
-  }
+  // Additional turbopack configuration can be added to the existing turbopack section above
 };
 
 export default analyzeBundles(nextConfig);

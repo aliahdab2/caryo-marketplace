@@ -11,6 +11,7 @@
 
 import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
+import { createLogger } from '@/utils/logger';
 
 // Import from modular structure
 import { 
@@ -194,91 +195,158 @@ const _isValidEmail = (email: string): boolean => {
 /**
  * Validate form step for multi-step listing form
  */
-export const validateStep = (step: number, formData: ListingFormData, t: (key: string, fallback: string) => string): FormErrors => {
+// Logger (gated by env)
+const formLogger = createLogger({
+  enabled: process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_WIZARD === 'true',
+  level: 'debug',
+  prefix: 'FORM_UTILS'
+});
+
+// Centralized required field rules per step
+const REQUIRED_FIELDS_BY_STEP: Record<number, Array<keyof ListingFormData>> = {
+  1: ['make', 'model', 'year', 'title', 'description', 'price'],
+  2: [],
+  3: ['title', 'description'],
+  4: ['price', 'contactName', 'contactPhone', 'governorateSlug', 'locationSlug']
+};
+
+// Map field to i18n validation key and fallback
+const REQUIRED_FIELD_I18N: Record<string, { key: string; fallback: string }> = {
+  make: { key: 'listings:newListingValidationMakeRequired', fallback: 'Make is required' },
+  model: { key: 'listings:newListingValidationModelRequired', fallback: 'Model is required' },
+  year: { key: 'listings:newListingValidationYearRequired', fallback: 'Year is required' },
+  title: { key: 'listings:newListingValidationTitleRequired', fallback: 'Title is required' },
+  description: { key: 'listings:newListingValidationDescriptionRequired', fallback: 'Description is required' },
+  price: { key: 'listings:newListingValidationPriceRequired', fallback: 'Price is required' },
+  contactName: { key: 'listings:newListingValidationContactNameRequired', fallback: 'Contact name is required' },
+  contactPhone: { key: 'listings:newListingValidationContactPhoneRequired', fallback: 'Contact phone is required' },
+  governorateSlug: { key: 'listings:newListingValidationGovernorateRequired', fallback: 'Governorate is required' },
+  locationSlug: { key: 'listings:newListingValidationLocationRequired', fallback: 'Location is required' },
+};
+
+function applyRequiredFieldErrors(
+  step: number,
+  data: ListingFormData,
+  t: (key: string, fallback: string) => string,
+  errors: FormErrors
+) {
+  const requiredFields = REQUIRED_FIELDS_BY_STEP[step] || [];
+  for (const field of requiredFields) {
+    const value = data[field];
+    if (!value || (typeof value === 'string' && value.trim().length === 0)) {
+      const i18nMeta = REQUIRED_FIELD_I18N[field as string];
+      if (i18nMeta) {
+        errors[field] = t(i18nMeta.key, i18nMeta.fallback);
+      }
+    }
+  }
+}
+
+type ValidationMode = 'final' | 'navigation' | 'accessibility';
+
+// Blocking-only required fields per step (used for navigation/accessibility)
+const BLOCKING_REQUIRED_FIELDS_BY_STEP: Record<number, Array<keyof ListingFormData>> = {
+  1: ['make', 'model', 'year'],
+  2: [],
+  3: ['title', 'description'],
+  4: ['price', 'contactName', 'contactPhone', 'governorateSlug', 'locationSlug']
+};
+
+function getRequiredFieldsForMode(step: number, mode: ValidationMode): Array<keyof ListingFormData> {
+  if (mode === 'final') return REQUIRED_FIELDS_BY_STEP[step] || [];
+  return BLOCKING_REQUIRED_FIELDS_BY_STEP[step] || [];
+}
+
+export const validateStep = (
+  step: number,
+  formData: ListingFormData,
+  t: (key: string, fallback: string) => string,
+  options?: { mode?: ValidationMode }
+): FormErrors => {
   const errors: FormErrors = {};
+  const mode: ValidationMode = options?.mode || 'final';
   
   switch (step) {
-    case 1:
-      if (!formData.title || formData.title.trim().length === 0) {
-        errors.title = t('listings:newListingValidationTitleRequired', 'Title is required');
+    case 1: // Vehicle Identity (Make, Model, Year)
+      {
+        // Required fields
+        const tmp: FormErrors = {};
+        const requiredFields = getRequiredFieldsForMode(step, mode);
+        for (const field of requiredFields) {
+          const value = formData[field];
+          if (!value || (typeof value === 'string' && value.trim().length === 0)) {
+            const i18nMeta = REQUIRED_FIELD_I18N[field as string];
+            if (i18nMeta) tmp[field] = t(i18nMeta.key, i18nMeta.fallback);
+          }
+        }
+        Object.assign(errors, tmp);
       }
-      if (!formData.description || formData.description.trim().length === 0) {
-        errors.description = t('listings:newListingValidationDescriptionRequired', 'Description is required');
-      }
-      if (!formData.price || formData.price.trim().length === 0) {
-        errors.price = t('listings:newListingValidationPriceRequired', 'Price is required');
-      } else if (isNaN(Number(formData.price))) {
-        errors.price = t('listings:newListingValidationPriceInvalid', 'Price must be a valid number');
-      } else if (Number(formData.price) <= 0) {
-        errors.price = t('listings:newListingValidationPricePositive', 'Price must be greater than zero');
+      if (formData.year && (isNaN(Number(formData.year)) || Number(formData.year) < 1920 || Number(formData.year) > new Date().getFullYear())) {
+        errors.year = t('listings:newListingValidationYearInvalid', 'Please enter a valid year');
       }
       break;
       
-    case 2:
-      if (!formData.make || formData.make.trim().length === 0) {
-        errors.make = t('listings:newListingValidationMakeRequired', 'Make is required');
-      }
-      if (!formData.model || formData.model.trim().length === 0) {
-        errors.model = t('listings:newListingValidationModelRequired', 'Model is required');
-      }
-      if (!formData.year || formData.year.trim().length === 0) {
-        errors.year = t('listings:newListingValidationYearRequired', 'Year is required');
-      } else if (isNaN(Number(formData.year)) || Number(formData.year) < 1920 || Number(formData.year) > new Date().getFullYear()) {
-        errors.year = t('listings:newListingValidationYearInvalid', 'Please enter a valid year');
-      }
+    case 2: // Vehicle Details (Mileage, Engine, etc.)
+      // Mileage is optional, but if provided, should be valid
       if (formData.mileage && formData.mileage.trim().length > 0 && (isNaN(Number(formData.mileage)) || Number(formData.mileage) < 0)) {
         errors.mileage = t('listings:newListingValidationMileageInvalid', 'Mileage must be a valid number');
       }
       break;
       
-    case 3:
-      if (!formData.contactName || formData.contactName.trim().length === 0) {
-        errors.contactName = t('listings:newListingValidationContactNameRequired', 'Contact name is required');
-      }
-      if (!formData.contactPhone || formData.contactPhone.trim().length === 0) {
-        errors.contactPhone = t('listings:newListingValidationContactPhoneRequired', 'Contact phone is required');
-      }
-      if (!formData.governorateSlug || formData.governorateSlug.trim().length === 0) {
-        errors.governorateSlug = t('listings:newListingValidationGovernorateRequired', 'Governorate is required');
-      }
-      if (!formData.locationSlug || formData.locationSlug.trim().length === 0) {
-        errors.locationSlug = t('listings:newListingValidationLocationRequired', 'Location is required');
-      }
-      if (formData.contactEmail && formData.contactEmail.trim().length > 0 && !_isValidEmail(formData.contactEmail)) {
-        errors.contactEmail = t('listings:newListingValidationEmailInvalid', 'Please enter a valid email address');
+    case 3: // Content & Media (Title, Description, Photos)
+      {
+        const requiredFields = getRequiredFieldsForMode(step, mode);
+        for (const field of requiredFields) {
+          const value = formData[field];
+          if (!value || (typeof value === 'string' && value.trim().length === 0)) {
+            const i18nMeta = REQUIRED_FIELD_I18N[field as string];
+            if (i18nMeta) errors[field] = t(i18nMeta.key, i18nMeta.fallback);
+          }
+        }
       }
       break;
       
-    case 4:
+    case 4: // Pricing & Contact (Price, Location, Contact, Images)
+      {
+        const requiredFields = getRequiredFieldsForMode(step, mode);
+        for (const field of requiredFields) {
+          const value = formData[field];
+          if (!value || (typeof value === 'string' && value.trim().length === 0)) {
+            const i18nMeta = REQUIRED_FIELD_I18N[field as string];
+            if (i18nMeta) errors[field] = t(i18nMeta.key, i18nMeta.fallback);
+          }
+        }
+      }
+      if (formData.price && isNaN(Number(formData.price))) {
+        errors.price = t('listings:newListingValidationPriceInvalid', 'Price must be a valid number');
+      } else if (formData.price && Number(formData.price) <= 0) {
+        errors.price = t('listings:newListingValidationPricePositive', 'Price must be greater than zero');
+      }
+      
+      // Contact validation
+      if (formData.contactEmail && formData.contactEmail.trim().length > 0 && !_isValidEmail(formData.contactEmail)) {
+        errors.contactEmail = t('listings:newListingValidationEmailInvalid', 'Please enter a valid email address');
+      }
+      
       // Check for images - either new uploaded images or existing images (for edit mode)
       const imagesCount = formData.images?.length || 0;
       const existingImagesCount = formData.existingImageUrls?.length || 0;
       const totalImages = imagesCount + existingImagesCount;
       
-      console.log('[validateStep] Step 4 image validation:', {
+      formLogger.debug('[validateStep] Step 4 image validation', {
         imagesCount,
         existingImagesCount,
-        totalImages,
-        formDataImages: formData.images,
-        formDataExistingImageUrls: formData.existingImageUrls,
-        formDataKeys: Object.keys(formData),
-        hasExistingImageUrls: 'existingImageUrls' in formData,
-        existingImageUrlsType: typeof formData.existingImageUrls,
-        existingImageUrlsLength: formData.existingImageUrls?.length,
-        formDataImagesType: typeof formData.images,
-        formDataImagesLength: formData.images?.length,
-        formDataImagesIsArray: Array.isArray(formData.images),
-        formDataExistingImageUrlsIsArray: Array.isArray(formData.existingImageUrls)
-      });
+        totalImages
+      } as unknown as string);
       
       if (totalImages === 0) {
-        console.log('[validateStep] No images found, adding error');
+        formLogger.debug('[validateStep] No images found, adding error');
         errors.images = t('listings:newListingValidationImagesRequired', 'At least one image is required');
       } else if (imagesCount > 10) {
-        console.log('[validateStep] Too many new images:', imagesCount);
+        formLogger.warn('[validateStep] Too many new images', imagesCount as unknown as string);
         errors.images = t('listings:newListingValidationTooManyImages', 'Maximum 10 images allowed');
       } else {
-        console.log('[validateStep] Image validation passed, total images:', totalImages);
+        formLogger.debug('[validateStep] Image validation passed', String(totalImages));
       }
       break;
       

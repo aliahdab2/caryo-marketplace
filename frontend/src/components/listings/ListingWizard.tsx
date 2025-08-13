@@ -1,34 +1,77 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { fetchGovernorates, Governorate } from '@/services/api';
-import { getVehicleMakes, getVehicleModels, getCarReferenceData } from '@/services/referenceData';
+// Lazy import for reference data services to reduce initial bundle
+const referenceDataServices = {
+  getVehicleMakes: () => import('@/services/referenceData').then(m => m.getVehicleMakes),
+  getVehicleModels: () => import('@/services/referenceData').then(m => m.getVehicleModels),
+  getCarReferenceData: () => import('@/services/referenceData').then(m => m.getCarReferenceData),
+};
 import { CarBrand, CarModel } from '@/types/referenceData';
 import { createListing, updateListing } from '@/services/listings';
 import { ListingFormData, UpdateListingData } from "@/types/listings";
 
 import { FormErrors, StepConfig } from "@/types/forms";
 import { ListingDataService } from '@/services/ListingDataService';
-import { SUPPORTED_CURRENCIES } from '@/utils/currency';
-import { validateStep, calculateProgress, processFormFieldValue } from '@/utils/formUtils';
+// SUPPORTED_CURRENCIES removed - not used in this component
+import { validateStep, processFormFieldValue } from '@/utils/formUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
+import { createLogger } from '@/utils/logger';
 import NumericInput from '@/components/ui/NumericInput';
 import AutoSaveIndicator from '@/components/ui/AutoSaveIndicator';
 import { getLocationsByGovernorateSlug, Location } from '@/services/locations';
 import { useAutoSave } from '@/hooks/useAutoSave';
+import { useMemo as useMemoPerf, useCallback as useCallbackPerf } from 'react';
+import { useDirection } from '@/utils/direction';
+import { createRTLHelpers } from '@/utils/rtlHelpers';
+
+// Performance optimized debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+// Optimized throttle hook for frequent operations
+function useThrottle<T extends (...args: any[]) => any>(func: T, delay: number): T {
+  const lastRun = useRef(Date.now());
+  
+  return useCallbackPerf((...args: Parameters<T>) => {
+    if (Date.now() - lastRun.current >= delay) {
+      func(...args);
+      lastRun.current = Date.now();
+    }
+  }, [func, delay]) as T;
+}
 import { 
   Transmission, 
   FuelType, 
   ListingWizardProps, 
-  ErrorMessageProps,
-  UploadProgressProps 
+  ErrorMessageProps 
 } from '@/types/wizard';
 
 // Constants
 const TOTAL_STEPS = 4;
+const FOCUSABLE_SELECTOR = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])';
+const wizardLogger = createLogger({
+  enabled: process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_WIZARD === 'true',
+  level: 'debug',
+  prefix: 'LISTING_WIZARD'
+});
 const DEFAULT_CURRENCY = "USD";
 
 const ErrorMessage: React.FC<ErrorMessageProps> = React.memo(function ErrorMessage({ error, id, className = "" }) {
@@ -65,50 +108,224 @@ const ErrorMessage: React.FC<ErrorMessageProps> = React.memo(function ErrorMessa
   );
 });
 
-// Upload Progress Component
-
-const _UploadProgress: React.FC<UploadProgressProps> = React.memo(function UploadProgress({ 
-  progress, fileName, isComplete 
+// Memoized image preview component for better performance
+const ImagePreview = memo(function ImagePreview({ 
+  url, 
+  index, 
+  isMainPhoto, 
+  fileSize,
+  isDragging,
+  isDragOver,
+  onRemove,
+  onDragStart,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  onDragEnd,
+  isRTL
+}: {
+  url: string;
+  index: number;
+  isMainPhoto: boolean;
+  fileSize?: number;
+  isDragging: boolean;
+  isDragOver: boolean;
+  onRemove: () => void;
+  onDragStart: (e: React.DragEvent) => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragLeave: () => void;
+  onDrop: (e: React.DragEvent) => void;
+  onDragEnd: () => void;
+  isRTL: boolean;
 }) {
-  const roundedProgress = Math.round(progress);
-  
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-md border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <div 
-            className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors duration-200 ${
-              isComplete ? 'bg-green-500' : 'bg-blue-500'
-            }`}
-            aria-hidden="true"
-          >
-            {isComplete ? (
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-            ) : (
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-            )}
-          </div>
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={fileName}>
-            {fileName}
-          </span>
-        </div>
-        <span className="text-xs text-gray-500 dark:text-gray-400">
-          {roundedProgress}%
-        </span>
-      </div>
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-        <div 
-          className={`h-2 rounded-full transition-all duration-300 ${
-            isComplete ? 'bg-green-500' : 'bg-blue-500'
-          }`}
-          style={{ width: `${roundedProgress}%` }}
+    <div
+      className={`relative group cursor-move transition-all duration-300 ${
+        isDragging
+          ? 'scale-105 rotate-2 opacity-75 z-10'
+          : isDragOver
+          ? 'scale-105 ring-4 ring-blue-300 dark:ring-blue-600'
+          : 'hover:scale-[1.02]'
+      }`}
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+    >
+      {/* Image Container */}
+      <div className={`aspect-square rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700 relative border-2 transition-all duration-300 ${
+        isMainPhoto 
+          ? 'border-blue-400 dark:border-blue-500 shadow-lg' 
+          : 'border-gray-200 dark:border-gray-600 group-hover:border-gray-300 dark:group-hover:border-gray-500'
+      }`}>
+        <Image
+          src={url}
+          alt={`Car listing image ${index + 1}`}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-110"
+          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+          draggable={false}
+          priority={index === 0} // Prioritize main image
         />
+        
+        {/* Drag Handle Overlay */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="bg-white/90 dark:bg-gray-800/90 rounded-lg p-2 backdrop-blur-sm">
+              <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Remove Button */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        className={`absolute -top-2 ${isRTL ? '-left-2' : '-right-2'} bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110`}
+        aria-label={`Remove image ${index + 1}`}
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      {/* Main Photo Badge */}
+      {isMainPhoto && (
+        <div className={`absolute bottom-2 ${isRTL ? 'end-2' : 'start-2'} bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+          <span className="font-medium">Main Photo</span>
+        </div>
+      )}
+
+      {/* Image Number Badge */}
+      <div className={`absolute top-2 ${isRTL ? 'end-2' : 'start-2'} bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm`}>
+        {index + 1}
+      </div>
+
+      {/* File Info on Hover */}
+      {fileSize && (
+        <div className={`absolute bottom-2 ${isRTL ? 'left-2' : 'right-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
+          <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+            {(fileSize / 1024 / 1024).toFixed(1)}MB
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
+// Loading fallback component for lazy-loaded steps
+const StepLoadingFallback = memo(function StepLoadingFallback() {
+  return (
+    <div className="space-y-8 animate-pulse">
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+      <div className="space-y-4">
+        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
       </div>
     </div>
   );
 });
+
+// Note: Lazy step components removed for now to fix build issues
+// Will be implemented in future code splitting phase when step components are created
+
+// Virtualized select component for large datasets
+const VirtualizedSelect = memo(function VirtualizedSelect({ 
+  options, 
+  value, 
+  onChange, 
+  placeholder, 
+  isLoading, 
+  className = "",
+  maxHeight = 200,
+  itemHeight = 40,
+  ...props 
+}: {
+  options: Array<{ id: string; name: string; nameAr?: string }>;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  isLoading?: boolean;
+  className?: string;
+  maxHeight?: number;
+  itemHeight?: number;
+  [key: string]: any;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [visibleStart, setVisibleStart] = useState(0);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Calculate visible items for virtual scrolling
+  const visibleCount = Math.ceil(maxHeight / itemHeight);
+  const visibleEnd = Math.min(visibleStart + visibleCount + 2, options.length); // Buffer items
+  
+  const selectedOption = options.find(opt => opt.id === value);
+  
+  const handleScroll = useThrottle((e: React.UIEvent<HTMLDivElement>) => {
+    const scrollTop = e.currentTarget.scrollTop;
+    const newStart = Math.floor(scrollTop / itemHeight);
+    setVisibleStart(Math.max(0, newStart - 1)); // Add buffer
+  }, 16); // 60fps throttling
+  
+  return (
+    <div className={`relative ${className}`}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-4 py-3 text-left border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500"
+        {...props}
+      >
+        {isLoading ? "Loading..." : selectedOption?.name || placeholder}
+      </button>
+      
+      {isOpen && !isLoading && (
+        <div 
+          ref={dropdownRef}
+          className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl shadow-lg"
+          style={{ maxHeight }}
+          onScroll={handleScroll}
+        >
+          <div style={{ height: options.length * itemHeight, position: 'relative' }}>
+            {options.slice(visibleStart, visibleEnd).map((option, index) => (
+              <div
+                key={option.id}
+                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                style={{ 
+                  position: 'absolute',
+                  top: (visibleStart + index) * itemHeight,
+                  height: itemHeight,
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+                onClick={() => {
+                  onChange(option.id);
+                  setIsOpen(false);
+                }}
+              >
+                {option.name}
+      </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
+// Upload Progress Component removed - not used in current implementation
 
 export default function ListingWizard({ 
   mode, 
@@ -116,11 +333,19 @@ export default function ListingWizard({
   initialData = {}, 
   autoLoad = true,
   autoSave = true,
+  showHeader = true,
   onSuccess, 
   onCancel 
-}: ListingWizardProps) {
+}: ListingWizardProps & { showHeader?: boolean }) {
   const router = useRouter();
   const { t, i18n, ready } = useLazyTranslation(['listings', 'common']);
+  const { isRTL } = useDirection();
+  const rtl = createRTLHelpers(isRTL);
+  
+  // Refs for keyboard navigation
+  const formRef = useRef<HTMLFormElement>(null);
+  const previousButtonRef = useRef<HTMLButtonElement>(null);
+  const nextButtonRef = useRef<HTMLButtonElement>(null);
 
   // State management
   const [currentStep, setCurrentStep] = useState(1);
@@ -147,6 +372,13 @@ export default function ListingWizard({
   const [isDragOver, setIsDragOver] = useState(false);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [dragOverImageIndex, setDragOverImageIndex] = useState<number | null>(null);
+  const [showVideoUpload, setShowVideoUpload] = useState(false);
+  const [showVideoUrl, setShowVideoUrl] = useState(false);
+  
+  // Video configuration - can be moved to environment variables later
+  const isVideoUploadEnabled = true;
+  const isVideoUrlEnabled = true;
+  const isAnyVideoFeatureEnabled = isVideoUploadEnabled || isVideoUrlEnabled;
   const [_error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
@@ -196,78 +428,85 @@ export default function ListingWizard({
     enabled: autoSave && mode === 'create',
     mode,
     onSave: (draftId) => {
-      console.log('[ListingWizard] Auto-save completed:', draftId);
+      wizardLogger.info('Auto-save completed ' + String(draftId));
     },
-    onError: (error) => {
-      console.error('[ListingWizard] Auto-save error:', error);
+    onError: (_error) => {
+      wizardLogger.error('Auto-save error');
     }
   });
 
-  // Memoized car features to prevent recreation on every render
-  const _carFeatures = useMemo(() => [
-    "airConditioning", "leatherSeats", "sunroof", "navigation",
-    "bluetoothConnectivity", "parkingSensors", "reverseCam",
-    "cruiseControl", "alloyWheels", "electricWindows"
-  ], []);
+  // Car features removed - not used in current implementation
 
-  // Memoized step configuration
-  const stepConfig = useMemo((): StepConfig[] => [
-    { step: 1, title: t('listings:newListingStep1Title', 'Basic Info'), icon: '📝', isComplete: currentStep > 1 },
-    { step: 2, title: t('listings:newListingStep2Title', 'Details'), icon: '🚗', isComplete: currentStep > 2 },
-    { step: 3, title: t('listings:newListingStep3Title', 'Location & Contact'), icon: '📍', isComplete: currentStep > 3 },
-    { step: 4, title: t('listings:newListingStep4Title', 'Images'), icon: '📸', isComplete: currentStep > 4 }
+  // Optimized step configuration with stable references
+  const stepConfig = useMemoPerf((): StepConfig[] => [
+    { step: 1, title: t('listings:vehicleIdentityTitle', 'Vehicle Identity'), icon: '🚗', isComplete: currentStep > 1 },
+    { step: 2, title: t('listings:vehicleDetailsTitle', 'Vehicle Details'), icon: '⚙️', isComplete: currentStep > 2 },
+    { step: 3, title: t('listings:contentMediaTitle', 'Content & Media'), icon: '📝', isComplete: currentStep > 3 },
+    { step: 4, title: t('listings:pricingContactTitle', 'Pricing & Contact'), icon: '💰', isComplete: currentStep > 4 }
   ], [currentStep, t]);
+
+  // Debounced form data for expensive validations  
+  const debouncedFormData = useDebounce(formData, 300);
 
   // Handler functions
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    console.log('[ListingWizard] Form submit triggered, current step:', currentStep, 'mode:', mode);
-    console.log('[ListingWizard] TOTAL_STEPS constant:', TOTAL_STEPS);
-    console.log('[ListingWizard] currentStep === TOTAL_STEPS?', currentStep === TOTAL_STEPS);
+    wizardLogger.debug('Form submit triggered ' + JSON.stringify({ currentStep, mode }));
+    wizardLogger.debug('TOTAL_STEPS constant ' + String(TOTAL_STEPS));
+    wizardLogger.debug('currentStep === TOTAL_STEPS? ' + String(currentStep === TOTAL_STEPS));
 
     // IMPORTANT: Only process actual final submissions, not navigation
     // The submit event should only fire when clicking the Submit button on step 4
     if (currentStep !== TOTAL_STEPS) {
-      console.log('[ListingWizard] Ignoring form submit - not on final step. Current:', currentStep, 'Total:', TOTAL_STEPS);
+      wizardLogger.debug('Ignoring submit - not final step ' + JSON.stringify({ currentStep, TOTAL_STEPS }));
       return;
     }
 
-    console.log('[ListingWizard] Processing final submission (step 4)');
+    wizardLogger.info('Processing final submission (step 4)');
 
     // For final submission (step 4), validate ALL steps
     if (currentStep === TOTAL_STEPS) {
-      console.log('[ListingWizard] Final submission - validating ALL steps');
-      console.log('[ListingWizard] Complete form data:', formData);
+      wizardLogger.debug('Final submission - validating ALL steps');
       
       // Validate all steps for final submission
       let allErrors: FormErrors = {};
       for (let step = 1; step <= TOTAL_STEPS; step++) {
         const stepErrors = validateStep(step, formData, t);
         allErrors = { ...allErrors, ...stepErrors };
-        console.log(`[ListingWizard] Step ${step} validation errors:`, stepErrors);
+        wizardLogger.debug(`Step ${step} validation errors ${JSON.stringify(stepErrors)}`);
       }
       
-      console.log('[ListingWizard] All validation errors:', allErrors);
+      wizardLogger.debug('All validation errors ' + JSON.stringify(allErrors));
       if (Object.keys(allErrors).length > 0) {
-        console.log('[ListingWizard] Final validation failed, stopping submission');
-        console.log('[ListingWizard] All error fields:', Object.keys(allErrors));
+        wizardLogger.info('Final validation failed, stopping submission');
         setFormErrors(allErrors);
         return;
       }
-      console.log('[ListingWizard] All validation passed!');
+      wizardLogger.info('All validation passed!');
     } else {
       // Validate current step only for navigation
-      console.log('[ListingWizard] Validating step:', currentStep);
-      const stepErrors = validateStep(currentStep, formData, t);
-      console.log('[ListingWizard] Validation errors:', stepErrors);
+      wizardLogger.debug('Validating step ' + String(currentStep));
+      const stepErrors = validateStep(currentStep, formData, t, { mode: 'navigation' });
+      // If only non-blocking fields failed (e.g., title/price on step 1 due to previous state), clear them for navigation
+      if (currentStep === 1 && Object.keys(stepErrors).length > 0) {
+        const blockingKeys = ['make','model','year'];
+        const nonBlockingOnly = Object.keys(stepErrors).every(k => !blockingKeys.includes(k));
+        if (nonBlockingOnly) {
+          wizardLogger.debug('Non-blocking errors on step 1 ignored for navigation');
+          setFormErrors({});
+          setCurrentStep(prev => prev + 1);
+          return;
+        }
+      }
+      wizardLogger.debug('Validation errors ' + JSON.stringify(stepErrors));
       if (Object.keys(stepErrors).length > 0) {
-        console.log('[ListingWizard] Validation failed, stopping submission');
+        wizardLogger.info('Validation failed, stopping submission');
         setFormErrors(stepErrors);
         return;
       }
     }
-    console.log('[ListingWizard] Validation passed, proceeding...');
+    wizardLogger.info('Validation passed, proceeding...');
 
     // Clear errors for valid step
     setFormErrors({});
@@ -286,8 +525,8 @@ export default function ListingWizard({
         setShowSuccessAlert(true);
         onSuccess?.(result.id);
       } else if (mode === 'edit' && listingId) {
-        console.log('[ListingWizard] Starting update process for listing:', listingId);
-        console.log('[ListingWizard] Form data before update:', {
+        wizardLogger.info('Starting update for listing ' + String(listingId));
+        wizardLogger.debug('[ListingWizard] Form data before update:', {
           title: formData.title,
           description: formData.description,
           price: formData.price,
@@ -304,28 +543,25 @@ export default function ListingWizard({
         });
 
         // Form data already contains IDs for make/model, just need to convert location
-        console.log('[ListingWizard] Processing form data for API...');
-        console.log('[ListingWizard] Make/Model IDs:', { makeId: formData.make, modelId: formData.model });
-        console.log('[ListingWizard] Location data from form (ID-first approach):', {
+        wizardLogger.debug('Processing form data for API...');
+        wizardLogger.debug('Make/Model IDs ' + JSON.stringify({ makeId: formData.make, modelId: formData.model }));
+        wizardLogger.debug('Location data (ID-first) ' + JSON.stringify({
           locationId: formData.locationId,
           locationSlug: formData.locationSlug,
           location: formData.location,
           governorateId: formData.governorateId,
           governorateSlug: formData.governorateSlug
-        });
+        }));
         
         // Direct ID usage - no more complex lookups needed!
         const locationId = formData.locationId;
         const governorateId = formData.governorateId;
         
-        console.log('[ListingWizard] Using direct IDs - much faster!:', {
-          locationId,
-          governorateId
-        });
+        wizardLogger.debug('Using direct IDs ' + JSON.stringify({ locationId, governorateId }));
         
         // Use the form's make/model IDs directly
         const finalModelId = formData.model ? parseInt(formData.model) : undefined;
-        console.log('[ListingWizard] Final model ID to send:', finalModelId);
+        wizardLogger.debug('Final model ID ' + String(finalModelId));
         
         // Build update data with direct IDs - much simpler and faster!
         const updateData: UpdateListingData = {
@@ -349,9 +585,9 @@ export default function ListingWizard({
           }
         });
         
-        console.log('[ListingWizard] Update data being sent:', updateData);
-        console.log('[ListingWizard] IMPORTANT - locationId in update data:', updateData.locationId);
-        console.log('[ListingWizard] Form data fields being updated:', {
+        wizardLogger.debug('Update payload ' + JSON.stringify(updateData));
+        wizardLogger.debug('locationId in update data ' + String(updateData.locationId));
+        wizardLogger.debug('Fields being updated ' + JSON.stringify({
           title: formData.title,
           description: formData.description,
           price: formData.price,
@@ -365,32 +601,20 @@ export default function ListingWizard({
           location: formData.location,
           governorateSlug: formData.governorateSlug,
           locationSlug: formData.locationSlug
-        });
+        }));
         
         const result = await updateListing(listingId, updateData);
-        console.log('[ListingWizard] Update successful, result:', result);
-        console.log('[ListingWizard] Updated listing data returned from API:');
-        console.log('- Location name:', result.location?.city || result.location?.address);
-        console.log('- Location object:', result.location);
-        console.log('- Governorate name:', result.governorate?.nameEn);
-        console.log('- Governorate object:', result.governorate);
+        wizardLogger.info('Update successful');
         
         // Note: Contact information (email, phone, name) is tied to the user account
         // and cannot be updated via the listing update API. Users need to update
         // their profile information separately.
-        console.log('[ListingWizard] Note: Contact info updates require separate user profile API calls');
+        wizardLogger.info('Note: Contact info updates require separate profile API calls');
         setShowSuccessAlert(true);
         onSuccess?.(result.id);
       }
     } catch (error) {
-      console.error('[ListingWizard] Error during submission:', error);
-      console.error('[ListingWizard] Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        mode,
-        listingId,
-        currentStep
-      });
+      wizardLogger.error('Error during submission');
       setError(error instanceof Error ? error.message : t('common:unexpectedError'));
     } finally {
       setIsSubmitting(false);
@@ -406,7 +630,7 @@ export default function ListingWizard({
         setIsLoadingData(true);
         setLoadError(null);
         
-        console.log('[ListingWizard] Auto-loading data for mode:', mode, 'listingId:', listingId);
+        wizardLogger.debug('[ListingWizard] Auto-loading data for mode:', mode, 'listingId:', listingId);
         const loadedData = await ListingDataService.loadFormData(mode, listingId);
         
         setFormData(prevFormData => ({
@@ -421,9 +645,9 @@ export default function ListingWizard({
           features: loadedData.features || prevFormData.features || []
         }));
         
-        console.log('[ListingWizard] Data auto-loaded successfully');
+        wizardLogger.debug('[ListingWizard] Data auto-loaded successfully');
       } catch (error) {
-        console.error('[ListingWizard] Error auto-loading data:', error);
+        wizardLogger.error('Error auto-loading data');
         setLoadError(error instanceof Error ? error.message : 'Failed to load listing data');
       } finally {
         setIsLoadingData(false);
@@ -436,7 +660,7 @@ export default function ListingWizard({
   // Update form data when initialData changes (for manual data passing)
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0 && !autoLoad) {
-      console.log('[ListingWizard] Updating form data with manual initialData:', initialData);
+      wizardLogger.debug('Updating form data with manual initialData');
       setFormData(prevFormData => ({
         ...prevFormData,
         ...initialData,
@@ -457,20 +681,17 @@ export default function ListingWizard({
       try {
         const [governoratesData, makesData, referenceData] = await Promise.all([
           fetchGovernorates(),
-          getVehicleMakes(),
-          getCarReferenceData()
+          referenceDataServices.getVehicleMakes().then(fn => fn()),
+          referenceDataServices.getCarReferenceData().then(fn => fn())
         ]);
         
         setGovernorates(governoratesData);
         setCarMakes(makesData);
         setTransmissions(referenceData.transmissions || []);
         setFuelTypes(referenceData.fuelTypes || []);
-        console.log('[ListingWizard] Loaded reference data:', {
-          transmissions: referenceData.transmissions?.length || 0,
-          fuelTypes: referenceData.fuelTypes?.length || 0
-        });
+        wizardLogger.debug('Loaded reference data counts');
       } catch (error) {
-        console.error("Error loading initial data:", error);
+        wizardLogger.error("Error loading initial data:", error);
         setError(t('common:failedToLoadData'));
       } finally {
         setIsLoadingGovernorates(false);
@@ -486,18 +707,12 @@ export default function ListingWizard({
 
 
 
-  const handleCancel = useCallback(() => {
-    if (onCancel) {
-      onCancel();
-    } else {
-      router.push('/dashboard/listings');
-    }
-  }, [onCancel, router]);
+  // handleCancel removed - not used in current implementation
 
   // Enhanced handler for location changes - slug-based approach
-  const handleLocationChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+  const _handleLocationChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedSlug = e.target.value;
-    console.log('[ListingWizard] Location dropdown changed to slug:', selectedSlug);
+    wizardLogger.debug('Location dropdown changed to slug ' + selectedSlug);
     
     // Find the location object to get all its properties
     const selectedLocation = locations.find(loc => loc.slug === selectedSlug);
@@ -507,12 +722,7 @@ export default function ListingWizard({
         ? selectedLocation.displayNameAr 
         : selectedLocation.displayNameEn;
         
-      console.log('[ListingWizard] Updating location with slug-based approach:', {
-        id: selectedLocation.id,
-        slug: selectedLocation.slug,
-        displayName: locationDisplayName,
-        selectedLocationObject: selectedLocation
-      });
+      wizardLogger.debug('Updating location via slug');
       
       setFormData(prev => ({
         ...prev,
@@ -530,7 +740,7 @@ export default function ListingWizard({
         });
       }
     } else if (selectedSlug === '') {
-      console.log('[ListingWizard] Location cleared');
+      wizardLogger.debug('Location cleared');
       // Handle empty selection
       setFormData(prev => ({
         ...prev,
@@ -539,7 +749,7 @@ export default function ListingWizard({
         location: ''
       }));
     } else {
-      console.warn('[ListingWizard] Location not found for slug:', selectedSlug);
+      wizardLogger.warn('Location not found for slug');
     }
   }, [locations, i18n.language, formErrors.locationSlug]);
 
@@ -571,9 +781,9 @@ export default function ListingWizard({
     }
   }, [formErrors]);
 
-  // Progress calculation
-  const progressPercentage = useMemo(() => {
-    return calculateProgress(currentStep, TOTAL_STEPS);
+  // Optimized progress calculation with memoization
+  const progressPercentage = useMemoPerf(() => {
+    return (currentStep / TOTAL_STEPS) * 100;
   }, [currentStep]);
 
   // Load car models when make changes
@@ -583,10 +793,11 @@ export default function ListingWizard({
         try {
           setIsLoadingModels(true);
           setCarModels([]); // Clear previous models
+          const getVehicleModels = await referenceDataServices.getVehicleModels();
           const modelData = await getVehicleModels(parseInt(formData.make));
           setCarModels(modelData);
         } catch (error) {
-          console.error('Failed to load car models:', error);
+          wizardLogger.error('Failed to load car models:', error);
           setError(t('common:failedToLoadData'));
         } finally {
           setIsLoadingModels(false);
@@ -608,15 +819,15 @@ export default function ListingWizard({
         try {
           setIsLoadingLocations(true);
           setLocations([]); // Clear previous locations
-          console.log('[ListingWizard] Loading locations for governorate:', formData.governorateSlug);
+          wizardLogger.debug('Loading locations for governorate');
           const locationData = await getLocationsByGovernorateSlug(formData.governorateSlug);
-          console.log('[ListingWizard] Loaded locations:', locationData.length, 'locations');
+          wizardLogger.debug('Loaded locations count ' + String(locationData.length));
           
           // CRITICAL FIX: Set governorate ID from location data
           if (!formData.governorateId && locationData.length > 0) {
             const governorateId = locationData[0].governorateId;
             if (governorateId) {
-              console.log('[ListingWizard] Setting missing governorate ID:', governorateId);
+              wizardLogger.debug('Setting missing governorate ID');
               setFormData(prev => ({
                 ...prev,
                 governorateId: governorateId
@@ -625,7 +836,7 @@ export default function ListingWizard({
           }
           setLocations(locationData);
         } catch (error) {
-          console.error('Failed to load locations:', error);
+          wizardLogger.error('Failed to load locations:', error);
           setError(t('common:failedToLoadData'));
         } finally {
           setIsLoadingLocations(false);
@@ -645,12 +856,13 @@ export default function ListingWizard({
         try {
           setIsLoadingModels(true);
           setCarModels([]); // Clear previous models
-          console.log('[ListingWizard] Loading models for make ID:', formData.make);
+          wizardLogger.debug('Loading models for make');
+          const getVehicleModels = await referenceDataServices.getVehicleModels();
           const modelData = await getVehicleModels(parseInt(formData.make));
-          console.log('[ListingWizard] Loaded models:', modelData);
+          wizardLogger.debug('Loaded models');
           setCarModels(modelData);
         } catch (error) {
-          console.error('Failed to load models:', error);
+          wizardLogger.error('Failed to load models:', error);
           setError(t('common:failedToLoadData'));
         } finally {
           setIsLoadingModels(false);
@@ -682,44 +894,44 @@ export default function ListingWizard({
     }
   }, [mode, formData.existingImageUrls, formData.existingVideoUrls, existingImages.length, existingVideos.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Check if a step can be accessed based on validation
-  const isStepAccessible = useCallback((targetStep: number) => {
-    console.log(`[ListingWizard] isStepAccessible called: targetStep=${targetStep}, currentStep=${currentStep}`);
+  // Optimized step accessibility check with debounced validation
+  const isStepAccessible = useCallbackPerf((targetStep: number) => {
+    wizardLogger.debug(`isStepAccessible targetStep=${targetStep} currentStep=${currentStep}`);
     
     // Always allow going to previous steps
     if (targetStep <= currentStep) {
-      console.log(`[ListingWizard] Step ${targetStep} is accessible (previous or current step)`);
+      wizardLogger.debug(`Step ${targetStep} is accessible`);
       return true;
     }
     
-    // For next step, validate all previous steps
+    // For next step, validate all previous steps using debounced data
     for (let step = 1; step < targetStep; step++) {
-      console.log(`[ListingWizard] Validating step ${step} for accessibility`);
-      const stepErrors = validateStep(step, formData, t);
-      console.log(`[ListingWizard] Step ${step} validation errors:`, stepErrors);
+      wizardLogger.debug(`Validating step ${step} for accessibility`);
+      const stepErrors = validateStep(step, debouncedFormData, t, { mode: 'accessibility' });
+      wizardLogger.debug(`Step ${step} validation errors ${JSON.stringify(stepErrors)}`);
       if (Object.keys(stepErrors).length > 0) {
-        console.log(`[ListingWizard] Step ${targetStep} is NOT accessible due to step ${step} validation errors`);
+        wizardLogger.info(`Step ${targetStep} is NOT accessible due to step ${step} errors`);
         return false;
       }
     }
     
     // Only allow accessing the next immediate step
     const isNextImmediateStep = targetStep === currentStep + 1;
-    console.log(`[ListingWizard] Step ${targetStep} accessibility check: isNextImmediateStep=${isNextImmediateStep}`);
+    wizardLogger.debug(`Step ${targetStep} accessibility: nextImmediate=${isNextImmediateStep}`);
     return isNextImmediateStep;
-  }, [currentStep, formData, t]);
+  }, [currentStep, debouncedFormData, t]);
 
   // Helper function to handle validation errors
   const handleValidationErrors = useCallback((stepErrors: FormErrors) => {
-    console.log(`[ListingWizard] handleValidationErrors called with:`, stepErrors);
+    wizardLogger.debug('handleValidationErrors');
     
     if (Object.keys(stepErrors).length > 0) {
-      console.log(`[ListingWizard] Setting form errors:`, stepErrors);
+      wizardLogger.debug('Setting form errors');
       setFormErrors(stepErrors);
       
       // Focus on first field with error for better UX
       const firstErrorField = Object.keys(stepErrors)[0];
-      console.log(`[ListingWizard] Focusing on first error field:`, firstErrorField);
+      wizardLogger.debug('Focusing first error field ' + firstErrorField);
       const errorElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement;
       if (errorElement) {
         errorElement.focus();
@@ -731,13 +943,13 @@ export default function ListingWizard({
         // Use Intl.ListFormat for grammatically correct joining of errors
         const listFormatter = new Intl.ListFormat(i18n.language, { style: 'long', type: 'conjunction' });
         const specificError = listFormatter.format(errorMessages);
-        console.log(`[ListingWizard] Setting error message:`, specificError);
+        wizardLogger.debug('Setting error message');
         setError(specificError);
       }
-      console.log(`[ListingWizard] Validation failed, returning true`);
+      wizardLogger.debug('Validation failed');
       return true; // Indicates validation failed
     }
-    console.log(`[ListingWizard] No validation errors, returning false`);
+    wizardLogger.debug('No validation errors');
     return false; // Indicates validation passed
   }, [i18n.language]);
 
@@ -748,20 +960,32 @@ export default function ListingWizard({
       e.stopPropagation();
     }
     
-    console.log(`[ListingWizard] handleStepChange called: step=${step}, currentStep=${currentStep}`);
-    console.log(`[ListingWizard] Current form data:`, {
+    wizardLogger.debug(`handleStepChange step=${step} currentStep=${currentStep}`);
+    wizardLogger.debug(`[ListingWizard] Current form data:`, {
       title: formData.title,
       description: formData.description,
       price: formData.price,
       currency: formData.currency
     });
     
+    // Fast-path for moving from Step 1 to Step 2: validate blocking-only fields and proceed
+    if (step === currentStep + 1 && currentStep === 1) {
+      const navErrors = validateStep(1, formData, t, { mode: 'navigation' });
+      if (Object.keys(navErrors).length === 0) {
+        wizardLogger.debug('Fast-path: Step 1 blocking fields valid, moving to Step 2');
+        setFormErrors({});
+        setError(null);
+        setCurrentStep(2);
+        return;
+      }
+    }
+    
     if (!isStepAccessible(step)) {
-      console.log(`[ListingWizard] Step ${step} is not accessible`);
+      wizardLogger.debug(`Step ${step} not accessible`);
       // Show specific message when trying to access locked step
       if (step > currentStep) {
-        const stepErrors = validateStep(currentStep, formData, t);
-        console.log(`[ListingWizard] Step ${currentStep} validation errors:`, stepErrors);
+        const stepErrors = validateStep(currentStep, formData, t, { mode: 'navigation' });
+        wizardLogger.debug(`Step ${currentStep} validation errors ${JSON.stringify(stepErrors)}`);
         handleValidationErrors(stepErrors);
       }
       return;
@@ -769,36 +993,30 @@ export default function ListingWizard({
 
     // Validate current step before moving forward
     if (step > currentStep) {
-      console.log(`[ListingWizard] Validating step ${currentStep} before moving to step ${step}`);
+      wizardLogger.debug(`Validating step ${currentStep} before moving to step ${step}`);
       const stepErrors = validateStep(currentStep, formData, t);
-      console.log(`[ListingWizard] Step ${currentStep} validation errors:`, stepErrors);
+      wizardLogger.debug(`Step ${currentStep} validation errors ${JSON.stringify(stepErrors)}`);
       if (handleValidationErrors(stepErrors)) {
-        console.log(`[ListingWizard] Validation failed, staying on step ${currentStep}`);
+        wizardLogger.debug('Validation failed, stay on current step');
         return;
       }
-      console.log(`[ListingWizard] Step ${currentStep} validation passed`);
+      wizardLogger.debug('Current step validation passed');
     }
     
-    console.log(`[ListingWizard] Navigating to step ${step} from step ${currentStep}`);
+    wizardLogger.debug(`Navigating to step ${step} from ${currentStep}`);
     setCurrentStep(step);
     setFormErrors({}); // Clear errors when changing steps
     setError(null); // Clear any existing error messages
   }, [currentStep, formData, t, isStepAccessible, handleValidationErrors]);
 
-  const handlePreviousStep = useCallback(() => {
-    console.log(`[ListingWizard] Going back from step ${currentStep} to step ${currentStep - 1}`);
-    if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
-      setFormErrors({});
-    }
-  }, [currentStep]);
+  // handlePreviousStep removed - not used in current implementation
 
-  // Image upload handler
-  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  // Optimized image upload handler with better memory management
+  const handleImageUpload = useCallbackPerf((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    console.log('[ListingWizard] handleImageUpload called with files:', files);
+    wizardLogger.debug('handleImageUpload');
 
     const validFiles: File[] = [];
     const newUrls: string[] = [];
@@ -811,13 +1029,13 @@ export default function ListingWizard({
       }
     }
 
-    console.log('[ListingWizard] Valid files found:', validFiles.length);
-    console.log('[ListingWizard] New URLs created:', newUrls.length);
+    wizardLogger.debug('Valid files: ' + String(validFiles.length));
+    wizardLogger.debug('New URLs: ' + String(newUrls.length));
 
     if (validFiles.length > 0) {
       setFormData(prev => {
         const newImages = [...prev.images, ...validFiles];
-        console.log('[ListingWizard] Updated formData.images:', newImages.length);
+        wizardLogger.debug('Updated images length ' + String(newImages.length));
         return {
           ...prev,
           images: newImages
@@ -825,7 +1043,7 @@ export default function ListingWizard({
       });
       setImagePreviewUrls(prev => {
         const newPreviewUrls = [...prev, ...newUrls];
-        console.log('[ListingWizard] Updated imagePreviewUrls:', newPreviewUrls.length);
+        wizardLogger.debug('Updated preview URLs length ' + String(newPreviewUrls.length));
         return newPreviewUrls;
       });
     }
@@ -833,7 +1051,7 @@ export default function ListingWizard({
 
   // Remove image handler
   const removeImage = useCallback((index: number) => {
-    const _allImagesCount = existingImages.length + formData.images.length;
+    // allImagesCount calculation removed - not used
     const isExistingImage = index < existingImages.length;
 
     if (isExistingImage) {
@@ -856,14 +1074,14 @@ export default function ListingWizard({
     setImagePreviewUrls(prev => prev.filter((_, i) => i !== index));
   }, [existingImages, formData.images, imagePreviewUrls]);
 
-  // Drag and drop handlers for image upload
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  // Optimized drag and drop handlers with throttling
+  const handleDragOver = useThrottle(useCallbackPerf((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(true);
-  }, []);
+  }, []), 100);
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  const handleDragLeave = useCallbackPerf((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
@@ -875,7 +1093,7 @@ export default function ListingWizard({
     setIsDragOver(false);
 
     const files = Array.from(e.dataTransfer.files);
-    console.log('[ListingWizard] handleDrop called with files:', files);
+    wizardLogger.debug('handleDrop');
 
     const validFiles: File[] = [];
     const newUrls: string[] = [];
@@ -887,13 +1105,13 @@ export default function ListingWizard({
       }
     });
 
-    console.log('[ListingWizard] Valid files from drop:', validFiles.length);
-    console.log('[ListingWizard] New URLs from drop:', newUrls.length);
+    wizardLogger.debug('Valid files from drop ' + String(validFiles.length));
+    wizardLogger.debug('New URLs from drop ' + String(newUrls.length));
 
     if (validFiles.length > 0) {
       setFormData(prev => {
         const newImages = [...prev.images, ...validFiles];
-        console.log('[ListingWizard] Updated formData.images from drop:', newImages.length);
+        wizardLogger.debug('Updated images from drop ' + String(newImages.length));
         return {
           ...prev,
           images: newImages
@@ -901,7 +1119,7 @@ export default function ListingWizard({
       });
       setImagePreviewUrls(prev => {
         const newPreviewUrls = [...prev, ...newUrls];
-        console.log('[ListingWizard] Updated imagePreviewUrls from drop:', newPreviewUrls.length);
+        wizardLogger.debug('Updated preview URLs from drop ' + String(newPreviewUrls.length));
         return newPreviewUrls;
       });
     }
@@ -990,16 +1208,7 @@ export default function ListingWizard({
     setVideoPreviewUrls(prev => prev.filter((_, i) => i !== index));
   }, [videoPreviewUrls]);
 
-  // Add video URL handler
-  const addVideoUrl = useCallback(() => {
-    const url = prompt(t('listings:enterVideoUrl', 'Enter video URL (YouTube, Vimeo, etc.)'));
-    if (url && url.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        videoUrls: [...(prev.videoUrls || []), url.trim()]
-      }));
-    }
-  }, [t]);
+  // addVideoUrl removed - not used in current implementation
 
   // Remove video URL handler
   const removeVideoUrl = useCallback((index: number) => {
@@ -1008,6 +1217,59 @@ export default function ListingWizard({
       videoUrls: (prev.videoUrls || []).filter((_, i) => i !== index)
     }));
   }, []);
+
+  // Video URL change handler
+  const handleVideoUrlChange = useCallback((url: string) => {
+    setFormData(prev => ({
+      ...prev,
+      videoUrls: url.trim() ? [url.trim()] : []
+    }));
+  }, []);
+
+  // Helper function to get video embed URL
+  const getVideoEmbedUrl = useCallback((url: string): string | null => {
+    if (!url) return null;
+    
+    // YouTube URLs
+    const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+    if (youtubeMatch) {
+      return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+    }
+    
+    // Vimeo URLs
+    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoMatch) {
+      return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    }
+    
+    return null;
+  }, []);
+
+  // Keyboard navigation handler
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    // Tab trapping within form
+    if (event.key === 'Tab') {
+      const form = formRef.current;
+      if (!form) return;
+      
+      const focusableElements = form.querySelectorAll(FOCUSABLE_SELECTOR);
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+      
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement?.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement?.focus();
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   // Show loading if translations aren't ready
   if (!ready) {
@@ -1023,6 +1285,7 @@ export default function ListingWizard({
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
+        {showHeader && (
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             {mode === 'create' ? t('listings:newListing') : t('listings:editListing')}
@@ -1031,6 +1294,7 @@ export default function ListingWizard({
             {mode === 'create' ? t('listings:newListingSubtitle') : t('listings:editListingSubtitle')}
           </p>
         </div>
+        )}
 
         {/* Step Navigation */}
         <div className="mb-8">
@@ -1040,6 +1304,7 @@ export default function ListingWizard({
                 <button
                   type="button"
                   onClick={(e) => handleStepChange(step, e)}
+
                   className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 font-semibold text-lg relative z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                     currentStep >= step 
                       ? 'bg-blue-600 text-white shadow-lg hover:bg-blue-700 cursor-pointer transform hover:scale-105' 
@@ -1110,99 +1375,17 @@ export default function ListingWizard({
 
         {/* Form Steps */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
-          <form onSubmit={handleSubmit}>
+          <form ref={formRef} onSubmit={handleSubmit}>
             {/* Step 1: Basic Info - Simplified for now */}
             {currentStep === 1 && (
-              <div className="space-y-6">
-                <div className="text-center pb-6 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-                    {t('listings:basicInformation')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {t('listings:basicInformationSubtitle')}
-                  </p>
-                </div>
-
-                {/* Title */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {t('listings:title')} *
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    placeholder={t('listings:titlePlaceholder')}
-                  />
-                  {formErrors.title && <ErrorMessage error={formErrors.title} />}
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {t('listings:description')} *
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-vertical"
-                    placeholder={t('listings:descriptionPlaceholder', 'Describe your car in detail...')}
-                  />
-                  {formErrors.description && <ErrorMessage error={formErrors.description} />}
-                </div>
-
-                {/* Price */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {t('listings:price')} *
-                    </label>
-                    <NumericInput
-                      name="price"
-                      value={formData.price}
-                      onChange={(value) => handleChange(value, 'price')}
-                      placeholder="0"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    />
-                    {formErrors.price && <ErrorMessage error={formErrors.price} />}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {t('listings:currency')} *
-                    </label>
-                    <select
-                      name="currency"
-                      value={formData.currency}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    >
-                      {SUPPORTED_CURRENCIES.map(currency => (
-                        <option key={currency.code} value={currency.code}>
-                          {currency.symbol} {currency.code}
-                        </option>
-                      ))}
-                    </select>
-                    {formErrors.currency && <ErrorMessage error={formErrors.currency} />}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Car Details */}
-            {currentStep === 2 && (
               <div className="space-y-8 animate-fadeIn">
                 {/* Step Header */}
                 <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:newListingStep2Title', 'Car Details')}
+                    {t('listings:vehicleIdentityTitle', 'Vehicle Identity')}
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:newListingStep2Description', 'Provide specific details about your vehicle')}
+                    {t('listings:vehicleIdentitySubtitle', 'Start by telling us what vehicle you\'re selling')}
                   </p>
                 </div>
 
@@ -1220,6 +1403,7 @@ export default function ListingWizard({
                     value={formData.make}
                     onChange={handleChange}
                     disabled={isLoadingMakes}
+
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                       formErrors.make ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                     } ${isLoadingMakes ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1257,10 +1441,11 @@ export default function ListingWizard({
                     name="model"
                     value={formData.model}
                     onChange={handleChange}
-                    disabled={!formData.make || isLoadingModels}
+                    disabled={isLoadingModels || !formData.make}
+
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                       formErrors.model ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                    } ${(!formData.make || isLoadingModels) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    } ${(isLoadingModels || !formData.make) ? 'opacity-50 cursor-not-allowed' : ''}`}
                     aria-invalid={!!formErrors.model}
                     aria-describedby={formErrors.model ? 'model-error' : 'model-hint'}
                   >
@@ -1284,55 +1469,86 @@ export default function ListingWizard({
                   </p>
                 </div>
 
-                {/* Year and Mileage Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Year */}
-                  <div className="space-y-3">
-                    <label 
-                      htmlFor="year" 
-                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                      {t('listings:newListingYear', 'Year')} <span className="text-red-500">*</span>
-                    </label>
-                    <NumericInput
-                      id="year"
-                      name="year"
-                      value={formData.year}
-                      onChange={(value) => handleChange(value, 'year')}
-                      placeholder={t('listings:newListingYearPlaceholder', '2020')}
-                      required
-                      error={!!formErrors.year}
-                      aria-invalid={!!formErrors.year}
-                      aria-describedby={formErrors.year ? 'year-error' : 'year-hint'}
-                      className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    />
-                    {formErrors.year && <ErrorMessage error={formErrors.year} />}
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
-                      {t('listings:newListingYearHint', 'Manufacturing year')}
-                    </p>
-                  </div>
+                {/* Year */}
+                <div className="space-y-3">
+                  <label
+                    htmlFor="year"
+                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                  >
+                    {t('listings:newListingYear', 'Year')} <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="year"
+                    name="year"
+                    value={formData.year}
+                    onChange={handleChange}
+                    required
 
-                  {/* Mileage */}
-                  <div className="space-y-3">
-                    <label 
-                      htmlFor="mileage" 
-                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                      {t('listings:newListingMileage', 'Mileage')}
-                    </label>
-                    <NumericInput
-                      id="mileage"
-                      name="mileage"
-                      value={formData.mileage}
-                      onChange={(value) => handleChange(value, 'mileage')}
-                      placeholder={t('listings:newListingMileagePlaceholder', '50000')}
-                      error={!!formErrors.mileage}
-                      aria-describedby="mileage-hint"
-                    />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="mileage-hint">
-                      {t('listings:newListingMileageHint', 'Total kilometers driven')}
-                    </p>
-                  </div>
+                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                      formErrors.year ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                    }`}
+                    aria-invalid={!!formErrors.year}
+                    aria-describedby={formErrors.year ? 'year-error' : 'year-hint'}
+                  >
+                    <option value="">{t('listings:selectYear', 'Select Year')}</option>
+                    {(() => {
+                      const currentYear = new Date().getFullYear();
+                      const years = [];
+                      // From current year down to 1990 (no future years)
+                      for (let year = currentYear; year >= 1990; year--) {
+                        years.push(
+                          <option key={year} value={year.toString()}>
+                            {year}
+                          </option>
+                        );
+                      }
+                      return years;
+                    })()}
+                  </select>
+                  {formErrors.year && <ErrorMessage error={formErrors.year} />}
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
+                    {t('listings:newListingYearHint', 'Enter manufacturing year (1990-{{currentYear}})', { currentYear: new Date().getFullYear() })}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Vehicle Details */}
+            {currentStep === 2 && (
+              <div className="space-y-8 animate-fadeIn">
+                {/* Step Header */}
+                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {t('listings:vehicleDetailsTitle', 'Vehicle Details')}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {t('listings:vehicleDetailsSubtitle', 'Tell us more about your vehicle\'s condition and features')}
+                  </p>
+                </div>
+
+                {/* Mileage */}
+                <div className="space-y-3">
+                  <label 
+                    htmlFor="mileage" 
+                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                  >
+                    {t('listings:newListingMileage', 'Mileage')}
+                  </label>
+                  <NumericInput
+                    id="mileage"
+                    name="mileage"
+                    value={formData.mileage}
+                    onChange={(value) => handleChange(value, 'mileage')}
+                    placeholder={t('listings:newListingMileagePlaceholder', '50000')}
+                    error={!!formErrors.mileage}
+
+                    aria-describedby="mileage-hint"
+                    className="w-full px-4 py-2 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  />
+                  {formErrors.mileage && <ErrorMessage error={formErrors.mileage} />}
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="mileage-hint">
+                    {t('listings:newListingMileageHint', 'Total kilometers driven')}
+                  </p>
                 </div>
 
                 {/* Engine and Transmission Grid */}
@@ -1465,218 +1681,75 @@ export default function ListingWizard({
               </div>
             )}
 
-            {/* Step 3: Location and Contact */}
+            {/* Step 3: Content & Media */}
             {currentStep === 3 && (
               <div className="space-y-8 animate-fadeIn">
                 {/* Step Header */}
                 <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:newListingStep3Title', 'Location & Contact')}
+                    {t('listings:contentMediaTitle', 'Content & Media')}
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:newListingStep3Description', 'Where to find you and how to get in touch')}
+                    {t('listings:contentMediaSubtitle', 'Create your listing content and add photos')}
                   </p>
                 </div>
 
-                {/* Location Information */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {t('listings:newListingLocationInfo', 'Location Information')}
-                  </h3>
-                  
-                  {/* Governorate and Location Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Governorate */}
-                    <div className="space-y-3">
-                      <label 
-                        htmlFor="governorateSlug" 
-                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {t('listings:newListingGovernorate', 'Governorate')} <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        id="governorateSlug"
-                        name="governorateSlug"
-                        value={formData.governorateSlug}
-                        onChange={handleChange}
-                        disabled={isLoadingGovernorates}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.governorateSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        } ${isLoadingGovernorates ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        aria-invalid={!!formErrors.governorateSlug}
-                        aria-describedby={formErrors.governorateSlug ? 'governorateSlug-error' : 'governorateSlug-hint'}
-                      >
-                        <option value="">
-                          {isLoadingGovernorates 
-                            ? t('listings:newListingLoadingGovernorates', 'Loading governorates...') 
-                            : t('listings:newListingSelectGovernorate', 'Select a governorate')
-                          }
-                        </option>
-                        {governorates.map((gov) => (
-                          <option key={gov.id} value={gov.slug}>
-                            {i18n.language === 'ar' ? gov.displayNameAr : gov.displayNameEn}
-                          </option>
-                        ))}
-                      </select>
-                      {formErrors.governorateSlug && <ErrorMessage error={formErrors.governorateSlug} />}
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="governorateSlug-hint">
-                        {t('listings:newListingGovernorateHint', 'Select the governorate where your car is located')}
-                      </p>
-                    </div>
-
-                    {/* Location */}
-                    <div className="space-y-3">
-                      <label 
-                        htmlFor="locationSlug" 
-                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {t('listings:newListingLocation', 'City/Area')} <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        id="locationSlug"
-                        name="locationSlug"
-                        value={formData.locationSlug || ''}
-                        onChange={handleLocationChange}
-                        disabled={!formData.governorateSlug || isLoadingLocations}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.locationSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        } ${(!formData.governorateSlug || isLoadingLocations) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        aria-invalid={!!formErrors.locationSlug}
-                        aria-describedby={formErrors.locationSlug ? 'locationSlug-error' : 'locationSlug-hint'}
-                      >
-                        <option value="">
-                          {!formData.governorateSlug 
-                            ? t('listings:newListingSelectGovernorateFirst', 'Select a governorate first')
-                            : isLoadingLocations 
-                            ? t('listings:newListingLoadingLocations', 'Loading locations...') 
-                            : t('listings:newListingSelectLocation', 'Select a city/area')
-                          }
-                        </option>
-                        {locations.map((location) => (
-                          <option key={location.id} value={location.slug}>
-                            {i18n.language === 'ar' ? location.displayNameAr : location.displayNameEn}
-                          </option>
-                        ))}
-                      </select>
-                      {formErrors.locationSlug && <ErrorMessage error={formErrors.locationSlug} />}
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="locationSlug-hint">
-                        {t('listings:newListingLocationHint', 'Select the specific city or area where your car is located')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contact Information */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {t('listings:newListingContactInfo', 'Contact Information')}
-                  </h3>
-                  
-                  {/* Contact Name and Phone Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Contact Name */}
-                    <div className="space-y-3">
-                      <label 
-                        htmlFor="contactName" 
-                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {t('listings:newListingContactName', 'Contact Name')} <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="contactName"
-                        name="contactName"
-                        value={formData.contactName}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.contactName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        }`}
-                        placeholder={t('listings:newListingContactNamePlaceholder', 'Your full name')}
-                        aria-invalid={!!formErrors.contactName}
-                        aria-describedby={formErrors.contactName ? 'contactName-error' : 'contactName-hint'}
-                      />
-                      {formErrors.contactName && <ErrorMessage error={formErrors.contactName} />}
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactName-hint">
-                        {t('listings:newListingContactNameHint', 'Name for buyers to contact you')}
-                      </p>
-                    </div>
-
-                    {/* Contact Phone */}
-                    <div className="space-y-3">
-                      <label 
-                        htmlFor="contactPhone" 
-                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {t('listings:newListingContactPhone', 'Phone Number')} <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        id="contactPhone"
-                        name="contactPhone"
-                        value={formData.contactPhone}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.contactPhone ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        }`}
-                        placeholder={t('listings:newListingContactPhonePlaceholder', '+963 XXX XXX XXX')}
-                        aria-invalid={!!formErrors.contactPhone}
-                        aria-describedby={formErrors.contactPhone ? 'contactPhone-error' : 'contactPhone-hint'}
-                      />
-                      {formErrors.contactPhone && <ErrorMessage error={formErrors.contactPhone} />}
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactPhone-hint">
-                        {t('listings:newListingContactPhoneHint', 'Phone number for buyers to contact you')}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Contact Email */}
-                  <div className="space-y-3">
-                    <label 
-                      htmlFor="contactEmail" 
-                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                      {t('listings:newListingContactEmail', 'Email Address')}
-                    </label>
-                    <input
-                      type="email"
-                      id="contactEmail"
-                      name="contactEmail"
-                      value={formData.contactEmail}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      placeholder={t('listings:newListingContactEmailPlaceholder', 'your.email@example.com')}
-                      aria-describedby="contactEmail-hint"
-                    />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactEmail-hint">
-                      {t('listings:newListingContactEmailHint', 'Optional: Email for buyers to contact you')}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 4: Images and Videos */}
-            {currentStep === 4 && (
-              <div className="space-y-8 animate-fadeIn">
-                {/* Step 4 Header */}
-                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                    {t('listings:newListingStep4Title', 'Upload Images')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                    {t('listings:newListingStep4Description', 'Add high-quality photos to showcase your car and attract potential buyers.')}
+                {/* Title */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    {t('listings:title')} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 border-gray-200 dark:border-gray-600 focus:border-blue-500"
+                    placeholder={t('listings:titlePlaceholder')}
+                    aria-invalid={!!formErrors.title}
+                  />
+                  {formErrors.title && <ErrorMessage error={formErrors.title} />}
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {t('listings:titleHint', 'Create an attractive title for your listing')}
                   </p>
                 </div>
 
+                {/* Description */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    {t('listings:description')} <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    rows={6}
+                    className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 resize-vertical border-gray-200 dark:border-gray-600 focus:border-blue-500"
+                    placeholder={t('listings:descriptionPlaceholder', 'Describe your car in detail...')}
+                    aria-invalid={!!formErrors.description}
+                  />
+                  {formErrors.description && <ErrorMessage error={formErrors.description} />}
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {t('listings:descriptionHint', 'Provide detailed information about your vehicle\'s condition, features, and history')}
+                  </p>
+                </div>
+
+                {/* Enhanced Images and Videos Section */}
+                <div className="space-y-8">
+                  {/* Enhanced Images Section Header */}
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {t('listings:newListingCarImages', 'Car Images')}
+                    <div className="text-center space-y-2">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                        {t('listings:newListingCarImages', 'Car Images')} <span className="text-red-500">*</span>
                   </h3>
-                  
-                  {/* Enhanced Image Upload Section with Drag & Drop */}
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-center w-full">
-                      <div
+                      <p className="text-gray-600 dark:text-gray-400">
+                        {t('listings:newListingImageUploadSubtitle', 'Upload high-quality photos to attract potential buyers')}
+                      </p>
+                    </div>
+
+                    {/* Enhanced Drag & Drop Upload Area */}
+                    <div className="space-y-6">
+                      <div 
                         className={`w-full transition-all duration-300 ${
                           isDragOver 
                             ? 'scale-[1.02] shadow-xl ring-4 ring-blue-200 dark:ring-blue-700' 
@@ -1715,9 +1788,9 @@ export default function ListingWizard({
                                   ? 'text-blue-600 dark:text-blue-400' 
                                   : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'
                               }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                              </svg>
-                            </div>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                      </svg>
+                    </div>
 
                             {/* Main Text */}
                             <div className="text-center space-y-3">
@@ -1743,21 +1816,21 @@ export default function ListingWizard({
                                 }
                               </p>
 
-                              {/* Format info */}
+                              {/* Format info moved below and muted */}
                               <div className="pt-2 space-y-1">
                                 <p className="text-sm text-gray-500 dark:text-gray-500">
                                   {t('listings:newListingImageUploadHint', 'Upload multiple images to showcase your car. First image will be the main photo.')}
                                 </p>
-                                <div className="flex items-center justify-center space-x-6 text-xs text-gray-400 dark:text-gray-500">
-                                  <div className="flex items-center space-x-1">
+                                <div className={`flex items-center justify-center ${isRTL ? 'space-x-reverse space-x-6' : 'space-x-6'} text-xs text-gray-400 dark:text-gray-500`}>
+                                  <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <span>PNG, JPG, JPEG</span>
                                   </div>
-                                  <div className="flex items-center space-x-1">
+                                  <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <span>Max 5MB each</span>
                                   </div>
-                                  <div className="flex items-center space-x-1">
+                                  <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <span>Up to 10 images</span>
                                   </div>
@@ -1779,14 +1852,14 @@ export default function ListingWizard({
                         </label>
                       </div>
                     </div>
-                    {formErrors.images && <ErrorMessage error={formErrors.images} />}
+                    {formErrors.images && <ErrorMessage error={formErrors.images} id="images-error" />}
                   </div>
 
                   {/* Enhanced Image Preview Grid with Drag & Drop Reordering */}
-                  {(existingImages.length > 0 || formData.images.length > 0) && (
+                  {(formData.images.length > 0 || imagePreviewUrls.length > 0) && (
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
+                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
                           <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
                             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -1860,7 +1933,7 @@ export default function ListingWizard({
                                 e.stopPropagation();
                                 removeImage(index);
                               }}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110"
+                              className={`absolute -top-2 ${isRTL ? '-left-2' : '-right-2'} bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110`}
                               aria-label={`Remove image ${index + 1}`}
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1870,162 +1943,817 @@ export default function ListingWizard({
 
                             {/* Enhanced Main Photo Badge */}
                             {index === 0 && (
-                              <div className="absolute bottom-2 start-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center space-x-1">
+                              <div className={`absolute bottom-2 ${isRTL ? 'end-2' : 'start-2'} bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                 </svg>
                                 <span className="font-medium">{t('listings:newListingMainImage', 'Main Photo')}</span>
                               </div>
                             )}
+
+                            {/* Image Number Badge */}
+                            <div className={`absolute top-2 ${isRTL ? 'end-2' : 'start-2'} bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm`}>
+                              {index + 1}
+                            </div>
+
+                            {/* File Info on Hover */}
+                            <div className={`absolute bottom-2 ${isRTL ? 'left-2' : 'right-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
+                              <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                                {(formData.images[index]?.size / 1024 / 1024).toFixed(1)}MB
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>
+
+                      {/* Reordering Instructions */}
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700">
+                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+                          <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-800/50 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                              💡 How to reorder your photos
+                            </h5>
+                            <p className="text-xs text-blue-700 dark:text-blue-300">
+                              Drag and drop images to change their order. The first image will be your main listing photo that buyers see first.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
+                </div>
 
-                  {/* Video Section */}
-                  <div className="space-y-6 pt-8 border-t border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                      {t('listings:newListingCarVideos', 'Car Videos')} ({t('listings:optional', 'Optional')})
+                {/* Video Section - Conditionally rendered based on configuration */}
+                {isAnyVideoFeatureEnabled && (
+                <div className="space-y-6 pt-8 border-t border-gray-200 dark:border-gray-700">
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                      {t('listings:videoFieldsTitle', 'Videos (Optional)')}
                     </h3>
-                    
-                    {/* Video Upload Options */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Upload Video File */}
-                      <div className="space-y-4">
-                        <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
-                          {t('listings:uploadVideoFile', 'Upload Video File')}
-                        </h4>
-                        <label 
-                          htmlFor="video-upload" 
-                          className="group flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300"
-                        >
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <svg className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              <span className="font-semibold">Click to upload</span> or drag and drop
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">MP4, MOV, AVI (MAX. 50MB)</p>
-                          </div>
-                          <input 
-                            id="video-upload" 
-                            type="file" 
-                            className="sr-only" 
-                            accept="video/*"
-                            onChange={handleVideoUpload}
-                          />
-                        </label>
-                      </div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      {t('listings:videoFieldsSubtitle', 'Add videos to showcase your vehicle')}
+                    </p>
+                  </div>
 
-                      {/* Add Video URL */}
-                      <div className="space-y-4">
-                        <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
-                          {t('listings:addVideoUrl', 'Add Video URL')}
-                        </h4>
-                        <button
-                          type="button"
-                          onClick={addVideoUrl}
-                          className="group flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300"
-                        >
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <svg className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                            </svg>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold">
-                              {t('listings:addYouTubeVimeo', 'Add YouTube or Vimeo URL')}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Paste your video link</p>
-                          </div>
-                        </button>
-                      </div>
+                  {/* Video Options - Enhanced UX with Configuration Handling */}
+                  <div className="space-y-4">
+                    {/* Header with better description - Adaptive based on available options */}
+                    <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>
+                        {isVideoUploadEnabled && isVideoUrlEnabled 
+                          ? t('listings:videoSectionTitleBoth', "Choose how you'd like to add videos to your listing")
+                          : isVideoUploadEnabled 
+                            ? t('listings:videoSectionTitleUploadOnly', "Upload a video file to showcase your vehicle")
+                            : t('listings:videoSectionTitleUrlOnly', "Add a video URL to showcase your vehicle")
+                        }
+                      </span>
                     </div>
 
-                    {/* Video Previews */}
-                    {((formData.videos && formData.videos.length > 0) || (formData.videoUrls && formData.videoUrls.length > 0)) && (
-                      <div className="space-y-4">
-                        <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
-                          {t('listings:videoPreview', 'Video Preview')}
-                        </h4>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Uploaded Video Files */}
-                          {videoPreviewUrls.map((url, index) => (
-                            <div key={`video-${index}`} className="relative group">
-                              <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-                                <video 
-                                  src={url} 
-                                  className="w-full h-full object-cover"
-                                  controls
-                                  preload="metadata"
-                                />
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => removeVideo(index)}
-                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
-                                aria-label={`Remove video ${index + 1}`}
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </div>
-                          ))}
-
-                          {/* Video URLs */}
-                          {(formData.videoUrls || []).map((url, index) => (
-                            <div key={`video-url-${index}`} className="relative group">
-                              <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center">
-                                <div className="text-center">
-                                  <svg className="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    {/* Enhanced Toggle Buttons - Responsive grid based on available options */}
+                    <div className={`grid gap-4 ${
+                      isVideoUploadEnabled && isVideoUrlEnabled 
+                        ? 'grid-cols-1 md:grid-cols-2' 
+                        : 'grid-cols-1'
+                    }`}>
+                      {isVideoUploadEnabled && (
+                        <div className="group">
+                          <button
+                            type="button"
+                            onClick={() => setShowVideoUpload(!showVideoUpload)}
+                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 text-left group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-800 ${
+                              showVideoUpload || (formData.videos && formData.videos.length > 0)
+                                ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 text-blue-900 dark:text-blue-100 shadow-lg'
+                                : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/10'
+                            } ${
+                              !isVideoUrlEnabled ? 'ring-2 ring-blue-200 dark:ring-blue-700' : ''
+                            }`}
+                            aria-label={`Upload video file - ${showVideoUpload ? 'expanded' : 'collapsed'}`}
+                            aria-expanded={showVideoUpload}
+                            aria-describedby="video-upload-description"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start space-x-4">
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                                  showVideoUpload || (formData.videos && formData.videos.length > 0)
+                                    ? 'bg-blue-500 text-white shadow-lg'
+                                    : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/40'
+                                }`}>
+                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16l13-8z" />
                                   </svg>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate px-2" title={url}>
-                                    {url}
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-lg mb-1">
+                                    {t('listings:addVideoUpload', 'Upload Video File')}
+                                    {!isVideoUrlEnabled && (
+                                      <span className="ms-2 px-2 py-1 text-xs bg-blue-500 text-white rounded-full">
+                                        Only Option
+                                      </span>
+                                    )}
+                                  </h4>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" id="video-upload-description">
+                                    {t('listings:videoUploadToggleHelp', 'Upload a video file from your device')}
                                   </p>
+                                  <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-500 mt-3">
+                                    <div className="flex items-center space-x-1">
+                                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                      <span>Max 100MB</span>
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                      <span>3 min duration</span>
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                      <span>MP4, MOV, AVI</span>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => removeVideoUrl(index)}
-                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
-                                aria-label={`Remove video URL ${index + 1}`}
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                              <div className={`transform transition-all duration-300 ${
+                                showVideoUpload ? 'rotate-90 scale-110' : 'group-hover:scale-105'
+                              }`}>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                                 </svg>
-                              </button>
+                              </div>
                             </div>
-                          ))}
+                            {(formData.videos && formData.videos.length > 0) && (
+                              <div className="mt-3 flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                                  {formData.videos.length} video file ready to upload
+                                </span>
+                              </div>
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      {isVideoUrlEnabled && (
+                        <div className="group">
+                          <button
+                            type="button"
+                            onClick={() => setShowVideoUrl(!showVideoUrl)}
+                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 text-left group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-800 ${
+                              showVideoUrl || (formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0])
+                                ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 text-purple-900 dark:text-purple-100 shadow-lg'
+                                : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 bg-white dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/10'
+                            } ${
+                              !isVideoUploadEnabled ? 'ring-2 ring-purple-200 dark:ring-purple-700' : ''
+                            }`}
+                            aria-label={`Add video URL - ${showVideoUrl ? 'expanded' : 'collapsed'}`}
+                            aria-expanded={showVideoUrl}
+                            aria-describedby="video-url-description"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start space-x-4">
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                                  showVideoUrl || (formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0])
+                                    ? 'bg-purple-500 text-white shadow-lg'
+                                    : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 group-hover:bg-purple-200 dark:group-hover:bg-purple-800/40'
+                                }`}>
+                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                  </svg>
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-lg mb-1">
+                                    {t('listings:addVideoUrl', 'Add Video URL')}
+                                    {!isVideoUploadEnabled && (
+                                      <span className="ms-2 px-2 py-1 text-xs bg-purple-500 text-white rounded-full">
+                                        Only Option
+                                      </span>
+                                    )}
+                                  </h4>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" id="video-url-description">
+                                    {t('listings:videoUrlToggleHelp', 'Add a YouTube, Vimeo, or other video URL')}
+                                  </p>
+                                  <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-500 mt-3">
+                                    <div className="flex items-center space-x-1">
+                                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                      <span>YouTube</span>
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                      <span>Vimeo</span>
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                      <span>External links</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className={`transform transition-all duration-300 ${
+                                showVideoUrl ? 'rotate-90 scale-110' : 'group-hover:scale-105'
+                              }`}>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                              </div>
+                            </div>
+                            {(formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0]) && (
+                              <div className="mt-3 flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                                  Video URL added and ready
+                                </span>
+                              </div>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Configuration-aware messaging and tips */}
+                    {!showVideoUpload && !showVideoUrl && (!formData.videos || formData.videos.length === 0) && (!formData.videoUrls || !formData.videoUrls[0]) && (
+                      <div className="space-y-3">
+                        {/* Pro tip - Always show when no videos are added */}
+                        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                              <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                              </svg>
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
+                                💡 {t('listings:videoProTip', 'Pro tip: Videos increase listing engagement by 3x')}
+                              </h5>
+                              <p className="text-xs text-gray-600 dark:text-gray-400">
+                                {isVideoUploadEnabled && isVideoUrlEnabled 
+                                  ? t('listings:videoSectionSubtitleBoth', "Upload a video file for the best quality, or add a YouTube/Vimeo link for easy sharing")
+                                  : isVideoUploadEnabled 
+                                    ? t('listings:videoSectionSubtitleUploadOnly', "Upload a video file to show your vehicle in action")
+                                    : t('listings:videoSectionSubtitleUrlOnly', "Add a YouTube or Vimeo link to showcase your vehicle")
+                                }
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}
+                  </div>
+
+                  {/* Video File Upload - Enhanced Animation */}
+                  {isVideoUploadEnabled && showVideoUpload && (
+                    <div className="animate-in slide-in-from-top-4 duration-500 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 rounded-2xl p-6 border border-blue-200 dark:border-blue-800 shadow-lg">
+                      <div className="space-y-6">
+                        {/* Upload Header */}
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16l13-8z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h5 className="font-semibold text-blue-900 dark:text-blue-100">
+                              Upload Video File
+                            </h5>
+                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                              Drag & drop or click to select
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-center w-full">
+                          <label 
+                            htmlFor="video-upload" 
+                            className="group flex flex-col items-center justify-center w-full h-56 border-2 border-blue-300 border-dashed rounded-2xl cursor-pointer bg-white/80 dark:bg-blue-900/20 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:shadow-lg focus-within:ring-4 focus-within:ring-blue-200 dark:focus-within:ring-blue-800"
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                document.getElementById('video-upload')?.click();
+                              }
+                            }}
+                          >
+                            <div className="flex flex-col items-center justify-center pt-6 pb-6 space-y-4">
+                              <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-800/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                </svg>
+                              </div>
+                              <div className="text-center space-y-2">
+                                <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
+                                  {t('listings:uploadVideoLabel', 'Choose your video file')}
+                                </p>
+                                <p className="text-sm text-blue-600 dark:text-blue-400">
+                                  or drag and drop it here
+                                </p>
+                                <div className="flex items-center justify-center space-x-6 text-xs text-blue-500 dark:text-blue-400 mt-4">
+                                  <div className="flex items-center space-x-1">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span>Max 100MB</span>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span>3 min duration</span>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span>MP4, MOV, AVI</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <input
+                              id="video-upload"
+                              type="file"
+                              className="sr-only"
+                              accept="video/*"
+                              onChange={handleVideoUpload}
+                              aria-describedby="video-upload-hint video-upload-description"
+                              aria-label="Select video file to upload (MP4, MOV, AVI, max 100MB, 3 minutes duration)"
+                              disabled={formData.videos && formData.videos.length > 0}
+                            />
+                          </label>
+                        </div>
+                        {formErrors.videos && <ErrorMessage error={formErrors.videos} id="videos-error" />}
+                      </div>
+
+                      {/* Enhanced Video Preview */}
+                      {formData.videos && formData.videos.length > 0 && videoPreviewUrls.length > 0 && (
+                        <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-4 mt-6 pt-6 border-t border-blue-200 dark:border-blue-700">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
+                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                              <div>
+                                <h4 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+                                  {t('listings:videoPreview', 'Video Preview')}
+                                </h4>
+                                <p className="text-sm text-blue-700 dark:text-blue-300">
+                                  {formData.videos[0].name} • {(formData.videos[0].size / 1024 / 1024).toFixed(1)}MB
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeVideo(0)}
+                              className="flex items-center space-x-2 px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg transition-colors duration-200 text-sm font-medium"
+                              aria-label="Remove video"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              <span>Remove</span>
+                            </button>
+                          </div>
+                          <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl">
+                            <video
+                              src={videoPreviewUrls[0]}
+                              controls
+                              className="w-full max-w-2xl mx-auto"
+                              style={{ maxHeight: '400px' }}
+                              poster=""
+                            >
+                              Your browser does not support the video tag.
+                            </video>
+                            <div className="absolute top-4 start-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1">
+                              <span className="text-white text-sm font-medium">Ready to upload</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* External Video URL - Enhanced UX */}
+                  {isVideoUrlEnabled && showVideoUrl && (
+                    <div className="animate-in slide-in-from-top-4 duration-500 bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10 rounded-2xl p-6 border border-purple-200 dark:border-purple-800 shadow-lg">
+                      <div className="space-y-6">
+                        {/* URL Header */}
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h5 className="font-semibold text-purple-900 dark:text-purple-100">
+                              Add Video URL
+                            </h5>
+                            <p className="text-sm text-purple-700 dark:text-purple-300">
+                              Paste your video link below
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div>
+                            <label htmlFor="video-url" className="block text-sm font-semibold text-purple-800 dark:text-purple-200 mb-3">
+                              {t('listings:videoUrlLabel', 'Video URL')}
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="url"
+                                id="video-url"
+                                placeholder={t('listings:videoUrlPlaceholder', 'https://youtube.com/watch?v=... or https://vimeo.com/...')}
+                                className="w-full px-4 py-4 pl-12 border-2 border-purple-200 dark:border-purple-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-purple-900/20 dark:text-white transition-all duration-200 text-lg placeholder:text-gray-400"
+                                value={formData.videoUrls?.[0] || ''}
+                                onChange={(e) => handleVideoUrlChange(e.target.value)}
+                                aria-describedby="video-url-hint video-url-description"
+                                aria-label="Enter video URL from YouTube, Vimeo, or other video platforms"
+                              />
+                              <div className="absolute start-4 top-1/2 transform -translate-y-1/2">
+                                <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                </svg>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between mt-3">
+                              <p className="text-sm text-purple-600 dark:text-purple-400" id="video-url-hint">
+                                {t('listings:videoUrlHelp', 'Supported: YouTube, Vimeo, and other video platforms')}
+                              </p>
+                              {formData.videoUrls?.[0] && (
+                                <div className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                  <span>URL detected</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          {formErrors.videoUrls && <ErrorMessage error={formErrors.videoUrls} id="video-urls-error" />}
+
+                          {/* Platform Examples */}
+                          <div className="grid grid-cols-2 gap-3 pt-2">
+                            <div className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-800">
+                              <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center">
+                                <span className="text-white text-xs font-bold">▶</span>
+                              </div>
+                              <span className="text-sm font-medium text-red-700 dark:text-red-300">YouTube</span>
+                            </div>
+                            <div className="flex items-center space-x-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                              <div className="w-6 h-6 bg-blue-500 rounded flex items-center justify-center">
+                                <span className="text-white text-xs font-bold">V</span>
+                              </div>
+                              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Vimeo</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* External Video Preview */}
+                      {formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0] && (
+                        <div className="space-y-4">
+                          <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
+                            {t('listings:videoPreview', 'Video preview')} - External
+                          </h4>
+                          
+                          {/* Video Embed Preview */}
+                          {(() => {
+                            const embedUrl = getVideoEmbedUrl(formData.videoUrls[0]);
+                            if (embedUrl) {
+                              return (
+                                <div className="relative">
+                                  <div className="aspect-video w-full max-w-md mx-auto rounded-lg overflow-hidden shadow-lg bg-gray-100 dark:bg-gray-800">
+                                    <iframe
+                                      src={embedUrl}
+                                      className="w-full h-full"
+                                      frameBorder="0"
+                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                      allowFullScreen
+                                      title="External video preview"
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeVideoUrl(0)}
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200 z-10"
+                                    aria-label="Remove video URL"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              );
+                            }
+                            
+                            // Fallback for non-embeddable URLs
+                            return (
+                              <div className="relative p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                                      External Video URL
+                                    </p>
+                                    <p className="text-sm text-blue-700 dark:text-blue-300 break-all">
+                                      {formData.videoUrls[0]}
+                                    </p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                      Preview not available for this URL format
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeVideoUrl(0)}
+                                    className="ms-4 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200"
+                                    aria-label="Remove video URL"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                          
+                          {/* URL Info */}
+                          <div className="text-center">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Source: {formData.videoUrls[0]}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 4: Pricing & Contact */}
+            {currentStep === 4 && (
+              <div className="space-y-8 animate-fadeIn">
+                {/* Step Header */}
+                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {t('listings:pricingContactTitle', 'Pricing & Contact')}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {t('listings:pricingContactSubtitle', 'Set your price and contact information')}
+                  </p>
+                </div>
+
+                {/* Pricing Information */}
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    {t('listings:newListingPricing', 'Pricing Information')}
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Price */}
+                    <div className="space-y-3">
+                      <label 
+                        htmlFor="price" 
+                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                      >
+                        {t('listings:newListingPrice', 'Price')} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        id="price"
+                        name="price"
+                        value={formData.price}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          formErrors.price ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                        }`}
+                        placeholder={t('listings:newListingPricePlaceholder', '25000')}
+                        aria-invalid={!!formErrors.price}
+                        aria-describedby={formErrors.price ? 'price-error' : 'price-hint'}
+                      />
+                      <ErrorMessage error={formErrors.price} id="price-error" />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="price-hint">
+                        {t('listings:newListingPriceHint', 'Enter the asking price for your vehicle')}
+                      </p>
+                    </div>
+
+                    {/* Currency */}
+                    <div className="space-y-3">
+                      <label 
+                        htmlFor="currency" 
+                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                      >
+                        {t('listings:newListingCurrency', 'Currency')} <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="currency"
+                        name="currency"
+                        value={formData.currency}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          formErrors.currency ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                        }`}
+                        aria-invalid={!!formErrors.currency}
+                        aria-describedby={formErrors.currency ? 'currency-error' : 'currency-hint'}
+                      >
+                        <option value="SYP">{t('listings:currencySYP', 'Syrian Pound (SYP)')}</option>
+                        <option value="USD">{t('listings:currencyUSD', 'US Dollar (USD)')}</option>
+                      </select>
+                      <ErrorMessage error={formErrors.currency} id="currency-error" />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="currency-hint">
+                        {t('listings:newListingCurrencyHint', 'Select the currency for your price')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location Information */}
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    {t('listings:newListingLocationInfo', 'Location Information')}
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Governorate */}
+                    <div className="space-y-3">
+                      <label 
+                        htmlFor="governorateSlug" 
+                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                      >
+                        {t('listings:newListingGovernorate', 'Governorate')} <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="governorateSlug"
+                        name="governorateSlug"
+                        value={formData.governorateSlug}
+                        onChange={handleChange}
+                        disabled={isLoadingGovernorates}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          formErrors.governorateSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                        } ${isLoadingGovernorates ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        aria-invalid={!!formErrors.governorateSlug}
+                        aria-describedby={formErrors.governorateSlug ? 'governorateSlug-error' : 'governorateSlug-hint'}
+                      >
+                        <option value="">
+                          {isLoadingGovernorates 
+                            ? t('listings:newListingLoadingGovernorates', 'Loading governorates...') 
+                            : t('listings:newListingSelectGovernorate', 'Select a governorate')
+                          }
+                        </option>
+                        {governorates.map((gov) => (
+                          <option key={gov.id} value={gov.slug}>
+                            {i18n.language === 'ar' ? gov.displayNameAr : gov.displayNameEn}
+                          </option>
+                        ))}
+                      </select>
+                      <ErrorMessage error={formErrors.governorateSlug} id="governorateSlug-error" />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="governorateSlug-hint">
+                        {t('listings:newListingGovernorateHint', 'Select the governorate where the car is located')}
+                      </p>
+                    </div>
+
+                    {/* Location */}
+                    <div className="space-y-3">
+                      <label 
+                        htmlFor="locationSlug" 
+                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                      >
+                        {t('listings:newListingLocation', 'Location')} <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="locationSlug"
+                        name="locationSlug"
+                        value={formData.locationSlug}
+                        onChange={handleChange}
+                        disabled={isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === ''}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          formErrors.locationSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                        } ${(isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === '') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        aria-invalid={!!formErrors.locationSlug}
+                        aria-describedby={formErrors.locationSlug ? 'locationSlug-error' : 'locationSlug-hint'}
+                      >
+                        <option value="">
+                          {!formData.governorateSlug || formData.governorateSlug.trim() === ''
+                            ? t('listings:newListingSelectGovernorateFirst', 'Select governorate first')
+                            : isLoadingLocations 
+                              ? t('listings:newListingLoadingLocations', 'Loading locations...')
+                              : t('listings:newListingSelectLocation', 'Select a location')
+                          }
+                        </option>
+                        {locations.map((loc) => (
+                          <option key={loc.id} value={loc.slug}>
+                            {i18n.language === 'ar' ? loc.displayNameAr : loc.displayNameEn}
+                          </option>
+                        ))}
+                      </select>
+                      <ErrorMessage error={formErrors.locationSlug} id="locationSlug-error" />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="locationSlug-hint">
+                        {t('listings:newListingLocationHint', 'Select the specific location within the governorate')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    {t('listings:newListingContactInfo', 'Contact Information')}
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Contact Name */}
+                    <div className="space-y-3">
+                      <label 
+                        htmlFor="contactName" 
+                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                      >
+                        {t('listings:newListingContactName', 'Contact Name')} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="contactName"
+                        name="contactName"
+                        value={formData.contactName}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          formErrors.contactName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                        }`}
+                        placeholder={t('listings:newListingContactNamePlaceholder', 'Your full name')}
+                        aria-invalid={!!formErrors.contactName}
+                        aria-describedby={formErrors.contactName ? 'contactName-error' : 'contactName-hint'}
+                      />
+                      <ErrorMessage error={formErrors.contactName} id="contactName-error" />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactName-hint">
+                        {t('listings:newListingContactNameHint', 'Name for potential buyers to contact')}
+                      </p>
+                    </div>
+
+                    {/* Contact Phone */}
+                    <div className="space-y-3">
+                      <label 
+                        htmlFor="contactPhone" 
+                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                      >
+                        {t('listings:newListingContactPhone', 'Contact Phone')} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        id="contactPhone"
+                        name="contactPhone"
+                        value={formData.contactPhone}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          formErrors.contactPhone ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                        }`}
+                        placeholder={t('listings:newListingContactPhonePlaceholder', 'e.g., +965 12345678')}
+                        aria-invalid={!!formErrors.contactPhone}
+                        aria-describedby={formErrors.contactPhone ? 'contactPhone-error' : 'contactPhone-hint'}
+                      />
+                      <ErrorMessage error={formErrors.contactPhone} id="contactPhone-error" />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactPhone-hint">
+                        {t('listings:newListingContactPhoneHint', 'Phone number for inquiries')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Contact Email */}
+                  <div className="space-y-3">
+                    <label 
+                      htmlFor="contactEmail" 
+                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    >
+                      {t('listings:newListingContactEmail', 'Contact Email')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      id="contactEmail"
+                      name="contactEmail"
+                      value={formData.contactEmail}
+                      onChange={handleChange}
+                      required
+                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                        formErrors.contactEmail ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                      }`}
+                      placeholder={t('listings:newListingContactEmailPlaceholder', 'your.email@example.com')}
+                      aria-invalid={!!formErrors.contactEmail}
+                      aria-describedby={formErrors.contactEmail ? 'contactEmail-error' : 'contactEmail-hint'}
+                    />
+                    <ErrorMessage error={formErrors.contactEmail} id="contactEmail-error" />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactEmail-hint">
+                      {t('listings:newListingContactEmailHint', 'Email address for inquiries')}
+                    </p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between pt-8 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex gap-3">
+            {/* Form Navigation */}
+            <div className="flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-gray-200 dark:border-gray-700 space-y-4 sm:space-y-0">
+              <div className="order-2 sm:order-1">
                 <button
+                  ref={previousButtonRef}
                   type="button"
-                  onClick={handleCancel}
-                  className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-                >
-                  {t('common:cancel')}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={handlePreviousStep}
+                  onClick={(e) => handleStepChange(currentStep - 1, e)}
                   disabled={currentStep === 1}
                   className="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                  <svg className={`w-4 h-4 ${rtl.spacing.mr('2')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={rtl.arrows.leftArrow} />
                   </svg>
                   {t('common:previous')}
                 </button>
@@ -2033,42 +2761,37 @@ export default function ListingWizard({
               
               {currentStep < TOTAL_STEPS ? (
                 <button
+                  ref={nextButtonRef}
                   type="button"
                   onClick={(e) => handleStepChange(currentStep + 1, e)}
-                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 order-1 sm:order-2"
                 >
                   {t('common:next')}
-                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                  <svg className={`w-4 h-4 ${rtl.spacing.ml('2')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={rtl.arrows.rightArrow} />
                   </svg>
                 </button>
               ) : (
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  onClick={(e) => {
-                    console.log('[ListingWizard] Submit button clicked directly');
-                    console.log('[ListingWizard] Button event:', e);
-                    console.log('[ListingWizard] Current step:', currentStep);
-                    console.log('[ListingWizard] Is submitting:', isSubmitting);
-                    // Don't prevent default here - let the form submit naturally
-                  }}
-                  className="inline-flex items-center px-8 py-3 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+
+                  className="inline-flex items-center px-8 py-3 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 order-1 sm:order-2"
                 >
                   {isSubmitting ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      {mode === 'create' ? t('listings:creating') : t('listings:updating')}
+                      {t('listings:submitting', 'Submitting...')}
                     </>
                   ) : (
                     <>
-                      {mode === 'create' ? t('listings:createListing') : t('listings:updateListing')}
-                      <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
+                      {mode === 'edit' ? t('listings:updateListing', 'Update Listing') : t('listings:createListing', 'Create Listing')}
                     </>
                   )}
                 </button>
@@ -2079,4 +2802,4 @@ export default function ListingWizard({
       </div>
     </div>
   );
-}
+};

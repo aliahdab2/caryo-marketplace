@@ -42,6 +42,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
           mode="edit"
           listingId={id}
           autoLoad={true}
+          showHeader={false}
           onSuccess={handleSuccess}
           onCancel={handleCancel}
         />
