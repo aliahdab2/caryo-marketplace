@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
@@ -30,6 +30,7 @@ import {
 
 // Constants
 const TOTAL_STEPS = 4;
+const FOCUSABLE_SELECTOR = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])';
 const wizardLogger = createLogger({
   enabled: process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_WIZARD === 'true',
   level: 'debug',
@@ -127,6 +128,11 @@ export default function ListingWizard({
 }: ListingWizardProps) {
   const router = useRouter();
   const { t, i18n, ready } = useLazyTranslation(['listings', 'common']);
+  
+  // Refs for keyboard navigation
+  const formRef = useRef<HTMLFormElement>(null);
+  const previousButtonRef = useRef<HTMLButtonElement>(null);
+  const nextButtonRef = useRef<HTMLButtonElement>(null);
 
   // State management
   const [currentStep, setCurrentStep] = useState(1);
@@ -1013,6 +1019,32 @@ export default function ListingWizard({
     }));
   }, []);
 
+  // Keyboard navigation handler
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    // Tab trapping within form
+    if (event.key === 'Tab') {
+      const form = formRef.current;
+      if (!form) return;
+      
+      const focusableElements = form.querySelectorAll(FOCUSABLE_SELECTOR);
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+      
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement?.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement?.focus();
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
   // Show loading if translations aren't ready
   if (!ready) {
     return (
@@ -1115,7 +1147,7 @@ export default function ListingWizard({
 
         {/* Form Steps */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
-          <form onSubmit={handleSubmit}>
+          <form ref={formRef} onSubmit={handleSubmit}>
             {/* Step 1: Basic Info - Simplified for now */}
             {currentStep === 1 && (
               <div className="space-y-8 animate-fadeIn">
@@ -1526,6 +1558,7 @@ export default function ListingWizard({
             <div className="flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-gray-200 dark:border-gray-700 space-y-4 sm:space-y-0">
               <div className="order-2 sm:order-1">
                 <button
+                  ref={previousButtonRef}
                   type="button"
                   onClick={(e) => handleStepChange(currentStep - 1, e)}
                   disabled={currentStep === 1}
@@ -1540,9 +1573,9 @@ export default function ListingWizard({
               
               {currentStep < TOTAL_STEPS ? (
                 <button
+                  ref={nextButtonRef}
                   type="button"
                   onClick={(e) => handleStepChange(currentStep + 1, e)}
-
                   className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 order-1 sm:order-2"
                 >
                   {t('common:next')}
