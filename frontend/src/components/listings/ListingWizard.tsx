@@ -212,10 +212,10 @@ export default function ListingWizard({
 
   // Memoized step configuration
   const stepConfig = useMemo((): StepConfig[] => [
-    { step: 1, title: t('listings:newListingStep1Title', 'Basic Info'), icon: '📝', isComplete: currentStep > 1 },
-    { step: 2, title: t('listings:newListingStep2Title', 'Details'), icon: '🚗', isComplete: currentStep > 2 },
-    { step: 3, title: t('listings:newListingStep3Title', 'Location & Contact'), icon: '📍', isComplete: currentStep > 3 },
-    { step: 4, title: t('listings:newListingStep4Title', 'Images'), icon: '📸', isComplete: currentStep > 4 }
+    { step: 1, title: t('listings:vehicleIdentityTitle', 'Vehicle Identity'), icon: '🚗', isComplete: currentStep > 1 },
+    { step: 2, title: t('listings:vehicleDetailsTitle', 'Vehicle Details'), icon: '⚙️', isComplete: currentStep > 2 },
+    { step: 3, title: t('listings:contentMediaTitle', 'Content & Media'), icon: '📝', isComplete: currentStep > 3 },
+    { step: 4, title: t('listings:pricingContactTitle', 'Pricing & Contact'), icon: '💰', isComplete: currentStep > 4 }
   ], [currentStep, t]);
 
   // Handler functions
@@ -1113,96 +1113,14 @@ export default function ListingWizard({
           <form onSubmit={handleSubmit}>
             {/* Step 1: Basic Info - Simplified for now */}
             {currentStep === 1 && (
-              <div className="space-y-6">
-                <div className="text-center pb-6 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-                    {t('listings:basicInformation')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {t('listings:basicInformationSubtitle')}
-                  </p>
-                </div>
-
-                {/* Title */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {t('listings:title')} *
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    placeholder={t('listings:titlePlaceholder')}
-                  />
-                  {formErrors.title && <ErrorMessage error={formErrors.title} />}
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {t('listings:description')} *
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-vertical"
-                    placeholder={t('listings:descriptionPlaceholder', 'Describe your car in detail...')}
-                  />
-                  {formErrors.description && <ErrorMessage error={formErrors.description} />}
-                </div>
-
-                {/* Price */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {t('listings:price')} *
-                    </label>
-                    <NumericInput
-                      name="price"
-                      value={formData.price}
-                      onChange={(value) => handleChange(value, 'price')}
-                      placeholder="0"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    />
-                    {formErrors.price && <ErrorMessage error={formErrors.price} />}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {t('listings:currency')} *
-                    </label>
-                    <select
-                      name="currency"
-                      value={formData.currency}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    >
-                      {SUPPORTED_CURRENCIES.map(currency => (
-                        <option key={currency.code} value={currency.code}>
-                          {currency.symbol} {currency.code}
-                        </option>
-                      ))}
-                    </select>
-                    {formErrors.currency && <ErrorMessage error={formErrors.currency} />}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Car Details */}
-            {currentStep === 2 && (
               <div className="space-y-8 animate-fadeIn">
                 {/* Step Header */}
                 <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:newListingStep2Title', 'Car Details')}
+                    {t('listings:vehicleIdentityTitle', 'Vehicle Identity')}
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:newListingStep2Description', 'Provide specific details about your vehicle')}
+                    {t('listings:vehicleIdentitySubtitle', 'Start by telling us what vehicle you\'re selling')}
                   </p>
                 </div>
 
@@ -1257,10 +1175,10 @@ export default function ListingWizard({
                     name="model"
                     value={formData.model}
                     onChange={handleChange}
-                    disabled={!formData.make || isLoadingModels}
+                    disabled={isLoadingModels || !formData.make}
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                       formErrors.model ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                    } ${(!formData.make || isLoadingModels) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    } ${(isLoadingModels || !formData.make) ? 'opacity-50 cursor-not-allowed' : ''}`}
                     aria-invalid={!!formErrors.model}
                     aria-describedby={formErrors.model ? 'model-error' : 'model-hint'}
                   >
@@ -1284,55 +1202,84 @@ export default function ListingWizard({
                   </p>
                 </div>
 
-                {/* Year and Mileage Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Year */}
-                  <div className="space-y-3">
-                    <label 
-                      htmlFor="year" 
-                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                      {t('listings:newListingYear', 'Year')} <span className="text-red-500">*</span>
-                    </label>
-                    <NumericInput
-                      id="year"
-                      name="year"
-                      value={formData.year}
-                      onChange={(value) => handleChange(value, 'year')}
-                      placeholder={t('listings:newListingYearPlaceholder', '2020')}
-                      required
-                      error={!!formErrors.year}
-                      aria-invalid={!!formErrors.year}
-                      aria-describedby={formErrors.year ? 'year-error' : 'year-hint'}
-                      className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    />
-                    {formErrors.year && <ErrorMessage error={formErrors.year} />}
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
-                      {t('listings:newListingYearHint', 'Manufacturing year')}
-                    </p>
-                  </div>
+                {/* Year */}
+                <div className="space-y-3">
+                  <label
+                    htmlFor="year"
+                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                  >
+                    {t('listings:newListingYear', 'Year')} <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="year"
+                    name="year"
+                    value={formData.year}
+                    onChange={handleChange}
+                    required
+                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                      formErrors.year ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                    }`}
+                    aria-invalid={!!formErrors.year}
+                    aria-describedby={formErrors.year ? 'year-error' : 'year-hint'}
+                  >
+                    <option value="">{t('listings:selectYear', 'Select Year')}</option>
+                    {(() => {
+                      const currentYear = new Date().getFullYear();
+                      const years = [];
+                      // From next year down to 1990
+                      for (let year = currentYear + 1; year >= 1990; year--) {
+                        years.push(
+                          <option key={year} value={year.toString()}>
+                            {year}
+                          </option>
+                        );
+                      }
+                      return years;
+                    })()}
+                  </select>
+                  {formErrors.year && <ErrorMessage error={formErrors.year} />}
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
+                    {t('listings:newListingYearHint', 'Select the manufacturing year of your vehicle')}
+                  </p>
+                </div>
+              </div>
+            )}
 
-                  {/* Mileage */}
-                  <div className="space-y-3">
-                    <label 
-                      htmlFor="mileage" 
-                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                      {t('listings:newListingMileage', 'Mileage')}
-                    </label>
-                    <NumericInput
-                      id="mileage"
-                      name="mileage"
-                      value={formData.mileage}
-                      onChange={(value) => handleChange(value, 'mileage')}
-                      placeholder={t('listings:newListingMileagePlaceholder', '50000')}
-                      error={!!formErrors.mileage}
-                      aria-describedby="mileage-hint"
-                    />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="mileage-hint">
-                      {t('listings:newListingMileageHint', 'Total kilometers driven')}
-                    </p>
-                  </div>
+            {/* Step 2: Vehicle Details */}
+            {currentStep === 2 && (
+              <div className="space-y-8 animate-fadeIn">
+                {/* Step Header */}
+                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {t('listings:vehicleDetailsTitle', 'Vehicle Details')}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {t('listings:vehicleDetailsSubtitle', 'Tell us more about your vehicle\'s condition and features')}
+                  </p>
+                </div>
+
+                {/* Mileage */}
+                <div className="space-y-3">
+                  <label 
+                    htmlFor="mileage" 
+                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                  >
+                    {t('listings:newListingMileage', 'Mileage')}
+                  </label>
+                  <NumericInput
+                    id="mileage"
+                    name="mileage"
+                    value={formData.mileage}
+                    onChange={(value) => handleChange(value, 'mileage')}
+                    placeholder={t('listings:newListingMileagePlaceholder', '50000')}
+                    error={!!formErrors.mileage}
+                    aria-describedby="mileage-hint"
+                    className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  />
+                  {formErrors.mileage && <ErrorMessage error={formErrors.mileage} />}
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="mileage-hint">
+                    {t('listings:newListingMileageHint', 'Total kilometers driven')}
+                  </p>
                 </div>
 
                 {/* Engine and Transmission Grid */}
@@ -1465,16 +1412,56 @@ export default function ListingWizard({
               </div>
             )}
 
-            {/* Step 3: Location and Contact */}
+            {/* Step 3: Content & Media */}
             {currentStep === 3 && (
               <div className="space-y-8 animate-fadeIn">
                 {/* Step Header */}
                 <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:newListingStep3Title', 'Location & Contact')}
+                    {t('listings:contentMediaTitle', 'Content & Media')}
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:newListingStep3Description', 'Where to find you and how to get in touch')}
+                    {t('listings:contentMediaSubtitle', 'Create your listing content and add photos')}
+                  </p>
+                </div>
+
+                {/* Title */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    {t('listings:title')} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 border-gray-200 dark:border-gray-600 focus:border-blue-500"
+                    placeholder={t('listings:titlePlaceholder')}
+                    aria-invalid={!!formErrors.title}
+                  />
+                  {formErrors.title && <ErrorMessage error={formErrors.title} />}
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {t('listings:titleHint', 'Create an attractive title for your listing')}
+                  </p>
+                </div>
+
+                {/* Description */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    {t('listings:description')} <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    rows={6}
+                    className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 resize-vertical border-gray-200 dark:border-gray-600 focus:border-blue-500"
+                    placeholder={t('listings:descriptionPlaceholder', 'Describe your car in detail...')}
+                    aria-invalid={!!formErrors.description}
+                  />
+                  {formErrors.description && <ErrorMessage error={formErrors.description} />}
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {t('listings:descriptionHint', 'Provide detailed information about your vehicle\'s condition, features, and history')}
                   </p>
                 </div>
 
@@ -1655,17 +1642,53 @@ export default function ListingWizard({
               </div>
             )}
 
-            {/* Step 4: Images and Videos */}
+            {/* Step 4: Pricing & Contact */}
             {currentStep === 4 && (
               <div className="space-y-8 animate-fadeIn">
                 {/* Step 4 Header */}
                 <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                    {t('listings:newListingStep4Title', 'Upload Images')}
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {t('listings:pricingContactTitle', 'Pricing & Contact')}
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                    {t('listings:newListingStep4Description', 'Add high-quality photos to showcase your car and attract potential buyers.')}
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {t('listings:pricingContactSubtitle', 'Set your price and contact information')}
                   </p>
+                </div>
+
+                {/* Price */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      {t('listings:price')} <span className="text-red-500">*</span>
+                    </label>
+                    <NumericInput
+                      name="price"
+                      value={formData.price}
+                      onChange={(value) => handleChange(value, 'price')}
+                      placeholder="0"
+                      className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 border-gray-200 dark:border-gray-600 focus:border-blue-500"
+                    />
+                    {formErrors.price && <ErrorMessage error={formErrors.price} />}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      {t('listings:currency')} <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="currency"
+                      value={formData.currency}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 border-gray-200 dark:border-gray-600 focus:border-blue-500"
+                    >
+                      {SUPPORTED_CURRENCIES.map(currency => (
+                        <option key={currency.code} value={currency.code}>
+                          {currency.symbol} {currency.code}
+                        </option>
+                      ))}
+                    </select>
+                    {formErrors.currency && <ErrorMessage error={formErrors.currency} />}
+                  </div>
                 </div>
 
                 <div className="space-y-6">
