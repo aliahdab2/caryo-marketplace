@@ -1817,10 +1817,10 @@ export default function ListingWizard({
                                   ? 'text-blue-600 dark:text-blue-300' 
                                   : 'text-gray-600 dark:text-gray-400'
                               }`}>
-                                {isDragOver 
-                                  ? 'Release to add images to your listing'
-                                  : 'Drag & drop images here, or click to browse'
-                                }
+                    {isDragOver 
+                      ? t('listings:newListingReleaseToAdd', 'Release to add images to your listing')
+                      : t('listings:newListingDragAndDrop', 'Drag & drop images here, or click to browse')
+                    }
                               </p>
 
                               {/* Format info moved below and muted */}
