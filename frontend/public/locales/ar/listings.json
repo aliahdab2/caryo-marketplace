@@ -445,5 +445,13 @@
   "addVideoUrl": "إضافة رابط فيديو",
   "addYouTubeVimeo": "إضافة رابط يوتيوب أو فيميو",
   "videoPreview": "معاينة الفيديو",
-  "enterVideoUrl": "أدخل رابط الفيديو (يوتيوب، فيميو، إلخ)"
+  "enterVideoUrl": "أدخل رابط الفيديو (يوتيوب، فيميو، إلخ)",
+  "vehicleIdentityTitle": "هوية المركبة",
+  "vehicleIdentitySubtitle": "ابدأ بإخبارنا ما هي المركبة التي تبيعها",
+  "vehicleDetailsTitle": "تفاصيل المركبة",
+  "vehicleDetailsSubtitle": "أخبرنا المزيد عن حالة مركبتك وميزاتها",
+  "contentMediaTitle": "المحتوى والوسائط",
+  "contentMediaSubtitle": "أنشئ محتوى إعلانك وأضف الصور",
+  "pricingContactTitle": "التسعير والاتصال",
+  "pricingContactSubtitle": "حدد سعرك ومعلومات الاتصال"
 }

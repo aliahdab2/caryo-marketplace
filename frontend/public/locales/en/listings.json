@@ -480,5 +480,13 @@
   "addVideoUrl": "Add Video URL",
   "addYouTubeVimeo": "Add YouTube or Vimeo URL",
   "videoPreview": "Video Preview",
-  "enterVideoUrl": "Enter video URL (YouTube, Vimeo, etc.)"
+  "enterVideoUrl": "Enter video URL (YouTube, Vimeo, etc.)",
+  "vehicleIdentityTitle": "Vehicle Identity",
+  "vehicleIdentitySubtitle": "Start by telling us what vehicle you're selling",
+  "vehicleDetailsTitle": "Vehicle Details",
+  "vehicleDetailsSubtitle": "Tell us more about your vehicle's condition and features",
+  "contentMediaTitle": "Content & Media",
+  "contentMediaSubtitle": "Create your listing content and add photos",
+  "pricingContactTitle": "Pricing & Contact",
+  "pricingContactSubtitle": "Set your price and contact information"
 }
