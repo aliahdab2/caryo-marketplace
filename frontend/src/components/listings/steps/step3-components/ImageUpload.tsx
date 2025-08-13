@@ -99,8 +99,8 @@ const ImageUpload = memo(function ImageUpload({
                     : 'text-gray-600 dark:text-gray-400'
                 }`}>
                   {isDragOver 
-                    ? 'Release to add images to your listing'
-                    : 'Drag & drop images here, or click to browse'
+                    ? t('listings:newListingReleaseToAdd', 'Release to add images to your listing')
+                    : t('listings:newListingDragAndDrop', 'Drag & drop images here, or click to browse')
                   }
                 </p>
 
@@ -112,15 +112,15 @@ const ImageUpload = memo(function ImageUpload({
                   <div className="flex items-center justify-center space-x-6 text-xs text-gray-400 dark:text-gray-500">
                     <div className="flex items-center space-x-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span>PNG, JPG, JPEG</span>
+                      <span>{t('listings:newListingImageFormatsShort', 'PNG, JPG, JPEG')}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span>Max 5MB each</span>
+                      <span>{t('listings:newListingImageMaxSize', 'Max 5MB each')}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span>Up to 10 images</span>
+                      <span>{t('listings:newListingImageMaxCount', 'Up to 10 images')}</span>
                     </div>
                   </div>
                 </div>

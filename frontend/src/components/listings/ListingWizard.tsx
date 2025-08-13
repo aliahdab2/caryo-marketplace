@@ -210,15 +210,15 @@ const ImagePreview = memo(function ImagePreview({
       {/* Image Number Badge */}
       <div className={`absolute top-2 ${isRTL ? 'end-2' : 'start-2'} bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm`}>
         {index + 1}
-      </div>
+          </div>
 
       {/* File Info on Hover */}
       {fileSize && (
         <div className={`absolute bottom-2 ${isRTL ? 'left-2' : 'right-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
           <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-            {(fileSize / 1024 / 1024).toFixed(1)}MB
-          </div>
+            {typeof fileSize === 'number' ? (fileSize / 1024 / 1024).toFixed(1) + 'MB' : ''}
         </div>
+      </div>
       )}
     </div>
   );
@@ -369,6 +369,8 @@ export default function ListingWizard({
   const [videoPreviewUrls, setVideoPreviewUrls] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [existingVideos, setExistingVideos] = useState<string[]>([]);
+  const [imagesInitialized, setImagesInitialized] = useState(false);
+  const [videosInitialized, setVideosInitialized] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [dragOverImageIndex, setDragOverImageIndex] = useState<number | null>(null);
@@ -879,20 +881,22 @@ export default function ListingWizard({
   // Load existing images and videos when formData changes (edit mode)
   useEffect(() => {
     if (mode === 'edit' && formData) {
-      // Load existing images (only if not already loaded to prevent duplicates)
-      if (formData.existingImageUrls && formData.existingImageUrls.length > 0 && existingImages.length === 0) {
+      // Load existing images (only if not already initialized to prevent duplicates)
+      if (formData.existingImageUrls && formData.existingImageUrls.length > 0 && !imagesInitialized) {
         setExistingImages(formData.existingImageUrls);
         // Set preview URLs to only existing images initially
         setImagePreviewUrls(formData.existingImageUrls);
+        setImagesInitialized(true);
       }
 
-      // Load existing videos (only if not already loaded to prevent duplicates)
-      if (formData.existingVideoUrls && formData.existingVideoUrls.length > 0 && existingVideos.length === 0) {
+      // Load existing videos (only if not already initialized to prevent duplicates)
+      if (formData.existingVideoUrls && formData.existingVideoUrls.length > 0 && !videosInitialized) {
         setExistingVideos(formData.existingVideoUrls);
         setVideoPreviewUrls(formData.existingVideoUrls);
+        setVideosInitialized(true);
       }
     }
-  }, [mode, formData.existingImageUrls, formData.existingVideoUrls, existingImages.length, existingVideos.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mode, formData.existingImageUrls, formData.existingVideoUrls, imagesInitialized, videosInitialized]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Optimized step accessibility check with debounced validation
   const isStepAccessible = useCallbackPerf((targetStep: number) => {
@@ -929,12 +933,19 @@ export default function ListingWizard({
       wizardLogger.debug('Setting form errors');
       setFormErrors(stepErrors);
       
-      // Focus on first field with error for better UX
+      // Focus and smooth-scroll to first field with error for better UX
       const firstErrorField = Object.keys(stepErrors)[0];
       wizardLogger.debug('Focusing first error field ' + firstErrorField);
-      const errorElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement;
+      const errorElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement | null;
       if (errorElement) {
+        try {
+          errorElement.focus({ preventScroll: true } as any);
+        } catch {
         errorElement.focus();
+        }
+        if (typeof errorElement.scrollIntoView === 'function') {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
       
       // Show specific field errors instead of generic message
@@ -1342,7 +1353,7 @@ export default function ListingWizard({
           {/* Progress Bar */}
           <div className="mt-6">
             <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400 mb-2">
-              <span>Step {currentStep} of {TOTAL_STEPS}</span>
+              <span>{t('listings:newListingStepCounter', 'Step {{current}} of {{total}}', { current: currentStep, total: TOTAL_STEPS })}</span>
               <div className="flex items-center gap-4">
                 {/* Auto-save indicator (only in create mode) */}
                 {mode === 'create' && autoSave && (
@@ -1352,7 +1363,7 @@ export default function ListingWizard({
                     className="text-xs"
                   />
                 )}
-                <span>{progressPercentage}% Complete</span>
+                <span>{t('listings:progressComplete', '{{percent}}% Complete', { percent: progressPercentage })}</span>
               </div>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
@@ -1810,10 +1821,10 @@ export default function ListingWizard({
                                   ? 'text-blue-600 dark:text-blue-300' 
                                   : 'text-gray-600 dark:text-gray-400'
                               }`}>
-                                {isDragOver 
-                                  ? 'Release to add images to your listing'
-                                  : 'Drag & drop images here, or click to browse'
-                                }
+                    {isDragOver 
+                      ? t('listings:newListingReleaseToAdd', 'Release to add images to your listing')
+                      : t('listings:newListingDragAndDrop', 'Drag & drop images here, or click to browse')
+                    }
                               </p>
 
                               {/* Format info moved below and muted */}
@@ -1824,15 +1835,15 @@ export default function ListingWizard({
                                 <div className={`flex items-center justify-center ${isRTL ? 'space-x-reverse space-x-6' : 'space-x-6'} text-xs text-gray-400 dark:text-gray-500`}>
                                   <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>PNG, JPG, JPEG</span>
-                                  </div>
+                                    <span>{t('listings:newListingImageFormatsShort', 'PNG, JPG, JPEG')}</span>
+                  </div>
                                   <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>Max 5MB each</span>
-                                  </div>
+                                    <span>{t('listings:newListingImageMaxSize', 'Max 5MB each')}</span>
+                </div>
                                   <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>Up to 10 images</span>
+                                    <span>{t('listings:newListingImageMaxCount', 'Up to 10 images')}</span>
                                   </div>
                                 </div>
                               </div>
@@ -1870,14 +1881,12 @@ export default function ListingWizard({
                               {t('listings:newListingImagePreview', 'Image Preview')} ({imagePreviewUrls.length})
                             </h4>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Drag images to reorder • First image is your main photo
+                              {t('listings:reorderImagesHint', 'Drag images to reorder • First image is your main photo')}
                             </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500 dark:text-gray-500">
-                            {imagePreviewUrls.length}/10 images
-                          </p>
+                        <div className={`text-xs ${isRTL ? 'text-left' : 'text-right'} text-gray-500 dark:text-gray-500`}>
+                          {t('listings:imageCount', '{{count}}/10 images', { count: imagePreviewUrls.length })}
                         </div>
                       </div>
 
@@ -1976,10 +1985,10 @@ export default function ListingWizard({
                           </div>
                           <div className="flex-1">
                             <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                              💡 How to reorder your photos
+                              💡 {t('listings:howToReorderTitle', 'How to reorder your photos')}
                             </h5>
                             <p className="text-xs text-blue-700 dark:text-blue-300">
-                              Drag and drop images to change their order. The first image will be your main listing photo that buyers see first.
+                              {t('listings:howToReorderBody', 'Drag and drop images to change their order. The first image will be your main listing photo that buyers see first.')}
                             </p>
                           </div>
                         </div>
@@ -2028,7 +2037,7 @@ export default function ListingWizard({
                           <button
                             type="button"
                             onClick={() => setShowVideoUpload(!showVideoUpload)}
-                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 text-left group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-800 ${
+                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${rtl.text.textStart} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-800 min-h-[160px] ${
                               showVideoUpload || (formData.videos && formData.videos.length > 0)
                                 ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 text-blue-900 dark:text-blue-100 shadow-lg'
                                 : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/10'
@@ -2039,9 +2048,10 @@ export default function ListingWizard({
                             aria-expanded={showVideoUpload}
                             aria-describedby="video-upload-description"
                           >
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-start space-x-4">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                            <div className="flex flex-col h-full">
+                              <div className="flex items-start justify-between">
+                                <div className={`flex items-start ${rtl.spacing.spaceX('4')} flex-1`}>
+                                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
                                   showVideoUpload || (formData.videos && formData.videos.length > 0)
                                     ? 'bg-blue-500 text-white shadow-lg'
                                     : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/40'
@@ -2054,43 +2064,44 @@ export default function ListingWizard({
                                   <h4 className="font-semibold text-lg mb-1">
                                     {t('listings:addVideoUpload', 'Upload Video File')}
                                     {!isVideoUrlEnabled && (
-                                      <span className="ms-2 px-2 py-1 text-xs bg-blue-500 text-white rounded-full">
-                                        Only Option
+                                      <span className={`${rtl.spacing.ms('2')} px-2 py-1 text-xs bg-blue-500 text-white rounded-full`}>
+                                        {t('listings:onlyOption', 'Only Option')}
                                       </span>
                                     )}
                                   </h4>
                                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" id="video-upload-description">
                                     {t('listings:videoUploadToggleHelp', 'Upload a video file from your device')}
                                   </p>
-                                  <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-500 mt-3">
-                                    <div className="flex items-center space-x-1">
+                                  <div className={`flex items-center ${rtl.spacing.spaceX('4')} text-xs text-gray-500 dark:text-gray-500 mt-3`}>
+                                    <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
                                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                      <span>Max 100MB</span>
+                                      <span>{t('listings:videoMaxSize', 'Max 100MB')}</span>
                                     </div>
-                                    <div className="flex items-center space-x-1">
+                                    <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
                                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                      <span>3 min duration</span>
+                                      <span>{t('listings:videoMaxDuration', '3 min duration')}</span>
                                     </div>
-                                    <div className="flex items-center space-x-1">
+                                    <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
                                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                      <span>MP4, MOV, AVI</span>
+                                      <span>{t('listings:videoFormats', 'MP4, MOV, AVI')}</span>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                              <div className={`transform transition-all duration-300 ${
-                                showVideoUpload ? 'rotate-90 scale-110' : 'group-hover:scale-105'
-                              }`}>
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                </svg>
+                                </div>
+                                <div className={`transform transition-all duration-300 ${
+                                  showVideoUpload ? 'rotate-90 scale-110' : 'group-hover:scale-105'
+                                }`}>
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </div>
                               </div>
                             </div>
                             {(formData.videos && formData.videos.length > 0) && (
-                              <div className="mt-3 flex items-center space-x-2">
+                              <div className={`mt-3 flex items-center ${rtl.spacing.spaceX('2')}`}>
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                                 <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                                  {formData.videos.length} video file ready to upload
+                                  {t('listings:videoFileReadyToUpload', '{{count}} video file ready to upload', { count: formData.videos.length })}
                                 </span>
                               </div>
                             )}
@@ -2103,7 +2114,7 @@ export default function ListingWizard({
                           <button
                             type="button"
                             onClick={() => setShowVideoUrl(!showVideoUrl)}
-                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 text-left group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-800 ${
+                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${rtl.text.textStart} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-800 min-h-[160px] ${
                               showVideoUrl || (formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0])
                                 ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 text-purple-900 dark:text-purple-100 shadow-lg'
                                 : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 bg-white dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/10'
@@ -2114,9 +2125,10 @@ export default function ListingWizard({
                             aria-expanded={showVideoUrl}
                             aria-describedby="video-url-description"
                           >
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-start space-x-4">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                            <div className="flex flex-col h-full">
+                              <div className="flex items-start justify-between">
+                                <div className={`flex items-start ${rtl.spacing.spaceX('4')} flex-1`}>
+                                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
                                   showVideoUrl || (formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0])
                                     ? 'bg-purple-500 text-white shadow-lg'
                                     : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 group-hover:bg-purple-200 dark:group-hover:bg-purple-800/40'
@@ -2129,43 +2141,44 @@ export default function ListingWizard({
                                   <h4 className="font-semibold text-lg mb-1">
                                     {t('listings:addVideoUrl', 'Add Video URL')}
                                     {!isVideoUploadEnabled && (
-                                      <span className="ms-2 px-2 py-1 text-xs bg-purple-500 text-white rounded-full">
-                                        Only Option
+                                      <span className={`${rtl.spacing.ms('2')} px-2 py-1 text-xs bg-purple-500 text-white rounded-full`}>
+                                        {t('listings:onlyOption', 'Only Option')}
                                       </span>
                                     )}
                                   </h4>
                                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" id="video-url-description">
                                     {t('listings:videoUrlToggleHelp', 'Add a YouTube, Vimeo, or other video URL')}
                                   </p>
-                                  <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-500 mt-3">
-                                    <div className="flex items-center space-x-1">
+                                  <div className={`flex items-center ${rtl.spacing.spaceX('4')} text-xs text-gray-500 dark:text-gray-500 mt-3`}>
+                                    <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
                                       <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                      <span>YouTube</span>
+                                      <span>{t('listings:youTube', 'YouTube')}</span>
                                     </div>
-                                    <div className="flex items-center space-x-1">
+                                    <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
                                       <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                      <span>Vimeo</span>
+                                      <span>{t('listings:vimeo', 'Vimeo')}</span>
                                     </div>
-                                    <div className="flex items-center space-x-1">
+                                    <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
                                       <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                      <span>External links</span>
+                                      <span>{t('listings:externalLinks', 'External links')}</span>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                              <div className={`transform transition-all duration-300 ${
-                                showVideoUrl ? 'rotate-90 scale-110' : 'group-hover:scale-105'
-                              }`}>
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                </svg>
+                                </div>
+                                <div className={`transform transition-all duration-300 ${
+                                  showVideoUrl ? 'rotate-90 scale-110' : 'group-hover:scale-105'
+                                }`}>
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </div>
                               </div>
                             </div>
                             {(formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0]) && (
-                              <div className="mt-3 flex items-center space-x-2">
+                              <div className={`mt-3 flex items-center ${rtl.spacing.spaceX('2')}`}>
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                                 <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                                  Video URL added and ready
+                                  {t('listings:videoUrlAddedAndReady', 'Video URL added and ready')}
                                 </span>
                               </div>
                             )}
@@ -2209,7 +2222,7 @@ export default function ListingWizard({
                     <div className="animate-in slide-in-from-top-4 duration-500 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 rounded-2xl p-6 border border-blue-200 dark:border-blue-800 shadow-lg">
                       <div className="space-y-6">
                         {/* Upload Header */}
-                        <div className="flex items-center space-x-3">
+                        <div className={`flex items-center ${rtl.spacing.spaceX('3')}`}>
                           <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center">
                             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16l13-8z" />
@@ -2217,10 +2230,10 @@ export default function ListingWizard({
                           </div>
                           <div>
                             <h5 className="font-semibold text-blue-900 dark:text-blue-100">
-                              Upload Video File
+                              {t('listings:uploadVideoFile', 'Upload Video File')}
                             </h5>
                             <p className="text-sm text-blue-700 dark:text-blue-300">
-                              Drag & drop or click to select
+                              {t('listings:dragDropOrClickToSelect', 'Drag & drop or click to select')}
                             </p>
                           </div>
                         </div>
@@ -2249,20 +2262,20 @@ export default function ListingWizard({
                                   {t('listings:uploadVideoLabel', 'Choose your video file')}
                                 </p>
                                 <p className="text-sm text-blue-600 dark:text-blue-400">
-                                  or drag and drop it here
+                                  {t('listings:orDragAndDropItHere', 'or drag and drop it here')}
                                 </p>
-                                <div className="flex items-center justify-center space-x-6 text-xs text-blue-500 dark:text-blue-400 mt-4">
-                                  <div className="flex items-center space-x-1">
+                                <div className={`flex items-center justify-center ${rtl.spacing.spaceX('6')} text-xs text-blue-500 dark:text-blue-400 mt-4`}>
+                                  <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>Max 100MB</span>
+                                    <span>{t('listings:videoMaxSize', 'Max 100MB')}</span>
                                   </div>
-                                  <div className="flex items-center space-x-1">
+                                  <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>3 min duration</span>
+                                    <span>{t('listings:videoMaxDuration', '3 min duration')}</span>
                                   </div>
-                                  <div className="flex items-center space-x-1">
+                                  <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>MP4, MOV, AVI</span>
+                                    <span>{t('listings:videoFormats', 'MP4, MOV, AVI')}</span>
                                   </div>
                                 </div>
                               </div>
@@ -2285,14 +2298,14 @@ export default function ListingWizard({
                       {/* Enhanced Video Preview */}
                       {formData.videos && formData.videos.length > 0 && videoPreviewUrls.length > 0 && (
                         <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-4 mt-6 pt-6 border-t border-blue-200 dark:border-blue-700">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
+                          <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex items-center ${rtl.spacing.spaceX('3')}`}>
                               <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
                                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                                 </svg>
                               </div>
-                              <div>
+                              <div className={rtl.text.textStart}>
                                 <h4 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
                                   {t('listings:videoPreview', 'Video Preview')}
                                 </h4>
@@ -2304,13 +2317,13 @@ export default function ListingWizard({
                             <button
                               type="button"
                               onClick={() => removeVideo(0)}
-                              className="flex items-center space-x-2 px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg transition-colors duration-200 text-sm font-medium"
+                              className={`flex items-center ${rtl.spacing.spaceX('2')} px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg transition-colors duration-200 text-sm font-medium`}
                               aria-label="Remove video"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
-                              <span>Remove</span>
+                              <span>{t('listings:remove', 'Remove')}</span>
                             </button>
                           </div>
                           <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl">
@@ -2323,8 +2336,8 @@ export default function ListingWizard({
                             >
                               Your browser does not support the video tag.
                             </video>
-                            <div className="absolute top-4 start-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1">
-                              <span className="text-white text-sm font-medium">Ready to upload</span>
+                            <div className={`absolute top-4 ${rtl.spacing.start('4')} bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1`}>
+                              <span className="text-white text-sm font-medium">{t('listings:readyToUpload', 'Ready to upload')}</span>
                             </div>
                           </div>
                         </div>
@@ -2337,18 +2350,18 @@ export default function ListingWizard({
                     <div className="animate-in slide-in-from-top-4 duration-500 bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10 rounded-2xl p-6 border border-purple-200 dark:border-purple-800 shadow-lg">
                       <div className="space-y-6">
                         {/* URL Header */}
-                        <div className="flex items-center space-x-3">
+                        <div className={`flex items-center ${rtl.spacing.spaceX('3')}`}>
                           <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center">
                             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                             </svg>
                           </div>
-                          <div>
+                          <div className={rtl.text.textStart}>
                             <h5 className="font-semibold text-purple-900 dark:text-purple-100">
-                              Add Video URL
+                              {t('listings:addVideoUrl', 'Add Video URL')}
                             </h5>
                             <p className="text-sm text-purple-700 dark:text-purple-300">
-                              Paste your video link below
+                              {t('listings:pasteVideoLinkBelow', 'Paste your video link below')}
                             </p>
                           </div>
                         </div>
@@ -2391,17 +2404,19 @@ export default function ListingWizard({
 
                           {/* Platform Examples */}
                           <div className="grid grid-cols-2 gap-3 pt-2">
-                            <div className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-800">
+                            <div className={`flex items-center ${rtl.spacing.spaceX('2')} p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-800`}>
                               <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center">
-                                <span className="text-white text-xs font-bold">▶</span>
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16l13-8z" />
+                                </svg>
                               </div>
-                              <span className="text-sm font-medium text-red-700 dark:text-red-300">YouTube</span>
+                              <span className="text-sm font-medium text-red-700 dark:text-red-300">{t('listings:youTube', 'YouTube')}</span>
                             </div>
-                            <div className="flex items-center space-x-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                            <div className={`flex items-center ${rtl.spacing.spaceX('2')} p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800`}>
                               <div className="w-6 h-6 bg-blue-500 rounded flex items-center justify-center">
                                 <span className="text-white text-xs font-bold">V</span>
                               </div>
-                              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Vimeo</span>
+                              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{t('listings:vimeo', 'Vimeo')}</span>
                             </div>
                           </div>
                         </div>
@@ -2410,8 +2425,8 @@ export default function ListingWizard({
                       {/* External Video Preview */}
                       {formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0] && (
                         <div className="space-y-4">
-                          <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
-                            {t('listings:videoPreview', 'Video preview')} - External
+                          <h4 className={`text-md font-medium text-gray-900 dark:text-gray-100 ${rtl.text.textStart}`}>
+                            {t('listings:videoPreview', 'Video preview')} - {t('listings:external', 'External')}
                           </h4>
                           
                           {/* Video Embed Preview */}
@@ -2433,7 +2448,7 @@ export default function ListingWizard({
                                   <button
                                     type="button"
                                     onClick={() => removeVideoUrl(0)}
-                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200 z-10"
+                                    className={`absolute -top-2 ${isRTL ? '-left-2' : '-right-2'} bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200 z-10`}
                                     aria-label="Remove video URL"
                                   >
                                     ×
@@ -2445,22 +2460,22 @@ export default function ListingWizard({
                             // Fallback for non-embeddable URLs
                             return (
                               <div className="relative p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex-1">
+                                <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                  <div className={`flex-1 ${rtl.text.textStart}`}>
                                     <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                                      External Video URL
+                                      {t('listings:externalVideoUrl', 'External Video URL')}
                                     </p>
                                     <p className="text-sm text-blue-700 dark:text-blue-300 break-all">
                                       {formData.videoUrls[0]}
                                     </p>
                                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                      Preview not available for this URL format
+                                      {t('listings:previewNotAvailable', 'Preview not available for this URL format')}
                                     </p>
                                   </div>
                                   <button
                                     type="button"
                                     onClick={() => removeVideoUrl(0)}
-                                    className="ms-4 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200"
+                                    className={`${rtl.spacing.ms('4')} bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200`}
                                     aria-label="Remove video URL"
                                   >
                                     ×
@@ -2471,9 +2486,9 @@ export default function ListingWizard({
                           })()}
                           
                           {/* URL Info */}
-                          <div className="text-center">
+                          <div className={`text-center ${rtl.text.textStart}`}>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              Source: {formData.videoUrls[0]}
+                              {t('listings:source', 'Source')}: {formData.videoUrls[0]}
                             </p>
                           </div>
                         </div>
@@ -2742,8 +2757,8 @@ export default function ListingWizard({
               </div>
             )}
 
-            {/* Form Navigation */}
-            <div className="flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-gray-200 dark:border-gray-700 space-y-4 sm:space-y-0">
+            {/* Form Navigation (sticky on mobile) */}
+            <div className="sticky bottom-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur supports-[backdrop-filter]:backdrop-blur flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-gray-200 dark:border-gray-700 space-y-4 sm:space-y-0">
               <div className="order-2 sm:order-1">
                 <button
                   ref={previousButtonRef}

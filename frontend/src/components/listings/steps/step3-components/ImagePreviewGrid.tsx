@@ -50,7 +50,7 @@ const ImagePreviewGrid = memo(function ImagePreviewGrid({
               {t('listings:newListingImagePreview', 'Image Preview')} ({imagePreviewUrls.length})
             </h4>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Drag images to reorder • First image is your main photo
+              {t('listings:reorderImagesHint', 'Drag images to reorder • First image is your main photo')}
             </p>
           </div>
         </div>
@@ -156,12 +156,12 @@ const ImagePreviewGrid = memo(function ImagePreviewGrid({
             </svg>
           </div>
           <div className="flex-1">
-            <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-              💡 How to reorder your photos
-            </h5>
-            <p className="text-xs text-blue-700 dark:text-blue-300">
-              Drag and drop images to change their order. The first image will be your main listing photo that buyers see first.
-            </p>
+          <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+            💡 {t('listings:howToReorderTitle', 'How to reorder your photos')}
+          </h5>
+          <p className="text-xs text-blue-700 dark:text-blue-300">
+            {t('listings:howToReorderBody', 'Drag and drop images to change their order. The first image will be your main listing photo that buyers see first.')}
+          </p>
           </div>
         </div>
       </div>

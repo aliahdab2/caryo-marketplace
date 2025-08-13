@@ -1,6 +1,7 @@
 "use client";
 
 import React, { memo } from 'react';
+import { useDirection } from '@/utils/direction';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
@@ -43,6 +44,7 @@ const VideoSection = memo(function VideoSection({
   getVideoEmbedUrl
 }: VideoSectionProps) {
   const { t } = useLazyTranslation(['listings']);
+  const { isRTL } = useDirection();
 
   if (!isAnyVideoFeatureEnabled) {
     return null;
@@ -62,7 +64,7 @@ const VideoSection = memo(function VideoSection({
       {/* Video Options - Enhanced UX with Configuration Handling */}
       <div className="space-y-4">
         {/* Header with better description - Adaptive based on available options */}
-        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'} text-sm text-gray-600 dark:text-gray-400`}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -88,7 +90,7 @@ const VideoSection = memo(function VideoSection({
               <button
                 type="button"
                 onClick={() => setShowVideoUpload(!showVideoUpload)}
-                className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 text-left group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-800 ${
+                className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${isRTL ? 'text-right' : 'text-left'} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-800 ${
                   showVideoUpload || (formData.videos && formData.videos.length > 0)
                     ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 text-blue-900 dark:text-blue-100 shadow-lg'
                     : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/10'
@@ -100,7 +102,7 @@ const VideoSection = memo(function VideoSection({
                 aria-describedby="video-upload-description"
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-4">
+                  <div className={`flex items-start ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
                       showVideoUpload || (formData.videos && formData.videos.length > 0)
                         ? 'bg-blue-500 text-white shadow-lg'
@@ -122,16 +124,16 @@ const VideoSection = memo(function VideoSection({
                       <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" id="video-upload-description">
                         {t('listings:videoUploadToggleHelp', 'Upload a video file from your device')}
                       </p>
-                      <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-500 mt-3">
-                        <div className="flex items-center space-x-1">
+                      <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'} text-xs text-gray-500 dark:text-gray-500 mt-3`}>
+                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                           <span>Max 100MB</span>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                           <span>3 min duration</span>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                           <span>MP4, MOV, AVI</span>
                         </div>
@@ -147,7 +149,7 @@ const VideoSection = memo(function VideoSection({
                   </div>
                 </div>
                 {(formData.videos && formData.videos.length > 0) && (
-                  <div className="mt-3 flex items-center space-x-2">
+                  <div className={`mt-3 flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span className="text-sm font-medium text-green-700 dark:text-green-400">
                       {formData.videos.length} video file ready to upload
@@ -164,7 +166,7 @@ const VideoSection = memo(function VideoSection({
               <button
                 type="button"
                 onClick={() => setShowVideoUrl(!showVideoUrl)}
-                className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 text-left group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-800 ${
+                className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${isRTL ? 'text-right' : 'text-left'} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-800 ${
                   showVideoUrl || (formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0])
                     ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 text-purple-900 dark:text-purple-100 shadow-lg'
                     : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 bg-white dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/10'
@@ -176,7 +178,7 @@ const VideoSection = memo(function VideoSection({
                 aria-describedby="video-url-description"
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-4">
+                  <div className={`flex items-start ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
                       showVideoUrl || (formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0])
                         ? 'bg-purple-500 text-white shadow-lg'
@@ -198,16 +200,16 @@ const VideoSection = memo(function VideoSection({
                       <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" id="video-url-description">
                         {t('listings:videoUrlToggleHelp', 'Add a YouTube, Vimeo, or other video URL')}
                       </p>
-                      <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-500 mt-3">
-                        <div className="flex items-center space-x-1">
+                      <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'} text-xs text-gray-500 dark:text-gray-500 mt-3`}>
+                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                           <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                           <span>YouTube</span>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                           <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                           <span>Vimeo</span>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                           <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                           <span>External links</span>
                         </div>
@@ -223,7 +225,7 @@ const VideoSection = memo(function VideoSection({
                   </div>
                 </div>
                 {(formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0]) && (
-                  <div className="mt-3 flex items-center space-x-2">
+                  <div className={`mt-3 flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span className="text-sm font-medium text-green-700 dark:text-green-400">
                       Video URL added and ready
@@ -240,7 +242,7 @@ const VideoSection = memo(function VideoSection({
           <div className="space-y-3">
             {/* Pro tip - Always show when no videos are added */}
             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center space-x-3">
+            <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
                 <div className="w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
                   <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />

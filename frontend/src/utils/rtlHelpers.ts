@@ -5,6 +5,48 @@
  * without needing to check isRTL in every component.
  */
 
+// TypeScript interfaces for better type safety
+interface RTLSpacing {
+  ml: (size: string) => string;
+  mr: (size: string) => string;
+  ms: (size: string) => string;
+  me: (size: string) => string;
+  pl: (size: string) => string;
+  pr: (size: string) => string;
+  left: (size: string) => string;
+  right: (size: string) => string;
+  start: (size: string) => string;
+  end: (size: string) => string;
+  spaceX: (size: string) => string;
+  flexRow: string;
+}
+
+interface RTLArrows {
+  leftArrow: string;
+  rightArrow: string;
+  chevronLeft: string;
+  chevronRight: string;
+  expandRight: string;
+  expandDown: string;
+}
+
+interface RTLText {
+  textLeft: string;
+  textRight: string;
+  textStart: string;
+  textEnd: string;
+}
+
+export interface RTLHelpers {
+  isRTL: boolean;
+  spacing: RTLSpacing;
+  arrows: RTLArrows;
+  text: RTLText;
+  dir: string;
+  opposite: boolean;
+  rtlClass: (ltrClass: string, rtlClass: string) => string;
+}
+
 /**
  * Get RTL-aware spacing classes
  */
@@ -13,6 +55,8 @@ export function getRTLSpacing(isRTL: boolean) {
     // Margin classes
     ml: (size: string) => isRTL ? `mr-${size}` : `ml-${size}`,
     mr: (size: string) => isRTL ? `ml-${size}` : `mr-${size}`,
+    ms: (size: string) => `ms-${size}`, // Tailwind handles RTL automatically
+    me: (size: string) => `me-${size}`, // Tailwind handles RTL automatically
     
     // Padding classes  
     pl: (size: string) => isRTL ? `pr-${size}` : `pl-${size}`,
@@ -68,7 +112,7 @@ export function getRTLText(isRTL: boolean) {
 /**
  * Complete RTL helper object for easy use in components
  */
-export function createRTLHelpers(isRTL: boolean) {
+export function createRTLHelpers(isRTL: boolean): RTLHelpers {
   return {
     isRTL,
     spacing: getRTLSpacing(isRTL),
