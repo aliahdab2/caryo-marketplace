@@ -5,6 +5,48 @@
  * without needing to check isRTL in every component.
  */
 
+// TypeScript interfaces for better type safety
+interface RTLSpacing {
+  ml: (size: string) => string;
+  mr: (size: string) => string;
+  ms: (size: string) => string;
+  me: (size: string) => string;
+  pl: (size: string) => string;
+  pr: (size: string) => string;
+  left: (size: string) => string;
+  right: (size: string) => string;
+  start: (size: string) => string;
+  end: (size: string) => string;
+  spaceX: (size: string) => string;
+  flexRow: string;
+}
+
+interface RTLArrows {
+  leftArrow: string;
+  rightArrow: string;
+  chevronLeft: string;
+  chevronRight: string;
+  expandRight: string;
+  expandDown: string;
+}
+
+interface RTLText {
+  textLeft: string;
+  textRight: string;
+  textStart: string;
+  textEnd: string;
+}
+
+export interface RTLHelpers {
+  isRTL: boolean;
+  spacing: RTLSpacing;
+  arrows: RTLArrows;
+  text: RTLText;
+  dir: string;
+  opposite: boolean;
+  rtlClass: (ltrClass: string, rtlClass: string) => string;
+}
+
 /**
  * Get RTL-aware spacing classes
  */
@@ -52,9 +94,6 @@ export function getRTLArrows(isRTL: boolean) {
     // Expand/collapse arrows  
     expandRight: isRTL ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7",
     expandDown: "M19 9l-7 7-7-7",
-    
-    // Play icon (triangle pointing in direction of reading)
-    playIcon: isRTL ? "M17 4v16l-13-8z" : "M7 4v16l13-8z",
   };
 }
 
@@ -73,7 +112,7 @@ export function getRTLText(isRTL: boolean) {
 /**
  * Complete RTL helper object for easy use in components
  */
-export function createRTLHelpers(isRTL: boolean) {
+export function createRTLHelpers(isRTL: boolean): RTLHelpers {
   return {
     isRTL,
     spacing: getRTLSpacing(isRTL),
