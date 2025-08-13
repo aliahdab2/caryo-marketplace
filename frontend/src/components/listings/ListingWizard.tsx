@@ -264,6 +264,17 @@ export default function ListingWizard({
       // Validate current step only for navigation
       wizardLogger.debug('Validating step ' + String(currentStep));
       const stepErrors = validateStep(currentStep, formData, t, { mode: 'navigation' });
+      // If only non-blocking fields failed (e.g., title/price on step 1 due to previous state), clear them for navigation
+      if (currentStep === 1 && Object.keys(stepErrors).length > 0) {
+        const blockingKeys = ['make','model','year'];
+        const nonBlockingOnly = Object.keys(stepErrors).every(k => !blockingKeys.includes(k));
+        if (nonBlockingOnly) {
+          wizardLogger.debug('Non-blocking errors on step 1 ignored for navigation');
+          setFormErrors({});
+          setCurrentStep(prev => prev + 1);
+          return;
+        }
+      }
       wizardLogger.debug('Validation errors ' + JSON.stringify(stepErrors));
       if (Object.keys(stepErrors).length > 0) {
         wizardLogger.info('Validation failed, stopping submission');
@@ -1207,8 +1218,8 @@ export default function ListingWizard({
                     {(() => {
                       const currentYear = new Date().getFullYear();
                       const years = [];
-                      // From next year down to 1990
-                      for (let year = currentYear + 1; year >= 1990; year--) {
+                      // From current year down to 1990 (no future years)
+                      for (let year = currentYear; year >= 1990; year--) {
                         years.push(
                           <option key={year} value={year.toString()}>
                             {year}
