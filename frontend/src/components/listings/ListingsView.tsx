@@ -25,7 +25,7 @@ import { useDeleteConfirmation } from "../../hooks/useDeleteConfirmation";
 import { useState, useCallback } from "react";
 
 // Move namespaces outside component to prevent recreation on every render
-const LISTINGS_NAMESPACES = ['listings', 'common'];
+const LISTINGS_NAMESPACES = ['listings', 'common', 'search'];
 
 interface ListingsViewProps {
   listings: Listing[];
@@ -79,6 +79,38 @@ export default function ListingsView({
   className = ""
 }: ListingsViewProps) {
   const { t, i18n } = useTranslation(LISTINGS_NAMESPACES);
+  
+  // Helper function to get translated transmission text
+  const getTransmissionText = (transmission?: string) => {
+    if (!transmission) return '';
+    
+    // Fallback to translation lookup
+    const normalized = transmission.toLowerCase();
+    const translatedKey = `transmissions${normalized.charAt(0).toUpperCase() + normalized.slice(1)}`;
+    const translated = t(translatedKey, { ns: 'search' });
+    
+    if (translated && translated !== translatedKey) {
+      return translated;
+    }
+    
+    return transmission;
+  };
+
+  // Helper function to get translated fuel type text
+  const getFuelTypeText = (fuelType?: string) => {
+    if (!fuelType) return '';
+    
+    // Fallback to translation lookup
+    const normalized = fuelType.toLowerCase();
+    const translatedKey = `fuelTypes${normalized.charAt(0).toUpperCase() + normalized.slice(1)}`;
+    const translated = t(translatedKey, { ns: 'search' });
+    
+    if (translated && translated !== translatedKey) {
+      return translated;
+    }
+    
+    return fuelType;
+  };
   
   // State for full variant features
   const [searchTerm, setSearchTerm] = useState("");
@@ -510,13 +542,13 @@ export default function ListingsView({
                               {listing.fuelType && (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700/50 text-green-700 dark:text-green-300 text-xs">
                                   <MdLocalGasStation className="w-3 h-3" />
-                                  {listing.fuelType}
+                                  {getFuelTypeText(listing.fuelType)}
                                 </span>
                               )}
                               {listing.transmission && (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700/50 text-purple-700 dark:text-purple-300 text-xs">
                                   <MdSettings className="w-3 h-3" />
-                                  {listing.transmission}
+                                  {getTransmissionText(listing.transmission)}
                                 </span>
                               )}
                             </div>
