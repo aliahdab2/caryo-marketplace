@@ -11,13 +11,14 @@ import {
   MdDelete,
   MdArrowForward,
   MdAddCircleOutline,
-  MdCalendarToday,
   MdAccessTime,
   MdLocationOn,
   MdSpeed,
   MdSearch,
   MdCheckBox,
-  MdCheckBoxOutlineBlank
+  MdCheckBoxOutlineBlank,
+  MdLocalGasStation,
+  MdSettings
 } from "react-icons/md";
 import DeleteConfirmationModal from "../ui/DeleteConfirmationModal";
 import { useDeleteConfirmation } from "../../hooks/useDeleteConfirmation";
@@ -463,19 +464,70 @@ export default function ListingsView({
                       )}
                     </div>
 
-                    {/* Car Details */}
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-2">
-                      <span className="flex items-center">
-                        <MdCalendarToday className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-purple-500" />
-                        {listing.year || listing.modelYear}
-                      </span>
-                      {hasValidMileage && (
-                        <span className="flex items-center ml-4 rtl:ml-0 rtl:mr-4">
-                          <MdSpeed className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-orange-500" />
-                          {listing.mileage.toLocaleString()}
-                        </span>
+                    {/* Make and Model - Enhanced with year */}
+                    <div className="mb-3">
+                      {(listing.brandNameEn || listing.brandNameAr || listing.make || listing.brand) && (
+                        <div className="flex flex-wrap items-center gap-2">
+                          {/* Primary vehicle info */}
+                          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700/50 text-blue-900 dark:text-blue-100 text-sm font-medium shadow-sm">
+                            <MdDirectionsCar className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-semibold">
+                                {i18n.language === 'ar'
+                                  ? (listing.brandNameAr || listing.brand || listing.make)
+                                  : (listing.brandNameEn || listing.brand || listing.make)}
+                              </span>
+                              {(listing.modelNameEn || listing.modelNameAr || listing.model) && (
+                                <>
+                                  <span className="text-blue-400 dark:text-blue-300">•</span>
+                                  <span className="font-medium opacity-90">
+                                    {i18n.language === 'ar' 
+                                      ? (listing.modelNameAr || listing.model) 
+                                      : (listing.modelNameEn || listing.model)}
+                                  </span>
+                                </>
+                              )}
+                              {(listing.year || listing.modelYear) && (
+                                <>
+                                  <span className="text-blue-400 dark:text-blue-300">•</span>
+                                  <span className="text-xs bg-blue-100 dark:bg-blue-800/50 text-blue-700 dark:text-blue-200 px-1.5 py-0.5 rounded font-medium">
+                                    {listing.year || listing.modelYear}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Additional specs if available */}
+                          {(listing.fuelType || listing.transmission) && (
+                            <div className="flex items-center gap-1.5">
+                              {listing.fuelType && (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs">
+                                  <MdLocalGasStation className="w-3 h-3" />
+                                  {listing.fuelType}
+                                </span>
+                              )}
+                              {listing.transmission && (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs">
+                                  <MdSettings className="w-3 h-3" />
+                                  {listing.transmission}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
+
+                    {/* Car Details - Mileage and other specs */}
+                    {hasValidMileage && (
+                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-2">
+                        <span className="flex items-center">
+                          <MdSpeed className="w-4 h-4 mr-1.5 rtl:mr-0 rtl:ml-1.5 text-orange-500" />
+                          {listing.mileage.toLocaleString()} {t('common:km')}
+                        </span>
+                      </div>
+                    )}
 
                     {/* Location, Date, and Actions */}
                     <div className="flex items-center justify-between">
