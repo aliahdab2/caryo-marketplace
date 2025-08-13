@@ -123,9 +123,10 @@ export default function ListingWizard({
   initialData = {}, 
   autoLoad = true,
   autoSave = true,
+  showHeader = true,
   onSuccess, 
   onCancel 
-}: ListingWizardProps) {
+}: ListingWizardProps & { showHeader?: boolean }) {
   const router = useRouter();
   const { t, i18n, ready } = useLazyTranslation(['listings', 'common']);
   
@@ -1093,14 +1094,16 @@ export default function ListingWizard({
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            {mode === 'create' ? t('listings:newListing') : t('listings:editListing')}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            {mode === 'create' ? t('listings:newListingSubtitle') : t('listings:editListingSubtitle')}
-          </p>
-        </div>
+        {showHeader && (
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              {mode === 'create' ? t('listings:newListing') : t('listings:editListing')}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              {mode === 'create' ? t('listings:newListingSubtitle') : t('listings:editListingSubtitle')}
+            </p>
+          </div>
+        )}
 
         {/* Step Navigation */}
         <div className="mb-8">
@@ -1662,7 +1665,7 @@ export default function ListingWizard({
                   </div>
 
                   {/* Enhanced Image Preview Grid with Drag & Drop Reordering */}
-                  {formData.images.length > 0 && (
+                  {(formData.images.length > 0 || imagePreviewUrls.length > 0) && (
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
@@ -1673,7 +1676,7 @@ export default function ListingWizard({
                           </div>
                           <div>
                             <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                              {t('listings:newListingImagePreview', 'Image Preview')} ({formData.images.length})
+                              {t('listings:newListingImagePreview', 'Image Preview')} ({imagePreviewUrls.length})
                             </h4>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
                               Drag images to reorder • First image is your main photo
@@ -1682,7 +1685,7 @@ export default function ListingWizard({
                         </div>
                         <div className="text-right">
                           <p className="text-xs text-gray-500 dark:text-gray-500">
-                            {formData.images.length}/10 images
+                            {imagePreviewUrls.length}/10 images
                           </p>
                         </div>
                       </div>
