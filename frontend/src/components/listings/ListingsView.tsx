@@ -25,7 +25,7 @@ import { useDeleteConfirmation } from "../../hooks/useDeleteConfirmation";
 import { useState, useCallback } from "react";
 
 // Move namespaces outside component to prevent recreation on every render
-const LISTINGS_NAMESPACES = ['listings', 'common', 'search'];
+const LISTINGS_NAMESPACES = ['listings', 'common'];
 
 interface ListingsViewProps {
   listings: Listing[];
@@ -83,17 +83,17 @@ export default function ListingsView({
   // Helper function to get bilingual transmission display name from backend data
   const getTransmissionText = (listing: Listing) => {
     if (i18n.language === 'ar') {
-      return listing.transmissionNameAr || listing.transmissionNameEn || listing.transmission || '';
+      return listing.transmissionNameAr || listing.transmissionNameEn || '';
     }
-    return listing.transmissionNameEn || listing.transmissionNameAr || listing.transmission || '';
+    return listing.transmissionNameEn || listing.transmissionNameAr || '';
   };
 
   // Helper function to get bilingual fuel type display name from backend data
   const getFuelTypeText = (listing: Listing) => {
     if (i18n.language === 'ar') {
-      return listing.fuelTypeNameAr || listing.fuelTypeNameEn || listing.fuelType || '';
+      return listing.fuelTypeNameAr || listing.fuelTypeNameEn || '';
     }
-    return listing.fuelTypeNameEn || listing.fuelTypeNameAr || listing.fuelType || '';
+    return listing.fuelTypeNameEn || listing.fuelTypeNameAr || '';
   };
   
   // State for full variant features
