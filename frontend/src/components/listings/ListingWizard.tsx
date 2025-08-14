@@ -5,14 +5,13 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useListingData } from '@/hooks/useListingData';
-import { useFormFieldHandlers } from '@/hooks/useFormFieldHandlers';
 import { createListing, updateListing, uploadListingImage } from '@/services/listings';
 import { ListingFormData, UpdateListingData } from "@/types/listings";
 
 import { FormErrors, StepConfig } from "@/types/forms";
 import { ListingDataService } from '@/services/ListingDataService';
 // SUPPORTED_CURRENCIES removed - not used in this component
-import { validateStep, createFormChangeHandler, createErrorHandler } from '@/utils/formUtils';
+import { validateStep, createFormChangeHandler } from '@/utils/formUtils';
 import { processFormFieldValue } from '@/utils/forms/processing';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 import { createLogger } from '@/utils/logger';
@@ -366,8 +365,7 @@ export default function ListingWizard({
     clearLocations
   } = useListingData(t);
   
-  // Use form field handlers utility
-  const { createDependentFieldHandler, createSimpleDependentFieldHandler } = useFormFieldHandlers();
+
   
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [videoPreviewUrls, setVideoPreviewUrls] = useState<string[]>([]);
@@ -759,60 +757,91 @@ export default function ListingWizard({
     }
   }, [locations, i18n.language, formErrors.locationSlug]);
 
-  // Create field-specific handlers using the utility
-  const handleMakeChange = useMemo(() => 
-    createDependentFieldHandler(
-      'make',
-      carMakes,
-      loadCarModels,
-      clearModels,
-      {
-        logger: wizardLogger,
-        t,
-        onError: (error) => setError(error.message)
-      }
-    ), [createDependentFieldHandler, carMakes, loadCarModels, clearModels, t]
-  );
-
-  const handleGovernorateChange = useMemo(() => 
-    createSimpleDependentFieldHandler(
-      'governorateSlug',
-      loadLocations,
-      clearLocations,
-      {
-        logger: wizardLogger,
-        t,
-        onSuccess: ({ locationData, governorateId }) => {
-          wizardLogger.debug('Loaded locations count ' + String(locationData.length));
-          
-          // CRITICAL FIX: Set governorate ID from location data
-          if (!formData.governorateId && governorateId) {
-            wizardLogger.debug('Setting missing governorate ID');
-            setFormData(prev => ({
-              ...prev,
-              governorateId: governorateId
-            }));
-          }
-        },
-        onError: (error) => setError(error.message)
-      }
-    ), [createSimpleDependentFieldHandler, loadLocations, clearLocations, formData.governorateId, t]
-  );
-
-  // Field handlers map
+  // Simple field handlers (V2: Direct approach with useListingData)
   const fieldHandlers = useMemo(() => ({
-    make: handleMakeChange,
-    governorateSlug: handleGovernorateChange
-  }), [handleMakeChange, handleGovernorateChange]);
+    make: async (value: string) => {
+      if (value && value.trim() !== '') {
+        const selectedMake = carMakes.find(make => make.slug === value);
+        if (selectedMake) {
+          try {
+            await loadCarModels(selectedMake.id.toString());
+            // Set makeId for form submission
+            setFormData(prev => ({ ...prev, makeId: selectedMake.id }));
+          } catch (error) {
+            wizardLogger.error('Failed to load car models:', error);
+            setError(t('common:failedToLoadData', 'Failed to load data'));
+          }
+        } else {
+          clearModels();
+        }
+      } else {
+        clearModels();
+      }
+    },
+    governorateSlug: async (value: string) => {
+      if (value && value.trim() !== '') {
+        try {
+          await loadLocations(value);
+        } catch (error) {
+          wizardLogger.error('Failed to load locations:', error);
+          setError(t('common:failedToLoadData', 'Failed to load data'));
+        }
+      } else {
+        clearLocations();
+      }
+    },
+    // V2: Set location ID directly when location is selected
+    locationSlug: (value: string) => {
+      const selectedLocation = locations.find(l => l.slug === value);
+      if (selectedLocation) {
+        setFormData(prev => ({ ...prev, locationId: selectedLocation.id }));
+      }
+    },
+    // V2: Set IDs directly for transmission and fuel type
+    transmission: (value: string) => {
+      const selectedTransmission = transmissions.find(t => t.slug === value);
+      if (selectedTransmission) {
+        setFormData(prev => ({ ...prev, transmissionId: selectedTransmission.id }));
+      }
+    },
+    fuelType: (value: string) => {
+      const selectedFuelType = fuelTypes.find(f => f.slug === value);
+      if (selectedFuelType) {
+        setFormData(prev => ({ ...prev, fuelTypeId: selectedFuelType.id }));
+      }
+    },
+    model: (value: string) => {
+      const selectedModel = carModels.find(m => m.slug === value);
+      if (selectedModel) {
+        setFormData(prev => ({ ...prev, modelId: selectedModel.id }));
+      }
+    }
+  }), [carMakes, carModels, transmissions, fuelTypes, locations, loadCarModels, clearModels, loadLocations, clearLocations, t]);
 
   // Optimized form change handler using utility
   const handleChange = useCallback(
-    createFormChangeHandler(
-      setFormData,
-      setFormErrors,
-      processFormFieldValue,
-      fieldHandlers
-    ),
+    (fieldOrEvent: string | React.ChangeEvent<any>, value?: unknown) => {
+      if (typeof fieldOrEvent === 'string') {
+        // Direct field/value call
+        return createFormChangeHandler(
+          setFormData,
+          setFormErrors,
+          processFormFieldValue,
+          fieldHandlers
+        )(fieldOrEvent, value as string);
+      } else {
+        // Event-based call
+        const event = fieldOrEvent;
+        const field = event.target.name;
+        const fieldValue = event.target.value;
+        return createFormChangeHandler(
+          setFormData,
+          setFormErrors,
+          processFormFieldValue,
+          fieldHandlers
+        )(field, fieldValue);
+      }
+    },
     [fieldHandlers]
   );
 
@@ -824,6 +853,48 @@ export default function ListingWizard({
 
 
 
+
+  // Load existing listing data for edit mode
+  useEffect(() => {
+    if (autoLoad && mode === 'edit' && listingId && ready) {
+      const loadEditData = async () => {
+        try {
+          setIsLoadingData(true);
+          setLoadError(null);
+          wizardLogger.info(`Loading edit data for listing ID: ${listingId}`);
+          
+          const data = await ListingDataService.loadFormData(mode, listingId);
+          setFormData(prev => ({ ...prev, ...data }));
+          
+          // After setting form data, trigger model loading if make is present
+          if (data.make && data.makeId) {
+            wizardLogger.debug(`Edit mode: Loading models for make: ${data.make} (ID: ${data.makeId})`);
+            loadCarModels(data.makeId.toString()).catch(error => {
+              wizardLogger.error('Failed to load car models in edit mode:', error);
+            });
+          }
+          
+          // Also trigger location loading if governorate is present
+          if (data.governorateSlug) {
+            wizardLogger.debug(`Edit mode: Loading locations for governorate: ${data.governorateSlug}`);
+            loadLocations(data.governorateSlug).catch(error => {
+              wizardLogger.error('Failed to load locations in edit mode:', error);
+            });
+          }
+          
+          wizardLogger.info('Edit data loaded successfully');
+        } catch (error) {
+          wizardLogger.error('Failed to load edit data:', error);
+          setLoadError(error instanceof Error ? error.message : 'Failed to load listing data');
+          setError(t('common:failedToLoadData'));
+        } finally {
+          setIsLoadingData(false);
+        }
+      };
+      
+      loadEditData();
+    }
+  }, [autoLoad, mode, listingId, ready, loadCarModels, loadLocations, t]);
 
   // Duplicate models loading removed - now handled by extracted hook above
 

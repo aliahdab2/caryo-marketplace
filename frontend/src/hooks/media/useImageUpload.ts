@@ -133,7 +133,7 @@ export const useImageUpload = ({
 
     // Validate and process files
     const validFiles: ImageFile[] = [];
-    let errorCount = 0;
+            const _errorCount = 0;
 
     files.forEach((file, index) => {
       const error = validateFile(file);

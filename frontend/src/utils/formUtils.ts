@@ -62,10 +62,10 @@ export function extractFieldData(
 /**
  * Generic form change handler that processes field changes and handles dependencies
  */
-export function createFormChangeHandler<TFormData extends Record<string, any>>(
+export function createFormChangeHandler<TFormData>(
   setFormData: React.Dispatch<React.SetStateAction<TFormData>>,
   setFormErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>,
-  processFormFieldValue: (name: string, value: string) => any,
+  processFormFieldValue: (name: string, value: string) => string,
   fieldHandlers: Record<string, (value: string) => void> = {}
 ) {
   return (
@@ -102,7 +102,7 @@ export function createFormChangeHandler<TFormData extends Record<string, any>>(
  */
 export function createErrorHandler(
   setError: (error: string) => void,
-  logger?: any
+  logger?: { error: (message: string, error: Error) => void }
 ) {
   return (error: Error, context?: string) => {
     const message = error.message || 'An error occurred';
@@ -116,10 +116,10 @@ export function createErrorHandler(
 /**
  * Utility to safely update form data with additional fields
  */
-export function updateFormDataSafely<TFormData extends Record<string, any>>(
+export function updateFormDataSafely<TFormData>(
   setFormData: React.Dispatch<React.SetStateAction<TFormData>>,
   updates: Partial<TFormData>,
-  logger?: any
+  logger?: { debug: (message: string, data: unknown) => void }
 ) {
   setFormData(prev => {
     const updatedData = { ...prev, ...updates };
@@ -315,23 +315,7 @@ const REQUIRED_FIELD_I18N: Record<string, { key: string; fallback: string }> = {
   locationSlug: { key: 'listings:newListingValidationLocationRequired', fallback: 'Location is required' },
 };
 
-function applyRequiredFieldErrors(
-  step: number,
-  data: ListingFormData,
-  t: (key: string, fallback: string) => string,
-  errors: FormErrors
-) {
-  const requiredFields = REQUIRED_FIELDS_BY_STEP[step] || [];
-  for (const field of requiredFields) {
-    const value = data[field];
-    if (!value || (typeof value === 'string' && value.trim().length === 0)) {
-      const i18nMeta = REQUIRED_FIELD_I18N[field as string];
-      if (i18nMeta) {
-        errors[field] = t(i18nMeta.key, i18nMeta.fallback);
-      }
-    }
-  }
-}
+// Removed unused function applyRequiredFieldErrors
 
 type ValidationMode = 'final' | 'navigation' | 'accessibility';
 

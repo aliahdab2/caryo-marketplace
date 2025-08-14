@@ -9,6 +9,12 @@ jest.mock('@/utils/auth', () => ({
   getAuthHeaders: jest.fn().mockResolvedValue({ 'Authorization': 'Bearer test-token' })
 }));
 
+jest.mock('next-auth/react', () => ({
+  getSession: jest.fn().mockResolvedValue({
+    accessToken: 'test-token'
+  })
+}));
+
 // Mock global fetch
 global.fetch = jest.fn();
 
@@ -117,173 +123,207 @@ describe('Listings Service - Data Conversion Integration', () => {
         }
       };
       
-      mockApi.post.mockResolvedValue(mockCreatedListingResponse); // For listing creation
+      // Mock fetch instead of api.post since createListing uses fetch directly
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => mockCreatedListingResponse,
+        text: async () => JSON.stringify(mockCreatedListingResponse)
+      } as Response);
     });
 
     it('should convert slugs to IDs correctly when creating a listing', async () => {
+      // V2: Form data includes IDs directly (no lookups needed)
       const formData = {
         title: 'Test Car',
         description: 'Great car',
-        make: 'toyota',          // Slug
-        model: 'camry',          // Slug  
-        transmission: 'manual',   // Slug
-        fuelType: 'gasoline',    // Slug
+        make: 'toyota',            // For display
+        model: 'camry',           // For display
+        makeId: 1,                // Direct ID
+        modelId: 1,               // Direct ID
+        transmission: 'manual',   // For display
+        fuelType: 'gasoline',    // For display  
+        transmissionId: 1,        // Direct ID
+        fuelTypeId: 1,           // Direct ID
         year: '2020',
         price: '25000',
         currency: 'USD',
         mileage: '50000',
-        locationSlug: 'damascus-center',
+        locationSlug: 'damascus-center', // For display
+        locationId: 123,          // Direct ID
         images: [],
         videos: [],
         videoUrls: []
       };
 
-      await createListing(formData as any);
+      await createListing(formData );
 
-      // Verify location lookup
-      expect(mockApi.get).toHaveBeenCalledWith('/api/locations/slug/damascus-center');
+      // V2: No lookups are performed since IDs are provided directly
+      // Verify NO location lookup is called
+      expect(mockApi.get).not.toHaveBeenCalledWith('/api/locations/slug/damascus-center');
 
-      // Verify brand lookup
-      expect(mockGetVehicleMakes).toHaveBeenCalled();
+      // Verify NO brand/model lookups are called 
+      expect(mockGetVehicleMakes).not.toHaveBeenCalled();
+      expect(mockGetVehicleModels).not.toHaveBeenCalled();
 
-      // Verify model lookup
-      expect(mockGetVehicleModels).toHaveBeenCalledWith(1); // Toyota's ID
+      // Verify NO reference data lookup is called
+      expect(mockGetCarReferenceData).not.toHaveBeenCalled();
 
-      // Verify reference data lookup
-      expect(mockGetCarReferenceData).toHaveBeenCalled();
-
-      // Verify the API call with converted IDs
-      expect(mockApi.post).toHaveBeenCalledWith(
-        '/api/listings',
+      // Verify the fetch call was made (createListing uses fetch directly)
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/listings'),
         expect.objectContaining({
-          title: 'Test Car',
-          description: 'Great car',
-          modelId: 101,         // Converted from 'camry' slug
-          transmissionId: 1,    // Converted from 'manual' slug
-          fuelTypeId: 1,        // Converted from 'gasoline' slug
-          locationId: 123,      // Converted from 'damascus-center' slug
-          modelYear: 2020,
-          price: 25000,
-          mileage: 50000,
-          currency: 'USD'
-        }),
-        expect.any(Object) // Headers
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer test-token'
+          }),
+          body: expect.stringContaining('"modelId":1') // V2: Uses ID directly from form data
+        })
       );
     });
 
     it('should handle missing transmission gracefully', async () => {
+      // V2: Form data includes IDs directly, missing transmission means no transmissionId
       const formData = {
         title: 'Test Car',
         description: 'Great car',
         make: 'toyota',
         model: 'camry',
+        makeId: 1,
+        modelId: 1,
         transmission: '', // Empty transmission
         fuelType: 'gasoline',
+        fuelTypeId: 1,
+        // transmissionId: undefined, // No transmission ID provided
         year: '2020',
         price: '25000',
         currency: 'USD',
         mileage: '50000',
         locationSlug: 'damascus-center',
+        locationId: 123,
         images: [],
         videos: [],
         videoUrls: []
       };
 
-      await createListing(formData as any);
+      await createListing(formData );
 
-      expect(mockApi.post).toHaveBeenCalledWith(
-        '/api/listings',
+      // Verify the fetch call was made (createListing uses fetch directly)
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/listings'),
         expect.objectContaining({
-          modelId: 101,
-          fuelTypeId: 1,
-          // No transmissionId should be set
-        }),
-        expect.any(Object)
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json'
+          }),
+          body: expect.stringContaining('"modelId":1')
+        })
       );
 
-      // Verify transmissionId is not in the call
-      const callArgs = mockApi.post.mock.calls[0][1];
-      expect(callArgs).not.toHaveProperty('transmissionId');
+      // Verify transmissionId is not in the request body
+      const fetchCall = mockFetch.mock.calls[0];
+      const requestBody = fetchCall[1].body;
+      expect(requestBody).not.toContain('transmissionId');
     });
 
-    it('should handle invalid slugs gracefully', async () => {
+    it('should handle missing model ID gracefully', async () => {
+      // V2: Test missing modelId (since we no longer validate slugs)
       const formData = {
         title: 'Test Car',
         description: 'Great car',
-        make: 'invalid-brand',     // Invalid slug
-        model: 'invalid-model',    // Invalid slug
-        transmission: 'invalid-transmission', // Invalid slug
-        fuelType: 'invalid-fuel',  // Invalid slug
+        make: 'toyota',
+        model: 'camry',
+        makeId: 1,
+        // modelId: undefined, // Missing model ID
+        transmission: 'manual',
+        fuelType: 'gasoline',
+        transmissionId: 1,
+        fuelTypeId: 1,
         year: '2020',
         price: '25000',
         currency: 'USD',
         mileage: '50000',
         locationSlug: 'damascus-center',
+        locationId: 123,
         images: [],
         videos: [],
         videoUrls: []
       };
 
-      await expect(createListing(formData as any)).rejects.toThrow('Model ID is required and must be valid');
+      await expect(createListing(formData )).rejects.toThrow('Model ID is required and must be valid');
     });
 
     it('should validate required model ID', async () => {
+      // V2: Test with modelId set to 0 (invalid)
       const formData = {
         title: 'Test Car',
         description: 'Great car',
         make: '',  // No make
         model: '', // No model
+        makeId: 0, // Invalid ID
+        modelId: 0, // Invalid ID
         year: '2020',
         price: '25000',
         currency: 'USD',
         mileage: '50000',
         locationSlug: 'damascus-center',
+        locationId: 123,
         images: [],
         videos: [],
         videoUrls: []
       };
 
-      await expect(createListing(formData as any)).rejects.toThrow('Model ID is required and must be valid');
+      await expect(createListing(formData )).rejects.toThrow('Model ID is required and must be valid');
     });
 
     it('should validate required location', async () => {
+      // V2: Test missing locationId
       const formData = {
         title: 'Test Car',
         description: 'Great car',
         make: 'toyota',
         model: 'camry',
+        makeId: 1,
+        modelId: 1,
         year: '2020',
         price: '25000',
         currency: 'USD',
         mileage: '50000',
         locationSlug: '', // No location
+        // locationId: undefined, // Missing location ID
         images: [],
         videos: [],
         videoUrls: []
       };
 
-      await expect(createListing(formData as any)).rejects.toThrow('Location is required');
+      await expect(createListing(formData )).rejects.toThrow('Location ID is required');
     });
 
-    it('should handle API errors during conversion', async () => {
-      mockGetVehicleMakes.mockRejectedValue(new Error('API Error'));
+    it('should handle API errors during listing creation', async () => {
+      // V2: Test API errors during fetch call (since no conversion lookups happen)
+      mockFetch.mockRejectedValue(new Error('Network Error'));
 
       const formData = {
         title: 'Test Car',
         description: 'Great car',
         make: 'toyota',
         model: 'camry',
+        makeId: 1,
+        modelId: 1,
+        transmissionId: 1,
+        fuelTypeId: 1,
         year: '2020',
         price: '25000',
         currency: 'USD',
         mileage: '50000',
         locationSlug: 'damascus-center',
+        locationId: 123,
         images: [],
         videos: [],
         videoUrls: []
       };
 
-      await expect(createListing(formData as any)).rejects.toThrow('Failed to process selected brand');
+      await expect(createListing(formData )).rejects.toThrow('Failed to create listing');
     });
   });
 });

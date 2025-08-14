@@ -60,8 +60,9 @@ export interface ApiListingItem {
   // Enhanced V2 fields - Complete objects with IDs, slugs, and localized names
   brand?: { id: number; name: string; slug: string; displayNameEn: string; displayNameAr: string; };
   model?: { id: number; name: string; slug: string; displayNameEn: string; displayNameAr: string; };
-  transmission?: { id: number; name: string; slug: string; displayNameEn: string; displayNameAr: string; } | string;
-  fuelType?: { id: number; name: string; slug: string; displayNameEn: string; displayNameAr: string; } | string;
+  // V2: Backend always provides complete objects (no more string fallbacks)
+  transmission?: { id: number; name: string; slug: string; displayNameEn: string; displayNameAr: string; };
+  fuelType?: { id: number; name: string; slug: string; displayNameEn: string; displayNameAr: string; };
   
   // Deprecated string fields (maintained for backward compatibility)
   brandNameEn?: string;

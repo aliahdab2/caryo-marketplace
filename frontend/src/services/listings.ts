@@ -8,15 +8,13 @@ import {
   ListingFormData,
   ListingMedia,
   LocationDetails,
-  ReferenceData,
-  ReferenceDataItem,
   UpdateListingData
 } from '@/types/listings';
 import { api } from './api';
 import { ApiError } from '@/utils/apiErrorHandler';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
 import { getAuthHeaders } from '@/utils/auth';
-import { Location } from './locations';
+
 
 // Utility functions for data transformation
 function determineListingStatus(item: ApiListingItem): 'active' | 'pending' | 'sold' | 'expired' {
@@ -92,39 +90,16 @@ function mapApiResponseToListings(apiResponse: ListingApiResponse): { listings: 
       price: item.price,
       year: item.modelYear,
       mileage: item.mileage,
-      brand: item.brand || (item.brandNameEn ? { 
-        id: 0, 
-        name: item.brandNameEn.toLowerCase(), 
-        slug: item.brandNameEn.toLowerCase().replace(/\s+/g, '-'), 
-        displayNameEn: item.brandNameEn, 
-        displayNameAr: item.brandNameAr || '' 
-      } : undefined), // Use enhanced object or create from deprecated fields
-      model: item.model || (item.modelNameEn ? { 
-        id: 0, 
-        name: item.modelNameEn.toLowerCase(), 
-        slug: item.modelNameEn.toLowerCase().replace(/\s+/g, '-'), 
-        displayNameEn: item.modelNameEn, 
-        displayNameAr: item.modelNameAr || '',
-        brandId: 0
-      } : undefined), // Use enhanced object or create from deprecated fields
+      // V2: Backend provides complete objects - no fallback needed
+      brand: item.brand,
+      model: item.model,
       location,
       governorate,
       image: mainImageUrl,
       media: mediaItems,
-      fuelType: typeof item.fuelType === 'object' ? item.fuelType : (item.fuelTypeNameEn ? { 
-        id: 0, 
-        name: item.fuelTypeNameEn.toLowerCase(), 
-        slug: item.fuelTypeNameEn.toLowerCase().replace(/\s+/g, '-'), 
-        displayNameEn: item.fuelTypeNameEn, 
-        displayNameAr: item.fuelTypeNameAr || '' 
-      } : undefined), // Use enhanced object or create from deprecated fields
-      transmission: typeof item.transmission === 'object' ? item.transmission : (item.transmissionNameEn ? { 
-        id: 0, 
-        name: item.transmissionNameEn.toLowerCase(), 
-        slug: item.transmissionNameEn.toLowerCase().replace(/\s+/g, '-'), 
-        displayNameEn: item.transmissionNameEn, 
-        displayNameAr: item.transmissionNameAr || '' 
-      } : undefined), // Use enhanced object or create from deprecated fields
+      // V2: Backend provides complete objects - no fallback needed
+      fuelType: item.fuelType,
+      transmission: item.transmission,
       // Bilingual names from backend
       transmissionNameEn: item.transmissionNameEn,
       transmissionNameAr: item.transmissionNameAr,
@@ -275,20 +250,9 @@ export async function getListingById(id: string | number): Promise<Listing> {
       } : undefined,
       image: mainImageUrl,
       media: mediaItems,
-      fuelType: typeof response.fuelType === 'object' ? response.fuelType : (response.fuelTypeNameEn ? { 
-        id: 0, 
-        name: response.fuelTypeNameEn.toLowerCase(), 
-        slug: response.fuelTypeNameEn.toLowerCase().replace(/\s+/g, '-'), 
-        displayNameEn: response.fuelTypeNameEn, 
-        displayNameAr: response.fuelTypeNameAr || '' 
-      } : undefined),
-      transmission: typeof response.transmission === 'object' ? response.transmission : (response.transmissionNameEn ? { 
-        id: 0, 
-        name: response.transmissionNameEn.toLowerCase(), 
-        slug: response.transmissionNameEn.toLowerCase().replace(/\s+/g, '-'), 
-        displayNameEn: response.transmissionNameEn, 
-        displayNameAr: response.transmissionNameAr || '' 
-      } : undefined),
+      // V2: Backend provides complete objects - no fallback needed
+      fuelType: response.fuelType,
+      transmission: response.transmission,
       // Bilingual names from backend
       transmissionNameEn: response.transmissionNameEn,
       transmissionNameAr: response.transmissionNameAr,
@@ -506,10 +470,11 @@ export async function getMyListings(): Promise<Listing[]> {
           displayNameAr: item.modelNameAr || '',
           brandId: 0
         } : undefined),
-        brandNameEn: item.brandNameEn,
-        brandNameAr: item.brandNameAr,
-        modelNameEn: item.modelNameEn,
-        modelNameAr: item.modelNameAr,
+              // V2: These fields are now available in the nested objects
+      brandNameEn: item.brand?.displayNameEn,
+      brandNameAr: item.brand?.displayNameAr,
+      modelNameEn: item.model?.displayNameEn,
+      modelNameAr: item.model?.displayNameAr,
         location,
         governorate,
         // CRITICAL FIX: Include details objects for ID access in getMyListings
@@ -597,19 +562,9 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       hasVideoUrls: formData.videoUrls && formData.videoUrls.length > 0
     });
 
-    // Validate that locationSlug is provided
-    if (!formData.locationSlug || formData.locationSlug.trim() === '') {
-      throw new ApiError('Location is required', 400);
-    }
-    
-    // Get location ID from slug
-    let locationId: number;
-    try {
-      const locationResponse = await api.get<Location>(`/api/locations/slug/${formData.locationSlug}`);
-      locationId = locationResponse.id;
-    } catch (error) {
-      console.error('Error fetching location by slug:', error);
-      throw new ApiError('Invalid location selected', 400);
+    // V2: Location ID should be provided directly from form data
+    if (!formData.locationId) {
+      throw new ApiError('Location ID is required', 400);
     }
     
     // Convert form data to match the backend CreateListingRequest exactly
@@ -634,84 +589,24 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       mileage: parseInt(formData.mileage, 10),
       price: parseFloat(formData.price),
       currency: formData.currency || 'USD', // Include currency in API request
-      locationId: locationId, // Use the converted location ID
+      locationId: formData.locationId, // V2: Use ID directly from form data
       isSold: false, // Optional field - default to false
       isArchived: false // Optional field - default to false
     };
 
-    // Add transmission and fuel type IDs if provided
-    let referenceData: ReferenceData | null = null;
+    // V2: Use IDs directly from form data (no conversion needed!)
+    // The useListingData hook provides all reference data with IDs
+    // and the form handlers set the ID fields directly
+    if (formData.modelId) {
+      apiData.modelId = formData.modelId;
+    }
     
-    if (formData.transmission || formData.fuelType) {
-      try {
-        // Fetch reference data to get transmission and fuel type mappings
-        const referenceDataResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/reference-data`,
-          {
-            method: 'GET',
-            headers: {
-              'Authorization': headers.Authorization
-            },
-            credentials: 'include'
-          }
-        );
-        
-        if (referenceDataResponse.ok) {
-          referenceData = await referenceDataResponse.json() as ReferenceData;
-        }
-      } catch (error) {
-        console.warn('[Create Listing] Failed to fetch reference data:', error);
-      }
+    if (formData.transmissionId) {
+      apiData.transmissionId = formData.transmissionId;
     }
-
-    // Convert transmission slug to ID (following location pattern)
-    if (formData.transmission && referenceData) {
-      const transmission = referenceData.transmissions?.find((t: ReferenceDataItem) => t.slug === formData.transmission);
-      if (transmission) {
-        apiData.transmissionId = transmission.id;
-      }
-    }
-
-    // Convert fuel type slug to ID (following location pattern)
-    if (formData.fuelType && referenceData) {
-      const fuelType = referenceData.fuelTypes?.find((f: ReferenceDataItem) => f.slug === formData.fuelType);
-      if (fuelType) {
-        apiData.fuelTypeId = fuelType.id;
-      }
-    }
-
-    // Convert model slug to ID (following location pattern)
-    // First, get the brand ID from make slug
-    let brandId: number | undefined;
-    if (formData.make) {
-      try {
-        // Load all brands to find the brand ID
-        const { getVehicleMakes } = await import('@/services/referenceData');
-        const brands = await getVehicleMakes();
-        const brand = brands.find(b => b.slug === formData.make);
-        if (brand) {
-          brandId = brand.id;
-        }
-      } catch (error) {
-        console.error('Error loading brands:', error);
-        throw new ApiError('Failed to process selected brand', 400);
-      }
-    }
-
-    // Now get the model ID
-    if (formData.model && brandId) {
-      try {
-        // Load models for this brand to find the model ID
-        const { getVehicleModels } = await import('@/services/referenceData');
-        const models = await getVehicleModels(brandId);
-        const model = models.find(m => m.slug === formData.model);
-        if (model) {
-          apiData.modelId = model.id;
-        }
-      } catch (error) {
-        console.error('Error loading models for brand:', error);
-        throw new ApiError('Failed to process selected model', 400);
-      }
+    
+    if (formData.fuelTypeId) {
+      apiData.fuelTypeId = formData.fuelTypeId;
     }
 
     // Validate the API data before sending

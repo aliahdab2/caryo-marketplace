@@ -265,14 +265,14 @@ describe('useListingData - Comprehensive Tests', () => {
       const mockLocations = [{ id: 1, displayNameEn: 'Damascus Center', displayNameAr: 'دمشق المركز', slug: 'damascus-center', governorateId: 1 }];
 
       // Create delayed promises to test loading states
-      let resolveModels: (value: any) => void;
-      let resolveLocations: (value: any) => void;
+      let resolveModels: (value: unknown) => void;
+      let resolveLocations: (value: unknown) => void;
 
       const modelsPromise = new Promise(resolve => { resolveModels = resolve; });
       const locationsPromise = new Promise(resolve => { resolveLocations = resolve; });
 
-      mockGetVehicleModels.mockReturnValue(modelsPromise as any);
-      mockGetLocationsByGovernorateSlug.mockReturnValue(locationsPromise as any);
+      mockGetVehicleModels.mockReturnValue(modelsPromise as Promise<CarModel[]>);
+      mockGetLocationsByGovernorateSlug.mockReturnValue(locationsPromise as Promise<Location[]>);
 
       const { result } = renderHook(() => useListingData(mockT));
 

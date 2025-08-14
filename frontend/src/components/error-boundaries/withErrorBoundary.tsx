@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ComponentType, forwardRef } from 'react';
+import React, { ComponentType } from 'react';
 import { ErrorBoundary, ErrorBoundaryProps } from './ErrorBoundary';
 
 type ErrorBoundaryConfig = Omit<ErrorBoundaryProps, 'children'>;
@@ -45,7 +45,7 @@ type ErrorBoundaryConfig = Omit<ErrorBoundaryProps, 'children'>;
  * ```
  */
 
-export function withErrorBoundary<T extends object = {}>(
+export function withErrorBoundary<T = Record<string, unknown>>(
   WrappedComponent: ComponentType<T>,
   errorBoundaryConfig: ErrorBoundaryConfig = {}
 ): ComponentType<T> {
@@ -62,7 +62,7 @@ export function withErrorBoundary<T extends object = {}>(
       maxRetries: 2,
       resetOnPropsChange: true,
       ...errorBoundaryConfig,
-      children: React.createElement(WrappedComponent, props)
+      children: React.createElement(WrappedComponent as any, props as any)
     };
 
     return <ErrorBoundary {...config} />;
@@ -100,7 +100,7 @@ export function errorBoundary(config: ErrorBoundaryConfig = {}) {
  */
 
 // For page-level components
-export const withPageErrorBoundary = <T extends object>(
+export const withPageErrorBoundary = <T = Record<string, unknown>>(
   WrappedComponent: ComponentType<T>,
   config: Partial<ErrorBoundaryConfig> = {}
 ) => withErrorBoundary(WrappedComponent, {
@@ -112,7 +112,7 @@ export const withPageErrorBoundary = <T extends object>(
 });
 
 // For section-level components
-export const withSectionErrorBoundary = <T extends object>(
+export const withSectionErrorBoundary = <T = Record<string, unknown>>(
   WrappedComponent: ComponentType<T>,
   config: Partial<ErrorBoundaryConfig> = {}
 ) => withErrorBoundary(WrappedComponent, {
@@ -124,7 +124,7 @@ export const withSectionErrorBoundary = <T extends object>(
 });
 
 // For form components
-export const withFormErrorBoundary = <T extends object>(
+export const withFormErrorBoundary = <T = Record<string, unknown>>(
   WrappedComponent: ComponentType<T>,
   config: Partial<ErrorBoundaryConfig> = {}
 ) => withErrorBoundary(WrappedComponent, {
@@ -140,7 +140,7 @@ export const withFormErrorBoundary = <T extends object>(
 });
 
 // For media components
-export const withMediaErrorBoundary = <T extends object>(
+export const withMediaErrorBoundary = <T = Record<string, unknown>>(
   WrappedComponent: ComponentType<T>,
   config: Partial<ErrorBoundaryConfig> = {}
 ) => withErrorBoundary(WrappedComponent, {

@@ -7,7 +7,7 @@ import { validatePhoneNumber } from './useFormState';
 
 interface UseFormValidationOptions {
   debugEnabled?: boolean;
-  translationFunction?: any; // Flexible type for i18n compatibility
+  translationFunction?: any; // Translation function - flexible for react-i18next compatibility
 }
 
 interface UseFormValidationReturn {

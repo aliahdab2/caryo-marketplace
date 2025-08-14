@@ -163,7 +163,7 @@ export const useFormState = ({
       const target = e.target;
       const { name, value, type } = target;
       
-      let processedValue: any = value;
+      let processedValue: unknown = value;
       
       // Handle different input types
       if (type === 'checkbox') {

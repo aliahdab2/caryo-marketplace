@@ -119,7 +119,7 @@ describe('ListingDataService', () => {
         }
       };
 
-      mockGetMyListingById.mockResolvedValue(mockListing as any);
+      mockGetMyListingById.mockResolvedValue(mockListing );
 
       const result = await ListingDataService.loadFormData('edit', '123');
 
@@ -204,7 +204,7 @@ describe('ListingDataService', () => {
         createdAt: '2023-01-01T00:00:00Z'
       };
 
-      mockGetMyListingById.mockResolvedValue(mockListing as any);
+      mockGetMyListingById.mockResolvedValue(mockListing );
 
       const result = await ListingDataService.loadFormData('edit', '123');
 
@@ -220,7 +220,7 @@ describe('ListingDataService', () => {
         createdAt: '2023-01-01T00:00:00Z'
       };
 
-      mockGetMyListingById.mockResolvedValue(mockListing as any);
+      mockGetMyListingById.mockResolvedValue(mockListing );
 
       const result = await ListingDataService.loadFormData('edit', '123');
 
