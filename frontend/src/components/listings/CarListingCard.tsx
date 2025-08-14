@@ -8,6 +8,8 @@ import { formatNumber } from '@/utils/localization';
 import { timeAgo } from '@/utils/dateUtils';
 import FavoriteButton from '@/components/common/FavoriteButton';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
+import { useLanguageDirection } from '@/utils/languageDirection';
+import YearBadge from '@/components/ui/YearBadge';
 
 // Move namespaces outside component to prevent recreation on every render
 const COMMON_NAMESPACES = ['common', 'search'];
@@ -64,6 +66,10 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
   initialFavorite = false 
 }) => {
   const { i18n, t } = useLazyTranslation(COMMON_NAMESPACES);
+  const { isRTL } = useLanguageDirection();
+  
+  // Use year or modelYear - prioritize modelYear as it's more specific
+  const displayYear = listing.modelYear || listing.year;
 
   // Helper function to get translated transmission text
   const getTransmissionText = (transmission?: string) => {
@@ -116,14 +122,11 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
   // Get the primary image or fallback to first image
   const primaryImage = listing.media?.find(m => m.isPrimary)?.url || listing.media?.[0]?.url;
   const imageUrl = primaryImage ? transformMinioUrl(primaryImage) : getDefaultImageUrl();
-  
-  // Use year or modelYear
-  const displayYear = listing.year || listing.modelYear;
 
   return (
-    <div className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out">
+    <div className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Favorite Button */}
-      <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+      <div className={`absolute top-2 ${isRTL ? 'left-2' : 'right-2'} z-10`} onClick={(e) => e.stopPropagation()}>
         <FavoriteButton
           listingId={listing.id.toString()}
           variant="filled"
@@ -148,10 +151,18 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
               e.currentTarget.src = getDefaultImageUrl();
             }}
           />
+          
+          {/* Year Badge */}
+          <YearBadge 
+            year={displayYear} 
+            size="md" 
+            position="bottom-left" 
+            zIndex={20}
+          />
         </div>
 
         {/* Content */}
-        <div className="p-4">
+        <div className={`p-4 ${isRTL ? 'text-right' : 'text-left'}`}>
           <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
             {listing.title}
           </h3>

@@ -28,41 +28,67 @@ public class CarListingResponse {
     private Integer mileage;
     private BigDecimal price;
     private String currency; // Currency code for the price (USD, SYP)
-    private String transmission; // Added field
-    private String fuelType; // Added field
     
     /**
-     * Denormalized transmission name in English for efficient display
+     * Complete transmission object with ID, slug, and display names
      */
+    private TransmissionResponse transmission;
+    
+    /**
+     * Complete fuel type object with ID, slug, and display names
+     */
+    private FuelTypeResponse fuelType;
+    
+    /**
+     * Complete brand object with ID, slug, and display names
+     */
+    private CarBrandResponse brand;
+    
+    /**
+     * Complete model object with ID, slug, and display names
+     */
+    private CarModelResponse model;
+    
+    // DEPRECATED: Keep for backward compatibility - will be removed in future version
+    /**
+     * @deprecated Use transmission.displayNameEn instead
+     */
+    @Deprecated
     private String transmissionNameEn;
     /**
-     * Denormalized transmission name in Arabic for efficient display
+     * @deprecated Use transmission.displayNameAr instead
      */
+    @Deprecated
     private String transmissionNameAr;
     /**
-     * Denormalized fuel type name in English for efficient display
+     * @deprecated Use fuelType.displayNameEn instead
      */
+    @Deprecated
     private String fuelTypeNameEn;
     /**
-     * Denormalized fuel type name in Arabic for efficient display
+     * @deprecated Use fuelType.displayNameAr instead
      */
+    @Deprecated
     private String fuelTypeNameAr;
-    
     /**
-     * Denormalized brand name in English for efficient search
+     * @deprecated Use brand.displayNameEn instead
      */
+    @Deprecated
     private String brandNameEn;
     /**
-     * Denormalized brand name in Arabic for efficient search
+     * @deprecated Use brand.displayNameAr instead
      */
+    @Deprecated
     private String brandNameAr;
     /**
-     * Denormalized model name in English for efficient search
+     * @deprecated Use model.displayNameEn instead
      */
+    @Deprecated
     private String modelNameEn;
     /**
-     * Denormalized model name in Arabic for efficient search
+     * @deprecated Use model.displayNameAr instead
      */
+    @Deprecated
     private String modelNameAr;
     
     /**
@@ -105,23 +131,53 @@ public class CarListingResponse {
     // Explicit Getters
     public Long getId() { return id; }
     public String getTitle() { return title; }
-    // Removed getBrand and getModel; use denormalized fields below
-    public String getBrandNameEn() { return brandNameEn; }
-    public String getBrandNameAr() { return brandNameAr; }
-    public String getModelNameEn() { return modelNameEn; }
-    public String getModelNameAr() { return modelNameAr; }
-    public String getGovernorateNameEn() { return governorateNameEn; }
-    public String getGovernorateNameAr() { return governorateNameAr; }
     public Integer getModelYear() { return modelYear; }
     public Integer getMileage() { return mileage; }
     public BigDecimal getPrice() { return price; }
     public String getCurrency() { return currency; }
-    public String getTransmission() { return transmission; } // Added getter
-    public String getFuelType() { return fuelType; } // Added getter
-    public String getTransmissionNameEn() { return transmissionNameEn; }
-    public String getTransmissionNameAr() { return transmissionNameAr; }
-    public String getFuelTypeNameEn() { return fuelTypeNameEn; }
-    public String getFuelTypeNameAr() { return fuelTypeNameAr; }
+    
+    // New object getters
+    public TransmissionResponse getTransmission() { return transmission; }
+    public FuelTypeResponse getFuelType() { return fuelType; }
+    public CarBrandResponse getBrand() { return brand; }
+    public CarModelResponse getModel() { return model; }
+    
+    // Backward compatibility getters - delegate to objects
+    @Deprecated
+    public String getBrandNameEn() { 
+        return brand != null ? brand.getDisplayNameEn() : brandNameEn; 
+    }
+    @Deprecated
+    public String getBrandNameAr() { 
+        return brand != null ? brand.getDisplayNameAr() : brandNameAr; 
+    }
+    @Deprecated
+    public String getModelNameEn() { 
+        return model != null ? model.getDisplayNameEn() : modelNameEn; 
+    }
+    @Deprecated
+    public String getModelNameAr() { 
+        return model != null ? model.getDisplayNameAr() : modelNameAr; 
+    }
+    @Deprecated
+    public String getTransmissionNameEn() { 
+        return transmission != null ? transmission.getDisplayNameEn() : transmissionNameEn; 
+    }
+    @Deprecated
+    public String getTransmissionNameAr() { 
+        return transmission != null ? transmission.getDisplayNameAr() : transmissionNameAr; 
+    }
+    @Deprecated
+    public String getFuelTypeNameEn() { 
+        return fuelType != null ? fuelType.getDisplayNameEn() : fuelTypeNameEn; 
+    }
+    @Deprecated
+    public String getFuelTypeNameAr() { 
+        return fuelType != null ? fuelType.getDisplayNameAr() : fuelTypeNameAr; 
+    }
+    
+    public String getGovernorateNameEn() { return governorateNameEn; }
+    public String getGovernorateNameAr() { return governorateNameAr; }
     
     public LocationResponse getLocationDetails() { return locationDetails; }
     public GovernorateResponse getGovernorateDetails() { return governorateDetails; }
@@ -152,8 +208,10 @@ public class CarListingResponse {
     public void setMileage(Integer mileage) { this.mileage = mileage; }
     public void setPrice(BigDecimal price) { this.price = price; }
     public void setCurrency(String currency) { this.currency = currency; }
-    public void setTransmission(String transmission) { this.transmission = transmission; } // Added setter
-    public void setFuelType(String fuelType) { this.fuelType = fuelType; } // Added setter
+    public void setTransmission(TransmissionResponse transmission) { this.transmission = transmission; } // Updated setter
+    public void setFuelType(FuelTypeResponse fuelType) { this.fuelType = fuelType; } // Updated setter
+    public void setBrand(CarBrandResponse brand) { this.brand = brand; } // Added setter
+    public void setModel(CarModelResponse model) { this.model = model; } // Added setter
     public void setTransmissionNameEn(String transmissionNameEn) { this.transmissionNameEn = transmissionNameEn; }
     public void setTransmissionNameAr(String transmissionNameAr) { this.transmissionNameAr = transmissionNameAr; }
     public void setFuelTypeNameEn(String fuelTypeNameEn) { this.fuelTypeNameEn = fuelTypeNameEn; }

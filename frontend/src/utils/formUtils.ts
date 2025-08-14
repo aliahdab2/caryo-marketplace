@@ -40,6 +40,97 @@ export {
 };
 
 /**
+ * Extracts field name and value from various input types
+ */
+export function extractFieldData(
+  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | string,
+  fieldName?: string
+): { name: string; value: string } {
+  if (typeof e === 'string') {
+    return {
+      name: fieldName!,
+      value: e
+    };
+  }
+  
+  return {
+    name: e.target.name,
+    value: e.target.value
+  };
+}
+
+/**
+ * Generic form change handler that processes field changes and handles dependencies
+ */
+export function createFormChangeHandler<TFormData extends Record<string, any>>(
+  setFormData: React.Dispatch<React.SetStateAction<TFormData>>,
+  setFormErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>,
+  processFormFieldValue: (name: string, value: string) => any,
+  fieldHandlers: Record<string, (value: string) => void> = {}
+) {
+  return (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | string,
+    fieldName?: string
+  ) => {
+    const { name, value } = extractFieldData(e, fieldName);
+    
+    // Update form data
+    setFormData(prev => ({
+      ...prev,
+      [name]: processFormFieldValue(name, value)
+    }));
+    
+    // Handle dependent field logic
+    const fieldHandler = fieldHandlers[name];
+    if (fieldHandler) {
+      fieldHandler(value);
+    }
+    
+    // Clear field-specific errors
+    setFormErrors(prev => {
+      if (!prev[name]) return prev;
+      
+      const newErrors = { ...prev };
+      delete newErrors[name];
+      return newErrors;
+    });
+  };
+}
+
+/**
+ * Creates a standardized error handler
+ */
+export function createErrorHandler(
+  setError: (error: string) => void,
+  logger?: any
+) {
+  return (error: Error, context?: string) => {
+    const message = error.message || 'An error occurred';
+    if (logger && context) {
+      logger.error(`${context}:`, error);
+    }
+    setError(message);
+  };
+}
+
+/**
+ * Utility to safely update form data with additional fields
+ */
+export function updateFormDataSafely<TFormData extends Record<string, any>>(
+  setFormData: React.Dispatch<React.SetStateAction<TFormData>>,
+  updates: Partial<TFormData>,
+  logger?: any
+) {
+  setFormData(prev => {
+    const updatedData = { ...prev, ...updates };
+    if (logger) {
+      logger.debug('Form data updated:', updates);
+    }
+    return updatedData;
+  });
+}
+
+/**
  * Main form data sanitization function
  */
 export function sanitizeFormData(data: Partial<ListingFormData>): Partial<ListingFormData> {

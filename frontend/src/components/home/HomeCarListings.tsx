@@ -77,8 +77,8 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                 price: car.price,
                 year: car.modelYear || new Date().getFullYear(),
                 mileage: car.mileage,
-                transmission: car.transmission,
-                fuelType: car.fuelType,
+                transmission: typeof car.transmission === 'object' ? (car.transmission as any)?.displayNameEn : car.transmission,
+                fuelType: typeof car.fuelType === 'object' ? (car.fuelType as any)?.displayNameEn : car.fuelType,
                 createdAt: car.createdAt || new Date().toISOString(),
                 sellerUsername: car.sellerUsername || 'Unknown',
                 governorateNameEn: car.locationDetails?.displayNameEn || car.governorateDetails?.displayNameEn || "Unknown",
@@ -182,7 +182,7 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                           d="M5 13l4 4L19 7"
                         />
                       </svg>
-                      {car.fuelType || "N/A"}
+                      {typeof car.fuelType === 'object' ? (car.fuelType as any)?.displayNameEn : car.fuelType || "N/A"}
                     </div>
                     <div className="flex items-center">
                       <svg
@@ -199,7 +199,7 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                           d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                         />
                       </svg>
-                      {car.transmission || "N/A"}
+                      {typeof car.transmission === 'object' ? (car.transmission as any)?.displayNameEn : car.transmission || "N/A"}
                     </div>
                   </div>
                   <div className="mt-4">

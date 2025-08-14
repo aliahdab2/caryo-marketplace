@@ -175,19 +175,21 @@ export function generateVehicleSchema(
 
   // Add fuel type information
   if (listing.fuelType) {
-    schema.fuelType = listing.fuelType;
+    const fuelTypeDisplay = typeof listing.fuelType === 'object' ? listing.fuelType.displayNameEn : listing.fuelType;
+    schema.fuelType = fuelTypeDisplay;
     
     // Add engine specification if fuel type is available
     schema.vehicleEngine = {
       '@type': 'EngineSpecification',
-      name: `${listing.fuelType} Engine`,
-      fuelType: listing.fuelType
+      name: `${fuelTypeDisplay} Engine`,
+      fuelType: fuelTypeDisplay
     };
   }
 
   // Add transmission information
   if (listing.transmission) {
-    schema.vehicleTransmission = listing.transmission;
+    const transmissionDisplay = typeof listing.transmission === 'object' ? listing.transmission.displayNameEn : listing.transmission;
+    schema.vehicleTransmission = transmissionDisplay;
   }
 
   // Add seller information

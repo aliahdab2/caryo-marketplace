@@ -8,40 +8,46 @@ CREATE TABLE IF NOT EXISTS car_conditions (
     id SERIAL PRIMARY KEY,
     name VARCHAR(20) UNIQUE NOT NULL,
     display_name_en VARCHAR(50) NOT NULL,
-    display_name_ar VARCHAR(50) NOT NULL
+    display_name_ar VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS drive_types (
     id SERIAL PRIMARY KEY,
     name VARCHAR(20) UNIQUE NOT NULL,
     display_name_en VARCHAR(50) NOT NULL,
-    display_name_ar VARCHAR(50) NOT NULL
+    display_name_ar VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS body_styles (
     id SERIAL PRIMARY KEY,
     name VARCHAR(20) UNIQUE NOT NULL,
     display_name_en VARCHAR(50) NOT NULL,
-    display_name_ar VARCHAR(50) NOT NULL
+    display_name_ar VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS fuel_types (
     id SERIAL PRIMARY KEY,
     name VARCHAR(20) UNIQUE NOT NULL,
     display_name_en VARCHAR(50) NOT NULL,
-    display_name_ar VARCHAR(50) NOT NULL
+    display_name_ar VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS transmissions (
     id SERIAL PRIMARY KEY,
     name VARCHAR(20) UNIQUE NOT NULL,
     display_name_en VARCHAR(50) NOT NULL,
-    display_name_ar VARCHAR(50) NOT NULL
+    display_name_ar VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS seller_types (
     id SERIAL PRIMARY KEY,
     name VARCHAR(20) UNIQUE NOT NULL,
     display_name_en VARCHAR(50) NOT NULL,
-    display_name_ar VARCHAR(50) NOT NULL
+    display_name_ar VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) UNIQUE NOT NULL
 );

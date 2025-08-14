@@ -7,7 +7,7 @@
 
 import { ListingFormData, Listing } from '@/types/listings';
 import { getMyListingById } from './listings';
-import { getBrandIdByName, getModelIdByName } from '@/utils/lookupHelpers';
+// Using database data directly - no conversion helpers needed
 
 export class ListingDataService {
   /**
@@ -97,48 +97,52 @@ export class ListingDataService {
       });
     }
 
-    // Extract location information
+    // Extract location information and IDs (following the established location pattern)
     const locationName = listing.location?.city || listing.location?.address || "";
     const governorateName = listing.governorate?.nameEn || "";
 
-    // Convert governorate name to slug (simple conversion for common names)
-    const governorateSlug = governorateName.toLowerCase().replace(/[^a-z0-9]/g, '');
-    
-    // Convert location name to slug (will be updated after locations load)
-    const locationSlug = locationName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    // Get IDs and slugs from details objects (like location pattern)
+    const governorateSlug = listing.governorateDetails?.slug || governorateName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const governorateId = listing.governorateDetails?.id;
+    const locationSlug = listing.locationDetails?.slug || locationName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const locationId = listing.locationDetails?.id;
 
-    // Convert brand and model names to IDs for the form
-    const brandName = listing.brandNameEn || listing.brand || "";
-    const modelName = listing.modelNameEn || listing.model || "";
-    
-    console.log('[ListingDataService] Converting brand/model names to IDs:', { brandName, modelName });
+    // V2: Direct access to complete objects (no conversion needed!)
+    // The backend now provides complete objects with IDs, slugs, and display names
+    const brand = listing.brand;
+    const model = listing.model;
+    const transmission = listing.transmission;
+    const fuelType = listing.fuelType;
 
-    let brandId = "";
-    let modelId = "";
-
-    try {
-      if (brandName) {
-        const foundBrandId = await getBrandIdByName(brandName);
-        brandId = foundBrandId ? foundBrandId.toString() : "";
-        console.log('[ListingDataService] Brand conversion:', brandName, '→', brandId);
-      }
-
-      if (brandId && modelName) {
-        const foundModelId = await getModelIdByName(parseInt(brandId), modelName);
-        modelId = foundModelId ? foundModelId.toString() : "";
-        console.log('[ListingDataService] Model conversion:', modelName, '→', modelId);
-      }
-    } catch (error) {
-      console.error('[ListingDataService] Error converting brand/model to IDs:', error);
-    }
+    console.log('[ListingDataService] Using enhanced V2 object data:', {
+      brand: brand?.displayNameEn,
+      brandSlug: brand?.slug,
+      brandId: brand?.id,
+      model: model?.displayNameEn,
+      modelSlug: model?.slug,
+      modelId: model?.id,
+      transmission: transmission?.displayNameEn,
+      transmissionSlug: transmission?.slug,
+      transmissionId: transmission?.id,
+      fuelType: fuelType?.displayNameEn,
+      fuelTypeSlug: fuelType?.slug,
+      fuelTypeId: fuelType?.id,
+      governorateId: governorateId,
+      locationId: locationId
+    });
 
     // Build the form data object
     const formData: Partial<ListingFormData> = {
       id: listing.id,
       title: listing.title || "",
       description: listing.description || "",
-      make: brandId,
-      model: modelId,
+      // V2: Use slugs directly from complete objects (no conversion needed!)
+      make: brand?.slug || "",
+      model: model?.slug || "",
+      
+      // Store IDs directly from complete objects (available immediately!)
+      makeId: brand?.id,
+      modelId: model?.id,
       year: (listing.year || listing.modelYear)?.toString() || "",
       price: listing.price?.toString() || "",
       currency: listing.currency || "USD",
@@ -148,13 +152,20 @@ export class ListingDataService {
       color: "", // Color not available in current API
       exteriorColor: "", // Exterior color not available in current API
       interiorColor: "", // Interior color not available in current API
-      transmission: listing.transmission || "",
-      fuelType: listing.fuelType || "",
+      transmission: transmission?.slug || "",
+      fuelType: fuelType?.slug || "",
+      
+      // Store IDs for efficient API calls
+      transmissionId: transmission?.id,
+      fuelTypeId: fuelType?.id,
       features: listing.features || [],
       categoryId: listing.category?.id || "",
       location: locationName,
       governorateSlug: governorateSlug,
       locationSlug: locationSlug,
+      // Include IDs for efficient API calls (following location pattern)
+      governorateId: governorateId,
+      locationId: locationId,
       state: locationName,
       zipCode: "",
       contactName: listing.seller?.name || "",

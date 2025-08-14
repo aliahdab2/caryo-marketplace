@@ -102,11 +102,11 @@ export default function ListingsPage() {
 	// Function to filter and sort listings
 	const filteredListings = listings
 		.filter(listing => {
-			// Filter by search
+			// Filter by search - V2: Use enhanced object structure
 			const searchMatch = !search || 
 				listing.title?.toLowerCase().includes(search.toLowerCase()) ||
-				listing.brand?.toLowerCase().includes(search.toLowerCase()) ||
-				listing.model?.toLowerCase().includes(search.toLowerCase());
+				listing.brand?.displayNameEn?.toLowerCase().includes(search.toLowerCase()) ||
+				listing.model?.displayNameEn?.toLowerCase().includes(search.toLowerCase());
 			
 			// Filter by status
 			const statusMatch = statusFilter === "all" || listing.status === statusFilter;

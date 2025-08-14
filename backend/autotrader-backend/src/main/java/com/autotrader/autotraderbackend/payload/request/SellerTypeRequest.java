@@ -29,4 +29,9 @@ public class SellerTypeRequest {
     @Size(min = 2, max = 50, message = "Arabic display name must be between 2 and 50 characters")
     @Schema(description = "Display name in Arabic", example = "تاجر")
     private String displayNameAr;
+    
+    @NotBlank(message = "Slug is required")
+    @Size(min = 2, max = 50, message = "Slug must be between 2 and 50 characters")
+    @Schema(description = "URL-friendly slug", example = "dealer")
+    private String slug;
 }

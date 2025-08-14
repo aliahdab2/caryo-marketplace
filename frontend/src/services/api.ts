@@ -1,6 +1,6 @@
 'use client';
 
-import { CarMake, CarModel, CarTrim } from '@/types/car';
+import { CarMake as CarBrand, CarModel, CarTrim } from '@/types/car';
 import { ApiError } from '@/utils/apiErrorHandler';
 
 // Reference data interfaces to match backend
@@ -106,23 +106,18 @@ export interface GovernorateResponse {
 export interface CarListing {
   id: number;
   title: string;
-  brandNameEn: string;
-  brandNameAr: string;
-  modelNameEn: string;
-  modelNameAr: string;
-  governorateNameEn: string;
-  governorateNameAr: string;
+  
+  // Enhanced V2 fields - Complete objects with IDs, slugs, and localized names
+  brand: CarBrand;
+  model: CarModel;
+  transmission: Transmission;
+  fuelType: FuelType;
   locationDetails: LocationResponse;
   governorateDetails: GovernorateResponse;
+  
   modelYear: number;
   price: number;
   mileage: number;
-  transmission: string;
-  fuelType: string;
-  transmissionNameEn: string;
-  transmissionNameAr: string;
-  fuelTypeNameEn: string;
-  fuelTypeNameAr: string;
   description: string;
   media: ListingMediaResponse[];
   approved: boolean;
@@ -133,6 +128,29 @@ export interface CarListing {
   isArchived: boolean;
   isUserActive: boolean;
   isExpired: boolean;
+  
+  // Deprecated fields (maintained for backward compatibility)
+  // These will be removed in a future version
+  /** @deprecated Use brand.displayNameEn instead */
+  brandNameEn?: string;
+  /** @deprecated Use brand.displayNameAr instead */
+  brandNameAr?: string;
+  /** @deprecated Use model.displayNameEn instead */
+  modelNameEn?: string;
+  /** @deprecated Use model.displayNameAr instead */
+  modelNameAr?: string;
+  /** @deprecated Use governorateDetails.displayNameEn instead */
+  governorateNameEn?: string;
+  /** @deprecated Use governorateDetails.displayNameAr instead */
+  governorateNameAr?: string;
+  /** @deprecated Use transmission.displayNameEn instead */
+  transmissionNameEn?: string;
+  /** @deprecated Use transmission.displayNameAr instead */
+  transmissionNameAr?: string;
+  /** @deprecated Use fuelType.displayNameEn instead */
+  fuelTypeNameEn?: string;
+  /** @deprecated Use fuelType.displayNameAr instead */
+  fuelTypeNameAr?: string;
 }
 
 export interface PageResponse<T> {
@@ -332,8 +350,8 @@ export const api = {
 /**
  * Fetches all car brands
  */
-export async function fetchCarBrands(): Promise<CarMake[]> {
-  return api.get<CarMake[]>('/api/reference-data/brands');
+export async function fetchCarBrands(): Promise<CarBrand[]> {
+  return api.get<CarBrand[]>('/api/reference-data/brands');
 }
 
 /**

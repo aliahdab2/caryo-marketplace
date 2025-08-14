@@ -92,14 +92,39 @@ function mapApiResponseToListings(apiResponse: ListingApiResponse): { listings: 
       price: item.price,
       year: item.modelYear,
       mileage: item.mileage,
-      brand: item.brandNameEn,
-      model: item.modelNameEn,
+      brand: item.brand || (item.brandNameEn ? { 
+        id: 0, 
+        name: item.brandNameEn.toLowerCase(), 
+        slug: item.brandNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: item.brandNameEn, 
+        displayNameAr: item.brandNameAr || '' 
+      } : undefined), // Use enhanced object or create from deprecated fields
+      model: item.model || (item.modelNameEn ? { 
+        id: 0, 
+        name: item.modelNameEn.toLowerCase(), 
+        slug: item.modelNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: item.modelNameEn, 
+        displayNameAr: item.modelNameAr || '',
+        brandId: 0
+      } : undefined), // Use enhanced object or create from deprecated fields
       location,
       governorate,
       image: mainImageUrl,
       media: mediaItems,
-      fuelType: item.fuelType || '',
-      transmission: item.transmission || '',
+      fuelType: typeof item.fuelType === 'object' ? item.fuelType : (item.fuelTypeNameEn ? { 
+        id: 0, 
+        name: item.fuelTypeNameEn.toLowerCase(), 
+        slug: item.fuelTypeNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: item.fuelTypeNameEn, 
+        displayNameAr: item.fuelTypeNameAr || '' 
+      } : undefined), // Use enhanced object or create from deprecated fields
+      transmission: typeof item.transmission === 'object' ? item.transmission : (item.transmissionNameEn ? { 
+        id: 0, 
+        name: item.transmissionNameEn.toLowerCase(), 
+        slug: item.transmissionNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: item.transmissionNameEn, 
+        displayNameAr: item.transmissionNameAr || '' 
+      } : undefined), // Use enhanced object or create from deprecated fields
       // Bilingual names from backend
       transmissionNameEn: item.transmissionNameEn,
       transmissionNameAr: item.transmissionNameAr,
@@ -213,8 +238,21 @@ export async function getListingById(id: string | number): Promise<Listing> {
       price: response.price,
       year: response.modelYear,
       mileage: response.mileage,
-      brand: response.brandNameEn,
-      model: response.modelNameEn,
+      brand: response.brand || (response.brandNameEn ? { 
+        id: 0, 
+        name: response.brandNameEn.toLowerCase(), 
+        slug: response.brandNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: response.brandNameEn, 
+        displayNameAr: response.brandNameAr || '' 
+      } : undefined),
+      model: response.model || (response.modelNameEn ? { 
+        id: 0, 
+        name: response.modelNameEn.toLowerCase(), 
+        slug: response.modelNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: response.modelNameEn, 
+        displayNameAr: response.modelNameAr || '',
+        brandId: 0
+      } : undefined),
       brandNameEn: response.brandNameEn,
       brandNameAr: response.brandNameAr,
       modelNameEn: response.modelNameEn,
@@ -237,8 +275,20 @@ export async function getListingById(id: string | number): Promise<Listing> {
       } : undefined,
       image: mainImageUrl,
       media: mediaItems,
-      fuelType: response.fuelType || '',
-      transmission: response.transmission || '',
+      fuelType: typeof response.fuelType === 'object' ? response.fuelType : (response.fuelTypeNameEn ? { 
+        id: 0, 
+        name: response.fuelTypeNameEn.toLowerCase(), 
+        slug: response.fuelTypeNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: response.fuelTypeNameEn, 
+        displayNameAr: response.fuelTypeNameAr || '' 
+      } : undefined),
+      transmission: typeof response.transmission === 'object' ? response.transmission : (response.transmissionNameEn ? { 
+        id: 0, 
+        name: response.transmissionNameEn.toLowerCase(), 
+        slug: response.transmissionNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: response.transmissionNameEn, 
+        displayNameAr: response.transmissionNameAr || '' 
+      } : undefined),
       // Bilingual names from backend
       transmissionNameEn: response.transmissionNameEn,
       transmissionNameAr: response.transmissionNameAr,
@@ -325,8 +375,21 @@ export async function updateListing(id: string | number, data: UpdateListingData
       price: response.price,
       year: response.modelYear,
       mileage: response.mileage,
-      brand: response.brandNameEn,
-      model: response.modelNameEn,
+      brand: response.brand || (response.brandNameEn ? { 
+        id: 0, 
+        name: response.brandNameEn.toLowerCase(), 
+        slug: response.brandNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: response.brandNameEn, 
+        displayNameAr: response.brandNameAr || '' 
+      } : undefined),
+      model: response.model || (response.modelNameEn ? { 
+        id: 0, 
+        name: response.modelNameEn.toLowerCase(), 
+        slug: response.modelNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: response.modelNameEn, 
+        displayNameAr: response.modelNameAr || '',
+        brandId: 0
+      } : undefined),
       brandNameEn: response.brandNameEn,
       brandNameAr: response.brandNameAr,
       modelNameEn: response.modelNameEn,
@@ -349,8 +412,20 @@ export async function updateListing(id: string | number, data: UpdateListingData
       } : undefined,
       image: mainImageUrl,
       media: mediaItems,
-      fuelType: '',
-      transmission: response.transmission || '', // Use the actual transmission field from backend
+      fuelType: typeof response.fuelType === 'object' ? response.fuelType : (response.fuelTypeNameEn ? { 
+        id: 0, 
+        name: response.fuelTypeNameEn.toLowerCase(), 
+        slug: response.fuelTypeNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: response.fuelTypeNameEn, 
+        displayNameAr: response.fuelTypeNameAr || '' 
+      } : undefined),
+      transmission: typeof response.transmission === 'object' ? response.transmission : (response.transmissionNameEn ? { 
+        id: 0, 
+        name: response.transmissionNameEn.toLowerCase(), 
+        slug: response.transmissionNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: response.transmissionNameEn, 
+        displayNameAr: response.transmissionNameAr || '' 
+      } : undefined), // Use enhanced object or create from deprecated fields
       createdAt: response.createdAt,
       description: response.description,
       status: determineListingStatus(response),
@@ -416,8 +491,21 @@ export async function getMyListings(): Promise<Listing[]> {
         price: item.price,
         year: item.modelYear,
         mileage: item.mileage,
-        brand: item.brandNameEn,
-        model: item.modelNameEn,
+        brand: item.brand || (item.brandNameEn ? { 
+          id: 0, 
+          name: item.brandNameEn.toLowerCase(), 
+          slug: item.brandNameEn.toLowerCase().replace(/\s+/g, '-'), 
+          displayNameEn: item.brandNameEn, 
+          displayNameAr: item.brandNameAr || '' 
+        } : undefined),
+        model: item.model || (item.modelNameEn ? { 
+          id: 0, 
+          name: item.modelNameEn.toLowerCase(), 
+          slug: item.modelNameEn.toLowerCase().replace(/\s+/g, '-'), 
+          displayNameEn: item.modelNameEn, 
+          displayNameAr: item.modelNameAr || '',
+          brandId: 0
+        } : undefined),
         brandNameEn: item.brandNameEn,
         brandNameAr: item.brandNameAr,
         modelNameEn: item.modelNameEn,
@@ -440,8 +528,20 @@ export async function getMyListings(): Promise<Listing[]> {
         } : undefined,
         image: mainImageUrl,
         media: mediaItems,
-        fuelType: item.fuelType || '',
-        transmission: item.transmission || '',
+        fuelType: typeof item.fuelType === 'object' ? item.fuelType : (item.fuelTypeNameEn ? { 
+          id: 0, 
+          name: item.fuelTypeNameEn.toLowerCase(), 
+          slug: item.fuelTypeNameEn.toLowerCase().replace(/\s+/g, '-'), 
+          displayNameEn: item.fuelTypeNameEn, 
+          displayNameAr: item.fuelTypeNameAr || '' 
+        } : undefined),
+        transmission: typeof item.transmission === 'object' ? item.transmission : (item.transmissionNameEn ? { 
+          id: 0, 
+          name: item.transmissionNameEn.toLowerCase(), 
+          slug: item.transmissionNameEn.toLowerCase().replace(/\s+/g, '-'), 
+          displayNameEn: item.transmissionNameEn, 
+          displayNameAr: item.transmissionNameAr || '' 
+        } : undefined),
         // Bilingual names from backend
         transmissionNameEn: item.transmissionNameEn,
         transmissionNameAr: item.transmissionNameAr,
@@ -529,7 +629,7 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
     } = {
       title: formData.title,
       description: formData.description || '',
-      modelId: parseInt(formData.categoryId || '0', 10), // Backend expects Long modelId
+      modelId: 0, // Will be set below after slug conversion
       modelYear: parseInt(formData.year, 10),
       mileage: parseInt(formData.mileage, 10),
       price: parseFloat(formData.price),
@@ -564,6 +664,7 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       }
     }
 
+    // Convert transmission slug to ID (following location pattern)
     if (formData.transmission && referenceData) {
       const transmission = referenceData.transmissions?.find((t: ReferenceDataItem) => t.slug === formData.transmission);
       if (transmission) {
@@ -571,10 +672,45 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       }
     }
 
+    // Convert fuel type slug to ID (following location pattern)
     if (formData.fuelType && referenceData) {
       const fuelType = referenceData.fuelTypes?.find((f: ReferenceDataItem) => f.slug === formData.fuelType);
       if (fuelType) {
         apiData.fuelTypeId = fuelType.id;
+      }
+    }
+
+    // Convert model slug to ID (following location pattern)
+    // First, get the brand ID from make slug
+    let brandId: number | undefined;
+    if (formData.make) {
+      try {
+        // Load all brands to find the brand ID
+        const { getVehicleMakes } = await import('@/services/referenceData');
+        const brands = await getVehicleMakes();
+        const brand = brands.find(b => b.slug === formData.make);
+        if (brand) {
+          brandId = brand.id;
+        }
+      } catch (error) {
+        console.error('Error loading brands:', error);
+        throw new ApiError('Failed to process selected brand', 400);
+      }
+    }
+
+    // Now get the model ID
+    if (formData.model && brandId) {
+      try {
+        // Load models for this brand to find the model ID
+        const { getVehicleModels } = await import('@/services/referenceData');
+        const models = await getVehicleModels(brandId);
+        const model = models.find(m => m.slug === formData.model);
+        if (model) {
+          apiData.modelId = model.id;
+        }
+      } catch (error) {
+        console.error('Error loading models for brand:', error);
+        throw new ApiError('Failed to process selected model', 400);
       }
     }
 
@@ -830,8 +966,21 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       price: response.price,
       year: response.modelYear,
       mileage: response.mileage,
-      brand: response.brandNameEn,
-      model: response.modelNameEn,
+      brand: response.brand || (response.brandNameEn ? { 
+        id: 0, 
+        name: response.brandNameEn.toLowerCase(), 
+        slug: response.brandNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: response.brandNameEn, 
+        displayNameAr: response.brandNameAr || '' 
+      } : undefined),
+      model: response.model || (response.modelNameEn ? { 
+        id: 0, 
+        name: response.modelNameEn.toLowerCase(), 
+        slug: response.modelNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: response.modelNameEn, 
+        displayNameAr: response.modelNameAr || '',
+        brandId: 0
+      } : undefined),
       brandNameEn: response.brandNameEn,
       brandNameAr: response.brandNameAr,
       modelNameEn: response.modelNameEn,
@@ -840,8 +989,20 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       governorate,
       image: mainImageUrl,
       media: mediaItems,
-      fuelType: response.fuelType || '',
-      transmission: response.transmission || '',
+      fuelType: typeof response.fuelType === 'object' ? response.fuelType : (response.fuelTypeNameEn ? { 
+        id: 0, 
+        name: response.fuelTypeNameEn.toLowerCase(), 
+        slug: response.fuelTypeNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: response.fuelTypeNameEn, 
+        displayNameAr: response.fuelTypeNameAr || '' 
+      } : undefined),
+      transmission: typeof response.transmission === 'object' ? response.transmission : (response.transmissionNameEn ? { 
+        id: 0, 
+        name: response.transmissionNameEn.toLowerCase(), 
+        slug: response.transmissionNameEn.toLowerCase().replace(/\s+/g, '-'), 
+        displayNameEn: response.transmissionNameEn, 
+        displayNameAr: response.transmissionNameAr || '' 
+      } : undefined),
       createdAt: response.createdAt,
       description: response.description,
       status: determineListingStatus(response),

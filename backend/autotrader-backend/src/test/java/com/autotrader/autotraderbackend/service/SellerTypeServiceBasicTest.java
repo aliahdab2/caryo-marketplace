@@ -36,6 +36,7 @@ class SellerTypeServiceBasicTest {
                 .name("DEALER")
                 .displayNameEn("Dealer")
                 .displayNameAr("تاجر")
+                .slug("dealer")
                 .build();
     }
 
@@ -63,6 +64,7 @@ class SellerTypeServiceBasicTest {
                 .name("PRIVATE")
                 .displayNameEn("Private Seller")
                 .displayNameAr("بائع خاص")
+                .slug("private")
                 .build();
 
         when(sellerTypeRepository.existsByNameIgnoreCase(anyString())).thenReturn(false);
