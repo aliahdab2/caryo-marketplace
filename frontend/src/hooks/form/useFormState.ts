@@ -177,7 +177,7 @@ export const useFormState = ({
         processedValue = processFormFieldValue(name, value);
       }
 
-      updateField(name as keyof ListingFormData, processedValue as any);
+      updateField(name as keyof ListingFormData, processedValue as ListingFormData[keyof ListingFormData]);
     }
   }, [updateField]);
 

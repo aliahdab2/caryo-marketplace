@@ -820,7 +820,7 @@ export default function ListingWizard({
 
   // Optimized form change handler using utility
   const handleChange = useCallback(
-    (fieldOrEvent: string | React.ChangeEvent<any>, value?: unknown) => {
+    (fieldOrEvent: string | React.ChangeEvent<HTMLElement>, value?: unknown) => {
       if (typeof fieldOrEvent === 'string') {
         // Direct field/value call
         return createFormChangeHandler(
