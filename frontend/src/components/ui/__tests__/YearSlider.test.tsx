@@ -28,7 +28,7 @@ describe('YearSlider', () => {
   });
 
   it('should format year values without thousands separators', async () => {
-    const { formatNumber } = await import('../../../utils/localization');
+    const { formatNumber } = await import('../../../utils/formatting');
     
     render(
       <YearSlider

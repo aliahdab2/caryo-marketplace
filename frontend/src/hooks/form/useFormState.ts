@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ListingFormData } from '@/types/listings';
-import { processFormFieldValue } from '@/utils/formUtils';
+import { processFormFieldValue } from '@/utils/forms';
 
 // Simple phone number formatting utility
 const formatPhoneNumber = (value: string): string => {

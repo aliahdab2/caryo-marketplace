@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useLanguageDirection } from '@/utils/languageDirection';
-import { formatNumber } from '@/utils/localization';
+import { useLanguageDirection } from '@/utils/rtl';
+import { formatNumber } from '@/utils/formatting';
 import { SLIDER_CLASSES, INPUT_CLASSES, LAYOUT_CLASSES } from './PriceSlider.constants';
 
 export interface RangeSliderProps {

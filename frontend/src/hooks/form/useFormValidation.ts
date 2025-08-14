@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
-import { validateStep } from '@/utils/formUtils';
+import { validateStep } from '@/utils/forms';
 import { createLogger } from '@/utils/logger';
 import { validatePhoneNumber } from './useFormState';
 
@@ -56,7 +56,7 @@ export const useFormValidation = ({
     logger.debug(`Validating step ${step} in ${mode} mode`);
     
     try {
-      const errors = validateStep(step, formData, translationFunction, { mode });
+      const errors = validateStep(step, formData, translationFunction);
       
       // Add phone number validation for step 4 (contact information)
       if (step === 4 && formData.contactPhone) {

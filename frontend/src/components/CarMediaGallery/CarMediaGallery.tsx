@@ -10,7 +10,7 @@ import { Dialog } from '@headlessui/react';
 import { X, ChevronLeft, ChevronRight, Play, Camera, Video } from 'lucide-react';
 
 // RTL support
-import { useLanguageDirection } from '@/utils/languageDirection';
+import { useLanguageDirection } from '@/utils/rtl';
 
 // Translation support
 import { useTranslation } from 'react-i18next';

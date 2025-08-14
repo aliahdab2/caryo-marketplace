@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLanguageDirection } from '@/utils/languageDirection';
+import { useLanguageDirection } from '@/utils/rtl';
 import RangeSlider from './RangeSlider';
 import { DEFAULT_CURRENCY, getOptimalLocale } from '../../utils/currency';
-import { formatNumber } from '../../utils/localization';
+import { formatNumber } from '@/utils/formatting';
 import { PRICE_SLIDER_DEFAULTS } from './PriceSlider.constants';
 import type { PriceSliderProps } from '../../types/ui';
 

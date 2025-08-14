@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { formatNumber } from '../../../../utils/localization';
+import { formatNumber } from '@/utils/formatting';
 import { Listing } from '@/types/listings';
 
 interface FinancingCalculatorProps {

@@ -5,7 +5,7 @@ import {
   convertArabicNumerals,
   validateStep,
   processFormFieldValue
-} from '../formUtils';
+} from '../forms';
 import { ListingFormData } from '@/types/listings';
 import { 
   clearSanitizationCache 

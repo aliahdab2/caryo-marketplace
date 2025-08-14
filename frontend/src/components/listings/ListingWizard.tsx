@@ -18,7 +18,7 @@ import { ListingFormData, UpdateListingData } from "@/types/listings";
 import { FormErrors, StepConfig } from "@/types/forms";
 import { ListingDataService } from '@/services/ListingDataService';
 // SUPPORTED_CURRENCIES removed - not used in this component
-import { validateStep, processFormFieldValue } from '@/utils/formUtils';
+import { validateStep, isStepAccessible as checkStepAccessibility, validateFormComplete, processFormFieldValue } from '@/utils/forms';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 import { createLogger } from '@/utils/logger';
 import NumericInput from '@/components/ui/NumericInput';
@@ -26,7 +26,7 @@ import AutoSaveIndicator from '@/components/ui/AutoSaveIndicator';
 import { getLocationsByGovernorateSlug, Location } from '@/services/locations';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useMemo as useMemoPerf, useCallback as useCallbackPerf } from 'react';
-import { useDirection } from '@/utils/direction';
+import { useDirection } from '@/utils/rtl';
 import { createRTLHelpers } from '@/utils/rtlHelpers';
 
 // Performance optimized debounce hook
@@ -471,13 +471,16 @@ export default function ListingWizard({
     if (currentStep === TOTAL_STEPS) {
       wizardLogger.debug('Final submission - validating ALL steps');
       
-      // Validate all steps for final submission
-      let allErrors: FormErrors = {};
-      for (let step = 1; step <= TOTAL_STEPS; step++) {
-        const stepErrors = validateStep(step, formData, t);
-        allErrors = { ...allErrors, ...stepErrors };
-        wizardLogger.debug(`Step ${step} validation errors ${JSON.stringify(stepErrors)}`);
-      }
+      // Validate all steps for final submission using smart validation system
+      const validationResult = validateFormComplete(formData, t);
+      const allErrors = validationResult.errors;
+      
+      wizardLogger.debug('Complete form validation result', {
+        isValid: validationResult.isValid,
+        errorCount: Object.keys(allErrors).length,
+        validatedFields: validationResult.validatedFields.length,
+        skippedFields: validationResult.skippedFields.length
+      });
       
       wizardLogger.debug('All validation errors ' + JSON.stringify(allErrors));
       if (Object.keys(allErrors).length > 0) {
@@ -489,7 +492,7 @@ export default function ListingWizard({
     } else {
       // Validate current step only for navigation
       wizardLogger.debug('Validating step ' + String(currentStep));
-      const stepErrors = validateStep(currentStep, formData, t, { mode: 'navigation' });
+      const stepErrors = validateStep(currentStep, formData, t);
       // If only non-blocking fields failed (e.g., title/price on step 1 due to previous state), clear them for navigation
       if (currentStep === 1 && Object.keys(stepErrors).length > 0) {
         const blockingKeys = ['make','model','year'];
@@ -938,15 +941,12 @@ export default function ListingWizard({
       return true;
     }
     
-    // For next step, validate all previous steps using debounced data
-    for (let step = 1; step < targetStep; step++) {
-      wizardLogger.debug(`Validating step ${step} for accessibility`);
-      const stepErrors = validateStep(step, debouncedFormData, t, { mode: 'accessibility' });
-      wizardLogger.debug(`Step ${step} validation errors ${JSON.stringify(stepErrors)}`);
-      if (Object.keys(stepErrors).length > 0) {
-        wizardLogger.info(`Step ${targetStep} is NOT accessible due to step ${step} errors`);
-        return false;
-      }
+    // Use smart validation system to check accessibility
+    const isAccessible = checkStepAccessibility(targetStep, debouncedFormData, t);
+    
+    if (!isAccessible) {
+      wizardLogger.info(`Step ${targetStep} is NOT accessible due to dependency validation failures`);
+      return false;
     }
     
     // Only allow accessing the next immediate step
@@ -1011,7 +1011,7 @@ export default function ListingWizard({
     
     // Fast-path for moving from Step 1 to Step 2: validate blocking-only fields and proceed
     if (step === currentStep + 1 && currentStep === 1) {
-      const navErrors = validateStep(1, formData, t, { mode: 'navigation' });
+      const navErrors = validateStep(1, formData, t);
       if (Object.keys(navErrors).length === 0) {
         wizardLogger.debug('Fast-path: Step 1 blocking fields valid, moving to Step 2');
         setFormErrors({});
@@ -1025,7 +1025,7 @@ export default function ListingWizard({
       wizardLogger.debug(`Step ${step} not accessible`);
       // Show specific message when trying to access locked step
       if (step > currentStep) {
-        const stepErrors = validateStep(currentStep, formData, t, { mode: 'navigation' });
+        const stepErrors = validateStep(currentStep, formData, t);
         wizardLogger.debug(`Step ${currentStep} validation errors ${JSON.stringify(stepErrors)}`);
         handleValidationErrors(stepErrors);
       }

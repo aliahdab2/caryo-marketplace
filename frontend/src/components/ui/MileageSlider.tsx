@@ -3,7 +3,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import RangeSlider from './RangeSlider';
-import { formatNumber } from '../../utils/localization';
+import { formatNumber } from '@/utils/formatting';
 import type { TFunction } from 'i18next';
 
 // Mileage slider defaults

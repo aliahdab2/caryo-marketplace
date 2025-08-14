@@ -4,11 +4,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
-import { formatNumber } from '@/utils/localization';
-import { timeAgo } from '@/utils/dateUtils';
+import { formatNumber, timeAgo } from '@/utils/formatting';
 import FavoriteButton from '@/components/common/FavoriteButton';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
-import { useLanguageDirection } from '@/utils/languageDirection';
+import { useLanguageDirection } from '@/utils/rtl';
 import YearBadge from '@/components/ui/YearBadge';
 
 // Move namespaces outside component to prevent recreation on every render

@@ -7,7 +7,7 @@ import { useAuthStatus } from '@/hooks/useAuthSession';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getUserFavorites, removeFromFavorites } from '@/services/favorites';
-import { formatDate, formatNumber } from '@/utils/localization';
+import { formatDate, formatNumber } from '@/utils/formatting';
 import FavoriteButton from '@/components/common/FavoriteButton';
 import { Listing } from '@/types/listings';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';

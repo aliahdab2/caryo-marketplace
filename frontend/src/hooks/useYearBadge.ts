@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useLanguageDirection } from '@/utils/languageDirection';
+import { useLanguageDirection } from '@/utils/rtl';
 
 /**
  * Configuration for year badge size variants
@@ -69,11 +69,10 @@ const SIZE_CONFIG = {
  * Base badge styling that's consistent across all variants
  */
 const BASE_BADGE_STYLES = [
-  'bg-gradient-to-br from-black/30 via-slate-800/40 to-black/30',
-  'backdrop-blur-sm text-white font-semibold shadow-md border border-white/20',
-  'transition-all duration-300 ease-out transform-gpu',
-  'hover:scale-105 hover:bg-gradient-to-br hover:from-black/60 hover:via-slate-800/70 hover:to-black/60',
-  'hover:border-white/30 hover:shadow-lg hover:backdrop-blur-md',
+  'bg-black bg-opacity-30 backdrop-blur-md',
+  'text-white font-semibold shadow-lg border border-white border-opacity-15',
+  'transition-all duration-300 ease-out',
+  'hover:bg-opacity-45 hover:border-opacity-25 hover:shadow-xl',
   'select-none' // Prevent text selection
 ];
 

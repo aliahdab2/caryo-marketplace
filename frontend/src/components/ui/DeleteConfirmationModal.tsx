@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { MdWarning, MdDelete } from 'react-icons/md';
-import { useLanguageDirection } from '@/utils/languageDirection';
+import { useLanguageDirection } from '@/utils/rtl';
 import type { DeleteConfirmationModalProps } from '@/types/ui';
 
 // Constants for better maintainability

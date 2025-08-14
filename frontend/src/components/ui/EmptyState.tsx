@@ -3,7 +3,7 @@
 import React from 'react';
 import { FaSearch, FaBell, FaCar, FaHeart, FaFilter } from 'react-icons/fa';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
-import { useLanguageDirection } from '@/utils/languageDirection';
+import { useLanguageDirection } from '@/utils/rtl';
 
 interface EmptyStateProps {
   type?: 'search' | 'alerts' | 'favorites' | 'general';

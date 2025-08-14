@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
-import { formatDate, formatNumber } from "../../utils/localization";
+import { formatDate, formatNumber } from '@/utils/formatting';
 import { Listing } from "../../types/listings";
 import { 
   MdDirectionsCar, 

@@ -8,8 +8,8 @@ import FavoriteButton from '@/components/common/FavoriteButton';
 import { CarListingCardData } from '@/components/listings/CarListingCard';
 import { transformMinioUrl } from '@/utils/mediaUtils';
 import { formatCurrency } from '@/utils/currency';
-import { timeAgo } from '@/utils/dateUtils';
-import { useLanguageDirection } from '@/utils/languageDirection';
+import { timeAgo } from '@/utils/formatting';
+import { useLanguageDirection } from '@/utils/rtl';
 import YearBadge from '@/components/ui/YearBadge';
 
 interface CarListingListItemProps {
@@ -126,7 +126,7 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
             {/* Year Badge */}
             <YearBadge 
               year={displayYear} 
-              size="lg" 
+              size="md" 
               position="bottom-left" 
               zIndex={20}
             />
@@ -181,14 +181,6 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
 
             {/* Vehicle details */}
             <div className={`flex flex-wrap gap-2 md:gap-3`}> 
-              {listing.year && (
-                <div className={`flex items-center flex-row gap-2 bg-purple-50 dark:bg-purple-900/20 px-3 py-2.5 rounded-xl border border-purple-100 dark:border-purple-800/30 flex-shrink-0`}> 
-                  <MdDateRange className="w-4 h-4 flex-shrink-0 text-purple-600 dark:text-purple-400" />
-                  <span className="text-sm font-medium text-purple-700 dark:text-purple-300 whitespace-nowrap">
-                    {listing.year}
-                  </span>
-                </div>
-              )}
               <div className={`flex items-center flex-row gap-2 bg-blue-50 dark:bg-blue-900/20 px-3 py-2.5 rounded-xl border border-blue-100 dark:border-blue-800/30 flex-shrink-0`}> 
                 <MdLocalGasStation className="w-4 h-4 flex-shrink-0 text-blue-600 dark:text-blue-400" />
                 <span className="text-sm font-medium text-blue-700 dark:text-blue-300 whitespace-nowrap">

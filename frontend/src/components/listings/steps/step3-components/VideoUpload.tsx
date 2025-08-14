@@ -1,7 +1,7 @@
 "use client";
 
 import React, { memo } from 'react';
-import { useDirection } from '@/utils/direction';
+import { useDirection } from '@/utils/rtl';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';

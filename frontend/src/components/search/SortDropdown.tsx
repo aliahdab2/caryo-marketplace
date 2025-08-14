@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MdSort, MdKeyboardArrowDown } from 'react-icons/md';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
-import { useLanguageDirection } from '@/utils/languageDirection';
+import { useLanguageDirection } from '@/utils/rtl';
 import { getSortDisplayText, SORT_OPTIONS } from '@/utils/sortUtils';
 
 interface SortDropdownProps {

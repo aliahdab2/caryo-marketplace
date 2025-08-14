@@ -3,7 +3,7 @@
 import React, { useRef, useEffect } from 'react';
 import { MdViewModule, MdViewList } from 'react-icons/md';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
-import { useLanguageDirection } from '@/utils/languageDirection';
+import { useLanguageDirection } from '@/utils/rtl';
 import { useAnnouncements } from '@/hooks/useAccessibility';
 import SmoothTransition from '@/components/ui/SmoothTransition';
 import CarListingCard from '@/components/listings/CarListingCard';

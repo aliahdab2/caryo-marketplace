@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { formatDate, formatNumber } from '../../../utils/localization';
+import { formatDate, formatNumber } from '@/utils/formatting';
 import { CarListing } from '@/services/publicApi';
 import { transformMinioUrl } from '@/utils/mediaUtils';
 import FavoriteButton from '@/components/common/FavoriteButton';
