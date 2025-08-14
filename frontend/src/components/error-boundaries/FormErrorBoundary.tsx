@@ -112,7 +112,7 @@ interface FormErrorFallbackProps {
   formName: string;
   enableAutoSave: boolean;
   onRetry: () => void;
-  t: (key: string, options?: Record<string, unknown>) => string; // Translation function
+  t: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- Translation function - complex react-i18next signature
 }
 
 const FormErrorFallback: React.FC<FormErrorFallbackProps> = ({

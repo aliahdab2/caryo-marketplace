@@ -40,7 +40,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 // Optimized throttle hook for frequent operations
-function useThrottle<T extends (...args: unknown[]) => unknown>(func: T, delay: number): T {
+function useThrottle<T extends (...args: any[]) => any>(func: T, delay: number): T { // eslint-disable-line @typescript-eslint/no-explicit-any -- Necessary for generic function throttling
   const lastRun = useRef(Date.now());
   
   return useCallbackPerf((...args: Parameters<T>) => {
@@ -820,7 +820,7 @@ export default function ListingWizard({
 
   // Optimized form change handler using utility
   const handleChange = useCallback(
-    (fieldOrEvent: string | React.ChangeEvent<HTMLElement>, value?: unknown) => {
+    (fieldOrEvent: string | React.ChangeEvent<any>, value?: unknown) => { // eslint-disable-line @typescript-eslint/no-explicit-any -- Necessary for generic event handling
       if (typeof fieldOrEvent === 'string') {
         // Direct field/value call
         return createFormChangeHandler(

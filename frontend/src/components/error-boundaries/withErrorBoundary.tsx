@@ -62,7 +62,7 @@ export function withErrorBoundary<T = Record<string, unknown>>(
       maxRetries: 2,
       resetOnPropsChange: true,
       ...errorBoundaryConfig,
-      children: React.createElement(WrappedComponent as React.ComponentType<Record<string, unknown>>, props as React.Attributes)
+      children: React.createElement(WrappedComponent as React.ComponentType<any>, props as any) // eslint-disable-line @typescript-eslint/no-explicit-any -- Necessary for generic component wrapping
     };
 
     return <ErrorBoundary {...config} />;
@@ -90,7 +90,7 @@ export function withErrorBoundary<T = Record<string, unknown>>(
  * ```
  */
 export function errorBoundary(config: ErrorBoundaryConfig = {}) {
-  return function <T extends ComponentType<Record<string, unknown>>>(target: T): T {
+  return function <T extends ComponentType<any>>(target: T): T { // eslint-disable-line @typescript-eslint/no-explicit-any -- Necessary for decorator pattern
     return withErrorBoundary(target, config) as T;
   };
 }

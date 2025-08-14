@@ -7,7 +7,7 @@ import { validatePhoneNumber } from './useFormState';
 
 interface UseFormValidationOptions {
   debugEnabled?: boolean;
-  translationFunction?: (key: string, options?: Record<string, unknown>) => string; // Translation function
+  translationFunction?: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- Translation function - complex react-i18next signature
 }
 
 interface UseFormValidationReturn {
