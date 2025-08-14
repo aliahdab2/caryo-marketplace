@@ -1158,6 +1158,35 @@ public class CarListingService {
             existingListing.setArchived(request.getIsArchived());
         }
         
+        // Handle contact field updates with fallback logic
+        // Check if all contact fields are explicitly set to null (indicating clear request)
+        boolean allContactFieldsNull = request.getContactName() == null && 
+                                     request.getContactEmail() == null && 
+                                     request.getContactPhone() == null && 
+                                     request.getContactPreference() == null;
+        
+        if (allContactFieldsNull) {
+            // Clear all contact fields to use seller fallbacks
+            existingListing.setContactName(null);
+            existingListing.setContactEmail(null);
+            existingListing.setContactPhone(null);
+            existingListing.setContactPreference(null);
+        } else {
+            // Update individual contact fields if provided
+            if (request.getContactName() != null) {
+                existingListing.setContactName(request.getContactName());
+            }
+            if (request.getContactEmail() != null) {
+                existingListing.setContactEmail(request.getContactEmail());
+            }
+            if (request.getContactPhone() != null) {
+                existingListing.setContactPhone(request.getContactPhone());
+            }
+            if (request.getContactPreference() != null) {
+                existingListing.setContactPreference(request.getContactPreference());
+            }
+        }
+        
         CarListing updatedListing = carListingRepository.save(existingListing);
         log.info("Successfully updated listing ID: {} by user: {}", id, username);
         
@@ -1402,6 +1431,34 @@ public class CarListingService {
         // Set isSold and isArchived from request, defaulting to false if null
         carListing.setSold(request.getIsSold() != null ? request.getIsSold() : false);
         carListing.setArchived(request.getIsArchived() != null ? request.getIsArchived() : false);
+        
+        // Handle contact fields with fallbacks (AutoTrader pattern)
+        // Contact name: use request value or fallback to username
+        if (StringUtils.isNotBlank(request.getContactName())) {
+            carListing.setContactName(request.getContactName());
+        } else {
+            carListing.setContactName(user.getUsername());
+        }
+        
+        // Contact email: use request value or fallback to user email
+        if (StringUtils.isNotBlank(request.getContactEmail())) {
+            carListing.setContactEmail(request.getContactEmail());
+        } else {
+            carListing.setContactEmail(user.getEmail());
+        }
+        
+        // Contact phone: use request value (no fallback)
+        if (StringUtils.isNotBlank(request.getContactPhone())) {
+            carListing.setContactPhone(request.getContactPhone());
+        }
+        
+        // Contact preference: use request value or default to 'email'
+        if (StringUtils.isNotBlank(request.getContactPreference())) {
+            carListing.setContactPreference(request.getContactPreference());
+        } else {
+            carListing.setContactPreference("email");
+        }
+        
         return carListing;
     }
 

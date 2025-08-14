@@ -6,15 +6,22 @@ import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.repository.CarModelRepository;
+import com.autotrader.autotraderbackend.repository.CarBrandRepository;
+import com.autotrader.autotraderbackend.repository.LocationRepository;
+import com.autotrader.autotraderbackend.repository.GovernorateRepository;
+
 import com.autotrader.autotraderbackend.service.CarListingService;
 import com.autotrader.autotraderbackend.util.TestDataGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -33,11 +40,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests the complete workflow from API request to database storage and response mapping.
  */
 @SpringBootTest
-@AutoConfigureWebMvc
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 @DisplayName("Contact Fields Integration Tests (AutoTrader Pattern)")
 public class ContactFieldsIntegrationTest {
+    
+    private static final Logger log = LoggerFactory.getLogger(ContactFieldsIntegrationTest.class);
 
     @Autowired
     private MockMvc mockMvc;
@@ -53,6 +62,20 @@ public class ContactFieldsIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private CarModelRepository carModelRepository;
+    
+    @Autowired
+    private CarBrandRepository carBrandRepository;
+    
+    @Autowired
+    private LocationRepository locationRepository;
+    
+    @Autowired
+    private GovernorateRepository governorateRepository;
+    
+
 
     private User testUser;
     private CarModel testModel;
@@ -67,15 +90,40 @@ public class ContactFieldsIntegrationTest {
         testUser.setPassword("password123");
         testUser = userRepository.save(testUser);
 
-        // Create test data using TestDataGenerator
-        testLocation = TestDataGenerator.createTestLocationWithHierarchy("SY");
+        // Find existing test location - the integration tests run with seeded data
+        testLocation = locationRepository.findAll().stream().findFirst().orElse(null);
+        if (testLocation == null) {
+            // If no locations exist, create a simple test location for the test
+            // This ensures the test can run even if the seeder fails
+            log.warn("No test locations found from seeder. Creating a simple test location.");
+            
+            // Find any governorate to use
+            var governorate = governorateRepository.findAll().stream().findFirst().orElse(null);
+            if (governorate == null) {
+                throw new IllegalStateException("No governorates found. Cannot create test location.");
+            }
+            
+            Location simpleLocation = new Location();
+            simpleLocation.setDisplayNameEn("Test City");
+            simpleLocation.setDisplayNameAr("مدينة الاختبار");
+            simpleLocation.setSlug("test-city");
+            simpleLocation.setLatitude(33.5138);
+            simpleLocation.setLongitude(36.2765);
+            simpleLocation.setRegion("Test Region");
+            simpleLocation.setIsActive(true);
+            simpleLocation.setGovernorate(governorate);
+            
+            testLocation = locationRepository.save(simpleLocation);
+            log.info("Created test location: {}", testLocation.getDisplayNameEn());
+        }
         
-        // Create car brand and model
+        // Create and save car brand and model
         CarBrand testBrand = new CarBrand();
         testBrand.setName("Toyota");
         testBrand.setSlug("toyota");
         testBrand.setDisplayNameEn("Toyota");
         testBrand.setDisplayNameAr("تويوتا");
+        testBrand = carBrandRepository.save(testBrand);
         
         testModel = new CarModel();
         testModel.setName("Camry");
@@ -83,6 +131,7 @@ public class ContactFieldsIntegrationTest {
         testModel.setDisplayNameEn("Camry");
         testModel.setDisplayNameAr("كامري");
         testModel.setBrand(testBrand);
+        testModel = carModelRepository.save(testModel);
     }
 
     @Nested
@@ -198,6 +247,10 @@ public class ContactFieldsIntegrationTest {
             listing.setPrice(new BigDecimal("20000.00"));
             listing.setCurrency("USD");
             listing.setLocation(testLocation);
+            // Set governorate from location
+            listing.setGovernorate(testLocation.getGovernorate());
+            listing.setGovernorateNameEn(testLocation.getGovernorate().getDisplayNameEn());
+            listing.setGovernorateNameAr(testLocation.getGovernorate().getDisplayNameAr());
             listing.setDescription("Test description");
             listing.setSeller(testUser);
             
@@ -273,6 +326,10 @@ public class ContactFieldsIntegrationTest {
             listing.setPrice(new BigDecimal("30000.00"));
             listing.setCurrency("USD");
             listing.setLocation(testLocation);
+            // Set governorate from location
+            listing.setGovernorate(testLocation.getGovernorate());
+            listing.setGovernorateNameEn(testLocation.getGovernorate().getDisplayNameEn());
+            listing.setGovernorateNameAr(testLocation.getGovernorate().getDisplayNameAr());
             listing.setDescription("Priority test");
             listing.setSeller(testUser);
             
@@ -284,16 +341,16 @@ public class ContactFieldsIntegrationTest {
             
             listing = carListingRepository.save(listing);
 
-            // Act & Assert
-            mockMvc.perform(get("/api/listings/" + listing.getId()))
+            // Act & Assert - Use my-listings endpoint to get unapproved listings
+            mockMvc.perform(get("/api/listings/my-listings"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.contactName").value("Luxury Cars Division"))
-                    .andExpect(jsonPath("$.contactEmail").value("luxury@premiumdealer.com"))
-                    .andExpect(jsonPath("$.contactPhone").value("+966503333333"))
-                    .andExpect(jsonPath("$.contactPreference").value("both"))
+                    .andExpect(jsonPath("$[0].contactName").value("Luxury Cars Division"))
+                    .andExpect(jsonPath("$[0].contactEmail").value("luxury@premiumdealer.com"))
+                    .andExpect(jsonPath("$[0].contactPhone").value("+966503333333"))
+                    .andExpect(jsonPath("$[0].contactPreference").value("both"))
                     // Should also include seller info separately
-                    .andExpect(jsonPath("$.sellerUsername").value("testdealer"))
-                    .andExpect(jsonPath("$.sellerEmail").value("dealer@autotrader.com"));
+                    .andExpect(jsonPath("$[0].sellerUsername").value("testdealer"))
+                    .andExpect(jsonPath("$[0].sellerEmail").value("dealer@autotrader.com"));
         }
     }
 
@@ -313,6 +370,10 @@ public class ContactFieldsIntegrationTest {
             listing.setPrice(new BigDecimal("35000.00"));
             listing.setCurrency("USD");
             listing.setLocation(testLocation);
+            // Set governorate from location
+            listing.setGovernorate(testLocation.getGovernorate());
+            listing.setGovernorateNameEn(testLocation.getGovernorate().getDisplayNameEn());
+            listing.setGovernorateNameAr(testLocation.getGovernorate().getDisplayNameAr());
             listing.setDescription("Persistence test");
             listing.setSeller(testUser);
             
@@ -351,6 +412,10 @@ public class ContactFieldsIntegrationTest {
             listing.setPrice(new BigDecimal("28000.00"));
             listing.setCurrency("USD");
             listing.setLocation(testLocation);
+            // Set governorate from location
+            listing.setGovernorate(testLocation.getGovernorate());
+            listing.setGovernorateNameEn(testLocation.getGovernorate().getDisplayNameEn());
+            listing.setGovernorateNameAr(testLocation.getGovernorate().getDisplayNameAr());
             listing.setDescription("Null test");
             listing.setSeller(testUser);
             
