@@ -62,7 +62,7 @@ export function withErrorBoundary<T = Record<string, unknown>>(
       maxRetries: 2,
       resetOnPropsChange: true,
       ...errorBoundaryConfig,
-      children: React.createElement(WrappedComponent as React.ComponentType<any>, props as React.Attributes)
+      children: React.createElement(WrappedComponent as React.ComponentType<Record<string, unknown>>, props as React.Attributes)
     };
 
     return <ErrorBoundary {...config} />;
