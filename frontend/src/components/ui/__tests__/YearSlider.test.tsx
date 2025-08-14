@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import YearSlider from '../YearSlider';
 
 // Mock the formatNumber function
-jest.mock('../../../utils/localization', () => ({
+jest.mock('../../../utils/formatting', () => ({
   formatNumber: jest.fn((value: number, locale: string, options: { useGrouping?: boolean }) => {
     // Simulate the real function behavior
     if (options?.useGrouping === false) {

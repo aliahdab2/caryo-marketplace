@@ -11,7 +11,7 @@ jest.mock('@/hooks/useLazyTranslation', () => ({
 }));
 
 // Mock language direction
-jest.mock('@/utils/languageDirection', () => ({
+jest.mock('@/utils/rtl', () => ({
   useLanguageDirection: () => ({
     isRTL: false,
     dirClass: 'ltr'

@@ -12,7 +12,7 @@ jest.mock('../../../utils/currency', () => ({
   })
 }));
 
-jest.mock('../../../utils/localization', () => ({
+jest.mock('../../../utils/formatting', () => ({
   formatNumber: jest.fn((value: number, locale: string, options: { currency?: string; style?: string }) => {
     if (locale.startsWith('ar')) {
       return `٢٥٬٠٠٠ ${options.currency === 'USD' ? '$' : 'ل.س.'}`;

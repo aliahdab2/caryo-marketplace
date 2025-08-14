@@ -19,7 +19,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 // Mock language direction hook
-jest.mock('@/utils/languageDirection', () => ({
+jest.mock('@/utils/rtl', () => ({
   useLanguageDirection: () => ({ isRTL: false }),
 }));
 
