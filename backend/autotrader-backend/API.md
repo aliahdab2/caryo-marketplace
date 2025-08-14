@@ -130,6 +130,134 @@ Most endpoints require authentication using JWT tokens. Include the token in the
 Authorization: Bearer <your_jwt_token>
 ```
 
+## Enhanced Car Listing Response Format (V2)
+
+### Overview
+
+As of Version 2, the car listing API responses have been enhanced to return complete reference data objects instead of just display names. This provides richer data and eliminates the need for additional lookups.
+
+### What's New in V2
+
+**Enhanced Response Structure:**
+- **Complete Objects**: `transmission`, `fuelType`, `brand`, and `model` are now complete objects with IDs, slugs, and localized names
+- **Backward Compatibility**: Old string fields (`transmissionNameEn`, `fuelTypeNameEn`, etc.) are still available but deprecated
+- **Consistent Pattern**: All reference data follows the same object structure as `governorateDetails` and `locationDetails`
+- **Better Performance**: Frontend can use data directly without additional API calls
+
+### V2 Car Listing Response Structure
+
+```json
+{
+  "id": 1,
+  "title": "2023 Toyota Camry LE",
+  "brand": {
+    "id": 1,
+    "name": "toyota",
+    "slug": "toyota",
+    "displayNameEn": "Toyota",
+    "displayNameAr": "تويوتا"
+  },
+  "model": {
+    "id": 101,
+    "name": "camry",
+    "slug": "toyota-camry",
+    "displayNameEn": "Camry",
+    "displayNameAr": "كامري",
+    "brandId": 1
+  },
+  "transmission": {
+    "id": 1,
+    "name": "automatic",
+    "slug": "automatic",
+    "displayNameEn": "Automatic",
+    "displayNameAr": "أوتوماتيك"
+  },
+  "fuelType": {
+    "id": 1,
+    "name": "gasoline",
+    "slug": "gasoline",
+    "displayNameEn": "Gasoline",
+    "displayNameAr": "بنزين"
+  },
+  "governorateDetails": {
+    "id": 1,
+    "slug": "damascus",
+    "displayNameEn": "Damascus",
+    "displayNameAr": "دمشق"
+  },
+  "locationDetails": {
+    "id": 1,
+    "slug": "damascus",
+    "displayNameEn": "Damascus",
+    "displayNameAr": "دمشق",
+    "governorateId": 1
+  },
+  "modelYear": 2023,
+  "price": 28500,
+  "mileage": 15000,
+  "currency": "USD",
+  "description": "Excellent condition, one owner, no accidents",
+  "approved": true,
+  "userId": 1,
+  "createdAt": "2025-04-30T10:15:30Z",
+  "updatedAt": "2025-04-30T10:15:30Z",
+  "isSold": false,
+  "isArchived": false,
+  "isUserActive": true,
+  "isExpired": false,
+  
+  // Deprecated fields (maintained for backward compatibility)
+  "brandNameEn": "Toyota",
+  "brandNameAr": "تويوتا",
+  "modelNameEn": "Camry",
+  "modelNameAr": "كامري",
+  "transmissionNameEn": "Automatic",
+  "transmissionNameAr": "أوتوماتيك",
+  "fuelTypeNameEn": "Gasoline",
+  "fuelTypeNameAr": "بنزين",
+  "governorateNameEn": "Damascus",
+  "governorateNameAr": "دمشق"
+}
+```
+
+### Migration Guide
+
+**For Frontend Developers:**
+
+**Old Approach (V1):**
+```javascript
+// V1 - String fields only
+const transmissionName = listing.transmission || listing.transmissionNameEn;
+const fuelTypeName = listing.fuelType || listing.fuelTypeNameEn;
+const brandName = listing.brandNameEn;
+const modelName = listing.modelNameEn;
+
+// Required separate API calls to get IDs for form submission
+const transmissionId = await lookupTransmissionId(transmissionName);
+const fuelTypeId = await lookupFuelTypeId(fuelTypeName);
+```
+
+**New Approach (V2):**
+```javascript
+// V2 - Complete objects available
+const transmission = listing.transmission; // {id: 1, slug: "automatic", displayNameEn: "Automatic", ...}
+const fuelType = listing.fuelType;         // {id: 1, slug: "gasoline", displayNameEn: "Gasoline", ...}
+const brand = listing.brand;               // {id: 1, slug: "toyota", displayNameEn: "Toyota", ...}
+const model = listing.model;               // {id: 101, slug: "toyota-camry", displayNameEn: "Camry", ...}
+
+// Direct access to IDs and slugs - no additional API calls needed!
+const transmissionId = transmission.id;
+const transmissionSlug = transmission.slug;
+const displayName = transmission.displayNameEn;
+```
+
+**Benefits:**
+- ✅ **No Additional API Calls**: All data available in single response
+- ✅ **Type Safety**: Complete TypeScript interfaces
+- ✅ **Consistent Patterns**: Same structure across all reference data
+- ✅ **Better Performance**: Fewer network requests
+- ✅ **Cleaner Code**: Direct object access instead of string manipulation
+
 ## API Endpoints
 
 ### Authentication
@@ -263,23 +391,58 @@ Authorization: Bearer <your_jwt_token>
   ```json
   {
     "title": "2019 Toyota Camry",
-    "brand": "Toyota",
-    "model": "Camry",
+    "brandId": 1,
+    "modelId": 101,
+    "transmissionId": 1,
+    "fuelTypeId": 1,
     "modelYear": 2019,
     "price": 18500,
     "mileage": 35000,
-    "location": "New York, NY",
-    "description": "Excellent condition, one owner, no accidents",
-    "imageUrl": "https://example.com/camry.jpg"
+    "locationId": 1,
+    "governorateId": 1,
+    "description": "Excellent condition, one owner, no accidents"
   }
   ```
+  
+  **Note**: The API now accepts IDs for reference data instead of string names. Use the reference data endpoints to get the correct IDs:
+  - Use `GET /api/reference-data/brands` and `GET /api/reference-data/brands/{brandId}/models` for brand and model IDs
+  - Use `GET /api/reference-data/transmissions` for transmission IDs
+  - Use `GET /api/reference-data/fuel-types` for fuel type IDs
+  - Use `GET /api/reference-data/governorates` and related endpoints for location IDs
 - **Response (201 Created)**:
   ```json
   {
     "id": 1,
     "title": "2019 Toyota Camry",
-    "brand": "Toyota",
-    "model": "Camry",
+    "brand": {
+      "id": 1,
+      "name": "toyota",
+      "slug": "toyota",
+      "displayNameEn": "Toyota",
+      "displayNameAr": "تويوتا"
+    },
+    "model": {
+      "id": 101,
+      "name": "camry",
+      "slug": "toyota-camry",
+      "displayNameEn": "Camry",
+      "displayNameAr": "كامري",
+      "brandId": 1
+    },
+    "transmission": {
+      "id": 1,
+      "name": "automatic",
+      "slug": "automatic",
+      "displayNameEn": "Automatic",
+      "displayNameAr": "أوتوماتيك"
+    },
+    "fuelType": {
+      "id": 1,
+      "name": "gasoline",
+      "slug": "gasoline",
+      "displayNameEn": "Gasoline",
+      "displayNameAr": "بنزين"
+    },
     "modelYear": 2019,
     "price": 18500,
     "mileage": 35000,
@@ -293,7 +456,17 @@ Authorization: Bearer <your_jwt_token>
     "isSold": false,
     "isArchived": false,
     "isUserActive": true,
-    "isExpired": false
+    "isExpired": false,
+    
+    // Deprecated fields (backward compatibility)
+    "brandNameEn": "Toyota",
+    "brandNameAr": "تويوتا",
+    "modelNameEn": "Camry",
+    "modelNameAr": "كامري",
+    "transmissionNameEn": "Automatic",
+    "transmissionNameAr": "أوتوماتيك",
+    "fuelTypeNameEn": "Gasoline",
+    "fuelTypeNameAr": "بنزين"
   }
   ```
 - **Response (400 Bad Request)** - Invalid data:
@@ -923,18 +1096,24 @@ The system automatically sends email notifications for various listing events. T
   [
     {
       "id": 1,
-      "nameEn": "Gasoline",
-      "nameAr": "بنزين"
+      "name": "gasoline",
+      "slug": "gasoline",
+      "displayNameEn": "Gasoline",
+      "displayNameAr": "بنزين"
     },
     {
       "id": 2,
-      "nameEn": "Diesel",
-      "nameAr": "ديزل"
+      "name": "diesel",
+      "slug": "diesel",
+      "displayNameEn": "Diesel",
+      "displayNameAr": "ديزل"
     },
     {
       "id": 3,
-      "nameEn": "Electric",
-      "nameAr": "كهربائي"
+      "name": "electric",
+      "slug": "electric",
+      "displayNameEn": "Electric",
+      "displayNameAr": "كهربائي"
     }
   ]
   ```
@@ -950,8 +1129,10 @@ The system automatically sends email notifications for various listing events. T
   ```json
   {
     "id": 1,
-    "nameEn": "Gasoline",
-    "nameAr": "بنزين"
+    "name": "gasoline",
+    "slug": "gasoline",
+    "displayNameEn": "Gasoline",
+    "displayNameAr": "بنزين"
   }
   ```
 - **Response (404 Not Found)**:
@@ -1017,18 +1198,24 @@ The system automatically sends email notifications for various listing events. T
   [
     {
       "id": 1,
-      "nameEn": "Manual",
-      "nameAr": "يدوي"
+      "name": "manual",
+      "slug": "manual",
+      "displayNameEn": "Manual",
+      "displayNameAr": "يدوي"
     },
     {
       "id": 2,
-      "nameEn": "Automatic",
-      "nameAr": "أوتوماتيك"
+      "name": "automatic",
+      "slug": "automatic",
+      "displayNameEn": "Automatic",
+      "displayNameAr": "أوتوماتيك"
     },
     {
       "id": 3,
-      "nameEn": "CVT",
-      "nameAr": "متغير السرعة"
+      "name": "cvt",
+      "slug": "cvt",
+      "displayNameEn": "CVT",
+      "displayNameAr": "متغير السرعة"
     }
   ]
   ```
@@ -1263,7 +1450,19 @@ TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/signin \
 curl -X POST http://localhost:8080/api/listings \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
-  -d '{"title":"2019 Toyota Camry","brand":"Toyota","model":"Camry","modelYear":2019,"price":18500,"mileage":35000,"location":"New York, NY","description":"Excellent condition, one owner, no accidents","imageUrl":"https://example.com/camry.jpg"}'
+  -d '{
+    "title":"2019 Toyota Camry",
+    "brandId":1,
+    "modelId":101,
+    "transmissionId":1,
+    "fuelTypeId":1,
+    "modelYear":2019,
+    "price":18500,
+    "mileage":35000,
+    "locationId":1,
+    "governorateId":1,
+    "description":"Excellent condition, one owner, no accidents"
+  }'
 ```
 
 #### Create a Car Listing with Image
@@ -1271,7 +1470,7 @@ curl -X POST http://localhost:8080/api/listings \
 # Using the token from previous step
 curl -X POST http://localhost:8080/api/listings/with-image \
   -H "Authorization: Bearer $TOKEN" \
-  -F 'listing={"title":"2020 Honda Civic","brand":"Honda","model":"Civic","modelYear":2020,"price":20000,"mileage":25000,"location":"Amman, Jordan","description":"Like new condition"}' \
+  -F 'listing={"title":"2020 Honda Civic","brandId":2,"modelId":201,"transmissionId":1,"fuelTypeId":1,"modelYear":2020,"price":20000,"mileage":25000,"locationId":1,"governorateId":1,"description":"Like new condition"}' \
   -F 'image=@/path/to/your/image.jpg'
 ```
 
@@ -1506,7 +1705,7 @@ To run all API tests automatically:
   - `image` (form-data): The image file to upload (JPEG, PNG, GIF, or WebP)
 - **Example Request Body**:
   ```
-  listing: {"title":"2019 Toyota Camry","brand":"Toyota","model":"Camry","modelYear":2019,"price":18500,"mileage":35000,"location":"New York, NY","description":"Excellent condition"}
+  listing: {"title":"2019 Toyota Camry","brandId":1,"modelId":101,"transmissionId":1,"fuelTypeId":1,"modelYear":2019,"price":18500,"mileage":35000,"locationId":1,"governorateId":1,"description":"Excellent condition"}
   image: [binary file data]
   ```
 - **Response (201 Created)**:
@@ -1514,8 +1713,35 @@ To run all API tests automatically:
   {
     "id": 1,
     "title": "2019 Toyota Camry",
-    "brand": "Toyota",
-    "model": "Camry",
+    "brand": {
+      "id": 1,
+      "name": "toyota",
+      "slug": "toyota",
+      "displayNameEn": "Toyota",
+      "displayNameAr": "تويوتا"
+    },
+    "model": {
+      "id": 101,
+      "name": "camry",
+      "slug": "toyota-camry",
+      "displayNameEn": "Camry",
+      "displayNameAr": "كامري",
+      "brandId": 1
+    },
+    "transmission": {
+      "id": 1,
+      "name": "automatic",
+      "slug": "automatic",
+      "displayNameEn": "Automatic",
+      "displayNameAr": "أوتوماتيك"
+    },
+    "fuelType": {
+      "id": 1,
+      "name": "gasoline",
+      "slug": "gasoline",
+      "displayNameEn": "Gasoline",
+      "displayNameAr": "بنزين"
+    },
     "modelYear": 2019,
     "price": 18500,
     "mileage": 35000,

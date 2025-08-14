@@ -1,29 +1,22 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef, memo } from "react";
+import React, { useState, useEffect, useCallback, useRef, memo, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
-import { fetchGovernorates, Governorate } from '@/services/api';
-// Lazy import for reference data services to reduce initial bundle
-const referenceDataServices = {
-  getVehicleMakes: () => import('@/services/referenceData').then(m => m.getVehicleMakes),
-  getVehicleModels: () => import('@/services/referenceData').then(m => m.getVehicleModels),
-  getCarReferenceData: () => import('@/services/referenceData').then(m => m.getCarReferenceData),
-};
-import { CarBrand, CarModel } from '@/types/referenceData';
+import { useListingData } from '@/hooks/useListingData';
 import { createListing, updateListing, uploadListingImage } from '@/services/listings';
 import { ListingFormData, UpdateListingData } from "@/types/listings";
 
 import { FormErrors, StepConfig } from "@/types/forms";
 import { ListingDataService } from '@/services/ListingDataService';
 // SUPPORTED_CURRENCIES removed - not used in this component
-import { validateStep, processFormFieldValue } from '@/utils/formUtils';
+import { validateStep, createFormChangeHandler } from '@/utils/formUtils';
+import { processFormFieldValue } from '@/utils/forms/processing';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 import { createLogger } from '@/utils/logger';
 import NumericInput from '@/components/ui/NumericInput';
 import AutoSaveIndicator from '@/components/ui/AutoSaveIndicator';
-import { getLocationsByGovernorateSlug, Location } from '@/services/locations';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useMemo as useMemoPerf, useCallback as useCallbackPerf } from 'react';
 import { useDirection } from '@/utils/direction';
@@ -47,7 +40,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 // Optimized throttle hook for frequent operations
-function useThrottle<T extends (...args: any[]) => any>(func: T, delay: number): T {
+function useThrottle<T extends (...args: any[]) => any>(func: T, delay: number): T { // eslint-disable-line @typescript-eslint/no-explicit-any -- Necessary for generic function throttling
   const lastRun = useRef(Date.now());
   
   return useCallbackPerf((...args: Parameters<T>) => {
@@ -58,8 +51,6 @@ function useThrottle<T extends (...args: any[]) => any>(func: T, delay: number):
   }, [func, delay]) as T;
 }
 import { 
-  Transmission, 
-  FuelType, 
   ListingWizardProps, 
   ErrorMessageProps 
 } from '@/types/wizard';
@@ -109,7 +100,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = React.memo(function ErrorMessa
 });
 
 // Memoized image preview component for better performance
-const ImagePreview = memo(function ImagePreview({ 
+const _ImagePreview = memo(function ImagePreview({ 
   url, 
   index, 
   isMainPhoto, 
@@ -225,7 +216,7 @@ const ImagePreview = memo(function ImagePreview({
 });
 
 // Loading fallback component for lazy-loaded steps
-const StepLoadingFallback = memo(function StepLoadingFallback() {
+const _StepLoadingFallback = memo(function StepLoadingFallback() {
   return (
     <div className="space-y-8 animate-pulse">
       <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
@@ -242,7 +233,7 @@ const StepLoadingFallback = memo(function StepLoadingFallback() {
 // Will be implemented in future code splitting phase when step components are created
 
 // Virtualized select component for large datasets
-const VirtualizedSelect = memo(function VirtualizedSelect({ 
+const _VirtualizedSelect = memo(function VirtualizedSelect({ 
   options, 
   value, 
   onChange, 
@@ -261,7 +252,7 @@ const VirtualizedSelect = memo(function VirtualizedSelect({
   className?: string;
   maxHeight?: number;
   itemHeight?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [visibleStart, setVisibleStart] = useState(0);
@@ -335,9 +326,9 @@ export default function ListingWizard({
   autoSave = true,
   showHeader = true,
   onSuccess, 
-  onCancel 
+  onCancel: _onCancel 
 }: ListingWizardProps & { showHeader?: boolean }) {
-  const router = useRouter();
+  const _router = useRouter();
   const { t, i18n, ready } = useLazyTranslation(['listings', 'common']);
   const { isRTL } = useDirection();
   const rtl = createRTLHelpers(isRTL);
@@ -354,21 +345,32 @@ export default function ListingWizard({
   const [_loadError, setLoadError] = useState<string | null>(null);
   const [_showVideoUpload, _setShowVideoUpload] = useState(false);
   const [_showVideoUrl, _setShowVideoUrl] = useState(false);
-  const [governorates, setGovernorates] = useState<Governorate[]>([]);
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [carMakes, setCarMakes] = useState<CarBrand[]>([]);
-  const [carModels, setCarModels] = useState<CarModel[]>([]);
-  const [transmissions, setTransmissions] = useState<Transmission[]>([]);
-  const [fuelTypes, setFuelTypes] = useState<FuelType[]>([]);
-  const [isLoadingGovernorates, setIsLoadingGovernorates] = useState(true);
-  const [isLoadingLocations, setIsLoadingLocations] = useState(false);
-  const [isLoadingMakes, setIsLoadingMakes] = useState(true);
-  const [isLoadingModels, setIsLoadingModels] = useState(false);
-  const [isLoadingReferenceData, setIsLoadingReferenceData] = useState(true);
+  
+  // Use the extracted data loading hook
+  const {
+    governorates,
+    locations,
+    carMakes,
+    carModels,
+    transmissions,
+    fuelTypes,
+    isLoadingGovernorates,
+    isLoadingLocations,
+    isLoadingMakes,
+    isLoadingModels,
+    isLoadingReferenceData,
+    loadCarModels,
+    loadLocations,
+    clearModels,
+    clearLocations
+  } = useListingData(t);
+  
+
+  
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [videoPreviewUrls, setVideoPreviewUrls] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
-  const [existingVideos, setExistingVideos] = useState<string[]>([]);
+  const [_existingVideos, setExistingVideos] = useState<string[]>([]);
   const [imagesInitialized, setImagesInitialized] = useState(false);
   const [videosInitialized, setVideosInitialized] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -544,39 +546,33 @@ export default function ListingWizard({
           contactName: formData.contactName
         });
 
-        // Form data already contains IDs for make/model, just need to convert location
-        wizardLogger.debug('Processing form data for API...');
-        wizardLogger.debug('Make/Model IDs ' + JSON.stringify({ makeId: formData.make, modelId: formData.model }));
-        wizardLogger.debug('Location data (ID-first) ' + JSON.stringify({
+        // V2: Enhanced backend provides all IDs directly - no conversion needed!
+        wizardLogger.debug('Using direct IDs from enhanced form data:', {
+          makeId: formData.makeId,
+          modelId: formData.modelId,
+          transmissionId: formData.transmissionId,
+          fuelTypeId: formData.fuelTypeId,
           locationId: formData.locationId,
-          locationSlug: formData.locationSlug,
-          location: formData.location,
-          governorateId: formData.governorateId,
-          governorateSlug: formData.governorateSlug
-        }));
+          governorateId: formData.governorateId
+        });
         
-        // Direct ID usage - no more complex lookups needed!
         const locationId = formData.locationId;
-        const governorateId = formData.governorateId;
+        const _governorateId = formData.governorateId;
         
-        wizardLogger.debug('Using direct IDs ' + JSON.stringify({ locationId, governorateId }));
-        
-        // Use the form's make/model IDs directly
-        const finalModelId = formData.model ? parseInt(formData.model) : undefined;
-        wizardLogger.debug('Final model ID ' + String(finalModelId));
-        
-        // Build update data with direct IDs - much simpler and faster!
+        // V2: Use IDs directly - no conversion needed! Enhanced backend provides all IDs
         const updateData: UpdateListingData = {
           title: formData.title,
           description: formData.description,
           price: parseFloat(formData.price),
           mileage: formData.mileage ? parseInt(formData.mileage) : undefined,
-          transmission: formData.transmission,
-          // Note: fuelType is not supported by the UpdateListingData API
+          
+          // V2: Direct ID usage - no slug-to-ID conversion needed!
+          transmissionId: formData.transmissionId,
+          fuelTypeId: formData.fuelTypeId,
+          modelId: formData.modelId,
+          
           currency: formData.currency,
           modelYear: formData.year ? parseInt(formData.year) : undefined,
-          // Use direct IDs - no conversion needed!
-          modelId: finalModelId,
           locationId: locationId, // Direct from form state
         };
         
@@ -689,6 +685,10 @@ export default function ListingWizard({
     loadData();
   }, [mode, listingId, autoLoad, ready]);
 
+  // V2: Complex conversion logic removed! 
+  // The enhanced backend now provides complete objects with IDs and slugs directly
+  // No more complex useEffect for display name to slug/ID conversion needed ✅
+
   // Update form data when initialData changes (for manual data passing)
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0 && !autoLoad) {
@@ -707,35 +707,7 @@ export default function ListingWizard({
     }
   }, [initialData, autoLoad]);
 
-  // Load initial data and dependencies
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        const [governoratesData, makesData, referenceData] = await Promise.all([
-          fetchGovernorates(),
-          referenceDataServices.getVehicleMakes().then(fn => fn()),
-          referenceDataServices.getCarReferenceData().then(fn => fn())
-        ]);
-        
-        setGovernorates(governoratesData);
-        setCarMakes(makesData);
-        setTransmissions(referenceData.transmissions || []);
-        setFuelTypes(referenceData.fuelTypes || []);
-        wizardLogger.debug('Loaded reference data counts');
-      } catch (error) {
-        wizardLogger.error("Error loading initial data:", error);
-        setError(t('common:failedToLoadData'));
-      } finally {
-        setIsLoadingGovernorates(false);
-        setIsLoadingMakes(false);
-        setIsLoadingReferenceData(false);
-      }
-    };
-
-    if (ready) {
-      loadInitialData();
-    }
-  }, [ready, t]);
+  // Data loading is now handled by useListingData hook
 
 
 
@@ -785,128 +757,146 @@ export default function ListingWizard({
     }
   }, [locations, i18n.language, formErrors.locationSlug]);
 
-  // Form field handler
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | string, fieldName?: string) => {
-    let name: string;
-    let value: string;
-    
-    if (typeof e === 'string') {
-      name = fieldName!;
-      value = e;
-    } else {
-      name = e.target.name;
-      value = e.target.value;
+  // Simple field handlers (V2: Direct approach with useListingData)
+  const fieldHandlers = useMemo(() => ({
+    make: async (value: string) => {
+      if (value && value.trim() !== '') {
+        const selectedMake = carMakes.find(make => make.slug === value);
+        if (selectedMake) {
+          try {
+            await loadCarModels(selectedMake.id.toString());
+            // Set makeId for form submission
+            setFormData(prev => ({ ...prev, makeId: selectedMake.id }));
+          } catch (error) {
+            wizardLogger.error('Failed to load car models:', error);
+            setError(t('common:failedToLoadData', 'Failed to load data'));
+          }
+        } else {
+          clearModels();
+        }
+      } else {
+        clearModels();
+      }
+    },
+    governorateSlug: async (value: string) => {
+      if (value && value.trim() !== '') {
+        try {
+          await loadLocations(value);
+        } catch (error) {
+          wizardLogger.error('Failed to load locations:', error);
+          setError(t('common:failedToLoadData', 'Failed to load data'));
+        }
+      } else {
+        clearLocations();
+      }
+    },
+    // V2: Set location ID directly when location is selected
+    locationSlug: (value: string) => {
+      const selectedLocation = locations.find(l => l.slug === value);
+      if (selectedLocation) {
+        setFormData(prev => ({ ...prev, locationId: selectedLocation.id }));
+      }
+    },
+    // V2: Set IDs directly for transmission and fuel type
+    transmission: (value: string) => {
+      const selectedTransmission = transmissions.find(t => t.slug === value);
+      if (selectedTransmission) {
+        setFormData(prev => ({ ...prev, transmissionId: selectedTransmission.id }));
+      }
+    },
+    fuelType: (value: string) => {
+      const selectedFuelType = fuelTypes.find(f => f.slug === value);
+      if (selectedFuelType) {
+        setFormData(prev => ({ ...prev, fuelTypeId: selectedFuelType.id }));
+      }
+    },
+    model: (value: string) => {
+      const selectedModel = carModels.find(m => m.slug === value);
+      if (selectedModel) {
+        setFormData(prev => ({ ...prev, modelId: selectedModel.id }));
+      }
     }
-    
-    setFormData(prev => ({
-      ...prev,
-      [name]: processFormFieldValue(name, value)
-    }));
-    
-    // Clear field-specific errors
-    if (formErrors[name]) {
-      setFormErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
-  }, [formErrors]);
+  }), [carMakes, carModels, transmissions, fuelTypes, locations, loadCarModels, clearModels, loadLocations, clearLocations, t]);
+
+  // Optimized form change handler using utility
+  const handleChange = useCallback(
+    (fieldOrEvent: string | React.ChangeEvent<any>, value?: unknown) => { // eslint-disable-line @typescript-eslint/no-explicit-any -- Necessary for generic event handling
+      if (typeof fieldOrEvent === 'string') {
+        // Direct field/value call
+        return createFormChangeHandler(
+          setFormData,
+          setFormErrors,
+          processFormFieldValue,
+          fieldHandlers
+        )(fieldOrEvent, value as string);
+      } else {
+        // Event-based call
+        const event = fieldOrEvent;
+        const field = event.target.name;
+        const fieldValue = event.target.value;
+        return createFormChangeHandler(
+          setFormData,
+          setFormErrors,
+          processFormFieldValue,
+          fieldHandlers
+        )(field, fieldValue);
+      }
+    },
+    [fieldHandlers]
+  );
 
   // Optimized progress calculation with memoization
   const progressPercentage = useMemoPerf(() => {
     return (currentStep / TOTAL_STEPS) * 100;
   }, [currentStep]);
 
-  // Load car models when make changes
+
+
+
+
+  // Load existing listing data for edit mode
   useEffect(() => {
-    const loadCarModels = async () => {
-      if (formData.make && formData.make.trim() !== '') {
+    if (autoLoad && mode === 'edit' && listingId && ready) {
+      const loadEditData = async () => {
         try {
-          setIsLoadingModels(true);
-          setCarModels([]); // Clear previous models
-          const getVehicleModels = await referenceDataServices.getVehicleModels();
-          const modelData = await getVehicleModels(parseInt(formData.make));
-          setCarModels(modelData);
-        } catch (error) {
-          wizardLogger.error('Failed to load car models:', error);
-          setError(t('common:failedToLoadData'));
-        } finally {
-          setIsLoadingModels(false);
-        }
-      } else {
-        setCarModels([]);
-      }
-    };
-
-    loadCarModels();
-  }, [formData.make, t]);
-
-  // Load locations when governorate changes
-  useEffect(() => {
-    const loadLocations = async () => {
-
-      
-      if (formData.governorateSlug && formData.governorateSlug.trim() !== '') {
-        try {
-          setIsLoadingLocations(true);
-          setLocations([]); // Clear previous locations
-          wizardLogger.debug('Loading locations for governorate');
-          const locationData = await getLocationsByGovernorateSlug(formData.governorateSlug);
-          wizardLogger.debug('Loaded locations count ' + String(locationData.length));
+          setIsLoadingData(true);
+          setLoadError(null);
+          wizardLogger.info(`Loading edit data for listing ID: ${listingId}`);
           
-          // CRITICAL FIX: Set governorate ID from location data
-          if (!formData.governorateId && locationData.length > 0) {
-            const governorateId = locationData[0].governorateId;
-            if (governorateId) {
-              wizardLogger.debug('Setting missing governorate ID');
-              setFormData(prev => ({
-                ...prev,
-                governorateId: governorateId
-              }));
-            }
+          const data = await ListingDataService.loadFormData(mode, listingId);
+          setFormData(prev => ({ ...prev, ...data }));
+          
+          // After setting form data, trigger model loading if make is present
+          if (data.make && data.makeId) {
+            wizardLogger.debug(`Edit mode: Loading models for make: ${data.make} (ID: ${data.makeId})`);
+            loadCarModels(data.makeId.toString()).catch(error => {
+              wizardLogger.error('Failed to load car models in edit mode:', error);
+            });
           }
-          setLocations(locationData);
+          
+          // Also trigger location loading if governorate is present
+          if (data.governorateSlug) {
+            wizardLogger.debug(`Edit mode: Loading locations for governorate: ${data.governorateSlug}`);
+            loadLocations(data.governorateSlug).catch(error => {
+              wizardLogger.error('Failed to load locations in edit mode:', error);
+            });
+          }
+          
+          wizardLogger.info('Edit data loaded successfully');
         } catch (error) {
-          wizardLogger.error('Failed to load locations:', error);
+          wizardLogger.error('Failed to load edit data:', error);
+          setLoadError(error instanceof Error ? error.message : 'Failed to load listing data');
           setError(t('common:failedToLoadData'));
         } finally {
-          setIsLoadingLocations(false);
+          setIsLoadingData(false);
         }
-      } else {
-        setLocations([]);
-      }
-    };
+      };
+      
+      loadEditData();
+    }
+  }, [autoLoad, mode, listingId, ready, loadCarModels, loadLocations, t]);
 
-    loadLocations();
-  }, [formData.governorateSlug, formData.governorateId, t]);
-
-  // Load models when make changes
-  useEffect(() => {
-    const loadModels = async () => {
-      if (formData.make) {
-        try {
-          setIsLoadingModels(true);
-          setCarModels([]); // Clear previous models
-          wizardLogger.debug('Loading models for make');
-          const getVehicleModels = await referenceDataServices.getVehicleModels();
-          const modelData = await getVehicleModels(parseInt(formData.make));
-          wizardLogger.debug('Loaded models');
-          setCarModels(modelData);
-        } catch (error) {
-          wizardLogger.error('Failed to load models:', error);
-          setError(t('common:failedToLoadData'));
-        } finally {
-          setIsLoadingModels(false);
-        }
-      } else {
-        setCarModels([]);
-        setIsLoadingModels(false);
-      }
-    };
-
-    loadModels();
-  }, [formData.make, t]);
+  // Duplicate models loading removed - now handled by extracted hook above
 
   // Load existing images and videos when formData changes (edit mode)
   useEffect(() => {
@@ -969,7 +959,7 @@ export default function ListingWizard({
       const errorElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement | null;
       if (errorElement) {
         try {
-          errorElement.focus({ preventScroll: true } as any);
+          errorElement.focus({ preventScroll: true });
         } catch {
         errorElement.focus();
         }
@@ -1113,7 +1103,7 @@ export default function ListingWizard({
     }
 
     setImagePreviewUrls(prev => prev.filter((_, i) => i !== index));
-  }, [existingImages, formData.images, imagePreviewUrls]);
+  }, [existingImages, imagePreviewUrls]);
 
   // Optimized drag and drop handlers with throttling
   const handleDragOver = useThrottle(useCallbackPerf((e: React.DragEvent) => {
@@ -1458,7 +1448,7 @@ export default function ListingWizard({
                       }
                     </option>
                     {carMakes.map((make) => (
-                      <option key={make.id} value={make.id.toString()}>
+                      <option key={make.id} value={make.slug}>
                         {i18n.language === 'ar' ? make.displayNameAr : make.displayNameEn}
                       </option>
                     ))}
@@ -1499,7 +1489,7 @@ export default function ListingWizard({
                       }
                     </option>
                     {carModels.map((model) => (
-                      <option key={model.id} value={model.id.toString()}>
+                      <option key={model.id} value={model.slug}>
                         {i18n.language === 'ar' ? model.displayNameAr : model.displayNameEn}
                       </option>
                     ))}
@@ -1644,7 +1634,7 @@ export default function ListingWizard({
                         }
                       </option>
                       {transmissions.map((transmission) => (
-                        <option key={transmission.id} value={transmission.name}>
+                        <option key={transmission.id} value={transmission.slug}>
                           {i18n.language === 'ar' ? transmission.displayNameAr : transmission.displayNameEn}
                         </option>
                       ))}
@@ -1708,7 +1698,7 @@ export default function ListingWizard({
                         }
                       </option>
                       {fuelTypes.map((fuelType) => (
-                        <option key={fuelType.id} value={fuelType.name}>
+                        <option key={fuelType.id} value={fuelType.slug}>
                           {i18n.language === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn}
                         </option>
                       ))}

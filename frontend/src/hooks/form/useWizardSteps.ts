@@ -10,7 +10,7 @@ interface UseWizardStepsOptions {
   onStepChange?: (newStep: number, previousStep: number) => void;
 }
 
-interface UseWizardStepsReturn {
+interface _UseWizardStepsReturn {
   currentStep: number;
   previousStep: number | null;
   isFirstStep: boolean;
@@ -45,7 +45,7 @@ export const useWizardSteps = ({
   debugEnabled = false,
   validateStepAccessibility,
   onStepChange
-}: UseWizardStepsOptions) => {
+}: UseWizardStepsOptions): _UseWizardStepsReturn => {
   
   // Create logger
   const logger = useMemo(() => createLogger({

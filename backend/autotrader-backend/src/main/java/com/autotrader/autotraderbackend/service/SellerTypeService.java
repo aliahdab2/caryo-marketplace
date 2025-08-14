@@ -144,6 +144,7 @@ public class SellerTypeService {
                 .name(request.getName().trim().toUpperCase())
                 .displayNameEn(request.getDisplayNameEn().trim())
                 .displayNameAr(request.getDisplayNameAr().trim())
+                .slug(request.getSlug().trim().toLowerCase())
                 .build();
         
         try {

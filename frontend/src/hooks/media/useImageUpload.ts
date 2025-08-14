@@ -133,13 +133,11 @@ export const useImageUpload = ({
 
     // Validate and process files
     const validFiles: ImageFile[] = [];
-    let errorCount = 0;
 
     files.forEach((file, index) => {
       const error = validateFile(file);
       if (error) {
         onError?.(error);
-        errorCount++;
       } else {
         validFiles.push({
           file,

@@ -197,8 +197,8 @@ export default function ListingsView({
     if (searchTerm) {
       displayListings = displayListings.filter(listing =>
         listing.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        listing.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        listing.model?.toLowerCase().includes(searchTerm.toLowerCase())
+        listing.brand?.displayNameEn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        listing.model?.displayNameEn?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
@@ -482,7 +482,7 @@ export default function ListingsView({
 
                     {/* Make and Model - Enhanced with year */}
                     <div className="mb-2">
-                      {(listing.brandNameEn || listing.brandNameAr || listing.make || listing.brand) && (
+                      {(listing.brand?.displayNameEn || listing.brandNameEn || listing.brandNameAr || listing.make) && (
                         <div className="flex flex-wrap items-center gap-2">
                           {/* Primary vehicle info */}
                           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700/50 text-blue-900 dark:text-blue-100 text-sm font-medium shadow-sm">
@@ -490,16 +490,16 @@ export default function ListingsView({
                             <div className="flex items-center gap-1.5">
                               <span className="font-semibold">
                                 {i18n.language === 'ar'
-                                  ? (listing.brandNameAr || listing.brand || listing.make)
-                                  : (listing.brandNameEn || listing.brand || listing.make)}
+                                  ? (listing.brand?.displayNameAr || listing.brandNameAr || listing.make)
+                                  : (listing.brand?.displayNameEn || listing.brandNameEn || listing.make)}
                               </span>
-                              {(listing.modelNameEn || listing.modelNameAr || listing.model) && (
+                              {(listing.model?.displayNameEn || listing.modelNameEn || listing.modelNameAr) && (
                                 <>
                                   <span className="text-blue-400 dark:text-blue-300">•</span>
                                   <span className="font-medium opacity-90">
                                     {i18n.language === 'ar' 
-                                      ? (listing.modelNameAr || listing.model) 
-                                      : (listing.modelNameEn || listing.model)}
+                                      ? (listing.model?.displayNameAr || listing.modelNameAr) 
+                                      : (listing.model?.displayNameEn || listing.modelNameEn)}
                                   </span>
                                 </>
                               )}

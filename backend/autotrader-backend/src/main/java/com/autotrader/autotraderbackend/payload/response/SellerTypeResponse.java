@@ -25,6 +25,9 @@ public class SellerTypeResponse {
     
     @Schema(description = "Display name in Arabic", example = "تاجر")
     private String displayNameAr;
+    
+    @Schema(description = "URL-friendly slug", example = "dealer")
+    private String slug;
 
     /**
      * Factory method to create SellerTypeResponse from SellerType entity
@@ -39,6 +42,7 @@ public class SellerTypeResponse {
                 .name(sellerType.getName())
                 .displayNameEn(sellerType.getDisplayNameEn())
                 .displayNameAr(sellerType.getDisplayNameAr())
+                .slug(sellerType.getSlug())
                 .build();
     }
 }

@@ -56,10 +56,20 @@ export interface ListingMedia {
 export interface ApiListingItem {
   id: number;
   title: string;
-  brandNameEn: string;
-  brandNameAr: string;
-  modelNameEn: string;
-  modelNameAr: string;
+  
+  // Enhanced V2 fields - Complete objects with IDs, slugs, and localized names
+  brand?: { id: number; name: string; slug: string; displayNameEn: string; displayNameAr: string; };
+  model?: { id: number; name: string; slug: string; displayNameEn: string; displayNameAr: string; };
+  // V2: Backend always provides complete objects (no more string fallbacks)
+  transmission?: { id: number; name: string; slug: string; displayNameEn: string; displayNameAr: string; };
+  fuelType?: { id: number; name: string; slug: string; displayNameEn: string; displayNameAr: string; };
+  
+  // Deprecated string fields (maintained for backward compatibility)
+  brandNameEn?: string;
+  brandNameAr?: string;
+  modelNameEn?: string;
+  modelNameAr?: string;
+  
   modelYear: number;
   mileage: number;
   price: number;
@@ -78,8 +88,6 @@ export interface ApiListingItem {
   isArchived: boolean;
   isUserActive: boolean;
   isExpired: boolean;
-  transmission?: string;
-  fuelType?: string;
   // Bilingual names for transmission and fuel type (from backend)
   transmissionNameEn?: string;
   transmissionNameAr?: string;
@@ -111,7 +119,8 @@ export interface UpdateListingData {
   currency?: string; // Add currency support to update interface
   locationId?: number;
   description?: string;
-  transmission?: string;
+  transmissionId?: number;
+  fuelTypeId?: number;
   isSold?: boolean;
   isArchived?: boolean;
 }
@@ -128,17 +137,38 @@ export interface Listing {
   year: number;
   mileage: number;
   make?: string;
-  model?: string;
-  brand?: string;  // Backward compatibility
+  
+  // V2: Enhanced complete objects with IDs, slugs, and localized names
+  brand?: {
+    id: number;
+    name: string;
+    slug: string;
+    displayNameEn: string;
+    displayNameAr: string;
+  };
+  model?: {
+    id: number;
+    name: string;
+    slug: string;
+    displayNameEn: string;
+    displayNameAr: string;
+    brandId?: number;
+  };
   image?: string;  // Backward compatibility
   exteriorColor?: string;
   interiorColor?: string;
   
   // Backend fields from CarListingResponse
   modelYear?: number;
+  
+  // Deprecated fields (maintained for backward compatibility)
+  /** @deprecated Use brand.displayNameEn instead */
   brandNameEn?: string;
+  /** @deprecated Use brand.displayNameAr instead */
   brandNameAr?: string;
+  /** @deprecated Use model.displayNameEn instead */
   modelNameEn?: string;
+  /** @deprecated Use model.displayNameAr instead */
   modelNameAr?: string;
   governorateNameEn?: string;
   governorateNameAr?: string;
@@ -172,12 +202,30 @@ export interface Listing {
     type?: string; 
     isPrimary?: boolean; 
   }[];
-  fuelType?: string;
-  transmission?: string;
-  // Bilingual names for transmission and fuel type (from backend)
+  // Enhanced V2 objects for transmission and fuel type
+  transmission?: {
+    id: number;
+    name: string;
+    slug: string;
+    displayNameEn: string;
+    displayNameAr: string;
+  };
+  fuelType?: {
+    id: number;
+    name: string;
+    slug: string;
+    displayNameEn: string;
+    displayNameAr: string;
+  };
+  
+  // Deprecated transmission/fuel type fields (maintained for backward compatibility)
+  /** @deprecated Use transmission.displayNameEn instead */
   transmissionNameEn?: string;
+  /** @deprecated Use transmission.displayNameAr instead */
   transmissionNameAr?: string;
+  /** @deprecated Use fuelType.displayNameEn instead */
   fuelTypeNameEn?: string;
+  /** @deprecated Use fuelType.displayNameAr instead */
   fuelTypeNameAr?: string;
   listingDate?: Date;
   createdAt: string;
@@ -229,9 +277,13 @@ export interface ListingFormData {
   location?: string; 
   governorateSlug: string; // For URL generation and form display
   locationSlug: string; // For URL generation and form display
-  // Add direct IDs for efficient API calls
+  // Add direct IDs for efficient API calls (following the location pattern)
   governorateId?: number; // Direct ID for API efficiency
   locationId?: number; // Direct ID for API efficiency
+  makeId?: number; // Direct ID for make (will be set when reference data loads)
+  modelId?: number; // Direct ID for model (will be set when reference data loads)
+  transmissionId?: number; // Direct ID for transmission (will be set when reference data loads)
+  fuelTypeId?: number; // Direct ID for fuel type (will be set when reference data loads)
   state: string; // State or province
   zipCode: string; // Postal/ZIP code
   contactName: string; // Added

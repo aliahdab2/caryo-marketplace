@@ -67,8 +67,12 @@ export const FormErrorBoundary: React.FC<FormErrorBoundaryProps> = ({
     onFormError?.(error, errorId);
 
     // Track form errors for analytics
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'form_error', {
+    interface GtagWindow extends Window {
+      gtag?: (command: string, action: string, parameters: Record<string, unknown>) => void;
+    }
+    
+    if (typeof window !== 'undefined' && (window as GtagWindow).gtag) {
+      (window as GtagWindow).gtag!('event', 'form_error', {
         form_name: formName,
         error_id: errorId,
         error_message: error.message,
@@ -108,7 +112,7 @@ interface FormErrorFallbackProps {
   formName: string;
   enableAutoSave: boolean;
   onRetry: () => void;
-  t: any; // Use any for translation function to avoid type conflicts
+  t: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- Translation function - complex react-i18next signature
 }
 
 const FormErrorFallback: React.FC<FormErrorFallbackProps> = ({

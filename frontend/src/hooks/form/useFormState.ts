@@ -163,7 +163,7 @@ export const useFormState = ({
       const target = e.target;
       const { name, value, type } = target;
       
-      let processedValue: any = value;
+      let processedValue: unknown = value;
       
       // Handle different input types
       if (type === 'checkbox') {
@@ -177,7 +177,7 @@ export const useFormState = ({
         processedValue = processFormFieldValue(name, value);
       }
 
-      updateField(name as keyof ListingFormData, processedValue);
+      updateField(name as keyof ListingFormData, processedValue as ListingFormData[keyof ListingFormData]);
     }
   }, [updateField]);
 

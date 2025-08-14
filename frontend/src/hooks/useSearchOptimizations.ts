@@ -102,8 +102,8 @@ export function useSearchOptimizations({
       imageUrl: listing.media && listing.media.length > 0 ? listing.media[0].url : undefined,
       year: listing.modelYear,
       mileage: listing.mileage,
-      transmission: listing.transmission || undefined,
-      fuelType: listing.fuelType || undefined,
+      transmission: typeof listing.transmission === 'object' ? listing.transmission?.displayNameEn : listing.transmission,
+      fuelType: typeof listing.fuelType === 'object' ? listing.fuelType?.displayNameEn : listing.fuelType,
       description: listing.description || undefined,
       createdAt: listing.createdAt || new Date().toISOString(),
       updatedAt: listing.createdAt || new Date().toISOString() // Use createdAt as fallback

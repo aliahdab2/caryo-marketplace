@@ -1,11 +1,15 @@
 package com.autotrader.autotraderbackend.mapper;
 
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.payload.response.CarBrandResponse;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
+import com.autotrader.autotraderbackend.payload.response.CarModelResponse;
+import com.autotrader.autotraderbackend.payload.response.FuelTypeResponse;
 import com.autotrader.autotraderbackend.payload.response.GovernorateResponse;
 import com.autotrader.autotraderbackend.payload.response.ListingMediaResponse;
 import com.autotrader.autotraderbackend.payload.response.LocationResponse;
 import com.autotrader.autotraderbackend.payload.response.SellerTypeResponse;
+import com.autotrader.autotraderbackend.payload.response.TransmissionResponse;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,19 +54,22 @@ public class CarListingMapper {
             response.setMileage(carListing.getMileage());
             response.setDescription(carListing.getDescription());
             
-            // Set transmission and fuel type information
+            // Set complete transmission and fuel type objects
             if (Objects.nonNull(carListing.getTransmissionType())) {
-                response.setTransmission(carListing.getTransmissionType().getDisplayNameEn());
-                response.setTransmissionNameEn(carListing.getTransmissionType().getDisplayNameEn());
-                response.setTransmissionNameAr(carListing.getTransmissionType().getDisplayNameAr());
-            }
-            if (Objects.nonNull(carListing.getFuelType())) {
-                response.setFuelType(carListing.getFuelType().getDisplayNameEn());
-                response.setFuelTypeNameEn(carListing.getFuelType().getDisplayNameEn());
-                response.setFuelTypeNameAr(carListing.getFuelType().getDisplayNameAr());
+                response.setTransmission(TransmissionResponse.fromEntity(carListing.getTransmissionType()));
             }
             
-            // Set denormalized brand and model name fields
+            if (Objects.nonNull(carListing.getFuelType())) {
+                response.setFuelType(FuelTypeResponse.fromEntity(carListing.getFuelType()));
+            }
+            
+            // Set complete brand and model objects
+            if (Objects.nonNull(carListing.getModel()) && Objects.nonNull(carListing.getModel().getBrand())) {
+                response.setBrand(CarBrandResponse.fromEntity(carListing.getModel().getBrand()));
+                response.setModel(CarModelResponse.fromEntity(carListing.getModel()));
+            }
+            
+            // Set denormalized brand and model name fields (backward compatibility)
             response.setBrandNameEn(carListing.getBrandNameEn());
             response.setBrandNameAr(carListing.getBrandNameAr());
             response.setModelNameEn(carListing.getModelNameEn());
@@ -157,13 +164,21 @@ public class CarListingMapper {
             catch (Exception e) { log.warn("Error setting title for listing ID {}", carListing.getId()); }
             
             try { 
-                // Use denormalized brand and model name fields
+                // Set complete brand and model objects
+                if (Objects.nonNull(carListing.getModel()) && Objects.nonNull(carListing.getModel().getBrand())) {
+                    response.setBrand(CarBrandResponse.fromEntity(carListing.getModel().getBrand()));
+                    response.setModel(CarModelResponse.fromEntity(carListing.getModel()));
+                }
+                
+                // Backward compatibility - use denormalized fields as fallback
                 response.setBrandNameEn(carListing.getBrandNameEn());
                 response.setBrandNameAr(carListing.getBrandNameAr());
                 response.setModelNameEn(carListing.getModelNameEn());
                 response.setModelNameAr(carListing.getModelNameAr());
             } 
-            catch (Exception e) { log.warn("Error setting brand/model names for listing ID {}", carListing.getId()); }
+            catch (Exception e) { 
+                log.warn("Error setting brand/model information for listing ID {}: {}", carListing.getId(), e.getMessage()); 
+            }
             
             try { response.setModelYear(carListing.getModelYear()); } 
             catch (Exception e) { log.warn("Error setting modelYear for listing ID {}", carListing.getId()); }
@@ -183,7 +198,10 @@ public class CarListingMapper {
             // Set transmission and fuel type information safely
             try {
                 if (Objects.nonNull(carListing.getTransmissionType())) {
-                    response.setTransmission(carListing.getTransmissionType().getDisplayNameEn());
+                    // Set complete transmission object
+                    response.setTransmission(TransmissionResponse.fromEntity(carListing.getTransmissionType()));
+                    
+                    // Backward compatibility - deprecated fields
                     response.setTransmissionNameEn(carListing.getTransmissionType().getDisplayNameEn());
                     response.setTransmissionNameAr(carListing.getTransmissionType().getDisplayNameAr());
                 }
@@ -193,7 +211,10 @@ public class CarListingMapper {
             
             try {
                 if (Objects.nonNull(carListing.getFuelType())) {
-                    response.setFuelType(carListing.getFuelType().getDisplayNameEn());
+                    // Set complete fuel type object
+                    response.setFuelType(FuelTypeResponse.fromEntity(carListing.getFuelType()));
+                    
+                    // Backward compatibility - deprecated fields
                     response.setFuelTypeNameEn(carListing.getFuelType().getDisplayNameEn());
                     response.setFuelTypeNameAr(carListing.getFuelType().getDisplayNameAr());
                 }

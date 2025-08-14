@@ -40,6 +40,97 @@ export {
 };
 
 /**
+ * Extracts field name and value from various input types
+ */
+export function extractFieldData(
+  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | string,
+  fieldName?: string
+): { name: string; value: string } {
+  if (typeof e === 'string') {
+    return {
+      name: fieldName!,
+      value: e
+    };
+  }
+  
+  return {
+    name: e.target.name,
+    value: e.target.value
+  };
+}
+
+/**
+ * Generic form change handler that processes field changes and handles dependencies
+ */
+export function createFormChangeHandler<TFormData>(
+  setFormData: React.Dispatch<React.SetStateAction<TFormData>>,
+  setFormErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>,
+  processFormFieldValue: (name: string, value: string) => string,
+  fieldHandlers: Record<string, (value: string) => void> = {}
+) {
+  return (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | string,
+    fieldName?: string
+  ) => {
+    const { name, value } = extractFieldData(e, fieldName);
+    
+    // Update form data
+    setFormData(prev => ({
+      ...prev,
+      [name]: processFormFieldValue(name, value)
+    }));
+    
+    // Handle dependent field logic
+    const fieldHandler = fieldHandlers[name];
+    if (fieldHandler) {
+      fieldHandler(value);
+    }
+    
+    // Clear field-specific errors
+    setFormErrors(prev => {
+      if (!prev[name]) return prev;
+      
+      const newErrors = { ...prev };
+      delete newErrors[name];
+      return newErrors;
+    });
+  };
+}
+
+/**
+ * Creates a standardized error handler
+ */
+export function createErrorHandler(
+  setError: (error: string) => void,
+  logger?: { error: (message: string, error: Error) => void }
+) {
+  return (error: Error, context?: string) => {
+    const message = error.message || 'An error occurred';
+    if (logger && context) {
+      logger.error(`${context}:`, error);
+    }
+    setError(message);
+  };
+}
+
+/**
+ * Utility to safely update form data with additional fields
+ */
+export function updateFormDataSafely<TFormData>(
+  setFormData: React.Dispatch<React.SetStateAction<TFormData>>,
+  updates: Partial<TFormData>,
+  logger?: { debug: (message: string, data: unknown) => void }
+) {
+  setFormData(prev => {
+    const updatedData = { ...prev, ...updates };
+    if (logger) {
+      logger.debug('Form data updated:', updates);
+    }
+    return updatedData;
+  });
+}
+
+/**
  * Main form data sanitization function
  */
 export function sanitizeFormData(data: Partial<ListingFormData>): Partial<ListingFormData> {
@@ -224,23 +315,7 @@ const REQUIRED_FIELD_I18N: Record<string, { key: string; fallback: string }> = {
   locationSlug: { key: 'listings:newListingValidationLocationRequired', fallback: 'Location is required' },
 };
 
-function applyRequiredFieldErrors(
-  step: number,
-  data: ListingFormData,
-  t: (key: string, fallback: string) => string,
-  errors: FormErrors
-) {
-  const requiredFields = REQUIRED_FIELDS_BY_STEP[step] || [];
-  for (const field of requiredFields) {
-    const value = data[field];
-    if (!value || (typeof value === 'string' && value.trim().length === 0)) {
-      const i18nMeta = REQUIRED_FIELD_I18N[field as string];
-      if (i18nMeta) {
-        errors[field] = t(i18nMeta.key, i18nMeta.fallback);
-      }
-    }
-  }
-}
+// Removed unused function applyRequiredFieldErrors
 
 type ValidationMode = 'final' | 'navigation' | 'accessibility';
 

@@ -223,8 +223,8 @@ const ListingsPage = () => {
               price: listing.price,
               year: listing.year,
               mileage: listing.mileage,
-              transmission: listing.transmission,
-              fuelType: listing.fuelType,
+              transmission: typeof listing.transmission === 'object' ? listing.transmission?.displayNameEn : listing.transmission,
+              fuelType: typeof listing.fuelType === 'object' ? listing.fuelType?.displayNameEn : listing.fuelType,
               createdAt: listing.createdAt,
               media: listing.media?.map(m => ({
                 url: m.url,

@@ -66,8 +66,12 @@ export const MediaErrorBoundary: React.FC<MediaErrorBoundaryProps> = ({
     onMediaError?.(error, errorId, mediaType);
 
     // Track media errors for analytics
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'media_upload_error', {
+    interface GtagWindow extends Window {
+      gtag?: (command: string, action: string, parameters: Record<string, unknown>) => void;
+    }
+    
+    if (typeof window !== 'undefined' && (window as GtagWindow).gtag) {
+      (window as GtagWindow).gtag!('event', 'media_upload_error', {
         media_type: mediaType,
         error_id: errorId,
         error_message: error.message,
@@ -79,8 +83,20 @@ export const MediaErrorBoundary: React.FC<MediaErrorBoundaryProps> = ({
     }
 
     // Report to Sentry with media context
-    if (typeof window !== 'undefined' && (window as any).Sentry) {
-      (window as any).Sentry.withScope((scope: any) => {
+    interface SentryWindow extends Window {
+      Sentry?: {
+        withScope: (callback: (scope: SentryScope) => void) => void;
+        captureException: (error: Error) => void;
+      };
+    }
+    
+    interface SentryScope {
+      setTag: (key: string, value: string) => void;
+      setContext: (key: string, value: unknown) => void;
+    }
+    
+    if (typeof window !== 'undefined' && (window as SentryWindow).Sentry) {
+      (window as SentryWindow).Sentry!.withScope((scope: SentryScope) => {
         scope.setTag('mediaType', mediaType);
         scope.setTag('errorType', 'media_upload');
         scope.setContext('mediaError', {
@@ -90,7 +106,7 @@ export const MediaErrorBoundary: React.FC<MediaErrorBoundaryProps> = ({
           isFileError,
           isNetworkError
         });
-        (window as any).Sentry.captureException(error);
+        (window as SentryWindow).Sentry!.captureException(error);
       });
     }
   };
@@ -137,11 +153,11 @@ interface MediaErrorFallbackProps {
   error: Error;
   mediaType: 'image' | 'video' | 'mixed';
   onRetry: () => void;
-  t: any; // Use any for translation function to avoid type conflicts
+  t: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- Translation function - complex react-i18next signature
 }
 
 const MediaErrorFallback: React.FC<MediaErrorFallbackProps> = ({
-  error,
+  error: _error,
   mediaType,
   onRetry,
   t
@@ -267,7 +283,7 @@ interface MediaErrorMessageProps {
   error: Error;
   mediaType: 'image' | 'video' | 'mixed';
   onRetry: () => void;
-  t: any; // Use any for translation function to avoid type conflicts
+  t: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- Translation function - complex react-i18next signature
 }
 
 const MediaErrorMessage: React.FC<MediaErrorMessageProps> = ({

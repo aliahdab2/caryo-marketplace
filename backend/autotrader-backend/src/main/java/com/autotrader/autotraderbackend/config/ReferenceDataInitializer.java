@@ -288,6 +288,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
                 .name(name)
                 .displayNameEn(displayNameEn)
                 .displayNameAr(displayNameAr)
+                .slug(name.toLowerCase().replace("_", "-"))
                 .build();
     }
 }

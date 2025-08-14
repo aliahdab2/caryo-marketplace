@@ -124,13 +124,25 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
 
     // Report to external error tracking (Sentry, LogRocket, etc.)
-    if (typeof window !== 'undefined' && (window as any).Sentry) {
-      (window as any).Sentry.withScope((scope: any) => {
+    interface SentryWindow extends Window {
+      Sentry?: {
+        withScope: (callback: (scope: SentryScope) => void) => void;
+        captureException: (error: Error) => void;
+      };
+    }
+    
+    interface SentryScope {
+      setTag: (key: string, value: string) => void;
+      setContext: (key: string, value: unknown) => void;
+    }
+    
+    if (typeof window !== 'undefined' && (window as SentryWindow).Sentry) {
+      (window as SentryWindow).Sentry!.withScope((scope: SentryScope) => {
         scope.setTag('errorBoundary', componentName || 'Unknown');
         scope.setTag('level', level || 'component');
         scope.setContext('errorInfo', errorInfo);
         scope.setContext('retryCount', this.state.retryCount);
-        (window as any).Sentry.captureException(error);
+        (window as SentryWindow).Sentry!.captureException(error);
       });
     }
   }
