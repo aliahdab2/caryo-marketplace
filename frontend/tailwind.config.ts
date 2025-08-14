@@ -47,6 +47,7 @@ const config: Config = {
         'fadeIn': 'fadeIn 0.2s ease-in-out',
         'slideDown': 'slideDown 0.2s ease-in-out',
         'heartbeat': 'heartbeat 1s ease-in-out',
+        'spin-slow': 'spin 3s linear infinite',
       },
       keyframes: {
         fadeIn: {

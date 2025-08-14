@@ -10,6 +10,7 @@ import { transformMinioUrl } from '@/utils/mediaUtils';
 import { formatCurrency } from '@/utils/currency';
 import { timeAgo } from '@/utils/dateUtils';
 import { useLanguageDirection } from '@/utils/languageDirection';
+import YearBadge from '@/components/ui/YearBadge';
 
 interface CarListingListItemProps {
   listing: CarListingCardData;
@@ -28,6 +29,9 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
 }) => {
   // Determine RTL internally like the grid component does
   const { isRTL } = useLanguageDirection();
+  
+  // Use year or modelYear - prioritize modelYear as it's more specific
+  const displayYear = listing.modelYear || listing.year;
 
   // Helper function to get translated transmission text
   const getTransmissionText = (transmission?: string) => {
@@ -119,14 +123,13 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
               />
             </div>
             
-            {/* Modern year badge with gradient */}
-            <div className={`absolute bottom-4 ${isRTL ? 'right-4' : 'left-4'} 
-              bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl 
-              text-sm font-bold shadow-lg backdrop-blur-sm 
-              group-hover:from-blue-700 group-hover:to-blue-800 transition-all duration-300
-              border border-blue-500/20`}>
-              {listing.year}
-            </div>
+            {/* Year Badge */}
+            <YearBadge 
+              year={displayYear} 
+              size="lg" 
+              position="bottom-left" 
+              zIndex={20}
+            />
           </div>
 
           {/* Content */}
