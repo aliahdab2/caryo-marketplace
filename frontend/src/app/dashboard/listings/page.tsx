@@ -12,8 +12,7 @@ import {
   MdFilterListAlt, 
   MdDelete, 
   MdClose,
-  MdRefresh as MdReload,
-  MdOutlineNotificationsActive
+  MdDirectionsCar
 } from "react-icons/md";
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
@@ -27,12 +26,12 @@ export default function ListingsPage() {
 	const [listings, setListings] = useState<Listing[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
-  const [tableRefreshed, setTableRefreshed] = useState(false);
+  // const [tableRefreshed, setTableRefreshed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
 
-  const { t, i18n } = useTranslation(['dashboard', 'listings', 'common']);
+  const { t } = useTranslation(['dashboard', 'listings', 'common']);
   
   // Delete confirmation hook
   const deleteConfirmation = useDeleteConfirmation({
@@ -97,11 +96,7 @@ export default function ListingsPage() {
   }, []);
 
   // Simulate table refresh
-  const refreshTable = () => {
-    setTableRefreshed(true);
-    // Show refresh animation for 1.5 seconds
-    setTimeout(() => setTableRefreshed(false), 1500);
-  };
+  // Removed refresh animation button for cleaner header
 
 
 
@@ -162,8 +157,34 @@ export default function ListingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Header (clean, single title) */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{t("dashboard:myListings")}</h1>
+        </div>
+
+        {/* Management summary cards (aligned with dashboard colors) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="rounded-xl p-4 border bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+            <div className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
+              <MdDirectionsCar className="w-4 h-4" /> {t('listings:total')}
+            </div>
+            <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">{listings.length}</div>
+          </div>
+          <div className="rounded-xl p-4 border bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+            <div className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
+              <MdDirectionsCar className="w-4 h-4" /> {t('listings:active')}
+            </div>
+            <div className="text-2xl font-bold text-green-900 dark:text-green-100">{listings.filter(l => l.status === 'active').length}</div>
+          </div>
+          <div className="rounded-xl p-4 border bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
+            <div className="text-sm text-amber-700 dark:text-amber-300 flex items-center gap-2">
+              <MdDirectionsCar className="w-4 h-4" /> {t('listings:pending')}
+            </div>
+            <div className="text-2xl font-bold text-amber-900 dark:text-amber-100">{listings.filter(l => l.status === 'pending').length}</div>
+          </div>
+        </div>
         {/* Error State */}
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center mb-6">
@@ -178,36 +199,7 @@ export default function ListingsPage() {
           </div>
         )}
 
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-1">{t("dashboard:myListings")}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {new Date().toLocaleDateString(i18n.language, { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </p>
-          </div>
-				<div className="flex items-center gap-2">
-					<button
-						onClick={refreshTable}
-						className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
-						title={t("listings:refreshTable")}
-					>
-						<MdReload className={`${tableRefreshed ? 'animate-spin' : ''}`} size={20} />
-					</button>
-					<Link
-						href="/dashboard/listings/new"
-						className="inline-flex items-center py-2.5 px-4 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-sm hover:shadow"
-					>
-						<MdOutlineNotificationsActive size={18} className="mr-2" />
-						{t("dashboard:addNewListing")}
-					</Link>
-				</div>
-        </div>
+        
 
 			{/* Filters & Search */}
 			<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 md:p-6 mb-6">

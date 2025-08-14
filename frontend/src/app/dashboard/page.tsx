@@ -17,6 +17,7 @@ import {
   MdArrowForward
 } from "react-icons/md";
 import { getMyListings, deleteListingById } from "@/services/listings";
+import type { SavedSearchResponse } from "@/services/savedSearches";
 import { Listing } from "@/types/listings";
 import { ListingsView } from '@/components/listings';
 
@@ -32,6 +33,7 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [recentListings, setRecentListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
+  const [savedSearchesList, setSavedSearchesList] = useState<SavedSearchResponse[]>([]);
   
 
 
@@ -89,17 +91,21 @@ export default function Dashboard() {
             const savedSearches = await getUserSavedSearches(token);
             if (mounted) {
               setAlertsCount(savedSearches.length);
+              // Keep only a handful for the dashboard overview
+              setSavedSearchesList(savedSearches.slice(0, 5));
             }
           } catch (error) {
             console.error('[DASHBOARD] Error fetching alerts:', error);
             if (mounted) {
               setAlertsCount(0);
+              setSavedSearchesList([]);
             }
           }
         } else {
           console.log('[DASHBOARD] No session or access token available for alerts');
           if (mounted) {
             setAlertsCount(0);
+            setSavedSearchesList([]);
           }
         }
 
@@ -306,6 +312,37 @@ export default function Dashboard() {
         }}
         className="mb-8"
       />
+
+      {/* Saved Alerts (Saved Searches) */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-5 mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('savedAlertsTitle', { ns: 'search' })}</h2>
+          <Link href="/saved/alerts" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
+            {t('viewAll', { ns: 'common' })}
+          </Link>
+        </div>
+        {savedSearchesList.length === 0 ? (
+          <div className="text-gray-500 dark:text-gray-400 text-sm">{t('noAlertsYet', { ns: 'search' })}</div>
+        ) : (
+          <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+            {savedSearchesList.map((s) => (
+              <li key={s.id} className="py-3 flex items-center justify-between">
+                <div className="min-w-0">
+                  <div className="font-medium text-gray-900 dark:text-white truncate">
+                    {i18n.language === 'ar' ? (s.nameAr || s.nameEn) : (s.nameEn || s.nameAr)}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {t('showResults', { ns: 'search', count: s.matchCount ?? 0 })}
+                  </div>
+                </div>
+                <Link href={`/saved/alerts/${s.id}`} className="text-blue-600 dark:text-blue-400 hover:underline text-sm whitespace-nowrap">
+                  {t('viewDetails')}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       {/* Quick Actions - Modern action cards */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-5">
