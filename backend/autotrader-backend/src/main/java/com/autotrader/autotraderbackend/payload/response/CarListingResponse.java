@@ -121,6 +121,14 @@ public class CarListingResponse {
     private Boolean approved;
     private Long sellerId;
     private String sellerUsername;
+    private String sellerEmail;
+    
+    // Listing-specific contact information (AutoTrader pattern)
+    private String contactName;
+    private String contactEmail;
+    private String contactPhone;
+    private String contactPreference;
+    
     private LocalDateTime createdAt;
     private Boolean isSold;
     private Boolean isArchived;

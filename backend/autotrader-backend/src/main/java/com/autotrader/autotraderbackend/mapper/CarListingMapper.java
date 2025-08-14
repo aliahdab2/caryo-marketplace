@@ -107,11 +107,21 @@ public class CarListingMapper {
             if (Objects.nonNull(carListing.getSeller())) {
                 response.setSellerId(carListing.getSeller().getId());
                 response.setSellerUsername(carListing.getSeller().getUsername());
+                response.setSellerEmail(carListing.getSeller().getEmail());
                 
                 // Add seller type information
                 if (Objects.nonNull(carListing.getSeller().getSellerType())) {
                     response.setSellerType(SellerTypeResponse.fromEntity(carListing.getSeller().getSellerType()));
                 }
+                
+                // AutoTrader pattern: Listing-specific contact with smart fallbacks
+                response.setContactName(carListing.getContactName() != null ? 
+                    carListing.getContactName() : carListing.getSeller().getUsername());
+                response.setContactEmail(carListing.getContactEmail() != null ? 
+                    carListing.getContactEmail() : carListing.getSeller().getEmail());
+                response.setContactPhone(carListing.getContactPhone()); // No fallback for phone
+                response.setContactPreference(carListing.getContactPreference() != null ? 
+                    carListing.getContactPreference() : "email");
             } else {
                 log.warn("CarListing with ID {} has a null seller.", carListing.getId());
             }
@@ -284,6 +294,16 @@ public class CarListingMapper {
                 if (Objects.nonNull(carListing.getSeller())) {
                     response.setSellerId(carListing.getSeller().getId());
                     response.setSellerUsername(carListing.getSeller().getUsername());
+                    response.setSellerEmail(carListing.getSeller().getEmail());
+                    
+                    // AutoTrader pattern: Listing-specific contact with smart fallbacks
+                    response.setContactName(carListing.getContactName() != null ? 
+                        carListing.getContactName() : carListing.getSeller().getUsername());
+                    response.setContactEmail(carListing.getContactEmail() != null ? 
+                        carListing.getContactEmail() : carListing.getSeller().getEmail());
+                    response.setContactPhone(carListing.getContactPhone()); // No fallback for phone
+                    response.setContactPreference(carListing.getContactPreference() != null ? 
+                        carListing.getContactPreference() : "email");
                 }
             } catch (Exception e) {
                 log.warn("Error setting seller info for listing ID {}", carListing.getId());
