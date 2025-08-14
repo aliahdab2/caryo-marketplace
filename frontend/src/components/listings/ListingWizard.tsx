@@ -40,7 +40,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 // Optimized throttle hook for frequent operations
-function useThrottle<T extends (...args: any[]) => any>(func: T, delay: number): T {
+function useThrottle<T extends (...args: unknown[]) => unknown>(func: T, delay: number): T {
   const lastRun = useRef(Date.now());
   
   return useCallbackPerf((...args: Parameters<T>) => {
