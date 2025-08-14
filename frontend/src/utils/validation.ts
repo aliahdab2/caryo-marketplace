@@ -34,7 +34,7 @@ export interface ValidationRule {
   pattern?: RegExp;
   min?: number;
   max?: number;
-  custom?: (value: any, formData: Partial<ListingFormData>) => string | null;
+  custom?: (value: any, formData: Partial<ListingFormData>, t?: TranslationFunction) => string | null;
   dependencies?: string[]; // Fields this validation depends on
   when?: (formData: Partial<ListingFormData>) => boolean; // Conditional validation
 }
@@ -111,13 +111,23 @@ export class FormValidationSystem {
         },
         make: {
           required: true,
-          minLength: 2,
-          maxLength: 50
+          custom: (value, formData, t) => {
+            // For dropdown selections, we validate that a valid option was selected
+            if (!value || value === '' || value === '0') {
+              return null; // Will be handled by the required validation with proper translation
+            }
+            return null;
+          }
         },
         model: {
           required: true,
-          minLength: 1,
-          maxLength: 50
+          custom: (value, formData, t) => {
+            // For dropdown selections, we validate that a valid option was selected
+            if (!value || value === '' || value === '0') {
+              return null; // Will be handled by the required validation with proper translation
+            }
+            return null;
+          }
         },
         year: {
           required: true,
@@ -232,7 +242,9 @@ export class FormValidationSystem {
 
     // Required field validation
     if (rule.required && !stringValue) {
-      return t(`validation.${fieldName}.required`, 'This field is required');
+      // Use camelCase flat key structure as per translation guide
+      const key = `validation${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Required`;
+      return t(key, 'This field is required');
     }
 
     // Skip other validations if field is empty and not required
@@ -242,37 +254,43 @@ export class FormValidationSystem {
 
     // Length validations
     if (rule.minLength && stringValue.length < rule.minLength) {
-      return t(`validation.${fieldName}.minLength`, `Minimum ${rule.minLength} characters required`);
+      const key = `validation${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}MinLength`;
+      return t(key, `Minimum ${rule.minLength} characters required`);
     }
 
     if (rule.maxLength && stringValue.length > rule.maxLength) {
-      return t(`validation.${fieldName}.maxLength`, `Maximum ${rule.maxLength} characters allowed`);
+      const key = `validation${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}MaxLength`;
+      return t(key, `Maximum ${rule.maxLength} characters allowed`);
     }
 
     // Pattern validation
     if (rule.pattern && !rule.pattern.test(stringValue)) {
-      return t(`validation.${fieldName}.pattern`, 'Invalid format');
+      const key = `validation${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Pattern`;
+      return t(key, 'Invalid format');
     }
 
     // Numeric validations
     if (rule.min !== undefined || rule.max !== undefined) {
       const numValue = parseFloat(convertArabicNumerals(stringValue));
       if (isNaN(numValue)) {
-        return t(`validation.${fieldName}.number`, 'Must be a valid number');
+        const key = `validation${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Number`;
+        return t(key, 'Must be a valid number');
       }
 
       if (rule.min !== undefined && numValue < rule.min) {
-        return t(`validation.${fieldName}.min`, `Minimum value is ${rule.min}`);
+        const key = `validation${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Min`;
+        return t(key, `Minimum value is ${rule.min}`);
       }
 
       if (rule.max !== undefined && numValue > rule.max) {
-        return t(`validation.${fieldName}.max`, `Maximum value is ${rule.max}`);
+        const key = `validation${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Max`;
+        return t(key, `Maximum value is ${rule.max}`);
       }
     }
 
     // Custom validation
     if (rule.custom) {
-      return rule.custom(value, formData);
+      return rule.custom(value, formData, t);
     }
 
     return null;
