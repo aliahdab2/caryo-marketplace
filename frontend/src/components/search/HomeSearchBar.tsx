@@ -13,11 +13,14 @@ import {
   Governorate
 } from '@/services/api';
 import { useApiData, useFormSelection } from '@/hooks/useApiData';
+import { useResponsive, BREAKPOINTS } from '@/utils/responsive';
 
 // Custom hook to handle select dropdown positioning for mobile
 const useSelectDropdownFix = (selectRefs: React.RefObject<HTMLSelectElement>[]) => {
+  const { isMobile } = useResponsive();
+  
   useEffect(() => {
-    if (window.innerWidth >= 640) return; // Only apply on mobile
+    if (!isMobile) return; // Only apply on mobile devices
     
     // Create a list to store cleanup functions
     const cleanupFunctions: (() => void)[] = [];

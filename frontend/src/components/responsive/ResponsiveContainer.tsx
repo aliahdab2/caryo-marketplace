@@ -21,8 +21,8 @@ export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   const containerStrategies = {
     // Original step-based implementation with hard breakpoints
     step: fluid
-      ? 'w-full px-2 xxs:px-3 xs:px-4 sm:px-6 lg:px-8'
-      : 'mx-auto w-full max-w-[98%] xxs:max-w-[96%] xs:max-w-[95%] sm:max-w-[90%] md:max-w-6xl lg:max-w-7xl px-1.5 xxs:px-2 xs:px-3 sm:px-4 lg:px-6',
+      ? 'w-full px-2 xs:px-4 sm:px-6 lg:px-8'
+      : 'mx-auto w-full max-w-[98%] xs:max-w-[95%] sm:max-w-[90%] md:max-w-6xl lg:max-w-7xl px-1.5 xs:px-3 sm:px-4 lg:px-6',
     
     // Fully fluid implementation using calc(), clamp(), and viewport units
     fluid: fluid
@@ -31,7 +31,7 @@ export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
     
     // Hybrid approach combining both fluid scaling and breakpoints
     hybrid: fluid
-      ? 'w-full px-[calc(0.5rem+0.5vw)] xxs:px-[calc(0.75rem+0.5vw)] sm:px-[calc(1rem+1vw)] lg:px-[calc(1.5rem+1vw)]'
+      ? 'w-full px-[calc(0.5rem+0.5vw)] sm:px-[calc(1rem+1vw)] lg:px-[calc(1.5rem+1vw)]'
       : 'mx-auto w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] md:w-[calc(100%-3rem)] max-w-[clamp(300px,95%,1400px)] px-[max(0.5rem,calc(0.5rem+0.5vw))] sm:px-[max(0.75rem,calc(0.75rem+0.5vw))] lg:px-[max(1rem,calc(1rem+0.5vw))]'
   };
   

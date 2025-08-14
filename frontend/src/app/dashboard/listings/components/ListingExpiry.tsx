@@ -58,7 +58,11 @@ export default function ListingExpiry({
       return t('listings.expiresIn', { days: daysRemaining });
     } else {
       return t('listings.validUntil', { 
-        date: formatDate(new Date(expiryDate), currentLanguage, {dateStyle: 'medium'}) 
+        date: formatDate(new Date(expiryDate), currentLanguage, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }) 
       });
     }
   }, [status, daysRemaining, expiryDate, t, currentLanguage]);

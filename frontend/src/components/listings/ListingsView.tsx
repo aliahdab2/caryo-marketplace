@@ -133,7 +133,11 @@ export default function ListingsView({
   const formatListingDate = useCallback((listing: Listing) => {
     const dateToFormat = listing.createdAt || listing.listingDate;
     if (dateToFormat) {
-      return formatDate(dateToFormat, i18n.language, { dateStyle: 'medium' });
+      return formatDate(dateToFormat, i18n.language, { 
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
     }
     return null;
   }, [i18n.language]);

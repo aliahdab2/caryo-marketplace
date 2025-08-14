@@ -23,10 +23,7 @@ export const ResponsiveGrid: React.FC<ResponsiveGridProps> = ({
       colClasses.push('grid-cols-1');
     }
     
-    if (cols.xxs) {
-      const value = cols.xxs === 'full' ? 'xxs:grid-cols-1' : `xxs:grid-cols-${cols.xxs}`;
-      colClasses.push(value);
-    }
+
     
     if (cols.xs) {
       const value = cols.xs === 'full' ? 'xs:grid-cols-1' : `xs:grid-cols-${cols.xs}`;
@@ -71,7 +68,7 @@ export const ResponsiveGrid: React.FC<ResponsiveGridProps> = ({
       gapClasses.push('gap-4');
     }
     
-    if (gap.xxs) gapClasses.push(`xxs:gap-${gap.xxs}`);
+
     if (gap.xs) gapClasses.push(`xs:gap-${gap.xs}`);
     if (gap.sm) gapClasses.push(`sm:gap-${gap.sm}`);
     if (gap.md) gapClasses.push(`md:gap-${gap.md}`);
@@ -94,7 +91,7 @@ interface ResponsiveFlexProps {
   className?: string;
   direction?: {
     default?: 'row' | 'col';
-    xxs?: 'row' | 'col';
+
     xs?: 'row' | 'col';
     sm?: 'row' | 'col';
     md?: 'row' | 'col';
@@ -132,7 +129,7 @@ export const ResponsiveFlex: React.FC<ResponsiveFlexProps> = ({
       dirClasses.push('flex-col');
     }
     
-    if (direction.xxs) dirClasses.push(`xxs:flex-${direction.xxs}`);
+
     if (direction.xs) dirClasses.push(`xs:flex-${direction.xs}`);
     if (direction.sm) dirClasses.push(`sm:flex-${direction.sm}`);
     if (direction.md) dirClasses.push(`md:flex-${direction.md}`);

@@ -7,7 +7,6 @@ This document provides an overview of the responsive design system implemented i
 The application uses the following breakpoints:
 
 ```
-'xxs': '320px',  // Extremely small devices
 'xs': '375px',   // Small phones
 'sm': '640px',   // Large phones, small tablets
 'md': '768px',   // Tablets
