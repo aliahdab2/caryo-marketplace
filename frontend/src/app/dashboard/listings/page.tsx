@@ -9,7 +9,6 @@ import { Listing } from "../../../types/listings";
 import { ListingsView } from "@/components/listings";
 import { 
   MdSearch, 
-  MdFilterListAlt, 
   MdDelete, 
   MdClose,
   MdDirectionsCar
@@ -25,7 +24,7 @@ export default function ListingsPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [listings, setListings] = useState<Listing[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
+  // Removed mobile sort toggle - not needed with compact design
   // const [tableRefreshed, setTableRefreshed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -201,67 +200,54 @@ export default function ListingsPage() {
 
         
 
-			{/* Filters & Search */}
-			<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 md:p-6 mb-6">
-        {/* Mobile Sort Button */}
-        <div className="md:hidden mb-4">
-          <button
-            onClick={() => setIsMobileSortOpen(!isMobileSortOpen)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors w-full"
-          >
-            <MdFilterListAlt />
-            {t('listings:filterAndSort')}
-          </button>
-        </div>
-
-        <div className={`${isMobileSortOpen ? 'block' : 'hidden'} md:block`}>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder={t('listings:searchListings')}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-
-            {/* Status Filter */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">{t('listings:allStatuses')}</option>
-              <option value="active">{t('listings:active')}</option>
-              <option value="pending">{t('listings:pending')}</option>
-              <option value="expired">{t('listings:expired')}</option>
-            </select>
-
-            {/* Sort By */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="newest">{t('listings:newest')}</option>
-              <option value="title">{t('listings:title')}</option>
-              <option value="price">{t('listings:price')}</option>
-              <option value="date">{t('listings:date')}</option>
-            </select>
-
-            {/* Sort Order */}
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="asc">{t('listings:ascending')}</option>
-              <option value="desc">{t('listings:descending')}</option>
-            </select>
+			{/* Compact Filters & Search */}
+			<div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 mb-4">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Search */}
+          <div className="relative flex-1 min-w-[200px]">
+            <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder={t('listings:searchListings')}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            />
           </div>
+
+          {/* Status Filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 min-w-[120px]"
+          >
+            <option value="all">{t('listings:allStatuses')}</option>
+            <option value="active">{t('listings:active')}</option>
+            <option value="pending">{t('listings:pending')}</option>
+            <option value="expired">{t('listings:expired')}</option>
+          </select>
+
+          {/* Sort By */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 min-w-[100px]"
+          >
+            <option value="newest">{t('listings:newest')}</option>
+            <option value="title">{t('listings:title')}</option>
+            <option value="price">{t('listings:price')}</option>
+            <option value="date">{t('listings:date')}</option>
+          </select>
+
+          {/* Sort Order */}
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 min-w-[100px]"
+          >
+            <option value="asc">{t('listings:ascending')}</option>
+            <option value="desc">{t('listings:descending')}</option>
+          </select>
         </div>
       </div>
 
