@@ -16,7 +16,7 @@ interface StepNavigationProps {
   onStepChange: (step: number, e?: React.MouseEvent) => void;
   progressPercentage: number;
   showAutoSaveIndicator?: boolean;
-  autoSaveStatus?: 'idle' | 'saving' | 'saved' | 'error' | string;
+  autoSaveStatus?: 'idle' | 'saving' | 'saved' | 'error';
   lastSaved?: Date | null;
   stepCounterText: string;
   percentCompleteText: string;
@@ -78,7 +78,7 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
           <span>{stepCounterText}</span>
           <div className="flex items-center gap-4">
             {showAutoSaveIndicator && (
-              <AutoSaveIndicator status={autoSaveStatus} lastSaved={lastSaved ?? null} className="text-xs" />
+              <AutoSaveIndicator status={autoSaveStatus ?? 'idle'} lastSaved={lastSaved ?? null} className="text-xs" />
             )}
             <span>{percentCompleteText}</span>
           </div>
