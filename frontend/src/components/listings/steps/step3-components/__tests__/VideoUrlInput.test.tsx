@@ -8,7 +8,7 @@ jest.mock('@/hooks/useLazyTranslation', () => ({
 
 describe('VideoUrlInput (YouTube only)', () => {
   const baseProps = {
-    formData: { videoUrls: [] } as any,
+    formData: { videoUrls: [] } as { videoUrls: Array<{ url: string; isValidated: boolean }> },
     formErrors: {},
     handleVideoUrlChange: jest.fn(),
     removeVideoUrl: jest.fn(),
@@ -30,7 +30,7 @@ describe('VideoUrlInput (YouTube only)', () => {
   });
 
   it('renders an embed preview when a valid YouTube URL is present', () => {
-    render(<VideoUrlInput {...baseProps} formData={{ videoUrls: [{ url: 'https://youtu.be/xyz', isValidated: true }] } as any} />);
+    render(<VideoUrlInput {...baseProps} formData={{ videoUrls: [{ url: 'https://youtu.be/xyz', isValidated: true }] }} />);
     expect(screen.getByTitle(/External video preview/i)).toBeInTheDocument();
   });
 });

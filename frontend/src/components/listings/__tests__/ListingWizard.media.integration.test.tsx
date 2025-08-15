@@ -1,9 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import ListingWizard from '@/components/listings/ListingWizard';
+import type { ListingFormData } from '@/types/listings';
 
 jest.mock('@/hooks/useLazyTranslation', () => ({
-  useLazyTranslation: () => ({ t: (_k: string, fb?: string, _vars?: any) => fb ?? '' , i18n: { language: 'en' }, ready: true })
+  useLazyTranslation: () => ({ t: (_k: string, fb?: string) => fb ?? '' , i18n: { language: 'en' }, ready: true })
 }));
 
 jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn() }) }));
@@ -34,11 +35,11 @@ jest.mock('@/utils/formUtils', () => ({
 
 // Basic URL object mocks
 beforeEach(() => {
-  (global as any).URL.createObjectURL = jest.fn(() => 'blob:mock');
-  (global as any).URL.revokeObjectURL = jest.fn();
+  (global as unknown as { URL: { createObjectURL: (obj: unknown) => string; revokeObjectURL: (url: string) => void } }).URL.createObjectURL = jest.fn(() => 'blob:mock');
+  (global as unknown as { URL: { createObjectURL: (obj: unknown) => string; revokeObjectURL: (url: string) => void } }).URL.revokeObjectURL = jest.fn();
 });
 
-function fillStep1AndStep2(init?: any) {
+function fillStep1AndStep2(init?: Partial<Record<string, unknown>>) {
   return {
     id: '',
     title: 'Title',
@@ -71,7 +72,7 @@ describe('ListingWizard Step 3 media integration', () => {
         autoLoad={false}
         autoSave={false}
         showHeader={false}
-        initialData={fillStep1AndStep2() as any}
+        initialData={fillStep1AndStep2() as ListingFormData}
       />
     );
 
@@ -98,5 +99,107 @@ describe('ListingWizard Step 3 media integration', () => {
     const urlInput = screen.getByTestId('video-url-input') as HTMLInputElement;
     fireEvent.change(urlInput, { target: { value: 'https://youtube.com/watch?v=abc123' } });
     expect(urlInput.value).toContain('youtube.com/watch');
+  });
+
+  it('uploads and removes a video file in Step 3 via VideoSection', () => {
+    render(
+      <ListingWizard
+        mode="create"
+        autoLoad={false}
+        autoSave={false}
+        showHeader={false}
+        initialData={fillStep1AndStep2() as ListingFormData}
+      />
+    );
+
+    // Navigate to step 3
+    const step2Btn = screen.getAllByRole('button').find(b => (b.textContent || '').trim() === '2');
+    if (step2Btn) fireEvent.click(step2Btn);
+    const step3Btn = screen.getAllByRole('button').find(b => (b.textContent || '').trim() === '3');
+    if (step3Btn) fireEvent.click(step3Btn);
+
+    // Expand upload section and upload a file
+    const uploadToggle = screen.getByRole('button', { name: /Upload Video File/i });
+    fireEvent.click(uploadToggle);
+
+    const input = screen.getByTestId('video-input') as HTMLInputElement;
+    const vidFile = new File(['video-bytes'], 'clip.mp4', { type: 'video/mp4' });
+    fireEvent.change(input, { target: { files: [vidFile] } });
+
+    // Preview should be visible
+    expect(screen.getByText(/Video Preview/i)).toBeInTheDocument();
+
+    // Remove the video
+    const removeBtn = screen.getByRole('button', { name: /Remove video/i });
+    fireEvent.click(removeBtn);
+
+    // Preview should be gone
+    expect(screen.queryByText(/Video Preview/i)).not.toBeInTheDocument();
+  });
+
+  it('uploads and removes an image in Step 3', () => {
+    render(
+      <ListingWizard
+        mode="create"
+        autoLoad={false}
+        autoSave={false}
+        showHeader={false}
+        initialData={fillStep1AndStep2() as ListingFormData}
+      />
+    );
+
+    // Navigate to step 3
+    const step2Btn = screen.getAllByRole('button').find(b => (b.textContent || '').trim() === '2');
+    if (step2Btn) fireEvent.click(step2Btn);
+    const step3Btn = screen.getAllByRole('button').find(b => (b.textContent || '').trim() === '3');
+    if (step3Btn) fireEvent.click(step3Btn);
+
+    // Upload an image
+    const imageInput = screen.getByTestId('image-input') as HTMLInputElement;
+    const imgFile = new File(['img'], 'photo.jpg', { type: 'image/jpeg' });
+    fireEvent.change(imageInput, { target: { files: [imgFile] } });
+
+    // Preview should be visible
+    expect(screen.getByTestId('image-item-0')).toBeInTheDocument();
+
+    // Remove the image
+    const removeBtn = screen.getByLabelText(/Remove image 1/i);
+    fireEvent.click(removeBtn);
+
+    // Preview should be gone
+    expect(screen.queryByTestId('image-item-0')).not.toBeInTheDocument();
+  });
+
+  it('adds and removes a YouTube URL in Step 3', () => {
+    render(
+      <ListingWizard
+        mode="create"
+        autoLoad={false}
+        autoSave={false}
+        showHeader={false}
+        initialData={fillStep1AndStep2() as ListingFormData}
+      />
+    );
+
+    // Navigate to step 3
+    const step2Btn = screen.getAllByRole('button').find(b => (b.textContent || '').trim() === '2');
+    if (step2Btn) fireEvent.click(step2Btn);
+    const step3Btn = screen.getAllByRole('button').find(b => (b.textContent || '').trim() === '3');
+    if (step3Btn) fireEvent.click(step3Btn);
+
+    // Open URL input and add a YouTube URL
+    const toggleUrlBtn = screen.getByRole('button', { name: /Add Video URL/i });
+    fireEvent.click(toggleUrlBtn);
+    const urlInput = screen.getByTestId('video-url-input') as HTMLInputElement;
+    fireEvent.change(urlInput, { target: { value: 'https://youtube.com/watch?v=abc123' } });
+    expect(urlInput.value).toContain('youtube.com/watch');
+
+    // Remove the URL via the remove button
+    const removeUrlBtn = screen.getByRole('button', { name: /Remove video URL/i });
+    fireEvent.click(removeUrlBtn);
+
+    // Ensure URL input cleared and remove button gone
+    expect((screen.getByTestId('video-url-input') as HTMLInputElement).value).toBe('');
+    expect(screen.queryByRole('button', { name: /Remove video URL/i })).not.toBeInTheDocument();
   });
 });

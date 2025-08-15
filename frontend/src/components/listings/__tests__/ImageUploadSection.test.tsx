@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ImageUploadSection } from '@/components/listings/ImageUploadSection';
+import type { ListingFormData } from '@/types/listings';
 
 jest.mock('@/hooks/useLazyTranslation', () => ({
   useLazyTranslation: () => ({ t: (_k: string, fb?: string) => fb ?? '' })
@@ -8,22 +9,15 @@ jest.mock('@/hooks/useLazyTranslation', () => ({
 
 describe('ImageUploadSection', () => {
   const baseProps = {
-    formData: { images: [] } as any,
+    formData: { images: [] } as unknown as ListingFormData,
     onFormDataChange: jest.fn(),
     formErrors: {},
     isRTL: false,
-    imagePreviewUrls: [],
-    existingImages: [],
-    isDragOver: false,
-    setIsDragOver: jest.fn(),
-    setImagePreviewUrls: jest.fn(),
-    onImageUpload: jest.fn(),
-    onRemoveImage: jest.fn(),
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (global as any).URL.createObjectURL = jest.fn(() => 'blob:mock');
+    (global as unknown as { URL: { createObjectURL: (obj: unknown) => string } }).URL.createObjectURL = jest.fn(() => 'blob:mock');
   });
 
   it('renders dropzone and input', () => {
@@ -47,7 +41,7 @@ describe('ImageUploadSection', () => {
     render(
       <ImageUploadSection
         {...baseProps}
-        formData={{ images: [file], existingImageUrls: [] } as any}
+        formData={{ images: [file], existingImageUrls: [] } as unknown as ListingFormData}
       />
     );
     const removeBtn = screen.getByRole('button', { name: /remove image/i });
@@ -60,11 +54,12 @@ describe('ImageUploadSection', () => {
     const dropzone = screen.getByTestId('image-dropzone');
     const file = new File(['img'], 'photo.jpg', { type: 'image/jpeg' });
 
+    const dt = { files: [file] } as unknown as DataTransfer;
     fireEvent.drop(dropzone, {
-      dataTransfer: { files: [file] },
+      dataTransfer: dt,
       preventDefault: () => {},
       stopPropagation: () => {}
-    } as any);
+    } as unknown as DragEvent);
 
     expect(baseProps.onFormDataChange).toHaveBeenCalledWith(expect.objectContaining({ images: expect.any(Array) }));
   });
@@ -72,17 +67,17 @@ describe('ImageUploadSection', () => {
   it('supports drag-reorder interactions (fires handlers)', () => {
     const props = {
       ...baseProps,
-      formData: { images: [new File(['a'], 'a.jpg'), new File(['b'], 'b.jpg')], existingImageUrls: [] } as any
+      formData: { images: [new File(['a'], 'a.jpg'), new File(['b'], 'b.jpg')], existingImageUrls: [] } as unknown as ListingFormData
     };
     render(<ImageUploadSection {...props} />);
 
     const item0 = screen.getByTestId('image-item-0');
     const item1 = screen.getByTestId('image-item-1');
 
-    const dt: any = { setData: () => {}, getData: () => {}, effectAllowed: '', dropEffect: '' };
-    fireEvent.dragStart(item0, { dataTransfer: dt } as any);
-    fireEvent.dragOver(item1, { dataTransfer: dt, preventDefault: () => {} } as any);
-    fireEvent.drop(item1, { dataTransfer: dt, preventDefault: () => {} } as any);
+    const dt: DataTransfer = { setData: () => {}, getData: () => {}, dropEffect: 'move', effectAllowed: 'move' } as unknown as DataTransfer;
+    fireEvent.dragStart(item0, { dataTransfer: dt } as unknown as DragEvent);
+    fireEvent.dragOver(item1, { dataTransfer: dt, preventDefault: () => {} } as unknown as DragEvent);
+    fireEvent.drop(item1, { dataTransfer: dt, preventDefault: () => {} } as unknown as DragEvent);
     fireEvent.dragEnd(item0);
 
     expect(true).toBe(true);
@@ -92,7 +87,7 @@ describe('ImageUploadSection', () => {
     render(
       <ImageUploadSection
         {...baseProps}
-        formData={{ images: [], existingImageUrls: ['https://cdn/img1.jpg', 'https://cdn/img2.jpg'] } as any}
+        formData={{ images: [], existingImageUrls: ['https://cdn/img1.jpg', 'https://cdn/img2.jpg'] } as unknown as ListingFormData}
       />
     );
     expect(screen.getByTestId('image-item-0')).toBeInTheDocument();

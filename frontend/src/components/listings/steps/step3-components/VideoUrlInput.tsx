@@ -52,6 +52,7 @@ const VideoUrlInput = memo(function VideoUrlInput({
               <input
                 type="url"
                 id="video-url"
+                data-testid="video-url-input"
                 placeholder={t('listings:videoUrlPlaceholder', 'https://youtube.com/watch?v=...')}
                 className="w-full px-4 py-4 pl-12 border-2 border-purple-200 dark:border-purple-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-purple-900/20 dark:text-white transition-all duration-200 text-lg placeholder:text-gray-400"
                 value={formData.videoUrls?.[0]?.url || ''}

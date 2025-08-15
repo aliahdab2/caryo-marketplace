@@ -41,7 +41,7 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [newPreviewUrls, setNewPreviewUrls] = useState<string[]>([]);
 
-  const existingImages = formData.existingImageUrls || [];
+  const existingImages = useMemo(() => formData.existingImageUrls || [], [formData.existingImageUrls]);
   const imagePreviewUrls = useMemo(() => {
     return [...existingImages, ...newPreviewUrls];
   }, [existingImages, newPreviewUrls]);
