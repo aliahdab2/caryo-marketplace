@@ -14,16 +14,21 @@ import { ListingDataService } from '@/services/ListingDataService';
 import { validateStep } from '@/utils/formUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 import { createLogger } from '@/utils/logger';
-import NumericInput from '@/components/ui/NumericInput';
-import AutoSaveIndicator from '@/components/ui/AutoSaveIndicator';
+// NumericInput now used inside Step2VehicleDetails
+// AutoSaveIndicator used via StepNavigation
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useMemo as useMemoPerf, useCallback as useCallbackPerf } from 'react';
 import { useDirection } from '@/utils/direction';
 import { createRTLHelpers } from '@/utils/rtlHelpers';
 // Media utils are now handled within media components
-import { ImageUploadSection } from './ImageUploadSection';
-import { VideoUploadSection } from './VideoUploadSection';
+// Media sections are used inside Step3ContentMedia
 import { SelectWithArrow } from '../ui/SelectWithArrow';
+import StepHeader from './shared/StepHeader';
+import StepNavigation from './shared/StepNavigation';
+import StepActions from './shared/StepActions';
+import Step1VehicleIdentity from './steps/Step1VehicleIdentity';
+import Step2VehicleDetails from './steps/Step2VehicleDetails';
+import Step3ContentMedia from './steps/Step3ContentMedia';
 
 // Performance optimized debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -44,10 +49,8 @@ function useDebounce<T>(value: T, delay: number): T {
 
 // Optimized throttle hook for frequent operations
 // useThrottle utility not used in this component anymore
-import { 
-  ListingWizardProps, 
-  ErrorMessageProps 
-} from '@/types/wizard';
+import { ListingWizardProps } from '@/types/wizard';
+import ErrorMessage from './shared/ErrorMessage';
 
 // Constants
 const TOTAL_STEPS = 4;
@@ -59,39 +62,7 @@ const wizardLogger = createLogger({
 });
 const DEFAULT_CURRENCY = "USD";
 
-const ErrorMessage: React.FC<ErrorMessageProps> = React.memo(function ErrorMessage({ error, id, className = "" }) {
-  if (!error) return null;
-  
-  return (
-    <div 
-      id={id}
-      className={`mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3 ${className}`}
-      role="alert" 
-      aria-live="polite"
-    >
-      <div className="flex-shrink-0 w-4 h-4 mt-0.5" aria-hidden="true">
-        <svg 
-          className="w-4 h-4 text-red-500 dark:text-red-400" 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth="2" 
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" 
-          />
-        </svg>
-      </div>
-      <div className="flex-1">
-        <div className="text-sm text-red-700 dark:text-red-300 leading-relaxed">
-          {error}
-        </div>
-      </div>
-    </div>
-  );
-});
+// ErrorMessage moved to shared component
 
 // Image preview moved into ImageUploadSection
 
@@ -133,8 +104,8 @@ export default function ListingWizard({
   
   // Refs for keyboard navigation
   const formRef = useRef<HTMLFormElement>(null);
-  const previousButtonRef = useRef<HTMLButtonElement>(null);
-  const nextButtonRef = useRef<HTMLButtonElement>(null);
+  const _previousButtonRef = useRef<HTMLButtonElement>(null);
+  const _nextButtonRef = useRef<HTMLButtonElement>(null);
 
   // State management
   const [currentStep, setCurrentStep] = useState(1);
@@ -883,73 +854,17 @@ export default function ListingWizard({
         </div>
         )}
 
-        {/* Step Navigation */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            {stepConfig.map(({ step, title, icon, isComplete }) => (
-              <div key={step} className="flex flex-col items-center relative">
-                <button
-                  type="button"
-                  onClick={(e) => handleStepChange(step, e)}
-
-                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 font-semibold text-lg relative z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                    currentStep >= step 
-                      ? 'bg-blue-600 text-white shadow-lg hover:bg-blue-700 cursor-pointer transform hover:scale-105' 
-                      : 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 border-2 border-blue-300 dark:border-blue-600 hover:bg-blue-200 dark:hover:bg-blue-800 cursor-pointer'
-                  }`}
-                >
-                  {isComplete ? (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : currentStep === step ? (
-                    <span className="text-lg">{icon}</span>
-                  ) : (
-                    <span>{step}</span>
-                  )}
-                </button>
-                <span className={`text-sm mt-3 text-center max-w-24 font-medium transition-colors duration-300 ${
-                  currentStep >= step 
-                    ? 'text-blue-600 dark:text-blue-400' 
-                    : 'text-gray-500 dark:text-gray-400'
-                }`}>
-                  {title}
-                </span>
-                {step < TOTAL_STEPS && (
-                  <div 
-                    className={`absolute top-6 start-12 w-20 h-0.5 transition-colors duration-300 ${
-                      currentStep > step ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-          
-          {/* Progress Bar */}
-          <div className="mt-6">
-            <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400 mb-2">
-              <span>{t('listings:newListingStepCounter', 'Step {{current}} of {{total}}', { current: currentStep, total: TOTAL_STEPS })}</span>
-              <div className="flex items-center gap-4">
-                {/* Auto-save indicator (only in create mode) */}
-                {mode === 'create' && autoSave && (
-                  <AutoSaveIndicator
-                    status={autoSaveHook.autoSaveStatus}
+        <StepNavigation
+          items={stepConfig}
+          currentStep={currentStep}
+          onStepChange={handleStepChange}
+          progressPercentage={progressPercentage}
+          showAutoSaveIndicator={mode === 'create' && autoSave}
+          autoSaveStatus={autoSaveHook.autoSaveStatus}
                     lastSaved={autoSaveHook.lastSaved}
-                    className="text-xs"
-                  />
-                )}
-                <span>{t('listings:progressComplete', '{{percent}}% Complete', { percent: progressPercentage })}</span>
-              </div>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-700 ease-out"
-                style={{ width: `${progressPercentage}%` }}
-              />
-            </div>
-          </div>
-        </div>
+          stepCounterText={t('listings:newListingStepCounter', 'Step {{current}} of {{total}}', { current: currentStep, total: TOTAL_STEPS })}
+          percentCompleteText={t('listings:progressComplete', '{{percent}}% Complete', { percent: progressPercentage })}
+        />
 
         {/* Success Alert */}
         {showSuccessAlert && (
@@ -963,403 +878,59 @@ export default function ListingWizard({
         {/* Form Steps */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
           <form ref={formRef} onSubmit={handleSubmit}>
-            {/* Step 1: Basic Info - Simplified for now */}
+            {/* Step 1: Vehicle Identity */}
             {currentStep === 1 && (
-              <div className="space-y-8 animate-fadeIn">
-                {/* Step Header */}
-                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:vehicleIdentityTitle', 'Vehicle Identity')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:vehicleIdentitySubtitle', 'Start by telling us what vehicle you\'re selling')}
-                  </p>
-                </div>
-
-                {/* Car Make */}
-                <div className="space-y-3">
-                  <label 
-                    htmlFor="make" 
-                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    {t('listings:newListingMake', 'Make')} <span className="text-red-500">*</span>
-                  </label>
-                  <SelectWithArrow
-                    id="make"
-                    name="make"
-                    value={formData.make}
-                    onChange={handleMakeChange}
-                    disabled={isLoadingMakes}
-                    isLoading={isLoadingMakes}
-                    isRTL={isRTL}
-                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                      formErrors.make ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                    } ${isLoadingMakes ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    aria-invalid={!!formErrors.make}
-                    aria-describedby={formErrors.make ? 'make-error' : 'make-hint'}
-                  >
-                    <option value="">
-                      {isLoadingMakes 
-                        ? t('listings:newListingLoadingMakes', 'Loading makes...') 
-                        : t('listings:newListingSelectMake', 'Select a make')
-                      }
-                    </option>
-                    {carMakes.map((make) => (
-                      <option key={make.id} value={make.slug}>
-                        {i18n.language === 'ar' ? make.displayNameAr : make.displayNameEn}
-                      </option>
-                    ))}
-                  </SelectWithArrow>
-                  {formErrors.make && <ErrorMessage error={formErrors.make} />}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="make-hint">
-                    {t('listings:newListingMakeHint', 'Select the manufacturer of your car')}
-                  </p>
-                </div>
-
-                {/* Car Model */}
-                <div className="space-y-3">
-                  <label 
-                    htmlFor="model" 
-                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    {t('listings:newListingModel', 'Model')} <span className="text-red-500">*</span>
-                  </label>
-                  <SelectWithArrow
-                    id="model"
-                    name="model"
-                    value={formData.model}
-                    onChange={createDropdownHandler('model', 'modelId', carModels)}
-                    disabled={isLoadingModels || !formData.make}
-                    isLoading={isLoadingModels}
-                    isRTL={isRTL}
-                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                      formErrors.model ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                    } ${(isLoadingModels || !formData.make) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    aria-invalid={!!formErrors.model}
-                    aria-describedby={formErrors.model ? 'model-error' : 'model-hint'}
-                  >
-                    <option value="">
-                      {!formData.make 
-                        ? t('listings:newListingSelectMakeFirst', 'Select a make first')
-                        : isLoadingModels 
-                        ? t('listings:newListingLoadingModels', 'Loading models...') 
-                        : t('listings:newListingSelectModel', 'Select a model')
-                      }
-                    </option>
-                    {carModels.map((model) => (
-                      <option key={model.id} value={model.slug}>
-                        {i18n.language === 'ar' ? model.displayNameAr : model.displayNameEn}
-                      </option>
-                    ))}
-                  </SelectWithArrow>
-                  {formErrors.model && <ErrorMessage error={formErrors.model} />}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="model-hint">
-                    {t('listings:newListingModelHint', 'Select the specific model of your car')}
-                  </p>
-                </div>
-
-                {/* Year */}
-                <div className="space-y-3">
-                  <label
-                    htmlFor="year"
-                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    {t('listings:newListingYear', 'Year')} <span className="text-red-500">*</span>
-                  </label>
-                  <SelectWithArrow
-                    id="year"
-                    name="year"
-                    value={formData.year}
-                    onChange={handleFieldChange('year')}
-                    required
-                    isRTL={isRTL}
-                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                      formErrors.year ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                    }`}
-                    aria-invalid={!!formErrors.year}
-                    aria-describedby={formErrors.year ? 'year-error' : 'year-hint'}
-                  >
-                    <option value="">{t('listings:selectYear', 'Select Year')}</option>
-                    {(() => {
-                      const currentYear = new Date().getFullYear();
-                      const years = [];
-                      // From current year down to 1990 (no future years)
-                      for (let year = currentYear; year >= 1990; year--) {
-                        years.push(
-                          <option key={year} value={year.toString()}>
-                            {year}
-                          </option>
-                        );
-                      }
-                      return years;
-                    })()}
-                  </SelectWithArrow>
-                  {formErrors.year && <ErrorMessage error={formErrors.year} />}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
-                    {t('listings:newListingYearHint', 'Enter manufacturing year (1990-{{currentYear}})', { currentYear: new Date().getFullYear() })}
-                  </p>
-                </div>
-              </div>
+              <Step1VehicleIdentity
+                formData={formData}
+                formErrors={formErrors}
+                carMakes={carMakes}
+                carModels={carModels}
+                isLoadingMakes={isLoadingMakes}
+                isLoadingModels={isLoadingModels}
+                onMakeChange={handleMakeChange}
+                onModelChange={createDropdownHandler('model', 'modelId', carModels)}
+                onYearChange={handleFieldChange('year') as unknown as (e: React.ChangeEvent<HTMLSelectElement>) => void}
+              />
             )}
 
             {/* Step 2: Vehicle Details */}
             {currentStep === 2 && (
-              <div className="space-y-8 animate-fadeIn">
-                {/* Step Header */}
-                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:vehicleDetailsTitle', 'Vehicle Details')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:vehicleDetailsSubtitle', 'Tell us more about your vehicle\'s condition and features')}
-                  </p>
-                </div>
-
-                {/* Mileage */}
-                <div className="space-y-3">
-                  <label 
-                    htmlFor="mileage" 
-                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    {t('listings:newListingMileage', 'Mileage')}
-                  </label>
-                  <NumericInput
-                    id="mileage"
-                    name="mileage"
-                    value={formData.mileage}
-                    onChange={(value) => setFormData(prev => ({ ...prev, mileage: value }))}
-                    placeholder={t('listings:newListingMileagePlaceholder', '50000')}
-                    error={!!formErrors.mileage}
-
-                    aria-describedby="mileage-hint"
-                    className="w-full px-4 py-2 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  />
-                  {formErrors.mileage && <ErrorMessage error={formErrors.mileage} />}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="mileage-hint">
-                    {t('listings:newListingMileageHint', 'Total kilometers driven')}
-                  </p>
-                </div>
-
-                {/* Engine and Transmission Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Engine */}
-                  <div className="space-y-3">
-                    <label 
-                      htmlFor="engine" 
-                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                      {t('listings:newListingEngine', 'Engine')}
-                    </label>
-                    <input
-                      type="text"
-                      id="engine"
-                      name="engine"
-                      value={formData.engine}
-                      onChange={handleFieldChange('engine')}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      placeholder={t('listings:newListingEnginePlaceholder', 'e.g., 2.0L Turbo, V6, Hybrid')}
-                      aria-describedby="engine-hint"
-                    />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="engine-hint">
-                      {t('listings:newListingEngineHint', 'Engine type and size')}
-                    </p>
-                  </div>
-
-                  {/* Transmission */}
-                  <div className="space-y-3">
-                    <label 
-                      htmlFor="transmission" 
-                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                      {t('listings:newListingTransmission', 'Transmission')}
-                    </label>
-                    <SelectWithArrow
-                      id="transmission"
-                      name="transmission"
-                      value={formData.transmission}
-                      onChange={createDropdownHandler('transmission', 'transmissionId', transmissions)}
-                      disabled={isLoadingReferenceData}
-                      isLoading={isLoadingReferenceData}
-                      isRTL={isRTL}
-                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                        formErrors.transmission ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                      } ${isLoadingReferenceData ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      aria-invalid={!!formErrors.transmission}
-                      aria-describedby={formErrors.transmission ? 'transmission-error' : 'transmission-hint'}
-                    >
-                      <option value="">
-                        {isLoadingReferenceData 
-                          ? t('listings:loadingTransmissions', 'Loading transmissions...') 
-                          : t('listings:newListingTransmissionSelect', 'Select transmission type')
-                        }
-                      </option>
-                      {transmissions.map((transmission) => (
-                        <option key={transmission.id} value={transmission.slug}>
-                          {i18n.language === 'ar' ? transmission.displayNameAr : transmission.displayNameEn}
-                        </option>
-                      ))}
-                    </SelectWithArrow>
-                    {formErrors.transmission && <ErrorMessage error={formErrors.transmission} />}
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="transmission-hint">
-                      {t('listings:newListingTransmissionHint', 'Type of transmission')}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Color and Fuel Type Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Color */}
-                  <div className="space-y-3">
-                    <label 
-                      htmlFor="color" 
-                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                      {t('listings:newListingColor', 'Color')}
-                    </label>
-                    <input
-                      type="text"
-                      id="color"
-                      name="color"
-                      value={formData.color}
-                      onChange={handleFieldChange('color')}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      placeholder={t('listings:newListingColorPlaceholder', 'e.g., White, Black, Silver')}
-                      aria-describedby="color-hint"
-                    />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="color-hint">
-                      {t('listings:newListingColorHint', 'Exterior color of the car')}
-                    </p>
-                  </div>
-
-                  {/* Fuel Type */}
-                  <div className="space-y-3">
-                    <label 
-                      htmlFor="fuelType" 
-                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                      {t('listings:newListingFuelType', 'Fuel Type')}
-                    </label>
-                    <SelectWithArrow
-                      id="fuelType"
-                      name="fuelType"
-                      value={formData.fuelType}
-                      onChange={createDropdownHandler('fuelType', 'fuelTypeId', fuelTypes)}
-                      disabled={isLoadingReferenceData}
-                      isLoading={isLoadingReferenceData}
-                      isRTL={isRTL}
-                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                        formErrors.fuelType ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                      } ${isLoadingReferenceData ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      aria-invalid={!!formErrors.fuelType}
-                      aria-describedby={formErrors.fuelType ? 'fuelType-error' : 'fuelType-hint'}
-                    >
-                      <option value="">
-                        {isLoadingReferenceData 
-                          ? t('listings:loadingFuelTypes', 'Loading fuel types...') 
-                          : t('listings:newListingFuelTypeSelect', 'Select fuel type')
-                        }
-                      </option>
-                      {fuelTypes.map((fuelType) => (
-                        <option key={fuelType.id} value={fuelType.slug}>
-                          {i18n.language === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn}
-                        </option>
-                      ))}
-                    </SelectWithArrow>
-                    {formErrors.fuelType && <ErrorMessage error={formErrors.fuelType} />}
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="fuelType-hint">
-                      {t('listings:newListingFuelTypeHint', 'Type of fuel or power source')}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <Step2VehicleDetails
+                formData={formData}
+                formErrors={formErrors}
+                transmissions={transmissions}
+                fuelTypes={fuelTypes}
+                isLoadingReferenceData={isLoadingReferenceData}
+                onMileageChange={(value) => setFormData(prev => ({ ...prev, mileage: value }))}
+                onEngineChange={handleFieldChange('engine') as unknown as (e: React.ChangeEvent<HTMLInputElement>) => void}
+                onTransmissionChange={createDropdownHandler('transmission', 'transmissionId', transmissions) as unknown as (e: React.ChangeEvent<HTMLSelectElement>) => void}
+                onColorChange={handleFieldChange('color') as unknown as (e: React.ChangeEvent<HTMLInputElement>) => void}
+                onFuelTypeChange={createDropdownHandler('fuelType', 'fuelTypeId', fuelTypes) as unknown as (e: React.ChangeEvent<HTMLSelectElement>) => void}
+              />
             )}
 
             {/* Step 3: Content & Media */}
             {currentStep === 3 && (
-              <div className="space-y-8 animate-fadeIn">
-                {/* Step Header */}
-                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:contentMediaTitle', 'Content & Media')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:contentMediaSubtitle', 'Create your listing content and add photos')}
-                  </p>
-                </div>
-
-                {/* Title */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    {t('listings:title')} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleFieldChange('title')}
-                    className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 border-gray-200 dark:border-gray-600 focus:border-blue-500"
-                    placeholder={t('listings:titlePlaceholder')}
-                    aria-invalid={!!formErrors.title}
-                  />
-                  {formErrors.title && <ErrorMessage error={formErrors.title} />}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {t('listings:titleHint', 'Create an attractive title for your listing')}
-                  </p>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    {t('listings:description')} <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleFieldChange('description')}
-                    rows={6}
-                    className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 resize-vertical border-gray-200 dark:border-gray-600 focus:border-blue-500"
-                    placeholder={t('listings:descriptionPlaceholder', 'Describe your car in detail...')}
-                    aria-invalid={!!formErrors.description}
-                  />
-                  {formErrors.description && <ErrorMessage error={formErrors.description} />}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {t('listings:descriptionHint', 'Provide detailed information about your vehicle\'s condition, features, and history')}
-                  </p>
-                </div>
-
-                {/* Images and Videos Section */}
-                <div className="space-y-8">
-                  <ImageUploadSection
-                    formData={formData}
-                    onFormDataChange={(updates) => setFormData(prev => ({ ...prev, ...updates }))}
-                    formErrors={formErrors}
-                    isRTL={isRTL}
-                  />
-
-                  <VideoUploadSection
-                    formData={formData}
-                    onFormDataChange={(updates) => setFormData(prev => ({ ...prev, ...updates }))}
-                    formErrors={formErrors}
-                    isAnyVideoFeatureEnabled={isAnyVideoFeatureEnabled}
-                    isVideoUploadEnabled={isVideoUploadEnabled}
-                    isVideoUrlEnabled={isVideoUrlEnabled}
-                  />
-                                  </div>
-              </div>
+              <Step3ContentMedia
+                formData={formData}
+                formErrors={formErrors}
+                isRTL={isRTL}
+                isAnyVideoFeatureEnabled={isAnyVideoFeatureEnabled}
+                isVideoUploadEnabled={isVideoUploadEnabled}
+                isVideoUrlEnabled={isVideoUrlEnabled}
+                onTitleChange={handleFieldChange('title') as unknown as (e: React.ChangeEvent<HTMLInputElement>) => void}
+                onDescriptionChange={handleFieldChange('description') as unknown as (e: React.ChangeEvent<HTMLTextAreaElement>) => void}
+                onFormDataChange={(updates) => setFormData(prev => ({ ...prev, ...updates }))}
+              />
             )}
 
             {/* Step 4: Pricing & Contact */}
             {currentStep === 4 && (
               <div className="space-y-8 animate-fadeIn">
-                {/* Step Header */}
-                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:pricingContactTitle', 'Pricing & Contact')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:pricingContactSubtitle', 'Set your price and contact information')}
-                  </p>
-                </div>
+                <StepHeader
+                  title={t('listings:pricingContactTitle', 'Pricing & Contact')}
+                  subtitle={t('listings:pricingContactSubtitle', 'Set your price and contact information')}
+                />
 
                 {/* Pricing Information */}
                 <div className="space-y-6">
@@ -1403,11 +974,12 @@ export default function ListingWizard({
                       >
                         {t('listings:newListingCurrency', 'Currency')} <span className="text-red-500">*</span>
                       </label>
-                      <select
+                      <SelectWithArrow
                         id="currency"
                         name="currency"
                         value={formData.currency}
                         onChange={handleFieldChange('currency')}
+                        isRTL={isRTL}
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.currency ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                         }`}
@@ -1416,7 +988,7 @@ export default function ListingWizard({
                       >
                         <option value="SYP">{t('listings:currencySYP', 'Syrian Pound (SYP)')}</option>
                         <option value="USD">{t('listings:currencyUSD', 'US Dollar (USD)')}</option>
-                      </select>
+                      </SelectWithArrow>
                       <ErrorMessage error={formErrors.currency} id="currency-error" />
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="currency-hint">
                         {t('listings:newListingCurrencyHint', 'Select the currency for your price')}
@@ -1440,12 +1012,14 @@ export default function ListingWizard({
                       >
                         {t('listings:newListingGovernorate', 'Governorate')} <span className="text-red-500">*</span>
                       </label>
-                      <select
+                      <SelectWithArrow
                         id="governorateSlug"
                         name="governorateSlug"
                         value={formData.governorateSlug}
                         onChange={handleGovernorateChange}
                         disabled={isLoadingGovernorates}
+                        isLoading={isLoadingGovernorates}
+                        isRTL={isRTL}
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.governorateSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                         } ${isLoadingGovernorates ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1463,7 +1037,7 @@ export default function ListingWizard({
                             {i18n.language === 'ar' ? gov.displayNameAr : gov.displayNameEn}
                           </option>
                         ))}
-                      </select>
+                      </SelectWithArrow>
                       <ErrorMessage error={formErrors.governorateSlug} id="governorateSlug-error" />
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="governorateSlug-hint">
                         {t('listings:newListingGovernorateHint', 'Select the governorate where the car is located')}
@@ -1478,12 +1052,14 @@ export default function ListingWizard({
                       >
                         {t('listings:newListingLocation', 'Location')} <span className="text-red-500">*</span>
                       </label>
-                      <select
+                      <SelectWithArrow
                         id="locationSlug"
                         name="locationSlug"
                         value={formData.locationSlug}
                         onChange={createDropdownHandler('locationSlug', 'locationId', locations)}
                         disabled={isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === ''}
+                        isLoading={isLoadingLocations}
+                        isRTL={isRTL}
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.locationSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                         } ${(isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === '') ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1503,7 +1079,7 @@ export default function ListingWizard({
                             {i18n.language === 'ar' ? loc.displayNameAr : loc.displayNameEn}
                           </option>
                         ))}
-                      </select>
+                      </SelectWithArrow>
                       <ErrorMessage error={formErrors.locationSlug} id="locationSlug-error" />
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="locationSlug-hint">
                         {t('listings:newListingLocationHint', 'Select the specific location within the governorate')}
@@ -1610,11 +1186,12 @@ export default function ListingWizard({
                     >
                       {t('listings:newListingContactPreference', 'Preferred Contact Method')}
                     </label>
-                    <select
+                    <SelectWithArrow
                       id="contactPreference"
                       name="contactPreference"
                       value={formData.contactPreference}
                       onChange={handleFieldChange('contactPreference')}
+                      isRTL={isRTL}
                       className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                         formErrors.contactPreference ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                       }`}
@@ -1624,7 +1201,7 @@ export default function ListingWizard({
                       <option value="email">{t('listings:contactPreferenceEmail', 'Email')}</option>
                       <option value="phone">{t('listings:contactPreferencePhone', 'Phone')}</option>
                       <option value="both">{t('listings:contactPreferenceBoth', 'Both Email and Phone')}</option>
-                    </select>
+                    </SelectWithArrow>
                     <ErrorMessage error={formErrors.contactPreference} id="contactPreference-error" />
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactPreference-hint">
                       {t('listings:newListingContactPreferenceHint', 'How would you prefer buyers to contact you?')}
@@ -1635,60 +1212,19 @@ export default function ListingWizard({
             )}
 
             {/* Form Navigation (sticky on mobile) */}
-            <div className="sticky bottom-0 z-20 bg-white dark:bg-gray-900 flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-gray-200 dark:border-gray-700 space-y-4 sm:space-y-0">
-              <div className="order-2 sm:order-1">
-                <button
-                  ref={previousButtonRef}
-                  type="button"
-                  onClick={(e) => handleStepChange(currentStep - 1, e)}
-                  disabled={currentStep === 1}
-                  className="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                >
-                  <svg className={`w-4 h-4 ${rtl.spacing.mr('2')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={rtl.arrows.leftArrow} />
-                  </svg>
-                  {t('common:previous')}
-                </button>
-              </div>
-              
-              {currentStep < TOTAL_STEPS ? (
-                <button
-                  ref={nextButtonRef}
-                  type="button"
-                  onClick={(e) => handleStepChange(currentStep + 1, e)}
-                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 shadow-lg hover:shadow-xl order-1 sm:order-2"
-                >
-                  {t('common:next')}
-                  <svg className={`w-4 h-4 ${rtl.spacing.ml('2')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={rtl.arrows.rightArrow} />
-                  </svg>
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-
-                  className="inline-flex items-center px-8 py-3 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 order-1 sm:order-2"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      {t('listings:submitting', 'Submitting...')}
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                      {mode === 'edit' ? t('listings:updateListing', 'Update Listing') : t('listings:createListing', 'Create Listing')}
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
+            <StepActions
+              isFirstStep={currentStep === 1}
+              isLastStep={currentStep === TOTAL_STEPS}
+              isSubmitting={isSubmitting}
+              onPrev={(e) => handleStepChange(currentStep - 1, e)}
+              onNext={(e) => handleStepChange(currentStep + 1, e)}
+              submitButtonText={mode === 'edit' ? t('listings:updateListing', 'Update Listing') : t('listings:createListing', 'Create Listing')}
+              previousText={t('common:previous')}
+              nextText={t('common:next')}
+              leftArrowPath={rtl.arrows.leftArrow}
+              rightArrowPath={rtl.arrows.rightArrow}
+              rtlSpacing={rtl.spacing}
+            />
           </form>
         </div>
       </div>
