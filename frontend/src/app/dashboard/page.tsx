@@ -50,59 +50,44 @@ export default function Dashboard() {
       }
 
       try {
-        // Import required services
-        const { apiRequest } = await import('@/services/auth/session-manager');
-        const { getUserSavedSearches } = await import('@/services/savedSearches');
-        
-        // Fetch favorites count
-        const favoritesUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/favorites`;
-        const favoritesResponse = await apiRequest(favoritesUrl, { 
-          method: 'GET'
-        });
+        // Import services just-in-time
+        const [{ apiRequest }, { getUserSavedSearches }] = await Promise.all([
+          import('@/services/auth/session-manager'),
+          import('@/services/savedSearches')
+        ]);
 
-        if (favoritesResponse.ok) {
-          const text = await favoritesResponse.text();
-          let data;
-          try {
-            data = text ? JSON.parse(text) : [];
-          } catch (e) {
-            console.error('[DASHBOARD] Error parsing favorites JSON:', e);
-            data = [];
-          }
-
-          if (mounted) {
-            // Handle different response formats
-            if (Array.isArray(data)) {
-              setFavoritesCount(data.length);
-            } else if (data && Array.isArray(data.favorites)) {
-              setFavoritesCount(data.favorites.length);
-            } else if (data && Array.isArray(data.data)) {
-              setFavoritesCount(data.data.length);
-            } else {
-              setFavoritesCount(0);
+        // Run both requests in parallel for faster UI
+        const [favoritesResult, alertsResult] = await Promise.allSettled([
+          (async () => {
+            const favoritesUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/favorites`;
+            const res = await apiRequest(favoritesUrl, { method: 'GET' });
+            if (!res.ok) return 0;
+            const text = await res.text();
+            let data: unknown = [];
+            try { data = text ? JSON.parse(text) : []; } catch { data = []; }
+            if (Array.isArray(data)) return data.length;
+            if (data && typeof data === 'object') {
+              const obj = data as { favorites?: unknown[]; data?: unknown[] };
+              if (Array.isArray(obj.favorites)) return obj.favorites.length;
+              if (Array.isArray(obj.data)) return obj.data.length;
             }
-          }
-        }
-
-        // Fetch alerts count - only if we have a session with access token
-        if (session?.accessToken) {
-          try {
+            return 0;
+          })(),
+          (async () => {
             const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
-            const savedSearches = await getUserSavedSearches(token);
-            if (mounted) {
-              setAlertsCount(savedSearches.length);
+            if (!token) return 0;
+            try {
+              const saved = await getUserSavedSearches(token);
+              return saved.length;
+            } catch {
+              return 0;
             }
-          } catch (error) {
-            console.error('[DASHBOARD] Error fetching alerts:', error);
-            if (mounted) {
-              setAlertsCount(0);
-            }
-          }
-        } else {
-          console.log('[DASHBOARD] No session or access token available for alerts');
-          if (mounted) {
-            setAlertsCount(0);
-          }
+          })()
+        ]);
+
+        if (mounted) {
+          setFavoritesCount(favoritesResult.status === 'fulfilled' ? favoritesResult.value : 0);
+          setAlertsCount(alertsResult.status === 'fulfilled' ? alertsResult.value : 0);
         }
 
       } catch (error) {
@@ -157,7 +142,28 @@ export default function Dashboard() {
       }
     };
 
-    loadRecentListings();
+    // Defer to idle time for better responsiveness
+    const win = window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
+      cancelIdleCallback?: (handle: number) => void;
+      setTimeout: (handler: () => void, timeout?: number) => number;
+      clearTimeout: (handle: number) => void;
+    };
+    let idleHandle: number | undefined;
+    let timeoutHandle: number | undefined;
+    if (typeof win.requestIdleCallback === 'function') {
+      idleHandle = win.requestIdleCallback(() => { void loadRecentListings(); }, { timeout: 1000 });
+    } else {
+      timeoutHandle = win.setTimeout(() => { void loadRecentListings(); }, 0);
+    }
+    return () => {
+      if (idleHandle && typeof win.cancelIdleCallback === 'function') {
+        win.cancelIdleCallback(idleHandle);
+      }
+      if (timeoutHandle) {
+        win.clearTimeout(timeoutHandle);
+      }
+    };
   }, [user]);
 
   if (!ready) {
