@@ -198,21 +198,15 @@ const VideoSection = memo(function VideoSection({
                         )}
                       </h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" id="video-url-description">
-                        {t('listings:videoUrlToggleHelp', 'Add a YouTube, Vimeo, or other video URL')}
+                        {t('listings:videoUrlToggleHelp', 'Add a YouTube video URL')}
                       </p>
                       <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'} text-xs text-gray-500 dark:text-gray-500 mt-3`}>
                         <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                           <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                           <span>YouTube</span>
                         </div>
-                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
-                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                          <span>Vimeo</span>
-                        </div>
-                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
-                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                          <span>External links</span>
-                        </div>
+                        {/* Vimeo removed */}
+                        {/* External links note no longer needed */}
                       </div>
                     </div>
                   </div>
@@ -254,10 +248,10 @@ const VideoSection = memo(function VideoSection({
                   </h5>
                   <p className="text-xs text-gray-600 dark:text-gray-400">
                     {isVideoUploadEnabled && isVideoUrlEnabled 
-                      ? t('listings:videoSectionSubtitleBoth', "Upload a video file for the best quality, or add a YouTube/Vimeo link for easy sharing")
+                      ? t('listings:videoSectionSubtitleBoth', "Upload a video file for the best quality, or add a YouTube link for easy sharing")
                       : isVideoUploadEnabled 
                         ? t('listings:videoSectionSubtitleUploadOnly', "Upload a video file to show your vehicle in action")
-                        : t('listings:videoSectionSubtitleUrlOnly', "Add a YouTube or Vimeo link to showcase your vehicle")
+                        : t('listings:videoSectionSubtitleUrlOnly', "Add a YouTube link to showcase your vehicle")
                     }
                   </p>
                 </div>

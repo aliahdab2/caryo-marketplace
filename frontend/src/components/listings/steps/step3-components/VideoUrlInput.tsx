@@ -52,12 +52,12 @@ const VideoUrlInput = memo(function VideoUrlInput({
               <input
                 type="url"
                 id="video-url"
-                placeholder={t('listings:videoUrlPlaceholder', 'https://youtube.com/watch?v=... or https://vimeo.com/...')}
+                placeholder={t('listings:videoUrlPlaceholder', 'https://youtube.com/watch?v=...')}
                 className="w-full px-4 py-4 pl-12 border-2 border-purple-200 dark:border-purple-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-purple-900/20 dark:text-white transition-all duration-200 text-lg placeholder:text-gray-400"
-                value={formData.videoUrls?.[0] || ''}
+                value={formData.videoUrls?.[0]?.url || ''}
                 onChange={(e) => handleVideoUrlChange(e.target.value)}
                 aria-describedby="video-url-hint video-url-description"
-                aria-label="Enter video URL from YouTube, Vimeo, or other video platforms"
+                aria-label="Enter video URL from YouTube"
               />
               <div className="absolute start-4 top-1/2 transform -translate-y-1/2">
                 <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,7 +67,7 @@ const VideoUrlInput = memo(function VideoUrlInput({
             </div>
             <div className="flex items-center justify-between mt-3">
               <p className="text-sm text-purple-600 dark:text-purple-400" id="video-url-hint">
-                {t('listings:videoUrlHelp', 'Supported: YouTube, Vimeo, and other video platforms')}
+                {t('listings:videoUrlHelp', 'Supported: YouTube')}
               </p>
               {formData.videoUrls?.[0] && (
                 <div className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400">
@@ -79,19 +79,13 @@ const VideoUrlInput = memo(function VideoUrlInput({
           </div>
           {formErrors.videoUrls && <ErrorMessage error={formErrors.videoUrls} id="video-urls-error" />}
 
-          {/* Platform Examples */}
-          <div className="grid grid-cols-2 gap-3 pt-2">
+          {/* Platform Example */}
+          <div className="grid grid-cols-1 gap-3 pt-2">
             <div className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-800">
               <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center">
                 <span className="text-white text-xs font-bold">▶</span>
               </div>
               <span className="text-sm font-medium text-red-700 dark:text-red-300">YouTube</span>
-            </div>
-            <div className="flex items-center space-x-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
-              <div className="w-6 h-6 bg-blue-500 rounded flex items-center justify-center">
-                <span className="text-white text-xs font-bold">V</span>
-              </div>
-              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Vimeo</span>
             </div>
           </div>
         </div>
@@ -106,7 +100,7 @@ const VideoUrlInput = memo(function VideoUrlInput({
           
           {/* Video Embed Preview */}
           {(() => {
-            const embedUrl = getVideoEmbedUrl(formData.videoUrls[0]);
+            const embedUrl = getVideoEmbedUrl(formData.videoUrls[0]?.url || '');
             if (embedUrl) {
               return (
                 <div className="relative">
@@ -141,7 +135,7 @@ const VideoUrlInput = memo(function VideoUrlInput({
                       External Video URL
                     </p>
                     <p className="text-sm text-blue-700 dark:text-blue-300 break-all">
-                      {formData.videoUrls[0]}
+                      {formData.videoUrls[0]?.url || ''}
                     </p>
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                       Preview not available for this URL format
@@ -163,7 +157,7 @@ const VideoUrlInput = memo(function VideoUrlInput({
           {/* URL Info */}
           <div className="text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Source: {formData.videoUrls[0]}
+              Source: {formData.videoUrls[0]?.url || ''}
             </p>
           </div>
         </div>

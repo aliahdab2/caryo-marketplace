@@ -100,8 +100,7 @@ export class ListingDataService {
         if (mediaItem.type?.startsWith('image/')) {
           imageUrls.push(mediaItem.url);
         } else if (mediaItem.type?.startsWith('video/') || 
-                   mediaItem.url.includes('youtube') || 
-                   mediaItem.url.includes('vimeo')) {
+                   mediaItem.url.includes('youtube')) {
           videoUrls.push(mediaItem.url);
         }
       });
@@ -185,12 +184,13 @@ export class ListingDataService {
       contactPreference: listing.contactPreference || "email",
       images: [],
       videos: [],
-      videoUrls: videoUrls,
+      videoUrls: videoUrls.map(url => ({ 
+        url, 
+        isValidated: url.includes('youtube.com') 
+      })),
               status: (listing.status as 'active' | 'pending' | 'sold' | 'expired') || 'active',
       existingImageUrls: imageUrls,
-      existingVideoUrls: videoUrls.filter(url => 
-        url.includes('youtube') || url.includes('vimeo')
-      )
+      existingVideoUrls: videoUrls.filter(url => url.includes('youtube'))
     };
 
     console.log('[ListingDataService] Transformation complete:', {

@@ -1,0 +1,387 @@
+"use client";
+
+import React, { useState, useCallback } from 'react';
+import Image from 'next/image';
+import { ListingFormData } from '@/types/listings';
+import { FormErrors } from '@/types/forms';
+import ErrorMessage from './shared/ErrorMessage';
+import { useCallback as useCallbackPerf, useRef } from 'react';
+import { useLazyTranslation } from '@/hooks/useLazyTranslation';
+
+// Optimized throttle hook for frequent operations
+function useThrottle<T extends (...args: any[]) => any>(func: T, delay: number): T { // eslint-disable-line @typescript-eslint/no-explicit-any -- Necessary for generic function throttling
+  const lastRun = useRef(Date.now());
+  
+  return useCallbackPerf((...args: Parameters<T>) => {
+    if (Date.now() - lastRun.current >= delay) {
+      func(...args);
+      lastRun.current = Date.now();
+    }
+  }, [func, delay]) as T;
+}
+
+interface ImageUploadSectionProps {
+  formData: ListingFormData;
+  onFormDataChange: (updates: Partial<ListingFormData>) => void;
+  formErrors: FormErrors;
+  isRTL: boolean;
+  imagePreviewUrls: string[];
+  existingImages: string[];
+  isDragOver: boolean;
+  setIsDragOver: (isDragOver: boolean) => void;
+  setImagePreviewUrls: React.Dispatch<React.SetStateAction<string[]>>;
+  onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveImage: (index: number) => void;
+}
+
+export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
+  formData,
+  onFormDataChange,
+  formErrors,
+  isRTL,
+  imagePreviewUrls,
+  existingImages,
+  isDragOver,
+  setIsDragOver,
+  setImagePreviewUrls,
+  onImageUpload,
+  onRemoveImage
+}) => {
+  const { t } = useLazyTranslation(['listings', 'common']);
+  
+  // Drag and drop state for image reordering
+  const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
+  const [dragOverImageIndex, setDragOverImageIndex] = useState<number | null>(null);
+
+  // Drag and drop handlers for upload area
+  const handleDragOver = useThrottle(useCallbackPerf((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, [setIsDragOver]), 100);
+
+  const handleDragLeave = useCallbackPerf((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, [setIsDragOver]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const validFiles: File[] = [];
+    const newUrls: string[] = [];
+
+    files.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        validFiles.push(file);
+        newUrls.push(URL.createObjectURL(file));
+      }
+    });
+
+    if (validFiles.length > 0) {
+      onFormDataChange({
+        images: [...formData.images, ...validFiles]
+      });
+      setImagePreviewUrls(prev => [...prev, ...newUrls]);
+    }
+  }, [formData.images, onFormDataChange, setIsDragOver, setImagePreviewUrls]);
+
+  // Image drag and drop reordering handlers
+  const handleImageDragStart = useCallback((e: React.DragEvent, index: number) => {
+    setDraggedImageIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  }, []);
+
+  const handleImageDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverImageIndex(index);
+  }, []);
+
+  const handleImageDragLeave = useCallback(() => {
+    setDragOverImageIndex(null);
+  }, []);
+
+  const handleImageDrop = useCallback((e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedImageIndex === null || draggedImageIndex === dropIndex) return;
+
+    // Reorder both images and preview URLs
+    const newImages = [...formData.images];
+    const newPreviewUrls = [...imagePreviewUrls];
+
+    const draggedImage = newImages[draggedImageIndex];
+    const draggedPreviewUrl = newPreviewUrls[draggedImageIndex];
+
+    newImages.splice(draggedImageIndex, 1);
+    newPreviewUrls.splice(draggedImageIndex, 1);
+
+    newImages.splice(dropIndex, 0, draggedImage);
+    newPreviewUrls.splice(dropIndex, 0, draggedPreviewUrl);
+
+    onFormDataChange({ images: newImages });
+    setImagePreviewUrls(newPreviewUrls);
+    setDraggedImageIndex(null);
+    setDragOverImageIndex(null);
+  }, [draggedImageIndex, formData.images, imagePreviewUrls, onFormDataChange, setImagePreviewUrls]);
+
+  const handleImageDragEnd = useCallback(() => {
+    setDraggedImageIndex(null);
+    setDragOverImageIndex(null);
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      {/* Section Header */}
+      <div className="text-center space-y-2">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          {t('listings:newListingCarImages', 'Car Images')} <span className="text-red-500">*</span>
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400">
+          {t('listings:newListingImageUploadSubtitle', 'Upload high-quality photos to attract potential buyers')}
+        </p>
+      </div>
+
+      {/* Enhanced Drag & Drop Upload Area */}
+      <div className="space-y-6">
+        <div 
+          className={`w-full transition-all duration-300 ${
+            isDragOver 
+              ? 'scale-[1.02] shadow-xl ring-4 ring-blue-200 dark:ring-blue-700' 
+              : 'hover:shadow-lg'
+          }`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <label 
+            htmlFor="image-upload" 
+            className={`group flex flex-col items-center justify-center w-full h-72 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 focus-within:ring-4 focus-within:ring-blue-200 dark:focus-within:ring-blue-800 ${
+              isDragOver
+                ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                : 'border-gray-300 dark:border-gray-600 bg-gray-50/80 dark:bg-gray-800/50 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+            }`}
+            role="button"
+            tabIndex={0}
+            aria-label="Upload car images by clicking or dragging files here"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                document.getElementById('image-upload')?.click();
+              }
+            }}
+          >
+            <div className="flex flex-col items-center justify-center pt-8 pb-8 space-y-6">
+              {/* Enhanced Upload Icon */}
+              <div className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                isDragOver 
+                  ? 'bg-blue-100 dark:bg-blue-800/50 scale-110' 
+                  : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 group-hover:scale-105'
+              }`}>
+                <svg className={`w-10 h-10 transition-colors duration-300 ${
+                  isDragOver 
+                    ? 'text-blue-600 dark:text-blue-400' 
+                    : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'
+                }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+              </div>
+
+              {/* Main Text */}
+              <div className="text-center space-y-3">
+                <h4 className={`text-xl font-semibold transition-colors duration-300 ${
+                  isDragOver 
+                    ? 'text-blue-800 dark:text-blue-200' 
+                    : 'text-gray-700 dark:text-gray-200'
+                }`}>
+                  {isDragOver 
+                    ? t('listings:dropImagesHere', 'Drop your images here!')
+                    : t('listings:newListingUploadImages', 'Upload Car Images')
+                  }
+                </h4>
+                
+                <p className={`text-base transition-colors duration-300 ${
+                  isDragOver 
+                    ? 'text-blue-600 dark:text-blue-300' 
+                    : 'text-gray-600 dark:text-gray-400'
+                }`}>
+                  {isDragOver 
+                    ? t('listings:newListingReleaseToAdd', 'Release to add images to your listing')
+                    : t('listings:newListingDragAndDrop', 'Drag & drop images here, or click to browse')
+                  }
+                </p>
+
+                {/* Format info */}
+                <div className="pt-2 space-y-1">
+                  <p className="text-sm text-gray-500 dark:text-gray-500">
+                    {t('listings:newListingImageUploadHint', 'Upload multiple images to showcase your car. First image will be the main photo.')}
+                  </p>
+                  <div className={`flex items-center justify-center ${isRTL ? 'space-x-reverse space-x-6' : 'space-x-6'} text-xs text-gray-400 dark:text-gray-500`}>
+                    <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>{t('listings:newListingImageFormatsShort', 'PNG, JPG, JPEG')}</span>
+                    </div>
+                    <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>{t('listings:newListingImageMaxSize', 'Max 5MB each')}</span>
+                    </div>
+                    <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>{t('listings:newListingImageMaxCount', 'Up to 10 images')}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <input
+              id="image-upload"
+              type="file"
+              className="sr-only"
+              multiple
+              accept="image/*"
+              onChange={onImageUpload}
+              aria-describedby="image-upload-hint"
+              aria-label="Select car images to upload (PNG, JPG, JPEG, max 5MB each, up to 10 images)"
+            />
+          </label>
+        </div>
+      </div>
+      {formErrors.images && <ErrorMessage error={formErrors.images} id="images-error" />}
+
+      {/* Enhanced Image Preview Grid with Drag & Drop Reordering */}
+      {(formData.images.length > 0 || imagePreviewUrls.length > 0) && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+              <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {t('listings:newListingImagePreview', 'Image Preview')} ({imagePreviewUrls.length})
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {t('listings:reorderImagesHint', 'Drag images to reorder • First image is your main photo')}
+                </p>
+              </div>
+            </div>
+            <div className={`text-xs ${isRTL ? 'text-left' : 'text-right'} text-gray-500 dark:text-gray-500`}>
+              {t('listings:imageCount', '{{count}}/10 images', { count: imagePreviewUrls.length })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {imagePreviewUrls.map((url: string, index: number) => (
+              <div
+                key={`${url}-${index}`}
+                className={`relative group cursor-move transition-all duration-300 ${
+                  draggedImageIndex === index
+                    ? 'scale-105 rotate-2 opacity-75 z-10'
+                    : dragOverImageIndex === index
+                    ? 'scale-105 ring-4 ring-blue-300 dark:ring-blue-600'
+                    : 'hover:scale-[1.02]'
+                }`}
+                draggable
+                onDragStart={(e) => handleImageDragStart(e, index)}
+                onDragOver={(e) => handleImageDragOver(e, index)}
+                onDragLeave={handleImageDragLeave}
+                onDrop={(e) => handleImageDrop(e, index)}
+                onDragEnd={handleImageDragEnd}
+              >
+                {/* Image Container */}
+                <div className={`aspect-square rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700 relative border-2 transition-all duration-300 ${
+                  index === 0 
+                    ? 'border-blue-400 dark:border-blue-500 shadow-lg' 
+                    : 'border-gray-200 dark:border-gray-600 group-hover:border-gray-300 dark:group-hover:border-gray-500'
+                }`}>
+                  <Image
+                    src={url}
+                    alt={`Car listing image ${index + 1} - uploaded preview for ${formData.title || 'new listing'}`}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-110"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+                    draggable={false}
+                  />
+                  
+                  {/* Drag Handle Overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="bg-white/90 dark:bg-gray-800/90 rounded-lg p-2 backdrop-blur-sm">
+                        <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Enhanced Remove Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemoveImage(index);
+                  }}
+                  className={`absolute -top-2 ${isRTL ? '-left-2' : '-right-2'} bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110`}
+                  aria-label={`Remove image ${index + 1}`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+
+                {/* Enhanced Main Photo Badge */}
+                {index === 0 && (
+                  <div className={`absolute bottom-2 ${isRTL ? 'end-2' : 'start-2'} bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                    <span className="font-medium">{t('listings:newListingMainImage', 'Main Photo')}</span>
+                  </div>
+                )}
+
+                {/* Image Number Badge */}
+                <div className={`absolute top-2 ${isRTL ? 'end-2' : 'start-2'} bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm`}>
+                  {index + 1}
+                </div>
+
+                {/* File Info on Hover */}
+                <div className={`absolute bottom-2 ${isRTL ? 'left-2' : 'right-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
+                  <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                    {(formData.images[index]?.size / 1024 / 1024).toFixed(1)}MB
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Reordering Instructions */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700">
+            <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+              <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-800/50 flex items-center justify-center">
+                <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                  💡 {t('listings:howToReorderTitle', 'How to reorder your photos')}
+                </h5>
+                <p className="text-xs text-blue-700 dark:text-blue-300">
+                  {t('listings:howToReorderBody', 'Drag and drop images to change their order. The first image will be your main listing photo that buyers see first.')}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

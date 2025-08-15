@@ -266,6 +266,14 @@ export interface Listing {
 }
 
 /**
+ * Interface for video URL input with validation state
+ */
+export interface VideoUrlInput {
+  url: string;
+  isValidated: boolean;
+}
+
+/**
  * Interface for car listing form data
  */
 export interface ListingFormData {
@@ -306,7 +314,7 @@ export interface ListingFormData {
   contactPreference: string; // This was in the original form state, ensure it's needed
   images: File[];
   videos?: File[]; // Video files for upload
-  videoUrls?: string[]; // External video URLs (YouTube, Vimeo, etc.)
+  videoUrls?: VideoUrlInput[]; // External video URLs (YouTube)
   existingImageUrls?: string[]; // URLs of existing images (for edit mode)
   existingVideoUrls?: string[]; // URLs of existing videos (for edit mode)
   status: 'active' | 'expired' | 'pending' | 'sold' | '';
