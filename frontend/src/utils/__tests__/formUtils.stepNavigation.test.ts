@@ -210,7 +210,7 @@ describe('Step Navigation Tests', () => {
           { missing: 'year', data: { make: 'toyota', makeId: 1, model: 'camry', modelId: 1 } },
         ];
 
-        testCases.forEach(({ missing, data }) => {
+        testCases.forEach(({ missing: _missing, data }) => {
           const formData = createFormDataForStep([]);
           Object.assign(formData, data);
           
@@ -258,7 +258,7 @@ describe('Step Navigation Tests', () => {
 
   describe('Progressive Navigation Flow', () => {
     it('should support complete navigation flow', () => {
-      let formData = createFormDataForStep([]);
+      const formData = createFormDataForStep([]);
 
       // Start: Only step 1 accessible
       expect(isStepAccessible(1, formData)).toBe(true);
