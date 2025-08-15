@@ -10,7 +10,7 @@ const baseProps = (): Step2VehicleDetailsProps => ({
     locationSlug: '', state: '', zipCode: '', contactName: '', contactPhone: '', contactEmail: '',
     contactPreference: 'phone', images: [], videos: [], videoUrls: [], existingImageUrls: [], existingVideoUrls: [],
     status: 'active'
-  } as any,
+  } as unknown as Step2VehicleDetailsProps['formData'],
   formErrors: {},
   transmissions: [
     { id: 1, slug: 'auto', displayNameAr: 'أوتوماتيك', displayNameEn: 'Automatic' },

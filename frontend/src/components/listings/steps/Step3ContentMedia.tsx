@@ -1,145 +1,106 @@
 "use client";
 
-import React, { memo } from 'react';
-import { useLazyTranslation } from '@/hooks/useLazyTranslation';
+import React from 'react';
 import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
-import ContentFields from './step3-components/ContentFields';
-import ImageUpload from './step3-components/ImageUpload';
-import ImagePreviewGrid from './step3-components/ImagePreviewGrid';
-import VideoSection from './step3-components/VideoSection';
+import { useLazyTranslation } from '@/hooks/useLazyTranslation';
+import StepHeader from '../shared/StepHeader';
+import ErrorMessage from '../shared/ErrorMessage';
+import { ImageUploadSection } from '../ImageUploadSection';
+import { VideoUploadSection } from '../VideoUploadSection';
 
-interface Step3Props {
+export interface Step3ContentMediaProps {
   formData: ListingFormData;
   formErrors: FormErrors;
-  imagePreviewUrls: string[];
-  videoPreviewUrls: string[];
-  isDragOver: boolean;
-  draggedImageIndex: number | null;
-  dragOverImageIndex: number | null;
-  showVideoUpload: boolean;
-  showVideoUrl: boolean;
+  isRTL: boolean;
+  isAnyVideoFeatureEnabled: boolean;
   isVideoUploadEnabled: boolean;
   isVideoUrlEnabled: boolean;
-  isAnyVideoFeatureEnabled: boolean;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
-  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  removeImage: (index: number) => void;
-  handleDragOver: (e: React.DragEvent) => void;
-  handleDragLeave: (e: React.DragEvent) => void;
-  handleDrop: (e: React.DragEvent) => void;
-  handleImageDragStart: (e: React.DragEvent, index: number) => void;
-  handleImageDragOver: (e: React.DragEvent, index: number) => void;
-  handleImageDragLeave: () => void;
-  handleImageDrop: (e: React.DragEvent, dropIndex: number) => void;
-  handleImageDragEnd: () => void;
-  handleVideoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  removeVideo: (index: number) => void;
-  setShowVideoUpload: (show: boolean) => void;
-  setShowVideoUrl: (show: boolean) => void;
-  handleVideoUrlChange: (url: string) => void;
-  removeVideoUrl: (index: number) => void;
-  getVideoEmbedUrl: (url: string) => string | null;
+  onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDescriptionChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onFormDataChange: (updates: Partial<ListingFormData>) => void;
 }
 
-const Step3ContentMedia = memo(function Step3ContentMedia({
+const Step3ContentMedia: React.FC<Step3ContentMediaProps> = ({
   formData,
   formErrors,
-  imagePreviewUrls,
-  videoPreviewUrls,
-  isDragOver,
-  draggedImageIndex,
-  dragOverImageIndex,
-  showVideoUpload,
-  showVideoUrl,
+  isRTL,
+  isAnyVideoFeatureEnabled,
   isVideoUploadEnabled,
   isVideoUrlEnabled,
-  isAnyVideoFeatureEnabled,
-  handleChange,
-  handleImageUpload,
-  removeImage,
-  handleDragOver,
-  handleDragLeave,
-  handleDrop,
-  handleImageDragStart,
-  handleImageDragOver,
-  handleImageDragLeave,
-  handleImageDrop,
-  handleImageDragEnd,
-  handleVideoUpload,
-  removeVideo,
-  setShowVideoUpload,
-  setShowVideoUrl,
-  handleVideoUrlChange,
-  removeVideoUrl,
-  getVideoEmbedUrl
-}: Step3Props) {
+  onTitleChange,
+  onDescriptionChange,
+  onFormDataChange,
+}) => {
   const { t } = useLazyTranslation(['listings']);
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Step Header */}
-      <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          {t('listings:contentMediaTitle', 'Content & Media')}
-        </h2>
-        <p className="text-gray-600 dark:text-gray-300">
-          {t('listings:contentMediaSubtitle', 'Create your listing content and add photos')}
+      <StepHeader
+        title={t('listings:contentMediaTitle', 'Content & Media')}
+        subtitle={t('listings:contentMediaSubtitle', 'Create your listing content and add photos')}
+      />
+
+      {/* Title */}
+      <div className="space-y-3">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+          {t('listings:title')} <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          name="title"
+          value={formData.title}
+          onChange={onTitleChange}
+          className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 border-gray-200 dark:border-gray-600 focus:border-blue-500"
+          placeholder={t('listings:titlePlaceholder')}
+          aria-invalid={!!formErrors.title}
+        />
+        {formErrors.title && <ErrorMessage error={formErrors.title} />}
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          {t('listings:titleHint', 'Create an attractive title for your listing')}
         </p>
       </div>
 
-      {/* Content Fields (Title & Description) */}
-      <ContentFields
-        formData={formData}
-        formErrors={formErrors}
-        handleChange={handleChange}
-      />
-
-      {/* Images Section */}
-      <div className="space-y-8">
-        <ImageUpload
-          isDragOver={isDragOver}
-          formErrors={formErrors}
-          handleImageUpload={handleImageUpload}
-          handleDragOver={handleDragOver}
-          handleDragLeave={handleDragLeave}
-          handleDrop={handleDrop}
+      {/* Description */}
+      <div className="space-y-3">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+          {t('listings:description')} <span className="text-red-500">*</span>
+        </label>
+        <textarea
+          name="description"
+          value={formData.description}
+          onChange={onDescriptionChange}
+          rows={6}
+          className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 resize-vertical border-gray-200 dark:border-gray-600 focus:border-blue-500"
+          placeholder={t('listings:descriptionPlaceholder', 'Describe your car in detail...')}
+          aria-invalid={!!formErrors.description}
         />
-
-        <ImagePreviewGrid
-          formData={formData}
-          imagePreviewUrls={imagePreviewUrls}
-          draggedImageIndex={draggedImageIndex}
-          dragOverImageIndex={dragOverImageIndex}
-          removeImage={removeImage}
-          handleImageDragStart={handleImageDragStart}
-          handleImageDragOver={handleImageDragOver}
-          handleImageDragLeave={handleImageDragLeave}
-          handleImageDrop={handleImageDrop}
-          handleImageDragEnd={handleImageDragEnd}
-        />
+        {formErrors.description && <ErrorMessage error={formErrors.description} />}
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          {t('listings:descriptionHint', 'Provide detailed information about your vehicle\'s condition, features, and history')}
+        </p>
       </div>
 
-      {/* Video Section */}
-      <VideoSection
-        formData={formData}
-        formErrors={formErrors}
-        videoPreviewUrls={videoPreviewUrls}
-        showVideoUpload={showVideoUpload}
-        showVideoUrl={showVideoUrl}
-        isVideoUploadEnabled={isVideoUploadEnabled}
-        isVideoUrlEnabled={isVideoUrlEnabled}
-        isAnyVideoFeatureEnabled={isAnyVideoFeatureEnabled}
-        setShowVideoUpload={setShowVideoUpload}
-        setShowVideoUrl={setShowVideoUrl}
-        handleVideoUpload={handleVideoUpload}
-        removeVideo={removeVideo}
-        handleVideoUrlChange={handleVideoUrlChange}
-        removeVideoUrl={removeVideoUrl}
-        getVideoEmbedUrl={getVideoEmbedUrl}
-      />
+      {/* Images and Videos Section */}
+      <div className="space-y-8">
+        <ImageUploadSection
+          formData={formData}
+          onFormDataChange={onFormDataChange}
+          formErrors={formErrors}
+          isRTL={isRTL}
+        />
+
+        <VideoUploadSection
+          formData={formData}
+          onFormDataChange={onFormDataChange}
+          formErrors={formErrors}
+          isAnyVideoFeatureEnabled={isAnyVideoFeatureEnabled}
+          isVideoUploadEnabled={isVideoUploadEnabled}
+          isVideoUrlEnabled={isVideoUrlEnabled}
+        />
+      </div>
     </div>
   );
-});
+};
 
 export default Step3ContentMedia;

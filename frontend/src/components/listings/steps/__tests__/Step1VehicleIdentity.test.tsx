@@ -10,7 +10,7 @@ const baseProps = (): Step1VehicleIdentityProps => ({
     locationSlug: '', state: '', zipCode: '', contactName: '', contactPhone: '', contactEmail: '',
     contactPreference: 'phone', images: [], videos: [], videoUrls: [], existingImageUrls: [], existingVideoUrls: [],
     status: 'active'
-  } as any,
+  } as unknown as Step1VehicleIdentityProps['formData'],
   formErrors: {},
   carMakes: [
     { id: 1, slug: 'toyota', displayNameAr: 'تويوتا', displayNameEn: 'Toyota' },
@@ -65,7 +65,7 @@ describe('Step1VehicleIdentity', () => {
 
   it('shows error messages when provided', () => {
     const props = baseProps();
-    props.formErrors = { make: 'Required', model: 'Required', year: 'Required' } as any;
+    props.formErrors = { make: 'Required', model: 'Required', year: 'Required' } as unknown as Step1VehicleIdentityProps['formErrors'];
     render(<Step1VehicleIdentity {...props} />);
     expect(screen.getAllByRole('alert').length).toBeGreaterThanOrEqual(1);
   });

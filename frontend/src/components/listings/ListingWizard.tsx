@@ -21,14 +21,14 @@ import { useMemo as useMemoPerf, useCallback as useCallbackPerf } from 'react';
 import { useDirection } from '@/utils/direction';
 import { createRTLHelpers } from '@/utils/rtlHelpers';
 // Media utils are now handled within media components
-import { ImageUploadSection } from './ImageUploadSection';
-import { VideoUploadSection } from './VideoUploadSection';
+// Media sections are used inside Step3ContentMedia
 import { SelectWithArrow } from '../ui/SelectWithArrow';
 import StepHeader from './shared/StepHeader';
 import StepNavigation from './shared/StepNavigation';
 import StepActions from './shared/StepActions';
 import Step1VehicleIdentity from './steps/Step1VehicleIdentity';
 import Step2VehicleDetails from './steps/Step2VehicleDetails';
+import Step3ContentMedia from './steps/Step3ContentMedia';
 
 // Performance optimized debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -861,7 +861,7 @@ export default function ListingWizard({
           progressPercentage={progressPercentage}
           showAutoSaveIndicator={mode === 'create' && autoSave}
           autoSaveStatus={autoSaveHook.autoSaveStatus}
-          lastSaved={autoSaveHook.lastSaved}
+                    lastSaved={autoSaveHook.lastSaved}
           stepCounterText={t('listings:newListingStepCounter', 'Step {{current}} of {{total}}', { current: currentStep, total: TOTAL_STEPS })}
           percentCompleteText={t('listings:progressComplete', '{{percent}}% Complete', { percent: progressPercentage })}
         />
@@ -911,71 +911,17 @@ export default function ListingWizard({
 
             {/* Step 3: Content & Media */}
             {currentStep === 3 && (
-              <div className="space-y-8 animate-fadeIn">
-                <StepHeader
-                  title={t('listings:contentMediaTitle', 'Content & Media')}
-                  subtitle={t('listings:contentMediaSubtitle', 'Create your listing content and add photos')}
-                />
-
-                {/* Title */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    {t('listings:title')} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleFieldChange('title')}
-                    className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 border-gray-200 dark:border-gray-600 focus:border-blue-500"
-                    placeholder={t('listings:titlePlaceholder')}
-                    aria-invalid={!!formErrors.title}
-                  />
-                  {formErrors.title && <ErrorMessage error={formErrors.title} />}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {t('listings:titleHint', 'Create an attractive title for your listing')}
-                  </p>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    {t('listings:description')} <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleFieldChange('description')}
-                    rows={6}
-                    className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 resize-vertical border-gray-200 dark:border-gray-600 focus:border-blue-500"
-                    placeholder={t('listings:descriptionPlaceholder', 'Describe your car in detail...')}
-                    aria-invalid={!!formErrors.description}
-                  />
-                  {formErrors.description && <ErrorMessage error={formErrors.description} />}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {t('listings:descriptionHint', 'Provide detailed information about your vehicle\'s condition, features, and history')}
-                  </p>
-                </div>
-
-                {/* Images and Videos Section */}
-                <div className="space-y-8">
-                  <ImageUploadSection
-                    formData={formData}
-                    onFormDataChange={(updates) => setFormData(prev => ({ ...prev, ...updates }))}
-                    formErrors={formErrors}
-                    isRTL={isRTL}
-                  />
-
-                  <VideoUploadSection
-                    formData={formData}
-                    onFormDataChange={(updates) => setFormData(prev => ({ ...prev, ...updates }))}
-                    formErrors={formErrors}
-                    isAnyVideoFeatureEnabled={isAnyVideoFeatureEnabled}
-                    isVideoUploadEnabled={isVideoUploadEnabled}
-                    isVideoUrlEnabled={isVideoUrlEnabled}
-                  />
-                                  </div>
-              </div>
+              <Step3ContentMedia
+                formData={formData}
+                formErrors={formErrors}
+                isRTL={isRTL}
+                isAnyVideoFeatureEnabled={isAnyVideoFeatureEnabled}
+                isVideoUploadEnabled={isVideoUploadEnabled}
+                isVideoUrlEnabled={isVideoUrlEnabled}
+                onTitleChange={handleFieldChange('title') as unknown as (e: React.ChangeEvent<HTMLInputElement>) => void}
+                onDescriptionChange={handleFieldChange('description') as unknown as (e: React.ChangeEvent<HTMLTextAreaElement>) => void}
+                onFormDataChange={(updates) => setFormData(prev => ({ ...prev, ...updates }))}
+              />
             )}
 
             {/* Step 4: Pricing & Contact */}
