@@ -1,46 +1,56 @@
 "use client";
 
-import React, { memo } from 'react';
-import { useLazyTranslation } from '@/hooks/useLazyTranslation';
+import React from 'react';
 import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
-import { Transmission, FuelType } from '@/types/wizard';
+import { useLazyTranslation } from '@/hooks/useLazyTranslation';
+import { useDirection } from '@/utils/direction';
+import StepHeader from '../shared/StepHeader';
+import { SelectWithArrow } from '../../ui/SelectWithArrow';
+import NumericInput from '@/components/ui/NumericInput';
 import ErrorMessage from '../shared/ErrorMessage';
-import NumericInput from '../../ui/NumericInput';
 
-interface Step2Props {
+type ReferenceOption = {
+  id: number;
+  slug: string;
+  displayNameAr: string;
+  displayNameEn: string;
+};
+
+export interface Step2VehicleDetailsProps {
   formData: ListingFormData;
   formErrors: FormErrors;
-  transmissions: Transmission[];
-  fuelTypes: FuelType[];
-  isLoadingReferenceData: boolean;
-  handleChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | string, 
-    fieldName?: string
-  ) => void;
+  transmissions: ReferenceOption[];
+  fuelTypes: ReferenceOption[];
+  isLoadingReferenceData?: boolean;
+  onMileageChange: (value: string) => void;
+  onEngineChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onTransmissionChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onColorChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFuelTypeChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
-const Step2VehicleDetails = memo(function Step2VehicleDetails({
+const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
   formData,
   formErrors,
   transmissions,
   fuelTypes,
-  isLoadingReferenceData,
-  handleChange
-}: Step2Props) {
-  const { i18n, t } = useLazyTranslation(['listings']);
+  isLoadingReferenceData = false,
+  onMileageChange,
+  onEngineChange,
+  onTransmissionChange,
+  onColorChange,
+  onFuelTypeChange,
+}) => {
+  const { t, i18n } = useLazyTranslation(['listings']);
+  const { isRTL } = useDirection();
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Step Header */}
-      <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          {t('listings:vehicleDetailsTitle', 'Vehicle Details')}
-        </h2>
-        <p className="text-gray-600 dark:text-gray-300">
-          {t('listings:vehicleDetailsSubtitle', 'Tell us more about your vehicle\'s condition and features')}
-        </p>
-      </div>
+      <StepHeader
+        title={t('listings:vehicleDetailsTitle', 'Vehicle Details')}
+        subtitle={t('listings:vehicleDetailsSubtitle', "Tell us more about your vehicle's condition and features")}
+      />
 
       {/* Mileage */}
       <div className="space-y-3">
@@ -54,7 +64,8 @@ const Step2VehicleDetails = memo(function Step2VehicleDetails({
           id="mileage"
           name="mileage"
           value={formData.mileage}
-          onChange={(value) => handleChange(value, 'mileage')}
+          onChange={onMileageChange}
+          data-testid="mileage"
           placeholder={t('listings:newListingMileagePlaceholder', '50000')}
           error={!!formErrors.mileage}
           aria-describedby="mileage-hint"
@@ -81,7 +92,8 @@ const Step2VehicleDetails = memo(function Step2VehicleDetails({
             id="engine"
             name="engine"
             value={formData.engine}
-            onChange={handleChange}
+            onChange={onEngineChange}
+            data-testid="engine"
             className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             placeholder={t('listings:newListingEnginePlaceholder', 'e.g., 2.0L Turbo, V6, Hybrid')}
             aria-describedby="engine-hint"
@@ -99,12 +111,15 @@ const Step2VehicleDetails = memo(function Step2VehicleDetails({
           >
             {t('listings:newListingTransmission', 'Transmission')}
           </label>
-          <select
+          <SelectWithArrow
             id="transmission"
             name="transmission"
             value={formData.transmission}
-            onChange={handleChange}
+            onChange={onTransmissionChange}
+            data-testid="transmission"
             disabled={isLoadingReferenceData}
+            isLoading={isLoadingReferenceData}
+            isRTL={isRTL}
             className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
               formErrors.transmission ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
             } ${isLoadingReferenceData ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -118,11 +133,11 @@ const Step2VehicleDetails = memo(function Step2VehicleDetails({
               }
             </option>
             {transmissions.map((transmission) => (
-              <option key={transmission.id} value={transmission.name}>
+              <option key={transmission.id} value={transmission.slug}>
                 {i18n.language === 'ar' ? transmission.displayNameAr : transmission.displayNameEn}
               </option>
             ))}
-          </select>
+          </SelectWithArrow>
           {formErrors.transmission && <ErrorMessage error={formErrors.transmission} />}
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="transmission-hint">
             {t('listings:newListingTransmissionHint', 'Type of transmission')}
@@ -145,7 +160,8 @@ const Step2VehicleDetails = memo(function Step2VehicleDetails({
             id="color"
             name="color"
             value={formData.color}
-            onChange={handleChange}
+            onChange={onColorChange}
+            data-testid="color"
             className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             placeholder={t('listings:newListingColorPlaceholder', 'e.g., White, Black, Silver')}
             aria-describedby="color-hint"
@@ -163,12 +179,15 @@ const Step2VehicleDetails = memo(function Step2VehicleDetails({
           >
             {t('listings:newListingFuelType', 'Fuel Type')}
           </label>
-          <select
+          <SelectWithArrow
             id="fuelType"
             name="fuelType"
             value={formData.fuelType}
-            onChange={handleChange}
+            onChange={onFuelTypeChange}
+            data-testid="fuelType"
             disabled={isLoadingReferenceData}
+            isLoading={isLoadingReferenceData}
+            isRTL={isRTL}
             className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
               formErrors.fuelType ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
             } ${isLoadingReferenceData ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -182,11 +201,11 @@ const Step2VehicleDetails = memo(function Step2VehicleDetails({
               }
             </option>
             {fuelTypes.map((fuelType) => (
-              <option key={fuelType.id} value={fuelType.name}>
+              <option key={fuelType.id} value={fuelType.slug}>
                 {i18n.language === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn}
               </option>
             ))}
-          </select>
+          </SelectWithArrow>
           {formErrors.fuelType && <ErrorMessage error={formErrors.fuelType} />}
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="fuelType-hint">
             {t('listings:newListingFuelTypeHint', 'Type of fuel or power source')}
@@ -195,6 +214,7 @@ const Step2VehicleDetails = memo(function Step2VehicleDetails({
       </div>
     </div>
   );
-});
+};
 
 export default Step2VehicleDetails;
+
