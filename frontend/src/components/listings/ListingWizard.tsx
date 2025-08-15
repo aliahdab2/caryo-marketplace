@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef, memo } from "react";
-import Image from "next/image";
+// import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useListingData } from '@/hooks/useListingData';
@@ -20,6 +20,7 @@ import { useAutoSave } from '@/hooks/useAutoSave';
 import { useMemo as useMemoPerf, useCallback as useCallbackPerf } from 'react';
 import { useDirection } from '@/utils/direction';
 import { createRTLHelpers } from '@/utils/rtlHelpers';
+// Media utils are now handled within media components
 import { ImageUploadSection } from './ImageUploadSection';
 import { VideoUploadSection } from './VideoUploadSection';
 
@@ -41,16 +42,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 // Optimized throttle hook for frequent operations
-function useThrottle<T extends (...args: any[]) => any>(func: T, delay: number): T { // eslint-disable-line @typescript-eslint/no-explicit-any -- Necessary for generic function throttling
-  const lastRun = useRef(Date.now());
-  
-  return useCallbackPerf((...args: Parameters<T>) => {
-    if (Date.now() - lastRun.current >= delay) {
-      func(...args);
-      lastRun.current = Date.now();
-    }
-  }, [func, delay]) as T;
-}
+// useThrottle utility not used in this component anymore
 import { 
   ListingWizardProps, 
   ErrorMessageProps 
@@ -100,121 +92,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = React.memo(function ErrorMessa
   );
 });
 
-// Memoized image preview component for better performance
-const _ImagePreview = memo(function ImagePreview({ 
-  url, 
-  index, 
-  isMainPhoto, 
-  fileSize,
-  isDragging,
-  isDragOver,
-  onRemove,
-  onDragStart,
-  onDragOver,
-  onDragLeave,
-  onDrop,
-  onDragEnd,
-  isRTL
-}: {
-  url: string;
-  index: number;
-  isMainPhoto: boolean;
-  fileSize?: number;
-  isDragging: boolean;
-  isDragOver: boolean;
-  onRemove: () => void;
-  onDragStart: (e: React.DragEvent) => void;
-  onDragOver: (e: React.DragEvent) => void;
-  onDragLeave: () => void;
-  onDrop: (e: React.DragEvent) => void;
-  onDragEnd: () => void;
-  isRTL: boolean;
-}) {
-  return (
-    <div
-      className={`relative group cursor-move transition-all duration-300 ${
-        isDragging
-          ? 'scale-105 rotate-2 opacity-75 z-10'
-          : isDragOver
-          ? 'scale-105 ring-4 ring-blue-300 dark:ring-blue-600'
-          : 'hover:scale-[1.02]'
-      }`}
-      draggable
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
-      onDragEnd={onDragEnd}
-    >
-      {/* Image Container */}
-      <div className={`aspect-square rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700 relative border-2 transition-all duration-300 ${
-        isMainPhoto 
-          ? 'border-blue-400 dark:border-blue-500 shadow-lg' 
-          : 'border-gray-200 dark:border-gray-600 group-hover:border-gray-300 dark:group-hover:border-gray-500'
-      }`}>
-        <Image
-          src={url}
-          alt={`Car listing image ${index + 1}`}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-110"
-          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
-          draggable={false}
-          priority={index === 0} // Prioritize main image
-        />
-        
-        {/* Drag Handle Overlay */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="bg-white/90 dark:bg-gray-800/90 rounded-lg p-2 backdrop-blur-sm">
-              <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Remove Button */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-        className={`absolute -top-2 ${isRTL ? '-left-2' : '-right-2'} bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110`}
-        aria-label={`Remove image ${index + 1}`}
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-
-      {/* Main Photo Badge */}
-      {isMainPhoto && (
-        <div className={`absolute bottom-2 ${isRTL ? 'end-2' : 'start-2'} bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
-          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-          <span className="font-medium">Main Photo</span>
-        </div>
-      )}
-
-      {/* Image Number Badge */}
-      <div className={`absolute top-2 ${isRTL ? 'end-2' : 'start-2'} bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm`}>
-        {index + 1}
-          </div>
-
-      {/* File Info on Hover */}
-      {fileSize && (
-        <div className={`absolute bottom-2 ${isRTL ? 'left-2' : 'right-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
-          <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-            {typeof fileSize === 'number' ? (fileSize / 1024 / 1024).toFixed(1) + 'MB' : ''}
-        </div>
-      </div>
-      )}
-    </div>
-  );
-});
+// Image preview moved into ImageUploadSection
 
 // Loading fallback component for lazy-loaded steps
 const _StepLoadingFallback = memo(function StepLoadingFallback() {
@@ -233,89 +111,7 @@ const _StepLoadingFallback = memo(function StepLoadingFallback() {
 // Note: Lazy step components removed for now to fix build issues
 // Will be implemented in future code splitting phase when step components are created
 
-// Virtualized select component for large datasets
-const _VirtualizedSelect = memo(function VirtualizedSelect({ 
-  options, 
-  value, 
-  onChange, 
-  placeholder, 
-  isLoading, 
-  className = "",
-  maxHeight = 200,
-  itemHeight = 40,
-  ...props 
-}: {
-  options: Array<{ id: string; name: string; nameAr?: string }>;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  isLoading?: boolean;
-  className?: string;
-  maxHeight?: number;
-  itemHeight?: number;
-  [key: string]: unknown;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [visibleStart, setVisibleStart] = useState(0);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  
-  // Calculate visible items for virtual scrolling
-  const visibleCount = Math.ceil(maxHeight / itemHeight);
-  const visibleEnd = Math.min(visibleStart + visibleCount + 2, options.length); // Buffer items
-  
-  const selectedOption = options.find(opt => opt.id === value);
-  
-  const handleScroll = useThrottle((e: React.UIEvent<HTMLDivElement>) => {
-    const scrollTop = e.currentTarget.scrollTop;
-    const newStart = Math.floor(scrollTop / itemHeight);
-    setVisibleStart(Math.max(0, newStart - 1)); // Add buffer
-  }, 16); // 60fps throttling
-  
-  return (
-    <div className={`relative ${className}`}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3 text-left border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500"
-        {...props}
-      >
-        {isLoading ? "Loading..." : selectedOption?.name || placeholder}
-      </button>
-      
-      {isOpen && !isLoading && (
-        <div 
-          ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl shadow-lg"
-          style={{ maxHeight }}
-          onScroll={handleScroll}
-        >
-          <div style={{ height: options.length * itemHeight, position: 'relative' }}>
-            {options.slice(visibleStart, visibleEnd).map((option, index) => (
-              <div
-                key={option.id}
-                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                style={{ 
-                  position: 'absolute',
-                  top: (visibleStart + index) * itemHeight,
-                  height: itemHeight,
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-                onClick={() => {
-                  onChange(option.id);
-                  setIsOpen(false);
-                }}
-              >
-                {option.name}
-      </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-});
+// Virtualized select removed from this component (out of scope here)
 
 // Upload Progress Component removed - not used in current implementation
 
@@ -368,15 +164,7 @@ export default function ListingWizard({
   
 
   
-  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
-  const [videoPreviewUrls, setVideoPreviewUrls] = useState<string[]>([]);
-  const [existingImages, setExistingImages] = useState<string[]>([]);
-  const [_existingVideos, setExistingVideos] = useState<string[]>([]);
-  const [imagesInitialized, setImagesInitialized] = useState(false);
-  const [videosInitialized, setVideosInitialized] = useState(false);
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [_draggedImageIndex, _setDraggedImageIndex] = useState<number | null>(null);
-  const [_dragOverImageIndex, _setDragOverImageIndex] = useState<number | null>(null);
+  // Media-related UI state is fully handled by ImageUploadSection/VideoUploadSection
   
   // Video configuration - can be moved to environment variables later
   const isVideoUploadEnabled = true;
@@ -887,25 +675,7 @@ export default function ListingWizard({
 
   // Duplicate models loading removed - now handled by extracted hook above
 
-  // Load existing images and videos when formData changes (edit mode)
-  useEffect(() => {
-    if (mode === 'edit' && formData) {
-      // Load existing images (only if not already initialized to prevent duplicates)
-      if (formData.existingImageUrls && formData.existingImageUrls.length > 0 && !imagesInitialized) {
-        setExistingImages(formData.existingImageUrls);
-        // Set preview URLs to only existing images initially
-        setImagePreviewUrls(formData.existingImageUrls);
-        setImagesInitialized(true);
-      }
-
-      // Load existing videos (only if not already initialized to prevent duplicates)
-      if (formData.existingVideoUrls && formData.existingVideoUrls.length > 0 && !videosInitialized) {
-        setExistingVideos(formData.existingVideoUrls);
-        setVideoPreviewUrls(formData.existingVideoUrls);
-        setVideosInitialized(true);
-      }
-    }
-  }, [mode, formData.existingImageUrls, formData.existingVideoUrls, imagesInitialized, videosInitialized]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Existing media previews are handled inside media components now
 
   // Optimized step accessibility check with debounced validation
   const isStepAccessible = useCallbackPerf((targetStep: number) => {
@@ -1039,245 +809,27 @@ export default function ListingWizard({
 
   // handlePreviousStep removed - not used in current implementation
 
-  // Optimized image upload handler with better memory management
-  const handleImageUpload = useCallbackPerf((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
+  // Image upload handled inside ImageUploadSection
 
-    wizardLogger.debug('handleImageUpload');
+  // Image remove/reorder handled inside ImageUploadSection
 
-    const validFiles: File[] = [];
-    const newUrls: string[] = [];
+  // DnD upload handled inside ImageUploadSection
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file.type.startsWith('image/')) {
-        validFiles.push(file);
-        newUrls.push(URL.createObjectURL(file));
-      }
-    }
+  // Image reorder handled inside ImageUploadSection
 
-    wizardLogger.debug('Valid files: ' + String(validFiles.length));
-    wizardLogger.debug('New URLs: ' + String(newUrls.length));
+  // Video upload handled inside VideoUploadSection
 
-    if (validFiles.length > 0) {
-      setFormData(prev => {
-        const newImages = [...prev.images, ...validFiles];
-        wizardLogger.debug('Updated images length ' + String(newImages.length));
-        return {
-          ...prev,
-          images: newImages
-        };
-      });
-      setImagePreviewUrls(prev => {
-        const newPreviewUrls = [...prev, ...newUrls];
-        wizardLogger.debug('Updated preview URLs length ' + String(newPreviewUrls.length));
-        return newPreviewUrls;
-      });
-    }
-  }, []);
-
-  // Remove image handler
-  const removeImage = useCallback((index: number) => {
-    // allImagesCount calculation removed - not used
-    const isExistingImage = index < existingImages.length;
-
-    if (isExistingImage) {
-      // Remove from existing images
-      setExistingImages(prev => prev.filter((_, i) => i !== index));
-    } else {
-      // Remove from new uploads
-      const newUploadIndex = index - existingImages.length;
-      // Revoke object URL to prevent memory leaks for newly uploaded files
-      const previewUrl = imagePreviewUrls[index];
-      if (previewUrl && !existingImages.includes(previewUrl)) {
-        URL.revokeObjectURL(previewUrl);
-      }
-      setFormData(prev => ({
-        ...prev,
-        images: prev.images.filter((_, i) => i !== newUploadIndex)
-      }));
-    }
-
-    setImagePreviewUrls(prev => prev.filter((_, i) => i !== index));
-  }, [existingImages, imagePreviewUrls]);
-
-  // Optimized drag and drop handlers with throttling
-  const _handleDragOver = useThrottle(useCallbackPerf((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(true);
-  }, []), 100);
-
-  const _handleDragLeave = useCallbackPerf((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
-  }, []);
-
-  const _handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
-
-    const files = Array.from(e.dataTransfer.files);
-    wizardLogger.debug('handleDrop');
-
-    const validFiles: File[] = [];
-    const newUrls: string[] = [];
-
-    files.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        validFiles.push(file);
-        newUrls.push(URL.createObjectURL(file));
-      }
-    });
-
-    wizardLogger.debug('Valid files from drop ' + String(validFiles.length));
-    wizardLogger.debug('New URLs from drop ' + String(newUrls.length));
-
-    if (validFiles.length > 0) {
-      setFormData(prev => {
-        const newImages = [...prev.images, ...validFiles];
-        wizardLogger.debug('Updated images from drop ' + String(newImages.length));
-        return {
-          ...prev,
-          images: newImages
-        };
-      });
-      setImagePreviewUrls(prev => {
-        const newPreviewUrls = [...prev, ...newUrls];
-        wizardLogger.debug('Updated preview URLs from drop ' + String(newPreviewUrls.length));
-        return newPreviewUrls;
-      });
-    }
-  }, []);
-
-  // Image drag and drop reordering handlers
-  const _handleImageDragStart = useCallback((e: React.DragEvent, index: number) => {
-    _setDraggedImageIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
-  }, []);
-
-  const _handleImageDragOver = useCallback((e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    _setDragOverImageIndex(index);
-  }, []);
-
-  const _handleImageDragLeave = useCallback(() => {
-    _setDragOverImageIndex(null);
-  }, []);
-
-  const _handleImageDrop = useCallback((e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    if (_draggedImageIndex === null || _draggedImageIndex === dropIndex) return;
-
-    // Reorder both images and preview URLs
-    const newImages = [...formData.images];
-    const newPreviewUrls = [...imagePreviewUrls];
-
-    const draggedImage = newImages[_draggedImageIndex];
-    const draggedPreviewUrl = newPreviewUrls[_draggedImageIndex];
-
-    newImages.splice(_draggedImageIndex, 1);
-    newPreviewUrls.splice(_draggedImageIndex, 1);
-
-    newImages.splice(dropIndex, 0, draggedImage);
-    newPreviewUrls.splice(dropIndex, 0, draggedPreviewUrl);
-
-    setFormData(prev => ({ ...prev, images: newImages }));
-    setImagePreviewUrls(newPreviewUrls);
-    _setDraggedImageIndex(null);
-    _setDragOverImageIndex(null);
-  }, [_draggedImageIndex, formData.images, imagePreviewUrls]);
-
-  const _handleImageDragEnd = useCallback(() => {
-    _setDraggedImageIndex(null);
-    _setDragOverImageIndex(null);
-  }, []);
-
-  // Video upload handler
-  const handleVideoUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    const validFiles: File[] = [];
-    const newUrls: string[] = [];
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file.type.startsWith('video/')) {
-        validFiles.push(file);
-        newUrls.push(URL.createObjectURL(file));
-      }
-    }
-
-    if (validFiles.length > 0) {
-      setFormData(prev => ({
-        ...prev,
-        videos: [...(prev.videos || []), ...validFiles]
-      }));
-      setVideoPreviewUrls(prev => [...prev, ...newUrls]);
-    }
-  }, []);
-
-  // Remove video handler
-  const removeVideo = useCallback((index: number) => {
-    // Revoke object URL to prevent memory leaks
-    if (videoPreviewUrls[index]) {
-      URL.revokeObjectURL(videoPreviewUrls[index]);
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      videos: (prev.videos || []).filter((_, i) => i !== index)
-    }));
-    setVideoPreviewUrls(prev => prev.filter((_, i) => i !== index));
-  }, [videoPreviewUrls]);
+  // Video removal handled inside VideoUploadSection
 
   // addVideoUrl removed - not used in current implementation
 
-  // Remove video URL handler
-  const removeVideoUrl = useCallback((index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      videoUrls: (prev.videoUrls || []).filter((_, i) => i !== index)
-    }));
-  }, []);
+  // Video URL removal handled inside VideoUploadSection
 
-  // Video URL change handler
-  const handleVideoUrlChange = useCallback((index: number, value: string) => {
-    setFormData(prev => {
-      const newVideoUrls = [...(prev.videoUrls || [])];
-      const isYouTube = /(?:youtube\.com\/watch\?v=|youtu\.be\/)/.test(value);
-      if (newVideoUrls[index]) {
-        newVideoUrls[index].url = value;
-        newVideoUrls[index].isValidated = isYouTube;
-      } else {
-        newVideoUrls[index] = { 
-          url: value, 
-          isValidated: isYouTube 
-        };
-      }
-      return { ...prev, videoUrls: newVideoUrls };
-    });
-  }, []);
+  // Video URL change handled inside VideoUploadSection
 
-  // Helper function to get video embed URL
-  const _getVideoEmbedUrl = useCallback((url: string): string | null => {
-    if (!url) return null;
-    
-    // YouTube URLs
-    const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-    if (youtubeMatch) {
-      return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
-    }
-    
-    // Vimeo removed
-    
-    return null;
-  }, []);
+  // Video embed handled inside VideoUploadSection
+
+  // Object URL lifecycle handled inside media components
 
   // Keyboard navigation handler
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -1775,33 +1327,15 @@ export default function ListingWizard({
                     onFormDataChange={(updates) => setFormData(prev => ({ ...prev, ...updates }))}
                     formErrors={formErrors}
                     isRTL={isRTL}
-                    imagePreviewUrls={imagePreviewUrls}
-                    existingImages={existingImages}
-                    isDragOver={isDragOver}
-                    setIsDragOver={setIsDragOver}
-                    setImagePreviewUrls={setImagePreviewUrls}
-                    onImageUpload={handleImageUpload}
-                    onRemoveImage={removeImage}
                   />
 
                   <VideoUploadSection
                     formData={formData}
                     onFormDataChange={(updates) => setFormData(prev => ({ ...prev, ...updates }))}
                     formErrors={formErrors}
-                    isRTL={isRTL}
-                    videoPreviewUrls={videoPreviewUrls}
-                    existingVideos={_existingVideos}
-                    isDragOver={isDragOver}
-                    setIsDragOver={setIsDragOver}
-                    setVideoPreviewUrls={setVideoPreviewUrls}
-                    onVideoUpload={handleVideoUpload}
-                    onRemoveVideo={removeVideo}
-                    onRemoveVideoUrl={removeVideoUrl}
-                    onVideoUrlChange={handleVideoUrlChange}
                     isAnyVideoFeatureEnabled={isAnyVideoFeatureEnabled}
                     isVideoUploadEnabled={isVideoUploadEnabled}
                     isVideoUrlEnabled={isVideoUrlEnabled}
-                    rtl={rtl}
                   />
                                   </div>
               </div>

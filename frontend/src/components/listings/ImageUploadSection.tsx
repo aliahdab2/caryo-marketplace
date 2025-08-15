@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
@@ -25,13 +25,6 @@ interface ImageUploadSectionProps {
   onFormDataChange: (updates: Partial<ListingFormData>) => void;
   formErrors: FormErrors;
   isRTL: boolean;
-  imagePreviewUrls: string[];
-  existingImages: string[];
-  isDragOver: boolean;
-  setIsDragOver: (isDragOver: boolean) => void;
-  setImagePreviewUrls: React.Dispatch<React.SetStateAction<string[]>>;
-  onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemoveImage: (index: number) => void;
 }
 
 export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
@@ -39,19 +32,28 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   onFormDataChange,
   formErrors,
   isRTL,
-  imagePreviewUrls,
-  existingImages,
-  isDragOver,
-  setIsDragOver,
-  setImagePreviewUrls,
-  onImageUpload,
-  onRemoveImage
 }) => {
   const { t } = useLazyTranslation(['listings', 'common']);
   
   // Drag and drop state for image reordering
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [dragOverImageIndex, setDragOverImageIndex] = useState<number | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [newPreviewUrls, setNewPreviewUrls] = useState<string[]>([]);
+
+  const existingImages = formData.existingImageUrls || [];
+  const imagePreviewUrls = useMemo(() => {
+    return [...existingImages, ...newPreviewUrls];
+  }, [existingImages, newPreviewUrls]);
+
+  useEffect(() => {
+    const files = formData.images || [];
+    const urls = files.map((f) => URL.createObjectURL(f));
+    setNewPreviewUrls(urls);
+    return () => {
+      try { urls.forEach((u) => URL.revokeObjectURL(u)); } catch {}
+    };
+  }, [formData.images]);
 
   // Drag and drop handlers for upload area
   const handleDragOver = useThrottle(useCallbackPerf((e: React.DragEvent) => {
@@ -73,22 +75,17 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
 
     const files = Array.from(e.dataTransfer.files);
     const validFiles: File[] = [];
-    const newUrls: string[] = [];
 
     files.forEach(file => {
       if (file.type.startsWith('image/')) {
         validFiles.push(file);
-        newUrls.push(URL.createObjectURL(file));
       }
     });
 
     if (validFiles.length > 0) {
-      onFormDataChange({
-        images: [...formData.images, ...validFiles]
-      });
-      setImagePreviewUrls(prev => [...prev, ...newUrls]);
+      onFormDataChange({ images: [...(formData.images || []), ...validFiles] });
     }
-  }, [formData.images, onFormDataChange, setIsDragOver, setImagePreviewUrls]);
+  }, [formData.images, onFormDataChange]);
 
   // Image drag and drop reordering handlers
   const handleImageDragStart = useCallback((e: React.DragEvent, index: number) => {
@@ -110,24 +107,29 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
     e.preventDefault();
     if (draggedImageIndex === null || draggedImageIndex === dropIndex) return;
 
-    // Reorder both images and preview URLs
-    const newImages = [...formData.images];
-    const newPreviewUrls = [...imagePreviewUrls];
+    const existingCount = existingImages.length;
+    if (draggedImageIndex < existingCount || dropIndex < existingCount) {
+      setDraggedImageIndex(null);
+      setDragOverImageIndex(null);
+      return;
+    }
+    const from = draggedImageIndex - existingCount;
+    const to = dropIndex - existingCount;
 
-    const draggedImage = newImages[draggedImageIndex];
-    const draggedPreviewUrl = newPreviewUrls[draggedImageIndex];
+    const files = [...(formData.images || [])];
+    const previews = [...newPreviewUrls];
+    const draggedImage = files[from];
+    const draggedPreviewUrl = previews[from];
+    files.splice(from, 1);
+    previews.splice(from, 1);
+    files.splice(to, 0, draggedImage);
+    previews.splice(to, 0, draggedPreviewUrl);
 
-    newImages.splice(draggedImageIndex, 1);
-    newPreviewUrls.splice(draggedImageIndex, 1);
-
-    newImages.splice(dropIndex, 0, draggedImage);
-    newPreviewUrls.splice(dropIndex, 0, draggedPreviewUrl);
-
-    onFormDataChange({ images: newImages });
-    setImagePreviewUrls(newPreviewUrls);
+    onFormDataChange({ images: files });
+    setNewPreviewUrls(previews);
     setDraggedImageIndex(null);
     setDragOverImageIndex(null);
-  }, [draggedImageIndex, formData.images, imagePreviewUrls, onFormDataChange, setImagePreviewUrls]);
+  }, [draggedImageIndex, formData.images, newPreviewUrls, onFormDataChange, existingImages.length]);
 
   const handleImageDragEnd = useCallback(() => {
     setDraggedImageIndex(null);
@@ -149,6 +151,7 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
       {/* Enhanced Drag & Drop Upload Area */}
       <div className="space-y-6">
         <div 
+          data-testid="image-dropzone"
           className={`w-full transition-all duration-300 ${
             isDragOver 
               ? 'scale-[1.02] shadow-xl ring-4 ring-blue-200 dark:ring-blue-700' 
@@ -240,11 +243,19 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
             
             <input
               id="image-upload"
+              data-testid="image-input"
               type="file"
               className="sr-only"
               multiple
               accept="image/*"
-              onChange={onImageUpload}
+              onChange={(e) => {
+                const files = e.target.files;
+                if (!files) return;
+                const selected = Array.from(files).filter(f => f.type.startsWith('image/'));
+                if (selected.length > 0) {
+                  onFormDataChange({ images: [...(formData.images || []), ...selected] });
+                }
+              }}
               aria-describedby="image-upload-hint"
               aria-label="Select car images to upload (PNG, JPG, JPEG, max 5MB each, up to 10 images)"
             />
@@ -280,6 +291,7 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {imagePreviewUrls.map((url: string, index: number) => (
               <div
+                data-testid={`image-item-${index}`}
                 key={`${url}-${index}`}
                 className={`relative group cursor-move transition-all duration-300 ${
                   draggedImageIndex === index
@@ -327,7 +339,19 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onRemoveImage(index);
+                    if (index < existingImages.length) {
+                      const updatedExisting = existingImages.filter((_, i) => i !== index);
+                      onFormDataChange({ existingImageUrls: updatedExisting });
+                    } else {
+                      const newIdx = index - existingImages.length;
+                      const updated = (formData.images || []).filter((_, i) => i !== newIdx);
+                      const toRevoke = newPreviewUrls[newIdx];
+                      if (toRevoke) {
+                        try { URL.revokeObjectURL(toRevoke); } catch {}
+                      }
+                      onFormDataChange({ images: updated });
+                      setNewPreviewUrls(prev => prev.filter((_, i) => i !== newIdx));
+                    }
                   }}
                   className={`absolute -top-2 ${isRTL ? '-left-2' : '-right-2'} bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110`}
                   aria-label={`Remove image ${index + 1}`}
@@ -353,11 +377,13 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                 </div>
 
                 {/* File Info on Hover */}
-                <div className={`absolute bottom-2 ${isRTL ? 'left-2' : 'right-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
-                  <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-                    {(formData.images[index]?.size / 1024 / 1024).toFixed(1)}MB
+                {index >= existingImages.length && (
+                  <div className={`absolute bottom-2 ${isRTL ? 'left-2' : 'right-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
+                    <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                      {(((formData.images || [])[index - existingImages.length]?.size || 0) / 1024 / 1024).toFixed(1)}MB
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             ))}
           </div>

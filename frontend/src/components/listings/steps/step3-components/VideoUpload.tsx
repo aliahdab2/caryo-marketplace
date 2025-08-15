@@ -27,7 +27,7 @@ const VideoUpload = memo(function VideoUpload({
 
   return (
     <div className="animate-in slide-in-from-top-4 duration-500 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 rounded-2xl p-6 border border-blue-200 dark:border-blue-800 shadow-lg">
-      <div className="space-y-6">
+      <div className="space-y-6" data-testid="video-upload-area">
         {/* Upload Header */}
         <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
           <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center">
@@ -45,9 +45,10 @@ const VideoUpload = memo(function VideoUpload({
           </div>
         </div>
 
-        <div className="flex items-center justify-center w-full">
+        <div className="flex items-center justify-center w-full" data-testid="video-dropzone">
           <label 
-            htmlFor="video-upload" 
+            htmlFor="video-upload"
+            data-testid="video-dropzone-label"
             className="group flex flex-col items-center justify-center w-full h-56 border-2 border-blue-300 border-dashed rounded-2xl cursor-pointer bg-white/80 dark:bg-blue-900/20 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:shadow-lg focus-within:ring-4 focus-within:ring-blue-200 dark:focus-within:ring-blue-800"
             role="button"
             tabIndex={0}
@@ -89,6 +90,7 @@ const VideoUpload = memo(function VideoUpload({
             </div>
             <input
               id="video-upload"
+              data-testid="video-input"
               type="file"
               className="sr-only"
               accept="video/*"

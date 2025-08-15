@@ -56,3 +56,50 @@ export function processImageUrls(urls: string[]): string[] {
 export function getDefaultImageUrl(): string {
   return '/images/vehicles/car-default.svg';
 }
+
+/** Media helpers (validation and providers) */
+import type { VideoUrlInput } from '@/types/listings';
+
+export function isYouTubeUrl(url: string): boolean {
+  if (!url) return false;
+  return /(?:youtube\.com\/watch\?v=|youtu\.be\/)/.test(url);
+}
+
+export function getYouTubeEmbedUrl(url: string): string | null {
+  if (!url) return null;
+  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+  return yt ? `https://www.youtube.com/embed/${yt[1]}` : null;
+}
+
+export function validateImageFile(file: File): { valid: boolean; errorKey?: string } {
+  if (!file || !file.type?.startsWith('image/')) {
+    return { valid: false, errorKey: 'newListingValidationNotImage' };
+  }
+  const maxBytes = 5 * 1024 * 1024; // 5MB
+  if (file.size > maxBytes) {
+    return { valid: false, errorKey: 'newListingValidationFileTooLarge' };
+  }
+  return { valid: true };
+}
+
+export function validateVideoFile(file: File): { valid: boolean; errorKey?: string } {
+  if (!file || !file.type?.startsWith('video/')) {
+    return { valid: false, errorKey: 'invalidVideoFormat' };
+  }
+  const maxBytes = 100 * 1024 * 1024; // 100MB
+  if (file.size > maxBytes) {
+    return { valid: false, errorKey: 'videoTooLarge' };
+  }
+  return { valid: true };
+}
+
+export function normalizeVideoUrls(urls: Array<VideoUrlInput | string>): VideoUrlInput[] {
+  if (!Array.isArray(urls)) return [];
+  const first = urls[0];
+  const url = typeof first === 'string' ? first : first?.url || '';
+  const normalized: VideoUrlInput = {
+    url,
+    isValidated: isYouTubeUrl(url)
+  };
+  return url ? [normalized] : [];
+}

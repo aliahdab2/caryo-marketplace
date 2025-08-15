@@ -52,7 +52,7 @@ const VideoSection = memo(function VideoSection({
 
   return (
     <div className="space-y-6 pt-8 border-t border-gray-200 dark:border-gray-700">
-      <div className="text-center">
+      <div className="text-center" data-testid="video-section">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
           {t('listings:videoFieldsTitle', 'Videos (Optional)')}
         </h3>

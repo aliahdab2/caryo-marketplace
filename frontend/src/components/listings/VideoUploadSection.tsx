@@ -1,64 +1,72 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
-import { ListingFormData } from '@/types/listings';
+import React, { useState, useCallback, useEffect } from 'react';
+import { ListingFormData, VideoUrlInput } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
+import { isYouTubeUrl, getYouTubeEmbedUrl, normalizeVideoUrls } from '@/utils/mediaUtils';
 import VideoSection from './steps/step3-components/VideoSection';
 
 interface VideoUploadSectionProps {
   formData: ListingFormData;
   onFormDataChange: (updates: Partial<ListingFormData>) => void;
   formErrors: FormErrors;
-  isRTL: boolean;
-  videoPreviewUrls: string[];
-  existingVideos: string[];
-  isDragOver: boolean;
-  setIsDragOver: (isDragOver: boolean) => void;
-  setVideoPreviewUrls: React.Dispatch<React.SetStateAction<string[]>>;
-  onVideoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemoveVideo: (index: number) => void;
-  onRemoveVideoUrl: (index: number) => void;
-  onVideoUrlChange: (index: number, value: string) => void;
   isAnyVideoFeatureEnabled: boolean;
   isVideoUploadEnabled: boolean;
   isVideoUrlEnabled: boolean;
-  rtl: any;
 }
 
 export const VideoUploadSection: React.FC<VideoUploadSectionProps> = ({
   formData,
-  onFormDataChange: _onFormDataChange,
+  onFormDataChange,
   formErrors,
-  isRTL: _isRTL,
-  videoPreviewUrls,
-  existingVideos: _existingVideos,
-  isDragOver: _isDragOver,
-  setIsDragOver: _setIsDragOver,
-  setVideoPreviewUrls: _setVideoPreviewUrls,
-  onVideoUpload,
-  onRemoveVideo,
-  onRemoveVideoUrl,
-  onVideoUrlChange,
   isAnyVideoFeatureEnabled,
   isVideoUploadEnabled,
-  isVideoUrlEnabled,
-  rtl: _rtl
+  isVideoUrlEnabled
 }) => {
   const [showVideoUpload, setShowVideoUpload] = useState(false);
   const [showVideoUrl, setShowVideoUrl] = useState(false);
+  const [videoPreviewUrls, setVideoPreviewUrls] = useState<string[]>([]);
 
-  const handleVideoUrlChangeSingle = useCallback((url: string) => {
-    onVideoUrlChange(0, url);
-  }, [onVideoUrlChange]);
+  // Build previews from current files
+  useEffect(() => {
+    const files = formData.videos || [];
+    const urls = files.map((f) => URL.createObjectURL(f));
+    setVideoPreviewUrls(urls);
+    return () => {
+      try { urls.forEach((u) => URL.revokeObjectURL(u)); } catch {}
+    };
+  }, [formData.videos]);
 
-  const getVideoEmbedUrl = useCallback((url: string): string | null => {
-    if (!url) return null;
+  const handleVideoUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const selected = Array.from(files).filter((f) => f.type.startsWith('video/'));
+    if (selected.length > 0) {
+      onFormDataChange({ videos: [...(formData.videos || []), ...selected] });
+    }
+  }, [formData.videos, onFormDataChange]);
 
-    const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-    if (youtubeMatch) return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+  const removeVideo = useCallback((index: number) => {
+    const updated = (formData.videos || []).filter((_, i) => i !== index);
+    const toRevoke = videoPreviewUrls[index];
+    if (toRevoke) {
+      try { URL.revokeObjectURL(toRevoke); } catch {}
+    }
+    onFormDataChange({ videos: updated });
+    setVideoPreviewUrls(prev => prev.filter((_, i) => i !== index));
+  }, [formData.videos, onFormDataChange, videoPreviewUrls]);
 
-    return null;
-  }, []);
+  const handleVideoUrlChange = useCallback((url: string) => {
+    const isValid = isYouTubeUrl(url);
+    const next: VideoUrlInput[] = url ? [{ url, isValidated: isValid }] : [];
+    onFormDataChange({ videoUrls: normalizeVideoUrls(next) });
+  }, [onFormDataChange]);
+
+  const removeVideoUrl = useCallback((_index: number) => {
+    onFormDataChange({ videoUrls: [] });
+  }, [onFormDataChange]);
+
+  const getVideoEmbedUrl = useCallback((url: string): string | null => getYouTubeEmbedUrl(url), []);
 
   if (!isAnyVideoFeatureEnabled) return null;
 
@@ -74,10 +82,10 @@ export const VideoUploadSection: React.FC<VideoUploadSectionProps> = ({
       isAnyVideoFeatureEnabled={isAnyVideoFeatureEnabled}
       setShowVideoUpload={setShowVideoUpload}
       setShowVideoUrl={setShowVideoUrl}
-      handleVideoUpload={onVideoUpload}
-      removeVideo={onRemoveVideo}
-      handleVideoUrlChange={handleVideoUrlChangeSingle}
-      removeVideoUrl={onRemoveVideoUrl}
+      handleVideoUpload={handleVideoUpload}
+      removeVideo={removeVideo}
+      handleVideoUrlChange={handleVideoUrlChange}
+      removeVideoUrl={removeVideoUrl}
       getVideoEmbedUrl={getVideoEmbedUrl}
     />
   );
