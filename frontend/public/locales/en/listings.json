@@ -116,6 +116,12 @@
   "years": "years",
   "expired": "Expired",
 
+  "listingStatusPending": "Pending",
+  "listingStatusActive": "Active",
+  "listingStatusExpired": "Expired",
+  "total": "Total",
+  "pending": "Pending",
+
   "filters": {
     "sellerType": "Seller Type",
     "allSellers": "All",

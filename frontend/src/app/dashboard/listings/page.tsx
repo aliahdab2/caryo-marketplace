@@ -13,6 +13,8 @@ import {
   MdClose,
   MdDirectionsCar
 } from "react-icons/md";
+import { SelectWithArrow } from '@/components/ui/SelectWithArrow';
+import { useDirection } from '@/utils/direction';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
 
@@ -31,6 +33,7 @@ export default function ListingsPage() {
   const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
 
   const { t } = useTranslation(['dashboard', 'listings', 'common']);
+  const { isRTL } = useDirection();
   
   // Delete confirmation hook
   const deleteConfirmation = useDeleteConfirmation({
@@ -216,38 +219,47 @@ export default function ListingsPage() {
           </div>
 
           {/* Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 min-w-[120px]"
-          >
-            <option value="all">{t('listings:allStatuses')}</option>
-            <option value="active">{t('listings:active')}</option>
-            <option value="pending">{t('listings:pending')}</option>
-            <option value="expired">{t('listings:expired')}</option>
-          </select>
+          <div className="min-w-[120px]">
+            <SelectWithArrow
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="text-sm border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+              isRTL={isRTL}
+            >
+              <option value="all">{t('listings:allStatuses')}</option>
+              <option value="active">{t('listings:active')}</option>
+              <option value="pending">{t('listings:pending')}</option>
+              <option value="expired">{t('listings:expired')}</option>
+            </SelectWithArrow>
+          </div>
 
           {/* Sort By */}
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 min-w-[100px]"
-          >
-            <option value="newest">{t('listings:newest')}</option>
-            <option value="title">{t('listings:title')}</option>
-            <option value="price">{t('listings:price')}</option>
-            <option value="date">{t('listings:date')}</option>
-          </select>
+          <div className="min-w-[100px]">
+            <SelectWithArrow
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="text-sm border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+              isRTL={isRTL}
+            >
+              <option value="newest">{t('listings:newest')}</option>
+              <option value="title">{t('listings:title')}</option>
+              <option value="price">{t('listings:price')}</option>
+              <option value="date">{t('listings:date')}</option>
+            </SelectWithArrow>
+          </div>
 
           {/* Sort Order */}
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 min-w-[100px]"
-          >
-            <option value="asc">{t('listings:ascending')}</option>
-            <option value="desc">{t('listings:descending')}</option>
-          </select>
+          <div className="min-w-[100px]">
+            <SelectWithArrow
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+              className="text-sm border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+              isRTL={isRTL}
+            >
+              <option value="asc">{t('listings:ascending')}</option>
+              <option value="desc">{t('listings:descending')}</option>
+            </SelectWithArrow>
+          </div>
         </div>
       </div>
 
