@@ -25,28 +25,26 @@ export default function EditListingPageClient({ id }: { id: string }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            {t('listings:editListingTitle', 'Edit Listing')}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            {t('listings:editListingSubtitle', 'Update your vehicle listing details')}
-          </p>
-        </div>
-
-        {/* Unified Listing Wizard with Auto-Loading */}
-        <ListingWizard 
-          mode="edit"
-          listingId={id}
-          autoLoad={true}
-          showHeader={false}
-          onSuccess={handleSuccess}
-          onCancel={handleCancel}
-        />
+    <div className="px-0">
+      {/* Page Header */}
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+          {t('listings:editListingTitle', 'Edit Listing')}
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 text-sm">
+          {t('listings:editListingSubtitle', 'Update your vehicle listing details')}
+        </p>
       </div>
+
+      {/* Unified Listing Wizard with Auto-Loading */}
+      <ListingWizard 
+        mode="edit"
+        listingId={id}
+        autoLoad={true}
+        showHeader={false}
+        onSuccess={handleSuccess}
+        onCancel={handleCancel}
+      />
     </div>
   );
 }

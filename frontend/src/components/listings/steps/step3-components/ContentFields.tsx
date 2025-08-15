@@ -65,8 +65,8 @@ const ContentFields = memo(function ContentFields({
           name="description"
           value={formData.description}
           onChange={handleChange}
-          rows={6}
-          className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 resize-vertical border-gray-200 dark:border-gray-600 focus:border-blue-500"
+          rows={4}
+          className="w-full px-3 py-2 rounded-lg border transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 resize-vertical border-gray-200 dark:border-gray-600 focus:border-blue-500"
           placeholder={t('listings:descriptionPlaceholder', 'Describe your car in detail...')}
           aria-invalid={!!formErrors.description}
         />

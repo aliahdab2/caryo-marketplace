@@ -23,6 +23,7 @@ import { createRTLHelpers } from '@/utils/rtlHelpers';
 // Media utils are now handled within media components
 import { ImageUploadSection } from './ImageUploadSection';
 import { VideoUploadSection } from './VideoUploadSection';
+import { SelectWithArrow } from '../ui/SelectWithArrow';
 
 // Performance optimized debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -983,13 +984,14 @@ export default function ListingWizard({
                   >
                     {t('listings:newListingMake', 'Make')} <span className="text-red-500">*</span>
                   </label>
-                  <select
+                  <SelectWithArrow
                     id="make"
                     name="make"
                     value={formData.make}
                     onChange={handleMakeChange}
                     disabled={isLoadingMakes}
-
+                    isLoading={isLoadingMakes}
+                    isRTL={isRTL}
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                       formErrors.make ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                     } ${isLoadingMakes ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1007,7 +1009,7 @@ export default function ListingWizard({
                         {i18n.language === 'ar' ? make.displayNameAr : make.displayNameEn}
                       </option>
                     ))}
-                  </select>
+                  </SelectWithArrow>
                   {formErrors.make && <ErrorMessage error={formErrors.make} />}
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="make-hint">
                     {t('listings:newListingMakeHint', 'Select the manufacturer of your car')}
@@ -1022,13 +1024,14 @@ export default function ListingWizard({
                   >
                     {t('listings:newListingModel', 'Model')} <span className="text-red-500">*</span>
                   </label>
-                  <select
+                  <SelectWithArrow
                     id="model"
                     name="model"
                     value={formData.model}
                     onChange={createDropdownHandler('model', 'modelId', carModels)}
                     disabled={isLoadingModels || !formData.make}
-
+                    isLoading={isLoadingModels}
+                    isRTL={isRTL}
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                       formErrors.model ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                     } ${(isLoadingModels || !formData.make) ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1048,7 +1051,7 @@ export default function ListingWizard({
                         {i18n.language === 'ar' ? model.displayNameAr : model.displayNameEn}
                       </option>
                     ))}
-                  </select>
+                  </SelectWithArrow>
                   {formErrors.model && <ErrorMessage error={formErrors.model} />}
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="model-hint">
                     {t('listings:newListingModelHint', 'Select the specific model of your car')}
@@ -1063,13 +1066,13 @@ export default function ListingWizard({
                   >
                     {t('listings:newListingYear', 'Year')} <span className="text-red-500">*</span>
                   </label>
-                  <select
+                  <SelectWithArrow
                     id="year"
                     name="year"
                     value={formData.year}
                     onChange={handleFieldChange('year')}
                     required
-
+                    isRTL={isRTL}
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                       formErrors.year ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                     }`}
@@ -1090,7 +1093,7 @@ export default function ListingWizard({
                       }
                       return years;
                     })()}
-                  </select>
+                  </SelectWithArrow>
                   {formErrors.year && <ErrorMessage error={formErrors.year} />}
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
                     {t('listings:newListingYearHint', 'Enter manufacturing year (1990-{{currentYear}})', { currentYear: new Date().getFullYear() })}
@@ -1170,12 +1173,14 @@ export default function ListingWizard({
                     >
                       {t('listings:newListingTransmission', 'Transmission')}
                     </label>
-                    <select
+                    <SelectWithArrow
                       id="transmission"
                       name="transmission"
                       value={formData.transmission}
                       onChange={createDropdownHandler('transmission', 'transmissionId', transmissions)}
                       disabled={isLoadingReferenceData}
+                      isLoading={isLoadingReferenceData}
+                      isRTL={isRTL}
                       className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                         formErrors.transmission ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                       } ${isLoadingReferenceData ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1193,7 +1198,7 @@ export default function ListingWizard({
                           {i18n.language === 'ar' ? transmission.displayNameAr : transmission.displayNameEn}
                         </option>
                       ))}
-                    </select>
+                    </SelectWithArrow>
                     {formErrors.transmission && <ErrorMessage error={formErrors.transmission} />}
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="transmission-hint">
                       {t('listings:newListingTransmissionHint', 'Type of transmission')}
@@ -1234,12 +1239,14 @@ export default function ListingWizard({
                     >
                       {t('listings:newListingFuelType', 'Fuel Type')}
                     </label>
-                    <select
+                    <SelectWithArrow
                       id="fuelType"
                       name="fuelType"
                       value={formData.fuelType}
                       onChange={createDropdownHandler('fuelType', 'fuelTypeId', fuelTypes)}
                       disabled={isLoadingReferenceData}
+                      isLoading={isLoadingReferenceData}
+                      isRTL={isRTL}
                       className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                         formErrors.fuelType ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                       } ${isLoadingReferenceData ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1257,7 +1264,7 @@ export default function ListingWizard({
                           {i18n.language === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn}
                         </option>
                       ))}
-                    </select>
+                    </SelectWithArrow>
                     {formErrors.fuelType && <ErrorMessage error={formErrors.fuelType} />}
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="fuelType-hint">
                       {t('listings:newListingFuelTypeHint', 'Type of fuel or power source')}
