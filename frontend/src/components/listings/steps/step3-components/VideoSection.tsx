@@ -141,7 +141,9 @@ const VideoSection = memo(function VideoSection({
                     </div>
                   </div>
                   <div className={`transform transition-all duration-300 ${
-                    showVideoUpload ? 'rotate-90 scale-110' : 'group-hover:scale-105'
+                    showVideoUpload
+                      ? `${isRTL ? '-rotate-90' : 'rotate-90'} scale-110`
+                      : `${isRTL ? 'rotate-180' : ''} group-hover:scale-105`
                   }`}>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
@@ -211,7 +213,9 @@ const VideoSection = memo(function VideoSection({
                     </div>
                   </div>
                   <div className={`transform transition-all duration-300 ${
-                    showVideoUrl ? 'rotate-90 scale-110' : 'group-hover:scale-105'
+                    showVideoUrl
+                      ? `${isRTL ? '-rotate-90' : 'rotate-90'} scale-110`
+                      : `${isRTL ? 'rotate-180' : ''} group-hover:scale-105`
                   }`}>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
