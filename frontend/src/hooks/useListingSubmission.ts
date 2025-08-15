@@ -54,7 +54,7 @@ export function useListingSubmission({
     // Validate ALL steps for final submission
     let allErrors: FormErrors = {};
     for (let step = 1; step <= totalSteps; step++) {
-      const stepErrors = validateStep(step, formData, t);
+      const stepErrors = validateStep(step, formData, t as (key: string, fallback?: string, vars?: Record<string, unknown>) => string);
       allErrors = { ...allErrors, ...stepErrors };
     }
     if (Object.keys(allErrors).length > 0) {
@@ -110,9 +110,9 @@ export function useListingSubmission({
         setShowSuccessAlert(true);
         onSuccess?.(result.id);
       }
-    } catch (error) {
+    } catch (err) {
       const translated = isTranslator(t) ? t('common:unexpectedError') : 'Unexpected error';
-      setError(error instanceof Error ? error.message : translated);
+      setError(err instanceof Error ? err.message : translated);
     } finally {
       setIsSubmitting(false);
     }

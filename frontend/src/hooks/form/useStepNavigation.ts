@@ -47,7 +47,7 @@ export function useStepNavigation(params: UseStepNavigationParams): UseStepNavig
     }
     for (let step = 1; step < targetStep; step++) {
       logger?.debug(`Validating step ${step} for accessibility`);
-      const stepErrors = validateStep(step, debouncedFormData, t, { mode: 'accessibility' });
+      const stepErrors = validateStep(step, debouncedFormData, t as (key: string, fallback?: string, vars?: Record<string, unknown>) => string, { mode: 'accessibility' });
       logger?.debug(`Step ${step} validation errors ${JSON.stringify(stepErrors)}`);
       if (Object.keys(stepErrors).length > 0) {
         logger?.info(`Step ${targetStep} is NOT accessible due to step ${step} errors`);
@@ -104,7 +104,7 @@ export function useStepNavigation(params: UseStepNavigationParams): UseStepNavig
       currency: formData.currency
     });
     if (step === currentStep + 1 && currentStep === 1) {
-      const navErrors = validateStep(1, formData, t, { mode: 'navigation' });
+      const navErrors = validateStep(1, formData, t as (key: string, fallback?: string, vars?: Record<string, unknown>) => string, { mode: 'navigation' });
       if (Object.keys(navErrors).length === 0) {
         logger?.debug('Fast-path: Step 1 blocking fields valid, moving to Step 2');
         setFormErrors({});
@@ -116,7 +116,7 @@ export function useStepNavigation(params: UseStepNavigationParams): UseStepNavig
     if (!isStepAccessible(step)) {
       logger?.debug(`Step ${step} not accessible`);
       if (step > currentStep) {
-        const stepErrors = validateStep(currentStep, formData, t, { mode: 'navigation' });
+        const stepErrors = validateStep(currentStep, formData, t as (key: string, fallback?: string, vars?: Record<string, unknown>) => string, { mode: 'navigation' });
         logger?.debug(`Step ${currentStep} validation errors ${JSON.stringify(stepErrors)}`);
         handleValidationErrors(stepErrors);
       }
@@ -124,7 +124,7 @@ export function useStepNavigation(params: UseStepNavigationParams): UseStepNavig
     }
     if (step > currentStep) {
       logger?.debug(`Validating step ${currentStep} before moving to step ${step}`);
-      const stepErrors = validateStep(currentStep, formData, t);
+      const stepErrors = validateStep(currentStep, formData, t as (key: string, fallback?: string, vars?: Record<string, unknown>) => string);
       logger?.debug(`Step ${currentStep} validation errors ${JSON.stringify(stepErrors)}`);
       if (currentStep === 3) {
         logger?.debug(`[Step 3 Debug] Title: "${formData.title}", Description: "${formData.description}"`);

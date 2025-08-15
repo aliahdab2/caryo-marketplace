@@ -1,27 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef, memo } from "react";
-// import Image from "next/image";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useRef } from "react";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useListingData } from '@/hooks/useListingData';
 import { ListingFormData } from "@/types/listings";
 
 import { FormErrors, StepConfig } from "@/types/forms";
-// SUPPORTED_CURRENCIES removed - not used in this component
 import { validateStep } from '@/utils/formUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 import { createLogger } from '@/utils/logger';
-// NumericInput now used inside Step2VehicleDetails
-// AutoSaveIndicator used via StepNavigation
 import { useAutoSave } from '@/hooks/useAutoSave';
-import { useMemo as useMemoPerf } from 'react';
+import { useMemo } from 'react';
 import { useDirection } from '@/utils/direction';
 import { createRTLHelpers } from '@/utils/rtlHelpers';
-// Media utils are now handled within media components
-// Media sections are used inside Step3ContentMedia
-// import { SelectWithArrow } from '../ui/SelectWithArrow';
-// import StepHeader from './shared/StepHeader';
 import StepNavigation from './shared/StepNavigation';
 import StepActions from './shared/StepActions';
 import Step1VehicleIdentity from './steps/Step1VehicleIdentity';
@@ -33,7 +24,10 @@ import { useListingDataLoader } from '@/hooks/form/useListingDataLoader';
 import { useStepNavigation } from '@/hooks/form/useStepNavigation';
 import { useKeyboardNavigation } from '@/hooks/form/useKeyboardNavigation';
 
-// Performance optimized debounce hook
+import { ListingWizardProps } from '@/types/wizard';
+import { useListingSubmission } from '@/hooks/useListingSubmission';
+
+// Internal debounce hook
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
@@ -50,46 +44,14 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-// Optimized throttle hook for frequent operations
-// useThrottle utility not used in this component anymore
-import { ListingWizardProps } from '@/types/wizard';
-// import ErrorMessage from './shared/ErrorMessage';
-import { useListingSubmission } from '@/hooks/useListingSubmission';
-
 // Constants
 const TOTAL_STEPS = 4;
-const FOCUSABLE_SELECTOR = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])';
+const DEFAULT_CURRENCY = "USD";
 const wizardLogger = createLogger({
   enabled: process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_WIZARD === 'true',
   level: 'debug',
   prefix: 'LISTING_WIZARD'
 });
-const DEFAULT_CURRENCY = "USD";
-
-// ErrorMessage moved to shared component
-
-// Image preview moved into ImageUploadSection
-
-// Loading fallback component for lazy-loaded steps
-const _StepLoadingFallback = memo(function StepLoadingFallback() {
-  return (
-    <div className="space-y-8 animate-pulse">
-      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-      <div className="space-y-4">
-        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-      </div>
-    </div>
-  );
-});
-
-// Note: Lazy step components removed for now to fix build issues
-// Will be implemented in future code splitting phase when step components are created
-
-// Virtualized select removed from this component (out of scope here)
-
-// Upload Progress Component removed - not used in current implementation
 
 export default function ListingWizard({ 
   mode, 
@@ -98,26 +60,22 @@ export default function ListingWizard({
   autoLoad = true,
   autoSave = true,
   showHeader = true,
-  onSuccess, 
-  onCancel: _onCancel 
+  onSuccess
 }: ListingWizardProps & { showHeader?: boolean }) {
-  const _router = useRouter();
   const { t, i18n, ready } = useLazyTranslation(['listings', 'common']);
   const { isRTL } = useDirection();
   const rtl = createRTLHelpers(isRTL);
   
   // Refs for keyboard navigation
   const formRef = useRef<HTMLFormElement>(null);
-  // Removed unused button refs
 
   // State management
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [_isLoadingData, setIsLoadingData] = useState(false);
   const [_loadError, setLoadError] = useState<string | null>(null);
-  // Removed unused local video UI states (handled in child components)
   
-  // Use the extracted data loading hook
+  // Data loading hook
   const {
     governorates,
     locations,
@@ -132,14 +90,9 @@ export default function ListingWizard({
     isLoadingReferenceData,
     loadCarModels,
     loadLocations,
-    // Removed unused clearModels/clearLocations
   } = useListingData(t);
   
-
-  
-  // Media-related UI state is fully handled by ImageUploadSection/VideoUploadSection
-  
-  // Video configuration - can be moved to environment variables later
+  // Video configuration
   const isVideoUploadEnabled = true;
   const isVideoUrlEnabled = true;
   const isAnyVideoFeatureEnabled = isVideoUploadEnabled || isVideoUrlEnabled;
@@ -194,15 +147,13 @@ export default function ListingWizard({
     onSave: (draftId) => {
       wizardLogger.info('Auto-save completed ' + String(draftId));
     },
-    onError: (_error) => {
-      wizardLogger.error('Auto-save error');
+    onError: (autoSaveError) => {
+      wizardLogger.error('Auto-save error', autoSaveError);
     }
   });
 
-  // Car features removed - not used in current implementation
-
-  // Optimized step configuration with stable references
-  const stepConfig = useMemoPerf((): StepConfig[] => [
+  // Step configuration
+  const stepConfig = useMemo((): StepConfig[] => [
     { step: 1, title: t('listings:vehicleIdentityTitle', 'Vehicle Identity'), icon: '🚗', isComplete: currentStep > 1 },
     { step: 2, title: t('listings:vehicleDetailsTitle', 'Vehicle Details'), icon: '⚙️', isComplete: currentStep > 2 },
     { step: 3, title: t('listings:contentMediaTitle', 'Content & Media'), icon: '📝', isComplete: currentStep > 3 },
@@ -240,7 +191,7 @@ export default function ListingWizard({
     onSuccess,
   });
 
-  // Auto-load data and edit-mode loading extracted
+  // Auto-load data and edit-mode loading
   useListingDataLoader({
     mode,
     listingId,
@@ -250,28 +201,23 @@ export default function ListingWizard({
     setIsLoadingData,
     setLoadError,
     onAfterLoad: (data: Partial<ListingFormData>) => {
-      // After setting form data in edit mode, trigger dependent loads
-      if (data && data.make && data.makeId && loadCarModels) {
+      if (data?.make && data.makeId) {
         loadCarModels(String(data.makeId)).catch(() => {});
       }
-      if (data && data.governorateSlug && loadLocations) {
+      if (data?.governorateSlug) {
         loadLocations(String(data.governorateSlug)).catch(() => {});
       }
     }
   });
 
-  // V2: Complex conversion logic removed! 
-  // The enhanced backend now provides complete objects with IDs and slugs directly
-  // No more complex useEffect for display name to slug/ID conversion needed ✅
-
   // Update form data when initialData changes (for manual data passing)
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0 && !autoLoad) {
-      wizardLogger.debug('Updating form data with manual initialData');
+
       setFormData(prevFormData => ({
         ...prevFormData,
         ...initialData,
-        // Ensure arrays are properly handled
+
         images: initialData.images || prevFormData.images || [],
         videos: initialData.videos || prevFormData.videos || [],
         videoUrls: initialData.videoUrls || prevFormData.videoUrls || [],
@@ -282,75 +228,12 @@ export default function ListingWizard({
     }
   }, [initialData, autoLoad]);
 
-  // Data loading is now handled by useListingData hook
-
-
-
-  // handleCancel removed - not used in current implementation
-
-  // Enhanced handler for location changes - slug-based approach
-  // Removed unused _handleLocationChange
-  const _handleLocationChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedSlug = e.target.value;
-    wizardLogger.debug('Location dropdown changed to slug ' + selectedSlug);
-    
-    // Find the location object to get all its properties
-    const selectedLocation = locations.find(loc => loc.slug === selectedSlug);
-    
-    if (selectedLocation) {
-      const locationDisplayName = i18n.language === 'ar' 
-        ? selectedLocation.displayNameAr 
-        : selectedLocation.displayNameEn;
-        
-      wizardLogger.debug('Updating location via slug');
-      
-      setFormData(prev => ({
-        ...prev,
-        locationId: selectedLocation.id,       // Primary ID for API calls
-        locationSlug: selectedLocation.slug,   // For URL generation
-        location: locationDisplayName          // For display
-      }));
-      
-      // Clear any existing errors
-      if (formErrors.locationSlug) {
-        setFormErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors.locationSlug;
-          return newErrors;
-        });
-      }
-    } else if (selectedSlug === '') {
-      wizardLogger.debug('Location cleared');
-      // Handle empty selection
-      setFormData(prev => ({
-        ...prev,
-        locationId: undefined,
-        locationSlug: '',
-        location: ''
-      }));
-    } else {
-      wizardLogger.warn('Location not found for slug');
-    }
-  }, [locations, i18n.language, formErrors.locationSlug]);
-
-
-
-  // Optimized progress calculation with memoization
-  const progressPercentage = useMemoPerf(() => {
+  // Progress calculation
+  const progressPercentage = useMemo(() => {
     return (currentStep / TOTAL_STEPS) * 100;
   }, [currentStep]);
 
-
-
-
-
-  // Edit-mode data load is handled in useListingDataLoader
-
-  // Duplicate models loading removed - now handled by extracted hook above
-
-  // Existing media previews are handled inside media components now
-
-  // Optimized step accessibility check with debounced validation
+  // Step navigation and validation
   const { handleStepChange } = useStepNavigation({
     currentStep,
     totalSteps: TOTAL_STEPS,
@@ -365,32 +248,8 @@ export default function ListingWizard({
     logger: wizardLogger,
   });
 
-  // handlePreviousStep removed - not used in current implementation
-
-  // Image upload handled inside ImageUploadSection
-
-  // Image remove/reorder handled inside ImageUploadSection
-
-  // DnD upload handled inside ImageUploadSection
-
-  // Image reorder handled inside ImageUploadSection
-
-  // Video upload handled inside VideoUploadSection
-
-  // Video removal handled inside VideoUploadSection
-
-  // addVideoUrl removed - not used in current implementation
-
-  // Video URL removal handled inside VideoUploadSection
-
-  // Video URL change handled inside VideoUploadSection
-
-  // Video embed handled inside VideoUploadSection
-
-  // Object URL lifecycle handled inside media components
-
-  // Keyboard tab-trap
-  useKeyboardNavigation({ formRef, focusableSelector: FOCUSABLE_SELECTOR });
+  // Keyboard navigation
+  useKeyboardNavigation({ formRef });
 
   // Show loading if translations aren't ready
   if (!ready) {
