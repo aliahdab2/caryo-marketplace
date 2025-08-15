@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef, memo } from "react";
-import Image from "next/image";
+// import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useListingData } from '@/hooks/useListingData';
@@ -20,6 +20,10 @@ import { useAutoSave } from '@/hooks/useAutoSave';
 import { useMemo as useMemoPerf, useCallback as useCallbackPerf } from 'react';
 import { useDirection } from '@/utils/direction';
 import { createRTLHelpers } from '@/utils/rtlHelpers';
+// Media utils are now handled within media components
+import { ImageUploadSection } from './ImageUploadSection';
+import { VideoUploadSection } from './VideoUploadSection';
+import { SelectWithArrow } from '../ui/SelectWithArrow';
 
 // Performance optimized debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -39,16 +43,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 // Optimized throttle hook for frequent operations
-function useThrottle<T extends (...args: any[]) => any>(func: T, delay: number): T { // eslint-disable-line @typescript-eslint/no-explicit-any -- Necessary for generic function throttling
-  const lastRun = useRef(Date.now());
-  
-  return useCallbackPerf((...args: Parameters<T>) => {
-    if (Date.now() - lastRun.current >= delay) {
-      func(...args);
-      lastRun.current = Date.now();
-    }
-  }, [func, delay]) as T;
-}
+// useThrottle utility not used in this component anymore
 import { 
   ListingWizardProps, 
   ErrorMessageProps 
@@ -98,121 +93,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = React.memo(function ErrorMessa
   );
 });
 
-// Memoized image preview component for better performance
-const _ImagePreview = memo(function ImagePreview({ 
-  url, 
-  index, 
-  isMainPhoto, 
-  fileSize,
-  isDragging,
-  isDragOver,
-  onRemove,
-  onDragStart,
-  onDragOver,
-  onDragLeave,
-  onDrop,
-  onDragEnd,
-  isRTL
-}: {
-  url: string;
-  index: number;
-  isMainPhoto: boolean;
-  fileSize?: number;
-  isDragging: boolean;
-  isDragOver: boolean;
-  onRemove: () => void;
-  onDragStart: (e: React.DragEvent) => void;
-  onDragOver: (e: React.DragEvent) => void;
-  onDragLeave: () => void;
-  onDrop: (e: React.DragEvent) => void;
-  onDragEnd: () => void;
-  isRTL: boolean;
-}) {
-  return (
-    <div
-      className={`relative group cursor-move transition-all duration-300 ${
-        isDragging
-          ? 'scale-105 rotate-2 opacity-75 z-10'
-          : isDragOver
-          ? 'scale-105 ring-4 ring-blue-300 dark:ring-blue-600'
-          : 'hover:scale-[1.02]'
-      }`}
-      draggable
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
-      onDragEnd={onDragEnd}
-    >
-      {/* Image Container */}
-      <div className={`aspect-square rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700 relative border-2 transition-all duration-300 ${
-        isMainPhoto 
-          ? 'border-blue-400 dark:border-blue-500 shadow-lg' 
-          : 'border-gray-200 dark:border-gray-600 group-hover:border-gray-300 dark:group-hover:border-gray-500'
-      }`}>
-        <Image
-          src={url}
-          alt={`Car listing image ${index + 1}`}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-110"
-          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
-          draggable={false}
-          priority={index === 0} // Prioritize main image
-        />
-        
-        {/* Drag Handle Overlay */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="bg-white/90 dark:bg-gray-800/90 rounded-lg p-2 backdrop-blur-sm">
-              <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Remove Button */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-        className={`absolute -top-2 ${isRTL ? '-left-2' : '-right-2'} bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110`}
-        aria-label={`Remove image ${index + 1}`}
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-
-      {/* Main Photo Badge */}
-      {isMainPhoto && (
-        <div className={`absolute bottom-2 ${isRTL ? 'end-2' : 'start-2'} bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
-          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-          <span className="font-medium">Main Photo</span>
-        </div>
-      )}
-
-      {/* Image Number Badge */}
-      <div className={`absolute top-2 ${isRTL ? 'end-2' : 'start-2'} bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm`}>
-        {index + 1}
-          </div>
-
-      {/* File Info on Hover */}
-      {fileSize && (
-        <div className={`absolute bottom-2 ${isRTL ? 'left-2' : 'right-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
-          <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-            {typeof fileSize === 'number' ? (fileSize / 1024 / 1024).toFixed(1) + 'MB' : ''}
-        </div>
-      </div>
-      )}
-    </div>
-  );
-});
+// Image preview moved into ImageUploadSection
 
 // Loading fallback component for lazy-loaded steps
 const _StepLoadingFallback = memo(function StepLoadingFallback() {
@@ -231,89 +112,7 @@ const _StepLoadingFallback = memo(function StepLoadingFallback() {
 // Note: Lazy step components removed for now to fix build issues
 // Will be implemented in future code splitting phase when step components are created
 
-// Virtualized select component for large datasets
-const _VirtualizedSelect = memo(function VirtualizedSelect({ 
-  options, 
-  value, 
-  onChange, 
-  placeholder, 
-  isLoading, 
-  className = "",
-  maxHeight = 200,
-  itemHeight = 40,
-  ...props 
-}: {
-  options: Array<{ id: string; name: string; nameAr?: string }>;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  isLoading?: boolean;
-  className?: string;
-  maxHeight?: number;
-  itemHeight?: number;
-  [key: string]: unknown;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [visibleStart, setVisibleStart] = useState(0);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  
-  // Calculate visible items for virtual scrolling
-  const visibleCount = Math.ceil(maxHeight / itemHeight);
-  const visibleEnd = Math.min(visibleStart + visibleCount + 2, options.length); // Buffer items
-  
-  const selectedOption = options.find(opt => opt.id === value);
-  
-  const handleScroll = useThrottle((e: React.UIEvent<HTMLDivElement>) => {
-    const scrollTop = e.currentTarget.scrollTop;
-    const newStart = Math.floor(scrollTop / itemHeight);
-    setVisibleStart(Math.max(0, newStart - 1)); // Add buffer
-  }, 16); // 60fps throttling
-  
-  return (
-    <div className={`relative ${className}`}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3 text-left border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500"
-        {...props}
-      >
-        {isLoading ? "Loading..." : selectedOption?.name || placeholder}
-      </button>
-      
-      {isOpen && !isLoading && (
-        <div 
-          ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl shadow-lg"
-          style={{ maxHeight }}
-          onScroll={handleScroll}
-        >
-          <div style={{ height: options.length * itemHeight, position: 'relative' }}>
-            {options.slice(visibleStart, visibleEnd).map((option, index) => (
-              <div
-                key={option.id}
-                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                style={{ 
-                  position: 'absolute',
-                  top: (visibleStart + index) * itemHeight,
-                  height: itemHeight,
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-                onClick={() => {
-                  onChange(option.id);
-                  setIsOpen(false);
-                }}
-              >
-                {option.name}
-      </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-});
+// Virtualized select removed from this component (out of scope here)
 
 // Upload Progress Component removed - not used in current implementation
 
@@ -366,17 +165,7 @@ export default function ListingWizard({
   
 
   
-  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
-  const [videoPreviewUrls, setVideoPreviewUrls] = useState<string[]>([]);
-  const [existingImages, setExistingImages] = useState<string[]>([]);
-  const [_existingVideos, setExistingVideos] = useState<string[]>([]);
-  const [imagesInitialized, setImagesInitialized] = useState(false);
-  const [videosInitialized, setVideosInitialized] = useState(false);
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
-  const [dragOverImageIndex, setDragOverImageIndex] = useState<number | null>(null);
-  const [showVideoUpload, setShowVideoUpload] = useState(false);
-  const [showVideoUrl, setShowVideoUrl] = useState(false);
+  // Media-related UI state is fully handled by ImageUploadSection/VideoUploadSection
   
   // Video configuration - can be moved to environment variables later
   const isVideoUploadEnabled = true;
@@ -887,25 +676,7 @@ export default function ListingWizard({
 
   // Duplicate models loading removed - now handled by extracted hook above
 
-  // Load existing images and videos when formData changes (edit mode)
-  useEffect(() => {
-    if (mode === 'edit' && formData) {
-      // Load existing images (only if not already initialized to prevent duplicates)
-      if (formData.existingImageUrls && formData.existingImageUrls.length > 0 && !imagesInitialized) {
-        setExistingImages(formData.existingImageUrls);
-        // Set preview URLs to only existing images initially
-        setImagePreviewUrls(formData.existingImageUrls);
-        setImagesInitialized(true);
-      }
-
-      // Load existing videos (only if not already initialized to prevent duplicates)
-      if (formData.existingVideoUrls && formData.existingVideoUrls.length > 0 && !videosInitialized) {
-        setExistingVideos(formData.existingVideoUrls);
-        setVideoPreviewUrls(formData.existingVideoUrls);
-        setVideosInitialized(true);
-      }
-    }
-  }, [mode, formData.existingImageUrls, formData.existingVideoUrls, imagesInitialized, videosInitialized]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Existing media previews are handled inside media components now
 
   // Optimized step accessibility check with debounced validation
   const isStepAccessible = useCallbackPerf((targetStep: number) => {
@@ -1039,239 +810,27 @@ export default function ListingWizard({
 
   // handlePreviousStep removed - not used in current implementation
 
-  // Optimized image upload handler with better memory management
-  const handleImageUpload = useCallbackPerf((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
+  // Image upload handled inside ImageUploadSection
 
-    wizardLogger.debug('handleImageUpload');
+  // Image remove/reorder handled inside ImageUploadSection
 
-    const validFiles: File[] = [];
-    const newUrls: string[] = [];
+  // DnD upload handled inside ImageUploadSection
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file.type.startsWith('image/')) {
-        validFiles.push(file);
-        newUrls.push(URL.createObjectURL(file));
-      }
-    }
+  // Image reorder handled inside ImageUploadSection
 
-    wizardLogger.debug('Valid files: ' + String(validFiles.length));
-    wizardLogger.debug('New URLs: ' + String(newUrls.length));
+  // Video upload handled inside VideoUploadSection
 
-    if (validFiles.length > 0) {
-      setFormData(prev => {
-        const newImages = [...prev.images, ...validFiles];
-        wizardLogger.debug('Updated images length ' + String(newImages.length));
-        return {
-          ...prev,
-          images: newImages
-        };
-      });
-      setImagePreviewUrls(prev => {
-        const newPreviewUrls = [...prev, ...newUrls];
-        wizardLogger.debug('Updated preview URLs length ' + String(newPreviewUrls.length));
-        return newPreviewUrls;
-      });
-    }
-  }, []);
-
-  // Remove image handler
-  const removeImage = useCallback((index: number) => {
-    // allImagesCount calculation removed - not used
-    const isExistingImage = index < existingImages.length;
-
-    if (isExistingImage) {
-      // Remove from existing images
-      setExistingImages(prev => prev.filter((_, i) => i !== index));
-    } else {
-      // Remove from new uploads
-      const newUploadIndex = index - existingImages.length;
-      // Revoke object URL to prevent memory leaks for newly uploaded files
-      const previewUrl = imagePreviewUrls[index];
-      if (previewUrl && !existingImages.includes(previewUrl)) {
-        URL.revokeObjectURL(previewUrl);
-      }
-      setFormData(prev => ({
-        ...prev,
-        images: prev.images.filter((_, i) => i !== newUploadIndex)
-      }));
-    }
-
-    setImagePreviewUrls(prev => prev.filter((_, i) => i !== index));
-  }, [existingImages, imagePreviewUrls]);
-
-  // Optimized drag and drop handlers with throttling
-  const handleDragOver = useThrottle(useCallbackPerf((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(true);
-  }, []), 100);
-
-  const handleDragLeave = useCallbackPerf((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
-
-    const files = Array.from(e.dataTransfer.files);
-    wizardLogger.debug('handleDrop');
-
-    const validFiles: File[] = [];
-    const newUrls: string[] = [];
-
-    files.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        validFiles.push(file);
-        newUrls.push(URL.createObjectURL(file));
-      }
-    });
-
-    wizardLogger.debug('Valid files from drop ' + String(validFiles.length));
-    wizardLogger.debug('New URLs from drop ' + String(newUrls.length));
-
-    if (validFiles.length > 0) {
-      setFormData(prev => {
-        const newImages = [...prev.images, ...validFiles];
-        wizardLogger.debug('Updated images from drop ' + String(newImages.length));
-        return {
-          ...prev,
-          images: newImages
-        };
-      });
-      setImagePreviewUrls(prev => {
-        const newPreviewUrls = [...prev, ...newUrls];
-        wizardLogger.debug('Updated preview URLs from drop ' + String(newPreviewUrls.length));
-        return newPreviewUrls;
-      });
-    }
-  }, []);
-
-  // Image drag and drop reordering handlers
-  const handleImageDragStart = useCallback((e: React.DragEvent, index: number) => {
-    setDraggedImageIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
-  }, []);
-
-  const handleImageDragOver = useCallback((e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDragOverImageIndex(index);
-  }, []);
-
-  const handleImageDragLeave = useCallback(() => {
-    setDragOverImageIndex(null);
-  }, []);
-
-  const handleImageDrop = useCallback((e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    if (draggedImageIndex === null || draggedImageIndex === dropIndex) return;
-
-    // Reorder both images and preview URLs
-    const newImages = [...formData.images];
-    const newPreviewUrls = [...imagePreviewUrls];
-
-    const draggedImage = newImages[draggedImageIndex];
-    const draggedPreviewUrl = newPreviewUrls[draggedImageIndex];
-
-    newImages.splice(draggedImageIndex, 1);
-    newPreviewUrls.splice(draggedImageIndex, 1);
-
-    newImages.splice(dropIndex, 0, draggedImage);
-    newPreviewUrls.splice(dropIndex, 0, draggedPreviewUrl);
-
-    setFormData(prev => ({ ...prev, images: newImages }));
-    setImagePreviewUrls(newPreviewUrls);
-    setDraggedImageIndex(null);
-    setDragOverImageIndex(null);
-  }, [draggedImageIndex, formData.images, imagePreviewUrls]);
-
-  const handleImageDragEnd = useCallback(() => {
-    setDraggedImageIndex(null);
-    setDragOverImageIndex(null);
-  }, []);
-
-  // Video upload handler
-  const handleVideoUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    const validFiles: File[] = [];
-    const newUrls: string[] = [];
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file.type.startsWith('video/')) {
-        validFiles.push(file);
-        newUrls.push(URL.createObjectURL(file));
-      }
-    }
-
-    if (validFiles.length > 0) {
-      setFormData(prev => ({
-        ...prev,
-        videos: [...(prev.videos || []), ...validFiles]
-      }));
-      setVideoPreviewUrls(prev => [...prev, ...newUrls]);
-    }
-  }, []);
-
-  // Remove video handler
-  const removeVideo = useCallback((index: number) => {
-    // Revoke object URL to prevent memory leaks
-    if (videoPreviewUrls[index]) {
-      URL.revokeObjectURL(videoPreviewUrls[index]);
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      videos: (prev.videos || []).filter((_, i) => i !== index)
-    }));
-    setVideoPreviewUrls(prev => prev.filter((_, i) => i !== index));
-  }, [videoPreviewUrls]);
+  // Video removal handled inside VideoUploadSection
 
   // addVideoUrl removed - not used in current implementation
 
-  // Remove video URL handler
-  const removeVideoUrl = useCallback((index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      videoUrls: (prev.videoUrls || []).filter((_, i) => i !== index)
-    }));
-  }, []);
+  // Video URL removal handled inside VideoUploadSection
 
-  // Video URL change handler
-  const handleVideoUrlChange = useCallback((url: string) => {
-    setFormData(prev => ({
-      ...prev,
-      videoUrls: url.trim() ? [url.trim()] : []
-    }));
-  }, []);
+  // Video URL change handled inside VideoUploadSection
 
-  // Helper function to get video embed URL
-  const getVideoEmbedUrl = useCallback((url: string): string | null => {
-    if (!url) return null;
-    
-    // YouTube URLs
-    const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-    if (youtubeMatch) {
-      return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
-    }
-    
-    // Vimeo URLs
-    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-    if (vimeoMatch) {
-      return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
-    }
-    
-    return null;
-  }, []);
+  // Video embed handled inside VideoUploadSection
+
+  // Object URL lifecycle handled inside media components
 
   // Keyboard navigation handler
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -1425,13 +984,14 @@ export default function ListingWizard({
                   >
                     {t('listings:newListingMake', 'Make')} <span className="text-red-500">*</span>
                   </label>
-                  <select
+                  <SelectWithArrow
                     id="make"
                     name="make"
                     value={formData.make}
                     onChange={handleMakeChange}
                     disabled={isLoadingMakes}
-
+                    isLoading={isLoadingMakes}
+                    isRTL={isRTL}
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                       formErrors.make ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                     } ${isLoadingMakes ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1449,7 +1009,7 @@ export default function ListingWizard({
                         {i18n.language === 'ar' ? make.displayNameAr : make.displayNameEn}
                       </option>
                     ))}
-                  </select>
+                  </SelectWithArrow>
                   {formErrors.make && <ErrorMessage error={formErrors.make} />}
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="make-hint">
                     {t('listings:newListingMakeHint', 'Select the manufacturer of your car')}
@@ -1464,13 +1024,14 @@ export default function ListingWizard({
                   >
                     {t('listings:newListingModel', 'Model')} <span className="text-red-500">*</span>
                   </label>
-                  <select
+                  <SelectWithArrow
                     id="model"
                     name="model"
                     value={formData.model}
                     onChange={createDropdownHandler('model', 'modelId', carModels)}
                     disabled={isLoadingModels || !formData.make}
-
+                    isLoading={isLoadingModels}
+                    isRTL={isRTL}
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                       formErrors.model ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                     } ${(isLoadingModels || !formData.make) ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1490,7 +1051,7 @@ export default function ListingWizard({
                         {i18n.language === 'ar' ? model.displayNameAr : model.displayNameEn}
                       </option>
                     ))}
-                  </select>
+                  </SelectWithArrow>
                   {formErrors.model && <ErrorMessage error={formErrors.model} />}
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="model-hint">
                     {t('listings:newListingModelHint', 'Select the specific model of your car')}
@@ -1505,13 +1066,13 @@ export default function ListingWizard({
                   >
                     {t('listings:newListingYear', 'Year')} <span className="text-red-500">*</span>
                   </label>
-                  <select
+                  <SelectWithArrow
                     id="year"
                     name="year"
                     value={formData.year}
                     onChange={handleFieldChange('year')}
                     required
-
+                    isRTL={isRTL}
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                       formErrors.year ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                     }`}
@@ -1532,7 +1093,7 @@ export default function ListingWizard({
                       }
                       return years;
                     })()}
-                  </select>
+                  </SelectWithArrow>
                   {formErrors.year && <ErrorMessage error={formErrors.year} />}
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
                     {t('listings:newListingYearHint', 'Enter manufacturing year (1990-{{currentYear}})', { currentYear: new Date().getFullYear() })}
@@ -1612,12 +1173,14 @@ export default function ListingWizard({
                     >
                       {t('listings:newListingTransmission', 'Transmission')}
                     </label>
-                    <select
+                    <SelectWithArrow
                       id="transmission"
                       name="transmission"
                       value={formData.transmission}
                       onChange={createDropdownHandler('transmission', 'transmissionId', transmissions)}
                       disabled={isLoadingReferenceData}
+                      isLoading={isLoadingReferenceData}
+                      isRTL={isRTL}
                       className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                         formErrors.transmission ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                       } ${isLoadingReferenceData ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1635,7 +1198,7 @@ export default function ListingWizard({
                           {i18n.language === 'ar' ? transmission.displayNameAr : transmission.displayNameEn}
                         </option>
                       ))}
-                    </select>
+                    </SelectWithArrow>
                     {formErrors.transmission && <ErrorMessage error={formErrors.transmission} />}
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="transmission-hint">
                       {t('listings:newListingTransmissionHint', 'Type of transmission')}
@@ -1676,12 +1239,14 @@ export default function ListingWizard({
                     >
                       {t('listings:newListingFuelType', 'Fuel Type')}
                     </label>
-                    <select
+                    <SelectWithArrow
                       id="fuelType"
                       name="fuelType"
                       value={formData.fuelType}
                       onChange={createDropdownHandler('fuelType', 'fuelTypeId', fuelTypes)}
                       disabled={isLoadingReferenceData}
+                      isLoading={isLoadingReferenceData}
+                      isRTL={isRTL}
                       className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                         formErrors.fuelType ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                       } ${isLoadingReferenceData ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1699,7 +1264,7 @@ export default function ListingWizard({
                           {i18n.language === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn}
                         </option>
                       ))}
-                    </select>
+                    </SelectWithArrow>
                     {formErrors.fuelType && <ErrorMessage error={formErrors.fuelType} />}
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="fuelType-hint">
                       {t('listings:newListingFuelTypeHint', 'Type of fuel or power source')}
@@ -1762,758 +1327,24 @@ export default function ListingWizard({
                   </p>
                 </div>
 
-                {/* Enhanced Images and Videos Section */}
+                {/* Images and Videos Section */}
                 <div className="space-y-8">
-                  {/* Enhanced Images Section Header */}
-                <div className="space-y-6">
-                    <div className="text-center space-y-2">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                        {t('listings:newListingCarImages', 'Car Images')} <span className="text-red-500">*</span>
-                  </h3>
-                      <p className="text-gray-600 dark:text-gray-400">
-                        {t('listings:newListingImageUploadSubtitle', 'Upload high-quality photos to attract potential buyers')}
-                      </p>
-                    </div>
+                  <ImageUploadSection
+                    formData={formData}
+                    onFormDataChange={(updates) => setFormData(prev => ({ ...prev, ...updates }))}
+                    formErrors={formErrors}
+                    isRTL={isRTL}
+                  />
 
-                    {/* Enhanced Drag & Drop Upload Area */}
-                    <div className="space-y-6">
-                      <div 
-                        className={`w-full transition-all duration-300 ${
-                          isDragOver 
-                            ? 'scale-[1.02] shadow-xl ring-4 ring-blue-200 dark:ring-blue-700' 
-                            : 'hover:shadow-lg'
-                        }`}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                      >
-                        <label 
-                          htmlFor="image-upload" 
-                          className={`group flex flex-col items-center justify-center w-full h-72 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 focus-within:ring-4 focus-within:ring-blue-200 dark:focus-within:ring-blue-800 ${
-                            isDragOver
-                              ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                              : 'border-gray-300 dark:border-gray-600 bg-gray-50/80 dark:bg-gray-800/50 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50'
-                          }`}
-                          role="button"
-                          tabIndex={0}
-                          aria-label="Upload car images by clicking or dragging files here"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              document.getElementById('image-upload')?.click();
-                            }
-                          }}
-                        >
-                          <div className="flex flex-col items-center justify-center pt-8 pb-8 space-y-6">
-                            {/* Enhanced Upload Icon */}
-                            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                              isDragOver 
-                                ? 'bg-blue-100 dark:bg-blue-800/50 scale-110' 
-                                : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 group-hover:scale-105'
-                            }`}>
-                              <svg className={`w-10 h-10 transition-colors duration-300 ${
-                                isDragOver 
-                                  ? 'text-blue-600 dark:text-blue-400' 
-                                  : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'
-                              }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                      </svg>
-                    </div>
-
-                            {/* Main Text */}
-                            <div className="text-center space-y-3">
-                              <h4 className={`text-xl font-semibold transition-colors duration-300 ${
-                                isDragOver 
-                                  ? 'text-blue-800 dark:text-blue-200' 
-                                  : 'text-gray-700 dark:text-gray-200'
-                              }`}>
-                                {isDragOver 
-                                  ? t('listings:dropImagesHere', 'Drop your images here!')
-                                  : t('listings:newListingUploadImages', 'Upload Car Images')
-                                }
-                              </h4>
-                              
-                              <p className={`text-base transition-colors duration-300 ${
-                                isDragOver 
-                                  ? 'text-blue-600 dark:text-blue-300' 
-                                  : 'text-gray-600 dark:text-gray-400'
-                              }`}>
-                    {isDragOver 
-                      ? t('listings:newListingReleaseToAdd', 'Release to add images to your listing')
-                      : t('listings:newListingDragAndDrop', 'Drag & drop images here, or click to browse')
-                    }
-                              </p>
-
-                              {/* Format info moved below and muted */}
-                              <div className="pt-2 space-y-1">
-                                <p className="text-sm text-gray-500 dark:text-gray-500">
-                                  {t('listings:newListingImageUploadHint', 'Upload multiple images to showcase your car. First image will be the main photo.')}
-                                </p>
-                                <div className={`flex items-center justify-center ${isRTL ? 'space-x-reverse space-x-6' : 'space-x-6'} text-xs text-gray-400 dark:text-gray-500`}>
-                                  <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
-                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>{t('listings:newListingImageFormatsShort', 'PNG, JPG, JPEG')}</span>
-                  </div>
-                                  <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
-                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>{t('listings:newListingImageMaxSize', 'Max 5MB each')}</span>
-                </div>
-                                  <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
-                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>{t('listings:newListingImageMaxCount', 'Up to 10 images')}</span>
+                  <VideoUploadSection
+                    formData={formData}
+                    onFormDataChange={(updates) => setFormData(prev => ({ ...prev, ...updates }))}
+                    formErrors={formErrors}
+                    isAnyVideoFeatureEnabled={isAnyVideoFeatureEnabled}
+                    isVideoUploadEnabled={isVideoUploadEnabled}
+                    isVideoUrlEnabled={isVideoUrlEnabled}
+                  />
                                   </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <input
-                            id="image-upload"
-                            type="file"
-                            className="sr-only"
-                            multiple
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            aria-describedby="image-upload-hint"
-                            aria-label="Select car images to upload (PNG, JPG, JPEG, max 5MB each, up to 10 images)"
-                          />
-                        </label>
-                      </div>
-                    </div>
-                    {formErrors.images && <ErrorMessage error={formErrors.images} id="images-error" />}
-                  </div>
-
-                  {/* Enhanced Image Preview Grid with Drag & Drop Reordering */}
-                  {(formData.images.length > 0 || imagePreviewUrls.length > 0) && (
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
-                          <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
-                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                          <div>
-                            <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                              {t('listings:newListingImagePreview', 'Image Preview')} ({imagePreviewUrls.length})
-                            </h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {t('listings:reorderImagesHint', 'Drag images to reorder • First image is your main photo')}
-                            </p>
-                          </div>
-                        </div>
-                        <div className={`text-xs ${isRTL ? 'text-left' : 'text-right'} text-gray-500 dark:text-gray-500`}>
-                          {t('listings:imageCount', '{{count}}/10 images', { count: imagePreviewUrls.length })}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {imagePreviewUrls.map((url: string, index: number) => (
-                          <div
-                            key={`${url}-${index}`}
-                            className={`relative group cursor-move transition-all duration-300 ${
-                              draggedImageIndex === index
-                                ? 'scale-105 rotate-2 opacity-75 z-10'
-                                : dragOverImageIndex === index
-                                ? 'scale-105 ring-4 ring-blue-300 dark:ring-blue-600'
-                                : 'hover:scale-[1.02]'
-                            }`}
-                            draggable
-                            onDragStart={(e) => handleImageDragStart(e, index)}
-                            onDragOver={(e) => handleImageDragOver(e, index)}
-                            onDragLeave={handleImageDragLeave}
-                            onDrop={(e) => handleImageDrop(e, index)}
-                            onDragEnd={handleImageDragEnd}
-                          >
-                            {/* Image Container */}
-                            <div className={`aspect-square rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700 relative border-2 transition-all duration-300 ${
-                              index === 0 
-                                ? 'border-blue-400 dark:border-blue-500 shadow-lg' 
-                                : 'border-gray-200 dark:border-gray-600 group-hover:border-gray-300 dark:group-hover:border-gray-500'
-                            }`}>
-                              <Image
-                                src={url}
-                                alt={`Car listing image ${index + 1} - uploaded preview for ${formData.title || 'new listing'}`}
-                                fill
-                                className="object-cover transition-transform duration-300 group-hover:scale-110"
-                                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
-                                draggable={false}
-                              />
-                              
-                              {/* Drag Handle Overlay */}
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                  <div className="bg-white/90 dark:bg-gray-800/90 rounded-lg p-2 backdrop-blur-sm">
-                                    <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                                    </svg>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Enhanced Remove Button */}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeImage(index);
-                              }}
-                              className={`absolute -top-2 ${isRTL ? '-left-2' : '-right-2'} bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110`}
-                              aria-label={`Remove image ${index + 1}`}
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-
-                            {/* Enhanced Main Photo Badge */}
-                            {index === 0 && (
-                              <div className={`absolute bottom-2 ${isRTL ? 'end-2' : 'start-2'} bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
-                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                </svg>
-                                <span className="font-medium">{t('listings:newListingMainImage', 'Main Photo')}</span>
-                              </div>
-                            )}
-
-                            {/* Image Number Badge */}
-                            <div className={`absolute top-2 ${isRTL ? 'end-2' : 'start-2'} bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm`}>
-                              {index + 1}
-                            </div>
-
-                            {/* File Info on Hover */}
-                            <div className={`absolute bottom-2 ${isRTL ? 'left-2' : 'right-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
-                              <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-                                {(formData.images[index]?.size / 1024 / 1024).toFixed(1)}MB
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Reordering Instructions */}
-                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700">
-                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
-                          <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-800/50 flex items-center justify-center">
-                            <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1">
-                            <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                              💡 {t('listings:howToReorderTitle', 'How to reorder your photos')}
-                            </h5>
-                            <p className="text-xs text-blue-700 dark:text-blue-300">
-                              {t('listings:howToReorderBody', 'Drag and drop images to change their order. The first image will be your main listing photo that buyers see first.')}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Video Section - Conditionally rendered based on configuration */}
-                {isAnyVideoFeatureEnabled && (
-                <div className="space-y-6 pt-8 border-t border-gray-200 dark:border-gray-700">
-                  <div className="text-center">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                      {t('listings:videoFieldsTitle', 'Videos (Optional)')}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
-                      {t('listings:videoFieldsSubtitle', 'Add videos to showcase your vehicle')}
-                    </p>
-                  </div>
-
-                  {/* Video Options - Enhanced UX with Configuration Handling */}
-                  <div className="space-y-4">
-                    {/* Header with better description - Adaptive based on available options */}
-                    <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>
-                        {isVideoUploadEnabled && isVideoUrlEnabled 
-                          ? t('listings:videoSectionTitleBoth', "Choose how you'd like to add videos to your listing")
-                          : isVideoUploadEnabled 
-                            ? t('listings:videoSectionTitleUploadOnly', "Upload a video file to showcase your vehicle")
-                            : t('listings:videoSectionTitleUrlOnly', "Add a video URL to showcase your vehicle")
-                        }
-                      </span>
-                    </div>
-
-                    {/* Enhanced Toggle Buttons - Responsive grid based on available options */}
-                    <div className={`grid gap-4 ${
-                      isVideoUploadEnabled && isVideoUrlEnabled 
-                        ? 'grid-cols-1 md:grid-cols-2' 
-                        : 'grid-cols-1'
-                    }`}>
-                      {isVideoUploadEnabled && (
-                        <div className="group">
-                          <button
-                            type="button"
-                            onClick={() => setShowVideoUpload(!showVideoUpload)}
-                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${rtl.text.textStart} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-800 min-h-[160px] ${
-                              showVideoUpload || (formData.videos && formData.videos.length > 0)
-                                ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 text-blue-900 dark:text-blue-100 shadow-lg'
-                                : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/10'
-                            } ${
-                              !isVideoUrlEnabled ? 'ring-2 ring-blue-200 dark:ring-blue-700' : ''
-                            }`}
-                            aria-label={`Upload video file - ${showVideoUpload ? 'expanded' : 'collapsed'}`}
-                            aria-expanded={showVideoUpload}
-                            aria-describedby="video-upload-description"
-                          >
-                            <div className="flex flex-col h-full">
-                              <div className="flex items-start justify-between">
-                                <div className={`flex items-start ${rtl.spacing.spaceX('4')} flex-1`}>
-                                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                                  showVideoUpload || (formData.videos && formData.videos.length > 0)
-                                    ? 'bg-blue-500 text-white shadow-lg'
-                                    : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/40'
-                                }`}>
-                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16l13-8z" />
-                                  </svg>
-                                </div>
-                                <div className="flex-1">
-                                  <h4 className="font-semibold text-lg mb-1">
-                                    {t('listings:addVideoUpload', 'Upload Video File')}
-                                    {!isVideoUrlEnabled && (
-                                      <span className={`${rtl.spacing.ms('2')} px-2 py-1 text-xs bg-blue-500 text-white rounded-full`}>
-                                        {t('listings:onlyOption', 'Only Option')}
-                                      </span>
-                                    )}
-                                  </h4>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" id="video-upload-description">
-                                    {t('listings:videoUploadToggleHelp', 'Upload a video file from your device')}
-                                  </p>
-                                  <div className={`flex items-center ${rtl.spacing.spaceX('4')} text-xs text-gray-500 dark:text-gray-500 mt-3`}>
-                                    <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
-                                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                      <span>{t('listings:videoMaxSize', 'Max 100MB')}</span>
-                                    </div>
-                                    <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
-                                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                      <span>{t('listings:videoMaxDuration', '3 min duration')}</span>
-                                    </div>
-                                    <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
-                                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                      <span>{t('listings:videoFormats', 'MP4, MOV, AVI')}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                </div>
-                                <div className={`transform transition-all duration-300 ${
-                                  showVideoUpload ? 'rotate-90 scale-110' : 'group-hover:scale-105'
-                                }`}>
-                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                  </svg>
-                                </div>
-                              </div>
-                            </div>
-                            {(formData.videos && formData.videos.length > 0) && (
-                              <div className={`mt-3 flex items-center ${rtl.spacing.spaceX('2')}`}>
-                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                                  {t('listings:videoFileReadyToUpload', '{{count}} video file ready to upload', { count: formData.videos.length })}
-                                </span>
-                              </div>
-                            )}
-                          </button>
-                        </div>
-                      )}
-
-                      {isVideoUrlEnabled && (
-                        <div className="group">
-                          <button
-                            type="button"
-                            onClick={() => setShowVideoUrl(!showVideoUrl)}
-                            className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${rtl.text.textStart} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-800 min-h-[160px] ${
-                              showVideoUrl || (formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0])
-                                ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 text-purple-900 dark:text-purple-100 shadow-lg'
-                                : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 bg-white dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/10'
-                            } ${
-                              !isVideoUploadEnabled ? 'ring-2 ring-purple-200 dark:ring-purple-700' : ''
-                            }`}
-                            aria-label={`Add video URL - ${showVideoUrl ? 'expanded' : 'collapsed'}`}
-                            aria-expanded={showVideoUrl}
-                            aria-describedby="video-url-description"
-                          >
-                            <div className="flex flex-col h-full">
-                              <div className="flex items-start justify-between">
-                                <div className={`flex items-start ${rtl.spacing.spaceX('4')} flex-1`}>
-                                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                                  showVideoUrl || (formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0])
-                                    ? 'bg-purple-500 text-white shadow-lg'
-                                    : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 group-hover:bg-purple-200 dark:group-hover:bg-purple-800/40'
-                                }`}>
-                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                                  </svg>
-                                </div>
-                                <div className="flex-1">
-                                  <h4 className="font-semibold text-lg mb-1">
-                                    {t('listings:addVideoUrl', 'Add Video URL')}
-                                    {!isVideoUploadEnabled && (
-                                      <span className={`${rtl.spacing.ms('2')} px-2 py-1 text-xs bg-purple-500 text-white rounded-full`}>
-                                        {t('listings:onlyOption', 'Only Option')}
-                                      </span>
-                                    )}
-                                  </h4>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" id="video-url-description">
-                                    {t('listings:videoUrlToggleHelp', 'Add a YouTube, Vimeo, or other video URL')}
-                                  </p>
-                                  <div className={`flex items-center ${rtl.spacing.spaceX('4')} text-xs text-gray-500 dark:text-gray-500 mt-3`}>
-                                    <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
-                                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                      <span>{t('listings:youTube', 'YouTube')}</span>
-                                    </div>
-                                    <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
-                                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                      <span>{t('listings:vimeo', 'Vimeo')}</span>
-                                    </div>
-                                    <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
-                                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                      <span>{t('listings:externalLinks', 'External links')}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                </div>
-                                <div className={`transform transition-all duration-300 ${
-                                  showVideoUrl ? 'rotate-90 scale-110' : 'group-hover:scale-105'
-                                }`}>
-                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                  </svg>
-                                </div>
-                              </div>
-                            </div>
-                            {(formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0]) && (
-                              <div className={`mt-3 flex items-center ${rtl.spacing.spaceX('2')}`}>
-                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                                  {t('listings:videoUrlAddedAndReady', 'Video URL added and ready')}
-                                </span>
-                              </div>
-                            )}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Configuration-aware messaging and tips */}
-                    {!showVideoUpload && !showVideoUrl && (!formData.videos || formData.videos.length === 0) && (!formData.videoUrls || !formData.videoUrls[0]) && (
-                      <div className="space-y-3">
-                        {/* Pro tip - Always show when no videos are added */}
-                        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-                              <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                              </svg>
-                            </div>
-                            <div className="flex-1">
-                              <h5 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
-                                💡 {t('listings:videoProTip', 'Pro tip: Videos increase listing engagement by 3x')}
-                              </h5>
-                              <p className="text-xs text-gray-600 dark:text-gray-400">
-                                {isVideoUploadEnabled && isVideoUrlEnabled 
-                                  ? t('listings:videoSectionSubtitleBoth', "Upload a video file for the best quality, or add a YouTube/Vimeo link for easy sharing")
-                                  : isVideoUploadEnabled 
-                                    ? t('listings:videoSectionSubtitleUploadOnly', "Upload a video file to show your vehicle in action")
-                                    : t('listings:videoSectionSubtitleUrlOnly', "Add a YouTube or Vimeo link to showcase your vehicle")
-                                }
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Video File Upload - Enhanced Animation */}
-                  {isVideoUploadEnabled && showVideoUpload && (
-                    <div className="animate-in slide-in-from-top-4 duration-500 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 rounded-2xl p-6 border border-blue-200 dark:border-blue-800 shadow-lg">
-                      <div className="space-y-6">
-                        {/* Upload Header */}
-                        <div className={`flex items-center ${rtl.spacing.spaceX('3')}`}>
-                          <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center">
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16l13-8z" />
-                            </svg>
-                          </div>
-                          <div>
-                            <h5 className="font-semibold text-blue-900 dark:text-blue-100">
-                              {t('listings:uploadVideoFile', 'Upload Video File')}
-                            </h5>
-                            <p className="text-sm text-blue-700 dark:text-blue-300">
-                              {t('listings:dragDropOrClickToSelect', 'Drag & drop or click to select')}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-center w-full">
-                          <label 
-                            htmlFor="video-upload" 
-                            className="group flex flex-col items-center justify-center w-full h-56 border-2 border-blue-300 border-dashed rounded-2xl cursor-pointer bg-white/80 dark:bg-blue-900/20 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:shadow-lg focus-within:ring-4 focus-within:ring-blue-200 dark:focus-within:ring-blue-800"
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                document.getElementById('video-upload')?.click();
-                              }
-                            }}
-                          >
-                            <div className="flex flex-col items-center justify-center pt-6 pb-6 space-y-4">
-                              <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-800/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                                <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                                </svg>
-                              </div>
-                              <div className="text-center space-y-2">
-                                <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
-                                  {t('listings:uploadVideoLabel', 'Choose your video file')}
-                                </p>
-                                <p className="text-sm text-blue-600 dark:text-blue-400">
-                                  {t('listings:orDragAndDropItHere', 'or drag and drop it here')}
-                                </p>
-                                <div className={`flex items-center justify-center ${rtl.spacing.spaceX('6')} text-xs text-blue-500 dark:text-blue-400 mt-4`}>
-                                  <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
-                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>{t('listings:videoMaxSize', 'Max 100MB')}</span>
-                                  </div>
-                                  <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
-                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>{t('listings:videoMaxDuration', '3 min duration')}</span>
-                                  </div>
-                                  <div className={`flex items-center ${rtl.spacing.spaceX('1')}`}>
-                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>{t('listings:videoFormats', 'MP4, MOV, AVI')}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <input
-                              id="video-upload"
-                              type="file"
-                              className="sr-only"
-                              accept="video/*"
-                              onChange={handleVideoUpload}
-                              aria-describedby="video-upload-hint video-upload-description"
-                              aria-label="Select video file to upload (MP4, MOV, AVI, max 100MB, 3 minutes duration)"
-                              disabled={formData.videos && formData.videos.length > 0}
-                            />
-                          </label>
-                        </div>
-                        {formErrors.videos && <ErrorMessage error={formErrors.videos} id="videos-error" />}
-                      </div>
-
-                      {/* Enhanced Video Preview */}
-                      {formData.videos && formData.videos.length > 0 && videoPreviewUrls.length > 0 && (
-                        <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-4 mt-6 pt-6 border-t border-blue-200 dark:border-blue-700">
-                          <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
-                            <div className={`flex items-center ${rtl.spacing.spaceX('3')}`}>
-                              <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
-                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                              </div>
-                              <div className={rtl.text.textStart}>
-                                <h4 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
-                                  {t('listings:videoPreview', 'Video Preview')}
-                                </h4>
-                                <p className="text-sm text-blue-700 dark:text-blue-300">
-                                  {formData.videos[0].name} • {(formData.videos[0].size / 1024 / 1024).toFixed(1)}MB
-                                </p>
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeVideo(0)}
-                              className={`flex items-center ${rtl.spacing.spaceX('2')} px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg transition-colors duration-200 text-sm font-medium`}
-                              aria-label="Remove video"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                              <span>{t('listings:remove', 'Remove')}</span>
-                            </button>
-                          </div>
-                          <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl">
-                            <video
-                              src={videoPreviewUrls[0]}
-                              controls
-                              className="w-full max-w-2xl mx-auto"
-                              style={{ maxHeight: '400px' }}
-                              poster=""
-                            >
-                              Your browser does not support the video tag.
-                            </video>
-                            <div className={`absolute top-4 ${rtl.spacing.start('4')} bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1`}>
-                              <span className="text-white text-sm font-medium">{t('listings:readyToUpload', 'Ready to upload')}</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* External Video URL - Enhanced UX */}
-                  {isVideoUrlEnabled && showVideoUrl && (
-                    <div className="animate-in slide-in-from-top-4 duration-500 bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10 rounded-2xl p-6 border border-purple-200 dark:border-purple-800 shadow-lg">
-                      <div className="space-y-6">
-                        {/* URL Header */}
-                        <div className={`flex items-center ${rtl.spacing.spaceX('3')}`}>
-                          <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center">
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                            </svg>
-                          </div>
-                          <div className={rtl.text.textStart}>
-                            <h5 className="font-semibold text-purple-900 dark:text-purple-100">
-                              {t('listings:addVideoUrl', 'Add Video URL')}
-                            </h5>
-                            <p className="text-sm text-purple-700 dark:text-purple-300">
-                              {t('listings:pasteVideoLinkBelow', 'Paste your video link below')}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <div>
-                            <label htmlFor="video-url" className="block text-sm font-semibold text-purple-800 dark:text-purple-200 mb-3">
-                              {t('listings:videoUrlLabel', 'Video URL')}
-                            </label>
-                            <div className="relative">
-                              <input
-                                type="url"
-                                id="video-url"
-                                placeholder={t('listings:videoUrlPlaceholder', 'https://youtube.com/watch?v=... or https://vimeo.com/...')}
-                                className="w-full px-4 py-4 pl-12 border-2 border-purple-200 dark:border-purple-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-purple-900/20 dark:text-white transition-all duration-200 text-lg placeholder:text-gray-400"
-                                value={formData.videoUrls?.[0] || ''}
-                                onChange={(e) => handleVideoUrlChange(e.target.value)}
-                                aria-describedby="video-url-hint video-url-description"
-                                aria-label="Enter video URL from YouTube, Vimeo, or other video platforms"
-                              />
-                              <div className="absolute start-4 top-1/2 transform -translate-y-1/2">
-                                <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                                </svg>
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between mt-3">
-                              <p className="text-sm text-purple-600 dark:text-purple-400" id="video-url-hint">
-                                {t('listings:videoUrlHelp', 'Supported: YouTube, Vimeo, and other video platforms')}
-                              </p>
-                              {formData.videoUrls?.[0] && (
-                                <div className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400">
-                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                  <span>URL detected</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          {formErrors.videoUrls && <ErrorMessage error={formErrors.videoUrls} id="video-urls-error" />}
-
-                          {/* Platform Examples */}
-                          <div className="grid grid-cols-2 gap-3 pt-2">
-                            <div className={`flex items-center ${rtl.spacing.spaceX('2')} p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-800`}>
-                              <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center">
-                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16l13-8z" />
-                                </svg>
-                              </div>
-                              <span className="text-sm font-medium text-red-700 dark:text-red-300">{t('listings:youTube', 'YouTube')}</span>
-                            </div>
-                            <div className={`flex items-center ${rtl.spacing.spaceX('2')} p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800`}>
-                              <div className="w-6 h-6 bg-blue-500 rounded flex items-center justify-center">
-                                <span className="text-white text-xs font-bold">V</span>
-                              </div>
-                              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{t('listings:vimeo', 'Vimeo')}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* External Video Preview */}
-                      {formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0] && (
-                        <div className="space-y-4">
-                          <h4 className={`text-md font-medium text-gray-900 dark:text-gray-100 ${rtl.text.textStart}`}>
-                            {t('listings:videoPreview', 'Video preview')} - {t('listings:external', 'External')}
-                          </h4>
-                          
-                          {/* Video Embed Preview */}
-                          {(() => {
-                            const embedUrl = getVideoEmbedUrl(formData.videoUrls[0]);
-                            if (embedUrl) {
-                              return (
-                                <div className="relative">
-                                  <div className="aspect-video w-full max-w-md mx-auto rounded-lg overflow-hidden shadow-lg bg-gray-100 dark:bg-gray-800">
-                                    <iframe
-                                      src={embedUrl}
-                                      className="w-full h-full"
-                                      frameBorder="0"
-                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                      allowFullScreen
-                                      title="External video preview"
-                                    />
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => removeVideoUrl(0)}
-                                    className={`absolute -top-2 ${isRTL ? '-left-2' : '-right-2'} bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200 z-10`}
-                                    aria-label="Remove video URL"
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              );
-                            }
-                            
-                            // Fallback for non-embeddable URLs
-                            return (
-                              <div className="relative p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
-                                  <div className={`flex-1 ${rtl.text.textStart}`}>
-                                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                                      {t('listings:externalVideoUrl', 'External Video URL')}
-                                    </p>
-                                    <p className="text-sm text-blue-700 dark:text-blue-300 break-all">
-                                      {formData.videoUrls[0]}
-                                    </p>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                      {t('listings:previewNotAvailable', 'Preview not available for this URL format')}
-                                    </p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => removeVideoUrl(0)}
-                                    className={`${rtl.spacing.ms('4')} bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200`}
-                                    aria-label="Remove video URL"
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })()}
-                          
-                          {/* URL Info */}
-                          <div className={`text-center ${rtl.text.textStart}`}>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {t('listings:source', 'Source')}: {formData.videoUrls[0]}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-                )}
               </div>
             )}
 

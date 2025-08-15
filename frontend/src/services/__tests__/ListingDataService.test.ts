@@ -150,7 +150,10 @@ describe('ListingDataService', () => {
         contactEmail: 'john@example.com',
         existingImageUrls: ['image1.jpg'],
         existingVideoUrls: ['https://youtube.com/watch?v=xyz'],
-        videoUrls: ['video1.mp4', 'https://youtube.com/watch?v=xyz']
+        videoUrls: [
+          { url: 'video1.mp4', isValidated: false },
+          { url: 'https://youtube.com/watch?v=xyz', isValidated: true }
+        ]
       });
     });
 
