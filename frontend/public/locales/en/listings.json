@@ -144,5 +144,15 @@
   "videoUrlLabel": "Video URL",
   "videoUrlHelpShort": "Supported: YouTube",
   "youTube": "YouTube",
-  "external": "External"
+  "external": "External",
+  
+  "ascending": "Ascending",
+  "descending": "Descending",
+  "confirmDelete": "Delete Item?",
+  "confirmDeleteMessage": "This action cannot be undone.",
+  "searchListings": "Search listings...",
+  "allStatuses": "All Statuses",
+  "newest": "Newest First",
+  "title": "Title",
+  "date": "Date"
 }

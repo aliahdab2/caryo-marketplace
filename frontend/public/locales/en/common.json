@@ -152,5 +152,6 @@
   "error": "Error",
   "gridView": "Grid view",
   "listView": "List view",
-  "priceRange": "Price Range"
+  "priceRange": "Price Range",
+  "km": "km"
 }

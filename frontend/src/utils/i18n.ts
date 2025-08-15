@@ -204,6 +204,9 @@ i18n
       escapeValue: false, // React already escapes values
     },
     
+    // Set keySeparator to false since we're using flat JSON format
+    keySeparator: false,
+    
     // Adjust for client/server side rendering
     load: 'currentOnly',
   });
