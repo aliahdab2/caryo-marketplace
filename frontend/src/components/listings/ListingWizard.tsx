@@ -5,8 +5,7 @@ import React, { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useListingData } from '@/hooks/useListingData';
-import { createListing, updateListing, uploadListingImage } from '@/services/listings';
-import { ListingFormData, UpdateListingData } from "@/types/listings";
+import { ListingFormData } from "@/types/listings";
 
 import { FormErrors, StepConfig } from "@/types/forms";
 import { ListingDataService } from '@/services/ListingDataService';
@@ -22,13 +21,14 @@ import { useDirection } from '@/utils/direction';
 import { createRTLHelpers } from '@/utils/rtlHelpers';
 // Media utils are now handled within media components
 // Media sections are used inside Step3ContentMedia
-import { SelectWithArrow } from '../ui/SelectWithArrow';
-import StepHeader from './shared/StepHeader';
+// import { SelectWithArrow } from '../ui/SelectWithArrow';
+// import StepHeader from './shared/StepHeader';
 import StepNavigation from './shared/StepNavigation';
 import StepActions from './shared/StepActions';
 import Step1VehicleIdentity from './steps/Step1VehicleIdentity';
 import Step2VehicleDetails from './steps/Step2VehicleDetails';
 import Step3ContentMedia from './steps/Step3ContentMedia';
+import Step4PricingContact from './steps/Step4PricingContact';
 
 // Performance optimized debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -50,7 +50,8 @@ function useDebounce<T>(value: T, delay: number): T {
 // Optimized throttle hook for frequent operations
 // useThrottle utility not used in this component anymore
 import { ListingWizardProps } from '@/types/wizard';
-import ErrorMessage from './shared/ErrorMessage';
+// import ErrorMessage from './shared/ErrorMessage';
+import { useListingSubmission } from '@/hooks/useListingSubmission';
 
 // Constants
 const TOTAL_STEPS = 4;
@@ -282,207 +283,21 @@ export default function ListingWizard({
   }, [governorates, loadLocations]); // Remove formData.governorateSlug dependency
 
   // Handler functions
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    wizardLogger.debug('Form submit triggered ' + JSON.stringify({ currentStep, mode }));
-    wizardLogger.debug('TOTAL_STEPS constant ' + String(TOTAL_STEPS));
-    wizardLogger.debug('currentStep === TOTAL_STEPS? ' + String(currentStep === TOTAL_STEPS));
-
-    // IMPORTANT: Only process actual final submissions, not navigation
-    // The submit event should only fire when clicking the Submit button on step 4
-    if (currentStep !== TOTAL_STEPS) {
-      wizardLogger.debug('Ignoring submit - not final step ' + JSON.stringify({ currentStep, TOTAL_STEPS }));
-      return;
-    }
-
-    wizardLogger.info('Processing final submission (step 4)');
-
-    // For final submission (step 4), validate ALL steps
-    if (currentStep === TOTAL_STEPS) {
-      wizardLogger.debug('Final submission - validating ALL steps');
-      
-      // Validate all steps for final submission
-      let allErrors: FormErrors = {};
-      for (let step = 1; step <= TOTAL_STEPS; step++) {
-        const stepErrors = validateStep(step, formData, t);
-        allErrors = { ...allErrors, ...stepErrors };
-        wizardLogger.debug(`Step ${step} validation errors ${JSON.stringify(stepErrors)}`);
-      }
-      
-      wizardLogger.debug('All validation errors ' + JSON.stringify(allErrors));
-      if (Object.keys(allErrors).length > 0) {
-        wizardLogger.info('Final validation failed, stopping submission');
-        setFormErrors(allErrors);
-        return;
-      }
-      wizardLogger.info('All validation passed!');
-    } else {
-      // Validate current step only for navigation
-      wizardLogger.debug('Validating step ' + String(currentStep));
-      const stepErrors = validateStep(currentStep, formData, t, { mode: 'navigation' });
-      // If only non-blocking fields failed (e.g., title/price on step 1 due to previous state), clear them for navigation
-      if (currentStep === 1 && Object.keys(stepErrors).length > 0) {
-        const blockingKeys = ['make','model','year'];
-        const nonBlockingOnly = Object.keys(stepErrors).every(k => !blockingKeys.includes(k));
-        if (nonBlockingOnly) {
-          wizardLogger.debug('Non-blocking errors on step 1 ignored for navigation');
-          setFormErrors({});
-          setCurrentStep(prev => prev + 1);
-          return;
-        }
-      }
-      wizardLogger.debug('Validation errors ' + JSON.stringify(stepErrors));
-      if (Object.keys(stepErrors).length > 0) {
-        wizardLogger.info('Validation failed, stopping submission');
-        setFormErrors(stepErrors);
-        return;
-      }
-    }
-    wizardLogger.info('Validation passed, proceeding...');
-
-    // Clear errors for valid step
-    setFormErrors({});
-
-    if (currentStep < TOTAL_STEPS) {
-      setCurrentStep(prev => prev + 1);
-      return;
-    }
-
-    // Submit the form (final step)
-    try {
-      setIsSubmitting(true);
-      
-      if (mode === 'create') {
-        const result = await createListing(formData);
-        setShowSuccessAlert(true);
-        onSuccess?.(result.id);
-      } else if (mode === 'edit' && listingId) {
-        wizardLogger.info('Starting update for listing ' + String(listingId));
-        wizardLogger.debug('[ListingWizard] Form data before update:', {
-          title: formData.title,
-          description: formData.description,
-          price: formData.price,
-          mileage: formData.mileage,
-          transmission: formData.transmission,
-          currency: formData.currency,
-          make: formData.make,
-          model: formData.model,
-          year: formData.year,
-          location: formData.location,
-          contactEmail: formData.contactEmail,
-          contactPhone: formData.contactPhone,
-          contactName: formData.contactName
-        });
-
-        // V2: Enhanced backend provides all IDs directly - no conversion needed!
-        wizardLogger.debug('Using direct IDs from enhanced form data:', {
-          makeId: formData.makeId,
-          modelId: formData.modelId,
-          transmissionId: formData.transmissionId,
-          fuelTypeId: formData.fuelTypeId,
-          locationId: formData.locationId,
-          governorateId: formData.governorateId
-        });
-        
-        const locationId = formData.locationId;
-        const _governorateId = formData.governorateId;
-        
-        // V2: Use IDs directly - no conversion needed! Enhanced backend provides all IDs
-        const updateData: UpdateListingData = {
-          title: formData.title,
-          description: formData.description,
-          price: parseFloat(formData.price),
-          mileage: formData.mileage ? parseInt(formData.mileage) : undefined,
-          
-          // V2: Direct ID usage - no slug-to-ID conversion needed!
-          transmissionId: formData.transmissionId,
-          fuelTypeId: formData.fuelTypeId,
-          modelId: formData.modelId,
-          
-          currency: formData.currency,
-          modelYear: formData.year ? parseInt(formData.year) : undefined,
-          locationId: locationId, // Direct from form state
-          
-          // V3: Include contact fields in update
-          contactName: formData.contactName,
-          contactEmail: formData.contactEmail,
-          contactPhone: formData.contactPhone,
-          contactPreference: formData.contactPreference,
-        };
-        
-        // Remove undefined values to avoid sending null data
-        Object.keys(updateData).forEach(key => {
-          if (updateData[key as keyof UpdateListingData] === undefined) {
-            delete updateData[key as keyof UpdateListingData];
-          }
-        });
-        
-        wizardLogger.debug('Update payload ' + JSON.stringify(updateData));
-        wizardLogger.debug('locationId in update data ' + String(updateData.locationId));
-        wizardLogger.debug('Fields being updated ' + JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          price: formData.price,
-          mileage: formData.mileage,
-          transmission: formData.transmission,
-          currency: formData.currency,
-          year: formData.year,
-          contactName: formData.contactName,
-          contactPhone: formData.contactPhone,
-          contactEmail: formData.contactEmail,
-          location: formData.location,
-          governorateSlug: formData.governorateSlug,
-          locationSlug: formData.locationSlug
-        }));
-        
-        const result = await updateListing(listingId, updateData);
-        wizardLogger.info('Update successful');
-        
-        // Handle image uploads for edit mode
-        if (formData.images && formData.images.length > 0) {
-          wizardLogger.info(`Uploading ${formData.images.length} new images for listing ${listingId}`);
-          
-          try {
-            // Filter out any undefined/invalid images and upload valid ones
-            const validImages = formData.images.filter(image => image && image instanceof File);
-            
-            if (validImages.length === 0) {
-              wizardLogger.debug('No valid images to upload');
-            } else {
-              // Upload new images one by one (API limitation: one image per request)
-              for (let i = 0; i < validImages.length; i++) {
-                const image = validImages[i];
-                wizardLogger.debug(`Uploading image ${i + 1}/${validImages.length}: ${image.name}`);
-                
-                const uploadResult = await uploadListingImage(listingId, image);
-                wizardLogger.debug(`Image upload successful: ${uploadResult.imageKey}`);
-              }
-            }
-            
-            wizardLogger.info('All images uploaded successfully');
-          } catch (imageError) {
-            wizardLogger.error('Error uploading images:', imageError);
-            // Don't fail the entire update if image upload fails
-            // But inform the user
-            setError(`Listing updated successfully, but there was an error uploading images: ${imageError instanceof Error ? imageError.message : 'Unknown error'}`);
-          }
-        }
-        
-        // Note: Contact information (email, phone, name) is tied to the user account
-        // and cannot be updated via the listing update API. Users need to update
-        // their profile information separately.
-        wizardLogger.info('Note: Contact info updates require separate profile API calls');
-        setShowSuccessAlert(true);
-        onSuccess?.(result.id);
-      }
-    } catch (error) {
-      wizardLogger.error('Error during submission');
-      setError(error instanceof Error ? error.message : t('common:unexpectedError'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [currentStep, formData, t, mode, listingId, onSuccess]);
+  const { handleSubmit } = useListingSubmission({
+    currentStep,
+    totalSteps: TOTAL_STEPS,
+    mode,
+    listingId,
+    formData,
+    t,
+    validateStep,
+    setFormErrors,
+    setCurrentStep,
+    setError,
+    setIsSubmitting,
+    setShowSuccessAlert,
+    onSuccess,
+  });
 
   // Auto-load data based on mode and autoLoad prop
   useEffect(() => {
@@ -926,289 +741,22 @@ export default function ListingWizard({
 
             {/* Step 4: Pricing & Contact */}
             {currentStep === 4 && (
-              <div className="space-y-8 animate-fadeIn">
-                <StepHeader
-                  title={t('listings:pricingContactTitle', 'Pricing & Contact')}
-                  subtitle={t('listings:pricingContactSubtitle', 'Set your price and contact information')}
-                />
-
-                {/* Pricing Information */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {t('listings:newListingPricing', 'Pricing Information')}
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Price */}
-                    <div className="space-y-3">
-                      <label 
-                        htmlFor="price" 
-                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {t('listings:newListingPrice', 'Price')} <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        id="price"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleFieldChange('price')}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.price ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        }`}
-                        placeholder={t('listings:newListingPricePlaceholder', '25000')}
-                        aria-invalid={!!formErrors.price}
-                        aria-describedby={formErrors.price ? 'price-error' : 'price-hint'}
-                      />
-                      <ErrorMessage error={formErrors.price} id="price-error" />
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="price-hint">
-                        {t('listings:newListingPriceHint', 'Enter the asking price for your vehicle')}
-                      </p>
-                    </div>
-
-                    {/* Currency */}
-                    <div className="space-y-3">
-                      <label 
-                        htmlFor="currency" 
-                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {t('listings:newListingCurrency', 'Currency')} <span className="text-red-500">*</span>
-                      </label>
-                      <SelectWithArrow
-                        id="currency"
-                        name="currency"
-                        value={formData.currency}
-                        onChange={handleFieldChange('currency')}
-                        isRTL={isRTL}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.currency ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        }`}
-                        aria-invalid={!!formErrors.currency}
-                        aria-describedby={formErrors.currency ? 'currency-error' : 'currency-hint'}
-                      >
-                        <option value="SYP">{t('listings:currencySYP', 'Syrian Pound (SYP)')}</option>
-                        <option value="USD">{t('listings:currencyUSD', 'US Dollar (USD)')}</option>
-                      </SelectWithArrow>
-                      <ErrorMessage error={formErrors.currency} id="currency-error" />
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="currency-hint">
-                        {t('listings:newListingCurrencyHint', 'Select the currency for your price')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Location Information */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {t('listings:newListingLocationInfo', 'Location Information')}
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Governorate */}
-                    <div className="space-y-3">
-                      <label 
-                        htmlFor="governorateSlug" 
-                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {t('listings:newListingGovernorate', 'Governorate')} <span className="text-red-500">*</span>
-                      </label>
-                      <SelectWithArrow
-                        id="governorateSlug"
-                        name="governorateSlug"
-                        value={formData.governorateSlug}
-                        onChange={handleGovernorateChange}
-                        disabled={isLoadingGovernorates}
-                        isLoading={isLoadingGovernorates}
-                        isRTL={isRTL}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.governorateSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        } ${isLoadingGovernorates ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        aria-invalid={!!formErrors.governorateSlug}
-                        aria-describedby={formErrors.governorateSlug ? 'governorateSlug-error' : 'governorateSlug-hint'}
-                      >
-                        <option value="">
-                          {isLoadingGovernorates 
-                            ? t('listings:newListingLoadingGovernorates', 'Loading governorates...') 
-                            : t('listings:newListingSelectGovernorate', 'Select a governorate')
-                          }
-                        </option>
-                        {governorates.map((gov) => (
-                          <option key={gov.id} value={gov.slug}>
-                            {i18n.language === 'ar' ? gov.displayNameAr : gov.displayNameEn}
-                          </option>
-                        ))}
-                      </SelectWithArrow>
-                      <ErrorMessage error={formErrors.governorateSlug} id="governorateSlug-error" />
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="governorateSlug-hint">
-                        {t('listings:newListingGovernorateHint', 'Select the governorate where the car is located')}
-                      </p>
-                    </div>
-
-                    {/* Location */}
-                    <div className="space-y-3">
-                      <label 
-                        htmlFor="locationSlug" 
-                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {t('listings:newListingLocation', 'Location')} <span className="text-red-500">*</span>
-                      </label>
-                      <SelectWithArrow
-                        id="locationSlug"
-                        name="locationSlug"
-                        value={formData.locationSlug}
-                        onChange={createDropdownHandler('locationSlug', 'locationId', locations)}
-                        disabled={isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === ''}
-                        isLoading={isLoadingLocations}
-                        isRTL={isRTL}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.locationSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        } ${(isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === '') ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        aria-invalid={!!formErrors.locationSlug}
-                        aria-describedby={formErrors.locationSlug ? 'locationSlug-error' : 'locationSlug-hint'}
-                      >
-                        <option value="">
-                          {!formData.governorateSlug || formData.governorateSlug.trim() === ''
-                            ? t('listings:newListingSelectGovernorateFirst', 'Select governorate first')
-                            : isLoadingLocations 
-                              ? t('listings:newListingLoadingLocations', 'Loading locations...')
-                              : t('listings:newListingSelectLocation', 'Select a location')
-                          }
-                        </option>
-                        {locations.map((loc) => (
-                          <option key={loc.id} value={loc.slug}>
-                            {i18n.language === 'ar' ? loc.displayNameAr : loc.displayNameEn}
-                          </option>
-                        ))}
-                      </SelectWithArrow>
-                      <ErrorMessage error={formErrors.locationSlug} id="locationSlug-error" />
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="locationSlug-hint">
-                        {t('listings:newListingLocationHint', 'Select the specific location within the governorate')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contact Information */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {t('listings:newListingContactInfo', 'Contact Information')}
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Contact Name */}
-                    <div className="space-y-3">
-                      <label 
-                        htmlFor="contactName" 
-                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {t('listings:newListingContactName', 'Contact Name')} <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="contactName"
-                        name="contactName"
-                        value={formData.contactName}
-                        onChange={handleFieldChange('contactName')}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.contactName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        }`}
-                        placeholder={t('listings:newListingContactNamePlaceholder', 'Your full name')}
-                        aria-invalid={!!formErrors.contactName}
-                        aria-describedby={formErrors.contactName ? 'contactName-error' : 'contactName-hint'}
-                      />
-                      <ErrorMessage error={formErrors.contactName} id="contactName-error" />
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactName-hint">
-                        {t('listings:newListingContactNameHint', 'Name for potential buyers to contact')}
-                      </p>
-                    </div>
-
-                    {/* Contact Phone */}
-                    <div className="space-y-3">
-                      <label 
-                        htmlFor="contactPhone" 
-                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        {t('listings:newListingContactPhone', 'Contact Phone')} <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        id="contactPhone"
-                        name="contactPhone"
-                        value={formData.contactPhone}
-                        onChange={handleFieldChange('contactPhone')}
-                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                          formErrors.contactPhone ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                        }`}
-                        placeholder={t('listings:newListingContactPhonePlaceholder', 'e.g., +965 12345678')}
-                        aria-invalid={!!formErrors.contactPhone}
-                        aria-describedby={formErrors.contactPhone ? 'contactPhone-error' : 'contactPhone-hint'}
-                      />
-                      <ErrorMessage error={formErrors.contactPhone} id="contactPhone-error" />
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactPhone-hint">
-                        {t('listings:newListingContactPhoneHint', 'Phone number for inquiries')}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Contact Email */}
-                  <div className="space-y-3">
-                    <label 
-                      htmlFor="contactEmail" 
-                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                      {t('listings:newListingContactEmail', 'Contact Email')} <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      id="contactEmail"
-                      name="contactEmail"
-                      value={formData.contactEmail}
-                      onChange={handleFieldChange('contactEmail')}
-                      required
-                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                        formErrors.contactEmail ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                      }`}
-                      placeholder={t('listings:newListingContactEmailPlaceholder', 'your.email@example.com')}
-                      aria-invalid={!!formErrors.contactEmail}
-                      aria-describedby={formErrors.contactEmail ? 'contactEmail-error' : 'contactEmail-hint'}
-                    />
-                    <ErrorMessage error={formErrors.contactEmail} id="contactEmail-error" />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactEmail-hint">
-                      {t('listings:newListingContactEmailHint', 'Email address for inquiries')}
-                    </p>
-                  </div>
-
-                  {/* Contact Preference */}
-                  <div className="space-y-3">
-                    <label 
-                      htmlFor="contactPreference" 
-                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                      {t('listings:newListingContactPreference', 'Preferred Contact Method')}
-                    </label>
-                    <SelectWithArrow
-                      id="contactPreference"
-                      name="contactPreference"
-                      value={formData.contactPreference}
-                      onChange={handleFieldChange('contactPreference')}
-                      isRTL={isRTL}
-                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                        formErrors.contactPreference ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                      }`}
-                      aria-invalid={!!formErrors.contactPreference}
-                      aria-describedby={formErrors.contactPreference ? 'contactPreference-error' : 'contactPreference-hint'}
-                    >
-                      <option value="email">{t('listings:contactPreferenceEmail', 'Email')}</option>
-                      <option value="phone">{t('listings:contactPreferencePhone', 'Phone')}</option>
-                      <option value="both">{t('listings:contactPreferenceBoth', 'Both Email and Phone')}</option>
-                    </SelectWithArrow>
-                    <ErrorMessage error={formErrors.contactPreference} id="contactPreference-error" />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactPreference-hint">
-                      {t('listings:newListingContactPreferenceHint', 'How would you prefer buyers to contact you?')}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <Step4PricingContact
+                formData={formData}
+                formErrors={formErrors}
+                governorates={governorates}
+                locations={locations}
+                isLoadingGovernorates={isLoadingGovernorates}
+                isLoadingLocations={isLoadingLocations}
+                isRTL={isRTL}
+                onPriceChange={handleFieldChange('price') as unknown as (e: React.ChangeEvent<HTMLInputElement>) => void}
+                onCurrencyChange={handleFieldChange('currency') as unknown as (e: React.ChangeEvent<HTMLSelectElement>) => void}
+                onGovernorateChange={handleGovernorateChange}
+                onLocationChange={createDropdownHandler('locationSlug', 'locationId', locations) as unknown as (e: React.ChangeEvent<HTMLSelectElement>) => void}
+                onContactNameChange={handleFieldChange('contactName') as unknown as (e: React.ChangeEvent<HTMLInputElement>) => void}
+                onContactPhoneChange={handleFieldChange('contactPhone') as unknown as (e: React.ChangeEvent<HTMLInputElement>) => void}
+                onContactEmailChange={handleFieldChange('contactEmail') as unknown as (e: React.ChangeEvent<HTMLInputElement>) => void}
+              />
             )}
 
             {/* Form Navigation (sticky on mobile) */}

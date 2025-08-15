@@ -7,6 +7,7 @@ import { FormErrors } from '@/types/forms';
 import { Governorate } from '@/services/api';
 import { Location } from '@/services/locations';
 import ErrorMessage from '../shared/ErrorMessage';
+import { SelectWithArrow } from '../../ui/SelectWithArrow';
 
 interface Step4Props {
   formData: ListingFormData;
@@ -15,7 +16,14 @@ interface Step4Props {
   locations: Location[];
   isLoadingGovernorates: boolean;
   isLoadingLocations: boolean;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  isRTL: boolean;
+  onPriceChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onCurrencyChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onGovernorateChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onLocationChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onContactNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onContactPhoneChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onContactEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const Step4PricingContact = memo(function Step4PricingContact({
@@ -25,7 +33,14 @@ const Step4PricingContact = memo(function Step4PricingContact({
   locations,
   isLoadingGovernorates,
   isLoadingLocations,
-  handleChange
+  isRTL,
+  onPriceChange,
+  onCurrencyChange,
+  onGovernorateChange,
+  onLocationChange,
+  onContactNameChange,
+  onContactPhoneChange,
+  onContactEmailChange
 }: Step4Props) {
   const { i18n, t } = useLazyTranslation(['listings']);
 
@@ -61,7 +76,8 @@ const Step4PricingContact = memo(function Step4PricingContact({
               id="price"
               name="price"
               value={formData.price}
-              onChange={handleChange}
+              onChange={onPriceChange}
+              data-testid="price"
               className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                 formErrors.price ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
               }`}
@@ -83,11 +99,13 @@ const Step4PricingContact = memo(function Step4PricingContact({
             >
               {t('listings:newListingCurrency', 'Currency')} <span className="text-red-500">*</span>
             </label>
-            <select
+            <SelectWithArrow
               id="currency"
               name="currency"
               value={formData.currency}
-              onChange={handleChange}
+              onChange={onCurrencyChange}
+              isRTL={isRTL}
+              data-testid="currency"
               className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                 formErrors.currency ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
               }`}
@@ -96,7 +114,7 @@ const Step4PricingContact = memo(function Step4PricingContact({
             >
               <option value="SYP">{t('listings:currencySYP', 'Syrian Pound (SYP)')}</option>
               <option value="USD">{t('listings:currencyUSD', 'US Dollar (USD)')}</option>
-            </select>
+            </SelectWithArrow>
             <ErrorMessage error={formErrors.currency} id="currency-error" />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="currency-hint">
               {t('listings:newListingCurrencyHint', 'Select the currency for your price')}
@@ -120,12 +138,15 @@ const Step4PricingContact = memo(function Step4PricingContact({
             >
               {t('listings:newListingGovernorate', 'Governorate')} <span className="text-red-500">*</span>
             </label>
-            <select
+            <SelectWithArrow
               id="governorateSlug"
               name="governorateSlug"
               value={formData.governorateSlug}
-              onChange={handleChange}
+              onChange={onGovernorateChange}
               disabled={isLoadingGovernorates}
+              isLoading={isLoadingGovernorates}
+              isRTL={isRTL}
+              data-testid="governorateSlug"
               className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                 formErrors.governorateSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
               } ${isLoadingGovernorates ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -143,7 +164,7 @@ const Step4PricingContact = memo(function Step4PricingContact({
                   {i18n.language === 'ar' ? gov.displayNameAr : gov.displayNameEn}
                 </option>
               ))}
-            </select>
+            </SelectWithArrow>
             <ErrorMessage error={formErrors.governorateSlug} id="governorateSlug-error" />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="governorateSlug-hint">
               {t('listings:newListingGovernorateHint', 'Select the governorate where the car is located')}
@@ -158,12 +179,15 @@ const Step4PricingContact = memo(function Step4PricingContact({
             >
               {t('listings:newListingLocation', 'Location')} <span className="text-red-500">*</span>
             </label>
-            <select
+            <SelectWithArrow
               id="locationSlug"
               name="locationSlug"
               value={formData.locationSlug}
-              onChange={handleChange}
+              onChange={onLocationChange}
               disabled={isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === ''}
+              isLoading={isLoadingLocations}
+              isRTL={isRTL}
+              data-testid="locationSlug"
               className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                 formErrors.locationSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
               } ${(isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === '') ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -176,14 +200,14 @@ const Step4PricingContact = memo(function Step4PricingContact({
                   : isLoadingLocations 
                     ? t('listings:newListingLoadingLocations', 'Loading locations...')
                     : t('listings:newListingSelectLocation', 'Select a location')
-                }
+              }
               </option>
               {locations.map((loc) => (
                 <option key={loc.id} value={loc.slug}>
                   {i18n.language === 'ar' ? loc.displayNameAr : loc.displayNameEn}
                 </option>
               ))}
-            </select>
+            </SelectWithArrow>
             <ErrorMessage error={formErrors.locationSlug} id="locationSlug-error" />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="locationSlug-hint">
               {t('listings:newListingLocationHint', 'Select the specific location within the governorate')}
@@ -212,7 +236,8 @@ const Step4PricingContact = memo(function Step4PricingContact({
               id="contactName"
               name="contactName"
               value={formData.contactName}
-              onChange={handleChange}
+              onChange={onContactNameChange}
+              data-testid="contactName"
               className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                 formErrors.contactName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
               }`}
@@ -239,7 +264,8 @@ const Step4PricingContact = memo(function Step4PricingContact({
               id="contactPhone"
               name="contactPhone"
               value={formData.contactPhone}
-              onChange={handleChange}
+              onChange={onContactPhoneChange}
+              data-testid="contactPhone"
               className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                 formErrors.contactPhone ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
               }`}
@@ -267,7 +293,8 @@ const Step4PricingContact = memo(function Step4PricingContact({
             id="contactEmail"
             name="contactEmail"
             value={formData.contactEmail}
-            onChange={handleChange}
+            onChange={onContactEmailChange}
+            data-testid="contactEmail"
             required
             className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
               formErrors.contactEmail ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
