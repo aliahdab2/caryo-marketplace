@@ -116,7 +116,12 @@ describe('ListingDataService', () => {
           name: 'John Doe',
           phone: '+963123456789',
           email: 'john@example.com'
-        }
+        },
+        // V3: Direct contact fields on listing (recent enhancement)
+        contactName: 'John Doe',
+        contactEmail: 'john@example.com',
+        contactPhone: '+963123456789',
+        contactPreference: 'email'
       };
 
       mockGetMyListingById.mockResolvedValue(mockListing );

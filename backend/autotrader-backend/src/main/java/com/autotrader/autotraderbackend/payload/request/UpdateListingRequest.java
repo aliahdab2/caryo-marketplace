@@ -34,6 +34,12 @@ public class UpdateListingRequest {
     private Boolean isSold;
     private Boolean isArchived;
 
+    // Contact information for this listing (AutoTrader pattern)
+    private String contactName;
+    private String contactEmail;
+    private String contactPhone;
+    private String contactPreference;
+
     // Explicit getters and setters
     public String getTitle() { return title; }
     public Long getModelId() { return modelId; }
@@ -46,6 +52,10 @@ public class UpdateListingRequest {
     public String getTransmission() { return transmission; }
     public Boolean getIsSold() { return isSold; }
     public Boolean getIsArchived() { return isArchived; }
+    public String getContactName() { return contactName; }
+    public String getContactEmail() { return contactEmail; }
+    public String getContactPhone() { return contactPhone; }
+    public String getContactPreference() { return contactPreference; }
 
     public void setTitle(String title) { this.title = title; }
     public void setModelId(Long modelId) { this.modelId = modelId; }
@@ -58,4 +68,8 @@ public class UpdateListingRequest {
     public void setTransmission(String transmission) { this.transmission = transmission; }
     public void setIsSold(Boolean isSold) { this.isSold = isSold; }
     public void setIsArchived(Boolean isArchived) { this.isArchived = isArchived; }
+    public void setContactName(String contactName) { this.contactName = contactName; }
+    public void setContactEmail(String contactEmail) { this.contactEmail = contactEmail; }
+    public void setContactPhone(String contactPhone) { this.contactPhone = contactPhone; }
+    public void setContactPreference(String contactPreference) { this.contactPreference = contactPreference; }
 }

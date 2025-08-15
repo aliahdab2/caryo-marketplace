@@ -31,14 +31,24 @@ public class TestResourceCleanupService implements AutoCloseable {
         try {
             carListingRepository.deleteAll();
         } catch (Exception e) {
-            logger.warn("Exception during carListingRepository.deleteAll() in cleanup: {}", e.getMessage());
+            // Check if error is related to table not existing (which is expected during shutdown)
+            if (e.getMessage() != null && e.getMessage().contains("Table") && e.getMessage().contains("not found")) {
+                logger.debug("Skipping carListingRepository cleanup - tables already dropped");
+            } else {
+                logger.warn("Exception during carListingRepository.deleteAll() in cleanup: {}", e.getMessage());
+            }
         }
         
         // Clean up stored users for tests
         try {
             userRepository.deleteAll();
         } catch (Exception e) {
-            logger.warn("Exception during userRepository.deleteAll() in cleanup: {}", e.getMessage());
+            // Check if error is related to table not existing (which is expected during shutdown)
+            if (e.getMessage() != null && e.getMessage().contains("Table") && e.getMessage().contains("not found")) {
+                logger.debug("Skipping userRepository cleanup - tables already dropped");
+            } else {
+                logger.warn("Exception during userRepository.deleteAll() in cleanup: {}", e.getMessage());
+            }
         }
         
         logger.info("Test resources cleanup attempt finished.");

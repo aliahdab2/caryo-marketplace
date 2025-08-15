@@ -195,7 +195,7 @@ As of Version 2, the car listing API responses have been enhanced to return comp
   "modelYear": 2023,
   "price": 28500,
   "mileage": 15000,
-  "currency": "USD",
+  "currency": "USD", 
   "description": "Excellent condition, one owner, no accidents",
   "approved": true,
   "userId": 1,
@@ -205,6 +205,12 @@ As of Version 2, the car listing API responses have been enhanced to return comp
   "isArchived": false,
   "isUserActive": true,
   "isExpired": false,
+  
+  // Contact information for this listing
+  "contactName": "Ahmed Al-Hassan",
+  "contactEmail": "ahmed.hassan@dealer.com",
+  "contactPhone": "+963-11-123-4567",
+  "contactPreference": "both",
   
   // Deprecated fields (maintained for backward compatibility)
   "brandNameEn": "Toyota",
@@ -385,24 +391,34 @@ const displayName = transmission.displayNameEn;
 
 - **Endpoint**: `POST /api/listings`
 - **Access**: Authenticated users
-- **Description**: Creates a new car listing
+- **Description**: Creates a new car listing with optional contact information
 - **Authentication**: Required (JWT token)
 - **Request Body**:
   ```json
   {
     "title": "2019 Toyota Camry",
-    "brandId": 1,
     "modelId": 101,
     "transmissionId": 1,
     "fuelTypeId": 1,
+    "bodyStyleId": 1,
     "modelYear": 2019,
     "price": 18500,
+    "currency": "USD",
     "mileage": 35000,
     "locationId": 1,
-    "governorateId": 1,
-    "description": "Excellent condition, one owner, no accidents"
+    "description": "Excellent condition, one owner, no accidents",
+    "contactName": "John Doe",
+    "contactEmail": "john.doe@example.com",
+    "contactPhone": "+1-555-123-4567",
+    "contactPreference": "both"
   }
   ```
+  
+  **Contact Fields (Optional)**:
+  - `contactName`: Contact name for this listing (defaults to seller username if not provided)
+  - `contactEmail`: Contact email for this listing (defaults to seller email if not provided)  
+  - `contactPhone`: Contact phone number for this listing
+  - `contactPreference`: Contact preference - valid values: `email`, `phone`, `both` (defaults to `email`)
   
   **Note**: The API now accepts IDs for reference data instead of string names. Use the reference data endpoints to get the correct IDs:
   - Use `GET /api/reference-data/brands` and `GET /api/reference-data/brands/{brandId}/models` for brand and model IDs
@@ -445,6 +461,7 @@ const displayName = transmission.displayNameEn;
     },
     "modelYear": 2019,
     "price": 18500,
+    "currency": "USD",
     "mileage": 35000,
     "location": "New York, NY",
     "description": "Excellent condition, one owner, no accidents",
@@ -457,6 +474,12 @@ const displayName = transmission.displayNameEn;
     "isArchived": false,
     "isUserActive": true,
     "isExpired": false,
+    
+    // Contact information for this listing
+    "contactName": "John Doe",
+    "contactEmail": "john.doe@example.com", 
+    "contactPhone": "+1-555-123-4567",
+    "contactPreference": "both",
     
     // Deprecated fields (backward compatibility)
     "brandNameEn": "Toyota",
@@ -1452,16 +1475,20 @@ curl -X POST http://localhost:8080/api/listings \
   -H "Authorization: Bearer $TOKEN" \
   -d '{
     "title":"2019 Toyota Camry",
-    "brandId":1,
     "modelId":101,
     "transmissionId":1,
     "fuelTypeId":1,
+    "bodyStyleId":1,
     "modelYear":2019,
     "price":18500,
+    "currency":"USD",
     "mileage":35000,
     "locationId":1,
-    "governorateId":1,
-    "description":"Excellent condition, one owner, no accidents"
+    "description":"Excellent condition, one owner, no accidents",
+    "contactName":"John Doe",
+    "contactEmail":"john.doe@example.com",
+    "contactPhone":"+1-555-123-4567",
+    "contactPreference":"both"
   }'
 ```
 
@@ -1470,7 +1497,7 @@ curl -X POST http://localhost:8080/api/listings \
 # Using the token from previous step
 curl -X POST http://localhost:8080/api/listings/with-image \
   -H "Authorization: Bearer $TOKEN" \
-  -F 'listing={"title":"2020 Honda Civic","brandId":2,"modelId":201,"transmissionId":1,"fuelTypeId":1,"modelYear":2020,"price":20000,"mileage":25000,"locationId":1,"governorateId":1,"description":"Like new condition"}' \
+  -F 'listing={"title":"2020 Honda Civic","modelId":201,"transmissionId":1,"fuelTypeId":1,"bodyStyleId":3,"modelYear":2020,"price":20000,"currency":"USD","mileage":25000,"locationId":1,"description":"Like new condition","contactName":"Honda Dealer","contactEmail":"sales@hondadealer.com","contactPhone":"+1-555-888-9999","contactPreference":"both"}' \
   -F 'image=@/path/to/your/image.jpg'
 ```
 
@@ -1580,6 +1607,106 @@ To run all API tests automatically:
 - `PUT /api/listings/{id}` - Update a listing (authenticated owner only)
 - `DELETE /api/listings/{id}` - Delete a listing (authenticated owner only)
 - `POST /api/admin/listings/{id}/approve` - Approve a listing (admin only)
+
+#### Update Car Listing
+
+- **Endpoint**: `PUT /api/listings/{id}`
+- **Access**: Authenticated users (owner only)
+- **Description**: Updates an existing car listing with new information
+- **Authentication**: Required (JWT token)
+- **Parameters**:
+  - `id` (path parameter): ID of the car listing to update
+- **Request Body**:
+  ```json
+  {
+    "title": "2019 Toyota Camry Updated",
+    "modelId": 101,
+    "transmissionId": 2,
+    "fuelTypeId": 1,
+    "bodyStyleId": 1,
+    "modelYear": 2019,
+    "price": 19500,
+    "currency": "USD",
+    "mileage": 40000,
+    "locationId": 2,
+    "description": "Updated description - excellent condition, regular maintenance",
+    "contactName": "Jane Smith",
+    "contactEmail": "jane.smith@example.com",
+    "contactPhone": "+1-555-987-6543",
+    "contactPreference": "email"
+  }
+  ```
+  
+  **All fields are optional** - only provide the fields you want to update. Contact fields work the same as in create listing.
+  
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "title": "2019 Toyota Camry Updated",
+    "brand": {
+      "id": 1,
+      "name": "toyota",
+      "slug": "toyota",
+      "displayNameEn": "Toyota",
+      "displayNameAr": "تويوتا"
+    },
+    "model": {
+      "id": 101,
+      "name": "camry", 
+      "slug": "toyota-camry",
+      "displayNameEn": "Camry",
+      "displayNameAr": "كامري",
+      "brandId": 1
+    },
+    "transmission": {
+      "id": 2,
+      "name": "manual",
+      "slug": "manual",
+      "displayNameEn": "Manual",
+      "displayNameAr": "يدوي"
+    },
+    "modelYear": 2019,
+    "price": 19500,
+    "currency": "USD",
+    "mileage": 40000,
+    "description": "Updated description - excellent condition, regular maintenance",
+    "contactName": "Jane Smith",
+    "contactEmail": "jane.smith@example.com",
+    "contactPhone": "+1-555-987-6543", 
+    "contactPreference": "email",
+    "approved": true,
+    "userId": 1,
+    "createdAt": "2025-04-30T10:15:30Z",
+    "updatedAt": "2025-04-30T11:20:45Z",
+    "isSold": false,
+    "isArchived": false,
+    "isUserActive": true,
+    "isExpired": false
+  }
+  ```
+- **Response (400 Bad Request)** - Invalid data:
+  ```json
+  {
+    "message": "Validation failed",
+    "errors": {
+      "price": "Price must be greater than 0",
+      "modelYear": "Year must not be later than the current year"
+    }
+  }
+  ```
+- **Response (403 Forbidden)** - Not the owner:
+  ```json
+  {
+    "message": "You are not authorized to update this listing"
+  }
+  ```
+- **Response (404 Not Found)** - Listing not found:
+  ```json
+  {
+    "message": "Listing not found"
+  }
+  ```
 
 ### Pause & Resume Operations
 

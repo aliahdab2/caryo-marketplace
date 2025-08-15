@@ -117,6 +117,23 @@ public class CarListing {
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)
     private String description;
 
+    // Contact information for this specific listing (AutoTrader pattern)
+    @Size(max = 100)
+    @Column(name = "contact_name", length = 100)
+    private String contactName;
+    
+    @Size(max = 255)
+    @Column(name = "contact_email", length = 255)
+    private String contactEmail;
+    
+    @Size(max = 50)
+    @Column(name = "contact_phone", length = 50)
+    private String contactPhone;
+    
+    @Size(max = 20)
+    @Column(name = "contact_preference", length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'email'")
+    private String contactPreference = "email";
+
     @Size(max = 50)
     @Column(name = "transmission", length = 50)
     private String transmission;

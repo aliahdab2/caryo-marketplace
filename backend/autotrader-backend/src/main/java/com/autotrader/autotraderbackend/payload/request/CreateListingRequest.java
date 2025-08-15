@@ -96,6 +96,28 @@ public class CreateListingRequest {
      */
     private Long bodyStyleId;
 
+    // Contact information for this listing (AutoTrader pattern)
+    /**
+     * Contact name for this listing. Optional - defaults to seller username if not provided.
+     */
+    private String contactName;
+
+    /**
+     * Contact email for this listing. Optional - defaults to seller email if not provided.
+     */
+    private String contactEmail;
+
+    /**
+     * Contact phone for this listing. Optional.
+     */
+    private String contactPhone;
+
+    /**
+     * Contact preference for this listing. Defaults to 'email'.
+     * Valid values: 'email', 'phone', 'both'
+     */
+    private String contactPreference = "email";
+
     // Explicit Getters
     public String getTitle() { return title; }
     public Long getModelId() { return modelId; }
@@ -110,6 +132,10 @@ public class CreateListingRequest {
     public Long getTransmissionId() { return transmissionId; }
     public Long getFuelTypeId() { return fuelTypeId; }
     public Long getBodyStyleId() { return bodyStyleId; }
+    public String getContactName() { return contactName; }
+    public String getContactEmail() { return contactEmail; }
+    public String getContactPhone() { return contactPhone; }
+    public String getContactPreference() { return contactPreference; }
 
     // Explicit Setters
     public void setTitle(String title) { this.title = title; }
@@ -125,4 +151,8 @@ public class CreateListingRequest {
     public void setTransmissionId(Long transmissionId) { this.transmissionId = transmissionId; }
     public void setFuelTypeId(Long fuelTypeId) { this.fuelTypeId = fuelTypeId; }
     public void setBodyStyleId(Long bodyStyleId) { this.bodyStyleId = bodyStyleId; }
+    public void setContactName(String contactName) { this.contactName = contactName; }
+    public void setContactEmail(String contactEmail) { this.contactEmail = contactEmail; }
+    public void setContactPhone(String contactPhone) { this.contactPhone = contactPhone; }
+    public void setContactPreference(String contactPreference) { this.contactPreference = contactPreference; }
 }

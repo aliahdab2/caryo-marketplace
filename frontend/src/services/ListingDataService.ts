@@ -29,6 +29,16 @@ export class ListingDataService {
   private static async loadEditData(listingId: string): Promise<Partial<ListingFormData>> {
     try {
       const listing = await getMyListingById(listingId);
+      console.log('[ListingDataService] Raw listing data:', {
+        id: listing.id,
+        title: listing.title,
+        // V3: Debug contact fields loading
+        contactName: listing.contactName,
+        contactEmail: listing.contactEmail,
+        contactPhone: listing.contactPhone,
+        contactPreference: listing.contactPreference,
+        hasContactFields: !!(listing.contactName || listing.contactEmail || listing.contactPhone)
+      });
       return await this.transformApiToForm(listing);
     } catch (error) {
       console.error('[ListingDataService] Error loading edit data:', error);
@@ -168,10 +178,11 @@ export class ListingDataService {
       locationId: locationId,
       state: locationName,
       zipCode: "",
-      contactName: listing.seller?.name || "",
-      contactPhone: listing.seller?.phone || "",
-      contactEmail: listing.seller?.email || "",
-      contactPreference: "phone",
+      // V3: Use direct contact fields from listing (not seller defaults)
+      contactName: listing.contactName || "",
+      contactPhone: listing.contactPhone || "",
+      contactEmail: listing.contactEmail || "",
+      contactPreference: listing.contactPreference || "email",
       images: [],
       videos: [],
       videoUrls: videoUrls,
@@ -194,7 +205,13 @@ export class ListingDataService {
       imageCount: imageUrls.length,
       videoCount: videoUrls.length,
       existingImageUrls: formData.existingImageUrls,
-      existingVideoUrls: formData.existingVideoUrls
+      existingVideoUrls: formData.existingVideoUrls,
+      // V3: Contact fields debug
+      contactName: formData.contactName,
+      contactEmail: formData.contactEmail,
+      contactPhone: formData.contactPhone,
+      contactPreference: formData.contactPreference,
+      hasContactInfo: !!(formData.contactName || formData.contactEmail || formData.contactPhone)
     });
 
     return formData;

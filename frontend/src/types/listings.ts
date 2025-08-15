@@ -93,6 +93,11 @@ export interface ApiListingItem {
   transmissionNameAr?: string;
   fuelTypeNameEn?: string;
   fuelTypeNameAr?: string;
+  // V3: Contact fields from backend enhancement
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  contactPreference?: string;
 }
 
 /**
@@ -123,6 +128,11 @@ export interface UpdateListingData {
   fuelTypeId?: number;
   isSold?: boolean;
   isArchived?: boolean;
+  // V3: Contact fields from backend enhancement
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  contactPreference?: string;
 }
 
 /**
@@ -248,6 +258,10 @@ export interface Listing {
   approved?: boolean;
   expired?: boolean;
   expires?: string;
+  // V3: Contact fields from backend enhancement
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
   contactPreference?: string;
 }
 
