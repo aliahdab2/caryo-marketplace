@@ -15,7 +15,7 @@ import { validateStep } from '@/utils/formUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 import { createLogger } from '@/utils/logger';
 import NumericInput from '@/components/ui/NumericInput';
-import AutoSaveIndicator from '@/components/ui/AutoSaveIndicator';
+// AutoSaveIndicator used via StepNavigation
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useMemo as useMemoPerf, useCallback as useCallbackPerf } from 'react';
 import { useDirection } from '@/utils/direction';
@@ -24,6 +24,9 @@ import { createRTLHelpers } from '@/utils/rtlHelpers';
 import { ImageUploadSection } from './ImageUploadSection';
 import { VideoUploadSection } from './VideoUploadSection';
 import { SelectWithArrow } from '../ui/SelectWithArrow';
+import StepHeader from './shared/StepHeader';
+import StepNavigation from './shared/StepNavigation';
+import StepActions from './shared/StepActions';
 
 // Performance optimized debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -44,10 +47,8 @@ function useDebounce<T>(value: T, delay: number): T {
 
 // Optimized throttle hook for frequent operations
 // useThrottle utility not used in this component anymore
-import { 
-  ListingWizardProps, 
-  ErrorMessageProps 
-} from '@/types/wizard';
+import { ListingWizardProps } from '@/types/wizard';
+import ErrorMessage from './shared/ErrorMessage';
 
 // Constants
 const TOTAL_STEPS = 4;
@@ -59,39 +60,7 @@ const wizardLogger = createLogger({
 });
 const DEFAULT_CURRENCY = "USD";
 
-const ErrorMessage: React.FC<ErrorMessageProps> = React.memo(function ErrorMessage({ error, id, className = "" }) {
-  if (!error) return null;
-  
-  return (
-    <div 
-      id={id}
-      className={`mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3 ${className}`}
-      role="alert" 
-      aria-live="polite"
-    >
-      <div className="flex-shrink-0 w-4 h-4 mt-0.5" aria-hidden="true">
-        <svg 
-          className="w-4 h-4 text-red-500 dark:text-red-400" 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth="2" 
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" 
-          />
-        </svg>
-      </div>
-      <div className="flex-1">
-        <div className="text-sm text-red-700 dark:text-red-300 leading-relaxed">
-          {error}
-        </div>
-      </div>
-    </div>
-  );
-});
+// ErrorMessage moved to shared component
 
 // Image preview moved into ImageUploadSection
 
@@ -133,8 +102,8 @@ export default function ListingWizard({
   
   // Refs for keyboard navigation
   const formRef = useRef<HTMLFormElement>(null);
-  const previousButtonRef = useRef<HTMLButtonElement>(null);
-  const nextButtonRef = useRef<HTMLButtonElement>(null);
+  const _previousButtonRef = useRef<HTMLButtonElement>(null);
+  const _nextButtonRef = useRef<HTMLButtonElement>(null);
 
   // State management
   const [currentStep, setCurrentStep] = useState(1);
@@ -883,73 +852,17 @@ export default function ListingWizard({
         </div>
         )}
 
-        {/* Step Navigation */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            {stepConfig.map(({ step, title, icon, isComplete }) => (
-              <div key={step} className="flex flex-col items-center relative">
-                <button
-                  type="button"
-                  onClick={(e) => handleStepChange(step, e)}
-
-                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 font-semibold text-lg relative z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                    currentStep >= step 
-                      ? 'bg-blue-600 text-white shadow-lg hover:bg-blue-700 cursor-pointer transform hover:scale-105' 
-                      : 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 border-2 border-blue-300 dark:border-blue-600 hover:bg-blue-200 dark:hover:bg-blue-800 cursor-pointer'
-                  }`}
-                >
-                  {isComplete ? (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : currentStep === step ? (
-                    <span className="text-lg">{icon}</span>
-                  ) : (
-                    <span>{step}</span>
-                  )}
-                </button>
-                <span className={`text-sm mt-3 text-center max-w-24 font-medium transition-colors duration-300 ${
-                  currentStep >= step 
-                    ? 'text-blue-600 dark:text-blue-400' 
-                    : 'text-gray-500 dark:text-gray-400'
-                }`}>
-                  {title}
-                </span>
-                {step < TOTAL_STEPS && (
-                  <div 
-                    className={`absolute top-6 start-12 w-20 h-0.5 transition-colors duration-300 ${
-                      currentStep > step ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-          
-          {/* Progress Bar */}
-          <div className="mt-6">
-            <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400 mb-2">
-              <span>{t('listings:newListingStepCounter', 'Step {{current}} of {{total}}', { current: currentStep, total: TOTAL_STEPS })}</span>
-              <div className="flex items-center gap-4">
-                {/* Auto-save indicator (only in create mode) */}
-                {mode === 'create' && autoSave && (
-                  <AutoSaveIndicator
-                    status={autoSaveHook.autoSaveStatus}
-                    lastSaved={autoSaveHook.lastSaved}
-                    className="text-xs"
-                  />
-                )}
-                <span>{t('listings:progressComplete', '{{percent}}% Complete', { percent: progressPercentage })}</span>
-              </div>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-700 ease-out"
-                style={{ width: `${progressPercentage}%` }}
-              />
-            </div>
-          </div>
-        </div>
+        <StepNavigation
+          items={stepConfig}
+          currentStep={currentStep}
+          onStepChange={handleStepChange}
+          progressPercentage={progressPercentage}
+          showAutoSaveIndicator={mode === 'create' && autoSave}
+          autoSaveStatus={autoSaveHook.autoSaveStatus}
+          lastSaved={autoSaveHook.lastSaved}
+          stepCounterText={t('listings:newListingStepCounter', 'Step {{current}} of {{total}}', { current: currentStep, total: TOTAL_STEPS })}
+          percentCompleteText={t('listings:progressComplete', '{{percent}}% Complete', { percent: progressPercentage })}
+        />
 
         {/* Success Alert */}
         {showSuccessAlert && (
@@ -966,15 +879,10 @@ export default function ListingWizard({
             {/* Step 1: Basic Info - Simplified for now */}
             {currentStep === 1 && (
               <div className="space-y-8 animate-fadeIn">
-                {/* Step Header */}
-                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:vehicleIdentityTitle', 'Vehicle Identity')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:vehicleIdentitySubtitle', 'Start by telling us what vehicle you\'re selling')}
-                  </p>
-                </div>
+                <StepHeader
+                  title={t('listings:vehicleIdentityTitle', 'Vehicle Identity')}
+                  subtitle={t('listings:vehicleIdentitySubtitle', "Start by telling us what vehicle you're selling")}
+                />
 
                 {/* Car Make */}
                 <div className="space-y-3">
@@ -1105,15 +1013,10 @@ export default function ListingWizard({
             {/* Step 2: Vehicle Details */}
             {currentStep === 2 && (
               <div className="space-y-8 animate-fadeIn">
-                {/* Step Header */}
-                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:vehicleDetailsTitle', 'Vehicle Details')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:vehicleDetailsSubtitle', 'Tell us more about your vehicle\'s condition and features')}
-                  </p>
-                </div>
+                <StepHeader
+                  title={t('listings:vehicleDetailsTitle', 'Vehicle Details')}
+                  subtitle={t('listings:vehicleDetailsSubtitle', "Tell us more about your vehicle's condition and features")}
+                />
 
                 {/* Mileage */}
                 <div className="space-y-3">
@@ -1277,15 +1180,10 @@ export default function ListingWizard({
             {/* Step 3: Content & Media */}
             {currentStep === 3 && (
               <div className="space-y-8 animate-fadeIn">
-                {/* Step Header */}
-                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:contentMediaTitle', 'Content & Media')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:contentMediaSubtitle', 'Create your listing content and add photos')}
-                  </p>
-                </div>
+                <StepHeader
+                  title={t('listings:contentMediaTitle', 'Content & Media')}
+                  subtitle={t('listings:contentMediaSubtitle', 'Create your listing content and add photos')}
+                />
 
                 {/* Title */}
                 <div className="space-y-3">
@@ -1351,15 +1249,10 @@ export default function ListingWizard({
             {/* Step 4: Pricing & Contact */}
             {currentStep === 4 && (
               <div className="space-y-8 animate-fadeIn">
-                {/* Step Header */}
-                <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('listings:pricingContactTitle', 'Pricing & Contact')}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {t('listings:pricingContactSubtitle', 'Set your price and contact information')}
-                  </p>
-                </div>
+                <StepHeader
+                  title={t('listings:pricingContactTitle', 'Pricing & Contact')}
+                  subtitle={t('listings:pricingContactSubtitle', 'Set your price and contact information')}
+                />
 
                 {/* Pricing Information */}
                 <div className="space-y-6">
@@ -1403,11 +1296,12 @@ export default function ListingWizard({
                       >
                         {t('listings:newListingCurrency', 'Currency')} <span className="text-red-500">*</span>
                       </label>
-                      <select
+                      <SelectWithArrow
                         id="currency"
                         name="currency"
                         value={formData.currency}
                         onChange={handleFieldChange('currency')}
+                        isRTL={isRTL}
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.currency ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                         }`}
@@ -1416,7 +1310,7 @@ export default function ListingWizard({
                       >
                         <option value="SYP">{t('listings:currencySYP', 'Syrian Pound (SYP)')}</option>
                         <option value="USD">{t('listings:currencyUSD', 'US Dollar (USD)')}</option>
-                      </select>
+                      </SelectWithArrow>
                       <ErrorMessage error={formErrors.currency} id="currency-error" />
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="currency-hint">
                         {t('listings:newListingCurrencyHint', 'Select the currency for your price')}
@@ -1440,12 +1334,14 @@ export default function ListingWizard({
                       >
                         {t('listings:newListingGovernorate', 'Governorate')} <span className="text-red-500">*</span>
                       </label>
-                      <select
+                      <SelectWithArrow
                         id="governorateSlug"
                         name="governorateSlug"
                         value={formData.governorateSlug}
                         onChange={handleGovernorateChange}
                         disabled={isLoadingGovernorates}
+                        isLoading={isLoadingGovernorates}
+                        isRTL={isRTL}
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.governorateSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                         } ${isLoadingGovernorates ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1463,7 +1359,7 @@ export default function ListingWizard({
                             {i18n.language === 'ar' ? gov.displayNameAr : gov.displayNameEn}
                           </option>
                         ))}
-                      </select>
+                      </SelectWithArrow>
                       <ErrorMessage error={formErrors.governorateSlug} id="governorateSlug-error" />
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="governorateSlug-hint">
                         {t('listings:newListingGovernorateHint', 'Select the governorate where the car is located')}
@@ -1478,12 +1374,14 @@ export default function ListingWizard({
                       >
                         {t('listings:newListingLocation', 'Location')} <span className="text-red-500">*</span>
                       </label>
-                      <select
+                      <SelectWithArrow
                         id="locationSlug"
                         name="locationSlug"
                         value={formData.locationSlug}
                         onChange={createDropdownHandler('locationSlug', 'locationId', locations)}
                         disabled={isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === ''}
+                        isLoading={isLoadingLocations}
+                        isRTL={isRTL}
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.locationSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                         } ${(isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === '') ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1503,7 +1401,7 @@ export default function ListingWizard({
                             {i18n.language === 'ar' ? loc.displayNameAr : loc.displayNameEn}
                           </option>
                         ))}
-                      </select>
+                      </SelectWithArrow>
                       <ErrorMessage error={formErrors.locationSlug} id="locationSlug-error" />
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="locationSlug-hint">
                         {t('listings:newListingLocationHint', 'Select the specific location within the governorate')}
@@ -1610,11 +1508,12 @@ export default function ListingWizard({
                     >
                       {t('listings:newListingContactPreference', 'Preferred Contact Method')}
                     </label>
-                    <select
+                    <SelectWithArrow
                       id="contactPreference"
                       name="contactPreference"
                       value={formData.contactPreference}
                       onChange={handleFieldChange('contactPreference')}
+                      isRTL={isRTL}
                       className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                         formErrors.contactPreference ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                       }`}
@@ -1624,7 +1523,7 @@ export default function ListingWizard({
                       <option value="email">{t('listings:contactPreferenceEmail', 'Email')}</option>
                       <option value="phone">{t('listings:contactPreferencePhone', 'Phone')}</option>
                       <option value="both">{t('listings:contactPreferenceBoth', 'Both Email and Phone')}</option>
-                    </select>
+                    </SelectWithArrow>
                     <ErrorMessage error={formErrors.contactPreference} id="contactPreference-error" />
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactPreference-hint">
                       {t('listings:newListingContactPreferenceHint', 'How would you prefer buyers to contact you?')}
@@ -1635,60 +1534,19 @@ export default function ListingWizard({
             )}
 
             {/* Form Navigation (sticky on mobile) */}
-            <div className="sticky bottom-0 z-20 bg-white dark:bg-gray-900 flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-gray-200 dark:border-gray-700 space-y-4 sm:space-y-0">
-              <div className="order-2 sm:order-1">
-                <button
-                  ref={previousButtonRef}
-                  type="button"
-                  onClick={(e) => handleStepChange(currentStep - 1, e)}
-                  disabled={currentStep === 1}
-                  className="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                >
-                  <svg className={`w-4 h-4 ${rtl.spacing.mr('2')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={rtl.arrows.leftArrow} />
-                  </svg>
-                  {t('common:previous')}
-                </button>
-              </div>
-              
-              {currentStep < TOTAL_STEPS ? (
-                <button
-                  ref={nextButtonRef}
-                  type="button"
-                  onClick={(e) => handleStepChange(currentStep + 1, e)}
-                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 shadow-lg hover:shadow-xl order-1 sm:order-2"
-                >
-                  {t('common:next')}
-                  <svg className={`w-4 h-4 ${rtl.spacing.ml('2')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={rtl.arrows.rightArrow} />
-                  </svg>
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-
-                  className="inline-flex items-center px-8 py-3 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 order-1 sm:order-2"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      {t('listings:submitting', 'Submitting...')}
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                      {mode === 'edit' ? t('listings:updateListing', 'Update Listing') : t('listings:createListing', 'Create Listing')}
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
+            <StepActions
+              isFirstStep={currentStep === 1}
+              isLastStep={currentStep === TOTAL_STEPS}
+              isSubmitting={isSubmitting}
+              onPrev={(e) => handleStepChange(currentStep - 1, e)}
+              onNext={(e) => handleStepChange(currentStep + 1, e)}
+              submitButtonText={mode === 'edit' ? t('listings:updateListing', 'Update Listing') : t('listings:createListing', 'Create Listing')}
+              previousText={t('common:previous')}
+              nextText={t('common:next')}
+              leftArrowPath={rtl.arrows.leftArrow}
+              rightArrowPath={rtl.arrows.rightArrow}
+              rtlSpacing={rtl.spacing}
+            />
           </form>
         </div>
       </div>
