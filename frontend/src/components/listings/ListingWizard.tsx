@@ -8,7 +8,7 @@ import { useListingData } from '@/hooks/useListingData';
 import { ListingFormData } from "@/types/listings";
 
 import { FormErrors, StepConfig } from "@/types/forms";
-import { ListingDataService } from '@/services/ListingDataService';
+import { ListingDataService as _ListingDataService } from '@/services/ListingDataService';
 // SUPPORTED_CURRENCIES removed - not used in this component
 import { validateStep } from '@/utils/formUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
@@ -16,7 +16,7 @@ import { createLogger } from '@/utils/logger';
 // NumericInput now used inside Step2VehicleDetails
 // AutoSaveIndicator used via StepNavigation
 import { useAutoSave } from '@/hooks/useAutoSave';
-import { useMemo as useMemoPerf, useCallback as useCallbackPerf } from 'react';
+import { useMemo as useMemoPerf } from 'react';
 import { useDirection } from '@/utils/direction';
 import { createRTLHelpers } from '@/utils/rtlHelpers';
 // Media utils are now handled within media components
@@ -29,6 +29,10 @@ import Step1VehicleIdentity from './steps/Step1VehicleIdentity';
 import Step2VehicleDetails from './steps/Step2VehicleDetails';
 import Step3ContentMedia from './steps/Step3ContentMedia';
 import Step4PricingContact from './steps/Step4PricingContact';
+import { useFormHandlers } from '@/hooks/form/useFormHandlers';
+import { useListingDataLoader } from '@/hooks/form/useListingDataLoader';
+import { useStepNavigation } from '@/hooks/form/useStepNavigation';
+import { useKeyboardNavigation } from '@/hooks/form/useKeyboardNavigation';
 
 // Performance optimized debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -212,75 +216,16 @@ export default function ListingWizard({
   // Debounced form data for expensive validations  
   const debouncedFormData = useDebounce(formData, 300);
 
-  // Simple unified handler for text fields
-  const handleFieldChange = useCallback((field: keyof ListingFormData) => {
-    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-      setFormData(prev => ({ ...prev, [field]: e.target.value }));
-    };
-  }, []);
-
-  // Reusable dropdown factory for slug+ID pattern
-  const createDropdownHandler = useCallback((
-    slugField: keyof ListingFormData,
-    idField: keyof ListingFormData,
-    dataArray: Array<{ id: number; slug: string }>
-  ) => {
-    return (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const value = e.target.value;
-      const selectedItem = value ? dataArray.find(item => item.slug === value) : null;
-      
-      setFormData(prev => ({
-        ...prev,
-        [slugField]: value,
-        [idField]: selectedItem?.id
-      }));
-    };
-  }, []);
-
-  // Special handlers for fields that need additional logic
-  const handleMakeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    const selectedMake = value ? carMakes.find(make => make.slug === value) : null;
-    
-    setFormData(prev => ({ 
-      ...prev, 
-      make: value,
-      makeId: selectedMake?.id,
-      // Clear model when make changes
-      ...(value !== prev.make ? { model: '', modelId: undefined } : {})
-    }));
-    
-    // Load models when make changes - use prev value instead of formData to avoid stale closure
-    if (selectedMake && loadCarModels) {
-      loadCarModels(selectedMake.id.toString()).catch(error => {
-        wizardLogger.error('Failed to load car models:', error);
-        // Set error state to show user-friendly message
-        setFormErrors(prev => ({ ...prev, model: 'Failed to load car models. Please try again.' }));
-      });
-    }
-  }, [carMakes, loadCarModels]); // Remove formData.make dependency
-
-  const handleGovernorateChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    const selectedGovernorate = value ? governorates.find(gov => gov.slug === value) : null;
-    
-    setFormData(prev => ({ 
-      ...prev, 
-      governorateSlug: value,
-      governorateId: selectedGovernorate?.id,
-      // Clear location when governorate changes
-      ...(value !== prev.governorateSlug ? { locationSlug: '', locationId: undefined } : {})
-    }));
-    
-    // Load locations when governorate changes - use value directly to avoid stale closure
-    if (value && loadLocations) {
-      loadLocations(value).catch(error => {
-        wizardLogger.error('Failed to load locations:', error);
-        // Set error state to show user-friendly message
-        setFormErrors(prev => ({ ...prev, locationSlug: 'Failed to load locations. Please try again.' }));
-      });
-    }
-  }, [governorates, loadLocations]); // Remove formData.governorateSlug dependency
+  // Extracted field and dropdown handlers
+  const { handleFieldChange, createDropdownHandler, handleMakeChange, handleGovernorateChange } = useFormHandlers({
+    setFormData,
+    setFormErrors,
+    carMakes,
+    governorates,
+    locations,
+    loadCarModels,
+    loadLocations,
+  });
 
   // Handler functions
   const { handleSubmit } = useListingSubmission({
@@ -299,41 +244,25 @@ export default function ListingWizard({
     onSuccess,
   });
 
-  // Auto-load data based on mode and autoLoad prop
-  useEffect(() => {
-    const loadData = async () => {
-      if (!autoLoad || !ready) return;
-
-      try {
-        setIsLoadingData(true);
-        setLoadError(null);
-        
-        wizardLogger.debug('[ListingWizard] Auto-loading data for mode:', mode, 'listingId:', listingId);
-        const loadedData = await ListingDataService.loadFormData(mode, listingId);
-        
-        setFormData(prevFormData => ({
-          ...prevFormData,
-          ...loadedData,
-          // Ensure arrays are properly handled
-          images: loadedData.images || prevFormData.images || [],
-          videos: loadedData.videos || prevFormData.videos || [],
-          videoUrls: loadedData.videoUrls || prevFormData.videoUrls || [],
-          existingImageUrls: loadedData.existingImageUrls || prevFormData.existingImageUrls || [],
-          existingVideoUrls: loadedData.existingVideoUrls || prevFormData.existingVideoUrls || [],
-          features: loadedData.features || prevFormData.features || []
-        }));
-        
-        wizardLogger.debug('[ListingWizard] Data auto-loaded successfully');
-      } catch (error) {
-        wizardLogger.error('Error auto-loading data');
-        setLoadError(error instanceof Error ? error.message : 'Failed to load listing data');
-      } finally {
-        setIsLoadingData(false);
+  // Auto-load data and edit-mode loading extracted
+  useListingDataLoader({
+    mode,
+    listingId,
+    autoLoad,
+    ready,
+    setFormData,
+    setIsLoadingData,
+    setLoadError,
+    onAfterLoad: (data: Partial<ListingFormData>) => {
+      // After setting form data in edit mode, trigger dependent loads
+      if (data && data.make && data.makeId && loadCarModels) {
+        loadCarModels(String(data.makeId)).catch(() => {});
       }
-    };
-
-    loadData();
-  }, [mode, listingId, autoLoad, ready]);
+      if (data && data.governorateSlug && loadLocations) {
+        loadLocations(String(data.governorateSlug)).catch(() => {});
+      }
+    }
+  });
 
   // V2: Complex conversion logic removed! 
   // The enhanced backend now provides complete objects with IDs and slugs directly
@@ -418,181 +347,26 @@ export default function ListingWizard({
 
 
 
-  // Load existing listing data for edit mode
-  useEffect(() => {
-    if (autoLoad && mode === 'edit' && listingId && ready) {
-      const loadEditData = async () => {
-        try {
-          setIsLoadingData(true);
-          setLoadError(null);
-          wizardLogger.info(`Loading edit data for listing ID: ${listingId}`);
-          
-          const data = await ListingDataService.loadFormData(mode, listingId);
-          setFormData(prev => ({ ...prev, ...data }));
-          
-          // After setting form data, trigger model loading if make is present
-          if (data.make && data.makeId) {
-            wizardLogger.debug(`Edit mode: Loading models for make: ${data.make} (ID: ${data.makeId})`);
-            loadCarModels(data.makeId.toString()).catch(error => {
-              wizardLogger.error('Failed to load car models in edit mode:', error);
-            });
-          }
-          
-          // Also trigger location loading if governorate is present
-          if (data.governorateSlug) {
-            wizardLogger.debug(`Edit mode: Loading locations for governorate: ${data.governorateSlug}`);
-            loadLocations(data.governorateSlug).catch(error => {
-              wizardLogger.error('Failed to load locations in edit mode:', error);
-            });
-          }
-          
-          wizardLogger.info('Edit data loaded successfully');
-        } catch (error) {
-          wizardLogger.error('Failed to load edit data:', error);
-          setLoadError(error instanceof Error ? error.message : 'Failed to load listing data');
-          setError(t('common:failedToLoadData'));
-        } finally {
-          setIsLoadingData(false);
-        }
-      };
-      
-      loadEditData();
-    }
-  }, [autoLoad, mode, listingId, ready, loadCarModels, loadLocations, t]);
+  // Edit-mode data load is handled in useListingDataLoader
 
   // Duplicate models loading removed - now handled by extracted hook above
 
   // Existing media previews are handled inside media components now
 
   // Optimized step accessibility check with debounced validation
-  const isStepAccessible = useCallbackPerf((targetStep: number) => {
-    wizardLogger.debug(`isStepAccessible targetStep=${targetStep} currentStep=${currentStep}`);
-    
-    // Always allow going to previous steps
-    if (targetStep <= currentStep) {
-      wizardLogger.debug(`Step ${targetStep} is accessible`);
-      return true;
-    }
-    
-    // For next step, validate all previous steps using debounced data
-    for (let step = 1; step < targetStep; step++) {
-      wizardLogger.debug(`Validating step ${step} for accessibility`);
-      const stepErrors = validateStep(step, debouncedFormData, t, { mode: 'accessibility' });
-      wizardLogger.debug(`Step ${step} validation errors ${JSON.stringify(stepErrors)}`);
-      if (Object.keys(stepErrors).length > 0) {
-        wizardLogger.info(`Step ${targetStep} is NOT accessible due to step ${step} errors`);
-        return false;
-      }
-    }
-    
-    // Only allow accessing the next immediate step
-    const isNextImmediateStep = targetStep === currentStep + 1;
-    wizardLogger.debug(`Step ${targetStep} accessibility: nextImmediate=${isNextImmediateStep}`);
-    return isNextImmediateStep;
-  }, [currentStep, debouncedFormData, t]);
-
-  // Helper function to handle validation errors
-  const handleValidationErrors = useCallback((stepErrors: FormErrors) => {
-    wizardLogger.debug('handleValidationErrors');
-    
-    if (Object.keys(stepErrors).length > 0) {
-      wizardLogger.debug('Setting form errors');
-      setFormErrors(stepErrors);
-      
-      // Focus and smooth-scroll to first field with error for better UX
-      const firstErrorField = Object.keys(stepErrors)[0];
-      wizardLogger.debug('Focusing first error field ' + firstErrorField);
-      const errorElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement | null;
-      if (errorElement) {
-        try {
-          errorElement.focus({ preventScroll: true });
-        } catch {
-        errorElement.focus();
-        }
-        if (typeof errorElement.scrollIntoView === 'function') {
-          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
-      
-      // Show specific field errors instead of generic message
-      const errorMessages = Object.values(stepErrors).filter(Boolean);
-      if (errorMessages.length > 0) {
-        // Use Intl.ListFormat for grammatically correct joining of errors
-        const listFormatter = new Intl.ListFormat(i18n.language, { style: 'long', type: 'conjunction' });
-        const specificError = listFormatter.format(errorMessages);
-        wizardLogger.debug('Setting error message');
-        setError(specificError);
-      }
-      wizardLogger.debug('Validation failed');
-      return true; // Indicates validation failed
-    }
-    wizardLogger.debug('No validation errors');
-    return false; // Indicates validation passed
-  }, [i18n.language]);
-
-  // Navigation helpers
-  const handleStepChange = useCallback((step: number, e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    wizardLogger.debug(`handleStepChange step=${step} currentStep=${currentStep}`);
-    wizardLogger.debug(`[ListingWizard] Current form data:`, {
-      title: formData.title,
-      description: formData.description,
-      price: formData.price,
-      currency: formData.currency
-    });
-    
-    // Fast-path for moving from Step 1 to Step 2: validate blocking-only fields and proceed
-    if (step === currentStep + 1 && currentStep === 1) {
-      const navErrors = validateStep(1, formData, t, { mode: 'navigation' });
-      if (Object.keys(navErrors).length === 0) {
-        wizardLogger.debug('Fast-path: Step 1 blocking fields valid, moving to Step 2');
-        setFormErrors({});
-        setError(null);
-        setCurrentStep(2);
-        return;
-      }
-    }
-    
-    if (!isStepAccessible(step)) {
-      wizardLogger.debug(`Step ${step} not accessible`);
-      // Show specific message when trying to access locked step
-      if (step > currentStep) {
-        const stepErrors = validateStep(currentStep, formData, t, { mode: 'navigation' });
-        wizardLogger.debug(`Step ${currentStep} validation errors ${JSON.stringify(stepErrors)}`);
-        handleValidationErrors(stepErrors);
-      }
-      return;
-    }
-
-    // Validate current step before moving forward
-    if (step > currentStep) {
-      wizardLogger.debug(`Validating step ${currentStep} before moving to step ${step}`);
-      const stepErrors = validateStep(currentStep, formData, t);
-      wizardLogger.debug(`Step ${currentStep} validation errors ${JSON.stringify(stepErrors)}`);
-      
-      // DEBUGGING: Log specific Step 3 validation details
-      if (currentStep === 3) {
-        wizardLogger.debug(`[Step 3 Debug] Title: "${formData.title}", Description: "${formData.description}"`);
-        wizardLogger.debug(`[Step 3 Debug] Title empty: ${!formData.title || formData.title.trim().length === 0}`);
-        wizardLogger.debug(`[Step 3 Debug] Description empty: ${!formData.description || formData.description.trim().length === 0}`);
-      }
-      
-      if (handleValidationErrors(stepErrors)) {
-        wizardLogger.debug('Validation failed, stay on current step');
-        return;
-      }
-      wizardLogger.debug('Current step validation passed');
-    }
-    
-    wizardLogger.debug(`Navigating to step ${step} from ${currentStep}`);
-    setCurrentStep(step);
-    setFormErrors({}); // Clear errors when changing steps
-    setError(null); // Clear any existing error messages
-  }, [currentStep, formData, t, isStepAccessible, handleValidationErrors]);
+  const { isStepAccessible: _isStepAccessible, handleValidationErrors: _handleValidationErrors, handleStepChange } = useStepNavigation({
+    currentStep,
+    totalSteps: TOTAL_STEPS,
+    formData,
+    debouncedFormData,
+    t,
+    language: i18n.language,
+    validateStep,
+    setFormErrors,
+    setCurrentStep,
+    setError,
+    logger: wizardLogger,
+  });
 
   // handlePreviousStep removed - not used in current implementation
 
@@ -618,31 +392,8 @@ export default function ListingWizard({
 
   // Object URL lifecycle handled inside media components
 
-  // Keyboard navigation handler
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    // Tab trapping within form
-    if (event.key === 'Tab') {
-      const form = formRef.current;
-      if (!form) return;
-      
-      const focusableElements = form.querySelectorAll(FOCUSABLE_SELECTOR);
-      const firstElement = focusableElements[0] as HTMLElement;
-      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
-      
-      if (event.shiftKey && document.activeElement === firstElement) {
-        event.preventDefault();
-        lastElement?.focus();
-      } else if (!event.shiftKey && document.activeElement === lastElement) {
-        event.preventDefault();
-        firstElement?.focus();
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+  // Keyboard tab-trap
+  useKeyboardNavigation({ formRef, focusableSelector: FOCUSABLE_SELECTOR });
 
   // Show loading if translations aren't ready
   if (!ready) {

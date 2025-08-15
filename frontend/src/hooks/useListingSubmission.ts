@@ -10,7 +10,12 @@ interface UseListingSubmissionOptions {
   listingId?: string;
   formData: ListingFormData;
   t: unknown;
-  validateStep: (...args: any[]) => FormErrors;
+  validateStep: (
+    step: number,
+    data: ListingFormData,
+    t: (key: string, fallback?: string, vars?: Record<string, unknown>) => string,
+    opts?: Record<string, unknown>
+  ) => FormErrors;
   setFormErrors: (updater: FormErrors | ((prev: FormErrors) => FormErrors)) => void;
   setCurrentStep: (updater: (prev: number) => number) => void;
   setError: (msg: string | null) => void;
