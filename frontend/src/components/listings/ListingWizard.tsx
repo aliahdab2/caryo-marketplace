@@ -5,8 +5,7 @@ import React, { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useListingData } from '@/hooks/useListingData';
-import { createListing, updateListing, uploadListingImage } from '@/services/listings';
-import { ListingFormData, UpdateListingData } from "@/types/listings";
+import { ListingFormData } from "@/types/listings";
 
 import { FormErrors, StepConfig } from "@/types/forms";
 import { ListingDataService } from '@/services/ListingDataService';
@@ -52,6 +51,7 @@ function useDebounce<T>(value: T, delay: number): T {
 // useThrottle utility not used in this component anymore
 import { ListingWizardProps } from '@/types/wizard';
 // import ErrorMessage from './shared/ErrorMessage';
+import { useListingSubmission } from '@/hooks/useListingSubmission';
 
 // Constants
 const TOTAL_STEPS = 4;
@@ -283,207 +283,21 @@ export default function ListingWizard({
   }, [governorates, loadLocations]); // Remove formData.governorateSlug dependency
 
   // Handler functions
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    wizardLogger.debug('Form submit triggered ' + JSON.stringify({ currentStep, mode }));
-    wizardLogger.debug('TOTAL_STEPS constant ' + String(TOTAL_STEPS));
-    wizardLogger.debug('currentStep === TOTAL_STEPS? ' + String(currentStep === TOTAL_STEPS));
-
-    // IMPORTANT: Only process actual final submissions, not navigation
-    // The submit event should only fire when clicking the Submit button on step 4
-    if (currentStep !== TOTAL_STEPS) {
-      wizardLogger.debug('Ignoring submit - not final step ' + JSON.stringify({ currentStep, TOTAL_STEPS }));
-      return;
-    }
-
-    wizardLogger.info('Processing final submission (step 4)');
-
-    // For final submission (step 4), validate ALL steps
-    if (currentStep === TOTAL_STEPS) {
-      wizardLogger.debug('Final submission - validating ALL steps');
-      
-      // Validate all steps for final submission
-      let allErrors: FormErrors = {};
-      for (let step = 1; step <= TOTAL_STEPS; step++) {
-        const stepErrors = validateStep(step, formData, t);
-        allErrors = { ...allErrors, ...stepErrors };
-        wizardLogger.debug(`Step ${step} validation errors ${JSON.stringify(stepErrors)}`);
-      }
-      
-      wizardLogger.debug('All validation errors ' + JSON.stringify(allErrors));
-      if (Object.keys(allErrors).length > 0) {
-        wizardLogger.info('Final validation failed, stopping submission');
-        setFormErrors(allErrors);
-        return;
-      }
-      wizardLogger.info('All validation passed!');
-    } else {
-      // Validate current step only for navigation
-      wizardLogger.debug('Validating step ' + String(currentStep));
-      const stepErrors = validateStep(currentStep, formData, t, { mode: 'navigation' });
-      // If only non-blocking fields failed (e.g., title/price on step 1 due to previous state), clear them for navigation
-      if (currentStep === 1 && Object.keys(stepErrors).length > 0) {
-        const blockingKeys = ['make','model','year'];
-        const nonBlockingOnly = Object.keys(stepErrors).every(k => !blockingKeys.includes(k));
-        if (nonBlockingOnly) {
-          wizardLogger.debug('Non-blocking errors on step 1 ignored for navigation');
-          setFormErrors({});
-          setCurrentStep(prev => prev + 1);
-          return;
-        }
-      }
-      wizardLogger.debug('Validation errors ' + JSON.stringify(stepErrors));
-      if (Object.keys(stepErrors).length > 0) {
-        wizardLogger.info('Validation failed, stopping submission');
-        setFormErrors(stepErrors);
-        return;
-      }
-    }
-    wizardLogger.info('Validation passed, proceeding...');
-
-    // Clear errors for valid step
-    setFormErrors({});
-
-    if (currentStep < TOTAL_STEPS) {
-      setCurrentStep(prev => prev + 1);
-      return;
-    }
-
-    // Submit the form (final step)
-    try {
-      setIsSubmitting(true);
-      
-      if (mode === 'create') {
-        const result = await createListing(formData);
-        setShowSuccessAlert(true);
-        onSuccess?.(result.id);
-      } else if (mode === 'edit' && listingId) {
-        wizardLogger.info('Starting update for listing ' + String(listingId));
-        wizardLogger.debug('[ListingWizard] Form data before update:', {
-          title: formData.title,
-          description: formData.description,
-          price: formData.price,
-          mileage: formData.mileage,
-          transmission: formData.transmission,
-          currency: formData.currency,
-          make: formData.make,
-          model: formData.model,
-          year: formData.year,
-          location: formData.location,
-          contactEmail: formData.contactEmail,
-          contactPhone: formData.contactPhone,
-          contactName: formData.contactName
-        });
-
-        // V2: Enhanced backend provides all IDs directly - no conversion needed!
-        wizardLogger.debug('Using direct IDs from enhanced form data:', {
-          makeId: formData.makeId,
-          modelId: formData.modelId,
-          transmissionId: formData.transmissionId,
-          fuelTypeId: formData.fuelTypeId,
-          locationId: formData.locationId,
-          governorateId: formData.governorateId
-        });
-        
-        const locationId = formData.locationId;
-        const _governorateId = formData.governorateId;
-        
-        // V2: Use IDs directly - no conversion needed! Enhanced backend provides all IDs
-        const updateData: UpdateListingData = {
-          title: formData.title,
-          description: formData.description,
-          price: parseFloat(formData.price),
-          mileage: formData.mileage ? parseInt(formData.mileage) : undefined,
-          
-          // V2: Direct ID usage - no slug-to-ID conversion needed!
-          transmissionId: formData.transmissionId,
-          fuelTypeId: formData.fuelTypeId,
-          modelId: formData.modelId,
-          
-          currency: formData.currency,
-          modelYear: formData.year ? parseInt(formData.year) : undefined,
-          locationId: locationId, // Direct from form state
-          
-          // V3: Include contact fields in update
-          contactName: formData.contactName,
-          contactEmail: formData.contactEmail,
-          contactPhone: formData.contactPhone,
-          contactPreference: formData.contactPreference,
-        };
-        
-        // Remove undefined values to avoid sending null data
-        Object.keys(updateData).forEach(key => {
-          if (updateData[key as keyof UpdateListingData] === undefined) {
-            delete updateData[key as keyof UpdateListingData];
-          }
-        });
-        
-        wizardLogger.debug('Update payload ' + JSON.stringify(updateData));
-        wizardLogger.debug('locationId in update data ' + String(updateData.locationId));
-        wizardLogger.debug('Fields being updated ' + JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          price: formData.price,
-          mileage: formData.mileage,
-          transmission: formData.transmission,
-          currency: formData.currency,
-          year: formData.year,
-          contactName: formData.contactName,
-          contactPhone: formData.contactPhone,
-          contactEmail: formData.contactEmail,
-          location: formData.location,
-          governorateSlug: formData.governorateSlug,
-          locationSlug: formData.locationSlug
-        }));
-        
-        const result = await updateListing(listingId, updateData);
-        wizardLogger.info('Update successful');
-        
-        // Handle image uploads for edit mode
-        if (formData.images && formData.images.length > 0) {
-          wizardLogger.info(`Uploading ${formData.images.length} new images for listing ${listingId}`);
-          
-          try {
-            // Filter out any undefined/invalid images and upload valid ones
-            const validImages = formData.images.filter(image => image && image instanceof File);
-            
-            if (validImages.length === 0) {
-              wizardLogger.debug('No valid images to upload');
-            } else {
-              // Upload new images one by one (API limitation: one image per request)
-              for (let i = 0; i < validImages.length; i++) {
-                const image = validImages[i];
-                wizardLogger.debug(`Uploading image ${i + 1}/${validImages.length}: ${image.name}`);
-                
-                const uploadResult = await uploadListingImage(listingId, image);
-                wizardLogger.debug(`Image upload successful: ${uploadResult.imageKey}`);
-              }
-            }
-            
-            wizardLogger.info('All images uploaded successfully');
-          } catch (imageError) {
-            wizardLogger.error('Error uploading images:', imageError);
-            // Don't fail the entire update if image upload fails
-            // But inform the user
-            setError(`Listing updated successfully, but there was an error uploading images: ${imageError instanceof Error ? imageError.message : 'Unknown error'}`);
-          }
-        }
-        
-        // Note: Contact information (email, phone, name) is tied to the user account
-        // and cannot be updated via the listing update API. Users need to update
-        // their profile information separately.
-        wizardLogger.info('Note: Contact info updates require separate profile API calls');
-        setShowSuccessAlert(true);
-        onSuccess?.(result.id);
-      }
-    } catch (error) {
-      wizardLogger.error('Error during submission');
-      setError(error instanceof Error ? error.message : t('common:unexpectedError'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [currentStep, formData, t, mode, listingId, onSuccess]);
+  const { handleSubmit } = useListingSubmission({
+    currentStep,
+    totalSteps: TOTAL_STEPS,
+    mode,
+    listingId,
+    formData,
+    t,
+    validateStep,
+    setFormErrors,
+    setCurrentStep,
+    setError,
+    setIsSubmitting,
+    setShowSuccessAlert,
+    onSuccess,
+  });
 
   // Auto-load data based on mode and autoLoad prop
   useEffect(() => {
