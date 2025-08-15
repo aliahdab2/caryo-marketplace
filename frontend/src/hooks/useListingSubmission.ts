@@ -3,15 +3,13 @@ import { ListingFormData, UpdateListingData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
 import { createListing, updateListing, uploadListingImage } from '@/services/listings';
 
-type TranslateFn = (key: string, defaultValue?: string, vars?: Record<string, unknown>) => string;
-
 interface UseListingSubmissionOptions {
   currentStep: number;
   totalSteps: number;
   mode: 'create' | 'edit';
   listingId?: string;
   formData: ListingFormData;
-  t: TranslateFn;
+  t: unknown;
   validateStep: (step: number, data: ListingFormData, t: unknown, options?: unknown) => FormErrors;
   setFormErrors: (updater: FormErrors | ((prev: FormErrors) => FormErrors)) => void;
   setCurrentStep: (updater: (prev: number) => number) => void;
@@ -104,7 +102,8 @@ export function useListingSubmission({
         onSuccess?.(result.id);
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : t('common:unexpectedError'));
+      const translated = typeof t === 'function' ? (t as any)('common:unexpectedError') : 'Unexpected error';
+      setError(error instanceof Error ? error.message : translated);
     } finally {
       setIsSubmitting(false);
     }
