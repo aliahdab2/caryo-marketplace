@@ -8,7 +8,6 @@ import { useListingData } from '@/hooks/useListingData';
 import { ListingFormData } from "@/types/listings";
 
 import { FormErrors, StepConfig } from "@/types/forms";
-import { ListingDataService as _ListingDataService } from '@/services/ListingDataService';
 // SUPPORTED_CURRENCIES removed - not used in this component
 import { validateStep } from '@/utils/formUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
@@ -109,16 +108,14 @@ export default function ListingWizard({
   
   // Refs for keyboard navigation
   const formRef = useRef<HTMLFormElement>(null);
-  const _previousButtonRef = useRef<HTMLButtonElement>(null);
-  const _nextButtonRef = useRef<HTMLButtonElement>(null);
+  // Removed unused button refs
 
   // State management
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [_isLoadingData, setIsLoadingData] = useState(false);
   const [_loadError, setLoadError] = useState<string | null>(null);
-  const [_showVideoUpload, _setShowVideoUpload] = useState(false);
-  const [_showVideoUrl, _setShowVideoUrl] = useState(false);
+  // Removed unused local video UI states (handled in child components)
   
   // Use the extracted data loading hook
   const {
@@ -135,8 +132,7 @@ export default function ListingWizard({
     isLoadingReferenceData,
     loadCarModels,
     loadLocations,
-    clearModels: _clearModels,
-    clearLocations: _clearLocations
+    // Removed unused clearModels/clearLocations
   } = useListingData(t);
   
 
@@ -293,6 +289,7 @@ export default function ListingWizard({
   // handleCancel removed - not used in current implementation
 
   // Enhanced handler for location changes - slug-based approach
+  // Removed unused _handleLocationChange
   const _handleLocationChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedSlug = e.target.value;
     wizardLogger.debug('Location dropdown changed to slug ' + selectedSlug);
@@ -354,7 +351,7 @@ export default function ListingWizard({
   // Existing media previews are handled inside media components now
 
   // Optimized step accessibility check with debounced validation
-  const { isStepAccessible: _isStepAccessible, handleValidationErrors: _handleValidationErrors, handleStepChange } = useStepNavigation({
+  const { handleStepChange } = useStepNavigation({
     currentStep,
     totalSteps: TOTAL_STEPS,
     formData,

@@ -28,7 +28,8 @@ export function useListingDataLoader(params: UseListingDataLoaderParams) {
       try {
         setIsLoadingData(true);
         setLoadError(null);
-        const loadedData = await ListingDataService.loadFormData(mode, listingId);
+        const idParam = listingId !== undefined ? String(listingId) : undefined;
+        const loadedData = await ListingDataService.loadFormData(mode, idParam);
         setFormData(prevFormData => ({
           ...prevFormData,
           ...loadedData,
@@ -54,7 +55,8 @@ export function useListingDataLoader(params: UseListingDataLoaderParams) {
       try {
         setIsLoadingData(true);
         setLoadError(null);
-        const data = await ListingDataService.loadFormData(mode, listingId);
+        const idParam = listingId !== undefined ? String(listingId) : undefined;
+        const data = await ListingDataService.loadFormData(mode, idParam);
         setFormData(prev => ({ ...prev, ...data }));
         if (onAfterLoad) onAfterLoad(data);
       } catch (error) {
