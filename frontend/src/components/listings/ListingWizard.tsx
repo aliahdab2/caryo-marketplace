@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef, memo, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useRef, memo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
@@ -11,8 +11,7 @@ import { ListingFormData, UpdateListingData } from "@/types/listings";
 import { FormErrors, StepConfig } from "@/types/forms";
 import { ListingDataService } from '@/services/ListingDataService';
 // SUPPORTED_CURRENCIES removed - not used in this component
-import { validateStep, createFormChangeHandler } from '@/utils/formUtils';
-import { processFormFieldValue } from '@/utils/forms/processing';
+import { validateStep } from '@/utils/formUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 import { createLogger } from '@/utils/logger';
 import NumericInput from '@/components/ui/NumericInput';
@@ -361,8 +360,8 @@ export default function ListingWizard({
     isLoadingReferenceData,
     loadCarModels,
     loadLocations,
-    clearModels,
-    clearLocations
+    clearModels: _clearModels,
+    clearLocations: _clearLocations
   } = useListingData(t);
   
 
@@ -451,6 +450,76 @@ export default function ListingWizard({
 
   // Debounced form data for expensive validations  
   const debouncedFormData = useDebounce(formData, 300);
+
+  // Simple unified handler for text fields
+  const handleFieldChange = useCallback((field: keyof ListingFormData) => {
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+      setFormData(prev => ({ ...prev, [field]: e.target.value }));
+    };
+  }, []);
+
+  // Reusable dropdown factory for slug+ID pattern
+  const createDropdownHandler = useCallback((
+    slugField: keyof ListingFormData,
+    idField: keyof ListingFormData,
+    dataArray: Array<{ id: number; slug: string }>
+  ) => {
+    return (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const value = e.target.value;
+      const selectedItem = value ? dataArray.find(item => item.slug === value) : null;
+      
+      setFormData(prev => ({
+        ...prev,
+        [slugField]: value,
+        [idField]: selectedItem?.id
+      }));
+    };
+  }, []);
+
+  // Special handlers for fields that need additional logic
+  const handleMakeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    const selectedMake = value ? carMakes.find(make => make.slug === value) : null;
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      make: value,
+      makeId: selectedMake?.id,
+      // Clear model when make changes
+      ...(value !== prev.make ? { model: '', modelId: undefined } : {})
+    }));
+    
+    // Load models when make changes - use prev value instead of formData to avoid stale closure
+    if (selectedMake && loadCarModels) {
+      loadCarModels(selectedMake.id.toString()).catch(error => {
+        wizardLogger.error('Failed to load car models:', error);
+        // Set error state to show user-friendly message
+        setFormErrors(prev => ({ ...prev, model: 'Failed to load car models. Please try again.' }));
+      });
+    }
+  }, [carMakes, loadCarModels]); // Remove formData.make dependency
+
+  const handleGovernorateChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    const selectedGovernorate = value ? governorates.find(gov => gov.slug === value) : null;
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      governorateSlug: value,
+      governorateId: selectedGovernorate?.id,
+      // Clear location when governorate changes
+      ...(value !== prev.governorateSlug ? { locationSlug: '', locationId: undefined } : {})
+    }));
+    
+    // Load locations when governorate changes - use value directly to avoid stale closure
+    if (value && loadLocations) {
+      loadLocations(value).catch(error => {
+        wizardLogger.error('Failed to load locations:', error);
+        // Set error state to show user-friendly message
+        setFormErrors(prev => ({ ...prev, locationSlug: 'Failed to load locations. Please try again.' }));
+      });
+    }
+  }, [governorates, loadLocations]); // Remove formData.governorateSlug dependency
 
   // Handler functions
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
@@ -574,6 +643,12 @@ export default function ListingWizard({
           currency: formData.currency,
           modelYear: formData.year ? parseInt(formData.year) : undefined,
           locationId: locationId, // Direct from form state
+          
+          // V3: Include contact fields in update
+          contactName: formData.contactName,
+          contactEmail: formData.contactEmail,
+          contactPhone: formData.contactPhone,
+          contactPreference: formData.contactPreference,
         };
         
         // Remove undefined values to avoid sending null data
@@ -757,93 +832,7 @@ export default function ListingWizard({
     }
   }, [locations, i18n.language, formErrors.locationSlug]);
 
-  // Simple field handlers (V2: Direct approach with useListingData)
-  const fieldHandlers = useMemo(() => ({
-    make: async (value: string) => {
-      if (value && value.trim() !== '') {
-        const selectedMake = carMakes.find(make => make.slug === value);
-        if (selectedMake) {
-          try {
-            await loadCarModels(selectedMake.id.toString());
-            // Set makeId for form submission
-            setFormData(prev => ({ ...prev, makeId: selectedMake.id }));
-          } catch (error) {
-            wizardLogger.error('Failed to load car models:', error);
-            setError(t('common:failedToLoadData', 'Failed to load data'));
-          }
-        } else {
-          clearModels();
-        }
-      } else {
-        clearModels();
-      }
-    },
-    governorateSlug: async (value: string) => {
-      if (value && value.trim() !== '') {
-        try {
-          await loadLocations(value);
-        } catch (error) {
-          wizardLogger.error('Failed to load locations:', error);
-          setError(t('common:failedToLoadData', 'Failed to load data'));
-        }
-      } else {
-        clearLocations();
-      }
-    },
-    // V2: Set location ID directly when location is selected
-    locationSlug: (value: string) => {
-      const selectedLocation = locations.find(l => l.slug === value);
-      if (selectedLocation) {
-        setFormData(prev => ({ ...prev, locationId: selectedLocation.id }));
-      }
-    },
-    // V2: Set IDs directly for transmission and fuel type
-    transmission: (value: string) => {
-      const selectedTransmission = transmissions.find(t => t.slug === value);
-      if (selectedTransmission) {
-        setFormData(prev => ({ ...prev, transmissionId: selectedTransmission.id }));
-      }
-    },
-    fuelType: (value: string) => {
-      const selectedFuelType = fuelTypes.find(f => f.slug === value);
-      if (selectedFuelType) {
-        setFormData(prev => ({ ...prev, fuelTypeId: selectedFuelType.id }));
-      }
-    },
-    model: (value: string) => {
-      const selectedModel = carModels.find(m => m.slug === value);
-      if (selectedModel) {
-        setFormData(prev => ({ ...prev, modelId: selectedModel.id }));
-      }
-    }
-  }), [carMakes, carModels, transmissions, fuelTypes, locations, loadCarModels, clearModels, loadLocations, clearLocations, t]);
 
-  // Optimized form change handler using utility
-  const handleChange = useCallback(
-    (fieldOrEvent: string | React.ChangeEvent<any>, value?: unknown) => { // eslint-disable-line @typescript-eslint/no-explicit-any -- Necessary for generic event handling
-      if (typeof fieldOrEvent === 'string') {
-        // Direct field/value call
-        return createFormChangeHandler(
-          setFormData,
-          setFormErrors,
-          processFormFieldValue,
-          fieldHandlers
-        )(fieldOrEvent, value as string);
-      } else {
-        // Event-based call
-        const event = fieldOrEvent;
-        const field = event.target.name;
-        const fieldValue = event.target.value;
-        return createFormChangeHandler(
-          setFormData,
-          setFormErrors,
-          processFormFieldValue,
-          fieldHandlers
-        )(field, fieldValue);
-      }
-    },
-    [fieldHandlers]
-  );
 
   // Optimized progress calculation with memoization
   const progressPercentage = useMemoPerf(() => {
@@ -1027,6 +1016,14 @@ export default function ListingWizard({
       wizardLogger.debug(`Validating step ${currentStep} before moving to step ${step}`);
       const stepErrors = validateStep(currentStep, formData, t);
       wizardLogger.debug(`Step ${currentStep} validation errors ${JSON.stringify(stepErrors)}`);
+      
+      // DEBUGGING: Log specific Step 3 validation details
+      if (currentStep === 3) {
+        wizardLogger.debug(`[Step 3 Debug] Title: "${formData.title}", Description: "${formData.description}"`);
+        wizardLogger.debug(`[Step 3 Debug] Title empty: ${!formData.title || formData.title.trim().length === 0}`);
+        wizardLogger.debug(`[Step 3 Debug] Description empty: ${!formData.description || formData.description.trim().length === 0}`);
+      }
+      
       if (handleValidationErrors(stepErrors)) {
         wizardLogger.debug('Validation failed, stay on current step');
         return;
@@ -1432,7 +1429,7 @@ export default function ListingWizard({
                     id="make"
                     name="make"
                     value={formData.make}
-                    onChange={handleChange}
+                    onChange={handleMakeChange}
                     disabled={isLoadingMakes}
 
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
@@ -1471,7 +1468,7 @@ export default function ListingWizard({
                     id="model"
                     name="model"
                     value={formData.model}
-                    onChange={handleChange}
+                    onChange={createDropdownHandler('model', 'modelId', carModels)}
                     disabled={isLoadingModels || !formData.make}
 
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
@@ -1512,7 +1509,7 @@ export default function ListingWizard({
                     id="year"
                     name="year"
                     value={formData.year}
-                    onChange={handleChange}
+                    onChange={handleFieldChange('year')}
                     required
 
                     className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
@@ -1569,7 +1566,7 @@ export default function ListingWizard({
                     id="mileage"
                     name="mileage"
                     value={formData.mileage}
-                    onChange={(value) => handleChange(value, 'mileage')}
+                    onChange={(value) => setFormData(prev => ({ ...prev, mileage: value }))}
                     placeholder={t('listings:newListingMileagePlaceholder', '50000')}
                     error={!!formErrors.mileage}
 
@@ -1597,7 +1594,7 @@ export default function ListingWizard({
                       id="engine"
                       name="engine"
                       value={formData.engine}
-                      onChange={handleChange}
+                      onChange={handleFieldChange('engine')}
                       className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       placeholder={t('listings:newListingEnginePlaceholder', 'e.g., 2.0L Turbo, V6, Hybrid')}
                       aria-describedby="engine-hint"
@@ -1619,7 +1616,7 @@ export default function ListingWizard({
                       id="transmission"
                       name="transmission"
                       value={formData.transmission}
-                      onChange={handleChange}
+                      onChange={createDropdownHandler('transmission', 'transmissionId', transmissions)}
                       disabled={isLoadingReferenceData}
                       className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                         formErrors.transmission ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
@@ -1661,7 +1658,7 @@ export default function ListingWizard({
                       id="color"
                       name="color"
                       value={formData.color}
-                      onChange={handleChange}
+                      onChange={handleFieldChange('color')}
                       className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       placeholder={t('listings:newListingColorPlaceholder', 'e.g., White, Black, Silver')}
                       aria-describedby="color-hint"
@@ -1683,7 +1680,7 @@ export default function ListingWizard({
                       id="fuelType"
                       name="fuelType"
                       value={formData.fuelType}
-                      onChange={handleChange}
+                      onChange={createDropdownHandler('fuelType', 'fuelTypeId', fuelTypes)}
                       disabled={isLoadingReferenceData}
                       className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                         formErrors.fuelType ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
@@ -1734,7 +1731,7 @@ export default function ListingWizard({
                     type="text"
                     name="title"
                     value={formData.title}
-                    onChange={handleChange}
+                    onChange={handleFieldChange('title')}
                     className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 border-gray-200 dark:border-gray-600 focus:border-blue-500"
                     placeholder={t('listings:titlePlaceholder')}
                     aria-invalid={!!formErrors.title}
@@ -1753,7 +1750,7 @@ export default function ListingWizard({
                   <textarea
                     name="description"
                     value={formData.description}
-                    onChange={handleChange}
+                    onChange={handleFieldChange('description')}
                     rows={6}
                     className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 resize-vertical border-gray-200 dark:border-gray-600 focus:border-blue-500"
                     placeholder={t('listings:descriptionPlaceholder', 'Describe your car in detail...')}
@@ -2553,7 +2550,7 @@ export default function ListingWizard({
                         id="price"
                         name="price"
                         value={formData.price}
-                        onChange={handleChange}
+                        onChange={handleFieldChange('price')}
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.price ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                         }`}
@@ -2579,7 +2576,7 @@ export default function ListingWizard({
                         id="currency"
                         name="currency"
                         value={formData.currency}
-                        onChange={handleChange}
+                        onChange={handleFieldChange('currency')}
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.currency ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                         }`}
@@ -2616,7 +2613,7 @@ export default function ListingWizard({
                         id="governorateSlug"
                         name="governorateSlug"
                         value={formData.governorateSlug}
-                        onChange={handleChange}
+                        onChange={handleGovernorateChange}
                         disabled={isLoadingGovernorates}
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.governorateSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
@@ -2654,7 +2651,7 @@ export default function ListingWizard({
                         id="locationSlug"
                         name="locationSlug"
                         value={formData.locationSlug}
-                        onChange={handleChange}
+                        onChange={createDropdownHandler('locationSlug', 'locationId', locations)}
                         disabled={isLoadingLocations || !formData.governorateSlug || formData.governorateSlug.trim() === ''}
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.locationSlug ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
@@ -2704,7 +2701,7 @@ export default function ListingWizard({
                         id="contactName"
                         name="contactName"
                         value={formData.contactName}
-                        onChange={handleChange}
+                        onChange={handleFieldChange('contactName')}
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.contactName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                         }`}
@@ -2731,7 +2728,7 @@ export default function ListingWizard({
                         id="contactPhone"
                         name="contactPhone"
                         value={formData.contactPhone}
-                        onChange={handleChange}
+                        onChange={handleFieldChange('contactPhone')}
                         className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                           formErrors.contactPhone ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                         }`}
@@ -2759,7 +2756,7 @@ export default function ListingWizard({
                       id="contactEmail"
                       name="contactEmail"
                       value={formData.contactEmail}
-                      onChange={handleChange}
+                      onChange={handleFieldChange('contactEmail')}
                       required
                       className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                         formErrors.contactEmail ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
@@ -2773,12 +2770,41 @@ export default function ListingWizard({
                       {t('listings:newListingContactEmailHint', 'Email address for inquiries')}
                     </p>
                   </div>
+
+                  {/* Contact Preference */}
+                  <div className="space-y-3">
+                    <label 
+                      htmlFor="contactPreference" 
+                      className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    >
+                      {t('listings:newListingContactPreference', 'Preferred Contact Method')}
+                    </label>
+                    <select
+                      id="contactPreference"
+                      name="contactPreference"
+                      value={formData.contactPreference}
+                      onChange={handleFieldChange('contactPreference')}
+                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                        formErrors.contactPreference ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
+                      }`}
+                      aria-invalid={!!formErrors.contactPreference}
+                      aria-describedby={formErrors.contactPreference ? 'contactPreference-error' : 'contactPreference-hint'}
+                    >
+                      <option value="email">{t('listings:contactPreferenceEmail', 'Email')}</option>
+                      <option value="phone">{t('listings:contactPreferencePhone', 'Phone')}</option>
+                      <option value="both">{t('listings:contactPreferenceBoth', 'Both Email and Phone')}</option>
+                    </select>
+                    <ErrorMessage error={formErrors.contactPreference} id="contactPreference-error" />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="contactPreference-hint">
+                      {t('listings:newListingContactPreferenceHint', 'How would you prefer buyers to contact you?')}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Form Navigation (sticky on mobile) */}
-            <div className="sticky bottom-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur supports-[backdrop-filter]:backdrop-blur flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-gray-200 dark:border-gray-700 space-y-4 sm:space-y-0">
+            <div className="sticky bottom-0 z-20 bg-white dark:bg-gray-900 flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-gray-200 dark:border-gray-700 space-y-4 sm:space-y-0">
               <div className="order-2 sm:order-1">
                 <button
                   ref={previousButtonRef}
@@ -2799,7 +2825,7 @@ export default function ListingWizard({
                   ref={nextButtonRef}
                   type="button"
                   onClick={(e) => handleStepChange(currentStep + 1, e)}
-                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 order-1 sm:order-2"
+                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 shadow-lg hover:shadow-xl order-1 sm:order-2"
                 >
                   {t('common:next')}
                   <svg className={`w-4 h-4 ${rtl.spacing.ml('2')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">

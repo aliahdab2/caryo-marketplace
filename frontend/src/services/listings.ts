@@ -114,7 +114,12 @@ function mapApiResponseToListings(apiResponse: ListingApiResponse): { listings: 
         id: item.sellerId.toString(),
         name: item.sellerUsername,
         type: 'private' as const
-      }
+      },
+      // V3: Include contact fields from backend enhancement
+      contactName: item.contactName,
+      contactEmail: item.contactEmail,
+      contactPhone: item.contactPhone,
+      contactPreference: item.contactPreference
     };
   });
 
@@ -269,7 +274,12 @@ export async function getListingById(id: string | number): Promise<Listing> {
         type: 'private' as const,
         phone: '+966 50 123 4567' // Placeholder - this should come from API in the future
       },
-      currency: 'SAR' // Default currency
+      currency: 'SAR', // Default currency
+      // V3: Include contact fields from backend enhancement
+      contactName: response.contactName,
+      contactEmail: response.contactEmail,
+      contactPhone: response.contactPhone,
+      contactPreference: response.contactPreference
     };
   } catch (error) {
     if (error instanceof ApiError) {
@@ -401,7 +411,12 @@ export async function updateListing(id: string | number, data: UpdateListingData
         type: 'private' as const,
         phone: '+966 50 123 4567' // Placeholder - this should come from API in the future
       },
-      currency: 'SAR' // Default currency
+      currency: 'SAR', // Default currency
+      // V3: Include contact fields from backend enhancement
+      contactName: response.contactName,
+      contactEmail: response.contactEmail,
+      contactPhone: response.contactPhone,
+      contactPreference: response.contactPreference
     };
   } catch (error) {
     if (error instanceof ApiError) {
@@ -523,7 +538,12 @@ export async function getMyListings(): Promise<Listing[]> {
           type: 'private' as const,
           phone: '+966 50 123 4567'
         },
-        currency: item.currency || 'USD' // Use actual currency from API, default to USD
+        currency: item.currency || 'USD', // Use actual currency from API, default to USD
+        // V3: Include contact fields from backend enhancement
+        contactName: item.contactName,
+        contactEmail: item.contactEmail,
+        contactPhone: item.contactPhone,
+        contactPreference: item.contactPreference
       };
     });
   } catch (error) {
@@ -559,7 +579,12 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       videosCount: formData.videos?.length || 0,
       hasVideos: formData.videos && formData.videos.length > 0,
       videoUrlsCount: formData.videoUrls?.length || 0,
-      hasVideoUrls: formData.videoUrls && formData.videoUrls.length > 0
+      hasVideoUrls: formData.videoUrls && formData.videoUrls.length > 0,
+      // V3: Contact fields debug
+      contactName: formData.contactName,
+      contactEmail: formData.contactEmail,
+      contactPhone: formData.contactPhone,
+      contactPreference: formData.contactPreference
     });
 
     // V2: Location ID should be provided directly from form data
@@ -581,6 +606,11 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       fuelTypeId?: number;
       isSold: boolean;
       isArchived: boolean;
+      // V3: Contact fields from backend enhancement
+      contactName?: string;
+      contactEmail?: string;
+      contactPhone?: string;
+      contactPreference?: string;
     } = {
       title: formData.title,
       description: formData.description || '',
@@ -593,6 +623,20 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       isSold: false, // Optional field - default to false
       isArchived: false // Optional field - default to false
     };
+
+    // V3: Add contact information if provided
+    if (formData.contactName && formData.contactName.trim()) {
+      apiData.contactName = formData.contactName.trim();
+    }
+    if (formData.contactEmail && formData.contactEmail.trim()) {
+      apiData.contactEmail = formData.contactEmail.trim();
+    }
+    if (formData.contactPhone && formData.contactPhone.trim()) {
+      apiData.contactPhone = formData.contactPhone.trim();
+    }
+    if (formData.contactPreference && formData.contactPreference.trim()) {
+      apiData.contactPreference = formData.contactPreference.trim();
+    }
 
     // V2: Use IDs directly from form data (no conversion needed!)
     // The useListingData hook provides all reference data with IDs
@@ -638,6 +682,12 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       throw new ApiError('Valid price is required', 400);
     }
     
+    // V3: Debug log the final API data being sent
+    console.log('[Create Listing] Final API data:', {
+      ...apiData,
+      hasContactInfo: !!(apiData.contactName || apiData.contactEmail || apiData.contactPhone || apiData.contactPreference)
+    });
+
     // Using FormData for file uploads
     const formDataObj = new FormData();
     
