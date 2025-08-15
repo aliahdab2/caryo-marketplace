@@ -37,7 +37,7 @@ const VideoUpload = memo(function VideoUpload({
           </div>
           <div>
             <h5 className="font-semibold text-blue-900 dark:text-blue-100">
-              Upload Video File
+              {t('listings:addVideoUpload', 'Upload Video File')}
             </h5>
             <p className="text-sm text-blue-700 dark:text-blue-300">
               Drag & drop or click to select
@@ -75,15 +75,15 @@ const VideoUpload = memo(function VideoUpload({
                 <div className="flex items-center justify-center space-x-6 text-xs text-blue-500 dark:text-blue-400 mt-4">
                   <div className="flex items-center space-x-1">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>Max 100MB</span>
+                    <span>{t('listings:videoMaxSize', 'Max 100MB')}</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>3 min duration</span>
+                    <span>{t('listings:videoMaxDuration', '3 min duration')}</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>MP4, MOV, AVI</span>
+                    <span>{t('listings:videoFormats', 'MP4, MOV, AVI')}</span>
                   </div>
                 </div>
               </div>

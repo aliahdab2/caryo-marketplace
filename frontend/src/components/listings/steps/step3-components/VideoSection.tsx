@@ -86,11 +86,11 @@ const VideoSection = memo(function VideoSection({
         }`}>
           {/* Video Upload Toggle */}
           {isVideoUploadEnabled && (
-            <div className="group">
+            <div className="group h-full">
               <button
                 type="button"
                 onClick={() => setShowVideoUpload(!showVideoUpload)}
-                className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${isRTL ? 'text-right' : 'text-left'} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-800 ${
+                className={`w-full h-full p-5 rounded-2xl border-2 transition-all duration-300 ${isRTL ? 'text-right' : 'text-left'} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-800 ${
                   showVideoUpload || (formData.videos && formData.videos.length > 0)
                     ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 text-blue-900 dark:text-blue-100 shadow-lg'
                     : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/10'
@@ -117,7 +117,7 @@ const VideoSection = memo(function VideoSection({
                         {t('listings:addVideoUpload', 'Upload Video File')}
                         {!isVideoUrlEnabled && (
                           <span className="ms-2 px-2 py-1 text-xs bg-blue-500 text-white rounded-full">
-                            Only Option
+                            {t('listings:onlyOption', 'Only Option')}
                           </span>
                         )}
                       </h4>
@@ -127,15 +127,15 @@ const VideoSection = memo(function VideoSection({
                       <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'} text-xs text-gray-500 dark:text-gray-500 mt-3`}>
                         <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span>Max 100MB</span>
+                          <span>{t('listings:videoMaxSize', 'Max 100MB')}</span>
                         </div>
                         <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span>3 min duration</span>
+                          <span>{t('listings:videoMaxDuration', '3 min duration')}</span>
                         </div>
                         <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span>MP4, MOV, AVI</span>
+                          <span>{t('listings:videoFormats', 'MP4, MOV, AVI')}</span>
                         </div>
                       </div>
                     </div>
@@ -152,7 +152,7 @@ const VideoSection = memo(function VideoSection({
                   <div className={`mt-3 flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                      {formData.videos.length} video file ready to upload
+                      {formData.videos.length} {t('listings:videoReadyToUpload', 'video file ready to upload')}
                     </span>
                   </div>
                 )}
@@ -162,11 +162,11 @@ const VideoSection = memo(function VideoSection({
 
           {/* Video URL Toggle */}
           {isVideoUrlEnabled && (
-            <div className="group">
+            <div className="group h-full">
               <button
                 type="button"
                 onClick={() => setShowVideoUrl(!showVideoUrl)}
-                className={`w-full p-5 rounded-2xl border-2 transition-all duration-300 ${isRTL ? 'text-right' : 'text-left'} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-800 ${
+                className={`w-full h-full p-5 rounded-2xl border-2 transition-all duration-300 ${isRTL ? 'text-right' : 'text-left'} group-hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-800 ${
                   showVideoUrl || (formData.videoUrls && formData.videoUrls.length > 0 && formData.videoUrls[0])
                     ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 text-purple-900 dark:text-purple-100 shadow-lg'
                     : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 bg-white dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/10'
@@ -193,7 +193,7 @@ const VideoSection = memo(function VideoSection({
                         {t('listings:addVideoUrl', 'Add Video URL')}
                         {!isVideoUploadEnabled && (
                           <span className="ms-2 px-2 py-1 text-xs bg-purple-500 text-white rounded-full">
-                            Only Option
+                            {t('listings:onlyOption', 'Only Option')}
                           </span>
                         )}
                       </h4>
@@ -203,7 +203,7 @@ const VideoSection = memo(function VideoSection({
                       <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'} text-xs text-gray-500 dark:text-gray-500 mt-3`}>
                         <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                           <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                          <span>YouTube</span>
+                          <span>{t('listings:videoPlatformYouTube', 'YouTube')}</span>
                         </div>
                         {/* Vimeo removed */}
                         {/* External links note no longer needed */}
@@ -222,7 +222,7 @@ const VideoSection = memo(function VideoSection({
                   <div className={`mt-3 flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                      Video URL added and ready
+                      {t('listings:videoUrlReady', 'Video URL added and ready')}
                     </span>
                   </div>
                 )}
