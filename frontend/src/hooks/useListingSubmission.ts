@@ -34,6 +34,10 @@ export function useListingSubmission({
   setShowSuccessAlert,
   onSuccess
 }: UseListingSubmissionOptions) {
+  function isTranslator(fn: unknown): fn is (key: string, defaultValue?: string, vars?: Record<string, unknown>) => string {
+    return typeof fn === 'function';
+  }
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -102,7 +106,7 @@ export function useListingSubmission({
         onSuccess?.(result.id);
       }
     } catch (error) {
-      const translated = typeof t === 'function' ? (t as any)('common:unexpectedError') : 'Unexpected error';
+      const translated = isTranslator(t) ? t('common:unexpectedError') : 'Unexpected error';
       setError(error instanceof Error ? error.message : translated);
     } finally {
       setIsSubmitting(false);
