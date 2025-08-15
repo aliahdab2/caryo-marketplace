@@ -10,7 +10,7 @@ const baseProps = () => ({
     locationSlug: '', state: '', zipCode: '', contactName: '', contactPhone: '', contactEmail: '',
     contactPreference: 'phone', images: [], videos: [], videoUrls: [], existingImageUrls: [], existingVideoUrls: [],
     status: 'active'
-  } as any,
+  } as unknown as Parameters<typeof Step4PricingContact>[0]['formData'],
   formErrors: {},
   governorates: [
     { id: 1, slug: 'damascus', displayNameAr: 'دمشق', displayNameEn: 'Damascus' },
