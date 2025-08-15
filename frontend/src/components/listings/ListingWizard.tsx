@@ -27,6 +27,7 @@ import { SelectWithArrow } from '../ui/SelectWithArrow';
 import StepHeader from './shared/StepHeader';
 import StepNavigation from './shared/StepNavigation';
 import StepActions from './shared/StepActions';
+import Step1VehicleIdentity from './steps/Step1VehicleIdentity';
 
 // Performance optimized debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -876,138 +877,19 @@ export default function ListingWizard({
         {/* Form Steps */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
           <form ref={formRef} onSubmit={handleSubmit}>
-            {/* Step 1: Basic Info - Simplified for now */}
+            {/* Step 1: Vehicle Identity */}
             {currentStep === 1 && (
-              <div className="space-y-8 animate-fadeIn">
-                <StepHeader
-                  title={t('listings:vehicleIdentityTitle', 'Vehicle Identity')}
-                  subtitle={t('listings:vehicleIdentitySubtitle', "Start by telling us what vehicle you're selling")}
-                />
-
-                {/* Car Make */}
-                <div className="space-y-3">
-                  <label 
-                    htmlFor="make" 
-                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    {t('listings:newListingMake', 'Make')} <span className="text-red-500">*</span>
-                  </label>
-                  <SelectWithArrow
-                    id="make"
-                    name="make"
-                    value={formData.make}
-                    onChange={handleMakeChange}
-                    disabled={isLoadingMakes}
-                    isLoading={isLoadingMakes}
-                    isRTL={isRTL}
-                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                      formErrors.make ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                    } ${isLoadingMakes ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    aria-invalid={!!formErrors.make}
-                    aria-describedby={formErrors.make ? 'make-error' : 'make-hint'}
-                  >
-                    <option value="">
-                      {isLoadingMakes 
-                        ? t('listings:newListingLoadingMakes', 'Loading makes...') 
-                        : t('listings:newListingSelectMake', 'Select a make')
-                      }
-                    </option>
-                    {carMakes.map((make) => (
-                      <option key={make.id} value={make.slug}>
-                        {i18n.language === 'ar' ? make.displayNameAr : make.displayNameEn}
-                      </option>
-                    ))}
-                  </SelectWithArrow>
-                  {formErrors.make && <ErrorMessage error={formErrors.make} />}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="make-hint">
-                    {t('listings:newListingMakeHint', 'Select the manufacturer of your car')}
-                  </p>
-                </div>
-
-                {/* Car Model */}
-                <div className="space-y-3">
-                  <label 
-                    htmlFor="model" 
-                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    {t('listings:newListingModel', 'Model')} <span className="text-red-500">*</span>
-                  </label>
-                  <SelectWithArrow
-                    id="model"
-                    name="model"
-                    value={formData.model}
-                    onChange={createDropdownHandler('model', 'modelId', carModels)}
-                    disabled={isLoadingModels || !formData.make}
-                    isLoading={isLoadingModels}
-                    isRTL={isRTL}
-                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                      formErrors.model ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                    } ${(isLoadingModels || !formData.make) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    aria-invalid={!!formErrors.model}
-                    aria-describedby={formErrors.model ? 'model-error' : 'model-hint'}
-                  >
-                    <option value="">
-                      {!formData.make 
-                        ? t('listings:newListingSelectMakeFirst', 'Select a make first')
-                        : isLoadingModels 
-                        ? t('listings:newListingLoadingModels', 'Loading models...') 
-                        : t('listings:newListingSelectModel', 'Select a model')
-                      }
-                    </option>
-                    {carModels.map((model) => (
-                      <option key={model.id} value={model.slug}>
-                        {i18n.language === 'ar' ? model.displayNameAr : model.displayNameEn}
-                      </option>
-                    ))}
-                  </SelectWithArrow>
-                  {formErrors.model && <ErrorMessage error={formErrors.model} />}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="model-hint">
-                    {t('listings:newListingModelHint', 'Select the specific model of your car')}
-                  </p>
-                </div>
-
-                {/* Year */}
-                <div className="space-y-3">
-                  <label
-                    htmlFor="year"
-                    className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-                  >
-                    {t('listings:newListingYear', 'Year')} <span className="text-red-500">*</span>
-                  </label>
-                  <SelectWithArrow
-                    id="year"
-                    name="year"
-                    value={formData.year}
-                    onChange={handleFieldChange('year')}
-                    required
-                    isRTL={isRTL}
-                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                      formErrors.year ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
-                    }`}
-                    aria-invalid={!!formErrors.year}
-                    aria-describedby={formErrors.year ? 'year-error' : 'year-hint'}
-                  >
-                    <option value="">{t('listings:selectYear', 'Select Year')}</option>
-                    {(() => {
-                      const currentYear = new Date().getFullYear();
-                      const years = [];
-                      // From current year down to 1990 (no future years)
-                      for (let year = currentYear; year >= 1990; year--) {
-                        years.push(
-                          <option key={year} value={year.toString()}>
-                            {year}
-                          </option>
-                        );
-                      }
-                      return years;
-                    })()}
-                  </SelectWithArrow>
-                  {formErrors.year && <ErrorMessage error={formErrors.year} />}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400" id="year-hint">
-                    {t('listings:newListingYearHint', 'Enter manufacturing year (1990-{{currentYear}})', { currentYear: new Date().getFullYear() })}
-                  </p>
-                </div>
-              </div>
+              <Step1VehicleIdentity
+                formData={formData}
+                formErrors={formErrors}
+                carMakes={carMakes}
+                carModels={carModels}
+                isLoadingMakes={isLoadingMakes}
+                isLoadingModels={isLoadingModels}
+                onMakeChange={handleMakeChange}
+                onModelChange={createDropdownHandler('model', 'modelId', carModels)}
+                onYearChange={handleFieldChange('year') as unknown as (e: React.ChangeEvent<HTMLSelectElement>) => void}
+              />
             )}
 
             {/* Step 2: Vehicle Details */}
