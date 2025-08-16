@@ -3,6 +3,7 @@
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
 
 // Helper function to format role names and get styling
 const formatRole = (role: string) => {
@@ -239,6 +240,12 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      {/* Breadcrumbs */}
+      <Breadcrumb items={createDashboardBreadcrumb({
+        label: t('dashboard.profile'),
+        translationKey: 'dashboard.profile',
+        translationNamespace: 'dashboard'
+      })} />
       {/* Enhanced Header Section */}
       <div className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-3xl p-8 lg:p-12 text-white shadow-2xl overflow-hidden">
         {/* Background Pattern */}

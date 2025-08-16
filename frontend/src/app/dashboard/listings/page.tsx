@@ -17,6 +17,7 @@ import { SelectWithArrow } from '@/components/ui/SelectWithArrow';
 import { useDirection } from '@/utils/direction';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
+import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
 
 export default function ListingsPage() {
 
@@ -161,6 +162,12 @@ export default function ListingsPage() {
   return (
     <div className="p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Breadcrumbs */}
+        <Breadcrumb items={createDashboardBreadcrumb({
+          label: t('dashboard:myListings'),
+          translationKey: 'dashboard.myListings',
+          translationNamespace: 'dashboard'
+        })} />
         {/* Header (clean, single title) */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{t("dashboard:myListings")}</h1>

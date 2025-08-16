@@ -14,6 +14,7 @@ import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
 import EmptyState from '@/components/ui/EmptyState';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import { FaHeart, FaTrash } from 'react-icons/fa';
+import Breadcrumb from '@/components/ui/Breadcrumb';
 
 type FilterTab = 'all' | 'available' | 'removed';
 
@@ -141,19 +142,23 @@ export default function FavoritesPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumbs */}
-        <nav className="mb-6">
-          <ol className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                         <li>
-               <Link href="/dashboard" className="hover:text-blue-600 dark:hover:text-blue-400">
-                 {t('dashboard.dashboard', { ns: 'dashboard' })}
-               </Link>
-             </li>
-            <li className="flex items-center">
-              <span className="mx-2">/</span>
-              <span className="text-gray-900 dark:text-white">{t('title')}</span>
-            </li>
-          </ol>
-        </nav>
+        <div className="mb-6">
+          <Breadcrumb
+            items={[
+              {
+                label: 'Dashboard',
+                href: '/dashboard',
+                translationKey: 'dashboard.dashboard',
+                translationNamespace: 'dashboard'
+              },
+              {
+                label: 'My Favorites',
+                translationKey: 'title',
+                translationNamespace: 'favorites'
+              }
+            ]}
+          />
+        </div>
 
         {/* Page Title */}
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">

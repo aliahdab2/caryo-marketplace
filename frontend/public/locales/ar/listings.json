@@ -492,5 +492,10 @@
   "allStatuses": "جميع الحالات",
   "newest": "الأحدث أولاً",
   "title": "العنوان",
-  "date": "التاريخ"
+  "date": "التاريخ",
+  "discardChanges": "هل تريد تجاهل التغييرات؟",
+  "discardChangesTitle": "تجاهل التغييرات؟",
+  "discardChangesMessage": "لن يتم حفظ تغييراتك.",
+  "newListingTitle": "إنشاء إعلان جديد",
+  "newListingSubtitle": "املأ التفاصيل أدناه لعرض مركبتك للبيع"
 }

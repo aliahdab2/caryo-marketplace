@@ -3,14 +3,16 @@ import { ListingFormData, UpdateListingData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
 import { createListing, updateListing, uploadListingImage } from '@/services/listings';
 
+type ValidationMode = 'final' | 'navigation' | 'accessibility';
+
 interface UseListingSubmissionOptions {
   currentStep: number;
   totalSteps: number;
   mode: 'create' | 'edit';
   listingId?: string;
   formData: ListingFormData;
-  t: unknown;
-  validateStep: (...args: any[]) => FormErrors;
+  t: (key: string, fallback: string) => string;
+  validateStep: (step: number, formData: ListingFormData, t: (key: string, fallback: string) => string, options?: { mode?: ValidationMode }) => FormErrors;
   setFormErrors: (updater: FormErrors | ((prev: FormErrors) => FormErrors)) => void;
   setCurrentStep: (updater: (prev: number) => number) => void;
   setError: (msg: string | null) => void;
@@ -102,7 +104,7 @@ export function useListingSubmission({
         onSuccess?.(result.id);
       }
     } catch (error) {
-      const translated = typeof t === 'function' ? (t as any)('common:unexpectedError') : 'Unexpected error';
+      const translated = t('common:unexpectedError', 'Unexpected error');
       setError(error instanceof Error ? error.message : translated);
     } finally {
       setIsSubmitting(false);
