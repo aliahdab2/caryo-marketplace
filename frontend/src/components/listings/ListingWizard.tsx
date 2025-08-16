@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef, memo } from "react";
+import React, { useState, useEffect, useCallback, useRef, memo, forwardRef, useImperativeHandle } from "react";
 // import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
@@ -50,6 +50,20 @@ function useDebounce<T>(value: T, delay: number): T {
 // Optimized throttle hook for frequent operations
 // useThrottle utility not used in this component anymore
 import { ListingWizardProps } from '@/types/wizard';
+
+export type ListingWizardHandle = {
+  isDirty: () => boolean;
+};
+
+function shallowEqual(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
+  const ak = Object.keys(a);
+  const bk = Object.keys(b);
+  if (ak.length !== bk.length) return false;
+  for (const k of ak) {
+    if (a[k] !== b[k]) return false;
+  }
+  return true;
+}
 // import ErrorMessage from './shared/ErrorMessage';
 import { useListingSubmission } from '@/hooks/useListingSubmission';
 
@@ -88,7 +102,7 @@ const _StepLoadingFallback = memo(function StepLoadingFallback() {
 
 // Upload Progress Component removed - not used in current implementation
 
-export default function ListingWizard({ 
+export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader?: boolean }>(function ListingWizard({ 
   mode, 
   listingId, 
   initialData = {}, 
@@ -97,7 +111,7 @@ export default function ListingWizard({
   showHeader = true,
   onSuccess, 
   onCancel: _onCancel 
-}: ListingWizardProps & { showHeader?: boolean }) {
+}, ref) {
   const _router = useRouter();
   const { t, i18n, ready } = useLazyTranslation(['listings', 'common']);
   const { isRTL } = useDirection();
@@ -186,6 +200,28 @@ export default function ListingWizard({
     existingVideoUrls: initialData.existingVideoUrls || [],
     status: initialData.status || 'active'
   }));
+
+  const initialSnapshotRef = useRef<Partial<ListingFormData> | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    isDirty: () => {
+      if (mode === 'create') return true;
+      if (!initialSnapshotRef.current) return false;
+      const fields: Array<keyof ListingFormData> = [
+        'make','model','year','price','currency','mileage','engine','color','transmission','fuelType',
+        'governorateSlug','locationSlug','contactName','contactPhone','contactEmail','title','description'
+      ];
+      const current: Record<string, unknown> = {};
+      const initial: Record<string, unknown> = {};
+      const formDataRecord = formData as unknown as Record<keyof ListingFormData, unknown>;
+      const initialRecord = initialSnapshotRef.current as unknown as Record<keyof ListingFormData, unknown>;
+      fields.forEach((f: keyof ListingFormData) => {
+        current[f] = formDataRecord[f];
+        initial[f] = initialRecord[f];
+      });
+      return !shallowEqual(current, initial);
+    }
+  }), [formData, mode]);
 
   // Auto-save functionality (only for create mode)
   const autoSaveHook = useAutoSave(formData, {
@@ -322,6 +358,9 @@ export default function ListingWizard({
           existingVideoUrls: loadedData.existingVideoUrls || prevFormData.existingVideoUrls || [],
           features: loadedData.features || prevFormData.features || []
         }));
+        if (mode === 'edit' && !initialSnapshotRef.current) {
+          initialSnapshotRef.current = { ...loadedData };
+        }
         
         wizardLogger.debug('[ListingWizard] Data auto-loaded successfully');
       } catch (error) {
@@ -429,6 +468,9 @@ export default function ListingWizard({
           
           const data = await ListingDataService.loadFormData(mode, listingId);
           setFormData(prev => ({ ...prev, ...data }));
+          if (!initialSnapshotRef.current) {
+            initialSnapshotRef.current = { ...data };
+          }
           
           // After setting form data, trigger model loading if make is present
           if (data.make && data.makeId) {
@@ -778,4 +820,4 @@ export default function ListingWizard({
       </div>
     </div>
   );
-};
+});

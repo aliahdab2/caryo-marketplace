@@ -154,5 +154,10 @@
   "allStatuses": "All Statuses",
   "newest": "Newest First",
   "title": "Title",
-  "date": "Date"
+  "date": "Date",
+  "discardChanges": "Discard changes?",
+  "discardChangesTitle": "Discard changes?",
+  "discardChangesMessage": "Your changes will not be saved.",
+  "newListingTitle": "Create New Listing",
+  "newListingSubtitle": "Fill in the details below to list your vehicle for sale"
 }

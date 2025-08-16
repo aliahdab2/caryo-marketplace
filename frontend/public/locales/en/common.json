@@ -54,6 +54,7 @@
   "cancel": "Cancel",
   "delete": "Delete",
   "deleting": "Deleting...",
+  "discard": "Discard",
   "edit": "Edit",
   "viewAll": "View All",
   "save": "Save",
@@ -73,7 +74,6 @@
   "authVerifyIdentity": "Verify your identity",
   "authSecurityCheckCompleted": "Security check completed successfully!",
   "headerCloseMenu": "Close menu",
-  "headerOpenMenu": "Open menu",
   "dev.testingHub": "Development & Testing Hub",
   "dev.components": "Component Testing",
 
@@ -134,6 +134,7 @@
   "minPrice": "Min Price",
   "maxPrice": "Max Price",
   "dashboard.accountSettings": "Account Settings",
+  "dashboard.manageListings": "Manage your vehicle listings and account",
   "listings.viewDetails": "View Details",
   "listing.km": "km",
   "listings.addToFavorites": "Add to Favorites",

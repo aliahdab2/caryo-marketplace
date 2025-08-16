@@ -112,6 +112,10 @@ export default function DashboardLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
+  // Focused pages: hide the sidebar to emulate the Saved Alerts experience
+  const focusedRoutes = ['/dashboard/listings', '/dashboard/profile', '/dashboard/settings'];
+  const isFocusedPage = !!(pathname && focusedRoutes.some(route => pathname === route || pathname.startsWith(route + '/')));
+
   // Handle authentication redirection with a consistent user experience
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -318,7 +322,8 @@ export default function DashboardLayout({
         </nav>
       </div>
 
-      {/* Sidebar - Desktop */}
+      {/* Sidebar - Desktop (hidden on focused pages) */}
+      {!isFocusedPage && (
       <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-gray-800 shadow-sm 
                       border-r border-gray-200 dark:border-gray-700 h-screen sticky top-0 
                       transition-all duration-300">
@@ -329,11 +334,6 @@ export default function DashboardLayout({
             <MdDashboard className="mr-2 text-primary" /> 
             {t('dashboard.dashboard')}
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {session?.user?.name 
-              ? `${t('dashboard.welcome')}, ${session.user.name}!` 
-              : t('dashboard.welcome')}
-          </p>
         </div>
         
         {/* Navigation */}
@@ -389,6 +389,7 @@ export default function DashboardLayout({
           </button>
         </div>
       </aside>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">

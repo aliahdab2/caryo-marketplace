@@ -82,15 +82,16 @@ export const authOptions: NextAuthOptions = {
           }
 
           const data = await response.json();
-          
-          if (data && data.token && data.username) {
+          const tokenOrAccessToken = (data && (data.token || data.accessToken)) as string | undefined;
+
+          if (data && tokenOrAccessToken && data.username) {
             return {
               id: data.id?.toString() || data.username,
               name: data.username,
               email: data.email || `${data.username}@autotrader.com`,
               roles: data.roles || [],
               provider: "credentials",
-              token: data.token,
+              token: tokenOrAccessToken,
             } as AugmentedUser;
           }
           
@@ -127,10 +128,12 @@ export const authOptions: NextAuthOptions = {
             image: (profile as { picture?: string }).picture || "",
           });
 
-          if (response && response.token) {
+          const respToken = (response as unknown as { token?: string; accessToken?: string }).token
+            || (response as unknown as { token?: string; accessToken?: string }).accessToken;
+          if (response && respToken) {
             // Store the roles and token in the user object for later use
             (user as AugmentedUser).roles = response.user?.roles || [];
-            (user as AugmentedUser).token = response.token;
+            (user as AugmentedUser).token = respToken;
             (user as AugmentedUser).provider = "google";
             return true;
           }

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+
+import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
 import { useLanguage } from "@/components/EnhancedLanguageProvider";
 import { SupportedLanguage } from "@/utils/i18n";
 import { useManualLanguageOverride } from "@/hooks/useAutomaticLanguageDetection";
@@ -98,6 +100,14 @@ export default function SettingsPage() {
 
   return (
     <div>
+      {/* Breadcrumbs */}
+      <div className="mb-4">
+        <Breadcrumb items={createDashboardBreadcrumb({
+          label: t('settings'),
+          translationKey: 'dashboard.settings',
+          translationNamespace: 'dashboard'
+        })} />
+      </div>
       <h1 className="text-2xl font-semibold mb-6">{t('settings')}</h1>
       
       {/* Account Preferences */}
