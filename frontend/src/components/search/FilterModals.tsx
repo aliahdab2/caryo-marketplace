@@ -113,7 +113,7 @@ const MakeModelSelector = React.memo<{
         </h4>
         {isLoadingBrands ? (
           <div className="text-center py-4">
-            <div className="text-gray-500">{t('common:loading', 'Loading...')}</div>
+            <div className="text-gray-500">{t('loading', 'Loading...')}</div>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
@@ -142,7 +142,7 @@ const MakeModelSelector = React.memo<{
           </h4>
           {isLoadingModels ? (
             <div className="text-center py-4">
-              <div className="text-gray-500">{t('common:loading', 'Loading...')}</div>
+              <div className="text-gray-500">{t('loading', 'Loading...')}</div>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">

@@ -19,7 +19,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => {
       const translations: Record<string, string> = {
-        'listings.addToFavorites': 'Add to favorites',
+        'addToFavorites': 'Add to favorites',
         'listings.removeFromFavorites': 'Remove from favorites',
       };
       return translations[key] || key;

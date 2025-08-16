@@ -173,7 +173,7 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
           
           <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
             {displayYear && <div>{displayYear}</div>}
-            <div>{listing.mileage?.toLocaleString()} {t('listing.km', 'km')}</div>
+            <div>{listing.mileage?.toLocaleString()} {t('listingKm', 'km')}</div>
             {listing.transmission && <div>{getTransmissionText(listing.transmission)}</div>}
             {listing.fuelType && <div>{getFuelTypeText(listing.fuelType)}</div>}
           </div>
