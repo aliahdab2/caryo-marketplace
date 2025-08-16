@@ -324,20 +324,20 @@ const FilterModals = React.memo<FilterModalsProps>(({
   useEffect(() => {
     if (activeFilterModal && modalRef.current) {
       modalRef.current.focus();
-      announce(t('filters.modalOpened', `${getModalTitle(activeFilterModal)} filter opened`));
+      announce(t('search:filtersModalOpened', `${getModalTitle(activeFilterModal)} filter opened`));
     }
   }, [activeFilterModal, announce, t, getModalTitle]);
 
   // 🚀 UX Enhancement: Enhanced close function with feedback
   const handleEnhancedClose = useCallback(() => {
-    announce(t('filters.modalClosed', 'Filter modal closed'));
+    announce(t('search:filtersModalClosed', 'Filter modal closed'));
     onClose();
   }, [onClose, announce, t]);
 
   // 🚀 UX Enhancement: Enhanced clear filter with feedback
   const handleEnhancedClearFilter = useCallback((filterType: FilterType) => {
     onClearFilter(filterType);
-    announce(t('filters.filterCleared', `${getModalTitle(filterType)} filter cleared`));
+    announce(t('search:filterCleared', `${getModalTitle(filterType)} filter cleared`));
   }, [onClearFilter, announce, t, getModalTitle]);
 
   // Helper functions to get display names for reference data - memoized to prevent re-renders
@@ -664,7 +664,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
               type="button"
               className="rounded-md bg-white text-gray-500 hover:text-gray-700 focus:outline-none text-sm font-medium transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               onClick={handleEnhancedClose}
-              aria-label={t('filters.closeModal', 'Close filter modal')}
+              aria-label={t('search:closeFiltersModal', 'Close filter modal')}
             >
               {activeFilterModal === 'sellerType' ? t('search:cancel', 'Cancel') : <MdClose className="h-6 w-6" />}
             </button>
@@ -687,7 +687,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
               <button
                 onClick={() => handleEnhancedClearFilter(activeFilterModal)}
                 className="w-1/4 rounded-lg bg-white px-4 py-4 text-base font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 whitespace-nowrap"
-                aria-label={t('filters.clearFilterLabel', `Clear ${getModalTitle(activeFilterModal)} filter`)}
+                aria-label={t('search:clearFilterLabel', `Clear ${getModalTitle(activeFilterModal)} filter`)}
               >
                 {t('search:clearFilter', 'Clear filter')}
               </button>

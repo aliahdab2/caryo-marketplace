@@ -6,22 +6,16 @@
   "notFound": "The requested resource was not found.",
   "requestTimeout": "Request timed out. Please try again later.",
   "unauthorized": "You are not authorized to perform this action.",
-  "session": {
-    "refreshFailed": "Failed to refresh your session. Please sign in again.",
-    "expired": "Your session has expired. Please sign in again.",
-    "maxRetries": "Unable to establish a valid session after multiple attempts. Please sign in again."
-  },
-  "auth": {
-    "title": "Authentication Error",
-    "sessionExpired": "Your session appears to have expired or is invalid. Please try again or sign in.",
-    "additionalInfo": "Additional info: {{details}}"
-  },
-  "favorites": {
-    "loadingFailed": "Failed to load your favorites. Please try again.",
-    "sessionTokenMissingMaxRetries": "Unable to establish a valid session after multiple attempts. Please sign in again.",
-    "retryFailedNoSession": "Cannot retry without a valid session. Please sign in.",
-    "unauthorized": "Authentication required to view favorites."
-  },
+  "sessionRefreshFailed": "Failed to refresh your session. Please sign in again.",
+  "sessionExpired": "Your session has expired. Please sign in again.",
+  "sessionMaxRetries": "Unable to establish a valid session after multiple attempts. Please sign in again.",
+  "authTitle": "Authentication Error",
+  "authSessionExpired": "Your session appears to have expired or is invalid. Please try again or sign in.",
+  "authAdditionalInfo": "Additional info: {{details}}",
+  "favoritesLoadingFailed": "Failed to load your favorites. Please try again.",
+  "favoritesSessionTokenMissingMaxRetries": "Unable to establish a valid session after multiple attempts. Please sign in again.",
+  "favoritesRetryFailedNoSession": "Cannot retry without a valid session. Please sign in.",
+  "favoritesUnauthorized": "Authentication required to view favorites.",
   "failedToLoadGovernorates": "Failed to load governorates. Please try again.",
   "failedToLoadLocations": "Failed to load locations. Please try again.",
   "failedToLoadCarMakes": "Failed to load car makes. Please try again.",

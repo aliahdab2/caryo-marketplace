@@ -122,14 +122,12 @@
   "total": "Total",
   "pending": "Pending",
 
-  "filters": {
-    "sellerType": "Seller Type",
-    "allSellers": "All",
-    "privateSellerShort": "Private Seller",
-    "dealerShort": "Dealer",
-    "noSellerTypes": "No seller types available",
-    "loadingCounts": "Loading seller counts..."
-  },
+  "filters.sellerType": "Seller Type",
+  "filters.allSellers": "All",
+  "filters.privateSellerShort": "Private Seller",
+  "filters.dealerShort": "Dealer",
+  "filters.noSellerTypes": "No seller types available",
+  "filters.loadingCounts": "Loading seller counts...",
 
   "videoFieldsTitle": "Videos (Optional)",
   "videoFieldsSubtitle": "Add videos to showcase your vehicle",

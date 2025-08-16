@@ -183,5 +183,10 @@
   "transmissionsAutomatic": "أوتوماتيك",
   "transmissionsManual": "يدوي",
   "transmissionsCvt": "متغير مستمر",
-  "transmissionsSemiAutomatic": "شبه أوتوماتيك"
+  "transmissionsSemiAutomatic": "شبه أوتوماتيك",
+  "filtersModalOpened": "تم فتح نافذة الفلاتر",
+  "filtersModalClosed": "تم إغلاق نافذة الفلاتر",
+  "filterCleared": "تم مسح الفلتر",
+  "closeFiltersModal": "إغلاق نافذة الفلاتر",
+  "clearFilterLabel": "مسح الفلتر"
 }

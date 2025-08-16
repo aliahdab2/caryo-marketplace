@@ -1,21 +1,26 @@
-# AutoTrader Marketplace Frontend Development Plan
+# Frontend Reference and Development Plan
 
-## Project Structure
+## Project Structure (Current)
 
 ```plaintext
 frontend/
-├── components/        # Reusable UI components (buttons, forms, modals, etc.)
-├── pages/             # Next.js pages (Home, Listings, Login, etc.)
-├── serv#### 3. Monitor & Optimize:
-- Monitor user interactions and app performance using tools like **Vercel's built-in monitoring**.
-- **Analytics Implementation**:
-  - Set up Google Tag Manager (GTM) for flexible tag management.
-  - Consider privacy-compliant alternatives like **Plausible** or **Fathom Analytics** if data privacy is a concern.
-  - Create custom events to track critical user flows (e.g., listing creation, contact form completion).es/          # API services (fetch data from backend)
-├── store/             # Redux state management
-├── styles/            # Tailwind CSS and global styles
-├── public/            # Static assets (images, fonts, etc.)
-└── utils/             # Utility functions
+├── src/
+│   ├── app/                 # Next.js App Router (pages, layouts, route handlers)
+│   ├── components/          # Reusable UI/components (forms, modals, listings, layout)
+│   ├── hooks/               # Reusable React hooks (incl. i18n, auth, SWR helpers)
+│   ├── lib/                 # App-level libraries/config (e.g., auth config)
+│   ├── services/            # API service wrappers and error handlers
+│   ├── types/               # Centralized TypeScript types/interfaces
+│   ├── utils/               # Utilities (i18n, formatting, sanitization)
+│   ├── tests/               # Unit/integration tests
+│   └── middleware.ts        # Edge middleware (auth, i18n, etc.)
+├── public/
+│   └── locales/             # i18n translations (flat keys)
+│       ├── ar/
+│       └── en/
+├── scripts/
+│   └── diagnostics/         # Dev diagnostics and helpers
+└── docs/                    # Project documentation
 ```
 
 ## **Frontend Development Roadmap**
@@ -25,7 +30,7 @@ frontend/
 #### 1. Project Initialization
 - **Tooling**: Set up a **Next.js** app with **TypeScript** for type safety and better developer experience.
 - **CSS Framework**: Integrate **Tailwind CSS** for responsive, utility-first styling.
-- **Routing**: Leverage **Next.js routing** for seamless navigation between pages and dynamic routes.
+- **Routing**: Use **Next.js App Router** (`src/app/`) with layouts, server components, and route handlers.
 - **Linting & Formatting**: Set up **ESLint**, **Prettier**, and **Husky** (for pre-commit hooks) to ensure code quality and consistency.
   - Example: `npm install --save-dev eslint prettier eslint-config-prettier eslint-plugin-prettier husky lint-staged`
 - **Version Control**: Initialize the project with **Git** and create the initial commit.
@@ -53,18 +58,7 @@ npx tailwindcss init
   - Add toggle functionality with dark mode state persistent across visits.
 
 #### 2. Folder Structure
-Organize the frontend project into modular, scalable parts:
-
-```plaintext
-frontend/
-├── components/        # Reusable UI components (buttons, forms, modals, etc.)
-├── pages/             # Next.js pages (Home, Listings, Login, etc.)
-├── services/          # API services (fetch data from backend)
-├── store/             # Redux state management
-├── styles/            # Tailwind CSS and global styles
-├── public/            # Static assets (images, fonts, etc.)
-└── utils/             # Utility functions
-```
+See Project Structure above. This project uses App Router and places all source files under `frontend/src/`.
 
 #### 3. Absolute Imports & Path Aliases
 - Configure `tsconfig.json` and `next.config.js` to enable absolute imports (e.g., `@/components/*` instead of `../../components/*`) for cleaner import paths.
@@ -81,82 +75,54 @@ frontend/
       // ... other configurations
     }
     ```
-  - **Note for Next.js**: Next.js typically respects the `baseUrl` and `paths` in `tsconfig.json` automatically. If you\'re using a `src` directory, your path might be `"@/*": ["./src/*"]`. Custom Webpack aliases in `next.config.js` are often not needed for this specific purpose if `tsconfig.json` is set up correctly.
+  - **Note for Next.js**: Next.js typically respects the `baseUrl` and `paths` in `tsconfig.json` automatically. If you're using a `src` directory, your path might be "@/*": ["./src/*"]. Custom Webpack aliases in `next.config.js` are often not needed for this specific purpose if `tsconfig.json` is set up correctly.
 
 #### 4. Internationalization (i18n) Setup
-- ✅ Add support for Arabic and English, with Arabic as the default language.
-- ✅ Use **next-i18next** for internationalization and automatic language detection.
-- ✅ Organize translations in:
-  ```plaintext
-  public/
-  └── locales/
-      ├── ar/
-      │   └── common.json
-      └── en/
-          └── common.json
-  ```
-- ✅ Create a language switcher (e.g., in the header or settings dropdown).
-- Implement the following best practices:
-  - ✅ **Default Language Fallback**: Configure `fallbackLng: \'ar\'` in `next-i18next.config.js` to prevent undefined behavior.
-  - ✅ **Persist Language Selection**: Store user preference in cookies with `setCookie('NEXT_LOCALE', lang)`.
-  - ✅ **Locale Detection**: Implement detection order: `['cookie', 'localStorage', 'navigator', 'htmlTag']`.
-  - ✅ **Translation Keys Convention**: Use semantic namespacing for translation keys (e.g., `header.login`).
-  - ✅ **Date/Number Localization**: Use `Intl.DateTimeFormat` and `Intl.NumberFormat` for locale-specific formatting. (Implemented in `src/utils/localization.ts`)
-  - ✅ **Complete Translation Coverage**: All UI elements have translations for both languages, including dashboard subtitles and listing-related notifications.
-- ✅ Ensure RTL (Right-to-Left) layout support when Arabic is active:
-  - ✅ Tailwind supports RTL with `dir="rtl"` on the `<html>` or `<body>` tag.
-  - ✅ You can dynamically set it using:
-    ```tsx
-    <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} />
-    ```
-  - ✅ Fixed RTL spacing issues for UI elements (buttons, icons, etc.) to ensure proper display in Arabic mode.
+- ✅ Languages: Arabic (`ar`) and English (`en`).
+- ✅ Library: `i18next` + `react-i18next` with `i18next-http-backend` (not `next-i18next`).
+- ✅ Translations live under `public/locales/{lng}/{ns}.json` and use flat keys only.
+- ✅ Detection order: cookie → path → localStorage → navigator. Cookie key: `NEXT_LOCALE`. Fallback: `en`.
+- ✅ RTL support by setting `<html dir>` based on the active language.
 
-- ✅ Example next-i18next configuration (`frontend/next-i18next.config.js`):
-  ```js
-  module.exports = {
-    i18n: {
-      defaultLocale: 'ar',
-      locales: ['en', 'ar'], // Updated to match actual configuration
-      fallbackLng: 'ar',
-      detection: {
-        order: ['cookie', 'localStorage', 'navigator', 'htmlTag'],
-        caches: ['cookie'],
-      },
-    },
-  };
-  ```
+Minimal example for setting direction:
+```tsx
+<html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} />
+```
+
+Key usage guideline (flat keys):
+```json
+{
+  "login": "Login",
+  "logout": "Logout",
+  "listings_title": "Latest Listings"
+}
+```
+Use `useTranslation('common')` and reference keys directly, e.g. `t('login')`.
 
 ### **Phase 1: Core Components & Pages**
 
 #### 1. User Authentication
-- ✅ **Authentication Solution**: Implement authentication using **NextAuth.js**.
-  - It provides built-in support for JWT, social logins (OAuth), email/password, and other providers.
-  - Handles session management securely (e.g., using HttpOnly cookies by default), reducing boilerplate and improving security.
-- ✅ **Login/Signup Pages**:
-  - Implement **Login** and **Signup** pages. Forms can be managed with **React Hook Form**.
-  - `NextAuth.js` will manage the core authentication flow (e.g., credentials provider for email/password).
-  - ✅ Implemented and refactored user verification component (`SimpleVerification.tsx`) for both sign-in (auto-verify) and sign-up (click-to-verify) flows, including RTL support and i18n.
-- ✅ **Protected Routes**: Set up **middleware** or use `NextAuth.js` helper functions (like `getSession` or `useSession`) to protect pages and API routes based on authentication status.
-  
+- ✅ **NextAuth.js** with App Router route handlers at `src/app/api/auth/[...nextauth]/route.ts` and config in `src/lib/auth-config.ts`.
+- ✅ **Login/Signup pages** under `src/app/auth/`.
+- ✅ **Protected routes** via middleware and `useAuthSession` hook.
+
 #### 2. Navigation & Layout  
 - Implement **responsive navigation** (Header and Sidebar) using **Tailwind CSS**.
 - Ensure **mobile-first design** for seamless mobile experiences.
 - Use semantic HTML and ARIA landmarks (e.g., `<header>`, `<nav>`, `<main>`, `<aside>`, `<footer>`) for better accessibility.
 
-#### 3. Pages:
-- **Home Page**: Display featured cars and categories.
-- **Listings Page**: Display all car listings in a grid or card layout with search, filter, and pagination options.
-- **Car Details Page**: Show detailed information about a single car listing.
-- **User Dashboard**: Show user’s own listings and allow for actions like **pause/resume**, **delete**, etc.
-- **Admin Dashboard**: Enable admin functionalities like listing approval, archiving, and marking listings as sold.
+#### 3. App Routes:
+- **Home/Search**: Discover/search cars.
+- **Listings**: Grid/card layout with filters and pagination.
+- **Listing Details**: Detailed view with media gallery and specs.
+- **Dashboard**: Listings management, saved searches, profile, settings.
+- **Admin**: Listing review and moderation.
 
 #### 4. Reusable Components:
 - **Listing Card**: Display car details like make, model, price, and location in a compact card format.
-- **Search Filter**: Allow users to filter listings by price, location, brand, etc. Leverage **React Select** for dropdowns.
+- **Search Filter**: Allow users to filter listings by price, location, brand, etc. 
 - **Pagination**: Implement a simple pagination component for navigating through car listings.
-- **Loading States**: Create skeleton UIs using Tailwind CSS + Framer Motion for improved perceived performance while data is loading.
-  - Implement for listings, detail pages, and dashboard views.
-  - Use consistent loading patterns across the application.
+- **Loading States**: Create skeleton UIs using Tailwind CSS for improved perceived performance while data is loading.
 
 ### **Phase 2: Dynamic Features**
 
@@ -166,293 +132,105 @@ frontend/
 
 #### 2. Car Listings:
 - **Listing Form**: Create a form where users can add car details (make, model, price, photos, location, etc.). Use **React Hook Form** for handling the form state and validation.
-- **Image Upload**: Integrate **Cloud Storage (S3)** for image uploads. You can use **react-dropzone** for drag-and-drop image uploads.
+- **Image Upload**: Integrate cloud storage for image uploads.
 
-#### 3. State Management:
-- **Primary State Management (Shared/Complex/Remote)**: Utilize **Redux Toolkit** for managing global application state, especially for shared data, complex state logic, and data fetched from the server (potentially via RTK Query).\n  - **RTK Query**: Leverage RTK Query (part of Redux Toolkit) for data fetching and caching, simplifying interactions with the backend API and managing server state.
-- **Local/UI State Management (Simple/Component-Specific)**: For simpler UI state (e.g., modal visibility, form input toggles) or component-level state that doesn\'t need to be shared globally, consider:\n  - **React Context API**: Suitable for passing data through the component tree without prop drilling for moderately complex state.
-  - **Zustand**: A lightweight, flexible state management solution that can be a good alternative for managing local or domain-specific state without the boilerplate of Redux, especially when Redux feels like overkill.
-- **Guideline**:
-  - Use Redux Toolkit (+ RTK Query) where it adds clear value: for state that is shared across many components, is complex, or represents remote data that needs caching and synchronization.
-  - Avoid over-engineering: Don’t use Redux for trivial UI state that can be easily managed locally within a component or with a simpler solution like Zustand or Context.
-- **Hybrid Approach**: A combination of Redux Toolkit (with RTK Query) for global/remote state and Zustand/Context API for more localized or simpler UI state can provide a clean, scalable, and efficient state management strategy.
-- **Example**:
-  - Redux Toolkit: User authentication status, fetched car listings, global filters.
-  - Zustand/Context: State for a multi-step form wizard, visibility of a specific UI element.
+#### 3. State & Data Fetching
+- ✅ Prefer local/component state and minimal context.
+- ✅ Remote data via **SWR** helpers (`src/hooks/useSWRFetch.ts`). Example:
+```tsx
+const { data, isLoading, error } = useSWRFetch<Listing[]>("/api/listings");
+```
+- ➕ Consider lightweight context only when necessary. No Redux/RTK Query is used.
 
 #### 4. Routing and Navigation:
-- Use **Next.js dynamic routing** to allow deep linking to individual car listing pages (e.g., `/listings/[id]`).
-- Implement **clean URLs** using Next.js’s built-in **file-based routing** and **URL parameters**.
+- Use **Next.js App Router** features (layouts, dynamic segments) to enable deep linking.
 
 ### **Phase 3: Performance Optimization**
 
-#### 1. Code Splitting & Lazy Loading:
-- ✅ **Automatic Code Splitting**:
-  - ✅ Leveraged Next.js built-in page-level code splitting
-  - 🔄 Implementing lazy loading for heavy components
-  - ⏳ Dynamic imports for non-critical components planned
+#### 1. Code Splitting & Lazy Loading
+- ✅ Next.js App Router provides automatic code splitting.
+- 🔄 Use dynamic imports for heavy, non-critical components as needed.
 
-#### 2. Image Optimization:
-- ✅ **Next.js Image Component**:
-  - ✅ Implemented for all listing images
-  - ✅ Configured proper sizing and formats
-  - ✅ Set up responsive image sizes
-- 🔄 **Advanced Image Strategy**:
-  - 🔄 Implementing proper image loading priorities
-  - ⏳ Placeholder blur images planned
+#### 2. Image Optimization
+- ✅ Use `next/image` with proper sizes and priorities where appropriate.
+- ⏳ Placeholder blur and advanced strategies can be added as needed.
 
-#### 3. Progressive Web App (PWA):
-- ⏳ **Offline Support**:
-  - ⏳ next-pwa integration planned
-  - ⏳ Service worker setup planned
-- ⏳ **Mobile Installation**:
-  - ⏳ PWA manifest configuration planned
+#### 3. Progressive Web App (PWA)
+- ⏳ Not configured. Consider `next-pwa` and a service worker if offline support is required.
 
 #### 4. SEO Optimization
-- ✅ **Metadata Management**:
-  - ✅ Implemented Next.js Head components
-  - ✅ Created dynamic meta tags
-  - 🔄 Structured data implementation in progress
-- 🔄 **Rendering Strategies**:
-  - ✅ SSG for static pages
-  - 🔄 ISR for listings in development
-  - ⏳ Full SSG/ISR optimization planned
+- ✅ `next-seo` and `next-sitemap` are available.
+- ✅ Use SSG/SSR/ISR per route needs (listing detail can leverage ISR).
+- 🔄 Structured data tests present; expand as needed.
 
 #### 5. Performance Optimization — Expanded
 - **Bundle Analysis**
-  - Install and configure `@next/bundle-analyzer`:
-    ```bash
-    npm install @next/bundle-analyzer
-    ```
-  - Analyze chunks and reduce vendor bloat.
-
+  - Use `@next/bundle-analyzer` during builds.
 - **Caching Strategy**
-  - SWR/React Query for API caching.
-  - Next.js for SSR, SSG, ISR to suit different pages:
+  - SWR for API caching.
+  - Use SSR/SSG/ISR by route:
     - Listings (SSG/ISR)
     - Dashboard (SSR)
-
 - **Error Monitoring**
-  - Integrate Sentry early for runtime error tracking:
-    ```bash
-    npm install @sentry/nextjs
-    ```
-  - Configure sourcemaps uploading in CI/CD for accurate stack traces in production.
-  - Set up error boundaries to gracefully handle component-level failures.
-  
+  - ⏳ Sentry not configured. Add `@sentry/nextjs` and sourcemaps if needed.
+  - Use error boundaries for resilient UI states.
+
 ### **Phase 4: User Interactions & Alerts**
 
-#### 1. Notifications:
-- 🔄 **Toast Notifications**:
-  - ✅ Integrated toast notification system
-  - ✅ Set up for form submissions
-  - 🔄 Additional notification types in development
-  - ⏳ User preference settings for notifications planned
+#### 1. Notifications
+- ✅ Toast notifications for key user actions.
+- ⏳ Preferences and advanced categories optional.
 
-#### 2. Listing Expiry & Renewal:
-- 🔄 **Expiration Management**:
-  - ✅ Implemented expiry notice translations
-  - ✅ Added translation for expired listings alert
-  - ⏳ Renewal reminder system planned
-  - ⏳ Auto-expiry functionality planned
-  - ⏳ Renewal process workflow planned
+#### 2. Listing Expiry & Renewal
+- ✅ Expiry notices and translations.
+- ⏳ Renewal reminders and flows optional.
 
 #### 3. User Interactions & Alerts — Expanded
-- 🔄 **Error Handling**:
-  - ✅ Created API error handler utility
-  - ✅ Added comprehensive translations for user interaction messages
-  - 🔄 Global error boundary in development
-  - ⏳ Comprehensive error tracking planned
+- ✅ Centralized API error handler and translated messages.
+- 🔄 App-wide error boundary recommended.
 
 ### **Phase 5: Testing & Quality Assurance**
 
-#### 1. Unit Tests:
-- 🔄 **Component Testing**:
-  - ✅ Set up Jest and React Testing Library
-  - 🔄 Core component tests in development
-  - ⏳ Form validation tests planned
-  - ⏳ Comprehensive test coverage planned
+#### 1. Unit Tests
+- ✅ Jest + React Testing Library configured.
+- 🔄 Expand core component and form validation tests.
 
-#### 2. End-to-End Tests:
-- ⏳ **E2E Testing**:
-  - ⏳ Cypress setup planned
-  - ⏳ Critical user flow tests planned
-  - ⏳ Cross-browser testing planned
+#### 2. End-to-End Tests
+- ⏳ Cypress recommended for critical flows.
 
-#### 3. Performance Testing:
-- 🔄 **Performance Monitoring**:
-  - ✅ Set up Lighthouse CI
-  - 🔄 Initial performance audits completed
-  - ⏳ Mobile performance optimization planned
-
-#### 4. Testing & QA — Expanded
-- **Integration Testing**
-  - Test component interactions (e.g., form + API + success toast).
-
-- **Accessibility Testing**
-  - Integrate axe-core with Jest or Cypress for a11y audits:
-    ```bash
-    npm install --save-dev @axe-core/react
-    ```
-- **Visual Regression Testing**
-  - Use Chromatic (Storybook) or Percy for snapshot UI testing.
-
-- **Storybook Integration (Recommended)**
-  - Build components in isolation and document them.
-  - Use as a design system reference for developers and designers.
+#### 3. Performance Testing
+- 🔄 Lighthouse audits recommended regularly.
 
 ### **Phase 6: Deployment & CI/CD**
 
-#### 1. CI/CD Pipeline:
-- Set up continuous integration and deployment using **GitHub Actions** or **CircleCI**. This will automate testing, linting, and deployment to **Vercel** or **Netlify** (for seamless Next.js deployment).
+#### 1. CI/CD Pipeline
+- Use GitHub Actions to automate test, lint, type-check, and deploy to **Vercel**.
 
-#### 2. Hosting:
-- Deploy the frontend on **Vercel** or **Netlify** for fast, scalable hosting. Both platforms integrate well with **Next.js**.
+#### 2. Hosting
+- Deploy the frontend on **Vercel** for fast, scalable hosting.
 
-#### 3. Monitor & Optimize:
-- Monitor user interactions and app performance using tools like **Google Analytics**, **Sentry**, and **Vercel’s built-in monitoring**.
+#### 3. Monitor & Optimize
+- Use **Vercel analytics**; add **GTM/GA4** and **Sentry** as needed.
 
 #### 4. Deployment & CI/CD — Expanded
 - **Environment Management**
   - Different .env files for preview, staging, and production.
   - Set up GitHub Actions matrix for multi-env workflows.
-
 - **Rollback Strategy**
-  - Vercel has built-in rollbacks.
-  - Alternatively, use feature toggles for safe deployment.
+  - Vercel supports rollbacks; use feature toggles for safe deploys.
 
 ## General Cross-Cutting Enhancements
 - **Internationalization (i18n)**
-  - Integrate `next-i18next` for multi-language support.
-  - Add support for `en` (English) and `ar` (Arabic) with RTL layout handling for Arabic. Arabic will be the default language.
-  - Implement proper configuration:
-    ```js
-    // In next-i18next.config.js
-    module.exports = {
-      i18n: {
-        defaultLocale: 'ar',
-        locales: ['en', 'ar'], // Updated to match actual configuration
-        fallbackLng: 'ar',
-        detection: {
-          order: ['cookie', 'localStorage', 'navigator', 'htmlTag'],
-          caches: ['cookie'], // Cache detected language preference
-        }
-      }
-    }
-    ```
-  - Organize translations with semantic keys:
-    ```json
-    {
-      "header": {
-        "login": "Login",
-        "logout": "Logout"
-      }
-    }
-    ```
-  - Persist language selection in cookies:
-    ```typescript
-    i18n.changeLanguage(lang);
-    setCookie('NEXT_LOCALE', lang, { maxAge: 60 * 60 * 24 * 365 }); // 1 year
-    ```
-  - Implement RTL support for Arabic:
-    ```tsx
-    <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} />
-    ```
-  - Use `Intl.DateTimeFormat` and `Intl.NumberFormat` for proper date and currency formatting based on locale.
-  - **RTL Testing & Validation**:
-    - ✅ Test text alignment, icon positioning, and component flow in RTL mode.
-    - ✅ Fix spacing issues in RTL mode for UI elements like action buttons.
-    - ✅ Set up visual testing specifically for RTL layouts with Visual Testing Components.
-    - ✅ Create RTL-specific test cases to ensure proper layout flipping.
-  - **Performance Considerations**:
-    - **How to Avoid Slowness (Optimization Strategies):**
-      - **Code Splitting & Dynamic Imports:** Only load the translation files needed for the current language and page (as described in your plan).
-      - **Namespace-based Loading:** Load only the translation namespaces required for each page/component.
-      - **Efficient Language Detection:** Use server-side language detection to avoid unnecessary client-side redirects or re-renders.
-      - **Memoization:** Memoize translation components to avoid unnecessary re-renders.
-      - **Conditional CSS:** Only load RTL styles when needed.
-      - **Bundle Analysis:** Regularly analyze and monitor bundle size, especially after adding new languages.
-    - **Bundle Size Optimization**:
-      - Implement namespace-based loading to load only required translations for each page
-      - Use dynamic imports for language files: `import(`../locales/${locale}/messages`)`
-      - Configure code splitting per language to avoid downloading all translations at once:
-        ```js
-        // next.config.js
-        module.exports = {
-          i18n: {
-            // existing config...
-          },
-          webpack: (config) => {
-            // Create separate chunk for each locale
-            config.optimization.splitChunks.cacheGroups.i18n = {
-              name: 'i18n',
-              test: /locales/,
-              chunks: 'all',
-            };
-            return config;
-          },
-        }
-        ```
-    - **Runtime Performance**:
-      - **Translation Compilation:** Use translation compilation in production with `react-i18next` to avoid runtime parsing. This is best achieved by pre-compiling translation JSON files or using tools like `i18next-scanner` to generate static translation resources for production builds.
-      - **Memoization:** Memoize translation functions and components to prevent unnecessary re-renders. For example:
-        ```jsx
-        import { Trans } from 'react-i18next';
-        import React from 'react';
-
-        const MemoizedTransComponent = React.memo(({ i18nKey }) => {
-          return <Trans i18nKey={i18nKey} />;
-        });
-        ```
-        Or, for hooks:
-        ```jsx
-        import { useTranslation } from 'react-i18next';
-        import { useMemo } from 'react';
-
-        function MyComponent() {
-          const { t } = useTranslation();
-          const label = useMemo(() => t('my.key'), [t]);
-          return <span>{label}</span>;
-        }
-        ```
-      - **Avoid Nested Translation Keys:** Avoid nested translation keys in performance-critical components. Deeply nested keys can increase lookup time and reduce maintainability. Prefer flat or shallow key structures for frequently used or performance-sensitive translations. Memoization is especially important in large lists or frequently re-rendered components.
-    - **Server-Side Considerations**:
-      - **Efficient Language Detection:** Implement efficient language detection (preferably on the server) to avoid unnecessary client-side redirects and ensure users see the correct language immediately.
-      - **Pre-compute Translations During SSR:** Pre-compute common translations during server-side rendering (SSR) to avoid hydration mismatches and ensure the initial HTML matches the user's language.
-      - **Static Generation with Revalidation:** Use `getStaticProps` with revalidation (Incremental Static Regeneration) for pages with translations that rarely change, improving performance and scalability.
-      - **Streaming SSR with Suspense:** Consider implementing streaming SSR with React Suspense boundaries around i18n content to progressively render pages as soon as translations are ready, improving time-to-first-byte and perceived performance.
-    - **RTL Performance**:
-      - ✅ Use CSS logical properties (e.g., `margin-inline-start` instead of `margin-left`) to avoid duplicated RTL styles
-      - ✅ Implement proper RTL spacing with the `rtl:space-x-reverse` utility and additional gap controls in CSS
-      - ✅ Use CSS variables for direction-sensitive values instead of duplicating entire style rules
-      - ✅ Implement conditional CSS loading based on direction to avoid unnecessary RTL stylesheets:
-        ```tsx
-        // ClientRTLStylesLoader component handles this now
-        const [isRTL, setIsRTL] = useState(false);
-        useEffect(() => {
-          setIsRTL(document.documentElement.dir === "rtl");
-        }, [pathname]);
-        
-        return isRTL ? <link rel="stylesheet" href="/rtl-specific.css" /> : null;
-        ```
-    - **i18n Analysis & Monitoring**:
-      - Add bundle analyzer configurations specifically for tracking i18n-related bundle size
-      - Set up performance monitoring to compare metrics between different languages
-      - Create custom performance marks to measure translation loading and application times:
-        ```js
-        performance.mark('i18n-load-start');
-        await i18n.loadNamespaces(['common']);
-        performance.mark('i18n-load-end');
-        performance.measure('i18n-load', 'i18n-load-start', 'i18n-load-end');
-        ```
-
+  - Use `i18next` + `react-i18next` with HTTP backend.
+  - Languages: `en` and `ar` (RTL). Fallback: `en`. Flat translation keys only.
+  - Persist selection in cookie/localStorage. Update `<html dir>` dynamically.
+  - Use `Intl.*` for locale-aware dates and numbers.
 - **Frontend Security**
-  - Use HttpOnly cookies for auth where possible.
-  - Escape dynamic HTML. Avoid `dangerouslySetInnerHTML` unless sanitized.
-  - Validate all user inputs.
-
+  - Prefer HttpOnly cookies for auth-sensitive data.
+  - Sanitize HTML. Avoid `dangerouslySetInnerHTML` unless sanitized.
+  - Validate all user inputs and handle API errors centrally.
 - **Code Documentation**
-  - Use JSDoc or TSDoc for key functions and utility libraries.
+  - Use TSDoc/JSDoc for key utilities and services.
 
 ## Shared Code Strategy (Web + Mobile)
 To streamline development across web and mobile apps, we’ll extract shared logic into a common library or workspace:
@@ -475,14 +253,11 @@ Example structure:
 ```
 
 ### 2. API Consistency
-Use OpenAPI or typed API clients (e.g., tRPC, Axios wrapper) to ensure both web and mobile use the same contract.
+Use OpenAPI or typed API clients (e.g., Axios wrapper) to ensure both web and mobile use the same contract.
 
 ### 3. Auth Strategy
-- **Web Frontend**: Utilize **NextAuth.js** for comprehensive authentication. It can be configured to issue standard JWTs that can be understood by the backend.
-- **Mobile App**: If the mobile app uses the same backend:
-  - It can authenticate directly against the backend API using the same JWT-based strategy. The backend will issue JWTs that the mobile app can store securely (e.g., in SecureStorage).
-  - Ensure the JWTs issued by `NextAuth.js` (for web) and directly by the backend (for mobile or other clients) are compatible if they need to be consumed by the same backend services.
-- **Shared Helpers**: Shared login/logout helpers might need to be adapted for platform-specific token handling if not using a fully shared auth module via the monorepo.
+- **Web Frontend**: Utilize **NextAuth.js** for comprehensive authentication.
+- **Mobile App**: If the mobile app uses the same backend, authenticate directly against the backend API using JWT.
 
 ### 4. Code Standards
 Maintain unified linting, formatting, and naming conventions across all apps for consistent DX (Developer Experience).
@@ -491,12 +266,8 @@ Maintain unified linting, formatting, and naming conventions across all apps for
 As the product matures, consider the following progressive enhancements:
 
 - **Web Push Notifications**:
-  - Implement web push notifications (e.g., using Firebase Cloud Messaging or a similar service via the Service Worker) for important events like listing renewals, admin approvals, or new messages.
-  - This can significantly improve user engagement and retention.
-
+  - Implement web push notifications for important events like listing renewals, admin approvals, or new messages.
 - **Offline Form Submission Queue**:
-  - For critical forms (like new listing creation or contact forms), implement an offline submission queue.
-  - Utilize Service Workers to cache form data (e.g., in IndexedDB or localStorage) when the user is offline.
-  - Sync the queued submissions automatically when the connection is restored (Background Sync API).
+  - For critical forms (like new listing creation or contact forms), implement an offline submission queue using Service Workers and IndexedDB.
 
 ---

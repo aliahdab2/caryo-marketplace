@@ -184,4 +184,10 @@
   "transmissionsManual": "Manual",
   "transmissionsCvt": "CVT",
   "transmissionsSemiAutomatic": "Semi-Automatic"
+  ,
+  "filtersModalOpened": "Filter modal opened",
+  "filtersModalClosed": "Filter modal closed",
+  "filterCleared": "Filter cleared",
+  "closeFiltersModal": "Close filter modal",
+  "clearFilterLabel": "Clear filter"
 }
