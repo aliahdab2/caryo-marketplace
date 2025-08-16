@@ -52,10 +52,12 @@ jobs:
           FAIL_DOT_KEYS: 'true'
           ONLY_CHANGED_FILES: 'true'
           CHANGED_FILES: ${{ steps.diff.outputs.changed }}
-        run: npm run test:i18n
+        run: |
+          npm run test:i18n --silent -- --reporters=default --reporters=summary --coverage=false --silent
 
       - name: Missing-keys check (code usages vs locales)
         working-directory: ./frontend
-        run: npm run test -- --runTestsByPath src/__tests__/i18n/missingKeys.test.ts
+        run: |
+          npm run test -- --runTestsByPath src/__tests__/i18n/missingKeys.test.ts --reporters=default --reporters=summary --coverage=false --silent
 
 

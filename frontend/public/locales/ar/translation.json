@@ -1,8 +1,8 @@
 {
-  "header.about": "عن الموقع",
-  "header.contact": "اتصل بنا",
-  "header.dashboard": "لوحة التحكم",
-  "header.home": "الرئيسية",
-  "header.listings": "السيارات",
-  "header.logout": "تسجيل الخروج"
+  "headerAbout": "عن الموقع",
+  "headerContact": "اتصل بنا",
+  "headerDashboard": "لوحة التحكم",
+  "headerHome": "الرئيسية",
+  "headerListings": "السيارات",
+  "headerLogout": "تسجيل الخروج"
 }
