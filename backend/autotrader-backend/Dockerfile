@@ -19,7 +19,7 @@ COPY src src
 RUN ./gradlew build -x test --no-daemon
 
 # Second stage: Runtime
-FROM eclipse-temurin:21-jre-slim
+FROM eclipse-temurin:21-jre
 
 # Add a non-root user to run the app
 RUN groupadd -r appgroup && useradd -r -g appgroup appuser
