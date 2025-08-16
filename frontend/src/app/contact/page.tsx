@@ -46,33 +46,33 @@ export default function ContactPage() {
     
     // Name validation
     if (!formData.name.trim()) {
-      newErrors.name = t('form.name.validation.required');
+      newErrors.name = t('formNameValidationRequired');
     } else if (formData.name.trim().length < 2) {
-      newErrors.name = t('form.name.validation.minLength');
+      newErrors.name = t('formNameValidationMinLength');
     }
     
     // Email validation with improved regex for better international domain support
     if (!formData.email.trim()) {
-      newErrors.email = t('form.email.validation.required');
+      newErrors.email = t('formEmailValidationRequired');
     } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)) {
-      newErrors.email = t('form.email.validation.invalid');
+      newErrors.email = t('formEmailValidationInvalid');
     }
     
     // Subject validation
     if (!formData.subject.trim()) {
-      newErrors.subject = t('form.subject.validation.required');
+      newErrors.subject = t('formSubjectValidationRequired');
     }
     
     // Message validation with improved length check
     if (!formData.message.trim()) {
-      newErrors.message = t('form.message.validation.required');
+      newErrors.message = t('formMessageValidationRequired');
     } else if (formData.message.trim().length < 20) {
-      newErrors.message = t('form.message.validation.minLength');
+      newErrors.message = t('formMessageValidationMinLength');
     }
     
     // Verification check
     if (!isVerified) {
-      newErrors.form = t('form.verification.required');
+      newErrors.form = t('formVerificationRequired');
     }
     
     setErrors(newErrors);
@@ -92,7 +92,7 @@ export default function ContactPage() {
     // Check verification status
     if (!isVerified) {
       setErrors({
-        form: t('form.verification.required')
+        form: t('formVerificationRequired')
       });
       return;
     }
@@ -187,8 +187,8 @@ export default function ContactPage() {
             </div>
             <h1 className="text-lg md:text-xl font-bold">{tCommon('appName', 'Caryo Marketplace')}</h1>
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('form.title')}</h2>
-          <p className="text-sm md:text-base opacity-80">{t('form.description')}</p>
+          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('formTitle')}</h2>
+          <p className="text-sm md:text-base opacity-80">{t('formDescription')}</p>
           
           <div className="mt-6 bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5">
             <div className="flex items-start mb-3">
@@ -199,7 +199,7 @@ export default function ContactPage() {
                 </svg>
               </div>
               <p className="text-xs leading-relaxed">
-                {t('sidebar.businessHours.title')} {/* Assuming this was a typo and should be a general quick response text or moved to sidebar section */}
+                {t('sidebarBusinessHoursTitle')}
               </p>
             </div>
             <div className="flex items-start">
@@ -210,7 +210,7 @@ export default function ContactPage() {
                 </svg>
               </div>
               <p className="text-xs leading-relaxed">
-                {t('sidebar.businessHours.weekdays')} {t('sidebar.businessHours.weekdaysTime')} {/* Assuming this was a typo and should be a general support hours text or moved to sidebar section */}
+                {t('sidebarBusinessHoursWeekdays')} {t('sidebarBusinessHoursWeekdaysTime')}
               </p>
             </div>
           </div>
@@ -231,26 +231,26 @@ export default function ContactPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-3">{t('success.title')}</h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-md">{t('success.message')}</p>
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-3">{t('successTitle')}</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-md">{t('successMessage')}</p>
             <button
               onClick={() => router.push('/')}
               className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out"
             >
-              {t('success.backToHome')}
+              {t('successBackToHome')}
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto" noValidate>
             <div>
-              <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">{t('form.title')}</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-8">{t('form.description')}</p>
+              <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">{t('formTitle')}</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-8">{t('formDescription')}</p>
             </div>
 
             {/* Name Field */}
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('form.name.label')}</label>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('formNameLabel')}</label>
                 <input 
                   type="text" 
                   name="name" 
@@ -258,7 +258,7 @@ export default function ContactPage() {
                   autoComplete="name" 
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder={t('form.name.placeholder')}
+                  placeholder={t('formNamePlaceholder')}
                   className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
                   aria-invalid={errors.name ? 'true' : 'false'}
                   aria-describedby={errors.name ? 'name-error' : undefined}
@@ -268,7 +268,7 @@ export default function ContactPage() {
 
               {/* Email Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('form.email.label')}</label>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('formEmailLabel')}</label>
                 <input 
                   type="email" 
                   name="email" 
@@ -276,7 +276,7 @@ export default function ContactPage() {
                   autoComplete="email" 
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder={t('form.email.placeholder')}
+                  placeholder={t('formEmailPlaceholder')}
                   className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
                   aria-invalid={errors.email ? 'true' : 'false'}
                   aria-describedby={errors.email ? 'email-error' : undefined}
@@ -287,7 +287,7 @@ export default function ContactPage() {
 
             {/* Subject Field */}
             <div>
-              <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('form.subject.label')}</label>
+              <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('formSubjectLabel')}</label>
               <select 
                 id="subject" 
                 name="subject" 
@@ -297,33 +297,33 @@ export default function ContactPage() {
                 aria-invalid={errors.subject ? 'true' : 'false'}
                 aria-describedby={errors.subject ? 'subject-error' : undefined}
               >
-                <option value="">{t('form.subject.selectPlaceholder')}</option>
-                <option value="general_inquiry">{t('form.subject.options.general')}</option>
-                <option value="technical_support">{t('form.subject.options.support')}</option>
-                <option value="billing_question">{t('form.subject.options.billing')}</option>
+                <option value="">{t('formSubjectSelectPlaceholder')}</option>
+                <option value="general_inquiry">{t('formSubjectOptionsGeneral')}</option>
+                <option value="technical_support">{t('formSubjectOptionsSupport')}</option>
+                <option value="billing_question">{t('formSubjectOptionsBilling')}</option>
                 {/* <option value="feedback">{t('form.subject.options.feedback')}</option> */}
-                <option value="partnership">{t('form.subject.options.partnership')}</option>
-                <option value="other">{t('form.subject.options.other')}</option>
+                <option value="partnership">{t('formSubjectOptionsPartnership')}</option>
+                <option value="other">{t('formSubjectOptionsOther')}</option>
               </select>
               {errors.subject && <p id="subject-error" className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.subject}</p>}
             </div>
 
             {/* Message Field */}
             <div>
-              <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('form.message.label')}</label>
+              <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('formMessageLabel')}</label>
               <textarea 
                 id="message" 
                 name="message" 
                 rows={6} 
                 value={formData.message}
                 onChange={handleChange}
-                placeholder={t('form.message.placeholder')}
+                placeholder={t('formMessagePlaceholder')}
                 className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.message ? 'border-red-500' : 'border-gray-300'}`}
                 aria-invalid={errors.message ? 'true' : 'false'}
                 aria-describedby={errors.message ? 'message-error' : undefined}
               />
               {errors.message && <p id="message-error" className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.message}</p>}
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t('form.message.hint')}</p>
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t('formMessageHint')}</p>
             </div>
 
             {/* Verification Component */}
@@ -343,7 +343,7 @@ export default function ContactPage() {
                 disabled={isSubmitting || !isVerified}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
               >
-                {isSubmitting ? t('form.button.sending') : t('form.button.send')}
+                {isSubmitting ? t('formButtonSending') : t('formButtonSend')}
               </button>
             </div>
           </form>
