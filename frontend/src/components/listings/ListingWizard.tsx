@@ -213,9 +213,11 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
       ];
       const current: Record<string, unknown> = {};
       const initial: Record<string, unknown> = {};
-      fields.forEach(f => {
-        current[f] = (formData as any)[f];
-        initial[f] = (initialSnapshotRef.current as any)[f];
+      const formDataRecord = formData as unknown as Record<keyof ListingFormData, unknown>;
+      const initialRecord = initialSnapshotRef.current as unknown as Record<keyof ListingFormData, unknown>;
+      fields.forEach((f: keyof ListingFormData) => {
+        current[f] = formDataRecord[f];
+        initial[f] = initialRecord[f];
       });
       return !shallowEqual(current, initial);
     }
