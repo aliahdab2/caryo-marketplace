@@ -143,12 +143,7 @@ jobs:
         cache-dependency-path: './frontend/package.json'
         # Default values for commands and report paths are used from the action itself
 
-    - name: i18n rules (fail on dotted-keys)
-      working-directory: ./frontend
-      env:
-        FAIL_DOT_KEYS: 'true'
-      run: npm run test:i18n
-      continue-on-error: false
+    # i18n checks moved to separate translations workflow to avoid duplication
 
   # This job runs quick tests before building/deploying for pushes to main
   main-quick-test:

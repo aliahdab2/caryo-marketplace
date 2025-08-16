@@ -1,0 +1,42 @@
+name: Translation Quality Checks
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'frontend/src/**'
+      - 'frontend/public/locales/**'
+      - 'frontend/package.json'
+  workflow_dispatch: {}
+
+jobs:
+  translations-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: i18n structural rules (flat keys, numerals, dotted-keys)
+        working-directory: ./frontend
+        env:
+          FAIL_DOT_KEYS: 'true'
+        run: npm run test:i18n
+
+      - name: Missing-keys check (code usages vs locales)
+        working-directory: ./frontend
+        run: npm run test -- --runTestsByPath src/__tests__/i18n/missingKeys.test.ts
+
+
