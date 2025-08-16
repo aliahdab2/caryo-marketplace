@@ -5,7 +5,13 @@ import SearchResults from '../SearchResults';
 // Mock translations
 jest.mock('@/hooks/useLazyTranslation', () => ({
   useLazyTranslation: () => ({
-    t: (key: string, fallback: string) => fallback,
+    t: (key: string, fallbackOrOptions?: unknown) => {
+      if (typeof fallbackOrOptions === 'string') return fallbackOrOptions;
+      if (fallbackOrOptions && typeof fallbackOrOptions === 'object' && 'defaultValue' in (fallbackOrOptions as Record<string, unknown>)) {
+        return (fallbackOrOptions as { defaultValue?: string }).defaultValue || String(key);
+      }
+      return String(key);
+    },
     ready: true
   })
 }));

@@ -23,7 +23,8 @@ export default function ListingExpiry({
   status, 
   onRenew 
 }: ListingExpiryProps) {
-  const { t, i18n } = useTranslation('common');
+  const { t: tListings } = useTranslation('listings');
+  const { t: tCommon, i18n } = useTranslation('common');
   
   // Extract language to prevent i18n object recreation causing re-renders
   const currentLanguage = i18n.language;
@@ -53,15 +54,15 @@ export default function ListingExpiry({
   // Get message based on status - memoized for performance
   const statusMessage = useMemo(() => {
     if (status === 'expired') {
-      return t('listings.listingExpired');
+      return tListings('listingExpired');
     } else if (daysRemaining <= 7) {
-      return t('listings.expiresIn', { days: daysRemaining });
+      return tListings('expiresIn', { days: daysRemaining });
     } else {
-      return t('listings.validUntil', { 
+      return tListings('validUntil', { 
         date: formatDate(new Date(expiryDate), currentLanguage, {dateStyle: 'medium'}) 
       });
     }
-  }, [status, daysRemaining, expiryDate, t, currentLanguage]);
+  }, [status, daysRemaining, expiryDate, tListings, currentLanguage]);
   
   // Handle renewal submission
   const handleRenewal = () => {
@@ -80,9 +81,9 @@ export default function ListingExpiry({
         <button
           onClick={() => setIsRenewalModalOpen(true)}
           className="text-sm text-primary hover:underline flex items-center transition-all"
-          aria-label={status === 'expired' ? t('listings.renewNow') : t('listings.extendListing')}
+          aria-label={status === 'expired' ? tListings('renewNow') : tListings('extendListing')}
         >
-          {status === 'expired' ? t('listings.renewNow') : t('listings.extendListing')}
+          {status === 'expired' ? tListings('renewNow') : tListings('extendListing')}
         </button>
       )}
       
@@ -90,17 +91,17 @@ export default function ListingExpiry({
       {isRenewalModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="renewal-modal-title">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-            <h3 id="renewal-modal-title" className="text-xl font-semibold mb-4">{t('listings.renewListing')}</h3>
+            <h3 id="renewal-modal-title" className="text-xl font-semibold mb-4">{tListings('renewListing')}</h3>
             
             <p className="text-gray-600 dark:text-gray-300 mb-4">
               {status === 'expired' 
-                ? t('listings.expiredRenewalDesc') 
-                : t('listings.renewalDesc')}
+                ? tListings('expiredRenewalDesc') 
+                : tListings('renewalDesc')}
             </p>
             
             <div className="mb-4">
               <label htmlFor="renewal-duration" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('listings.renewalDuration')}
+                {tListings('renewalDuration')}
               </label>
               <select
                 id="renewal-duration"
@@ -108,9 +109,9 @@ export default function ListingExpiry({
                 onChange={(e) => setRenewalDuration(Number(e.target.value))}
                 className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
               >
-                <option value={30}>{t('listings.30days')}</option>
-                <option value={60}>{t('listings.60days')}</option>
-                <option value={90}>{t('listings.90days')}</option>
+                <option value={30}>{tListings('days30')}</option>
+                <option value={60}>{tListings('days60')}</option>
+                <option value={90}>{tListings('days90')}</option>
               </select>
             </div>
             
@@ -120,14 +121,14 @@ export default function ListingExpiry({
                 onClick={() => setIsRenewalModalOpen(false)}
                 className="py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
-                {t('cancel')}
+                {tCommon('cancel')}
               </button>
               <button
                 type="button"
                 onClick={handleRenewal}
                 className="py-2 px-4 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-sm hover:shadow"
               >
-                {t('listings.renewListing')}
+                {tListings('renewListing')}
               </button>
             </div>
           </div>

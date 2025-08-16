@@ -152,7 +152,7 @@ const SellerTypeFilter: React.FC<SellerTypeFilterProps> = ({
       {/* Loading indicator */}
       {isLoading && (
         <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
-          {t('common.loading', { defaultValue: 'Loading...' })}
+          {t('loading', { ns: 'common', defaultValue: 'Loading...' })}
         </div>
       )}
 

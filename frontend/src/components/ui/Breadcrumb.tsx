@@ -70,7 +70,7 @@ export const createDashboardBreadcrumb = (current: BreadcrumbItem): BreadcrumbIt
   {
     label: "Dashboard",
     href: "/dashboard",
-    translationKey: "dashboard.dashboard",
+    translationKey: "dashboard",
     translationNamespace: "dashboard",
   },
   current,
@@ -80,7 +80,7 @@ export const createSavedAlertsBreadcrumb = (): BreadcrumbItem[] => [
   {
     label: "Dashboard",
     href: "/dashboard",
-    translationKey: "dashboard.dashboard",
+    translationKey: "dashboard",
     translationNamespace: "dashboard",
   },
   {

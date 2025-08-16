@@ -245,7 +245,7 @@ export default function DashboardSavedSearchesPage() {
         <ol className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
           <li>
             <Link href="/dashboard" className="hover:text-blue-600 dark:hover:text-blue-400">
-              {t('dashboard.dashboard', { ns: 'dashboard' })}
+              {t('dashboard', { ns: 'dashboard' })}
             </Link>
           </li>
           <li className="flex items-center">

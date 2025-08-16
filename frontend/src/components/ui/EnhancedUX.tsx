@@ -45,13 +45,13 @@ export const EnhancedLoadingState = React.memo<LoadingStateProps>(({
           <div 
             className={`animate-spin rounded-full border-b-2 border-blue-600 ${sizeClasses[size]}`}
             role="status"
-            aria-label={t('common.loading', 'Loading')}
+            aria-label={t('common:loading', 'Loading')}
           />
         );
       
       case 'dots':
         return (
-          <div className="flex space-x-1" role="status" aria-label={t('common.loading', 'Loading')}>
+          <div className="flex space-x-1" role="status" aria-label={t('common:loading', 'Loading')}>
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
@@ -67,7 +67,7 @@ export const EnhancedLoadingState = React.memo<LoadingStateProps>(({
           <div 
             className={`bg-blue-600 rounded-full animate-ping ${sizeClasses[size]}`}
             role="status"
-            aria-label={t('common.loading', 'Loading')}
+            aria-label={t('common:loading', 'Loading')}
           />
         );
       
@@ -91,7 +91,7 @@ export const EnhancedLoadingState = React.memo<LoadingStateProps>(({
           {message}
         </p>
       )}
-      <span className="sr-only">{t('common.loading', 'Loading content, please wait')}</span>
+      <span className="sr-only">{t('common:loading', 'Loading content, please wait')}</span>
     </div>
   );
 });
@@ -185,12 +185,12 @@ export const EnhancedErrorState = React.memo<ErrorStateProps>(({
           aria-describedby="retry-description"
         >
           <MdRefresh className="mr-2 h-4 w-4" aria-hidden="true" />
-          {retryLabel || t('common.tryAgain', 'Try Again')}
+          {retryLabel || t('common:tryAgain', 'Try Again')}
         </button>
       )}
       
       <span id="retry-description" className="sr-only">
-        {t('common.retryDescription', 'Click to retry the failed operation')}
+        {t('common:retryDescription', 'Click to retry the failed operation')}
       </span>
     </div>
   );
@@ -243,7 +243,7 @@ export const ProgressBar = React.memo<ProgressBarProps>(({
         aria-valuenow={clampedProgress}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={label || t('common.progress', 'Progress')}
+        aria-label={label || t('common:progress', 'Progress')}
       >
         <div
           className={`h-2 rounded-full transition-all duration-300 ease-out ${colorClasses[color]}`}
@@ -305,7 +305,7 @@ export const EnhancedToast = React.memo<ToastProps>(({
           <button
             onClick={onClose}
             className="ml-3 text-current hover:opacity-70 focus:outline-none focus:ring-2 focus:ring-current focus:ring-offset-2 rounded"
-            aria-label={t('common.close', 'Close notification')}
+            aria-label={t('common:close', 'Close notification')}
           >
             <MdClose className="h-4 w-4" aria-hidden="true" />
           </button>

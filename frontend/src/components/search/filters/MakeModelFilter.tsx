@@ -85,7 +85,7 @@ const MakeModelFilter: React.FC<MakeModelFilterProps> = ({
           </h3>
           {isLoadingModels ? (
             <div className="text-center py-4">
-              <EnhancedLoadingState type="spinner" size="sm" message={t('common.loading', 'Loading...')} />
+              <EnhancedLoadingState type="spinner" size="sm" message={t('common:loading', 'Loading...')} />
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">

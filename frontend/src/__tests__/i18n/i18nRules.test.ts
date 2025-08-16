@@ -33,22 +33,7 @@ function collectNonFlatKeys(obj: JsonObject, prefix = ''): string[] {
   return violations;
 }
 
-function collectAllKeys(obj: JsonObject, prefix = ''): string[] {
-  const keys: string[] = [];
-  for (const [key, value] of Object.entries(obj)) {
-    const fullKey = prefix ? `${prefix}.${key}` : key;
-    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-      // Do not traverse metadata comment blocks
-      if (!key.startsWith('@')) {
-        // Nested objects are not allowed, but still record their top-level key for diffing
-        keys.push(fullKey);
-      }
-    } else {
-      keys.push(fullKey);
-    }
-  }
-  return keys.sort();
-}
+// (removed unused helper)
 
 function containsArabicNumerals(str: string): boolean {
   // Arabic-Indic digits: \u0660-\u0669
@@ -136,7 +121,6 @@ describe('i18n rules', () => {
       if (process.env.FAIL_DOT_KEYS === 'true') {
         throw new Error(message);
       } else {
-        // eslint-disable-next-line no-console
         console.warn(message);
       }
     }
