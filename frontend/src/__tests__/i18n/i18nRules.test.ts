@@ -40,6 +40,41 @@ function containsArabicNumerals(str: string): boolean {
   return /[\u0660-\u0669]/.test(str);
 }
 
+function capitalize(word: string): string {
+  if (!word) return word;
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+function toFlatKey(rawKey: string): string {
+  const parts = rawKey.split('.');
+  if (parts.length === 1) return rawKey;
+  const [first, ...rest] = parts;
+  return first + rest.map(capitalize).join('');
+}
+
+function suggestedFixForKey(file: string, key: string): string {
+  const ns = path.basename(file, '.json');
+  const knownNamespaces = new Set([
+    'common', 'dashboard', 'listings', 'search', 'errors', 'auth', 'translation', 'contact', 'forms', 'media', 'favorites', 'home'
+  ]);
+
+  // If key is prefixed with its own namespace, drop it then flatten
+  if (key.startsWith(ns + '.')) {
+    const rest = key.slice(ns.length + 1);
+    return `Change to "${toFlatKey(rest)}" in ${ns}.json`;
+  }
+
+  // If key starts with another known namespace, suggest moving
+  const firstSegment = key.split('.')[0];
+  if (firstSegment !== ns && knownNamespaces.has(firstSegment)) {
+    const rest = key.slice(firstSegment.length + 1);
+    return `Consider moving to ${firstSegment}.json as "${toFlatKey(rest)}" or flatten here as "${toFlatKey(key)}"`;
+  }
+
+  // Default: flatten in-place
+  return `Flatten to "${toFlatKey(key)}" in ${ns}.json`;
+}
+
 describe('i18n rules', () => {
   it('uses only flat structures in locale JSON (except @-metadata blocks)', () => {
     const enFiles = listNamespaceFiles(EN_LOCALES_DIR);
@@ -104,6 +139,7 @@ describe('i18n rules', () => {
   it('discourages dot "." in keys (prefer flat keys without namespace prefix)', () => {
     const dirs = [EN_LOCALES_DIR, AR_LOCALES_DIR];
     const offenders: string[] = [];
+    const suggestions: string[] = [];
 
     for (const dir of dirs) {
       for (const file of listNamespaceFiles(dir)) {
@@ -111,13 +147,22 @@ describe('i18n rules', () => {
         for (const [key, value] of Object.entries(json)) {
           if (typeof value === 'string' && key.includes('.') && !key.startsWith('@')) {
             offenders.push(`${path.basename(dir)}/${file}:${key}`);
+            suggestions.push(`- ${path.basename(dir)}/${file}:${key} → ${suggestedFixForKey(file, key)}`);
           }
         }
       }
     }
 
     if (offenders.length) {
-      const message = `Dot characters found in translation keys (consider removing namespace prefix in keys):\n${offenders.join('\n')}`;
+      const message = [
+        'Dot characters found in translation keys. Use flat keys and drop namespace prefixes.',
+        '',
+        'Offenders:',
+        offenders.join('\n'),
+        '',
+        'Suggestions:',
+        suggestions.join('\n')
+      ].join('\n');
       if (process.env.FAIL_DOT_KEYS === 'true') {
         throw new Error(message);
       } else {
