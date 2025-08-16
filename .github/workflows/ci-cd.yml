@@ -143,6 +143,13 @@ jobs:
         cache-dependency-path: './frontend/package.json'
         # Default values for commands and report paths are used from the action itself
 
+    - name: i18n rules (advisory dotted-keys check)
+      working-directory: ./frontend
+      env:
+        FAIL_DOT_KEYS: 'false'
+      run: npm run test:i18n
+      continue-on-error: true
+
   # This job runs quick tests before building/deploying for pushes to main
   main-quick-test:
     runs-on: ubuntu-latest

@@ -15,6 +15,7 @@
     "lint:all": "eslint . --ext .ts,.tsx,.js",
     "prepare": "husky",
     "test": "node --no-deprecation ./node_modules/.bin/jest",
+    "test:i18n": "node --no-deprecation ./node_modules/.bin/jest src/__tests__/i18n/i18nRules.test.ts",
     "test:watch": "npm run test -- --watch",
     "test:coverage": "npm run test -- --coverage",
     "restart": "sh ./scripts/restart-dev.sh",
