@@ -31,18 +31,27 @@ jobs:
 
       - name: Compute changed locale files
         id: diff
+        shell: bash
         run: |
-          git fetch origin ${GITHUB_BASE_REF:-main} --depth=1
-          BASE=${{ github.base_ref || 'origin/main' }}
-          # List only locale files changed in the PR
-          git diff --name-only "$BASE"...HEAD | grep '^frontend/public/locales/' || true
+          set -e
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          if [ -z "$BASE_SHA" ]; then
+            git fetch origin main --depth=1
+            BASE_SHA=$(git rev-parse origin/main)
+          else
+            git fetch origin "$BASE_SHA" --depth=1 || true
+          fi
+          CHANGED=$(git diff --name-only "$BASE_SHA"..."${{ github.sha }}" | grep '^frontend/public/locales/' || true)
+          echo "changed<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$CHANGED" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
       
       - name: i18n structural rules (flat keys, numerals, dotted-keys)
         working-directory: ./frontend
         env:
           FAIL_DOT_KEYS: 'true'
           ONLY_CHANGED_FILES: 'true'
-          CHANGED_FILES: ${{ steps.diff.outputs.stdout || '' }}
+          CHANGED_FILES: ${{ steps.diff.outputs.changed }}
         run: npm run test:i18n
 
       - name: Missing-keys check (code usages vs locales)
