@@ -429,7 +429,7 @@ export function useSearchFilters({
         if (state.filters.models && state.filters.models.length > 0) {
           parts.push(state.filters.models.map(getModelDisplayNameFromSlug).join(', '));
         }
-        return parts.join(' - ') || t('search.filters.makeModel', 'Make & Model');
+        return parts.join(' - ') || t('search:makeModel', 'Make & Model');
 
       case 'price':
         const minPrice = state.filters.minPrice;
@@ -437,11 +437,11 @@ export function useSearchFilters({
         if (minPrice && maxPrice) {
           return `$${minPrice.toLocaleString()} - $${maxPrice.toLocaleString()}`;
         } else if (minPrice) {
-          return `${t('search.filters.from', 'From')} $${minPrice.toLocaleString()}`;
+          return `${t('search:from', 'From')} $${minPrice.toLocaleString()}`;
         } else if (maxPrice) {
-          return `${t('search.filters.upTo', 'Up to')} $${maxPrice.toLocaleString()}`;
+          return `${t('search:upTo', 'Up to')} $${maxPrice.toLocaleString()}`;
         }
-        return t('search.filters.price', 'Price');
+        return t('search:price', 'Price');
 
       case 'year':
         const minYear = state.filters.minYear;
@@ -449,11 +449,11 @@ export function useSearchFilters({
         if (minYear && maxYear) {
           return `${minYear} - ${maxYear}`;
         } else if (minYear) {
-          return `${t('search.filters.from', 'From')} ${minYear}`;
+          return `${t('search:from', 'From')} ${minYear}`;
         } else if (maxYear) {
-          return `${t('search.filters.upTo', 'Up to')} ${maxYear}`;
+          return `${t('search:upTo', 'Up to')} ${maxYear}`;
         }
-        return t('search.filters.year', 'Year');
+        return t('search:year', 'Year');
 
       case 'mileage':
         const minMileage = state.filters.minMileage;
@@ -461,31 +461,31 @@ export function useSearchFilters({
         if (minMileage && maxMileage) {
           return `${minMileage.toLocaleString()} - ${maxMileage.toLocaleString()} km`;
         } else if (minMileage) {
-          return `${t('search.filters.from', 'From')} ${minMileage.toLocaleString()} km`;
+          return `${t('search:from', 'From')} ${minMileage.toLocaleString()} km`;
         } else if (maxMileage) {
-          return `${t('search.filters.upTo', 'Up to')} ${maxMileage.toLocaleString()} km`;
+          return `${t('search:upTo', 'Up to')} ${maxMileage.toLocaleString()} km`;
         }
-        return t('search.filters.mileage', 'Mileage');
+        return t('search:mileage', 'Mileage');
 
       case 'transmission':
-        return state.filters.transmissionId ? getTransmissionDisplayName(state.filters.transmissionId) : t('search.filters.transmission', 'Transmission');
+        return state.filters.transmissionId ? getTransmissionDisplayName(state.filters.transmissionId) : t('search:transmission', 'Transmission');
 
           case 'fuelType':
       return state.filters.fuelTypeSlugs && state.filters.fuelTypeSlugs.length > 0 
         ? state.filters.fuelTypeSlugs.map(slug => getFuelTypeDisplayNameFromSlug(slug)).join(', ') 
-        : t('search.filters.fuelType', 'Fuel Type');
+        : t('search:fuelType', 'Fuel Type');
 
       case 'bodyStyle':
                 return state.filters.bodyType && state.filters.bodyType.length > 0
           ? state.filters.bodyType.length === 1
             ? getBodyStyleDisplayName(state.filters.bodyType[0])
-            : `${state.filters.bodyType.length} ${t('search.filters.bodyStyles', 'Body types')}`
-          : t('search.filters.bodyStyle', 'Body Style');
+            : `${state.filters.bodyType.length} ${t('search:bodyStyles', 'Body types')}`
+          : t('search:bodyStyle', 'Body Style');
 
       case 'sellerType':
         return state.filters.sellerTypeIds && state.filters.sellerTypeIds.length > 0 
           ? getSellerTypeDisplayName(state.filters.sellerTypeIds)
-          : t('search.filters.sellerType', 'Seller Type');
+          : t('search:sellerType', 'Seller Type');
 
       default:
         return '';

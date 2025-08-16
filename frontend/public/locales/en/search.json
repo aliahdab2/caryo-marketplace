@@ -25,6 +25,7 @@
   "condition": "Condition",
   "fuelType": "Fuel type",
   "bodyStyle": "Body style",
+  "bodyStyles": "Body types",
   "location": "Location",
   "exteriorColor": "Exterior color",
   "doors": "Doors",

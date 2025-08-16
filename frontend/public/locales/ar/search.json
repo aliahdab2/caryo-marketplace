@@ -26,6 +26,7 @@
   "condition": "الحالة",
   "fuelType": "نوع الوقود",
   "bodyStyle": "نوع الهيكل",
+  "bodyStyles": "أنواع الهياكل",
   "location": "الموقع",
   "exteriorColor": "اللون الخارجي",
   "doors": "عدد الأبواب",
