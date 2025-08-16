@@ -94,7 +94,7 @@ const SellerTypeFilter: React.FC<SellerTypeFilterProps> = ({
   if (error) {
     return (
       <div className={`text-sm text-red-600 ${className}`}>
-        {t('errors.sellerTypeCountsError', { defaultValue: 'Unable to load seller type counts' })}
+        {t('sellerTypeCountsError', { ns: 'errors', defaultValue: 'Unable to load seller type counts' })}
       </div>
     );
   }

@@ -125,7 +125,7 @@ const SignInPage: React.FC = () => {
             result.error.toLowerCase().includes('credentials') ||
             result.error.toLowerCase().includes('password') ||
             result.error.toLowerCase().includes('user')) {
-          setError(t('errors.invalidCredentials', 'Invalid username or password. Please try again.'));
+          setError(t('invalidCredentials', { ns: 'errors', defaultValue: 'Invalid username or password. Please try again.' }));
         } else {
           setError(getErrorMessage({ message: result.error }));
         }

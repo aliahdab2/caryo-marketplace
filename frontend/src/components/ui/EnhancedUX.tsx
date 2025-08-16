@@ -135,26 +135,26 @@ export const EnhancedErrorState = React.memo<ErrorStateProps>(({
   const getDefaultTitle = () => {
     switch (type) {
       case 'network':
-        return t('errors.networkError', 'Connection Error');
+        return t('networkError', 'Connection Error');
       case 'timeout':
-        return t('errors.timeoutError', 'Request Timeout');
+        return t('timeoutError', 'Request Timeout');
       case 'not-found':
-        return t('errors.notFound', 'Not Found');
+        return t('notFound', 'Not Found');
       default:
-        return t('errors.generalError', 'Something went wrong');
+        return t('generalError', 'Something went wrong');
     }
   };
 
   const getDefaultMessage = () => {
     switch (type) {
       case 'network':
-        return t('errors.networkMessage', 'Please check your internet connection and try again.');
+        return t('networkMessage', 'Please check your internet connection and try again.');
       case 'timeout':
-        return t('errors.timeoutMessage', 'The request took too long. Please try again.');
+        return t('timeoutMessage', 'The request took too long. Please try again.');
       case 'not-found':
-        return t('errors.notFoundMessage', 'The requested content could not be found.');
+        return t('notFoundMessage', 'The requested content could not be found.');
       default:
-        return t('errors.generalMessage', 'An unexpected error occurred. Please try again.');
+        return t('generalMessage', 'An unexpected error occurred. Please try again.');
     }
   };
 

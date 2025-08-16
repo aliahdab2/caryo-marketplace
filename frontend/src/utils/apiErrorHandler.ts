@@ -62,19 +62,19 @@ export function useApiErrorHandler() {
     if (error instanceof ApiError) {
       switch (error.type) {
         case 'networkError':
-          return t('errors.networkError', 'Network error. Please check your connection and try again.');
+          return t('networkError', { ns: 'errors', defaultValue: 'Network error. Please check your connection and try again.' });
         
         case 'requestTimeout':
-          return t('errors.requestTimeout', 'Request timed out. Please try again later.');
+          return t('requestTimeout', { ns: 'errors', defaultValue: 'Request timed out. Please try again later.' });
         
         case 'unauthorized':
-          return t('errors.unauthorized', 'You are not authorized to perform this action.');
+          return t('unauthorized', { ns: 'errors', defaultValue: 'You are not authorized to perform this action.' });
         
         case 'notFound':
-          return t('errors.notFound', 'The requested resource was not found.');
+          return t('notFound', { ns: 'errors', defaultValue: 'The requested resource was not found.' });
         
         case 'server_error':
-          return t('errors.general', 'An error occurred. Please try again later.');
+          return t('general', { ns: 'errors', defaultValue: 'An error occurred. Please try again later.' });
         
         case 'validation':
           // Try to extract field-specific validation errors
@@ -96,10 +96,10 @@ export function useApiErrorHandler() {
           ) {
             return (error.data as { message: string }).message;
           }
-          return t('errors.validation', 'Please check your input and try again.');
+          return t('validation', { ns: 'errors', defaultValue: 'Please check your input and try again.' });
           
         case 'rate_limited':
-          return t('errors.general', 'Too many requests. Please try again later.');
+          return t('general', { ns: 'errors', defaultValue: 'Too many requests. Please try again later.' });
           
         default:
           // Use the server message if available
@@ -113,19 +113,19 @@ export function useApiErrorHandler() {
     // Handle standard errors
     if (error instanceof Error) {
       if (error.message.includes('fetch') || error.message.includes('network')) {
-        return t('errors.networkError', 'Network error. Please check your connection and try again.');
+        return t('networkError', { ns: 'errors', defaultValue: 'Network error. Please check your connection and try again.' });
       }
       // Check for authentication/credential errors
       if (error.message.toLowerCase().includes('invalid credential') || 
           error.message.toLowerCase().includes('incorrect password') ||
           error.message.toLowerCase().includes('user not found')) {
-        return t('errors.invalidCredentials', 'Invalid username or password. Please try again.');
+        return t('invalidCredentials', { ns: 'errors', defaultValue: 'Invalid username or password. Please try again.' });
       }
       return error.message;
     }
     
     // Unknown error type
-    return t('errors.general', 'An error occurred. Please try again.');
+    return t('general', { ns: 'errors', defaultValue: 'An error occurred. Please try again.' });
   };
   
   return {

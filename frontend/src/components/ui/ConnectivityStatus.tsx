@@ -93,7 +93,7 @@ export default function ConnectivityStatus({
         <p className="text-sm font-medium">
           {isConnected 
             ? t('serverConnected', 'Connected to server') 
-            : t('errors.serverUnavailable', 'Cannot connect to server. Some features may be unavailable.')}
+            : t('serverUnavailable', { ns: 'errors', defaultValue: 'Cannot connect to server. Some features may be unavailable.' })}
         </p>
         <button 
           onClick={checkNow} 
