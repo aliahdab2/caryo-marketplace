@@ -168,7 +168,7 @@ export default function AdminPanel() {
       );
 
       // Show success toast
-      showSuccess(t('admin.listingApproved', 'Listing approved successfully'));
+      showSuccess(t('adminListingApproved', 'Listing approved successfully'));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to approve listing';
       setError(errorMessage);
@@ -209,7 +209,7 @@ export default function AdminPanel() {
       setListings(listings.filter(listing => listing.id !== listingId));
       
       // Show success toast
-      showSuccess(t('admin.listingRejected', 'Listing rejected successfully'));
+      showSuccess(t('adminListingRejected', 'Listing rejected successfully'));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to reject listing';
       setError(errorMessage);
@@ -224,10 +224,10 @@ export default function AdminPanel() {
     return (
       <div className="p-6 text-center">
         <h1 className="text-2xl font-bold text-red-600 mb-4">
-          {t('admin.accessDenied', 'Access Denied')}
+          {t('adminAccessDenied', 'Access Denied')}
         </h1>
         <p className="text-gray-600">
-          {t('admin.adminOnly', 'This page is only accessible to administrators.')}
+          {t('adminAdminOnly', 'This page is only accessible to administrators.')}
         </p>
       </div>
     );
@@ -239,10 +239,10 @@ export default function AdminPanel() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            {t('admin.title', 'Admin Panel')}
+            {t('adminTitle', 'Admin Panel')}
           </h1>
           <p className="text-gray-600 mt-2">
-            {t('admin.subtitle', 'Manage listings and user content')}
+            {t('adminSubtitle', 'Manage listings and user content')}
           </p>
         </div>
         <button
@@ -251,7 +251,7 @@ export default function AdminPanel() {
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
           <MdRefresh className={`text-lg ${loading ? 'animate-spin' : ''}`} />
-          {t('admin.refresh', 'Refresh')}
+          {t('adminRefresh', 'Refresh')}
         </button>
       </div>
 
@@ -259,19 +259,19 @@ export default function AdminPanel() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
           icon={<MdPendingActions className="text-2xl text-yellow-600" />}
-          title={t('admin.pendingListings', 'Pending Listings')}
+          title={t('adminPendingListings', 'Pending Listings')}
           value={pendingListings.length}
           color="yellow"
         />
         <StatCard
           icon={<MdCheckCircle className="text-2xl text-green-600" />}
-          title={t('admin.approvedListings', 'Approved Listings')}
+          title={t('adminApprovedListings', 'Approved Listings')}
           value={approvedListings.length}
           color="green"
         />
         <StatCard
           icon={<MdPendingActions className="text-2xl text-blue-600" />}
-          title={t('admin.totalListings', 'Total Listings')}
+          title={t('adminTotalListings', 'Total Listings')}
           value={listings.length}
           color="blue"
         />
@@ -286,15 +286,15 @@ export default function AdminPanel() {
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <MdPendingActions className="text-yellow-600" />
-          {t('admin.pendingApproval', 'Pending Approval')} ({pendingListings.length})
+          {t('adminPendingApproval', 'Pending Approval')} ({pendingListings.length})
         </h2>
         
         {loading ? (
-          <LoadingSpinner message={t('admin.loading', 'Loading...')} />
+          <LoadingSpinner message={t('adminLoading', 'Loading...')} />
         ) : pendingListings.length === 0 ? (
           <EmptyState 
             icon={<MdCheckCircle className="text-4xl text-gray-400 mx-auto mb-2" />}
-            message={t('admin.noPendingListings', 'No pending listings to review')}
+            message={t('adminNoPendingListings', 'No pending listings to review')}
           />
         ) : (
           <div className="space-y-4">
@@ -404,27 +404,27 @@ function ListingCard({ listing, onApprove, onReject, processing, t }: ListingCar
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
             <div>
-              <span className="font-medium">{t('admin.makeModel', 'Make/Model')}:</span><br />
+              <span className="font-medium">{t('adminMakeModel', 'Make/Model')}:</span><br />
               {listing.make} {listing.model}
             </div>
             <div>
-              <span className="font-medium">{t('admin.year', 'Year')}:</span><br />
+              <span className="font-medium">{t('adminYear', 'Year')}:</span><br />
               {listing.year}
             </div>
             <div>
-              <span className="font-medium">{t('admin.price', 'Price')}:</span><br />
+              <span className="font-medium">{t('adminPrice', 'Price')}:</span><br />
               ${listing.price?.toLocaleString()}
             </div>
             <div>
-              <span className="font-medium">{t('admin.mileage', 'Mileage')}:</span><br />
+              <span className="font-medium">{t('adminMileage', 'Mileage')}:</span><br />
               {listing.mileage?.toLocaleString()} km
             </div>
           </div>
           
           <div className="text-xs text-gray-500 mb-4">
-            <span className="font-medium">{t('admin.listingId', 'Listing ID')}:</span> {listing.id} | 
-            <span className="font-medium ml-2">{t('admin.userId', 'User ID')}:</span> {listing.userId} |
-            <span className="font-medium ml-2">{t('admin.createdAt', 'Created')}:</span> {new Date(listing.createdAt).toLocaleDateString()}
+            <span className="font-medium">{t('adminListingId', 'Listing ID')}:</span> {listing.id} | 
+            <span className="font-medium ml-2">{t('adminUserId', 'User ID')}:</span> {listing.userId} |
+            <span className="font-medium ml-2">{t('adminCreatedAt', 'Created')}:</span> {new Date(listing.createdAt).toLocaleDateString()}
           </div>
           
           {listing.imageUrls && listing.imageUrls.length > 0 && (
@@ -486,19 +486,19 @@ function ActionButtons({ onApprove, onReject, processing, t }: ActionButtonsProp
         onClick={onApprove}
         disabled={processing}
         className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-        aria-label={processing ? t('admin.approving', 'Approving...') : t('admin.approve', 'Approve')}
+        aria-label={processing ? t('adminApproving', 'Approving...') : t('adminApprove', 'Approve')}
       >
         <MdCheckCircle className="text-lg" />
-        {processing ? t('admin.approving', 'Approving...') : t('admin.approve', 'Approve')}
+        {processing ? t('adminApproving', 'Approving...') : t('adminApprove', 'Approve')}
       </button>
       <button
         onClick={onReject}
         disabled={processing}
         className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-        aria-label={t('admin.reject', 'Reject')}
+        aria-label={t('adminReject', 'Reject')}
       >
         <MdCancel className="text-lg" />
-        {t('admin.reject', 'Reject')}
+        {t('adminReject', 'Reject')}
       </button>
     </div>
   );
