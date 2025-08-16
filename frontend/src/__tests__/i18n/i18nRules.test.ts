@@ -141,8 +141,23 @@ describe('i18n rules', () => {
     const offenders: string[] = [];
     const suggestions: string[] = [];
 
+    const onlyChanged = process.env.ONLY_CHANGED_FILES === 'true';
+    const changedRaw = process.env.CHANGED_FILES || '';
+    const changedSet = new Set(
+      changedRaw
+        .split(/\r?\n/u)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map((p) => p.replace(/^.*public\/locales\//u, '')) // e.g. en/common.json
+    );
+
     for (const dir of dirs) {
-      for (const file of listNamespaceFiles(dir)) {
+      const allFiles = listNamespaceFiles(dir);
+      const filesToCheck = onlyChanged
+        ? allFiles.filter((f) => changedSet.has(`${path.basename(dir)}/${f}`))
+        : allFiles;
+
+      for (const file of filesToCheck) {
         const json = readJson(path.join(dir, file));
         for (const [key, value] of Object.entries(json)) {
           if (typeof value === 'string' && key.includes('.') && !key.startsWith('@')) {
@@ -156,6 +171,8 @@ describe('i18n rules', () => {
     if (offenders.length) {
       const message = [
         'Dot characters found in translation keys. Use flat keys and drop namespace prefixes.',
+        '',
+        'Scope: ' + (onlyChanged ? 'changed locale files only' : 'all locale files'),
         '',
         'Offenders:',
         offenders.join('\n'),

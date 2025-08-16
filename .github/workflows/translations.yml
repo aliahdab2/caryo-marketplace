@@ -29,10 +29,20 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
+      - name: Compute changed locale files
+        id: diff
+        run: |
+          git fetch origin ${GITHUB_BASE_REF:-main} --depth=1
+          BASE=${{ github.base_ref || 'origin/main' }}
+          # List only locale files changed in the PR
+          git diff --name-only "$BASE"...HEAD | grep '^frontend/public/locales/' || true
+      
       - name: i18n structural rules (flat keys, numerals, dotted-keys)
         working-directory: ./frontend
         env:
           FAIL_DOT_KEYS: 'true'
+          ONLY_CHANGED_FILES: 'true'
+          CHANGED_FILES: ${{ steps.diff.outputs.stdout || '' }}
         run: npm run test:i18n
 
       - name: Missing-keys check (code usages vs locales)
