@@ -102,7 +102,7 @@ const SellerTypeFilter: React.FC<SellerTypeFilterProps> = ({
   return (
     <div className={`seller-type-filter ${className}`}>
       <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
-        {t('filters.sellerType', { defaultValue: 'Seller Type' })}
+        {t('filtersSellerType', { defaultValue: 'Seller Type' })}
       </h3>
       
       <div className="space-y-2">
@@ -159,7 +159,7 @@ const SellerTypeFilter: React.FC<SellerTypeFilterProps> = ({
       {/* No results indicator */}
       {!isLoading && !error && Object.keys(sellerTypeCounts).length === 0 && (
         <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
-          {t('filters.noSellerTypes', { defaultValue: 'No seller types available' })}
+          {t('filtersNoSellerTypes', { defaultValue: 'No seller types available' })}
         </div>
       )}
     </div>
