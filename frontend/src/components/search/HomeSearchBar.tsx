@@ -119,39 +119,36 @@ const HomeSearchBar: React.FC = () => {
   
   
   // Use API data hooks for fetching data with loading, error handling
-  const {
-    data: carMakes = [],
-    isLoading: isLoadingBrands,
-    error: brandsError,
-    retry: retryLoadingBrands
-  } = useApiData<CarMake[]>(
+  const brandsApi = useApiData<CarMake[]>(
     fetchCarBrands,
     '/api/reference-data/brands',
     [t]
-  );
+  ) || { data: null, isLoading: false, error: null, retry: async () => {} };
+  const carMakes: CarMake[] = useMemo(() => brandsApi.data ?? [], [brandsApi.data]);
+  const isLoadingBrands: boolean = brandsApi.isLoading ?? false;
+  const brandsError: string | null = brandsApi.error ?? null;
+  const retryLoadingBrands: () => Promise<void> = brandsApi.retry;
 
-  const {
-    data: governorates = [],
-    isLoading: isLoadingGovernorates,
-    error: governoratesError,
-    retry: retryLoadingGovernorates
-  } = useApiData<Governorate[]>(
+  const governoratesApi = useApiData<Governorate[]>(
     fetchGovernorates,
     '/api/reference-data/governorates',
     [t]
-  );
+  ) || { data: null, isLoading: false, error: null, retry: async () => {} };
+  const governorates: Governorate[] = useMemo(() => governoratesApi.data ?? [], [governoratesApi.data]);
+  const isLoadingGovernorates: boolean = governoratesApi.isLoading ?? false;
+  const governoratesError: string | null = governoratesApi.error ?? null;
+  const retryLoadingGovernorates: () => Promise<void> = governoratesApi.retry;
 
-  const {
-    data: availableModels = [],
-    isLoading: isLoadingModels,
-    error: modelsError,
-    retry: retryLoadingModels
-  } = useApiData<CarModel[]>(
+  const modelsApi = useApiData<CarModel[]>(
     () => selectedMake ? fetchCarModels(selectedMake) : Promise.resolve([]),
     selectedMake ? `/api/reference-data/brands/${selectedMake}/models` : '',
     [selectedMake, t],
     selectedMake ? { makeId: selectedMake } : undefined
-  );
+  ) || { data: null, isLoading: false, error: null, retry: async () => {} };
+  const availableModels: CarModel[] = useMemo(() => modelsApi.data ?? [], [modelsApi.data]);
+  const isLoadingModels: boolean = modelsApi.isLoading ?? false;
+  const modelsError: string | null = modelsApi.error ?? null;
+  const retryLoadingModels: () => Promise<void> = modelsApi.retry;
   
   
   // Get display name based on current language
@@ -183,7 +180,7 @@ const HomeSearchBar: React.FC = () => {
     });
   }, [governorates, currentLanguage]);
 
-  const { count: listingsCount, isLoading: isCounting } = useListingCount({
+  const { count: listingsCount } = useListingCount({
     brands: selectedBrandSlug ? [selectedBrandSlug] : undefined,
     models: selectedModelSlug ? [selectedModelSlug] : undefined,
     locations: selectedGovernorateSlug ? [selectedGovernorateSlug] : undefined,
@@ -373,10 +370,11 @@ const HomeSearchBar: React.FC = () => {
                     // Keep previous text while loading to avoid flicker; only fallback if we never had a count
                     if (listingsCount === null) return t('searchButton', 'Search Cars');
                     const rawCount = Number.isFinite(listingsCount) ? listingsCount : 0;
-                    return t('searchWithCount', {
+                    const translated = t('searchWithCount', {
                       count: rawCount,
                       defaultValue: `Search ${rawCount} cars`,
-                    });
+                    } as unknown as string);
+                    return typeof translated === 'string' ? translated : `Search ${rawCount} cars`;
                   })()
                 }</span>
                 <span className="xs:hidden">{t('search', 'Search')}</span>

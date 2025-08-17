@@ -54,7 +54,8 @@ export function useListingCount(
 
   const refresh = useMemo(
     () => async () => {
-      await update.flush?.();
+      // Cancel any pending debounced call to avoid stale overwrite
+      update.cancel?.();
       setIsLoading(true);
       try {
         const result = await getCarListingCountsPublic(filters as never);

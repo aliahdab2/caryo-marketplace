@@ -80,7 +80,10 @@ describe('useListingCount', () => {
     });
 
     expect(mockGetCount).toHaveBeenCalledWith({ brands: ['bmw'] });
-    expect(result.current.count).toBe(100);
+    // allow state update to flush
+    await waitFor(() => {
+      expect(result.current.count).toBe(100);
+    });
   });
 });
 
