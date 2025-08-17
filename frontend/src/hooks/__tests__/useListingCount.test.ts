@@ -26,7 +26,7 @@ describe('useListingCount', () => {
     mockGetCount.mockResolvedValueOnce(42);
 
     const { result, rerender } = renderHook(
-      (props: any) => useListingCount(props.filters, 300),
+      (props: { filters: { brands?: string[]; models?: string[]; locations?: string[] } }) => useListingCount(props.filters, 300),
       { initialProps: { filters: { brands: ['toyota'] } } }
     );
 
@@ -52,7 +52,7 @@ describe('useListingCount', () => {
     mockGetCount.mockResolvedValue(7);
 
     const { rerender } = renderHook(
-      (props: any) => useListingCount(props.filters, 200),
+      (props: { filters: { brands?: string[]; models?: string[]; locations?: string[] } }) => useListingCount(props.filters, 200),
       { initialProps: { filters: { brands: ['toyota'] } } }
     );
 
@@ -83,6 +83,33 @@ describe('useListingCount', () => {
     // allow state update to flush
     await waitFor(() => {
       expect(result.current.count).toBe(100);
+    });
+  });
+
+  it('uses cached value for identical filters within TTL', async () => {
+    mockGetCount.mockResolvedValue(55);
+
+    const { rerender, result } = renderHook(
+      (props: { filters: { brands?: string[]; models?: string[]; locations?: string[] } }) => useListingCount(props.filters, 10),
+      { initialProps: { filters: { brands: ['a'] } } }
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(10);
+    });
+
+    await waitFor(() => expect(result.current.count).toBe(55));
+
+    // Rerender with same filters - should hit cache, not call API again immediately
+    rerender({ filters: { brands: ['a'] } });
+    await act(async () => {
+      jest.advanceTimersByTime(10);
+    });
+
+    await waitFor(() => {
+      // First call only
+      expect(mockGetCount).toHaveBeenCalledTimes(1);
+      expect(result.current.count).toBe(55);
     });
   });
 });

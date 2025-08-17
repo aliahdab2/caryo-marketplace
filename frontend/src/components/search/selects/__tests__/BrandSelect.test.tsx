@@ -22,10 +22,11 @@ describe('BrandSelect', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTranslation.mockReturnValue({
-      t: mockT,
-      i18n: { language: 'en' } as any,
-    } as any);
+    const mocked = {
+      t: mockT as (key: string, fallback?: string) => string,
+      i18n: { language: 'en' },
+    } as unknown as ReturnType<typeof useTranslation>;
+    mockUseTranslation.mockReturnValue(mocked);
   });
 
   it('renders with correct options', () => {
