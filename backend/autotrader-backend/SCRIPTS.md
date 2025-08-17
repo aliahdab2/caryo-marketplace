@@ -12,7 +12,7 @@ Development environment configuration is in the `.devenv` directory.
 
 ## Production Deployment Scripts
 
-- `deploy.sh` - Main script for production deployment
+- `deploy-enhanced.sh` - Main script for production deployment
 - `generate-certs.sh` - Generates SSL certificates for production
 - `docker-compose.prod.yml` - Production Docker Compose configuration
 
@@ -32,10 +32,19 @@ For development:
 ./dev-env.sh start
 ```
 
-For production deployment:
+For production deployment (via the unified CLI):
 ```bash
 # Deploy to production
-./deploy.sh deploy
+./autotrader-backend/autotrader.sh prod deploy
+
+# Rebuild (keep DB)
+./autotrader-backend/autotrader.sh prod rebuild
+
+# Clean rebuild (wipe DB/volumes)
+./autotrader-backend/autotrader.sh prod clean-rebuild
+
+# Backup
+./autotrader-backend/autotrader.sh prod backup
 
 # Generate certificates (if needed)
 ./generate-certs.sh

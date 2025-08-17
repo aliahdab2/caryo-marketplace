@@ -316,7 +316,8 @@ export async function getCarListingCountsPublic(filters?: CarListingFilterParams
       });
     }
 
-    const url = `${API_BASE_URL}/api/listings/count?${queryParams.toString()}`;
+    // Use the filtered count endpoint which honors query params
+    const url = `${API_BASE_URL}/api/listings/count/filter?${queryParams.toString()}`;
     
     const response = await fetch(url, {
       method: 'GET',

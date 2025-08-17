@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import debounce from 'lodash/debounce';
@@ -13,150 +13,77 @@ import {
   Governorate
 } from '@/services/api';
 import { useApiData, useFormSelection } from '@/hooks/useApiData';
+import { useListingCount } from '@/hooks/useListingCount';
+import { usePersistedSelection } from '@/hooks/usePersistedSelection';
+import BrandSelect from './selects/BrandSelect';
+import ModelSelect from './selects/ModelSelect';
+import GovernorateSelect from './selects/GovernorateSelect';
 
-// Custom hook to handle select dropdown positioning for mobile
-const useSelectDropdownFix = (selectRefs: React.RefObject<HTMLSelectElement>[]) => {
-  useEffect(() => {
-    if (window.innerWidth >= 640) return; // Only apply on mobile
-    
-    // Create a list to store cleanup functions
-    const cleanupFunctions: (() => void)[] = [];
-    
-    // Apply focus handlers to all selects
-    selectRefs.forEach(ref => {
-      const select = ref.current;
-      if (!select) return;
-      
-      // Focus handler to improve dropdown positioning
-      const handleFocus = () => {
-        // Detect iOS
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        
-        // Get element positioning
-        const rect = select.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        const spaceBelow = viewportHeight - rect.bottom;
-        
-        // If there's not enough space below for dropdown options
-        if (spaceBelow < 200) {
-          const scrollAmount = Math.min(rect.top - 20, 200 - spaceBelow + 20);
-          if (scrollAmount > 0) {
-            window.scrollBy({
-              top: -scrollAmount,
-              behavior: 'smooth'
-            });
-          }
-        }
-        
-        // Give the browser a moment to update
-        setTimeout(() => {
-          // Find the closest container
-          const parentContainer = select.closest('.hero-search-container');
-          if (parentContainer) {
-            // Position the parent container optimally
-            parentContainer.scrollIntoView({ 
-              block: 'center',
-              behavior: 'smooth' 
-            });
-          }
-          
-          // Final positioning for optimal dropdown display
-          setTimeout(() => {
-            const updatedRect = select.getBoundingClientRect();
-            const targetPosition = isIOS ? 120 : 150; // pixels from top
-            const currentPosition = updatedRect.top;
-            const adjustment = currentPosition - targetPosition;
-            
-            if (Math.abs(adjustment) > 20) {
-              window.scrollBy({
-                top: adjustment,
-                behavior: 'smooth'
-              });
-            }
-          }, 50);
-        }, 50);
-      };
-      
-      // Attach event listener
-      select.addEventListener('focus', handleFocus);
-      
-      // Store cleanup function
-      cleanupFunctions.push(() => {
-        select.removeEventListener('focus', handleFocus);
-      });
-    });
-    
-    // Return cleanup function
-    return () => {
-      cleanupFunctions.forEach(cleanup => cleanup());
-    };
-  }, [selectRefs]);
-};
 
-const HomeSearchBar: React.FC = () => {
+// Homepage search bar with persistence and live count updates
+
+const HomeSearchBar = React.memo(() => {
   const { t, i18n } = useTranslation('search');
   const router = useRouter();
   const currentLanguage = i18n.language;
-  const containerRef = useRef<HTMLDivElement>(null);
-  const brandSelectRef = useRef<HTMLSelectElement>(null);
-  const modelSelectRef = useRef<HTMLSelectElement>(null);
-  const govSelectRef = useRef<HTMLSelectElement>(null);
-  
-  // Apply the dropdown positioning fix
-  useSelectDropdownFix([brandSelectRef, modelSelectRef, govSelectRef]);
-  
   // Form selections with reset capabilities
   const [selectedMake, setSelectedMake] = useFormSelection<number | null>(null, []);
   const [selectedModel, setSelectedModel] = useState<number | null>(null);
   const [selectedGovernorateSlug, setSelectedGovernorateSlug] = useState<string>('');
   
-  // Reset model when make changes
-  useEffect(() => {
-    setSelectedModel(null);
-  }, [selectedMake]);
+  // Persistence state for restoring user selections
+  const isRestoringRef = useRef<boolean>(false);
+  const pendingModelIdRef = useRef<number | null>(null);
+  const persisted = usePersistedSelection();
   
   
   // Use API data hooks for fetching data with loading, error handling
-  const {
-    data: carMakes = [],
-    isLoading: isLoadingBrands,
-    error: brandsError,
-    retry: retryLoadingBrands
-  } = useApiData<CarMake[]>(
+  const brandsApi = useApiData<CarMake[]>(
     fetchCarBrands,
     '/api/reference-data/brands',
     [t]
-  );
+  ) || { data: null, isLoading: false, error: null, retry: async () => {} };
+  const carMakes: CarMake[] = useMemo(() => brandsApi.data ?? [], [brandsApi.data]);
+  const isLoadingBrands: boolean = brandsApi.isLoading ?? false;
+  const brandsError: string | null = brandsApi.error ?? null;
+  const retryLoadingBrands: () => Promise<void> = brandsApi.retry;
 
-  const {
-    data: governorates = [],
-    isLoading: isLoadingGovernorates,
-    error: governoratesError,
-    retry: retryLoadingGovernorates
-  } = useApiData<Governorate[]>(
+  const governoratesApi = useApiData<Governorate[]>(
     fetchGovernorates,
     '/api/reference-data/governorates',
     [t]
-  );
+  ) || { data: null, isLoading: false, error: null, retry: async () => {} };
+  const governorates: Governorate[] = useMemo(() => governoratesApi.data ?? [], [governoratesApi.data]);
+  const isLoadingGovernorates: boolean = governoratesApi.isLoading ?? false;
+  const governoratesError: string | null = governoratesApi.error ?? null;
+  const retryLoadingGovernorates: () => Promise<void> = governoratesApi.retry;
 
-  const {
-    data: availableModels = [],
-    isLoading: isLoadingModels,
-    error: modelsError,
-    retry: retryLoadingModels
-  } = useApiData<CarModel[]>(
+  const modelsApi = useApiData<CarModel[]>(
     () => selectedMake ? fetchCarModels(selectedMake) : Promise.resolve([]),
     selectedMake ? `/api/reference-data/brands/${selectedMake}/models` : '',
     [selectedMake, t],
     selectedMake ? { makeId: selectedMake } : undefined
-  );
+  ) || { data: null, isLoading: false, error: null, retry: async () => {} };
+  const availableModels: CarModel[] = useMemo(() => modelsApi.data ?? [], [modelsApi.data]);
+  const isLoadingModels: boolean = modelsApi.isLoading ?? false;
+  const modelsError: string | null = modelsApi.error ?? null;
+  const retryLoadingModels: () => Promise<void> = modelsApi.retry;
   
   
-  // Get display name based on current language
-  const getDisplayName = useCallback((item: { displayNameEn: string; displayNameAr: string }) => {
-    return currentLanguage === 'ar' ? item.displayNameAr : item.displayNameEn;
-  }, [currentLanguage]);
+
+
+  // Resolve selected slugs for the counting API
+  const selectedBrandSlug = useMemo(() => {
+    if (selectedMake === null || !carMakes) return undefined;
+    const brand = carMakes.find((m) => m.id === selectedMake);
+    return brand?.slug || undefined;
+  }, [selectedMake, carMakes]);
+
+  const selectedModelSlug = useMemo(() => {
+    if (selectedModel === null || !availableModels) return undefined;
+    const model = availableModels.find((m) => m.id === selectedModel);
+    return model?.slug || undefined;
+  }, [selectedModel, availableModels]);
 
   // Sort governorates by current language
   const sortedGovernorates = useMemo(() => {
@@ -168,6 +95,68 @@ const HomeSearchBar: React.FC = () => {
       return nameA.localeCompare(nameB, currentLanguage === 'ar' ? 'ar' : 'en');
     });
   }, [governorates, currentLanguage]);
+
+  const { count: listingsCount } = useListingCount({
+    brands: selectedBrandSlug ? [selectedBrandSlug] : undefined,
+    models: selectedModelSlug ? [selectedModelSlug] : undefined,
+    locations: selectedGovernorateSlug ? [selectedGovernorateSlug] : undefined,
+  });
+
+  // Memoized search button label to avoid recalculation on every render
+  const searchButtonLabel = useMemo(() => {
+    if (listingsCount === null) return t('searchButton', 'Search Cars');
+    const count = Number.isFinite(listingsCount) ? listingsCount : 0;
+    const fallback = `Search ${count} cars`;
+    const result = t('searchWithCount', { count, defaultValue: fallback } as unknown as string);
+    return typeof result === 'string' ? result : fallback;
+  }, [listingsCount, t]);
+
+  // Kick off restore on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const saved = persisted.read();
+    if (!saved) return;
+    isRestoringRef.current = true;
+    persisted.beginRestore(saved);
+    if (saved.selectedGovernorateSlug) {
+      setSelectedGovernorateSlug(saved.selectedGovernorateSlug);
+    }
+    if (typeof saved.selectedMakeId === 'number') {
+      setSelectedMake(saved.selectedMakeId);
+    }
+    pendingModelIdRef.current = typeof saved.selectedModelId === 'number' ? saved.selectedModelId : null;
+  }, [persisted, setSelectedMake, setSelectedGovernorateSlug]);
+
+  // When models become available for the saved make, apply the saved model
+  useEffect(() => {
+    if (!isRestoringRef.current) return;
+    if (isLoadingModels) return;
+    const desiredModelId = pendingModelIdRef.current;
+    if (!desiredModelId) {
+      // Nothing to restore beyond make/governorate
+      isRestoringRef.current = false;
+      return;
+    }
+    if (availableModels && availableModels.some(m => m.id === desiredModelId)) {
+      setSelectedModel(desiredModelId);
+      isRestoringRef.current = false;
+      persisted.finishRestore();
+      pendingModelIdRef.current = null;
+    }
+  }, [isLoadingModels, availableModels, persisted, setSelectedModel]);
+
+  // Persist choices when they change (and not during initial restore)
+  useEffect(() => {
+    if (isRestoringRef.current) return;
+    const prefs = {
+      version: 1,
+      timestamp: Date.now(),
+      selectedMakeId: selectedMake ?? null,
+      selectedModelId: selectedModel ?? null,
+      selectedGovernorateSlug,
+    };
+    persisted.write(prefs);
+  }, [selectedMake, selectedModel, selectedGovernorateSlug, persisted]);
 
   // Handle search form submission
   const handleSearch = useCallback((e?: React.FormEvent) => {
@@ -216,115 +205,43 @@ const HomeSearchBar: React.FC = () => {
   }, [debouncedSearch]);
 
   return (
-    <div className="w-full" data-testid="search-container" ref={containerRef}>
+    <div className="w-full" data-testid="search-container">
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md rounded-lg overflow-visible">
         <div className="p-3 xs:p-4 sm:p-6">
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-3 xs:gap-x-4 sm:gap-x-6 gap-y-3 xs:gap-y-4 sm:gap-y-6">
             {/* Brand Select */}
-            <div className="h-12 flex items-center">
-              {/* Label hidden as requested */}
-              <label htmlFor="brand" className="sr-only">
-                {t('selectBrand', 'Brand')}
-              </label>
-              <div className="relative w-full h-12">
-                <select
-                  id="brand"
-                  ref={brandSelectRef}
-                  value={selectedMake ?? ''}
-                  onChange={(e) => setSelectedMake(e.target.value ? Number(e.target.value) : null)}
-                  className="appearance-none block w-full h-12 pl-3 xs:pl-4 pr-8 xs:pr-10 py-2 xs:py-3 text-sm xs:text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap mobile-select-dropdown select-fix"
-                  disabled={isLoadingBrands}
-                  aria-label={t('selectBrand', 'Select brand')}
-                >
-                  <option value="">{t('selectBrand', 'Any Brand')}</option>
-                  {!isLoadingBrands && carMakes?.map((make) => (
-                    <option key={make.id} value={make.id}>{getDisplayName(make)}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-1.5 xs:pr-2 pointer-events-none">
-                  <svg className="w-4 xs:w-5 h-4 xs:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-                {isLoadingBrands && (
-                  <div className="absolute inset-y-0 right-6 xs:right-8 flex items-center pr-1 pointer-events-none" data-testid="brand-loading-spinner">
-                    <div className="animate-spin h-3 xs:h-4 w-3 xs:w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
-                  </div>
-                )}
-              </div>
-            </div>
+            <BrandSelect
+              value={selectedMake}
+              onChange={(next) => {
+                // If user changes brand (and not in restore), clear model immediately
+                if (!isRestoringRef.current) {
+                  setSelectedModel(null);
+                }
+                setSelectedMake(next);
+              }}
+              options={carMakes}
+              isLoading={isLoadingBrands}
+              currentLanguage={currentLanguage}
+            />
 
             {/* Model Select */}
-            <div className="h-12 flex items-center">
-              {/* Label hidden as requested */}
-              <label htmlFor="model" className="sr-only">
-                {t('selectModel', 'Model')}
-              </label>
-              <div className="relative w-full h-12">
-                <select
-                  id="model"
-                  ref={modelSelectRef}
-                  value={selectedModel ?? ''}
-                  onChange={(e) => setSelectedModel(e.target.value ? Number(e.target.value) : null)}
-                  className="appearance-none block w-full h-12 pl-3 xs:pl-4 pr-8 xs:pr-10 py-2 xs:py-3 text-sm xs:text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap mobile-select-dropdown select-fix"
-                  disabled={!selectedMake || isLoadingModels}
-                  aria-label={t('selectModel', 'Select model')}
-                >
-                  <option value="">
-                    {t('selectModel', 'Any Model')}
-                  </option>
-                  {selectedMake && !isLoadingModels && availableModels?.map((model) => (
-                    <option key={model.id} value={model.id}>{getDisplayName(model)}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-1.5 xs:pr-2 pointer-events-none">
-                  <svg className="w-4 xs:w-5 h-4 xs:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-                {isLoadingModels && (
-                  <div className="absolute inset-y-0 right-6 xs:right-8 flex items-center pr-1 pointer-events-none" data-testid="model-loading-spinner">
-                    <div className="animate-spin h-3 xs:h-4 w-3 xs:w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
-                  </div>
-                )}
-              </div>
-            </div>
+            <ModelSelect
+              value={selectedModel}
+              onChange={setSelectedModel}
+              options={availableModels}
+              isLoading={isLoadingModels}
+              currentLanguage={currentLanguage}
+              selectedMake={selectedMake}
+            />
 
             {/* Governorate Select */}
-            <div className="h-12 flex items-center">
-              {/* Label hidden as requested */}
-              <label htmlFor="governorate" className="sr-only">
-                {t('location', 'Governorate')}
-              </label>
-              <div className="relative w-full h-12">
-                <select
-                  id="governorate"
-                  ref={govSelectRef}
-                  value={selectedGovernorateSlug}
-                  onChange={(e) => setSelectedGovernorateSlug(e.target.value)}
-                  className="appearance-none block w-full h-12 pl-3 xs:pl-4 pr-8 xs:pr-10 py-2 xs:py-3 text-sm xs:text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap mobile-select-dropdown select-fix"
-                  disabled={isLoadingGovernorates}
-                  aria-label={t('selectGovernorate', 'Select governorate')}
-                >
-                  <option value="">{t('selectGovernorate', 'Any Governorate')}</option>
-                  {!isLoadingGovernorates && sortedGovernorates.map((gov) => (
-                    <option key={gov.id} value={gov.slug}>
-                      {getDisplayName(gov)}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-1.5 xs:pr-2 pointer-events-none">
-                  <svg className="w-4 xs:w-5 h-4 xs:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-                {isLoadingGovernorates && (
-                  <div className="absolute inset-y-0 right-6 xs:right-8 flex items-center pr-1 pointer-events-none">
-                    <div className="animate-spin h-3 xs:h-4 w-3 xs:w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
-                  </div>
-                )}
-              </div>
-            </div>
+            <GovernorateSelect
+              value={selectedGovernorateSlug}
+              onChange={setSelectedGovernorateSlug}
+              options={sortedGovernorates}
+              isLoading={isLoadingGovernorates}
+              currentLanguage={currentLanguage}
+            />
 
             {/* Search Button */}
             <div className="h-12 flex items-center md:col-span-2 lg:col-span-1">
@@ -348,7 +265,9 @@ const HomeSearchBar: React.FC = () => {
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
                   />
                 </svg>
-                <span className="hidden xs:inline">{t('searchButton', 'Search Cars')}</span>
+                <span className="hidden xs:inline tabular-nums min-w-[14ch] text-center" aria-live="polite">
+                  {searchButtonLabel}
+                </span>
                 <span className="xs:hidden">{t('search', 'Search')}</span>
               </button>
             </div>
@@ -401,6 +320,8 @@ const HomeSearchBar: React.FC = () => {
       </div>
     </div>
   );
-};
+});
+
+HomeSearchBar.displayName = 'HomeSearchBar';
 
 export default HomeSearchBar;

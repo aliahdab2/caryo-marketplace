@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import HomeSearchBar from '../HomeSearchBar';
 import * as useApiDataHook from '@/hooks/useApiData';
+// Prevent real counting calls and simplify button rendering
+jest.mock('@/hooks/useListingCount', () => ({
+  useListingCount: () => ({ count: 0, isLoading: false, refresh: jest.fn() }),
+}));
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
