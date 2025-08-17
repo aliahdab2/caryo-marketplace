@@ -285,6 +285,7 @@
   "newListingYearPlaceholder": "2020",
   "newListingSelectYear": "اختر السنة",
   "newListingYearHint": "أدخل سنة الصنع (1990-{{currentYear}})",
+
   "newListingMileage": "المسافة المقطوعة (كم)",
   "newListingMileagePlaceholder": "50000",
   "newListingMileageHint": "إجمالي الكيلومترات المقطوعة",
