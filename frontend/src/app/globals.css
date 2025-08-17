@@ -584,6 +584,21 @@ select option {
   z-index: 10;
 }
 
+/* Ensure correct text direction/alignment for selects based on document direction */
+html[dir="ltr"] select.mobile-select-dropdown,
+html[dir="ltr"] .select-fix select {
+  direction: ltr;
+  text-align: left;
+  text-align-last: left; /* Align selected value on Chrome/Edge */
+}
+
+html[dir="rtl"] select.mobile-select-dropdown,
+html[dir="rtl"] .select-fix select {
+  direction: rtl;
+  text-align: right;
+  text-align-last: right;
+}
+
 /* Mobile viewport fixes for select dropdowns */
 @media screen and (max-width: 640px) {
   .mobile-select-dropdown {
