@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { getSession } from "next-auth/react";
 import { getMyListings, deleteListingById, deleteMultipleListings } from "../../../services/listings";
@@ -326,15 +325,8 @@ export default function ListingsPage() {
 					<li>{t("dashboard:tip2")}</li>
 					<li>{t("dashboard:tip3")}</li>
 				</ul>
-				<div className="mt-4">
-					<Link
-						href="/help/listings"
-						className="text-primary hover:underline"
-          >
-            {t("common:learnMore")} →
-          </Link>
-        </div>
-      </div>
+				{/* Learn more link temporarily removed per request */}
+			</div>
       </div>
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal {...deleteConfirmation.modalProps} />

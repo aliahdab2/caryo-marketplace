@@ -228,7 +228,7 @@ export function validateForm(data: Partial<ListingFormData>): FormErrors {
   const errors: FormErrors = {};
   
   // Required fields validation
-  const requiredFields = ['make', 'model', 'year', 'price', 'title'];
+  const requiredFields = ['make', 'model', 'year', 'price', 'title', 'mileage'];
   
   for (const field of requiredFields) {
     const value = data[field as keyof ListingFormData] as string;
@@ -296,7 +296,7 @@ const formLogger = createLogger({
 // Centralized required field rules per step
 const REQUIRED_FIELDS_BY_STEP: Record<number, Array<keyof ListingFormData>> = {
   1: ['make', 'model', 'year', 'title', 'description', 'price'],
-  2: [],
+  2: ['mileage'],
   3: ['title', 'description'],
   4: ['price', 'contactName', 'contactPhone', 'governorateSlug', 'locationSlug']
 };
@@ -306,6 +306,7 @@ const REQUIRED_FIELD_I18N: Record<string, { key: string; fallback: string }> = {
   make: { key: 'listings:newListingValidationMakeRequired', fallback: 'Make is required' },
   model: { key: 'listings:newListingValidationModelRequired', fallback: 'Model is required' },
   year: { key: 'listings:newListingValidationYearRequired', fallback: 'Year is required' },
+  mileage: { key: 'listings:newListingValidationMileageRequired', fallback: 'Mileage is required' },
   title: { key: 'listings:newListingValidationTitleRequired', fallback: 'Title is required' },
   description: { key: 'listings:newListingValidationDescriptionRequired', fallback: 'Description is required' },
   price: { key: 'listings:newListingValidationPriceRequired', fallback: 'Price is required' },
@@ -322,7 +323,7 @@ type ValidationMode = 'final' | 'navigation' | 'accessibility';
 // Blocking-only required fields per step (used for navigation/accessibility)
 const BLOCKING_REQUIRED_FIELDS_BY_STEP: Record<number, Array<keyof ListingFormData>> = {
   1: ['make', 'model', 'year'],
-  2: [],
+  2: ['mileage'],
   3: ['title', 'description'],
   4: ['price', 'contactName', 'contactPhone', 'governorateSlug', 'locationSlug']
 };
@@ -401,6 +402,13 @@ export const validateStep = (
       // Contact validation
       if (formData.contactEmail && formData.contactEmail.trim().length > 0 && !_isValidEmail(formData.contactEmail)) {
         errors.contactEmail = t('listings:newListingValidationEmailInvalid', 'Please enter a valid email address');
+      }
+      // Phone must be 6-15 digits
+      if (formData.contactPhone && formData.contactPhone.trim().length > 0) {
+        const phoneDigitsOnly = formData.contactPhone.replace(/\D/g, '');
+        if (!/^\d{6,15}$/.test(phoneDigitsOnly)) {
+          errors.contactPhone = t('listings:newListingValidationPhoneInvalid', 'Please enter a valid phone number');
+        }
       }
       
       // Check for images - either new uploaded images or existing images (for edit mode)
