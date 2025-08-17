@@ -43,8 +43,7 @@ import CarListingsGrid from '@/components/search/CarListingsGrid';
 import SortDropdown from '@/components/search/SortDropdown';
 import ViewModeToggle from '@/components/search/ViewModeToggle';
 import { ViewMode } from '@/components/search/ViewModeToggle';
-import { createSavedSearch } from '@/services/savedSearches';
-import { SavedSearchRequest } from '@/services/savedSearches';
+import { createSavedSearch, deleteSavedSearch, SavedSearchRequest } from '@/services/savedSearches';
 
 
 // Move namespaces outside component to prevent recreation on every render
@@ -72,6 +71,7 @@ export default function AdvancedSearchPage() {
   const [selectedSort, setSelectedSort] = useState(DEFAULT_SORT);
   const [isSavingAlert, setIsSavingAlert] = useState(false);
   const [isMonitoring, setIsMonitoring] = useState(false);
+  const [savedSearchId, setSavedSearchId] = useState<string | null>(null);
   const prevFiltersRef = useRef<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   
@@ -1106,8 +1106,8 @@ export default function AdvancedSearchPage() {
     return { nameEn, nameAr };
   }, [isFilterActive, carMakes, availableModels, referenceData]);
 
-  // Handle creating an alert (simple with monitoring state)
-  const handleCreateAlert = useCallback(async () => {
+  // Toggle alert: create if not monitoring, delete if monitoring
+  const handleToggleAlert = useCallback(async () => {
     if (!session?.user) {
       // Redirect to login if not authenticated
       router.push('/auth/signin');
@@ -1116,6 +1116,22 @@ export default function AdvancedSearchPage() {
 
     // Don't allow creating alert without filters
     if (!hasActiveFilters) {
+      return;
+    }
+
+    // If already monitoring, delete the alert
+    if (isMonitoring && savedSearchId) {
+      try {
+        setIsSavingAlert(true);
+        const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
+        await deleteSavedSearch(savedSearchId, token);
+        setIsMonitoring(false);
+        setSavedSearchId(null);
+      } catch (error) {
+        console.error('Error deleting alert:', error);
+      } finally {
+        setIsSavingAlert(false);
+      }
       return;
     }
 
@@ -1159,6 +1175,7 @@ export default function AdvancedSearchPage() {
       
       // Simple feedback and set monitoring state
       setIsMonitoring(true); // Now monitoring these criteria
+      if (response?.id) setSavedSearchId(response.id);
       
       if (response.wasUpdated) {
         console.log('✅ Alert updated with new criteria!');
@@ -1171,7 +1188,7 @@ export default function AdvancedSearchPage() {
     } finally {
       setIsSavingAlert(false);
     }
-  }, [session, filters, searchQuery, router, hasActiveFilters, generateAlertName]);
+  }, [session, filters, searchQuery, router, hasActiveFilters, generateAlertName, isMonitoring, savedSearchId]);
 
   // Filter pill component with memo for performance
   const handleSearch = () => {
@@ -1266,7 +1283,7 @@ export default function AdvancedSearchPage() {
           {/* Save Search Button - Simple with monitoring state */}
           {hasActiveFilters && (
             <button 
-              onClick={handleCreateAlert}
+              onClick={handleToggleAlert}
               disabled={isSavingAlert}
               className={`
                 flex items-center text-sm font-medium 
@@ -1285,7 +1302,8 @@ export default function AdvancedSearchPage() {
               ) : (
                 <MdNotificationsNone size={20} className={isRTL ? "ml-2" : "mr-2"} />
               )}
-              <span>
+              {/* Fixed-width label to prevent jitter when text changes */}
+              <span className="inline-block w-[11ch] xs:w-[12ch] text-center whitespace-nowrap">
                 {isSavingAlert 
                   ? t('search:savingAlert', 'Saving...') 
                   : isMonitoring

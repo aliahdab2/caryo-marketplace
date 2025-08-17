@@ -14,13 +14,12 @@ import {
 } from '@/services/api';
 import { useApiData, useFormSelection } from '@/hooks/useApiData';
 import { useListingCount } from '@/hooks/useListingCount';
-import { usePersistedSelection } from '@/hooks/usePersistedSelection';
 import BrandSelect from './selects/BrandSelect';
 import ModelSelect from './selects/ModelSelect';
 import GovernorateSelect from './selects/GovernorateSelect';
 
 
-// Homepage search bar with persistence and live count updates
+// Homepage search bar with live count updates
 
 const HomeSearchBar = React.memo(() => {
   const { t, i18n } = useTranslation('search');
@@ -31,10 +30,8 @@ const HomeSearchBar = React.memo(() => {
   const [selectedModel, setSelectedModel] = useState<number | null>(null);
   const [selectedGovernorateSlug, setSelectedGovernorateSlug] = useState<string>('');
   
-  // Persistence state for restoring user selections
+  // Simple state only; persistence removed to eliminate side-effects
   const isRestoringRef = useRef<boolean>(false);
-  const pendingModelIdRef = useRef<number | null>(null);
-  const persisted = usePersistedSelection();
   
   
   // Use API data hooks for fetching data with loading, error handling
@@ -111,52 +108,7 @@ const HomeSearchBar = React.memo(() => {
     return typeof result === 'string' ? result : fallback;
   }, [listingsCount, t]);
 
-  // Kick off restore on mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const saved = persisted.read();
-    if (!saved) return;
-    isRestoringRef.current = true;
-    persisted.beginRestore(saved);
-    if (saved.selectedGovernorateSlug) {
-      setSelectedGovernorateSlug(saved.selectedGovernorateSlug);
-    }
-    if (typeof saved.selectedMakeId === 'number') {
-      setSelectedMake(saved.selectedMakeId);
-    }
-    pendingModelIdRef.current = typeof saved.selectedModelId === 'number' ? saved.selectedModelId : null;
-  }, [persisted, setSelectedMake, setSelectedGovernorateSlug]);
-
-  // When models become available for the saved make, apply the saved model
-  useEffect(() => {
-    if (!isRestoringRef.current) return;
-    if (isLoadingModels) return;
-    const desiredModelId = pendingModelIdRef.current;
-    if (!desiredModelId) {
-      // Nothing to restore beyond make/governorate
-      isRestoringRef.current = false;
-      return;
-    }
-    if (availableModels && availableModels.some(m => m.id === desiredModelId)) {
-      setSelectedModel(desiredModelId);
-      isRestoringRef.current = false;
-      persisted.finishRestore();
-      pendingModelIdRef.current = null;
-    }
-  }, [isLoadingModels, availableModels, persisted, setSelectedModel]);
-
-  // Persist choices when they change (and not during initial restore)
-  useEffect(() => {
-    if (isRestoringRef.current) return;
-    const prefs = {
-      version: 1,
-      timestamp: Date.now(),
-      selectedMakeId: selectedMake ?? null,
-      selectedModelId: selectedModel ?? null,
-      selectedGovernorateSlug,
-    };
-    persisted.write(prefs);
-  }, [selectedMake, selectedModel, selectedGovernorateSlug, persisted]);
+  // Persistence removed
 
   // Handle search form submission
   const handleSearch = useCallback((e?: React.FormEvent) => {
@@ -213,10 +165,8 @@ const HomeSearchBar = React.memo(() => {
             <BrandSelect
               value={selectedMake}
               onChange={(next) => {
-                // If user changes brand (and not in restore), clear model immediately
-                if (!isRestoringRef.current) {
-                  setSelectedModel(null);
-                }
+                // Clear model immediately when brand changes
+                setSelectedModel(null);
                 setSelectedMake(next);
               }}
               options={carMakes}
@@ -225,6 +175,7 @@ const HomeSearchBar = React.memo(() => {
             />
 
             {/* Model Select */}
+            <div className="overflow-anchor-none">
             <ModelSelect
               value={selectedModel}
               onChange={setSelectedModel}
@@ -233,6 +184,7 @@ const HomeSearchBar = React.memo(() => {
               currentLanguage={currentLanguage}
               selectedMake={selectedMake}
             />
+            </div>
 
             {/* Governorate Select */}
             <GovernorateSelect

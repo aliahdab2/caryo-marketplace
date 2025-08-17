@@ -857,6 +857,17 @@ html[dir="rtl"] .select-fix select {
   }
 }
 
+/* Utility: disable scroll anchoring to prevent content jump/jitter */
+.overflow-anchor-none {
+  overflow-anchor: none;
+}
+
+/* Utility: disable animations/transitions on inputs/selects to avoid jitter */
+.no-anim-select {
+  transition: none !important;
+  animation: none !important;
+}
+
 .animate-modal-fade-in {
   animation: modal-fade-in 0.2s ease-out;
 }
