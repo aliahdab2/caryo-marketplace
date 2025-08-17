@@ -342,10 +342,15 @@ const Step4PricingContact = memo(function Step4PricingContact({
                 value={formData.contactPhone}
                 onChange={onContactPhoneChange}
                 data-testid="contactPhone"
+                inputMode="numeric"
+                autoComplete="tel"
+                pattern="^[0-9]{6,15}$"
+                minLength={6}
+                maxLength={15}
                 className={`w-full h-12 px-4 py-3 rounded-xl border-2 transition-colors duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                   formErrors.contactPhone ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                 }`}
-                placeholder={t('listings:newListingContactPhonePlaceholder', 'e.g., +965 12345678')}
+                placeholder={t('listings:newListingContactPhonePlaceholder', 'e.g., 96512345678')}
                 aria-invalid={!!formErrors.contactPhone}
                 aria-describedby={formErrors.contactPhone ? 'contactPhone-error' : 'contactPhone-hint'}
               />
@@ -412,6 +417,9 @@ const Step4PricingContact = memo(function Step4PricingContact({
           </p>
         </div>
       </div>
+
+      {/* Bottom spacing to separate from navigation buttons */}
+      <div className="pb-8"></div>
     </div>
   );
 });

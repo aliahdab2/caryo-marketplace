@@ -63,7 +63,7 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
           htmlFor="mileage" 
           className="block text-sm font-bold text-gray-700 dark:text-gray-300"
         >
-          {t('listings:newListingMileage', 'Mileage')}
+          {t('listings:newListingMileage', 'Mileage')} <span className="text-red-500">*</span>
         </label>
         <div className="relative">
           <NumericInput
@@ -168,18 +168,7 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
                 </option>
               ))}
             </SelectWithArrow>
-            {/* Status icon */}
-            <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-              {formErrors.transmission ? (
-                <svg className="w-5 h-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                </svg>
-              ) : formData.transmission ? (
-                <svg className="w-5 h-5 text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                </svg>
-              ) : null}
-            </div>
+            {/* No status icon for dropdown */}
           </div>
           {formErrors.transmission && <ErrorMessage error={formErrors.transmission} />}
           <p className="mt-2 text-xs text-gray-500 dark:text-gray-400" id="transmission-hint">
@@ -260,18 +249,7 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
                 </option>
               ))}
             </SelectWithArrow>
-            {/* Status icon */}
-            <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-              {formErrors.fuelType ? (
-                <svg className="w-5 h-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                </svg>
-              ) : formData.fuelType ? (
-                <svg className="w-5 h-5 text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                </svg>
-              ) : null}
-            </div>
+            {/* No status icon for dropdown */}
           </div>
           {formErrors.fuelType && <ErrorMessage error={formErrors.fuelType} />}
           <p className="mt-2 text-xs text-gray-500 dark:text-gray-400" id="fuelType-hint">
