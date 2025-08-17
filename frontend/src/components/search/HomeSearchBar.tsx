@@ -263,7 +263,7 @@ const HomeSearchBar = React.memo(() => {
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
                   />
                 </svg>
-                <span className="hidden xs:inline tabular-nums min-w-[14ch] text-center">
+                <span className="hidden xs:inline tabular-nums min-w-[14ch] text-center" aria-live="polite">
                   {searchButtonLabel}
                 </span>
                 <span className="xs:hidden">{t('search', 'Search')}</span>

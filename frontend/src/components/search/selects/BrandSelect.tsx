@@ -57,7 +57,7 @@ const BrandSelect = memo<BrandSelectProps>(({
           </svg>
         </div>
         {isLoading && (
-          <div className="absolute inset-y-0 right-6 xs:right-8 flex items-center pr-1 pointer-events-none" data-testid="brand-loading-spinner">
+          <div className="absolute inset-y-0 right-6 xs:right-8 flex items-center pr-1 pointer-events-none" data-testid="brand-loading-spinner" role="status" aria-live="polite">
             <div className="animate-spin h-3 xs:h-4 w-3 xs:w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
           </div>
         )}
