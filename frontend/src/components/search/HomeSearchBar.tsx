@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import debounce from 'lodash/debounce';
@@ -29,9 +29,6 @@ const HomeSearchBar = React.memo(() => {
   const [selectedMake, setSelectedMake] = useFormSelection<number | null>(null, []);
   const [selectedModel, setSelectedModel] = useState<number | null>(null);
   const [selectedGovernorateSlug, setSelectedGovernorateSlug] = useState<string>('');
-  
-  // Simple state only; persistence removed to eliminate side-effects
-  const isRestoringRef = useRef<boolean>(false);
   
   
   // Use API data hooks for fetching data with loading, error handling

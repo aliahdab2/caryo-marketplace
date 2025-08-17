@@ -486,5 +486,7 @@
   "discardChanges": "هل تريد تجاهل التغييرات؟",
   "discardChangesTitle": "تجاهل التغييرات؟",
   "discardChangesMessage": "لن يتم حفظ تغييراتك.",
-  "newListingSubtitleAlt2": "املأ التفاصيل أدناه لعرض مركبتك للبيع"
+  "newListingSubtitleAlt2": "املأ التفاصيل أدناه لعرض مركبتك للبيع",
+  "loadingTransmissions": "جاري تحميل أنواع ناقل الحركة...",
+  "loadingFuelTypes": "جاري تحميل أنواع الوقود..."
 }

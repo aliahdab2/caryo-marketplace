@@ -69,6 +69,8 @@
   "noFeaturesListed": "No features listed for this vehicle",
   "noImages": "No images available",
   "noListingsFound": "No listings found",
+  "noListings": "No listings to display",
+  "noListingsDesc": "You haven't created any listings yet. Start by creating your first listing to showcase your vehicle!",
   "notFound": "Listing not found",
   "otherFeatures": "Other Features",
   "page": "Page",
@@ -203,5 +205,9 @@
   "newListing": "New Listing",
   "newListingStepCounter": "Step {{current}} of {{total}}",
   "progressComplete": "{{percent}}% Complete",
-  "createListing": "Create Listing"
+  "createListing": "Create Listing",
+  "vehicleDetailsTitle": "Vehicle Details",
+  "vehicleDetailsSubtitle": "Tell us more about your vehicle's condition and features",
+  "loadingTransmissions": "Loading transmissions...",
+  "loadingFuelTypes": "Loading fuel types..."
 }
