@@ -106,7 +106,9 @@ const HomeSearchBar = React.memo(() => {
   const searchButtonLabel = useMemo(() => {
     if (listingsCount === null) return t('searchButton', 'Search Cars');
     const count = Number.isFinite(listingsCount) ? listingsCount : 0;
-    return t('searchWithCount', { count, defaultValue: `Search ${count} cars` });
+    const fallback = `Search ${count} cars`;
+    const result = t('searchWithCount', { count, defaultValue: fallback } as unknown as string);
+    return typeof result === 'string' ? result : fallback;
   }, [listingsCount, t]);
 
   // Kick off restore on mount
