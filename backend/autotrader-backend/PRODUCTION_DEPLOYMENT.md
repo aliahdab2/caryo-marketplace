@@ -2,6 +2,23 @@
 
 This guide provides instructions for deploying the Caryo Marketplace backend in a production environment.
 
+## Quick start (recommended CLI)
+
+Use the unified CLI wrapper `autotrader.sh` for production operations. These commands delegate to the production deployment script and keep logic centralized.
+
+```bash
+# From repo root or backend folder
+./backend/autotrader-backend/autotrader.sh prod deploy          # Build and start prod
+./backend/autotrader-backend/autotrader.sh prod rebuild         # Rebuild images (keep DB)
+./backend/autotrader-backend/autotrader.sh prod clean-rebuild   # Wipe DB/volumes, rebuild from scratch
+./backend/autotrader-backend/autotrader.sh prod backup          # Create DB/uploads/logs backups
+./backend/autotrader-backend/autotrader.sh prod health          # Check service health
+```
+
+Notes:
+- "clean-rebuild" removes volumes (fresh database), then builds without cache and deploys.
+- "rebuild" keeps existing data and only rebuilds containers/images.
+
 ## Directory Structure
 
 ```

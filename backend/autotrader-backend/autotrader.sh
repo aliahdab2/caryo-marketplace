@@ -33,6 +33,7 @@ print_help() {
   echo -e "${CYAN}Available commands:${NC}"
   echo -e "  ${GREEN}dev${NC}      - Manage the development environment"
   echo -e "  ${GREEN}api${NC}      - Start the API server"
+  echo -e "  ${GREEN}prod${NC}     - Manage the production deployment"
   echo -e "  ${GREEN}test${NC}     - Run various tests"
   echo -e "  ${GREEN}docs${NC}     - Generate documentation"
   echo -e "  ${GREEN}help${NC}     - Show this help message"
@@ -45,6 +46,11 @@ print_help() {
   echo -e "  ${GREEN}./autotrader.sh dev rebuild-notest${NC}             - Rebuild dev environment without tests"
   echo -e "  ${GREEN}./autotrader.sh dev stop${NC}                       - Stop dev environment"
   echo -e "  ${GREEN}./autotrader.sh api start${NC}                      - Start API server"
+  echo -e "  ${GREEN}./autotrader.sh prod deploy${NC}                   - Build and deploy production"
+  echo -e "  ${GREEN}./autotrader.sh prod rebuild${NC}                  - Rebuild production (no data seeding)"
+  echo -e "  ${GREEN}./autotrader.sh prod clean-rebuild${NC}           - Wipe DB/volumes and rebuild from scratch"
+  echo -e "  ${GREEN}./autotrader.sh prod backup${NC}                   - Create DB/uploads/logs backups"
+  echo -e "  ${GREEN}./autotrader.sh prod health${NC}                   - Check production health"
   echo -e "  ${GREEN}./autotrader.sh test all${NC}                       - Run all tests"
   echo -e "  ${GREEN}./autotrader.sh test auth${NC}             - Run auth tests"
   echo -e "  ${GREEN}./autotrader.sh test endpoints${NC}        - Test API endpoints"
@@ -150,6 +156,60 @@ handle_dev_command() {
   esac
 }
 
+# Production deployment command (wrapper around deploy-enhanced.sh)
+handle_prod_command() {
+  local subcommand="" 
+  local args=()
+
+  # Parse subcommand and collect remaining args
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      deploy|start|stop|restart|status|logs|health|shell|db-shell|backup|rebuild|clean-rebuild)
+        subcommand="$1"
+        shift
+        ;;
+      *)
+        args+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  if [[ -z "$subcommand" ]]; then
+    echo -e "${RED}Missing prod command${NC}"
+    echo -e "Available prod commands: deploy, rebuild, start, stop, status, logs, health"
+    exit 1
+  fi
+
+  ensure_executable "$PROJECT_ROOT/deploy-enhanced.sh"
+
+  case "$subcommand" in
+    # Map rebuild to a SAFE rebuild (no sample data); use deploy --rebuild under the hood
+    rebuild)
+      print_header "Rebuilding Production Environment"
+      "$PROJECT_ROOT/deploy-enhanced.sh" deploy --rebuild "${args[@]}"
+      ;;
+    clean-rebuild)
+      print_header "Clean Rebuild of Production Environment (wipes DB/volumes)"
+      docker compose -f "$PROJECT_ROOT/docker-compose.yml" -f "$PROJECT_ROOT/docker-compose.prod.yml" down -v
+      "$PROJECT_ROOT/deploy-enhanced.sh" deploy --rebuild --no-cache "${args[@]}"
+      ;;
+    backup)
+      print_header "Creating Production Backups"
+      "$PROJECT_ROOT/deploy-enhanced.sh" backup "${args[@]}"
+      ;;
+    # Straight pass-through for other commands
+    deploy|start|stop|restart|status|logs|health|shell|db-shell)
+      "$PROJECT_ROOT/deploy-enhanced.sh" "$subcommand" "${args[@]}"
+      ;;
+    *)
+      echo -e "${RED}Unknown prod command: $subcommand${NC}"
+      echo -e "Available prod commands: deploy, rebuild, start, stop, status, logs, health"
+      exit 1
+      ;;
+  esac
+}
+
 # API server command
 handle_api_command() {
   # Process special flags first
@@ -246,6 +306,14 @@ main() {
         exit 1
       fi
       handle_api_command "$@"
+      ;;
+    prod)
+      if [ "$#" -eq 0 ]; then
+        echo -e "${RED}Missing prod command${NC}"
+        echo -e "Available prod commands: deploy, rebuild, start, stop, status, logs, health"
+        exit 1
+      fi
+      handle_prod_command "$@"
       ;;
     test)
       if [ "$#" -eq 0 ]; then

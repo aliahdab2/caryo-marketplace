@@ -13,6 +13,7 @@ import {
   Governorate
 } from '@/services/api';
 import { useApiData, useFormSelection } from '@/hooks/useApiData';
+import { useListingCount } from '@/hooks/useListingCount';
 
 // Custom hook to handle select dropdown positioning for mobile
 const useSelectDropdownFix = (selectRefs: React.RefObject<HTMLSelectElement>[]) => {
@@ -158,6 +159,19 @@ const HomeSearchBar: React.FC = () => {
     return currentLanguage === 'ar' ? item.displayNameAr : item.displayNameEn;
   }, [currentLanguage]);
 
+  // Resolve selected slugs for the counting API
+  const selectedBrandSlug = useMemo(() => {
+    if (selectedMake === null || !carMakes) return undefined;
+    const brand = carMakes.find((m) => m.id === selectedMake);
+    return brand?.slug || undefined;
+  }, [selectedMake, carMakes]);
+
+  const selectedModelSlug = useMemo(() => {
+    if (selectedModel === null || !availableModels) return undefined;
+    const model = availableModels.find((m) => m.id === selectedModel);
+    return model?.slug || undefined;
+  }, [selectedModel, availableModels]);
+
   // Sort governorates by current language
   const sortedGovernorates = useMemo(() => {
     if (!governorates || governorates.length === 0) return [];
@@ -168,6 +182,12 @@ const HomeSearchBar: React.FC = () => {
       return nameA.localeCompare(nameB, currentLanguage === 'ar' ? 'ar' : 'en');
     });
   }, [governorates, currentLanguage]);
+
+  const { count: listingsCount, isLoading: isCounting } = useListingCount({
+    brands: selectedBrandSlug ? [selectedBrandSlug] : undefined,
+    models: selectedModelSlug ? [selectedModelSlug] : undefined,
+    locations: selectedGovernorateSlug ? [selectedGovernorateSlug] : undefined,
+  });
 
   // Handle search form submission
   const handleSearch = useCallback((e?: React.FormEvent) => {
@@ -348,7 +368,17 @@ const HomeSearchBar: React.FC = () => {
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
                   />
                 </svg>
-                <span className="hidden xs:inline">{t('searchButton', 'Search Cars')}</span>
+                <span className="hidden xs:inline tabular-nums min-w-[14ch] text-center">{
+                  (() => {
+                    // Keep previous text while loading to avoid flicker; only fallback if we never had a count
+                    if (listingsCount === null) return t('searchButton', 'Search Cars');
+                    const rawCount = Number.isFinite(listingsCount) ? listingsCount : 0;
+                    return t('searchWithCount', {
+                      count: rawCount,
+                      defaultValue: `Search ${rawCount} cars`,
+                    });
+                  })()
+                }</span>
                 <span className="xs:hidden">{t('search', 'Search')}</span>
               </button>
             </div>
