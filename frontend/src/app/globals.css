@@ -635,8 +635,7 @@ html[dir="rtl"] .select-fix select {
     position: relative;
     z-index: 20;
     width: 100%;
-    /* Ensure child elements are properly positioned */
-    transform: translateZ(0);
+    /* Ensure child elements are properly positioned - removed transform to prevent jitter */
   }
   
   /* Fix for absolutely positioned hero content */
@@ -679,12 +678,8 @@ html[dir="rtl"] .select-fix select {
 
   /* Ensure native select dropdown is properly layered */
   select.mobile-select-dropdown {
-    /* Force hardware acceleration for smoother performance */
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
+    /* Simplified without GPU transforms to prevent jitter */
     backface-visibility: hidden;
-    perspective: 1000px;
-    will-change: transform, opacity;
   }
   
   /* Prevent content shift when select dropdown opens */
@@ -714,7 +709,7 @@ html[dir="rtl"] .select-fix select {
     
     /* Fix for iOS positioning */
     .hero-search-container {
-      transform: translateZ(0);
+      position: relative;
     }
     
     /* Fix text alignment in RTL mode for iOS */
@@ -780,19 +775,11 @@ html[dir="rtl"] .select-fix select {
 /* Enhanced select dropdown positioning */
 .select-fix {
   position: relative;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
 
 /* Improve select dropdown rendering */
 @media screen and (max-width: 640px) {
   .select-fix {
-    /* Force GPU acceleration */
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    
     /* Prevent text jumping */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -803,15 +790,8 @@ html[dir="rtl"] .select-fix select {
 
   /* Improve dropdown positioning on focus */
   .select-fix:focus {
-    /* Create new stacking context */
-    transform: translateZ(1px);
-    -webkit-transform: translateZ(1px);
-    
     /* Ensure dropdown is above other content */
     z-index: 1000;
-    
-    /* Add subtle animation */
-    transition: transform 0.2s ease-out;
   }
 
   /* Container adjustments for better mobile experience */
@@ -819,9 +799,7 @@ html[dir="rtl"] .select-fix select {
     /* Allow space for dropdowns */
     padding-bottom: env(safe-area-inset-bottom, 20px);
     
-    /* Prevent iOS Safari issues */
-    -webkit-transform: translate3d(0,0,0);
-    transform: translate3d(0,0,0);
+    /* Prevent iOS Safari issues - removed transforms to prevent jitter */
     
     /* Ensure proper paint order */
     contain: layout style paint;
