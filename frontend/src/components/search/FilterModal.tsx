@@ -53,7 +53,7 @@ const MODAL_CLASSES = {
   OVERLAY: "fixed inset-0 z-50 overflow-y-auto pointer-events-none",
   CONTAINER: "flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-6",
   BACKDROP: "fixed inset-0 bg-black/20 backdrop-blur-sm transition-opacity pointer-events-auto",
-  MODAL: "relative transform overflow-hidden rounded-2xl bg-white px-6 py-6 text-left shadow-2xl transition-all w-full max-w-lg border border-gray-100 pointer-events-auto",
+  MODAL: "relative overflow-hidden rounded-2xl bg-white px-6 py-6 text-left shadow-2xl w-full max-w-lg border border-gray-100 pointer-events-auto",
   CLOSE_BUTTON: "rounded-full p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all",
   SEPARATOR: "border-t border-gray-200",
   BUTTON_CONTAINER: "flex gap-3 mt-6"
@@ -116,6 +116,21 @@ const FilterModal: React.FC<FilterModalProps> = ({
       [sectionName]: !prev[sectionName]
     }));
   };
+
+  // Prevent background scroll and compensate for scrollbar to avoid layout shift
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    const previousPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPaddingRight;
+    };
+  }, []);
 
   // Collapsible section component
   const CollapsibleSection = ({ 
@@ -236,6 +251,13 @@ const FilterModal: React.FC<FilterModalProps> = ({
         newSet.add(brandId);
       }
       return newSet;
+    });
+    // After toggling, ensure the expanded/collapsed section stays in view without jitter
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`brand-section-${brandId}`);
+      if (el) {
+        el.scrollIntoView({ block: 'nearest' });
+      }
     });
   };
 
@@ -457,23 +479,25 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-            {/* Chips Row */}
-            {chips.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4">
-                {chips.map(chip => (
-                  <span key={chip.type + chip.id} className="flex items-center bg-gray-200 rounded-full px-3 py-1 text-sm font-medium text-gray-800">
-                    {chip.label}
-                    <button
-                      className="ml-2 text-gray-500 hover:text-red-500 focus:outline-none"
-                      onClick={() => handleRemoveChip(chip)}
-                      aria-label={t('search:remove', 'Remove')}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
+            {/* Chips Row (fixed height to avoid modal resize) */}
+            <div className="mb-3 min-h-[40px]">
+              {chips.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {chips.map(chip => (
+                    <span key={chip.type + chip.id} className="flex items-center bg-gray-200 rounded-full px-3 py-1 text-sm font-medium text-gray-800">
+                      {chip.label}
+                      <button
+                        className="ml-2 text-gray-500 hover:text-red-500 focus:outline-none"
+                        onClick={() => handleRemoveChip(chip)}
+                        aria-label={t('search:remove', 'Remove')}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
             {/* Brands and Models List */}
             <div className="flex-1 overflow-y-auto min-h-0 space-y-2">
               {isLoadingBrands || isLoadingCounts || isLoadingAllModels ? (
