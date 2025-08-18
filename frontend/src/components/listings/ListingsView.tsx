@@ -564,6 +564,13 @@ export default function ListingsView({
                       {showActions && (
                         <div className="flex items-center space-x-1 rtl:space-x-reverse flex-shrink-0 ml-3 rtl:ml-0 rtl:mr-3">
                           <Link
+                            href={`/dashboard/listings/preview/${listing.id}`}
+                            className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors duration-200"
+                            title={t('preview') || 'Preview'}
+                          >
+                            <MdArrowForward size={18} className="rtl:rotate-180" />
+                          </Link>
+                          <Link
                             href={`/dashboard/listings/edit/${listing.id}`}
                             className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors duration-200"
                             title={t('edit', { ns: 'common' })}

@@ -7,12 +7,33 @@ import { getAuthHeaders, isAdmin } from '@/utils/auth';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useToastHelpers } from '@/components/ui/ToastProvider';
+import Link from 'next/link';
+import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
+
+interface BrandLike {
+  displayNameEn?: string;
+  displayNameAr?: string;
+  name?: string;
+}
+
+interface ModelLike {
+  displayNameEn?: string;
+  displayNameAr?: string;
+  name?: string;
+  id?: number;
+}
 
 interface Listing {
   id: number;
   title: string;
-  make: string;
-  model: string;
+  // Backend may return either denormalized strings or nested objects
+  make?: string;
+  model?: string | ModelLike;
+  brand?: BrandLike;
+  brandNameEn?: string;
+  brandNameAr?: string;
+  modelNameEn?: string;
+  modelNameAr?: string;
   year: number;
   price: number;
   mileage: number;
@@ -21,6 +42,11 @@ interface Listing {
   username?: string;
   createdAt: string;
   imageUrls?: string[];
+  media?: Array<{ url?: string; fileKey?: string; isPrimary?: boolean; contentType?: string }>;
+  governorateDetails?: { displayNameEn?: string; displayNameAr?: string };
+  locationDetails?: { displayNameEn?: string; displayNameAr?: string };
+  sellerUsername?: string;
+  thumbnailUrl?: string;
 }
 
 interface AdminPanelState {
@@ -120,8 +146,15 @@ export default function AdminPanel() {
       }
 
       const data = await response.json();
-      // Extract the content array from the paginated response
-      setListings(Array.isArray(data.content) ? data.content : []);
+      const raw = Array.isArray(data.content) ? data.content : [];
+      const normalized: Listing[] = raw.map((item: Listing) => {
+        const media = Array.isArray(item.media) ? item.media : [];
+        const primary = media.find(m => m.isPrimary) || media[0];
+        const urlCandidate = primary?.url || primary?.fileKey || (item.imageUrls && item.imageUrls[0]) || '';
+        const thumbnailUrl = transformMinioUrl(urlCandidate) || getDefaultImageUrl();
+        return { ...item, thumbnailUrl } as Listing;
+      });
+      setListings(normalized);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch listings');
       console.error('Error fetching listings:', err);
@@ -205,8 +238,10 @@ export default function AdminPanel() {
         throw new Error(`Failed to reject listing: ${response.statusText}`);
       }
 
-      // Remove the listing from the local state since it's been deleted
+      // Remove the listing from the local state since it's been deleted, and refresh list
       setListings(listings.filter(listing => listing.id !== listingId));
+      // Ensure UI stays in sync with server
+      await fetchPendingListings();
       
       // Show success toast
       showSuccess(t('admin.listingRejected', 'Listing rejected successfully'));
@@ -218,7 +253,7 @@ export default function AdminPanel() {
     } finally {
       setProcessing(null);
     }
-  }, [setProcessing, setError, setListings, listings, showSuccess, showError, t]);
+  }, [setProcessing, setError, setListings, listings, showSuccess, showError, t, fetchPendingListings]);
 
   if (!isAdmin()) {
     return (
@@ -394,44 +429,66 @@ interface ListingCardProps {
 }
 
 function ListingCard({ listing, onApprove, onReject, processing, t }: ListingCardProps) {
+  const makeText = listing.brand?.displayNameEn || listing.brandNameEn || listing.make || '';
+  const modelText = typeof listing.model === 'string'
+    ? listing.model
+    : (listing.model?.displayNameEn || listing.model?.name || listing.modelNameEn || '');
+  const locationText = listing.locationDetails?.displayNameEn || listing.governorateDetails?.displayNameEn || '';
+  const previewHref = listing.approved ? `/listings/${listing.id}` : `/dashboard/listings/preview/${listing.id}`;
+
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex justify-between items-start">
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {listing.title}
-          </h3>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
-            <div>
-              <span className="font-medium">{t('admin.makeModel', 'Make/Model')}:</span><br />
-              {listing.make} {listing.model}
+    <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-start gap-4">
+        <Link href={previewHref} className="flex items-start gap-4 flex-1 min-w-0 group">
+          {/* Thumbnail */}
+          <div className="flex-shrink-0 w-28 h-20 sm:w-36 sm:h-24 rounded-md overflow-hidden bg-gray-100 border border-gray-200">
+            {listing.thumbnailUrl ? (
+              <Image
+                src={listing.thumbnailUrl}
+                alt={listing.title || 'Thumbnail'}
+                width={144}
+                height={96}
+                className="w-full h-full object-cover group-hover:opacity-95 transition-opacity"
+              />
+            ) : null}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+              {listing.title}
+            </h3>
+            <div className="flex flex-wrap gap-4 text-sm text-gray-700 mb-2">
+              <div className="inline-flex items-center gap-1">
+                <span className="font-medium">{t('admin.makeModel', 'Make/Model')}:</span>
+                <span>{makeText} {modelText} {listing.year ? `• ${listing.year}` : ''}</span>
+              </div>
+              <div className="inline-flex items-center gap-1">
+                <span className="font-medium">{t('admin.price', 'Price')}:</span>
+                <span>${listing.price?.toLocaleString()}</span>
+              </div>
+              <div className="inline-flex items-center gap-1">
+                <span className="font-medium">{t('admin.mileage', 'Mileage')}:</span>
+                <span>{listing.mileage?.toLocaleString()} km</span>
+              </div>
+              {locationText && (
+                <div className="inline-flex items-center gap-1">
+                  <span className="font-medium">{t('listings:location', 'Location')}:</span>
+                  <span>{locationText}</span>
+                </div>
+              )}
+              <div className="inline-flex items-center gap-1">
+                <span className="font-medium">Status:</span>
+                <span className={`px-2 py-0.5 rounded-full text-xs ${listing.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                  {listing.approved ? t('admin.approved', 'Approved') : t('admin.pendingApproval', 'Pending Approval')}
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="font-medium">{t('admin.year', 'Year')}:</span><br />
-              {listing.year}
-            </div>
-            <div>
-              <span className="font-medium">{t('admin.price', 'Price')}:</span><br />
-              ${listing.price?.toLocaleString()}
-            </div>
-            <div>
-              <span className="font-medium">{t('admin.mileage', 'Mileage')}:</span><br />
-              {listing.mileage?.toLocaleString()} km
+            <div className="text-xs text-gray-500">
+              <span className="font-medium">{t('admin.listingId', 'Listing ID')}:</span> {listing.id}
+              <span className="font-medium ml-2">{t('admin.userId', 'User ID')}:</span> {listing.userId}
+              <span className="font-medium ml-2">{t('admin.createdAt', 'Created')}:</span> {new Date(listing.createdAt).toLocaleDateString()}
             </div>
           </div>
-          
-          <div className="text-xs text-gray-500 mb-4">
-            <span className="font-medium">{t('admin.listingId', 'Listing ID')}:</span> {listing.id} | 
-            <span className="font-medium ml-2">{t('admin.userId', 'User ID')}:</span> {listing.userId} |
-            <span className="font-medium ml-2">{t('admin.createdAt', 'Created')}:</span> {new Date(listing.createdAt).toLocaleDateString()}
-          </div>
-          
-          {listing.imageUrls && listing.imageUrls.length > 0 && (
-            <ImagePreview images={listing.imageUrls} title={listing.title} />
-          )}
-        </div>
-        
+        </Link>
         <ActionButtons
           onApprove={onApprove}
           onReject={onReject}
