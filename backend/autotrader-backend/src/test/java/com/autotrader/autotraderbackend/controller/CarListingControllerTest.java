@@ -55,6 +55,9 @@ public class CarListingControllerTest {
     @Mock
     private CarListingStatusService carListingStatusService;
 
+    @Mock
+    private com.autotrader.autotraderbackend.service.PublicListingService publicListingService;
+
     @InjectMocks
     private CarListingController carListingController;
 
@@ -327,7 +330,7 @@ public class CarListingControllerTest {
     @Test
     void getListingById_ShouldReturnListing() {
         // Arrange
-        when(carListingService.getListingById(1L)).thenReturn(carListingResponse);
+        when(publicListingService.getPublicListingById(1L)).thenReturn(carListingResponse);
 
         // Act
         ResponseEntity<?> response = carListingController.getListingById(1L);
@@ -341,7 +344,7 @@ public class CarListingControllerTest {
     @Test
     void getListingById_WithInvalidId_ShouldThrowException() {
         // Arrange
-        when(carListingService.getListingById(999L))
+        when(publicListingService.getPublicListingById(999L))
             .thenThrow(new ResourceNotFoundException("Listing", "id", 999L));
 
         // Act & Assert

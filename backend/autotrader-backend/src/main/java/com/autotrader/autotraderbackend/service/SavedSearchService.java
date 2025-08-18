@@ -335,10 +335,10 @@ public class SavedSearchService {
             // Create a specification for the saved search filters
             Specification<CarListing> spec = createSpecificationFromSavedSearch(savedSearch);
             
-            // Add the standard filters for approved, not sold, not archived listings
+            // Add the standard filters for approved, active listings
+            // Note: sold/archived status is now computed from moderation actions and filtered at service layer
             spec = spec.and(CarListingSpecification.isApproved())
-                      .and(CarListingSpecification.isNotSold())
-                      .and(CarListingSpecification.isNotArchived())
+                      .and(CarListingSpecification.isNotHiddenByAdmin())
                       .and(CarListingSpecification.isUserActive());
             
             // Count using the specification (database-level filtering)

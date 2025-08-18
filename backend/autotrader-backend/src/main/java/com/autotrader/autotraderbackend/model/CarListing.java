@@ -158,17 +158,9 @@ public class CarListing {
     @JoinColumn(name = "drive_type_id")
     private DriveType driveType;
 
+    // HYBRID APPROACH: Keep performance-critical fields, compute others from moderation table
     @Column(name = "approved", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean approved = false;
-
-    @Column(name = "sold", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private Boolean sold = false;
-
-    @Column(name = "archived", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private Boolean archived = false;
-
-    @Column(name = "expired", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private Boolean expired = false;
 
     @Column(name = "is_user_active", nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean isUserActive = true;
@@ -258,15 +250,23 @@ public class CarListing {
         }
     }
     /**
-     * Returns true if the listing is considered active according to business rules.
-     * A listing is active if it is approved, not sold, not archived, not expired,
-     * and (if expirationDate is set) the expirationDate is in the future.
+     * Helper method to check if a listing is active (performance-optimized).
+     * Uses the approved field for fast queries, other status computed from moderation table.
      */
     public boolean isActive() {
         return Boolean.TRUE.equals(approved)
-            && Boolean.FALSE.equals(sold)
-            && Boolean.FALSE.equals(archived)
-            && Boolean.FALSE.equals(expired)
+            && Boolean.TRUE.equals(isUserActive)
             && (expirationDate == null || expirationDate.isAfter(LocalDateTime.now()));
     }
+
+    /**
+     * Check if listing is expired based on expiration date.
+     * This is computed from the expiration_date field for performance.
+     */
+    public boolean isExpired() {
+        return expirationDate != null && expirationDate.isBefore(LocalDateTime.now());
+    }
+
+    // Note: sold and archived status are computed from ListingModerationAction table
+    // Use ListingModerationService.isListingSold() and ListingModerationService.isListingArchived()
 }

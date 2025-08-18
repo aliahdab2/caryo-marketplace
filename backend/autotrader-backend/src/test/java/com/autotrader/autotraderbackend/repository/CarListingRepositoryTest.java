@@ -110,16 +110,15 @@ class CarListingRepositoryTest {
     @Test
     void findDistinctFuelTypesWithCounts_ShouldReturnCorrectCounts() {
         // Given - Create test listings with different fuel types
-        createTestListing("Car 1", gasolineFuelType, true, false, false);
-        createTestListing("Car 2", gasolineFuelType, true, false, false);
-        createTestListing("Car 3", dieselFuelType, true, false, false);
-        createTestListing("Car 4", electricFuelType, true, false, false);
-        createTestListing("Car 5", gasolineFuelType, true, false, false);
+        createTestListing("Car 1", gasolineFuelType, true);
+        createTestListing("Car 2", gasolineFuelType, true);
+        createTestListing("Car 3", dieselFuelType, true);
+        createTestListing("Car 4", electricFuelType, true);
+        createTestListing("Car 5", gasolineFuelType, true);
         
-        // Create some listings that should not be counted (not approved, sold, or archived)
-        createTestListing("Car 6", gasolineFuelType, false, false, false); // not approved
-        createTestListing("Car 7", dieselFuelType, true, true, false); // sold
-        createTestListing("Car 8", electricFuelType, true, false, true); // archived
+        // Create some listings that should not be counted (not approved)
+        createTestListing("Car 6", gasolineFuelType, false); // not approved
+        // Note: sold/archived filtering is now handled at service layer, not repository layer
 
         // When
         List<Object[]> results = carListingRepository.findDistinctFuelTypesWithCounts();
@@ -158,8 +157,8 @@ class CarListingRepositoryTest {
     @Test
     void findDistinctFuelTypesWithCounts_WithNoApprovedListings_ShouldReturnEmptyList() {
         // Given - Create only non-approved listings
-        createTestListing("Car 1", gasolineFuelType, false, false, false);
-        createTestListing("Car 2", dieselFuelType, false, false, false);
+        createTestListing("Car 1", gasolineFuelType, false);
+        createTestListing("Car 2", dieselFuelType, false);
 
         // When
         List<Object[]> results = carListingRepository.findDistinctFuelTypesWithCounts();
@@ -169,39 +168,13 @@ class CarListingRepositoryTest {
         assertTrue(results.isEmpty());
     }
 
-    @Test
-    void findDistinctFuelTypesWithCounts_WithSoldListings_ShouldNotCountSoldListings() {
-        // Given - Create approved but sold listings
-        createTestListing("Car 1", gasolineFuelType, true, true, false);
-        createTestListing("Car 2", gasolineFuelType, true, true, false);
-        createTestListing("Car 3", dieselFuelType, true, true, false);
-
-        // When
-        List<Object[]> results = carListingRepository.findDistinctFuelTypesWithCounts();
-
-        // Then
-        assertNotNull(results);
-        assertTrue(results.isEmpty());
-    }
-
-    @Test
-    void findDistinctFuelTypesWithCounts_WithArchivedListings_ShouldNotCountArchivedListings() {
-        // Given - Create approved but archived listings
-        createTestListing("Car 1", gasolineFuelType, true, false, true);
-        createTestListing("Car 2", dieselFuelType, true, false, true);
-
-        // When
-        List<Object[]> results = carListingRepository.findDistinctFuelTypesWithCounts();
-
-        // Then
-        assertNotNull(results);
-        assertTrue(results.isEmpty());
-    }
+    // Note: Tests for sold/archived filtering removed as this logic is now handled at service layer
+    // Repository layer only handles basic database queries with approved/non-approved filtering
 
     @Test
     void findDistinctFuelTypesWithCounts_WithNullFuelType_ShouldHandleGracefully() {
         // Given - Create listing with null fuel type
-        createTestListing("Car 1", null, true, false, false);
+        createTestListing("Car 1", null, true);
 
         // When
         List<Object[]> results = carListingRepository.findDistinctFuelTypesWithCounts();
@@ -212,7 +185,7 @@ class CarListingRepositoryTest {
         // The exact behavior depends on the database, but it shouldn't crash
     }
 
-    private CarListing createTestListing(String title, FuelType fuelType, boolean approved, boolean sold, boolean archived) {
+    private CarListing createTestListing(String title, FuelType fuelType, boolean approved) {
         CarListing listing = new CarListing();
         listing.setTitle(title);
         listing.setModel(testModel);
@@ -224,9 +197,10 @@ class CarListingRepositoryTest {
         listing.setDescription("Test description");
         listing.setSeller(testUser);
         listing.setApproved(approved);
-        listing.setSold(sold);
-        listing.setArchived(archived);
         listing.setFuelType(fuelType);
+        
+        // Note: sold and archived are now computed from ListingModerationAction table
+        // Repository tests focus on basic database queries, service tests handle business logic
         
         return entityManager.persistAndFlush(listing);
     }

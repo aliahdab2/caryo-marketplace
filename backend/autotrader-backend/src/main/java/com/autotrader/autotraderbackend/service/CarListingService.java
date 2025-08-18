@@ -233,7 +233,58 @@ public class CarListingService {
                     log.warn("Approved CarListing lookup failed for ID: {}", id);
                     return new ResourceNotFoundException("CarListing", "id", id);
                 });
+        
         return carListingMapper.toCarListingResponse(carListing);
+    }
+
+    /**
+     * Get all listings for admin dashboard with pagination, search, and filtering.
+     * This method returns ALL listings regardless of status for admin management.
+     * 
+     * @param pageable Pagination information
+     * @param search Search term for title, brand, model
+     * @param status Status filter (optional)
+     * @return Page of car listing responses for admin
+     */
+    @Transactional(readOnly = true)
+    public Page<CarListingResponse> getAllListingsForAdmin(Pageable pageable, String search, String status) {
+        log.debug("Fetching all listings for admin - page: {}, size: {}, search: '{}', status: '{}'", 
+                 pageable.getPageNumber(), pageable.getPageSize(), search, status);
+        
+        Specification<CarListing> spec = Specification.where(null);
+        
+        // Add search filter if provided
+        if (search != null && !search.trim().isEmpty()) {
+            String searchTerm = search.trim().toLowerCase();
+            spec = spec.and((root, query, criteriaBuilder) -> {
+                return criteriaBuilder.or(
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + searchTerm + "%"),
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("brandNameEn")), "%" + searchTerm + "%"),
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("modelNameEn")), "%" + searchTerm + "%")
+                );
+            });
+        }
+        
+        // Add status filter if provided (basic filtering, detailed status computed later)
+        if (status != null && !status.trim().isEmpty()) {
+            switch (status.toUpperCase()) {
+                case "PENDING":
+                    spec = spec.and(CarListingSpecification.isNotApproved());
+                    break;
+                case "APPROVED":
+                    spec = spec.and(CarListingSpecification.isApproved());
+                    break;
+                case "PAUSED":
+                    spec = spec.and(CarListingSpecification.isUserInactive());
+                    break;
+                // Other statuses (HIDDEN, SOLD, ARCHIVED) are computed from moderation actions
+            }
+        }
+        
+        Page<CarListing> listingPage = carListingRepository.findAll(spec, pageable);
+        log.info("Found {} listings for admin on page {}", listingPage.getNumberOfElements(), pageable.getPageNumber());
+        
+        return listingPage.map(carListingMapper::toCarListingResponse);
     }
 
     /**
@@ -245,9 +296,8 @@ public class CarListingService {
         log.debug("Fetching approved, not sold, and not archived listings page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
         
         Specification<CarListing> spec = Specification.where(CarListingSpecification.isApproved())
-                                                     .and(CarListingSpecification.isNotSold())
-                                                     .and(CarListingSpecification.isNotArchived())
-                                                     .and(CarListingSpecification.isUserActive()); // Added isUserActive
+                                                     .and(CarListingSpecification.isNotHiddenByAdmin())
+                                                     .and(CarListingSpecification.isUserActive());
                                                      
         Page<CarListing> listingPage = carListingRepository.findAll(spec, pageable);
         log.info("Found {} approved, not sold, not archived listings on page {}", listingPage.getNumberOfElements(), pageable.getPageNumber());
@@ -263,8 +313,7 @@ public class CarListingService {
         log.debug("Counting approved, not sold, and not archived listings");
         
         Specification<CarListing> spec = Specification.where(CarListingSpecification.isApproved())
-                                                     .and(CarListingSpecification.isNotSold())
-                                                     .and(CarListingSpecification.isNotArchived())
+                                                     .and(CarListingSpecification.isNotHiddenByAdmin())
                                                      .and(CarListingSpecification.isUserActive());
                                                      
         long count = carListingRepository.count(spec);
@@ -353,19 +402,14 @@ public class CarListingService {
         spec = spec.and(CarListingSpecification.isApproved());
         // Also filter by user active status
         spec = spec.and(CarListingSpecification.isUserActive());
+        // Exclude listings hidden by admin
+        spec = spec.and(CarListingSpecification.isNotHiddenByAdmin());
 
         // Apply isSold and isArchived filters
         // If not specified in the request, default to showing NOT sold and NOT archived listings.
-        if (filterRequest.getIsSold() == null) {
-            spec = spec.and(CarListingSpecification.isNotSold());
-            log.debug("Defaulting filter to isSold=false as it was not specified.");
-        }
-        // If isSold IS specified, the CarListingSpecification.fromFilter will have already added it.
-
-        if (filterRequest.getIsArchived() == null) {
-            spec = spec.and(CarListingSpecification.isNotArchived());
-            log.debug("Defaulting filter to isArchived=false as it was not specified.");
-        }
+        // Note: isSold and isArchived filters are now handled by PublicListingService
+        // which uses ListingModerationService to filter based on moderation actions
+        // This provides better audit trail and performance optimization
         // If isArchived IS specified, the CarListingSpecification.fromFilter will have already added it.
 
 
@@ -435,18 +479,12 @@ public class CarListingService {
         spec = spec.and(CarListingSpecification.isApproved());
         // Also filter by user active status
         spec = spec.and(CarListingSpecification.isUserActive());
+        // Exclude listings hidden by admin
+        spec = spec.and(CarListingSpecification.isNotHiddenByAdmin());
 
-        // Apply isSold and isArchived filters
-        // If not specified in the request, default to showing NOT sold and NOT archived listings.
-        if (filterRequest.getIsSold() == null) {
-            spec = spec.and(CarListingSpecification.isNotSold());
-            log.debug("Defaulting filter to isSold=false as it was not specified.");
-        }
-
-        if (filterRequest.getIsArchived() == null) {
-            spec = spec.and(CarListingSpecification.isNotArchived());
-            log.debug("Defaulting filter to isArchived=false as it was not specified.");
-        }
+        // Note: isSold and isArchived filters are now handled by PublicListingService
+        // which uses ListingModerationService to filter based on moderation actions
+        // This provides better audit trail and performance optimization
 
         long count = carListingRepository.count(spec);
         log.info("Found {} filtered listings matching criteria (Location filter used: {})",
@@ -1031,13 +1069,8 @@ public class CarListingService {
         spec = spec.and(CarListingSpecification.isApproved())
                   .and(CarListingSpecification.isUserActive());
         
-        // Apply default sold and archived filters if not specified
-        if (modifiedFilter.getIsSold() == null) {
-            spec = spec.and(CarListingSpecification.isNotSold());
-        }
-        if (modifiedFilter.getIsArchived() == null) {
-            spec = spec.and(CarListingSpecification.isNotArchived());
-        }
+        // Note: sold and archived filters are now handled by moderation service
+        // for better audit trail and performance optimization
         
         return spec;
     }
@@ -1150,13 +1183,8 @@ public class CarListingService {
             existingListing.setTransmission(request.getTransmission());
         }
 
-        // Update isSold and isArchived if provided in the request
-        if (request.getIsSold() != null) {
-            existingListing.setSold(request.getIsSold());
-        }
-        if (request.getIsArchived() != null) {
-            existingListing.setArchived(request.getIsArchived());
-        }
+        // Note: isSold and isArchived are now handled by ListingModerationService
+        // These status changes create moderation actions for complete audit trail
         
         // Handle contact field updates with fallback logic
         // Check if all contact fields are explicitly set to null (indicating clear request)
@@ -1289,6 +1317,10 @@ public class CarListingService {
         // Return the updated listing response
         return carListingMapper.toCarListingResponse(approvedListing);
     }
+
+
+
+
 
     /**
      * Admin-only method to get all car listings regardless of approval status.
@@ -1428,9 +1460,8 @@ public class CarListingService {
         
         carListing.setSeller(user);
         carListing.setApproved(false); // Default to not approved
-        // Set isSold and isArchived from request, defaulting to false if null
-        carListing.setSold(request.getIsSold() != null ? request.getIsSold() : false);
-        carListing.setArchived(request.getIsArchived() != null ? request.getIsArchived() : false);
+        // Note: isSold and isArchived are now handled by ListingModerationService
+        // Initial status is determined by moderation actions, not direct field setting
         
         // Handle contact fields with fallbacks (AutoTrader pattern)
         // Contact name: use request value or fallback to username

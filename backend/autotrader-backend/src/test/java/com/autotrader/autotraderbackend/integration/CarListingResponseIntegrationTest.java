@@ -82,9 +82,6 @@ public class CarListingResponseIntegrationTest {
         listing.setSeller(seller);
         listing.setCreatedAt(LocalDateTime.now());
         listing.setApproved(true);
-        listing.setSold(false);
-        listing.setArchived(false);
-        listing.setExpired(false);
         
         // Set denormalized fields for backward compatibility
         listing.setBrandNameEn("Toyota");
@@ -153,9 +150,6 @@ public class CarListingResponseIntegrationTest {
         listing.setSeller(seller);
         listing.setCreatedAt(LocalDateTime.now());
         listing.setApproved(true);
-        listing.setSold(false);
-        listing.setArchived(false);
-        listing.setExpired(false);
         
         // Set only denormalized fields (objects are null)
         listing.setBrandNameEn("Toyota");

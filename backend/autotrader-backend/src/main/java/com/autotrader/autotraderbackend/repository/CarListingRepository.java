@@ -23,7 +23,7 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
     // Find by id and approved
     Optional<CarListing> findByIdAndApprovedTrue(Long id);
     
-    // Find by id and approved with media (eager fetch)
+    // Find by id and approved with media (eager fetch) - hiding is now handled by service layer
     @Query("SELECT cl FROM CarListing cl LEFT JOIN FETCH cl.media WHERE cl.id = :id AND cl.approved = true")
     Optional<CarListing> findByIdAndApprovedTrueWithMedia(@Param("id") Long id);
     
@@ -45,19 +45,19 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
     // New methods for efficient count queries
     @Query("SELECT DISTINCT cl.modelYear FROM CarListing cl " +
            "JOIN cl.model m JOIN m.brand b " +
-           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "WHERE cl.approved = true " +
            "ORDER BY cl.modelYear DESC")
     List<Integer> findDistinctYears();
     
     @Query("SELECT DISTINCT b.slug FROM CarListing cl " +
            "JOIN cl.model m JOIN m.brand b " +
-           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "WHERE cl.approved = true " +
            "ORDER BY b.displayNameEn")
     List<String> findDistinctBrandSlugs();
     
     @Query("SELECT DISTINCT m.slug FROM CarListing cl " +
            "JOIN cl.model m JOIN m.brand b " +
-           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "WHERE cl.approved = true " +
            "AND (:brandSlug IS NULL OR b.slug = :brandSlug) " +
            "ORDER BY m.displayNameEn")
     List<String> findDistinctModelSlugs(@Param("brandSlug") String brandSlug);
@@ -65,20 +65,20 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
     // Efficient count methods with database-level grouping
     @Query("SELECT b.slug, COUNT(cl) FROM CarListing cl " +
            "JOIN cl.model m JOIN m.brand b " +
-           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "WHERE cl.approved = true " +
            "GROUP BY b.slug, b.displayNameEn " +
            "ORDER BY b.displayNameEn")
     List<Object[]> findDistinctBrandSlugsWithCounts();
     
     @Query("SELECT m.slug, COUNT(cl) FROM CarListing cl " +
            "JOIN cl.model m JOIN m.brand b " +
-           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "WHERE cl.approved = true " +
            "GROUP BY m.slug, m.displayNameEn " +
            "ORDER BY m.displayNameEn")
     List<Object[]> findDistinctModelSlugsWithCounts();
     
     @Query("SELECT cl.modelYear, COUNT(cl) FROM CarListing cl " +
-           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "WHERE cl.approved = true " +
            "GROUP BY cl.modelYear " +
            "ORDER BY cl.modelYear DESC")
     List<Object[]> findDistinctYearsWithCounts();
@@ -87,7 +87,7 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
            "FROM CarListing cl " +
            "JOIN cl.seller u " +
            "JOIN u.sellerType st " +
-           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "WHERE cl.approved = true " +
            "GROUP BY st.name " +
            "ORDER BY st.name")
     List<Object[]> findDistinctSellerTypesWithCounts();
@@ -95,7 +95,7 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
     @Query("SELECT ft.name, COUNT(cl) " +
            "FROM CarListing cl " +
            "JOIN cl.fuelType ft " +
-           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "WHERE cl.approved = true " +
            "GROUP BY ft.name " +
            "ORDER BY ft.name")
     List<Object[]> findDistinctFuelTypesWithCounts();
@@ -103,19 +103,19 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
     // Count methods for specific filters
     @Query("SELECT COUNT(cl) FROM CarListing cl " +
            "JOIN cl.model m JOIN m.brand b " +
-           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "WHERE cl.approved = true " +
            "AND cl.modelYear = :year")
     long countByYear(@Param("year") Integer year);
     
     @Query("SELECT COUNT(cl) FROM CarListing cl " +
            "JOIN cl.model m JOIN m.brand b " +
-           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "WHERE cl.approved = true " +
            "AND b.slug = :brandSlug")
     long countByBrandSlug(@Param("brandSlug") String brandSlug);
 
     @Query("SELECT COUNT(cl) FROM CarListing cl " +
            "JOIN cl.model m " +
-           "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
+           "WHERE cl.approved = true " +
            "AND m.slug = :modelSlug")
     long countByModelSlug(@Param("modelSlug") String modelSlug);
 }

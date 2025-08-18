@@ -8,12 +8,15 @@ import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.service.CarListingStatusService;
+import com.autotrader.autotraderbackend.service.ListingModerationService;
 import org.mockito.InjectMocks;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
@@ -22,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ListingArchivedEventIntegrationTest {
 
     @Mock
@@ -35,6 +39,9 @@ public class ListingArchivedEventIntegrationTest {
 
     @Mock
     private CarListingMapper carListingMapper;
+
+    @Mock
+    private ListingModerationService moderationService;
 
     @InjectMocks
     private CarListingStatusService carListingStatusService;
@@ -54,7 +61,6 @@ public class ListingArchivedEventIntegrationTest {
         mockListing.setId(1L);
         mockListing.setTitle("Test Listing");
         mockListing.setSeller(mockUser);
-        mockListing.setArchived(false);
 
         // Setup repository mocks
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(mockUser));
@@ -64,9 +70,15 @@ public class ListingArchivedEventIntegrationTest {
             CarListing listing = i.getArgument(0);
             CarListingResponse response = new CarListingResponse();
             response.setId(listing.getId());
-            response.setIsArchived(listing.getArchived());
+            // Note: isArchived now computed from moderation actions
+            response.setIsArchived(false);
             return response;
         });
+        
+        // Setup moderation service mocks
+        when(moderationService.isListingArchived(mockListing.getId())).thenReturn(false);
+        when(moderationService.isListingSold(mockListing.getId())).thenReturn(false);
+        doNothing().when(moderationService).archiveListing(mockListing.getId(), "testuser");
     }
 
     @Test

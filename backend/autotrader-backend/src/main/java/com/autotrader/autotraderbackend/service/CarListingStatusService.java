@@ -25,6 +25,7 @@ public class CarListingStatusService {
     private final UserRepository userRepository;
     private final CarListingMapper carListingMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final ListingModerationService moderationService;
 
     /**
      * Marks a car listing as sold.
@@ -34,21 +35,21 @@ public class CarListingStatusService {
         log.info("User {} attempting to mark listing ID {} as sold", username, listingId);
         CarListing listing = findListingByIdAndAuthorize(listingId, username, "mark as sold");
 
-        if (Boolean.TRUE.equals(listing.getArchived())) {
+        if (moderationService.isListingArchived(listingId)) {
             log.warn("Attempt to mark archived listing ID {} as sold by user {}", listingId, username);
             throw new IllegalStateException("Cannot mark an archived listing as sold. Please unarchive first.");
         }
-        if (Boolean.TRUE.equals(listing.getSold())) {
+        if (moderationService.isListingSold(listingId)) {
             log.warn("Listing ID {} is already marked as sold. No action taken by user {}.", listingId, username);
             return carListingMapper.toCarListingResponse(listing);
         }
 
-        listing.setSold(true);
-        CarListing updatedListing = carListingRepository.save(listing);
+        // Create moderation action for marking as sold
+        moderationService.markListingAsSold(listingId, username);
         
-        eventPublisher.publishEvent(new ListingMarkedAsSoldEvent(this, updatedListing, false));
+        eventPublisher.publishEvent(new ListingMarkedAsSoldEvent(this, listing, false));
         log.info("Successfully marked listing ID {} as sold by user {}", listingId, username);
-        return carListingMapper.toCarListingResponse(updatedListing);
+        return carListingMapper.toCarListingResponse(listing);
     }
 
     /**
@@ -59,22 +60,43 @@ public class CarListingStatusService {
         log.info("Admin attempting to mark listing ID {} as sold", listingId);
         CarListing listing = findListingById(listingId);
 
-        if (Boolean.TRUE.equals(listing.getArchived())) {
+        if (moderationService.isListingArchived(listingId)) {
             log.warn("Admin attempt to mark archived listing ID {} as sold", listingId);
             throw new IllegalStateException("Cannot mark an archived listing as sold. Please unarchive first.");
         }
 
-        if (Boolean.TRUE.equals(listing.getSold())) {
+        if (moderationService.isListingSold(listingId)) {
             log.warn("Listing ID {} is already marked as sold. Throwing IllegalStateException.", listingId);
             throw new IllegalStateException("Listing with ID " + listingId + " is already marked as sold.");
         }
 
-        listing.setSold(true);
-        CarListing updatedListing = carListingRepository.save(listing);
-        log.info("Admin successfully marked listing ID {} as sold", listingId);
-        eventPublisher.publishEvent(new ListingMarkedAsSoldEvent(this, updatedListing, true));
+        // Create moderation action for marking as sold by admin
+        moderationService.markListingAsSold(listingId, "admin");
         
-        return carListingMapper.toCarListingResponseForAdmin(updatedListing);
+        log.info("Admin successfully marked listing ID {} as sold", listingId);
+        eventPublisher.publishEvent(new ListingMarkedAsSoldEvent(this, listing, true));
+        
+        return carListingMapper.toCarListingResponse(listing);
+    }
+
+    /**
+     * Unmarks a car listing as sold by admin.
+     */
+    @Transactional
+    public CarListingResponse unmarkSoldListingByAdmin(Long listingId) {
+        log.info("Admin attempting to unmark listing ID {} as sold", listingId);
+        CarListing listing = findListingById(listingId);
+
+        if (!moderationService.isListingSold(listingId)) {
+            log.warn("Listing ID {} is not marked as sold. No action taken.", listingId);
+            throw new IllegalStateException("Listing is not marked as sold");
+        }
+
+        // Create moderation action for unmarking as sold by admin
+        moderationService.unmarkListingAsSold(listingId, "admin");
+        
+        log.info("Successfully unmarked listing ID {} as sold by admin", listingId);
+        return carListingMapper.toCarListingResponse(listing);
     }
 
     /**
@@ -85,19 +107,19 @@ public class CarListingStatusService {
         log.info("User {} attempting to archive listing ID {}", username, listingId);
         CarListing listing = findListingByIdAndAuthorize(listingId, username, "archive");
 
-        if (Boolean.TRUE.equals(listing.getArchived())) {
+        if (moderationService.isListingArchived(listingId)) {
             log.warn("Listing ID {} is already archived. No action taken by user {}.", listingId, username);
             return carListingMapper.toCarListingResponse(listing);
         }
 
-        listing.setArchived(true);
-        CarListing updatedListing = carListingRepository.save(listing);
+        // Create moderation action for archiving
+        moderationService.archiveListing(listingId, username);
         
-        eventPublisher.publishEvent(new ListingArchivedEvent(this, updatedListing, false));
-        log.info("Published ListingArchivedEvent for listing ID: {}", updatedListing.getId());
+        eventPublisher.publishEvent(new ListingArchivedEvent(this, listing, false));
+        log.info("Published ListingArchivedEvent for listing ID: {}", listing.getId());
         
         log.info("Successfully archived listing ID {} by user {}", listingId, username);
-        return carListingMapper.toCarListingResponse(updatedListing);
+        return carListingMapper.toCarListingResponse(listing);
     }
 
     /**
@@ -112,17 +134,17 @@ public class CarListingStatusService {
                     return new ResourceNotFoundException("Car Listing", "id", listingId.toString());
                 });
 
-        if (Boolean.TRUE.equals(listing.getArchived())) {
+        if (moderationService.isListingArchived(listingId)) {
             log.warn("Listing ID {} is already archived. Admin operation aborted.", listingId);
             throw new IllegalStateException("Listing with ID " + listingId + " is already archived.");
         }
 
-        listing.setArchived(true);
-        CarListing updatedListing = carListingRepository.save(listing);
+        // Create moderation action for archiving by admin
+        moderationService.archiveListing(listingId, "admin");
         log.info("Admin successfully archived listing ID {}", listingId);
-        eventPublisher.publishEvent(new ListingArchivedEvent(this, updatedListing, true)); 
-        log.info("Published ListingArchivedEvent for listing ID: {} (admin)", updatedListing.getId());
-        return carListingMapper.toCarListingResponse(updatedListing);
+        eventPublisher.publishEvent(new ListingArchivedEvent(this, listing, true)); 
+        log.info("Published ListingArchivedEvent for listing ID: {} (admin)", listing.getId());
+        return carListingMapper.toCarListingResponse(listing);
     }
 
     /**
@@ -133,12 +155,12 @@ public class CarListingStatusService {
         log.info("User {} attempting to unarchive listing ID {}", username, listingId);
         CarListing listing = findListingByIdAndAuthorize(listingId, username, "unarchive");
 
-        if (!Boolean.TRUE.equals(listing.getArchived())) {
+        if (!moderationService.isListingArchived(listingId)) {
             log.warn("Listing ID {} is not archived. No action taken for unarchive by user {}.", listingId, username);
             throw new IllegalStateException("Listing with ID " + listingId + " is not currently archived.");
         }
 
-        listing.setArchived(false);
+        moderationService.unarchiveListing(listingId, username);
         CarListing updatedListing = carListingRepository.save(listing);
         log.info("Successfully unarchived listing ID {} by user {}", listingId, username);
         return carListingMapper.toCarListingResponse(updatedListing);
@@ -156,12 +178,12 @@ public class CarListingStatusService {
                     return new ResourceNotFoundException("Car Listing", "id", listingId.toString());
                 });
 
-        if (!Boolean.TRUE.equals(listing.getArchived())) {
+        if (!moderationService.isListingArchived(listingId)) {
             log.warn("Listing ID {} is not archived. No action taken for unarchive by admin.", listingId);
             throw new IllegalStateException("Listing with ID " + listingId + " is not currently archived.");
         }
 
-        listing.setArchived(false);
+        moderationService.unarchiveListing(listingId, "admin");
         CarListing updatedListing = carListingRepository.save(listing);
         log.info("Admin successfully unarchived listing ID {}", listingId);
         return carListingMapper.toCarListingResponse(updatedListing);
@@ -179,11 +201,11 @@ public class CarListingStatusService {
             log.warn("User {} attempted to pause unapproved listing ID {}", username, listingId);
             throw new IllegalStateException("Cannot pause a listing that is not yet approved.");
         }
-        if (listing.getSold()) {
+        if (moderationService.isListingSold(listingId)) {
             log.warn("User {} attempted to pause sold listing ID {}", username, listingId);
             throw new IllegalStateException("Cannot pause a listing that has been marked as sold.");
         }
-        if (listing.getArchived()) {
+        if (moderationService.isListingArchived(listingId)) {
             log.warn("User {} attempted to pause archived listing ID {}", username, listingId);
             throw new IllegalStateException("Cannot pause a listing that has been archived.");
         }
@@ -206,11 +228,11 @@ public class CarListingStatusService {
         log.info("User {} attempting to resume listing ID {}", username, listingId);
         CarListing listing = findListingByIdAndAuthorize(listingId, username, "resume");
 
-        if (listing.getSold()) {
+        if (moderationService.isListingSold(listingId)) {
             log.warn("User {} attempted to resume sold listing ID {}", username, listingId);
             throw new IllegalStateException("Cannot resume a listing that has been marked as sold.");
         }
-        if (listing.getArchived()) {
+        if (moderationService.isListingArchived(listingId)) {
             log.warn("User {} attempted to resume archived listing ID {}", username, listingId);
             throw new IllegalStateException("Cannot resume a listing that has been archived. Please contact support or renew if applicable.");
         }
@@ -257,24 +279,24 @@ public class CarListingStatusService {
         CarListing listing = findListingById(listingId);
 
         // Check if already expired
-        if (Boolean.TRUE.equals(listing.getExpired())) {
+        if (moderationService.isListingExpired(listingId)) {
             log.warn("Listing ID {} is already expired. No action taken.", listingId);
             throw new IllegalStateException("Listing is already expired");
         }
 
         // Check if archived
-        if (Boolean.TRUE.equals(listing.getArchived())) {
+        if (moderationService.isListingArchived(listingId)) {
             log.warn("Cannot expire archived listing ID {}", listingId);
             throw new IllegalStateException("Cannot expire an archived listing");
         }
 
         // Check if sold
-        if (Boolean.TRUE.equals(listing.getSold())) {
+        if (moderationService.isListingSold(listingId)) {
             log.warn("Cannot expire sold listing ID {}", listingId);
             throw new IllegalStateException("Cannot expire a sold listing");
         }
 
-        listing.setExpired(true);
+        moderationService.expireListing(listingId);
         listing.setIsUserActive(false); // Deactivate the listing
 
         CarListing updatedListing = carListingRepository.save(listing);

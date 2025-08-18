@@ -275,13 +275,9 @@ public class CarListingSpecification {
                                        jakarta.persistence.criteria.Root<CarListing> root,
                                        jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
                                        List<Predicate> predicates) {
-        if (filter.getIsSold() != null) {
-            predicates.add(criteriaBuilder.equal(root.get("sold"), filter.getIsSold()));
-        }
-
-        if (filter.getIsArchived() != null) {
-            predicates.add(criteriaBuilder.equal(root.get("archived"), filter.getIsArchived()));
-        }
+        // Status filtering for sold/archived is now handled by ListingModerationService
+        // These filters are applied at the service layer for performance optimization
+        // Note: Only approved field is kept in the entity for fast queries
     }
 
     /**
@@ -349,21 +345,54 @@ public class CarListingSpecification {
     }
 
     /**
-     * Creates a specification for non-sold listings only.
+     * Creates a specification for listings not hidden by admin.
+     * This uses a subquery to check the moderation actions table.
      * 
-     * @return Specification filtering for non-sold listings
+     * @return Specification filtering for non-hidden listings
      */
-    public static Specification<CarListing> isNotSold() {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.isFalse(root.get("sold"));
+    public static Specification<CarListing> isNotHiddenByAdmin() {
+        return (root, query, criteriaBuilder) -> {
+            // Subquery to check if listing is hidden by admin
+            var subquery = query.subquery(Long.class);
+            var moderationRoot = subquery.from(com.autotrader.autotraderbackend.model.ListingModerationAction.class);
+            
+            subquery.select(moderationRoot.get("listing").get("id"))
+                   .where(
+                       criteriaBuilder.and(
+                           criteriaBuilder.equal(moderationRoot.get("listing").get("id"), root.get("id")),
+                           criteriaBuilder.equal(moderationRoot.get("actionType"), "HIDE"),
+                           criteriaBuilder.isTrue(moderationRoot.get("isActive"))
+                       )
+                   );
+            
+            // Return listings that are NOT in the hidden subquery
+            return criteriaBuilder.not(criteriaBuilder.exists(subquery));
+        };
+    }
+
+
+    /**
+     * Note: isNotSold() and isNotArchived() specifications removed.
+     * These status checks are now handled by ListingModerationService for better audit trail.
+     * Use PublicListingService which automatically filters based on moderation actions.
+     */
+
+    /**
+     * Creates a specification for non-approved listings only.
+     * 
+     * @return Specification filtering for non-approved listings
+     */
+    public static Specification<CarListing> isNotApproved() {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.isFalse(root.get("approved"));
     }
 
     /**
-     * Creates a specification for non-archived listings only.
+     * Creates a specification for user-inactive listings only (paused by owner).
      * 
-     * @return Specification filtering for non-archived listings
+     * @return Specification filtering for user-inactive listings
      */
-    public static Specification<CarListing> isNotArchived() {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.isFalse(root.get("archived"));
+    public static Specification<CarListing> isUserInactive() {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.isFalse(root.get("isUserActive"));
     }
 
     /**

@@ -317,13 +317,12 @@ class CarListingServiceTest {
         CarListing approvedListing1 = new CarListing(); // Setup listing 1
         approvedListing1.setId(1L);
         approvedListing1.setApproved(true);
-        approvedListing1.setSold(false);
-        approvedListing1.setArchived(false);
+        // Note: sold and archived are now computed from ListingModerationAction table
+        
         CarListing approvedListing2 = new CarListing(); // Setup listing 2
         approvedListing2.setId(2L);
         approvedListing2.setApproved(true);
-        approvedListing2.setSold(false);
-        approvedListing2.setArchived(false);
+        // Note: sold and archived are now computed from ListingModerationAction table
         List<CarListing> listings = Arrays.asList(approvedListing1, approvedListing2);
         Page<CarListing> listingPage = new PageImpl<>(listings, pageable, listings.size());
 

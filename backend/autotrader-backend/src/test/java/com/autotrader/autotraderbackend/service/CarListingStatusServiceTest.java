@@ -42,6 +42,9 @@ class CarListingStatusServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private ListingModerationService moderationService;
+
     @InjectMocks
     private CarListingStatusService carListingStatusService;
 
@@ -59,8 +62,6 @@ class CarListingStatusServiceTest {
         testListing.setId(1L);
         testListing.setSeller(testUser);
         testListing.setApproved(true);
-        testListing.setSold(false);
-        testListing.setArchived(false);
         testListing.setIsUserActive(true);
 
         testListingResponse = new CarListingResponse();
@@ -73,26 +74,37 @@ class CarListingStatusServiceTest {
     void markListingAsSold_Success() {
         when(userRepository.findByUsername(testUser.getUsername())).thenReturn(Optional.of(testUser));
         when(carListingRepository.findById(testListing.getId())).thenReturn(Optional.of(testListing));
-        when(carListingRepository.save(any(CarListing.class))).thenReturn(testListing);
         when(carListingMapper.toCarListingResponse(any(CarListing.class))).thenReturn(testListingResponse);
+        
+        // Mock moderation service calls - listing is not archived and not sold yet
+        when(moderationService.isListingArchived(testListing.getId())).thenReturn(false);
+        when(moderationService.isListingSold(testListing.getId())).thenReturn(false);
+        doNothing().when(moderationService).markListingAsSold(testListing.getId(), testUser.getUsername());
 
-        carListingStatusService.markListingAsSold(testListing.getId(), testUser.getUsername());
+        CarListingResponse result = carListingStatusService.markListingAsSold(testListing.getId(), testUser.getUsername());
 
-        verify(carListingRepository).save(testListing);
+        assertNotNull(result);
+        verify(moderationService).markListingAsSold(testListing.getId(), testUser.getUsername());
         verify(eventPublisher).publishEvent(any(ListingMarkedAsSoldEvent.class));
-        assertThat(testListing.getSold()).isTrue();
+        // Note: sold status assertions removed - now computed from moderation actions
+        // Note: carListingRepository.save() no longer called - status managed by moderation service
     }
 
     @Test
     void markListingAsSold_AlreadySold() {
-        testListing.setSold(true);
         when(userRepository.findByUsername(testUser.getUsername())).thenReturn(Optional.of(testUser));
         when(carListingRepository.findById(testListing.getId())).thenReturn(Optional.of(testListing));
         when(carListingMapper.toCarListingResponse(any(CarListing.class))).thenReturn(testListingResponse);
+        
+        // Mock moderation service calls - listing is not archived but already sold
+        when(moderationService.isListingArchived(testListing.getId())).thenReturn(false);
+        when(moderationService.isListingSold(testListing.getId())).thenReturn(true);
 
-        carListingStatusService.markListingAsSold(testListing.getId(), testUser.getUsername());
+        CarListingResponse result = carListingStatusService.markListingAsSold(testListing.getId(), testUser.getUsername());
 
-        verify(carListingRepository, never()).save(any());
+        // Should return the listing response without making changes
+        assertNotNull(result);
+        verify(moderationService, never()).markListingAsSold(any(), any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -100,28 +112,37 @@ class CarListingStatusServiceTest {
     void archiveListing_Success() {
         when(userRepository.findByUsername(testUser.getUsername())).thenReturn(Optional.of(testUser));
         when(carListingRepository.findById(testListing.getId())).thenReturn(Optional.of(testListing));
-        when(carListingRepository.save(any(CarListing.class))).thenReturn(testListing);
         when(carListingMapper.toCarListingResponse(any(CarListing.class))).thenReturn(testListingResponse);
+        
+        // Mock moderation service calls - listing is not archived yet
+        when(moderationService.isListingArchived(testListing.getId())).thenReturn(false);
+        doNothing().when(moderationService).archiveListing(testListing.getId(), testUser.getUsername());
 
-        carListingStatusService.archiveListing(testListing.getId(), testUser.getUsername());
+        CarListingResponse result = carListingStatusService.archiveListing(testListing.getId(), testUser.getUsername());
 
-        verify(carListingRepository).save(testListing);
+        assertNotNull(result);
+        verify(moderationService).archiveListing(testListing.getId(), testUser.getUsername());
         verify(eventPublisher).publishEvent(any(ListingArchivedEvent.class));
-        assertThat(testListing.getArchived()).isTrue();
+        // Note: archived status assertions removed - now computed from moderation actions
     }
 
     @Test
     void unarchiveListing_Success() {
-        testListing.setArchived(true);
         when(userRepository.findByUsername(testUser.getUsername())).thenReturn(Optional.of(testUser));
         when(carListingRepository.findById(testListing.getId())).thenReturn(Optional.of(testListing));
         when(carListingRepository.save(any(CarListing.class))).thenReturn(testListing);
         when(carListingMapper.toCarListingResponse(any(CarListing.class))).thenReturn(testListingResponse);
+        
+        // Mock moderation service calls - listing is currently archived
+        when(moderationService.isListingArchived(testListing.getId())).thenReturn(true);
+        doNothing().when(moderationService).unarchiveListing(testListing.getId(), testUser.getUsername());
 
-        carListingStatusService.unarchiveListing(testListing.getId(), testUser.getUsername());
+        CarListingResponse result = carListingStatusService.unarchiveListing(testListing.getId(), testUser.getUsername());
 
+        assertNotNull(result);
+        verify(moderationService).unarchiveListing(testListing.getId(), testUser.getUsername());
         verify(carListingRepository).save(testListing);
-        assertThat(testListing.getArchived()).isFalse();
+        // Note: archived status assertions removed - now computed from moderation actions
     }
 
     @Test
@@ -168,38 +189,54 @@ class CarListingStatusServiceTest {
     @Test
     void markListingAsSoldByAdmin_Success() {
         when(carListingRepository.findById(testListing.getId())).thenReturn(Optional.of(testListing));
-        when(carListingRepository.save(any(CarListing.class))).thenReturn(testListing);
-        when(carListingMapper.toCarListingResponseForAdmin(any(CarListing.class))).thenReturn(testListingResponse);
+        when(carListingMapper.toCarListingResponse(any(CarListing.class))).thenReturn(testListingResponse);
+        
+        // Mock moderation service calls - listing is not archived and not sold yet
+        when(moderationService.isListingArchived(testListing.getId())).thenReturn(false);
+        when(moderationService.isListingSold(testListing.getId())).thenReturn(false);
+        doNothing().when(moderationService).markListingAsSold(testListing.getId(), "admin");
 
-        carListingStatusService.markListingAsSoldByAdmin(testListing.getId());
+        CarListingResponse result = carListingStatusService.markListingAsSoldByAdmin(testListing.getId());
 
-        verify(carListingRepository).save(testListing);
-        assertThat(testListing.getSold()).isTrue();
+        assertNotNull(result);
+        verify(moderationService).markListingAsSold(testListing.getId(), "admin");
+        verify(eventPublisher).publishEvent(any(ListingMarkedAsSoldEvent.class));
+        // Note: sold status assertions removed - now computed from moderation actions
     }
 
     @Test
     void archiveListingByAdmin_Success() {
         when(carListingRepository.findById(testListing.getId())).thenReturn(Optional.of(testListing));
-        when(carListingRepository.save(any(CarListing.class))).thenReturn(testListing);
         when(carListingMapper.toCarListingResponse(any(CarListing.class))).thenReturn(testListingResponse);
+        
+        // Mock moderation service calls - listing is not archived yet
+        when(moderationService.isListingArchived(testListing.getId())).thenReturn(false);
+        doNothing().when(moderationService).archiveListing(testListing.getId(), "admin");
 
-        carListingStatusService.archiveListingByAdmin(testListing.getId());
+        CarListingResponse result = carListingStatusService.archiveListingByAdmin(testListing.getId());
 
-        verify(carListingRepository).save(testListing);
-        assertThat(testListing.getArchived()).isTrue();
+        assertNotNull(result);
+        verify(moderationService).archiveListing(testListing.getId(), "admin");
+        verify(eventPublisher).publishEvent(any(ListingArchivedEvent.class));
+        // Note: archived status assertions removed - now computed from moderation actions
     }
 
     @Test
     void unarchiveListingByAdmin_Success() {
-        testListing.setArchived(true);
         when(carListingRepository.findById(testListing.getId())).thenReturn(Optional.of(testListing));
         when(carListingRepository.save(any(CarListing.class))).thenReturn(testListing);
         when(carListingMapper.toCarListingResponse(any(CarListing.class))).thenReturn(testListingResponse);
+        
+        // Mock moderation service calls - listing is currently archived
+        when(moderationService.isListingArchived(testListing.getId())).thenReturn(true);
+        doNothing().when(moderationService).unarchiveListing(testListing.getId(), "admin");
 
-        carListingStatusService.unarchiveListingByAdmin(testListing.getId());
+        CarListingResponse result = carListingStatusService.unarchiveListingByAdmin(testListing.getId());
 
+        assertNotNull(result);
+        verify(moderationService).unarchiveListing(testListing.getId(), "admin");
         verify(carListingRepository).save(testListing);
-        assertThat(testListing.getArchived()).isFalse();
+        // Note: archived status assertions removed - now computed from moderation actions
     }
 
     @Test
@@ -339,40 +376,26 @@ class CarListingStatusServiceTest {
         when(carListingRepository.findById(testListing.getId())).thenReturn(Optional.of(testListing));
 
         // Case 1: Already approved
-        // Ensure clean state before setting specific condition
-        testListing.setApproved(false);
-        testListing.setArchived(false);
-        testListing.setSold(false);
-
         testListing.setApproved(true);
         IllegalStateException approveException = assertThrows(IllegalStateException.class,
                 () -> carListingStatusService.approveListing(testListing.getId()));
         assertEquals("Listing with ID 1 is already approved.", approveException.getMessage());
         testListing.setApproved(false); // Reset state
 
-        // Case 2: Already archived
-        // Ensure clean state before setting specific condition
-        testListing.setApproved(false);
-        testListing.setArchived(false);
-        testListing.setSold(false);
-
-        testListing.setArchived(true);
+        // Case 2: Already archived - mock moderation service to return true
+        when(moderationService.isListingArchived(testListing.getId())).thenReturn(true);
         IllegalStateException archiveException = assertThrows(IllegalStateException.class,
                 () -> carListingStatusService.archiveListingByAdmin(testListing.getId()));
         assertEquals("Listing with ID 1 is already archived.", archiveException.getMessage());
-        testListing.setArchived(false); // Reset state
 
-        // Case 3: Already sold
-        // Ensure clean state before setting specific condition
+        // Case 3: Already sold - mock moderation service to return true
         testListing.setApproved(true); // Listing needs to be approved to be sold without other errors
-        testListing.setArchived(false);
-        testListing.setSold(false);
+        when(moderationService.isListingArchived(testListing.getId())).thenReturn(false); // Not archived
+        when(moderationService.isListingSold(testListing.getId())).thenReturn(true); // Already sold
 
-        testListing.setSold(true);
         IllegalStateException soldException = assertThrows(IllegalStateException.class,
                 () -> carListingStatusService.markListingAsSoldByAdmin(testListing.getId()));
         assertEquals("Listing with ID 1 is already marked as sold.", soldException.getMessage());
-        testListing.setSold(false); // Reset state
         testListing.setApproved(true); // Reset to original setUp state if needed for other tests
     }
 
@@ -398,7 +421,7 @@ class CarListingStatusServiceTest {
         verify(carListingRepository).save(argThat(listing -> 
             Objects.nonNull(listing) &&
             listing.getId().equals(testListing.getId()) &&
-            listing.getExpired() &&
+            // Note: expired status check removed - now computed from moderation actions
             !listing.getIsUserActive()
         ));
         verify(carListingMapper).toCarListingResponse(testListing);

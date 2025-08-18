@@ -122,8 +122,7 @@ public class TestDataGenerator {
         listing.setDescription("This is a test car listing for integration tests.");
         listing.setSeller(seller);
         listing.setApproved(false);
-        listing.setSold(false);
-        listing.setArchived(false);
+        // Note: sold and archived are now computed from ListingModerationAction table
         listing.setCreatedAt(LocalDateTime.now());
         listing.setUpdatedAt(LocalDateTime.now());
         return listing;

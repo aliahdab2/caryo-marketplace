@@ -100,9 +100,8 @@ public class CarListingMapper {
             // Ensure approved is properly set (never null)
             response.setApproved(Objects.nonNull(carListing.getApproved()) ? carListing.getApproved() : false);
 
-            response.setIsSold(carListing.getSold());
-            response.setIsArchived(carListing.getArchived());
-            response.setIsExpired(carListing.getExpired());
+            // Note: isSold, isArchived, isExpired are now computed from ListingModerationAction table
+            // These fields are set by the admin controller when needed using ListingModerationService
 
             if (Objects.nonNull(carListing.getSeller())) {
                 response.setSellerId(carListing.getSeller().getId());
@@ -141,9 +140,7 @@ public class CarListingMapper {
             // Create minimal response with essential fields to avoid complete failure
             CarListingResponse fallbackResponse = new CarListingResponse();
             fallbackResponse.setId(carListing.getId());
-            fallbackResponse.setIsSold(carListing.getSold());
-            fallbackResponse.setIsArchived(carListing.getArchived());
-            fallbackResponse.setIsExpired(carListing.getExpired());
+            // Note: isSold, isArchived, isExpired are computed from moderation actions
             // Ensure approved is properly set in fallback response
             fallbackResponse.setApproved(Objects.nonNull(carListing.getApproved()) ? carListing.getApproved() : false);
             fallbackResponse.setMedia(new ArrayList<>());
@@ -269,21 +266,21 @@ public class CarListingMapper {
 
             // Important status fields - with default values if exceptions occur
             try { 
-                response.setIsSold(carListing.getSold()); 
+                // Note: isSold computed from moderation actions 
             } catch (Exception e) { 
                 log.warn("Error setting isSold for listing ID {}, defaulting to false", carListing.getId());
                 response.setIsSold(false);
             }
             
             try { 
-                response.setIsArchived(carListing.getArchived()); 
+                // Note: isArchived computed from moderation actions 
             } catch (Exception e) { 
                 log.warn("Error setting isArchived for listing ID {}, defaulting to false", carListing.getId());
                 response.setIsArchived(false);
             }
             
             try { 
-                response.setIsExpired(carListing.getExpired()); 
+                // Note: isExpired computed from moderation actions 
             } catch (Exception e) { 
                 log.warn("Error setting isExpired for listing ID {}, defaulting to false", carListing.getId());
                 response.setIsExpired(false);
@@ -330,23 +327,8 @@ public class CarListingMapper {
             CarListingResponse fallback = new CarListingResponse();
             fallback.setId(carListing.getId());
             
-            try {
-                fallback.setIsSold(carListing.getSold());
-            } catch (Exception ex) {
-                fallback.setIsSold(false);
-            }
-            
-            try {
-                fallback.setIsArchived(carListing.getArchived());
-            } catch (Exception ex) {
-                fallback.setIsArchived(false);
-            }
-            
-            try {
-                fallback.setIsExpired(carListing.getExpired());
-            } catch (Exception ex) {
-                fallback.setIsExpired(false);
-            }
+            // Note: isSold, isArchived, isExpired are computed from moderation actions
+            // Default values set to false for fallback response
             
             // Ensure approved is properly set in fallback response
             try {

@@ -135,6 +135,10 @@ public class CarListingResponse {
     private Boolean isUserActive;
     private Boolean isExpired; // Added field
     private SellerTypeResponse sellerType; // Added field
+    
+    // Admin-specific computed fields
+    private Boolean hiddenByAdmin;
+    private String status; // PENDING, APPROVED, HIDDEN, SOLD, ARCHIVED, EXPIRED, etc.
 
     // Explicit Getters
     public Long getId() { return id; }

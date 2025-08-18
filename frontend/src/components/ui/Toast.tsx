@@ -105,7 +105,7 @@ export default function Toast({
 
   return (
     <div
-      className={`fixed top-5 right-5 z-50 max-w-sm w-full rounded-lg shadow-lg border transition-all duration-300 ease-in-out transform ${
+      className={`max-w-sm w-[20rem] rounded-lg shadow-lg border transition-all duration-300 ease-in-out transform ${
         isLeaving ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
       } ${config.bgColor} ${config.borderColor} ${className}`}
       role="alert"

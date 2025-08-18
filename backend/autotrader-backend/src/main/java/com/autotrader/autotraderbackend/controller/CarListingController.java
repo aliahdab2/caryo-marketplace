@@ -15,6 +15,7 @@ import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.BodyStyleService;
 import com.autotrader.autotraderbackend.service.CarListingService;
+import com.autotrader.autotraderbackend.service.PublicListingService;
 import com.autotrader.autotraderbackend.service.CarListingStatusService;
 import com.autotrader.autotraderbackend.service.FuelTypeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,6 +52,7 @@ import java.util.Map;
 public class CarListingController {
 
     private final CarListingService carListingService;
+    private final PublicListingService publicListingService;
     private final CarListingStatusService carListingStatusService;
     private final BodyStyleService bodyStyleService;
     private final FuelTypeService fuelTypeService;
@@ -871,10 +873,10 @@ public class CarListingController {
         }
     )
     public ResponseEntity<CarListingResponse> getListingById(@PathVariable Long id) {
-        log.debug("Request received for listing ID: {}", id);
-        // Service method handles not found exception
-        CarListingResponse listing = carListingService.getListingById(id);
-        log.debug("Returning listing details for ID: {}", id);
+        log.debug("Request received for public listing ID: {}", id);
+        // Use PublicListingService which handles moderation checks
+        CarListingResponse listing = publicListingService.getPublicListingById(id);
+        log.debug("Returning public listing details for ID: {}", id);
         return ResponseEntity.ok(listing);
     }
 
