@@ -1554,6 +1554,212 @@
           }
         }
       ]
+    },
+    {
+      "name": "Admin Endpoints",
+      "item": [
+        {
+          "name": "Admin Dashboard - Get All Listings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Admin can access all listings\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response includes moderation status\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('content');",
+                  "    if (jsonData.content.length > 0) {",
+                  "        const listing = jsonData.content[0];",
+                  "        pm.expect(listing).to.have.property('approved');",
+                  "        pm.expect(listing).to.have.property('hiddenByAdmin');",
+                  "        pm.expect(listing).to.have.property('isSold');",
+                  "        pm.expect(listing).to.have.property('isArchived');",
+                  "        pm.expect(listing).to.have.property('status');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/listings?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "listings"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Listing approved successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing status updated\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.approved).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/listings/{{listing_id}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "listings", "{{listing_id}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Hide Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Listing hidden successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing is hidden\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.hiddenByAdmin).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Admin moderation action\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/listings/{{listing_id}}/hide",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "listings", "{{listing_id}}", "hide"]
+            }
+          }
+        },
+        {
+          "name": "Mark as Sold",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Listing marked as sold\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing status is sold\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.isSold).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/listings/{{listing_id}}/mark-sold",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "listings", "{{listing_id}}", "mark-sold"]
+            }
+          }
+        },
+        {
+          "name": "Archive Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Listing archived successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing is archived\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.isArchived).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/listings/{{listing_id}}/archive",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "listings", "{{listing_id}}", "archive"]
+            }
+          }
+        }
+      ]
     }
   ]
 }

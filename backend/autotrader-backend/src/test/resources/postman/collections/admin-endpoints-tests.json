@@ -1,0 +1,673 @@
+{
+  "info": {
+    "name": "Admin Endpoints Tests",
+    "description": "Comprehensive test collection for all admin endpoints including listing moderation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{admin_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set base URL if not already set",
+          "if (!pm.environment.get('base_url')) {",
+          "    pm.environment.set('base_url', 'http://localhost:8080');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "Register Admin User",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generate unique admin credentials",
+                  "const randomId = Math.random().toString(36).substring(2, 10);",
+                  "const adminUsername = 'admin_' + randomId;",
+                  "const adminEmail = `${adminUsername}@example.com`;",
+                  "",
+                  "pm.environment.set('admin_username', adminUsername);",
+                  "pm.environment.set('admin_email', adminEmail);",
+                  "pm.environment.set('admin_password', 'AdminPass123!');",
+                  "",
+                  "console.log(`Generated admin user: ${adminUsername}`);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Admin registration successful\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains success message\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include('successfully');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{admin_username}}\",\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login Admin User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Admin login successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"JWT token received\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token).to.be.a('string');",
+                  "    pm.environment.set('admin_token', jsonData.token);",
+                  "});",
+                  "",
+                  "pm.test(\"User has admin role\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.roles).to.include('ROLE_ADMIN');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{admin_username}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Create Test Listing for Admin Actions",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generate test listing data",
+                  "const randomId = Math.random().toString(36).substring(2, 8);",
+                  "const testTitle = `Test Listing for Admin - ${randomId}`;",
+                  "",
+                  "pm.environment.set('test_listing_title', testTitle);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Test listing created successfully\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing ID received\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.be.a('number');",
+                  "    pm.environment.set('test_listing_id', jsonData.id);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing starts as unapproved\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.approved).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"{{test_listing_title}}\",\n  \"description\": \"Test listing created for admin endpoint testing\",\n  \"price\": 25000,\n  \"currency\": \"USD\",\n  \"mileage\": 50000,\n  \"modelYear\": 2020,\n  \"brand\": \"Toyota\",\n  \"model\": \"Camry\",\n  \"exteriorColor\": \"White\",\n  \"doors\": 4,\n  \"cylinders\": 4,\n  \"transmission\": \"Automatic\",\n  \"governorateId\": 1,\n  \"contactName\": \"Test Admin\",\n  \"contactEmail\": \"{{admin_email}}\",\n  \"contactPhone\": \"+963123456789\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/listings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "listings"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Dashboard",
+      "item": [
+        {
+          "name": "Get All Listings (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Admin can access all listings\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains paginated data\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('content');",
+                  "    pm.expect(jsonData).to.have.property('totalElements');",
+                  "    pm.expect(jsonData).to.have.property('totalPages');",
+                  "});",
+                  "",
+                  "pm.test(\"Listings include moderation status\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.content.length > 0) {",
+                  "        const listing = jsonData.content[0];",
+                  "        pm.expect(listing).to.have.property('approved');",
+                  "        pm.expect(listing).to.have.property('hiddenByAdmin');",
+                  "        pm.expect(listing).to.have.property('isSold');",
+                  "        pm.expect(listing).to.have.property('isArchived');",
+                  "        pm.expect(listing).to.have.property('status');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/listings?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "listings"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Listings (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Admin search works\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Search results are filtered\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.content).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/listings?search=Toyota&status=pending",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "listings"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "Toyota"
+                },
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listing Moderation",
+      "item": [
+        {
+          "name": "Approve Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Listing approved successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing is now approved\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.approved).to.be.true;",
+                  "    pm.expect(jsonData.status).to.equal('ACTIVE');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/listings/{{test_listing_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "listings", "{{test_listing_id}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Hide Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Listing hidden successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing is now hidden\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.hiddenByAdmin).to.be.true;",
+                  "    pm.expect(jsonData.status).to.equal('HIDDEN');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Violates community guidelines\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/listings/{{test_listing_id}}/hide",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "listings", "{{test_listing_id}}", "hide"]
+            }
+          }
+        },
+        {
+          "name": "Unhide Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Listing unhidden successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing is no longer hidden\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.hiddenByAdmin).to.be.false;",
+                  "    pm.expect(jsonData.status).to.equal('ACTIVE');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/listings/{{test_listing_id}}/unhide",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "listings", "{{test_listing_id}}", "unhide"]
+            }
+          }
+        },
+        {
+          "name": "Mark Listing as Sold",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Listing marked as sold successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing is now sold\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.isSold).to.be.true;",
+                  "    pm.expect(jsonData.status).to.equal('SOLD');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/listings/{{test_listing_id}}/mark-sold",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "listings", "{{test_listing_id}}", "mark-sold"]
+            }
+          }
+        },
+        {
+          "name": "Unmark Listing as Sold",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Listing unmarked as sold successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing is no longer sold\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.isSold).to.be.false;",
+                  "    pm.expect(jsonData.status).to.equal('ACTIVE');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/listings/{{test_listing_id}}/unmark-sold",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "listings", "{{test_listing_id}}", "unmark-sold"]
+            }
+          }
+        },
+        {
+          "name": "Archive Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Listing archived successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing is now archived\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.isArchived).to.be.true;",
+                  "    pm.expect(jsonData.status).to.equal('ARCHIVED');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/listings/{{test_listing_id}}/archive",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "listings", "{{test_listing_id}}", "archive"]
+            }
+          }
+        },
+        {
+          "name": "Unarchive Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Listing unarchived successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Listing is no longer archived\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.isArchived).to.be.false;",
+                  "    pm.expect(jsonData.status).to.equal('ACTIVE');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/listings/{{test_listing_id}}/unarchive",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "listings", "{{test_listing_id}}", "unarchive"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Handling",
+      "item": [
+        {
+          "name": "Unauthorized Access (No Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Unauthorized access blocked\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/listings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "listings"]
+            }
+          }
+        },
+        {
+          "name": "Non-existent Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Non-existent listing returns 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/listings/999999/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "listings", "999999", "approve"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cleanup",
+      "item": [
+        {
+          "name": "Delete Test Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Test listing deleted or not found\", function () {",
+                  "    // Accept both 204 (deleted) and 404 (not found) as success",
+                  "    pm.expect([204, 404]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/listings/{{test_listing_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "listings", "{{test_listing_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
