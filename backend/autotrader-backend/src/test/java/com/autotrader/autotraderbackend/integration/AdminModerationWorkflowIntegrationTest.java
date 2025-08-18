@@ -8,8 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureTestEntityManager;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -26,9 +25,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWebMvc
-@AutoConfigureTestEntityManager
+@SpringBootTest
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 class AdminModerationWorkflowIntegrationTest {
@@ -58,6 +56,12 @@ class AdminModerationWorkflowIntegrationTest {
     private GovernorateRepository governorateRepository;
 
     @Autowired
+    private CountryRepository countryRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     private CarListing testListing;
@@ -66,12 +70,33 @@ class AdminModerationWorkflowIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        // Create admin role first
+        Role adminRole = roleRepository.findByName("ROLE_ADMIN")
+            .orElseGet(() -> {
+                Role newRole = new Role();
+                newRole.setName("ROLE_ADMIN");
+                return roleRepository.save(newRole);
+            });
+
+        // Create user role
+        Role userRole = roleRepository.findByName("ROLE_USER")
+            .orElseGet(() -> {
+                Role newRole = new Role();
+                newRole.setName("ROLE_USER");
+                return roleRepository.save(newRole);
+            });
+
         // Create test user
-        testUser = TestDataGenerator.createTestUser("testuser", "password");
+        testUser = TestDataGenerator.createTestUser("testuser123", "password");
+        testUser.getRoles().clear(); // Clear the transient roles
+        testUser.getRoles().add(userRole); // Add the persisted role
         testUser = userRepository.save(testUser);
 
         // Create admin user
-        adminUser = TestDataGenerator.createTestAdminUser("admin", "password");
+        adminUser = TestDataGenerator.createTestUser("testadmin", "password");
+        adminUser.getRoles().clear(); // Clear the transient roles
+        adminUser.getRoles().add(userRole); // Add user role
+        adminUser.getRoles().add(adminRole); // Add admin role
         adminUser = userRepository.save(adminUser);
 
         // Create test brand and model
@@ -81,8 +106,12 @@ class AdminModerationWorkflowIntegrationTest {
         CarModel model = TestDataGenerator.createTestCarModel(brand);
         model = carModelRepository.save(model);
 
+        // Use existing country from data initializer
+        Country country = countryRepository.findByCountryCode("SY")
+            .orElseThrow(() -> new RuntimeException("Syria country not found"));
+
         // Create test governorate
-        Governorate governorate = TestDataGenerator.createTestGovernorate("SY");
+        Governorate governorate = TestDataGenerator.createTestGovernorateWithCountry("Test Governorate", "محافظة الاختبار", country);
         governorate = governorateRepository.save(governorate);
 
         // Create test listing
@@ -92,7 +121,7 @@ class AdminModerationWorkflowIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "admin@example.com", roles = "ADMIN")
+    @WithMockUser(username = "testadmin", roles = "ADMIN")
     void completeAdminWorkflow_ShouldCreateProperAuditTrail() throws Exception {
         Long listingId = testListing.getId();
 
@@ -129,19 +158,19 @@ class AdminModerationWorkflowIntegrationTest {
         // Latest action should be UNHIDE
         ListingModerationAction latestAction = history.get(0);
         assertEquals("UNHIDE", latestAction.getActionType());
-        assertEquals("admin@example.com", latestAction.getPerformedBy());
+        assertEquals("testadmin", latestAction.getPerformedBy().getUsername());
         assertTrue(latestAction.getIsActive());
 
         // Previous action should be HIDE (now inactive)
         ListingModerationAction hideAction = history.get(1);
         assertEquals("HIDE", hideAction.getActionType());
         assertEquals("Inappropriate content detected", hideAction.getReason());
-        assertEquals("admin@example.com", hideAction.getPerformedBy());
+        assertEquals("testadmin", hideAction.getPerformedBy().getUsername());
         assertFalse(hideAction.getIsActive()); // Should be deactivated
     }
 
     @Test
-    @WithMockUser(username = "admin@example.com", roles = "ADMIN")
+    @WithMockUser(username = "testadmin", roles = "ADMIN")
     void hideAlreadyHiddenListing_ShouldCreateNewHideAction() throws Exception {
         Long listingId = testListing.getId();
 
@@ -206,7 +235,7 @@ class AdminModerationWorkflowIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "admin@example.com", roles = "ADMIN")
+    @WithMockUser(username = "testadmin", roles = "ADMIN")
     void unhideNonHiddenListing_ShouldStillWork() throws Exception {
         Long listingId = testListing.getId();
 
@@ -244,7 +273,7 @@ class AdminModerationWorkflowIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "admin@example.com", roles = "ADMIN")
+    @WithMockUser(username = "testadmin", roles = "ADMIN")
     void performanceTest_MultipleActionsOnSameListing() throws Exception {
         Long listingId = testListing.getId();
 

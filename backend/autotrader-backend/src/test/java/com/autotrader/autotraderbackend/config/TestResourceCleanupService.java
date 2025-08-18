@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.config;
 
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
+import com.autotrader.autotraderbackend.repository.ListingModerationActionRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,12 +21,27 @@ public class TestResourceCleanupService implements AutoCloseable {
     private CarListingRepository carListingRepository;
     
     @Autowired
+    private ListingModerationActionRepository listingModerationActionRepository;
+    
+    @Autowired
     private UserRepository userRepository;
     
     /**
-     * Cleans up all test resources
+     * Cleans up all test resources in the correct order to avoid foreign key constraint violations
      */
     public void cleanupResources() {
+        // Clean up moderation actions first (they reference car_listings and users)
+        try {
+            listingModerationActionRepository.deleteAll();
+        } catch (Exception e) {
+            // Check if error is related to table not existing (which is expected during shutdown)
+            if (e.getMessage() != null && e.getMessage().contains("Table") && e.getMessage().contains("not found")) {
+                logger.debug("Skipping listingModerationActionRepository cleanup - tables already dropped");
+            } else {
+                logger.warn("Exception during listingModerationActionRepository.deleteAll() in cleanup: {}", e.getMessage());
+            }
+        }
+        
         // Clean up stored car listings for tests
         // Using deleteAll() is fine for tests as the database is ephemeral
         try {

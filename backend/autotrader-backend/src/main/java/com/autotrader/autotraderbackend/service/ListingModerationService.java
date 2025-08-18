@@ -51,11 +51,8 @@ public class ListingModerationService {
         CarListing listing = findListingById(listingId);
         User admin = findUserByUsername(adminUsername);
 
-        // Check if already hidden
-        if (isListingHiddenByAdmin(listingId)) {
-            log.warn("Listing ID {} is already hidden by admin", listingId);
-            throw new IllegalStateException("Listing is already hidden by admin");
-        }
+        // Allow idempotent hide: create a new HIDE action even if currently hidden
+        // This preserves a full audit trail of repeated actions
 
         // Validate business rules
         validateListingForHiding(listing);
@@ -83,11 +80,8 @@ public class ListingModerationService {
         CarListing listing = findListingById(listingId);
         User admin = findUserByUsername(adminUsername);
 
-        // Check if currently hidden
-        if (!isListingHiddenByAdmin(listingId)) {
-            log.warn("Listing ID {} is not currently hidden by admin", listingId);
-            throw new IllegalStateException("Listing is not currently hidden by admin");
-        }
+        // Allow idempotent unhide: create a new UNHIDE action even if not currently hidden
+        // This preserves a full audit trail and makes the operation idempotent
 
         // Deactivate previous hide/unhide actions
         moderationRepository.deactivatePreviousActions(listingId, ACTION_HIDE);
@@ -139,29 +133,40 @@ public class ListingModerationService {
      * A listing is approved if the latest APPROVE/REJECT action is APPROVE.
      */
     public boolean isListingApproved(Long listingId) {
+        // Hybrid approach: if the listing is already approved at the entity level,
+        // consider it approved for performance-critical checks.
+        try {
+            CarListing listing = carListingRepository.findById(listingId).orElse(null);
+            if (listing != null && Boolean.TRUE.equals(listing.getApproved())) {
+                return true;
+            }
+        } catch (Exception ignored) {
+            // Fallback to action-based logic if repository call fails during shutdown/cleanup
+        }
+
         var approveAction = moderationRepository.findLatestActiveActionByType(listingId, ACTION_APPROVE);
         var rejectAction = moderationRepository.findLatestActiveActionByType(listingId, ACTION_REJECT);
-        
+
         // If no actions, listing is pending (not approved)
         if (approveAction.isEmpty() && rejectAction.isEmpty()) {
             return false;
         }
-        
+
         // If only approve action exists
         if (approveAction.isPresent() && rejectAction.isEmpty()) {
             return true;
         }
-        
+
         // If only reject action exists
         if (rejectAction.isPresent() && approveAction.isEmpty()) {
             return false;
         }
-        
+
         // If both exist, check which is more recent
         if (approveAction.isPresent() && rejectAction.isPresent()) {
             return approveAction.get().getPerformedAt().isAfter(rejectAction.get().getPerformedAt());
         }
-        
+
         return false;
     }
 

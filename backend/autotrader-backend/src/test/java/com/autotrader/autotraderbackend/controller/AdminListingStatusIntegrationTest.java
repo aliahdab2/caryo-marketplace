@@ -41,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Transactional
 public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
 
     @Autowired
@@ -156,7 +157,6 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     }
     
     @Test
-    @Transactional
     public void adminCanMarkListingAsSold() throws Exception {
         // Verify listing is not sold initially
         Optional<CarListing> initialListing = carListingRepository.findById(listingId);
@@ -178,7 +178,6 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     }
     
     @Test
-    @Transactional
     public void regularUserCannotAccessAdminMarkAsSold() throws Exception {
         mockMvc.perform(post("/api/admin/listings/{id}/mark-sold", listingId)
                 .header("Authorization", "Bearer " + userToken)
@@ -213,11 +212,12 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     }
     
     @Test
-    @Transactional
     public void adminCanUnarchiveListing() throws Exception {
-        // First archive the listing
-        CarListing listing = carListingRepository.findById(listingId).orElseThrow();
-        carListingRepository.save(listing);
+        // First archive the listing via admin endpoint
+        mockMvc.perform(post("/api/admin/listings/{id}/archive", listingId)
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
         
         // Admin unarchives listing
         mockMvc.perform(post("/api/admin/listings/{id}/unarchive", listingId)
@@ -235,11 +235,12 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     
     @Test
     @WithMockUser(username = ADMIN_USERNAME, roles = {"ADMIN"})
-    @Transactional
     public void tryMarkArchivedListingAsSold_ReturnConflict() throws Exception {
-        // First archive the listing
-        CarListing listing = carListingRepository.findById(listingId).orElseThrow();
-        carListingRepository.save(listing);
+        // First archive the listing via admin endpoint
+        mockMvc.perform(post("/api/admin/listings/{id}/archive", listingId)
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
         
         // Try to mark archived listing as sold
         mockMvc.perform(post("/api/admin/listings/{id}/mark-sold", listingId)
@@ -251,7 +252,6 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     
     @Test
     @WithMockUser(username = ADMIN_USERNAME, roles = {"ADMIN"})
-    @Transactional
     public void tryUnarchiveNonArchivedListing_ReturnConflict() throws Exception {
         // Ensure listing is not archived
         CarListing listing = carListingRepository.findById(listingId).orElseThrow();

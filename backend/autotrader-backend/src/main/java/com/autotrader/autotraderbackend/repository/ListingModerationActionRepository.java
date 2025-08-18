@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.repository;
 
 import com.autotrader.autotraderbackend.model.ListingModerationAction;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -70,6 +71,7 @@ public interface ListingModerationActionRepository extends JpaRepository<Listing
      * Deactivate all previous actions of the same type for a listing.
      * This is used when a new action supersedes previous ones.
      */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE ListingModerationAction lma SET lma.isActive = false " +
            "WHERE lma.listing.id = :listingId AND lma.actionType = :actionType AND lma.isActive = true")
     void deactivatePreviousActions(@Param("listingId") Long listingId, @Param("actionType") String actionType);

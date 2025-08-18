@@ -162,8 +162,10 @@ public class AdminListingController {
         log.info("Admin API: Received request to mark listing ID: {} as sold", id);
         try {
             CarListingResponse soldListing = carListingStatusService.markListingAsSoldByAdmin(id);
+            // Enhance with computed moderation status for admin UI
+            CarListingResponse enhancedListing = enhanceWithModerationStatus(soldListing);
             log.info("Admin API: Successfully marked listing ID: {} as sold", id);
-            return ResponseEntity.ok(soldListing);
+            return ResponseEntity.ok(enhancedListing);
         } catch (ResourceNotFoundException e) {
             log.warn("Admin API: Resource not found when trying to mark listing ID: {} as sold", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
@@ -194,8 +196,10 @@ public class AdminListingController {
         log.info("Admin API: Received request to archive listing ID: {}", id);
         try {
             CarListingResponse archivedListing = carListingStatusService.archiveListingByAdmin(id);
+            // Enhance with computed moderation status for admin UI
+            CarListingResponse enhancedListing = enhanceWithModerationStatus(archivedListing);
             log.info("Admin API: Successfully archived listing ID: {}", id);
-            return ResponseEntity.ok(archivedListing);
+            return ResponseEntity.ok(enhancedListing);
         } catch (ResourceNotFoundException e) {
             log.warn("Admin API: Resource not found when trying to archive listing ID: {}", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
@@ -226,8 +230,10 @@ public class AdminListingController {
         log.info("Admin API: Received request to unarchive listing ID: {}", id);
         try {
             CarListingResponse unarchivedListing = carListingStatusService.unarchiveListingByAdmin(id);
+            // Enhance with computed moderation status for admin UI
+            CarListingResponse enhancedListing = enhanceWithModerationStatus(unarchivedListing);
             log.info("Admin API: Successfully unarchived listing ID: {}", id);
-            return ResponseEntity.ok(unarchivedListing);
+            return ResponseEntity.ok(enhancedListing);
         } catch (ResourceNotFoundException e) {
             log.warn("Admin API: Resource not found when trying to unarchive listing ID: {}", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
@@ -257,8 +263,10 @@ public class AdminListingController {
         log.info("Admin API: Received request to unmark sold listing ID: {}", id);
         try {
             CarListingResponse unmarkedListing = carListingStatusService.unmarkSoldListingByAdmin(id);
+            // Enhance with computed moderation status for admin UI
+            CarListingResponse enhancedListing = enhanceWithModerationStatus(unmarkedListing);
             log.info("Admin API: Successfully unmarked sold listing ID: {}", id);
-            return ResponseEntity.ok(unmarkedListing);
+            return ResponseEntity.ok(enhancedListing);
         } catch (ResourceNotFoundException e) {
             log.warn("Admin API: Resource not found when trying to unmark sold listing ID: {}", id);
             return ResponseEntity.notFound().build();
