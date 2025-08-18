@@ -12,7 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -171,29 +174,19 @@ public class ListingModerationService {
     }
 
     /**
-     * Check if a listing is sold based on moderation actions.
+     * Check if a listing is sold based on moderation actions using latest-action-wins approach.
+     * This uses a single optimized query instead of two separate queries.
      */
     public boolean isListingSold(Long listingId) {
-        var soldAction = moderationRepository.findLatestActiveActionByType(listingId, ACTION_MARK_SOLD);
-        var unsoldAction = moderationRepository.findLatestActiveActionByType(listingId, ACTION_UNMARK_SOLD);
-        
-        if (soldAction.isEmpty()) return false;
-        if (unsoldAction.isEmpty()) return true;
-        
-        return soldAction.get().getPerformedAt().isAfter(unsoldAction.get().getPerformedAt());
+        return moderationRepository.isListingSoldByLatestAction(listingId);
     }
 
     /**
-     * Check if a listing is archived based on moderation actions.
+     * Check if a listing is archived based on moderation actions using latest-action-wins approach.
+     * This uses a single optimized query instead of two separate queries.
      */
     public boolean isListingArchived(Long listingId) {
-        var archiveAction = moderationRepository.findLatestActiveActionByType(listingId, ACTION_ARCHIVE);
-        var unarchiveAction = moderationRepository.findLatestActiveActionByType(listingId, ACTION_UNARCHIVE);
-        
-        if (archiveAction.isEmpty()) return false;
-        if (unarchiveAction.isEmpty()) return true;
-        
-        return archiveAction.get().getPerformedAt().isAfter(unarchiveAction.get().getPerformedAt());
+        return moderationRepository.isListingArchivedByLatestAction(listingId);
     }
 
     /**
@@ -358,5 +351,96 @@ public class ListingModerationService {
         moderationRepository.save(expireAction);
 
         log.info("System successfully expired listing ID {}", listingId);
+    }
+
+    /**
+     * Batch method to compute status for multiple listings efficiently.
+     * This eliminates N+1 queries by fetching all moderation data in a single query.
+     */
+    public Map<Long, ListingStatusInfo> getBatchListingStatuses(List<Long> listingIds) {
+        if (listingIds.isEmpty()) {
+            return Map.of();
+        }
+
+        // Fetch all active actions for the listings in one query
+        List<Object[]> actions = moderationRepository.findActiveActionsForListings(listingIds);
+        
+        // Group actions by listing ID and process latest-action-wins logic
+        Map<Long, Map<String, LocalDateTime>> listingActions = new HashMap<>();
+        
+        for (Object[] action : actions) {
+            Long listingId = (Long) action[0];
+            String actionType = (String) action[1];
+            LocalDateTime performedAt = (LocalDateTime) action[2];
+            
+            listingActions.computeIfAbsent(listingId, k -> new HashMap<>())
+                         .put(actionType, performedAt);
+        }
+        
+        // Compute status for each listing
+        Map<Long, ListingStatusInfo> result = new HashMap<>();
+        for (Long listingId : listingIds) {
+            Map<String, LocalDateTime> listingActionMap = listingActions.getOrDefault(listingId, Map.of());
+            result.put(listingId, computeStatusFromActions(listingActionMap));
+        }
+        
+        return result;
+    }
+
+    /**
+     * Compute status from a map of action types to their latest performed times.
+     */
+    private ListingStatusInfo computeStatusFromActions(Map<String, LocalDateTime> actions) {
+        boolean isHidden = isLatestAction(actions, ACTION_HIDE, ACTION_UNHIDE);
+        boolean isSold = isLatestAction(actions, ACTION_MARK_SOLD, ACTION_UNMARK_SOLD);
+        boolean isArchived = isLatestAction(actions, ACTION_ARCHIVE, ACTION_UNARCHIVE);
+        boolean isExpired = actions.containsKey(ACTION_EXPIRE);
+        
+        String status;
+        if (isExpired) status = "EXPIRED";
+        else if (isArchived) status = "ARCHIVED";
+        else if (isSold) status = "SOLD";
+        else if (isHidden) status = "HIDDEN";
+        else status = "ACTIVE"; // Will be overridden by approval status in controller
+        
+        return new ListingStatusInfo(isHidden, isSold, isArchived, isExpired, status);
+    }
+
+    /**
+     * Check if the positive action is more recent than the negative action.
+     */
+    private boolean isLatestAction(Map<String, LocalDateTime> actions, String positiveAction, String negativeAction) {
+        LocalDateTime positive = actions.get(positiveAction);
+        LocalDateTime negative = actions.get(negativeAction);
+        
+        if (positive == null) return false;
+        if (negative == null) return true;
+        
+        return positive.isAfter(negative);
+    }
+
+    /**
+     * Data class to hold computed status information for a listing.
+     */
+    public static class ListingStatusInfo {
+        private final boolean hiddenByAdmin;
+        private final boolean sold;
+        private final boolean archived;
+        private final boolean expired;
+        private final String status;
+
+        public ListingStatusInfo(boolean hiddenByAdmin, boolean sold, boolean archived, boolean expired, String status) {
+            this.hiddenByAdmin = hiddenByAdmin;
+            this.sold = sold;
+            this.archived = archived;
+            this.expired = expired;
+            this.status = status;
+        }
+
+        public boolean isHiddenByAdmin() { return hiddenByAdmin; }
+        public boolean isSold() { return sold; }
+        public boolean isArchived() { return archived; }
+        public boolean isExpired() { return expired; }
+        public String getStatus() { return status; }
     }
 }

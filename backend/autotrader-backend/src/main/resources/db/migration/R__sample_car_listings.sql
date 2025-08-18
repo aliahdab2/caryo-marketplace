@@ -14,10 +14,11 @@ SELECT 1, 'testuser', 'test@example.com', '$2a$10$dummy.hash.for.test.purposes',
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE id = 1);
 
 -- Insert simple sample car listings with proper model_id references and Arabic translations
+-- Note: sold, archived, expired columns were removed in V11 migration (hybrid approach)
 INSERT INTO car_listings (
     title, description, price, mileage, model_year,
     brand, model, model_id, exterior_color, doors, cylinders,
-    seller_id, transmission, approved, sold, archived,
+    seller_id, transmission, approved,
     brand_name_en, brand_name_ar, model_name_en, model_name_ar,
     created_at, updated_at
 ) 
@@ -27,7 +28,7 @@ SELECT
     28000, 45000, 2020,
     mb.name, m.name, m.id,
     'White', 4, 4,
-    1, 'Automatic', true, false, false,
+    1, 'Automatic', true,
     mb.display_name_en, mb.display_name_ar, m.display_name_en, m.display_name_ar,
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM models m
@@ -43,7 +44,7 @@ SELECT
     22000, 35000, 2019,
     mb.name, m.name, m.id,
     'Black', 4, 4,
-    1, 'Automatic', true, false, false,
+    1, 'Automatic', true,
     mb.display_name_en, mb.display_name_ar, m.display_name_en, m.display_name_ar,
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM models m
@@ -59,7 +60,7 @@ SELECT
     25000, 15000, 2021,
     mb.name, m.name, m.id,
     'Silver', 4, 4,
-    1, 'Automatic', true, false, false,
+    1, 'Automatic', true,
     mb.display_name_en, mb.display_name_ar, m.display_name_en, m.display_name_ar,
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM models m
@@ -75,7 +76,7 @@ SELECT
     20000, 60000, 2018,
     mb.name, m.name, m.id,
     'Red', 4, 4,
-    1, 'Automatic', true, false, false,
+    1, 'Automatic', true,
     mb.display_name_en, mb.display_name_ar, m.display_name_en, m.display_name_ar,
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM models m
@@ -91,7 +92,7 @@ SELECT
     18000, 40000, 2020,
     mb.name, m.name, m.id,
     'Blue', 4, 4,
-    1, 'Automatic', true, false, false,
+    1, 'Automatic', true,
     mb.display_name_en, mb.display_name_ar, m.display_name_en, m.display_name_ar,
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM models m

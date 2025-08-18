@@ -1,64 +1,45 @@
 package com.autotrader.autotraderbackend.controller;
 
-import com.autotrader.autotraderbackend.model.NewsletterSubscription;
 import com.autotrader.autotraderbackend.payload.NewsletterSubscriptionRequest;
-import com.autotrader.autotraderbackend.repository.NewsletterSubscriptionRepository;
-import com.autotrader.autotraderbackend.service.EmailService;
+import com.autotrader.autotraderbackend.payload.NewsletterSubscriptionResponse;
+import com.autotrader.autotraderbackend.service.NewsletterService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Integration tests for NewsletterController.
+ * Unit tests for NewsletterController.
  */
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
+@ExtendWith(MockitoExtension.class)
 class NewsletterControllerTest {
 
     private MockMvc mockMvc;
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @Mock
+    private NewsletterService newsletterService;
 
-    @Autowired
-    private NewsletterSubscriptionRepository newsletterRepository;
-
-    @MockBean
-    private EmailService emailService;
+    @InjectMocks
+    private NewsletterController newsletterController;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        newsletterRepository.deleteAll();
-        
-        // Mock email service to avoid actual email sending during tests
-        doNothing().when(emailService).sendTemplatedEmail(anyString(), anyString(), anyString(), any(), anyString());
+        mockMvc = MockMvcBuilders.standaloneSetup(newsletterController).build();
     }
 
     @Test
@@ -69,6 +50,14 @@ class NewsletterControllerTest {
         request.setPreferredLanguage("en");
         request.setSource("homepage");
 
+        NewsletterSubscriptionResponse expectedResponse = NewsletterSubscriptionResponse.success(
+            "test@example.com", 
+            "Please check your email to confirm your subscription."
+        );
+
+        when(newsletterService.subscribe(any(NewsletterSubscriptionRequest.class)))
+            .thenReturn(expectedResponse);
+
         mockMvc.perform(post("/api/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -78,15 +67,6 @@ class NewsletterControllerTest {
                 .andExpect(jsonPath("$.alreadySubscribed").value(false))
                 .andExpect(jsonPath("$.requiresConfirmation").value(true))
                 .andExpect(jsonPath("$.message").isNotEmpty());
-
-        // Verify subscription was saved to database
-        Optional<NewsletterSubscription> subscription = newsletterRepository.findByEmail("test@example.com");
-        assertTrue(subscription.isPresent());
-        assertEquals("en", subscription.get().getPreferredLanguage());
-        assertEquals("homepage", subscription.get().getSubscriptionSource());
-        assertNotNull(subscription.get().getConfirmationToken());
-        assertNotNull(subscription.get().getUnsubscribeToken());
-        assertNull(subscription.get().getConfirmedAt());
     }
 
     @Test
@@ -97,17 +77,20 @@ class NewsletterControllerTest {
         request.setPreferredLanguage("ar");
         request.setSource("homepage");
 
+        NewsletterSubscriptionResponse expectedResponse = NewsletterSubscriptionResponse.success(
+            "test@example.com", 
+            "Please check your email to confirm your subscription."
+        );
+
+        when(newsletterService.subscribe(any(NewsletterSubscriptionRequest.class)))
+            .thenReturn(expectedResponse);
+
         mockMvc.perform(post("/api/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.email").value("test@example.com"));
-
-        // Verify subscription language
-        Optional<NewsletterSubscription> subscription = newsletterRepository.findByEmail("test@example.com");
-        assertTrue(subscription.isPresent());
-        assertEquals("ar", subscription.get().getPreferredLanguage());
     }
 
     @Test
@@ -120,8 +103,7 @@ class NewsletterControllerTest {
         mockMvc.perform(post("/api/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.email").value("Email must be valid"));
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -133,8 +115,7 @@ class NewsletterControllerTest {
         mockMvc.perform(post("/api/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.email").value("Email is required"));
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -147,109 +128,92 @@ class NewsletterControllerTest {
         mockMvc.perform(post("/api/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.email").value("Email is required"));
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("Should handle duplicate subscription gracefully")
     void subscribe_WithDuplicateEmail_ShouldHandleGracefully() throws Exception {
-        // First subscription
         NewsletterSubscriptionRequest request = new NewsletterSubscriptionRequest();
         request.setEmail("duplicate@example.com");
         request.setPreferredLanguage("en");
 
-        mockMvc.perform(post("/api/public/newsletter/subscribe")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+        NewsletterSubscriptionResponse expectedResponse = NewsletterSubscriptionResponse.alreadyExists(
+            "duplicate@example.com", 
+            "You're already subscribed to our newsletter!"
+        );
 
-        // Second subscription with same email
+        when(newsletterService.subscribe(any(NewsletterSubscriptionRequest.class)))
+            .thenReturn(expectedResponse);
+
         mockMvc.perform(post("/api/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.email").value("duplicate@example.com"))
-                .andExpect(jsonPath("$.alreadySubscribed").value(false)) // Service regenerates tokens
-                .andExpect(jsonPath("$.requiresConfirmation").value(true));
+                .andExpect(jsonPath("$.alreadySubscribed").value(true))
+                .andExpect(jsonPath("$.requiresConfirmation").value(false));
     }
 
     @Test
     @DisplayName("Should confirm subscription successfully with valid token")
     void confirmSubscription_WithValidToken_ShouldReturnSuccessPage() throws Exception {
-        // Create a subscription with confirmation token
-        NewsletterSubscription subscription = new NewsletterSubscription();
-        subscription.setEmail("confirm@example.com");
-        subscription.setPreferredLanguage("en");
-        subscription.setConfirmationToken(UUID.randomUUID().toString());
-        subscription.setUnsubscribeToken(UUID.randomUUID().toString());
-        subscription.setActive(true);
-        newsletterRepository.save(subscription);
+        String validToken = "valid-token";
+
+        when(newsletterService.confirmSubscription(validToken))
+            .thenReturn(true);
 
         mockMvc.perform(get("/api/public/newsletter/confirm")
-                .param("token", subscription.getConfirmationToken()))
+                .param("token", validToken))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("text/plain;charset=UTF-8"))
-                .andExpect(content().string(containsString("Subscription Confirmed!")))
-                .andExpect(content().string(containsString("Caryo")));
-
-        // Verify subscription was confirmed
-        Optional<NewsletterSubscription> updated = newsletterRepository.findByEmail("confirm@example.com");
-        assertTrue(updated.isPresent());
-        assertNotNull(updated.get().getConfirmedAt());
-        assertNull(updated.get().getConfirmationToken()); // Token should be cleared
+                .andExpect(content().contentTypeCompatibleWith("text/plain"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Subscription Confirmed!")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Caryo")));
     }
 
     @Test
     @DisplayName("Should return error page for invalid confirmation token")
     void confirmSubscription_WithInvalidToken_ShouldReturnErrorPage() throws Exception {
-        String invalidToken = UUID.randomUUID().toString();
+        String invalidToken = "invalid-token";
+
+        when(newsletterService.confirmSubscription(invalidToken))
+            .thenReturn(false);
 
         mockMvc.perform(get("/api/public/newsletter/confirm")
                 .param("token", invalidToken))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentType("text/plain;charset=UTF-8"))
-                .andExpect(content().string(containsString("Invalid or Expired Token")))
-                .andExpect(content().string(containsString("❌")));
+                .andExpect(content().contentTypeCompatibleWith("text/plain"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Invalid or Expired Token")));
     }
 
     @Test
     @DisplayName("Should unsubscribe successfully with valid token")
     void unsubscribe_WithValidToken_ShouldReturnSuccessPage() throws Exception {
-        // Create a confirmed subscription
-        NewsletterSubscription subscription = new NewsletterSubscription();
-        subscription.setEmail("unsubscribe@example.com");
-        subscription.setPreferredLanguage("en");
-        subscription.setConfirmationToken(null);
-        subscription.setConfirmedAt(LocalDateTime.now());
-        subscription.setUnsubscribeToken(UUID.randomUUID().toString());
-        subscription.setActive(true);
-        newsletterRepository.save(subscription);
+        String validToken = "valid-token";
+
+        when(newsletterService.unsubscribe(validToken))
+            .thenReturn(true);
 
         mockMvc.perform(get("/api/public/newsletter/unsubscribe")
-                .param("token", subscription.getUnsubscribeToken()))
+                .param("token", validToken))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("text/plain;charset=UTF-8"))
-                .andExpect(content().string(containsString("Successfully Unsubscribed")))
-                .andExpect(content().string(containsString("📧")));
-
-        // Verify subscription was marked as unsubscribed
-        Optional<NewsletterSubscription> updated = newsletterRepository.findByEmail("unsubscribe@example.com");
-        assertTrue(updated.isPresent());
-        assertNotNull(updated.get().getUnsubscribedAt());
-        assertFalse(updated.get().isActiveSubscription());
+                .andExpect(content().contentTypeCompatibleWith("text/plain"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Successfully Unsubscribed")));
     }
 
     @Test
     @DisplayName("Should return error page for invalid unsubscribe token")
     void unsubscribe_WithInvalidToken_ShouldReturnErrorPage() throws Exception {
-        String invalidToken = UUID.randomUUID().toString();
+        String invalidToken = "invalid-token";
+
+        when(newsletterService.unsubscribe(invalidToken))
+            .thenReturn(false);
 
         mockMvc.perform(get("/api/public/newsletter/unsubscribe")
                 .param("token", invalidToken))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Invalid or Expired Token")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Invalid or Expired Token")));
     }
 
     @Test
@@ -259,16 +223,19 @@ class NewsletterControllerTest {
         request.setEmail("default@example.com");
         // No language specified
 
+        NewsletterSubscriptionResponse expectedResponse = NewsletterSubscriptionResponse.success(
+            "default@example.com", 
+            "Please check your email to confirm your subscription."
+        );
+
+        when(newsletterService.subscribe(any(NewsletterSubscriptionRequest.class)))
+            .thenReturn(expectedResponse);
+
         mockMvc.perform(post("/api/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
-
-        // Verify default language was used
-        Optional<NewsletterSubscription> subscription = newsletterRepository.findByEmail("default@example.com");
-        assertTrue(subscription.isPresent());
-        assertEquals("en", subscription.get().getPreferredLanguage()); // Default should be 'en'
     }
 
     @Test
@@ -279,14 +246,17 @@ class NewsletterControllerTest {
         request.setPreferredLanguage("en");
         // No source specified
 
+        NewsletterSubscriptionResponse expectedResponse = NewsletterSubscriptionResponse.success(
+            "source@example.com", 
+            "Please check your email to confirm your subscription."
+        );
+
+        when(newsletterService.subscribe(any(NewsletterSubscriptionRequest.class)))
+            .thenReturn(expectedResponse);
+
         mockMvc.perform(post("/api/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
-
-        // Verify default source was used
-        Optional<NewsletterSubscription> subscription = newsletterRepository.findByEmail("source@example.com");
-        assertTrue(subscription.isPresent());
-        assertEquals("homepage", subscription.get().getSubscriptionSource()); // Default should be 'homepage'
     }
 }

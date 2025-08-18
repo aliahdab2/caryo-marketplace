@@ -145,12 +145,8 @@ class ListingModerationServiceTest {
     @Test
     void isListingSold_WhenSold_ShouldReturnTrue() {
         // Arrange
-        ListingModerationAction soldAction = new ListingModerationAction();
-        soldAction.setActionType("MARK_SOLD");
-        soldAction.setIsActive(true);
-        
-        when(moderationActionRepository.findLatestActiveActionByType(1L, "MARK_SOLD"))
-            .thenReturn(Optional.of(soldAction));
+        when(moderationActionRepository.isListingSoldByLatestAction(1L))
+            .thenReturn(true);
 
         // Act
         boolean result = listingModerationService.isListingSold(1L);
@@ -162,12 +158,8 @@ class ListingModerationServiceTest {
     @Test
     void isListingArchived_WhenArchived_ShouldReturnTrue() {
         // Arrange
-        ListingModerationAction archiveAction = new ListingModerationAction();
-        archiveAction.setActionType("ARCHIVE");
-        archiveAction.setIsActive(true);
-        
-        when(moderationActionRepository.findLatestActiveActionByType(1L, "ARCHIVE"))
-            .thenReturn(Optional.of(archiveAction));
+        when(moderationActionRepository.isListingArchivedByLatestAction(1L))
+            .thenReturn(true);
 
         // Act
         boolean result = listingModerationService.isListingArchived(1L);
@@ -209,10 +201,9 @@ class ListingModerationServiceTest {
     @Test
     void getListingStatus_WhenArchived_ShouldReturnArchived() {
         // Arrange
-        when(moderationActionRepository.findLatestActiveActionByType(1L, "EXPIRE"))
-            .thenReturn(Optional.empty());
-        when(moderationActionRepository.findLatestActiveActionByType(1L, "ARCHIVE"))
-            .thenReturn(Optional.of(createMockAction("ARCHIVE")));
+        when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_EXPIRE))
+            .thenReturn(Optional.empty()); // Not expired
+        when(moderationActionRepository.isListingArchivedByLatestAction(1L)).thenReturn(true); // Archived
 
         // Act
         String status = listingModerationService.getListingStatus(1L);
@@ -224,12 +215,10 @@ class ListingModerationServiceTest {
     @Test
     void getListingStatus_WhenSold_ShouldReturnSold() {
         // Arrange
-        when(moderationActionRepository.findLatestActiveActionByType(1L, "EXPIRE"))
-            .thenReturn(Optional.empty());
-        when(moderationActionRepository.findLatestActiveActionByType(1L, "ARCHIVE"))
-            .thenReturn(Optional.empty());
-        when(moderationActionRepository.findLatestActiveActionByType(1L, "MARK_SOLD"))
-            .thenReturn(Optional.of(createMockAction("MARK_SOLD")));
+        when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_EXPIRE))
+            .thenReturn(Optional.empty()); // Not expired
+        when(moderationActionRepository.isListingArchivedByLatestAction(1L)).thenReturn(false); // Not archived
+        when(moderationActionRepository.isListingSoldByLatestAction(1L)).thenReturn(true); // Sold
 
         // Act
         String status = listingModerationService.getListingStatus(1L);
@@ -240,25 +229,12 @@ class ListingModerationServiceTest {
 
     @Test
     void getListingStatus_WhenHidden_ShouldReturnHidden() {
-        // Arrange - Mock the underlying repository calls that the service methods use
-        // For isListingExpired - mock ACTION_EXPIRE
+        // Arrange - Mock the new optimized repository methods
         when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_EXPIRE))
             .thenReturn(Optional.empty()); // Not expired
-        
-        // For isListingArchived - mock ACTION_ARCHIVE and ACTION_UNARCHIVE
-        when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_ARCHIVE))
-            .thenReturn(Optional.empty()); // Not archived
-        when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_UNARCHIVE))
-            .thenReturn(Optional.empty());
-        
-        // For isListingSold - mock ACTION_MARK_SOLD and ACTION_UNMARK_SOLD
-        when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_MARK_SOLD))
-            .thenReturn(Optional.empty()); // Not sold
-        when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_UNMARK_SOLD))
-            .thenReturn(Optional.empty());
-        
-        // For isListingHiddenByAdmin - this uses the direct repository method
-        when(moderationActionRepository.isListingHiddenByAdmin(1L)).thenReturn(true); // This should trigger HIDDEN
+        when(moderationActionRepository.isListingArchivedByLatestAction(1L)).thenReturn(false); // Not archived
+        when(moderationActionRepository.isListingSoldByLatestAction(1L)).thenReturn(false); // Not sold
+        when(moderationActionRepository.isListingHiddenByAdmin(1L)).thenReturn(true); // Hidden
 
         // Act
         String status = listingModerationService.getListingStatus(1L);
@@ -269,9 +245,21 @@ class ListingModerationServiceTest {
 
     @Test
     void getListingStatus_WhenNotApproved_ShouldReturnPending() {
-        // Arrange - No active actions
-        when(moderationActionRepository.findLatestActiveActionByType(eq(1L), anyString()))
-            .thenReturn(Optional.empty());
+        // Arrange - Create a listing that is not approved at entity level
+        CarListing unapprovedListing = new CarListing();
+        unapprovedListing.setId(1L);
+        unapprovedListing.setApproved(false); // Key: set to false
+        
+        when(carListingRepository.findById(1L)).thenReturn(Optional.of(unapprovedListing));
+        when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_EXPIRE))
+            .thenReturn(Optional.empty()); // Not expired
+        when(moderationActionRepository.isListingArchivedByLatestAction(1L)).thenReturn(false); // Not archived
+        when(moderationActionRepository.isListingSoldByLatestAction(1L)).thenReturn(false); // Not sold
+        when(moderationActionRepository.isListingHiddenByAdmin(1L)).thenReturn(false); // Not hidden
+        when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_APPROVE))
+            .thenReturn(Optional.empty()); // Not approved
+        when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_REJECT))
+            .thenReturn(Optional.empty()); // Not rejected
 
         // Act
         String status = listingModerationService.getListingStatus(1L);
@@ -281,18 +269,37 @@ class ListingModerationServiceTest {
     }
 
     @Test
+    void isListingApproved_WhenNoActions_ShouldReturnFalse() {
+        // Arrange - Create a listing that is not approved at entity level
+        CarListing unapprovedListing = new CarListing();
+        unapprovedListing.setId(1L);
+        unapprovedListing.setApproved(false); // Key: set to false
+        
+        when(carListingRepository.findById(1L)).thenReturn(Optional.of(unapprovedListing));
+        when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_APPROVE))
+            .thenReturn(Optional.empty());
+        when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_REJECT))
+            .thenReturn(Optional.empty());
+
+        // Act
+        boolean result = listingModerationService.isListingApproved(1L);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
     void getListingStatus_WhenActive_ShouldReturnActive() {
-        // Arrange
-        when(moderationActionRepository.findLatestActiveActionByType(1L, "EXPIRE"))
-            .thenReturn(Optional.empty());
-        when(moderationActionRepository.findLatestActiveActionByType(1L, "ARCHIVE"))
-            .thenReturn(Optional.empty());
-        when(moderationActionRepository.findLatestActiveActionByType(1L, "MARK_SOLD"))
-            .thenReturn(Optional.empty());
-        when(moderationActionRepository.findLatestActiveActionByType(1L, "HIDE"))
-            .thenReturn(Optional.empty());
-        when(moderationActionRepository.findLatestActiveActionByType(1L, "APPROVE"))
-            .thenReturn(Optional.of(createMockAction("APPROVE")));
+        // Arrange - Mock all status checks to return false/empty, but approved
+        when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_EXPIRE))
+            .thenReturn(Optional.empty()); // Not expired
+        when(moderationActionRepository.isListingArchivedByLatestAction(1L)).thenReturn(false); // Not archived
+        when(moderationActionRepository.isListingSoldByLatestAction(1L)).thenReturn(false); // Not sold
+        when(moderationActionRepository.isListingHiddenByAdmin(1L)).thenReturn(false); // Not hidden
+        when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_APPROVE))
+            .thenReturn(Optional.of(createMockAction(ListingModerationService.ACTION_APPROVE))); // Approved
+        when(moderationActionRepository.findLatestActiveActionByType(1L, ListingModerationService.ACTION_REJECT))
+            .thenReturn(Optional.empty()); // Not rejected
 
         // Act
         String status = listingModerationService.getListingStatus(1L);

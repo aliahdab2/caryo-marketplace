@@ -30,32 +30,18 @@ CREATE INDEX idx_moderation_listing_type_active ON listing_moderation_actions(li
 
 -- Remove redundant boolean fields from car_listings table
 -- These are now handled by the moderation actions table
-DO $$ 
-BEGIN
-    -- Remove hidden_by_admin if it exists (from previous approach)
-    IF EXISTS (SELECT 1 FROM information_schema.columns 
-               WHERE table_name = 'car_listings' AND column_name = 'hidden_by_admin') THEN
-        ALTER TABLE car_listings DROP COLUMN hidden_by_admin;
-        DROP INDEX IF EXISTS idx_car_listings_hidden_by_admin;
-        DROP INDEX IF EXISTS idx_car_listings_public_approved_not_hidden;
-    END IF;
-    
-    -- HYBRID APPROACH: Remove only non-performance-critical fields
-    -- KEEP: approved (used in 90% of queries), isUserActive (owner pause/resume)
-    -- REMOVE: sold, archived, expired (computed from moderation actions or expiration_date)
-    
-    IF EXISTS (SELECT 1 FROM information_schema.columns 
-               WHERE table_name = 'car_listings' AND column_name = 'sold') THEN
-        ALTER TABLE car_listings DROP COLUMN sold;
-    END IF;
-    
-    IF EXISTS (SELECT 1 FROM information_schema.columns 
-               WHERE table_name = 'car_listings' AND column_name = 'archived') THEN
-        ALTER TABLE car_listings DROP COLUMN archived;
-    END IF;
-    
-    IF EXISTS (SELECT 1 FROM information_schema.columns 
-               WHERE table_name = 'car_listings' AND column_name = 'expired') THEN
-        ALTER TABLE car_listings DROP COLUMN expired;
-    END IF;
-END $$;
+-- Note: Using H2-compatible syntax (no PostgreSQL DO blocks)
+
+-- Remove hidden_by_admin if it exists (from previous approach)
+-- H2 will ignore DROP COLUMN if column doesn't exist, so we can safely attempt to drop
+ALTER TABLE car_listings DROP COLUMN IF EXISTS hidden_by_admin;
+DROP INDEX IF EXISTS idx_car_listings_hidden_by_admin;
+DROP INDEX IF EXISTS idx_car_listings_public_approved_not_hidden;
+
+-- HYBRID APPROACH: Remove only non-performance-critical fields
+-- KEEP: approved (used in 90% of queries), isUserActive (owner pause/resume)
+-- REMOVE: sold, archived, expired (computed from moderation actions or expiration_date)
+
+ALTER TABLE car_listings DROP COLUMN IF EXISTS sold;
+ALTER TABLE car_listings DROP COLUMN IF EXISTS archived;
+ALTER TABLE car_listings DROP COLUMN IF EXISTS expired;

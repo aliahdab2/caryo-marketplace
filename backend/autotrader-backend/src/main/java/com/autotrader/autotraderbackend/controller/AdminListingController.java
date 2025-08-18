@@ -76,10 +76,8 @@ public class AdminListingController {
             
             Page<CarListingResponse> listings = carListingService.getAllListingsForAdmin(pageable, search, status);
             
-            // Enhance each listing with computed moderation status
-            List<CarListingResponse> enhancedListings = listings.getContent().stream()
-                .map(this::enhanceWithModerationStatus)
-                .toList();
+            // Batch enhance all listings with computed moderation status (eliminates N+1 queries)
+            List<CarListingResponse> enhancedListings = batchEnhanceWithModerationStatus(listings.getContent());
             
             Page<CarListingResponse> enhancedPage = new PageImpl<>(
                 enhancedListings, pageable, listings.getTotalElements());
@@ -94,7 +92,50 @@ public class AdminListingController {
     }
 
     /**
-     * Enhance listing response with computed moderation status fields
+     * Batch enhance listing responses with computed moderation status fields.
+     * This eliminates N+1 queries by fetching all moderation data in a single query.
+     */
+    private List<CarListingResponse> batchEnhanceWithModerationStatus(List<CarListingResponse> listings) {
+        if (listings.isEmpty()) {
+            return listings;
+        }
+
+        // Extract listing IDs
+        List<Long> listingIds = listings.stream()
+            .map(CarListingResponse::getId)
+            .toList();
+
+        // Fetch all status information in a single batch query
+        Map<Long, ListingModerationService.ListingStatusInfo> statusMap = 
+            moderationService.getBatchListingStatuses(listingIds);
+
+        // Apply status information to each listing
+        return listings.stream()
+            .map(listing -> {
+                ListingModerationService.ListingStatusInfo statusInfo = 
+                    statusMap.getOrDefault(listing.getId(), 
+                        new ListingModerationService.ListingStatusInfo(false, false, false, false, "ACTIVE"));
+                
+                listing.setHiddenByAdmin(statusInfo.isHiddenByAdmin());
+                listing.setIsSold(statusInfo.isSold());
+                listing.setIsArchived(statusInfo.isArchived());
+                listing.setIsExpired(statusInfo.isExpired());
+                
+                // Override status with approval status if not approved
+                if (Boolean.FALSE.equals(listing.getApproved())) {
+                    listing.setStatus("PENDING");
+                } else {
+                    listing.setStatus(statusInfo.getStatus());
+                }
+                
+                return listing;
+            })
+            .toList();
+    }
+
+    /**
+     * Enhance single listing response with computed moderation status fields.
+     * Used for individual listing operations (create, update, etc.).
      */
     private CarListingResponse enhanceWithModerationStatus(CarListingResponse listing) {
         Long listingId = listing.getId();

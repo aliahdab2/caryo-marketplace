@@ -33,18 +33,42 @@ public interface ListingModerationActionRepository extends JpaRepository<Listing
                                                                    @Param("actionType") String actionType);
 
     /**
-     * Check if a listing is currently hidden by admin.
+     * Check if a listing is currently hidden by admin using latest-action-wins approach.
      * Returns true if the latest HIDE action is more recent than the latest UNHIDE action.
      */
     @Query("SELECT CASE WHEN " +
-           "(SELECT COUNT(lma1) FROM ListingModerationAction lma1 WHERE lma1.listing.id = :listingId " +
-           " AND lma1.actionType = 'HIDE' AND lma1.isActive = true) > " +
-           "(SELECT COUNT(lma2) FROM ListingModerationAction lma2 WHERE lma2.listing.id = :listingId " +
-           " AND lma2.actionType = 'UNHIDE' AND lma2.isActive = true) " +
+           "(SELECT MAX(lma1.performedAt) FROM ListingModerationAction lma1 " +
+           " WHERE lma1.listing.id = :listingId AND lma1.actionType = 'HIDE' AND lma1.isActive = true) > " +
+           "(SELECT MAX(lma2.performedAt) FROM ListingModerationAction lma2 " +
+           " WHERE lma2.listing.id = :listingId AND lma2.actionType = 'UNHIDE' AND lma2.isActive = true) " +
            "THEN true ELSE false END")
     boolean isListingHiddenByAdmin(@Param("listingId") Long listingId);
 
+    /**
+     * Check if a listing is currently sold using latest-action-wins approach.
+     * Returns true if the latest MARK_SOLD action is more recent than the latest UNMARK_SOLD action.
+     */
+    @Query("SELECT CASE WHEN " +
+           "(SELECT MAX(lma1.performedAt) FROM ListingModerationAction lma1 " +
+           " WHERE lma1.listing.id = :listingId AND lma1.actionType = 'MARK_SOLD' AND lma1.isActive = true) > " +
+           "COALESCE((SELECT MAX(lma2.performedAt) FROM ListingModerationAction lma2 " +
+           " WHERE lma2.listing.id = :listingId AND lma2.actionType = 'UNMARK_SOLD' AND lma2.isActive = true), " +
+           " CAST('1970-01-01 00:00:00' AS TIMESTAMP)) " +
+           "THEN true ELSE false END")
+    boolean isListingSoldByLatestAction(@Param("listingId") Long listingId);
 
+    /**
+     * Check if a listing is currently archived using latest-action-wins approach.
+     * Returns true if the latest ARCHIVE action is more recent than the latest UNARCHIVE action.
+     */
+    @Query("SELECT CASE WHEN " +
+           "(SELECT MAX(lma1.performedAt) FROM ListingModerationAction lma1 " +
+           " WHERE lma1.listing.id = :listingId AND lma1.actionType = 'ARCHIVE' AND lma1.isActive = true) > " +
+           "COALESCE((SELECT MAX(lma2.performedAt) FROM ListingModerationAction lma2 " +
+           " WHERE lma2.listing.id = :listingId AND lma2.actionType = 'UNARCHIVE' AND lma2.isActive = true), " +
+           " CAST('1970-01-01 00:00:00' AS TIMESTAMP)) " +
+           "THEN true ELSE false END")
+    boolean isListingArchivedByLatestAction(@Param("listingId") Long listingId);
 
     /**
      * Find all listings that are currently hidden by admin.
@@ -75,4 +99,14 @@ public interface ListingModerationActionRepository extends JpaRepository<Listing
     @Query("UPDATE ListingModerationAction lma SET lma.isActive = false " +
            "WHERE lma.listing.id = :listingId AND lma.actionType = :actionType AND lma.isActive = true")
     void deactivatePreviousActions(@Param("listingId") Long listingId, @Param("actionType") String actionType);
+
+    /**
+     * Batch method to get all active moderation actions for multiple listings.
+     * Returns listing_id, action_type, performed_at for processing in service layer.
+     */
+    @Query("SELECT lma.listing.id, lma.actionType, lma.performedAt FROM ListingModerationAction lma " +
+           "WHERE lma.listing.id IN :listingIds AND lma.isActive = true " +
+           "AND lma.actionType IN ('HIDE', 'UNHIDE', 'MARK_SOLD', 'UNMARK_SOLD', 'ARCHIVE', 'UNARCHIVE', 'EXPIRE') " +
+           "ORDER BY lma.listing.id, lma.actionType, lma.performedAt DESC")
+    List<Object[]> findActiveActionsForListings(@Param("listingIds") List<Long> listingIds);
 }
