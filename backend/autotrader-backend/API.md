@@ -2,7 +2,23 @@
 
 ## Overview
 
-The AutoTrader API provides a comprehensive set of endpoints for managing car listings, user accounts, and reference data. The API follows RESTful principles and uses DTOs (Data Transfer Objects) for clean, consistent responses.
+The AutoTrader API provides a comprehensive set of endpoints for managing car listings, user accounts, reference data, and administrative operations. The API follows RESTful principles and uses DTOs (Data Transfer Objects) for clean, consistent responses.
+
+## Recent Updates
+
+### Admin Panel & Listing Moderation System
+- **New Admin Endpoints**: Comprehensive admin panel with listing moderation capabilities
+- **Status Management**: Hybrid approach for listing status (approved, sold, archived, hidden, expired)
+- **Audit Trail**: Complete moderation action tracking with timestamps and admin attribution
+- **Batch Operations**: Optimized queries to prevent N+1 performance issues
+- **Enhanced Responses**: Admin endpoints include computed status fields for UI
+
+### Key Features Added
+- ✅ **Admin Dashboard**: Get all listings with search, filtering, and pagination
+- ✅ **Listing Moderation**: Approve, reject, hide, unhide, archive, unarchive
+- ✅ **Status Management**: Mark as sold/unsold, expire listings
+- ✅ **Performance Optimized**: Batch status computation eliminates N+1 queries
+- ✅ **Audit Trail**: Complete history of all admin actions with timestamps
 
 ## API Design Principles
 
@@ -22,8 +38,13 @@ All API responses follow a consistent structure:
 
 ### Authentication
 - **JWT Tokens**: Bearer token authentication for protected endpoints
-- **Role-based Access**: Different endpoints require different user roles
+- **Role-based Access**: Different endpoints require different user roles (USER, ADMIN)
 - **Public Endpoints**: Reference data and listing search are publicly accessible
+
+### Admin Operations
+- **Admin-Only Access**: All admin endpoints require `ADMIN` role
+- **Audit Logging**: All admin actions are logged with user attribution
+- **Status Computation**: Admin responses include computed status fields for dashboard UI
 
 ## Quick Start
 
@@ -2710,15 +2731,18 @@ The car brand and model endpoints use DTOs to provide clean, consistent response
 
 ### Admin Dashboard and Management
 
-#### Get All Listings (Admin)
+#### Get All Listings for Admin Dashboard
 - **Endpoint**: `GET /api/admin/listings`
 - **Access**: Admin only
-- **Description**: Retrieves all car listings, including unapproved, paused, and archived listings
-- **Authentication**: Required (JWT token with ROLE_ADMIN)
+- **Description**: Retrieves all car listings with computed moderation status. Supports search, filtering, and pagination. Optimized with batch queries to prevent N+1 performance issues.
+- **Authentication**: Required (JWT token with ADMIN role)
 - **Parameters**:
   - `page` (query parameter, optional): Page number for pagination (default: 0)
-  - `size` (query parameter, optional): Number of items per page (default: 10)
-  - `sort` (query parameter, optional): Field and direction to sort by (e.g., "createdAt,desc")
+  - `size` (query parameter, optional): Number of items per page (default: 20)
+  - `search` (query parameter, optional): Search term for title/description
+  - `status` (query parameter, optional): Filter by status (pending, approved, sold, archived, hidden, expired)
+  - `sortBy` (query parameter, optional): Sort field (default: createdAt)
+  - `sortDir` (query parameter, optional): Sort direction - asc/desc (default: desc)
 - **Response (200 OK)**:
   ```json
   {
@@ -2731,44 +2755,166 @@ The car brand and model endpoints use DTOs to provide clean, consistent response
         "modelYear": 2019,
         "price": 18500,
         "mileage": 35000,
-        "approved": false,
+        "approved": true,
         "isUserActive": true,
-        "archived": false,
-        "sold": false,
+        "hiddenByAdmin": false,
+        "isSold": false,
+        "isArchived": false,
+        "isExpired": false,
+        "status": "ACTIVE",
         "userId": 1,
         "createdAt": "2025-04-30T10:15:30Z"
-      },
-      // ... more listings
+      }
     ],
-    "pageable": {
-      "sort": {
-        "sorted": true,
-        "unsorted": false,
-        "empty": false
-      },
-      "pageNumber": 0,
-      "pageSize": 10,
-      "offset": 0,
-      "paged": true,
-      "unpaged": false
-    },
     "totalElements": 42,
-    "totalPages": 5,
-    "last": false,
-    "first": true,
-    "sort": {
-      "sorted": true,
-      "unsorted": false,
-      "empty": false
-    },
-    "size": 10,
+    "totalPages": 3,
+    "size": 20,
     "number": 0,
-    "numberOfElements": 10,
-    "empty": false
+    "first": true,
+    "last": false
   }
   ```
 
-#### Get Pending Approval Listings
+### Listing Moderation Endpoints
+
+#### Approve Listing
+- **Endpoint**: `POST /api/admin/listings/{id}/approve` or `PUT /api/admin/listings/{id}/approve`
+- **Access**: Admin only
+- **Description**: Approves a pending car listing, making it publicly visible
+- **Authentication**: Required (JWT token with ADMIN role)
+- **Parameters**:
+  - `id` (path parameter): ID of the car listing to approve
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "title": "2019 Toyota Camry",
+    "approved": true,
+    "hiddenByAdmin": false,
+    "isSold": false,
+    "isArchived": false,
+    "isExpired": false,
+    "status": "ACTIVE",
+    "updatedAt": "2025-04-30T10:15:30Z"
+  }
+  ```
+
+#### Hide Listing
+- **Endpoint**: `PUT /api/admin/listings/{id}/hide`
+- **Access**: Admin only
+- **Description**: Hides a car listing from public view without deleting it
+- **Authentication**: Required (JWT token with ADMIN role)
+- **Request Body** (optional):
+  ```json
+  {
+    "reason": "Violates community guidelines"
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "message": "Listing hidden successfully",
+    "listingId": 1,
+    "reason": "Violates community guidelines"
+  }
+  ```
+
+#### Unhide Listing
+- **Endpoint**: `PUT /api/admin/listings/{id}/unhide`
+- **Access**: Admin only
+- **Description**: Makes a hidden car listing visible to the public again
+- **Authentication**: Required (JWT token with ADMIN role)
+- **Response (200 OK)**:
+  ```json
+  {
+    "message": "Listing unhidden successfully",
+    "listingId": 1
+  }
+  ```
+
+#### Mark as Sold
+- **Endpoint**: `POST /api/admin/listings/{id}/mark-sold`
+- **Access**: Admin only
+- **Description**: Marks a car listing as sold by admin
+- **Authentication**: Required (JWT token with ADMIN role)
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "title": "2019 Toyota Camry",
+    "approved": true,
+    "hiddenByAdmin": false,
+    "isSold": true,
+    "isArchived": false,
+    "isExpired": false,
+    "status": "SOLD",
+    "updatedAt": "2025-04-30T10:15:30Z"
+  }
+  ```
+
+#### Unmark as Sold
+- **Endpoint**: `POST /api/admin/listings/{id}/unmark-sold`
+- **Access**: Admin only
+- **Description**: Unmarks a car listing as sold
+- **Authentication**: Required (JWT token with ADMIN role)
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "title": "2019 Toyota Camry",
+    "approved": true,
+    "hiddenByAdmin": false,
+    "isSold": false,
+    "isArchived": false,
+    "isExpired": false,
+    "status": "ACTIVE",
+    "updatedAt": "2025-04-30T10:15:30Z"
+  }
+  ```
+
+#### Archive Listing
+- **Endpoint**: `POST /api/admin/listings/{id}/archive`
+- **Access**: Admin only
+- **Description**: Archives a car listing
+- **Authentication**: Required (JWT token with ADMIN role)
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "title": "2019 Toyota Camry",
+    "approved": true,
+    "hiddenByAdmin": false,
+    "isSold": false,
+    "isArchived": true,
+    "isExpired": false,
+    "status": "ARCHIVED",
+    "updatedAt": "2025-04-30T10:15:30Z"
+  }
+  ```
+
+#### Unarchive Listing
+- **Endpoint**: `POST /api/admin/listings/{id}/unarchive`
+- **Access**: Admin only
+- **Description**: Unarchives a car listing
+- **Authentication**: Required (JWT token with ADMIN role)
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 1,
+    "title": "2019 Toyota Camry",
+    "approved": true,
+    "hiddenByAdmin": false,
+    "isSold": false,
+    "isArchived": false,
+    "isExpired": false,
+    "status": "ACTIVE",
+    "updatedAt": "2025-04-30T10:15:30Z"
+  }
+  ```
+
+### Legacy Admin Endpoints (Deprecated)
+
+#### Get Pending Approval Listings (Legacy)
 - **Endpoint**: `GET /api/admin/listings/pending`
 - **Access**: Admin only
 - **Description**: Retrieves all car listings that are awaiting approval
