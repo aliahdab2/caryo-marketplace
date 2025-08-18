@@ -113,7 +113,7 @@ SELECT
     102400,
     1,
     true,
-    'IMAGE',
+    'image',
     CURRENT_TIMESTAMP
 FROM car_listings cl 
 WHERE cl.title LIKE '%Test Listing%'
