@@ -22,7 +22,11 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   if (completionStatus === 'complete') {
     return (
       <div className="flex items-center gap-1 mt-1">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+        <span 
+          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+          role="status"
+          aria-label={t('listings:stepStatusComplete', 'Complete')}
+        >
           ✓ {t('listings:stepStatusComplete', 'Complete')}
         </span>
       </div>
@@ -32,7 +36,11 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   if (completionStatus === 'incomplete') {
     return (
       <div className="flex items-center gap-1 mt-1">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+        <span 
+          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+          role="status"
+          aria-label={missingFieldsCount > 0 ? t('listings:stepStatusMissing', '{{count}} missing', { count: missingFieldsCount }) : t('listings:stepStatusInProgress', 'In progress')}
+        >
           {missingFieldsCount > 0 ? t('listings:stepStatusMissing', '{{count}} missing', { count: missingFieldsCount }) : t('listings:stepStatusInProgress', 'In progress')}
         </span>
         {totalFieldsCount > 0 && (
@@ -47,7 +55,11 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   if (completionStatus === 'not-started') {
     return (
       <div className="flex items-center gap-1 mt-1">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+        <span 
+          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+          role="status"
+          aria-label={t('listings:stepStatusNotStarted', 'Not started')}
+        >
           {t('listings:stepStatusNotStarted', 'Not started')}
         </span>
       </div>

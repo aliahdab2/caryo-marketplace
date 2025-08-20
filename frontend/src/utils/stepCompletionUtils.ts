@@ -1,31 +1,9 @@
 import { ListingFormData } from '@/types/listings';
-
-// Required fields configuration for each step
-const REQUIRED_FIELDS_BY_STEP: Record<number, Array<keyof ListingFormData>> = {
-  1: ['make', 'model', 'year'],
-  2: ['mileage'],
-  3: ['title', 'description', 'images'], // Images are required by backend
-  4: ['price', 'contactName', 'contactPhone', 'governorateSlug', 'locationSlug']
-};
-
-// Translation metadata for required fields
-const REQUIRED_FIELD_I18N: Record<string, { key: string; fallback: string }> = {
-  make: { key: 'listings:newListingValidationMakeRequired', fallback: 'Make is required' },
-  model: { key: 'listings:newListingValidationModelRequired', fallback: 'Model is required' },
-  year: { key: 'listings:newListingValidationYearRequired', fallback: 'Year is required' },
-  mileage: { key: 'listings:newListingValidationMileageRequired', fallback: 'Mileage is required' },
-  images: { key: 'listings:newListingValidationImagesRequired', fallback: 'At least one image is required' },
-  title: { key: 'listings:newListingValidationTitleRequired', fallback: 'Title is required' },
-  description: { key: 'listings:newListingValidationDescriptionRequired', fallback: 'Description is required' },
-  price: { key: 'listings:newListingValidationPriceRequired', fallback: 'Price is required' },
-  contactName: { key: 'listings:newListingValidationContactNameRequired', fallback: 'Contact name is required' },
-  contactPhone: { key: 'listings:newListingValidationContactPhoneRequired', fallback: 'Contact phone is required' },
-  governorateSlug: { key: 'listings:newListingValidationGovernorateRequired', fallback: 'Governorate is required' },
-  locationSlug: { key: 'listings:newListingValidationLocationRequired', fallback: 'Location is required' },
-};
+import { REQUIRED_FIELDS_BY_STEP, REQUIRED_FIELD_I18N } from '@/utils/constants/formValidation';
 
 /**
  * Calculate step completion status and statistics
+ * Memoized for performance optimization
  */
 export function calculateStepCompletion(
   step: number, 
@@ -38,7 +16,19 @@ export function calculateStepCompletion(
   totalFieldsCount: number;
   missingFieldNames: string[];
 } {
-  const requiredFields = REQUIRED_FIELDS_BY_STEP[step] || [];
+  const requiredFields = REQUIRED_FIELDS_BY_STEP[step];
+  
+  // Validate step number
+  if (!requiredFields) {
+    console.warn(`Invalid step number: ${step}. Returning default completion status.`);
+    return {
+      completionStatus: 'not-started',
+      missingFieldsCount: 0,
+      completedFieldsCount: 0,
+      totalFieldsCount: 0,
+      missingFieldNames: []
+    };
+  }
   
   // Use all required fields for completion status
   const fieldsToCheck = requiredFields;

@@ -12,6 +12,11 @@
 import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
 import { createLogger } from '@/utils/logger';
+import { 
+  REQUIRED_FIELDS_BY_STEP, 
+  BLOCKING_REQUIRED_FIELDS_BY_STEP, 
+  REQUIRED_FIELD_I18N 
+} from '@/utils/constants/formValidation';
 
 // Import from modular structure
 import { 
@@ -265,29 +270,9 @@ export const SECURITY_PATTERNS = {
   CONTROL_CHARS: /[\x00-\x1F\x7F]/g,
 } as const;
 
-// Required fields configuration for validation
-const REQUIRED_FIELDS_BY_STEP: Record<number, Array<keyof ListingFormData>> = {
-  1: ['make', 'model', 'year'],
-  2: ['mileage'],
-  3: ['title', 'description', 'images'], // Images are required by backend
-  4: ['price', 'contactName', 'contactPhone', 'governorateSlug', 'locationSlug']
-};
+// Constants now imported from shared location
 
-// Translation metadata for required fields
-const REQUIRED_FIELD_I18N: Record<string, { key: string; fallback: string }> = {
-  make: { key: 'listings:newListingValidationMakeRequired', fallback: 'Make is required' },
-  model: { key: 'listings:newListingValidationModelRequired', fallback: 'Model is required' },
-  year: { key: 'listings:newListingValidationYearRequired', fallback: 'Year is required' },
-  mileage: { key: 'listings:newListingValidationMileageRequired', fallback: 'Mileage is required' },
-  images: { key: 'listings:newListingValidationImagesRequired', fallback: 'At least one image is required' },
-  title: { key: 'listings:newListingValidationTitleRequired', fallback: 'Title is required' },
-  description: { key: 'listings:newListingValidationDescriptionRequired', fallback: 'Description is required' },
-  price: { key: 'listings:newListingValidationPriceRequired', fallback: 'Price is required' },
-  contactName: { key: 'listings:newListingValidationContactNameRequired', fallback: 'Contact name is required' },
-  contactPhone: { key: 'listings:newListingValidationContactPhoneRequired', fallback: 'Contact phone is required' },
-  governorateSlug: { key: 'listings:newListingValidationGovernorateRequired', fallback: 'Governorate is required' },
-  locationSlug: { key: 'listings:newListingValidationLocationRequired', fallback: 'Location is required' },
-};
+
 
 // Note: calculateStepCompletion moved to stepCompletionUtils.ts to avoid circular imports
 
@@ -323,13 +308,7 @@ const formLogger = createLogger({
 
 type ValidationMode = 'final' | 'navigation' | 'accessibility';
 
-// Blocking-only required fields per step (used for navigation/accessibility)
-const BLOCKING_REQUIRED_FIELDS_BY_STEP: Record<number, Array<keyof ListingFormData>> = {
-  1: ['make', 'model', 'year'],
-  2: [], // No blocking fields for step 2 - mileage is required only for final submission
-  3: ['title', 'description', 'images'], // Images are required by backend
-  4: ['price', 'contactName', 'contactPhone', 'governorateSlug', 'locationSlug']
-};
+
 
 function getRequiredFieldsForMode(step: number, mode: ValidationMode): Array<keyof ListingFormData> {
   if (mode === 'final') return REQUIRED_FIELDS_BY_STEP[step] || [];
