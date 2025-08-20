@@ -14,14 +14,14 @@ const REQUIRED_FIELD_I18N: Record<string, { key: string; fallback: string }> = {
   model: { key: 'listings:newListingValidationModelRequired', fallback: 'Model is required' },
   year: { key: 'listings:newListingValidationYearRequired', fallback: 'Year is required' },
   mileage: { key: 'listings:newListingValidationMileageRequired', fallback: 'Mileage is required' },
+  images: { key: 'listings:newListingValidationImagesRequired', fallback: 'At least one image is required' },
   title: { key: 'listings:newListingValidationTitleRequired', fallback: 'Title is required' },
   description: { key: 'listings:newListingValidationDescriptionRequired', fallback: 'Description is required' },
-  images: { key: 'listings:newListingValidationImagesRequired', fallback: 'At least one image is required' },
   price: { key: 'listings:newListingValidationPriceRequired', fallback: 'Price is required' },
   contactName: { key: 'listings:newListingValidationContactNameRequired', fallback: 'Contact name is required' },
   contactPhone: { key: 'listings:newListingValidationContactPhoneRequired', fallback: 'Contact phone is required' },
   governorateSlug: { key: 'listings:newListingValidationGovernorateRequired', fallback: 'Governorate is required' },
-  locationSlug: { key: 'listings:newListingValidationLocationRequired', fallback: 'Location is required' }
+  locationSlug: { key: 'listings:newListingValidationLocationRequired', fallback: 'Location is required' },
 };
 
 /**

@@ -11,7 +11,7 @@ import { FormErrors } from "@/types/forms";
 import { ListingDataService } from '@/services/ListingDataService';
 // SUPPORTED_CURRENCIES removed - not used in this component
 import { validateStep } from '@/utils/formUtils';
-import { calculateStepCompletion } from '@/utils/stepCompletion';
+import { calculateStepCompletion } from '@/utils/stepCompletionUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 import { createLogger } from '@/utils/logger';
 // NumericInput now used inside Step2VehicleDetails
