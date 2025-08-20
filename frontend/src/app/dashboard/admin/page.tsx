@@ -698,18 +698,16 @@ export default function AdminPanel() {
         </div>
 
         {/* Modern Results Section */}
-        <div className="px-6 pb-6">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {t('admin.showingResults', 'Showing {{count}} of {{total}} listings', { 
-                    count: filteredListings.length, 
-                    total: totalListings 
-                  })}
-                </p>
+        <div className="px-4 pb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3">
+            {/* Simplified Header */}
+            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {filteredListings.length} listings
+                </span>
                 
-                {filteredListings.length > 0 && (() => {
+                {(() => {
                   const pendingListings = filteredListings.filter(listing => !listing.approved);
                   const allPendingSelected = pendingListings.length > 0 && 
                     pendingListings.every(listing => selectedItems.includes(listing.id));
@@ -717,14 +715,9 @@ export default function AdminPanel() {
                   return pendingListings.length > 0 ? (
                     <button
                       onClick={toggleSelectAll}
-                      className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700"
                     >
-                      {allPendingSelected ? (
-                        <MdCheckBox className="w-4 h-4" />
-                      ) : (
-                        <MdCheckBoxOutlineBlank className="w-4 h-4" />
-                      )}
-                      {allPendingSelected ? 'Deselect All' : `Select All Pending (${pendingListings.length})`}
+                      {allPendingSelected ? 'Deselect All' : 'Select All'}
                     </button>
                   ) : null;
                 })()}
@@ -736,48 +729,33 @@ export default function AdminPanel() {
                   return listing && !listing.approved;
                 }).length;
                 
-                return (
-                  <div className="flex items-center justify-between gap-4 bg-blue-50 dark:bg-blue-900/30 px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-800">
-                    <div className="flex items-center gap-2">
-                      <MdCheckBox className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                      <span className="text-sm font-semibold text-blue-800 dark:text-blue-200">
-                        {selectedItems.length} {selectedItems.length === 1 ? 'listing' : 'listings'} {t('admin.selected', 'selected')}
-                        {pendingSelectedCount < selectedItems.length && (
-                          <span className="text-xs text-blue-600 dark:text-blue-300 ml-2">
-                            ({pendingSelectedCount} pending)
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                                          <button
+                return pendingSelectedCount > 0 ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {pendingSelectedCount} selected
+                    </span>
+                    <button
                       onClick={() => handleBulkAction('approve')}
-                      disabled={processing === -1 || pendingSelectedCount === 0}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg disabled:opacity-50 transition-colors shadow-sm"
-                      aria-label={`Approve ${pendingSelectedCount} selected listings`}
-                      title="Ctrl+Enter to approve selected listings"
+                      disabled={processing === -1}
+                      className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md disabled:opacity-50"
                     >
-                      <MdCheckCircle className="w-4 h-4" />
-                      {processing === -1 ? 'Processing...' : `Approve ${pendingSelectedCount > 0 ? `(${pendingSelectedCount})` : 'All'}`}
+                      Approve
                     </button>
                     <button
                       onClick={() => handleBulkAction('reject')}
-                      disabled={processing === -1 || pendingSelectedCount === 0}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg disabled:opacity-50 transition-colors shadow-sm"
-                      aria-label={`Reject ${pendingSelectedCount} selected listings`}
+                      disabled={processing === -1}
+                      className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md disabled:opacity-50"
                     >
-                      <MdCancel className="w-4 h-4" />
-                      {`Reject ${pendingSelectedCount > 0 ? `(${pendingSelectedCount})` : 'All'}`}
+                      Reject
                     </button>
-                      <button
-                        onClick={() => updateState({ selectedItems: [] })}
-                        className="flex items-center gap-1 px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 text-sm transition-colors"
-                      >
-                        Clear
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => updateState({ selectedItems: [] })}
+                      className="text-sm text-gray-500 hover:text-gray-700"
+                    >
+                      ×
+                    </button>
                   </div>
-                );
+                ) : null;
               })()}
             </div>
 
@@ -1116,8 +1094,8 @@ function EnhancedListingCard({
       ) : (
         // List view - Clean and organized
         <div className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
-          <div className="px-6 py-4">
-            <div className="flex items-center gap-6">
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-4">
               {/* Selection checkbox */}
               <div className="flex-shrink-0">
                 <button 
@@ -1164,73 +1142,64 @@ function EnhancedListingCard({
 
               {/* Vehicle Details */}
               <div className="flex-1 min-w-0">
-                <div className="mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 truncate">
-                    {listing.title}
-                  </h3>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    {typeof listing.make === 'string' 
-                      ? listing.make 
-                      : listing.make?.displayNameEn || 'N/A'} {' '}
-                    {typeof listing.model === 'string' 
-                      ? listing.model 
-                      : listing.model?.displayNameEn || 'N/A'} {' '}
-                    {listing.year && `• ${listing.year}`}
-                  </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+                  {listing.title}
+                </h3>
+                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  {typeof listing.make === 'string' 
+                    ? listing.make 
+                    : listing.make?.displayNameEn || 'N/A'} {' '}
+                  {typeof listing.model === 'string' 
+                    ? listing.model 
+                    : listing.model?.displayNameEn || 'N/A'} {' '}
+                  {listing.year && `• ${listing.year}`}
                 </div>
                 
-                {/* Key Info Tags */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="inline-flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-lg text-sm font-medium">
+                {/* Simplified Info */}
+                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  <span className="flex items-center gap-1">
                     <MdSpeed className="w-4 h-4" />
                     {formatMileage(listing.mileage)}
-                  </div>
-                  
-                  <div className="inline-flex items-center gap-1.5 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-3 py-1.5 rounded-lg text-sm font-medium">
+                  </span>
+                  <span className="flex items-center gap-1">
                     <MdLocationOn className="w-4 h-4" />
-                    <span className="truncate max-w-32">{getLocationDisplay()}</span>
-                  </div>
-                  
+                    {getLocationDisplay()}
+                  </span>
                   {listing.views !== undefined && (
-                    <div className="inline-flex items-center gap-1.5 bg-gray-50 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-lg text-sm font-medium">
+                    <span className="flex items-center gap-1">
                       <MdRemoveRedEye className="w-4 h-4" />
                       {listing.views}
-                    </div>
+                    </span>
                   )}
                 </div>
               </div>
 
               {/* Price & Status */}
               <div className="flex-shrink-0 text-right">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
                   ${formatNumber(listing.price, 'en', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </div>
-                <div className="mb-3">
+                <div className="mt-1">
                   {getStatusBadge()}
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  ID: {listing.id}
                 </div>
               </div>
 
               {/* Quick Actions - Only for single selection */}
               {!listing.approved && isSelected && selectedItems.length === 1 && (
                 <div className="flex-shrink-0">
-                  <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
                     <button
                       onClick={onApprove}
                       disabled={processing}
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg disabled:opacity-50 transition-colors min-w-[100px]"
+                      className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md disabled:opacity-50"
                     >
-                      <MdCheckCircle className="w-4 h-4" />
-                      {processing ? 'Approving...' : 'Approve'}
+                      {processing ? '...' : 'Approve'}
                     </button>
                     <button
                       onClick={onReject}
                       disabled={processing}
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg disabled:opacity-50 transition-colors min-w-[100px]"
+                      className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md disabled:opacity-50"
                     >
-                      <MdCancel className="w-4 h-4" />
                       Reject
                     </button>
                   </div>
