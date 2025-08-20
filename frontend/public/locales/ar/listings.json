@@ -495,5 +495,15 @@
   "listingCreatedMessage": "تم إنشاء إعلانك بنجاح! سيتم مراجعته ونشره قريباً.",
   "listingUpdatedMessage": "تم تحديث إعلانك بنجاح!",
   "loadingTransmissions": "جاري تحميل أنواع ناقل الحركة...",
-  "loadingFuelTypes": "جاري تحميل أنواع الوقود..."
+  "loadingFuelTypes": "جاري تحميل أنواع الوقود...",
+  "stepStatusComplete": "مكتمل",
+  "stepStatusInProgress": "قيد التقدم",
+  "stepStatusMissing": "{{count}} مفقود",
+  "stepStatusNotStarted": "لم يبدأ",
+  "newListingPricing": "معلومات التسعير",
+  "newListingLocationInfo": "معلومات الموقع",
+  "newListingContactInfo": "معلومات الاتصال",
+  "newListingValidationImagesRequired": "مطلوب صورة واحدة على الأقل",
+  "creatingListing": "جاري الإنشاء...",
+  "updatingListing": "جاري التحديث..."
 }

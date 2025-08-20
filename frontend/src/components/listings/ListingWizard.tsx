@@ -10,7 +10,7 @@ import { ListingFormData } from "@/types/listings";
 import { FormErrors, StepConfig } from "@/types/forms";
 import { ListingDataService } from '@/services/ListingDataService';
 // SUPPORTED_CURRENCIES removed - not used in this component
-import { validateStep } from '@/utils/formUtils';
+import { validateStep, calculateStepCompletion } from '@/utils/formUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 import { createLogger } from '@/utils/logger';
 // NumericInput now used inside Step2VehicleDetails
@@ -23,7 +23,7 @@ import { createRTLHelpers } from '@/utils/rtlHelpers';
 // Media sections are used inside Step3ContentMedia
 // import { SelectWithArrow } from '../ui/SelectWithArrow';
 // import StepHeader from './shared/StepHeader';
-import StepNavigation from './shared/StepNavigation';
+import StepNavigation, { StepNavigationItem } from './shared/StepNavigation';
 import StepActions from './shared/StepActions';
 import Step1VehicleIdentity from './steps/Step1VehicleIdentity';
 import Step2VehicleDetails from './steps/Step2VehicleDetails';
@@ -237,16 +237,33 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
 
   // Car features removed - not used in current implementation
 
-  // Optimized step configuration with stable references
-  const stepConfig = useMemoPerf((): StepConfig[] => [
-    { step: 1, title: t('listings:vehicleIdentityTitle', 'Vehicle Identity'), icon: '🚗', isComplete: currentStep > 1 },
-    { step: 2, title: t('listings:vehicleDetailsTitle', 'Vehicle Details'), icon: '⚙️', isComplete: currentStep > 2 },
-    { step: 3, title: t('listings:contentMediaTitle', 'Content & Media'), icon: '📝', isComplete: currentStep > 3 },
-    { step: 4, title: t('listings:pricingContactTitle', 'Pricing & Contact'), icon: '💰', isComplete: currentStep > 4 }
-  ], [currentStep, t]);
-
   // Debounced form data for expensive validations  
   const debouncedFormData = useDebounce(formData, 300);
+
+  // Optimized step configuration with stable references and completion status
+  const stepConfig = useMemoPerf((): StepNavigationItem[] => {
+    const steps = [
+      { step: 1, title: t('listings:vehicleIdentityTitle', 'Vehicle Identity'), icon: '🚗' },
+      { step: 2, title: t('listings:vehicleDetailsTitle', 'Vehicle Details'), icon: '⚙️' },
+      { step: 3, title: t('listings:contentMediaTitle', 'Content & Media'), icon: '📝' },
+      { step: 4, title: t('listings:pricingContactTitle', 'Pricing & Contact'), icon: '💰' }
+    ];
+
+    return steps.map(({ step, title, icon }) => {
+      const completion = calculateStepCompletion(step, debouncedFormData, t);
+      return {
+        step,
+        title,
+        icon,
+        isComplete: currentStep > step,
+        completionStatus: completion.completionStatus,
+        missingFieldsCount: completion.missingFieldsCount,
+        completedFieldsCount: completion.completedFieldsCount,
+        totalFieldsCount: completion.totalFieldsCount,
+        missingFieldNames: completion.missingFieldNames
+      };
+    });
+  }, [currentStep, debouncedFormData, t]);
 
   // Simple unified handler for text fields
   const handleFieldChange = useCallback((field: keyof ListingFormData) => {
@@ -809,6 +826,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
               onPrev={(e) => handleStepChange(currentStep - 1, e)}
               onNext={(e) => handleStepChange(currentStep + 1, e)}
               submitButtonText={mode === 'edit' ? t('listings:updateListing', 'Update Listing') : t('listings:createListing', 'Create Listing')}
+              submittingText={mode === 'edit' ? t('listings:updatingListing', 'Updating...') : t('listings:creatingListing', 'Creating...')}
               previousText={t('common:previous')}
               nextText={t('common:next')}
               leftArrowPath={rtl.arrows.leftArrow}

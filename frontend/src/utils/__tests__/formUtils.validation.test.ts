@@ -83,9 +83,10 @@ describe('Form Validation Tests', () => {
       expect(errors.make).toBeDefined();
       expect(errors.model).toBeDefined(); 
       expect(errors.year).toBeDefined();
-      expect(errors.title).toBeDefined(); // Also required in step 1 final mode
-      expect(errors.description).toBeDefined();
-      expect(errors.price).toBeDefined();
+      // Step 1 only validates vehicle identity fields
+      expect(errors.title).toBeUndefined();
+      expect(errors.description).toBeUndefined();
+      expect(errors.price).toBeUndefined();
     });
 
     it('should only require make, model, year in navigation mode', () => {
@@ -153,12 +154,19 @@ describe('Form Validation Tests', () => {
   });
 
   describe('Step 2: Vehicle Details Validation', () => {
-    it('should require mileage field', () => {
+    it('should require mileage field in final mode', () => {
       const formData = createFormData({ mileage: '' });
-      const errors = validateStep(2, formData, mockT);
+      const errors = validateStep(2, formData, mockT, { mode: 'final' });
       
       expect(errors.mileage).toBeDefined();
       expect(mockT).toHaveBeenCalledWith('listings:newListingValidationMileageRequired', 'Mileage is required');
+    });
+
+    it('should allow empty mileage in navigation mode', () => {
+      const formData = createFormData({ mileage: '' });
+      const errors = validateStep(2, formData, mockT, { mode: 'navigation' });
+      
+      expect(errors.mileage).toBeUndefined();
     });
 
     it('should validate mileage as positive number when provided', () => {
@@ -332,11 +340,11 @@ describe('Form Validation Tests', () => {
       const navErrors = validateStep(1, formData, mockT, { mode: 'navigation' });
       expect(Object.keys(navErrors)).toHaveLength(0);
       
-      // Final mode should fail (title, description, price also required)
+      // Final mode should pass (step 1 only validates vehicle identity fields)
       const finalErrors = validateStep(1, formData, mockT, { mode: 'final' });
-      expect(finalErrors.title).toBeDefined();
-      expect(finalErrors.description).toBeDefined();
-      expect(finalErrors.price).toBeDefined();
+      expect(finalErrors.title).toBeUndefined();
+      expect(finalErrors.description).toBeUndefined();
+      expect(finalErrors.price).toBeUndefined();
     });
 
     it('should have same requirements for accessibility and navigation modes', () => {

@@ -2,12 +2,72 @@
 
 import React from "react";
 import AutoSaveIndicator from '@/components/ui/AutoSaveIndicator';
+import { useLazyTranslation } from '@/hooks/useLazyTranslation';
+
+// Status Badge Component
+interface StatusBadgeProps {
+  completionStatus: 'complete' | 'incomplete' | 'not-started';
+  missingFieldsCount?: number;
+  completedFieldsCount?: number;
+  totalFieldsCount?: number;
+}
+
+const StatusBadge: React.FC<StatusBadgeProps> = ({ 
+  completionStatus, 
+  missingFieldsCount = 0,
+  completedFieldsCount = 0,
+  totalFieldsCount = 0
+}) => {
+  const { t } = useLazyTranslation(['listings', 'common']);
+  if (completionStatus === 'complete') {
+    return (
+      <div className="flex items-center gap-1 mt-1">
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+          ✓ {t('listings:stepStatusComplete', 'Complete')}
+        </span>
+      </div>
+    );
+  }
+
+  if (completionStatus === 'incomplete') {
+    return (
+      <div className="flex items-center gap-1 mt-1">
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+          {missingFieldsCount > 0 ? t('listings:stepStatusMissing', '{{count}} missing', { count: missingFieldsCount }) : t('listings:stepStatusInProgress', 'In progress')}
+        </span>
+        {totalFieldsCount > 0 && (
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {completedFieldsCount}/{totalFieldsCount}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  if (completionStatus === 'not-started') {
+    return (
+      <div className="flex items-center gap-1 mt-1">
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+          {t('listings:stepStatusNotStarted', 'Not started')}
+        </span>
+      </div>
+    );
+  }
+
+  return null;
+};
 
 export interface StepNavigationItem {
   step: number;
   title: React.ReactNode;
   icon: React.ReactNode;
   isComplete: boolean;
+  // Enhanced completion tracking
+  completionStatus: 'complete' | 'incomplete' | 'not-started';
+  missingFieldsCount?: number;
+  completedFieldsCount?: number;
+  totalFieldsCount?: number;
+  missingFieldNames?: string[];
 }
 
 interface StepNavigationProps {
@@ -35,8 +95,8 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
 }) => {
   return (
     <div className="mb-8">
-      <div className="flex justify-between items-center mb-4">
-        {items.map(({ step, title, icon, isComplete }) => (
+      <div className="flex justify-between items-start mb-4">
+        {items.map(({ step, title, icon, isComplete, completionStatus, missingFieldsCount, completedFieldsCount, totalFieldsCount }) => (
           <div key={step} className="flex flex-col items-center relative">
             <button
               type="button"
@@ -57,11 +117,19 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
                 <span>{step}</span>
               )}
             </button>
-            <span className={`text-sm mt-3 text-center max-w-24 font-medium transition-colors duration-300 ${
-              currentStep >= step ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'
-            }`}>
-              {title}
-            </span>
+            <div className="flex flex-col items-center mt-3 max-w-32">
+              <span className={`text-sm text-center font-medium transition-colors duration-300 ${
+                currentStep >= step ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'
+              }`}>
+                {title}
+              </span>
+              <StatusBadge 
+                completionStatus={completionStatus}
+                missingFieldsCount={missingFieldsCount}
+                completedFieldsCount={completedFieldsCount}
+                totalFieldsCount={totalFieldsCount}
+              />
+            </div>
             {step < items.length && (
               <div
                 className={`absolute top-6 start-12 w-20 h-0.5 transition-colors duration-300 ${
