@@ -490,6 +490,10 @@
   "discardChangesTitle": "تجاهل التغييرات؟",
   "discardChangesMessage": "لن يتم حفظ تغييراتك.",
   "newListingSubtitleAlt2": "املأ التفاصيل أدناه لعرض مركبتك للبيع",
+  "createListing": "إنشاء إعلان",
+  "updateListing": "تحديث الإعلان",
+  "listingCreatedMessage": "تم إنشاء إعلانك بنجاح! سيتم مراجعته ونشره قريباً.",
+  "listingUpdatedMessage": "تم تحديث إعلانك بنجاح!",
   "loadingTransmissions": "جاري تحميل أنواع ناقل الحركة...",
   "loadingFuelTypes": "جاري تحميل أنواع الوقود..."
 }

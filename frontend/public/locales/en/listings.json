@@ -219,8 +219,18 @@
   "newListingStepCounter": "Step {{current}} of {{total}}",
   "progressComplete": "{{percent}}% Complete",
   "createListing": "Create Listing",
+  "updateListing": "Update Listing",
+  "editListing": "Edit Listing",
+  "editListingTitle": "Edit Listing",
+  "editListingSubtitle": "Update your vehicle listing details",
+  "listingCreatedMessage": "Your listing has been created successfully! It will be reviewed and published shortly.",
+  "listingUpdatedMessage": "Your listing has been updated successfully!",
   "vehicleDetailsTitle": "Vehicle Details",
   "vehicleDetailsSubtitle": "Tell us more about your vehicle's condition and features",
+  "contentMediaTitle": "Content & Media",
+  "contentMediaSubtitle": "Create your listing content and add photos",
+  "pricingContactTitle": "Pricing & Contact",
+  "pricingContactSubtitle": "Set your price and contact information",
   "loadingTransmissions": "Loading transmissions...",
   "loadingFuelTypes": "Loading fuel types..."
 }

@@ -363,7 +363,17 @@ export const validateStep = (
       break;
       
     case 2: // Vehicle Details (Mileage, Engine, etc.)
-      // Mileage is optional, but if provided, should be valid
+      {
+        const requiredFields = getRequiredFieldsForMode(step, mode);
+        for (const field of requiredFields) {
+          const value = formData[field];
+          if (!value || (typeof value === 'string' && value.trim().length === 0)) {
+            const i18nMeta = REQUIRED_FIELD_I18N[field as string];
+            if (i18nMeta) errors[field] = t(i18nMeta.key, i18nMeta.fallback);
+          }
+        }
+      }
+      // Mileage validation: if provided, should be valid
       if (formData.mileage && formData.mileage.trim().length > 0 && (isNaN(Number(formData.mileage)) || Number(formData.mileage) < 0)) {
         errors.mileage = t('listings:newListingValidationMileageInvalid', 'Mileage must be a valid number');
       }

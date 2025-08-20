@@ -153,11 +153,12 @@ describe('Form Validation Tests', () => {
   });
 
   describe('Step 2: Vehicle Details Validation', () => {
-    it('should allow empty mileage (optional field)', () => {
+    it('should require mileage field', () => {
       const formData = createFormData({ mileage: '' });
       const errors = validateStep(2, formData, mockT);
       
-      expect(errors.mileage).toBeUndefined();
+      expect(errors.mileage).toBeDefined();
+      expect(mockT).toHaveBeenCalledWith('listings:newListingValidationMileageRequired', 'Mileage is required');
     });
 
     it('should validate mileage as positive number when provided', () => {
@@ -180,6 +181,13 @@ describe('Form Validation Tests', () => {
       const errors = validateStep(2, formData, mockT);
       
       expect(errors.mileage).toBeDefined();
+    });
+
+    it('should pass step 2 validation with valid mileage', () => {
+      const formData = createFormData({ mileage: '50000' });
+      const errors = validateStep(2, formData, mockT);
+      
+      expect(Object.keys(errors)).toHaveLength(0);
     });
   });
 
