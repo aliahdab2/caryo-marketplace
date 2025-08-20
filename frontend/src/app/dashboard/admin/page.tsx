@@ -807,7 +807,6 @@ export default function AdminPanel() {
                 onApprove={() => approveListing(listing.id)}
                 onReject={() => rejectListing(listing.id)}
                 processing={processing === listing.id}
-                selectedItems={selectedItems}
                 t={t}
                   />
             ))}
@@ -891,7 +890,6 @@ interface EnhancedListingCardProps {
   onApprove: () => void;
   onReject: () => void;
   processing: boolean;
-  selectedItems: number[];
   t: ReturnType<typeof useTranslation>['t'];
 }
 
@@ -902,8 +900,7 @@ function EnhancedListingCard({
   onSelect, 
   onApprove, 
   onReject, 
-  processing, 
-  selectedItems,
+  processing,
   t 
 }: EnhancedListingCardProps) {
   const getStatusBadge = () => {
@@ -1155,21 +1152,21 @@ function EnhancedListingCard({
                   {listing.year && `• ${listing.year}`}
                 </div>
                 
-                {/* Simplified Info */}
-                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  <span className="flex items-center gap-1">
-                    <MdSpeed className="w-4 h-4" />
+                {/* Info Chips */}
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <div className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md text-xs font-medium">
+                    <MdSpeed className="w-3 h-3" />
                     {formatMileage(listing.mileage)}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MdLocationOn className="w-4 h-4" />
-                    {getLocationDisplay()}
-                  </span>
+                  </div>
+                  <div className="inline-flex items-center gap-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-md text-xs font-medium">
+                    <MdLocationOn className="w-3 h-3" />
+                    <span className="truncate max-w-20">{getLocationDisplay()}</span>
+                  </div>
                   {listing.views !== undefined && (
-                    <span className="flex items-center gap-1">
-                      <MdRemoveRedEye className="w-4 h-4" />
+                    <div className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-md text-xs font-medium">
+                      <MdRemoveRedEye className="w-3 h-3" />
                       {listing.views}
-                    </span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -1184,8 +1181,8 @@ function EnhancedListingCard({
                 </div>
               </div>
 
-              {/* Quick Actions - Only for single selection */}
-              {!listing.approved && isSelected && selectedItems.length === 1 && (
+              {/* Quick Actions - Always show for pending listings */}
+              {!listing.approved && (
                 <div className="flex-shrink-0">
                   <div className="flex gap-2">
                     <button
