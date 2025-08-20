@@ -307,7 +307,7 @@ export function calculateStepCompletion(
       completedFields++;
     } else {
       const fieldMeta = REQUIRED_FIELD_I18N[field as string];
-      const fieldName = fieldMeta ? t(fieldMeta.key, fieldMeta.fallback) : field;
+      const fieldName = fieldMeta ? t(fieldMeta.key, fieldMeta.fallback) : String(field);
       missingFields.push(fieldName);
     }
   });
