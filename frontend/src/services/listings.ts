@@ -448,14 +448,31 @@ export async function updateListing(id: string | number, data: UpdateListingData
   }
 }
 
+// Simple cache for my listings to avoid repeated API calls
+let myListingsCache: { data: Listing[]; timestamp: number } | null = null;
+const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+
+// Clear my listings cache (call this when listings are modified)
+export function clearMyListingsCache(): void {
+  myListingsCache = null;
+}
+
 // Get current user's listings (for dashboard)
-export async function getMyListings(): Promise<Listing[]> {
+export async function getMyListings(forceRefresh = false): Promise<Listing[]> {
   try {
+    // Check cache first (unless force refresh)
+    if (!forceRefresh && myListingsCache) {
+      const now = Date.now();
+      if (now - myListingsCache.timestamp < CACHE_DURATION) {
+        return myListingsCache.data;
+      }
+    }
+
     const headers = await getAuthHeaders();
     
     const response = await api.get<ApiListingItem[]>('/api/listings/my-listings', headers);
     
-    return response.map(item => {
+    const mappedListings = response.map(item => {
       const { mainImageUrl, mediaItems } = getMediaUrls(item.media || []);
       const location = extractLocationInfo(item.locationDetails);
       const governorate = extractGovernorateInfo(
@@ -546,6 +563,14 @@ export async function getMyListings(): Promise<Listing[]> {
         contactPreference: item.contactPreference
       };
     });
+
+    // Cache the result
+    myListingsCache = {
+      data: mappedListings,
+      timestamp: Date.now()
+    };
+
+    return mappedListings;
   } catch (error) {
     if (error instanceof ApiError) {
       console.error('[My Listings] API Error:', error);
@@ -1073,6 +1098,8 @@ export async function deleteListingById(id: string): Promise<void> {
   try {
     const headers = await getAuthHeaders();
     await api.delete(`/api/listings/${id}`, headers);
+    // Clear cache since listings have changed
+    clearMyListingsCache();
   } catch (error) {
     console.error('[Delete Listing] Error:', error);
     throw error;
@@ -1088,6 +1115,8 @@ export async function deleteMultipleListings(ids: string[]): Promise<void> {
     
     // Otherwise, delete one by one
     await Promise.all(ids.map(id => api.delete(`/api/listings/${id}`, headers)));
+    // Clear cache since listings have changed
+    clearMyListingsCache();
   } catch (error) {
     console.error('[Delete Multiple Listings] Error:', error);
     throw error;
