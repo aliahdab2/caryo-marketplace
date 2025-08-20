@@ -52,18 +52,27 @@ export default function ListingsPage() {
     }
   });
   
-  // Load user's listings from API
+  // Load user's listings from API with optimizations
   useEffect(() => {
     const loadListings = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        const session = await getSession();
+        // Start both session check and listings fetch in parallel for better performance
+        const [session, userListings] = await Promise.all([
+          getSession(),
+          getMyListings().catch(() => null) // Don't fail if listings fail, let session check handle auth
+        ]);
         
         if (session && session.accessToken) {
-          const userListings = await getMyListings();
-          setListings(userListings);
+          if (userListings) {
+            setListings(userListings);
+          } else {
+            // Retry listings fetch if it failed but session is valid
+            const retryListings = await getMyListings();
+            setListings(retryListings);
+          }
         } else {
           throw new Error('You need to log in to view your listings');
         }
@@ -144,14 +153,62 @@ export default function ListingsPage() {
     setSelectedItems([]);
   };
 
-  // Loading State
+  // Loading State - Skeleton instead of spinner for better UX
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+      <div className="p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <div className="text-gray-600 dark:text-gray-400">{t('loading')}</div>
+          {/* Breadcrumb Skeleton */}
+          <div className="mb-6">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-4"></div>
+          </div>
+          
+          {/* Header Skeleton */}
+          <div className="mb-6">
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64"></div>
+          </div>
+
+          {/* Stats Cards Skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-xl p-4 border bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 mb-2"></div>
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-12"></div>
+              </div>
+            ))}
+          </div>
+
+          {/* Filters Skeleton */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 mb-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded flex-1 min-w-[200px]"></div>
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+            </div>
+          </div>
+
+          {/* Listings Skeleton */}
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex items-center gap-6">
+                  <div className="w-24 h-18 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+                  <div className="flex-1">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-3"></div>
+                    <div className="flex gap-2">
+                      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-2"></div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
