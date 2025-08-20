@@ -295,7 +295,7 @@ describe('Form Utils - Clean Modular Architecture', () => {
         locationSlug: 'damascus-city',
         images: [],
         currency: 'USD',
-        mileage: '',
+        mileage: '50000',
         engine: '',
         color: '',
         transmission: '',
@@ -354,9 +354,9 @@ describe('Form Utils - Clean Modular Architecture', () => {
       };
       
       const errors1 = validateStep(1, formData, mockT);
-      expect(errors1.title).toBe('Title is required');
-      expect(errors1.description).toBe('Description is required');
-      expect(errors1.price).toBe('Price is required');
+      expect(errors1.make).toBe('Make is required');
+      expect(errors1.model).toBe('Model is required');
+      expect(errors1.year).toBe('Year is required');
     });
   });
 

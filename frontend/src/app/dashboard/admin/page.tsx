@@ -11,8 +11,8 @@ import { useToastHelpers } from '@/components/ui/ToastProvider';
 interface Listing {
   id: number;
   title: string;
-  make: string;
-  model: string;
+  make: string | { id: number; name: string; slug: string; displayNameEn: string; displayNameAr: string; isActive: boolean } | null;
+  model: string | { id: number; name: string; slug: string; displayNameEn: string; displayNameAr: string; isActive: boolean; brandId: number } | null;
   year: number;
   price: number;
   mileage: number;
@@ -405,7 +405,11 @@ function ListingCard({ listing, onApprove, onReject, processing, t }: ListingCar
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
             <div>
               <span className="font-medium">{t('admin.makeModel', 'Make/Model')}:</span><br />
-              {listing.make} {listing.model}
+              {typeof listing.make === 'string' 
+                ? listing.make 
+                : listing.make?.displayNameEn || 'N/A'} {typeof listing.model === 'string' 
+                ? listing.model 
+                : listing.model?.displayNameEn || 'N/A'}
             </div>
             <div>
               <span className="font-medium">{t('admin.year', 'Year')}:</span><br />

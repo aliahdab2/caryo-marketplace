@@ -185,7 +185,7 @@ describe('Step Navigation Tests', () => {
       expect(Object.keys(navErrors)).toHaveLength(0);
 
       const finalErrors = validateStep(1, formData, mockT, { mode: 'final' });
-      expect(Object.keys(finalErrors).length).toBeGreaterThan(0);
+      expect(Object.keys(finalErrors).length).toBe(0); // Step 1 only requires make, model, year now
     });
 
     it('should allow step 2 access with minimal step 1 completion', () => {
@@ -358,7 +358,8 @@ describe('Step Navigation Tests', () => {
       const navigationErrors = validateStep(1, formData, mockT, { mode: 'navigation' });
       const finalErrors = validateStep(1, formData, mockT, { mode: 'final' });
 
-      expect(Object.keys(navigationErrors).length).toBeLessThan(Object.keys(finalErrors).length);
+      // Both should be equal now since step 1 has same requirements for both modes
+      expect(Object.keys(navigationErrors).length).toBe(Object.keys(finalErrors).length);
     });
   });
 });
