@@ -7,7 +7,7 @@ import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useListingData } from '@/hooks/useListingData';
 import { ListingFormData } from "@/types/listings";
 
-import { FormErrors, StepConfig } from "@/types/forms";
+import { FormErrors } from "@/types/forms";
 import { ListingDataService } from '@/services/ListingDataService';
 // SUPPORTED_CURRENCIES removed - not used in this component
 import { validateStep } from '@/utils/formUtils';
