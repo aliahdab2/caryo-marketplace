@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDate, formatNumber } from '../../../utils/localization';
 import { CarListing } from '@/services/publicApi';
-import { transformMinioUrl } from '@/utils/mediaUtils';
+import { transformMinioUrl, processVideoForGallery } from '@/utils/mediaUtils';
 import FavoriteButton from '@/components/common/FavoriteButton';
 
 // Component imports for the new enhanced layout
@@ -26,13 +26,27 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
 
   // Convert listing media to CarMedia format using useMemo for performance
   const convertedMedia = useMemo(() => {
-    const media: CarMedia[] = listing.media?.map(item => ({
-      type: 'image', // Assuming all media are images for now
-      url: transformMinioUrl(item.url),
-      alt: listing.title || 'Car image',
-      width: 800,
-      height: 600,
-    })) || [];
+    const media: CarMedia[] = listing.media?.map(item => {
+      // Determine if this is a video based on type or URL
+              const isVideo = item.type?.toLowerCase().includes('video') || 
+                       processVideoForGallery(item.url).isYouTube;
+
+      // For videos, process with enhanced utility
+      let thumbnailUrl: string | undefined = undefined;
+      if (isVideo) {
+        const videoInfo = processVideoForGallery(item.url);
+        thumbnailUrl = videoInfo.thumbnailUrl || undefined;
+      }
+
+      return {
+        type: isVideo ? 'video' : 'image',
+        url: transformMinioUrl(item.url),
+        alt: listing.title || (isVideo ? 'Car video' : 'Car image'),
+        width: 800,
+        height: 600,
+        ...(thumbnailUrl && { thumbnailUrl })
+      };
+    }) || [];
 
     return media;
   }, [listing]);

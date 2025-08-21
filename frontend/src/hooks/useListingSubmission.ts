@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { ListingFormData, UpdateListingData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
 import { createListing, updateListing, uploadListingImage } from '@/services/listings';
+import { addExternalVideoToListing } from '@/services/videoService';
 
 type ValidationMode = 'final' | 'navigation' | 'accessibility';
 
@@ -61,9 +62,46 @@ export function useListingSubmission({
       setIsSubmitting(true);
       if (mode === 'create') {
         const result = await createListing(formData);
+        
+        // Upload images sequentially (API limitation)
+        if (formData.images && formData.images.length > 0) {
+          const validImages = formData.images.filter((img) => img && img instanceof File);
+          console.log(`[Create Mode] Uploading ${validImages.length} new images out of ${formData.images.length} total images`);
+          for (let i = 0; i < validImages.length; i++) {
+            const image = validImages[i] as File;
+            await uploadListingImage(result.id, image);
+          }
+        }
+
+        // Add external video URLs if provided
+        if (formData.videoUrls && formData.videoUrls.length > 0) {
+          for (const videoUrl of formData.videoUrls) {
+            if (videoUrl.url && videoUrl.url.trim()) {
+              try {
+                await addExternalVideoToListing(result.id, {
+                  url: videoUrl.url.trim(),
+                  title: 'Car Video',
+                  durationSeconds: undefined // Let backend determine duration
+                });
+              } catch (videoError) {
+                console.error('Failed to add video URL:', videoError);
+                // Don't fail the entire listing creation for video errors
+              }
+            }
+          }
+        }
+
         setShowSuccessAlert(true);
         onSuccess?.(result.id);
       } else if (mode === 'edit' && listingId) {
+        // Debug: Log the current state of images in edit mode
+        console.log('[Edit Mode Debug]', {
+          existingImageUrls: formData.existingImageUrls?.length || 0,
+          newImages: formData.images?.length || 0,
+          imageTypes: formData.images?.map(img => typeof img === 'object' && img instanceof File ? 'File' : typeof img),
+          existingUrls: formData.existingImageUrls?.slice(0, 2), // First 2 URLs for debugging
+        });
+        
         const locationId = formData.locationId;
         const updateData: UpdateListingData = {
           title: formData.title,
@@ -91,12 +129,39 @@ export function useListingSubmission({
 
         const result = await updateListing(listingId, updateData);
 
-        // Upload images sequentially (API limitation)
+        // Upload only NEW images sequentially (API limitation)
+        // In edit mode, only upload File objects (new images), not existing URLs
         if (formData.images && formData.images.length > 0) {
-          const validImages = formData.images.filter((img) => img && img instanceof File);
-          for (let i = 0; i < validImages.length; i++) {
-            const image = validImages[i] as File;
+          const newImages = formData.images.filter((img) => img && img instanceof File);
+          console.log(`[Edit Mode] Uploading ${newImages.length} new images out of ${formData.images.length} total images`);
+          
+          // Additional safety check: log any non-File objects that might have gotten into the array
+          const nonFileItems = formData.images.filter((img) => img && !(img instanceof File));
+          if (nonFileItems.length > 0) {
+            console.warn('[Edit Mode] Found non-File objects in images array:', nonFileItems.map(item => typeof item));
+          }
+          
+          for (let i = 0; i < newImages.length; i++) {
+            const image = newImages[i] as File;
             await uploadListingImage(listingId, image);
+          }
+        }
+
+        // Add external video URLs if provided
+        if (formData.videoUrls && formData.videoUrls.length > 0) {
+          for (const videoUrl of formData.videoUrls) {
+            if (videoUrl.url && videoUrl.url.trim()) {
+              try {
+                await addExternalVideoToListing(listingId, {
+                  url: videoUrl.url.trim(),
+                  title: 'Car Video',
+                  durationSeconds: undefined // Let backend determine duration
+                });
+              } catch (videoError) {
+                console.error('Failed to add video URL:', videoError);
+                // Don't fail the entire listing update for video errors
+              }
+            }
           }
         }
 

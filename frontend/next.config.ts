@@ -102,6 +102,12 @@ const nextConfig: NextConfig = {
         hostname: 'picsum.photos',
         pathname: '/**',
       },
+      // YouTube thumbnail images
+      {
+        protocol: 'https',
+        hostname: 'img.youtube.com',
+        pathname: '/**',
+      },
       // MinIO configuration based on environment
       ...(minioUrl ? [{
         protocol: minioUrl.protocol.replace(':', '') as 'http' | 'https',

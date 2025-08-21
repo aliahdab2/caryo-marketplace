@@ -34,19 +34,7 @@ export function transformMinioUrl(url: string): string {
   }
 }
 
-/**
- * Processes an array of image URLs, ensuring they're all valid and transforming any MinIO URLs
- * 
- * @param urls Array of image URLs to process
- * @returns Array of transformed and validated URLs
- */
-export function processImageUrls(urls: string[]): string[] {
-  if (!urls || !Array.isArray(urls)) return [];
-  
-  return urls
-    .filter(url => url && typeof url === 'string')
-    .map(transformMinioUrl);
-}
+
 
 /**
  * Gets a fallback image URL if the primary image is not available
@@ -60,38 +48,58 @@ export function getDefaultImageUrl(): string {
 /** Media helpers (validation and providers) */
 import type { VideoUrlInput } from '@/types/listings';
 
+// Compiled regex for better performance
+const YOUTUBE_URL_REGEX = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
+
 export function isYouTubeUrl(url: string): boolean {
-  if (!url) return false;
-  return /(?:youtube\.com\/watch\?v=|youtu\.be\/)/.test(url);
+  if (!url || typeof url !== 'string') return false;
+  return YOUTUBE_URL_REGEX.test(url);
 }
 
 export function getYouTubeEmbedUrl(url: string): string | null {
-  if (!url) return null;
-  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-  return yt ? `https://www.youtube.com/embed/${yt[1]}` : null;
+  if (!url || typeof url !== 'string') return null;
+  const match = url.match(YOUTUBE_URL_REGEX);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : null;
 }
 
-export function validateImageFile(file: File): { valid: boolean; errorKey?: string } {
-  if (!file || !file.type?.startsWith('image/')) {
-    return { valid: false, errorKey: 'newListingValidationNotImage' };
-  }
-  const maxBytes = 5 * 1024 * 1024; // 5MB
-  if (file.size > maxBytes) {
-    return { valid: false, errorKey: 'newListingValidationFileTooLarge' };
-  }
-  return { valid: true };
+export function getYouTubeThumbnailUrl(url: string): string | null {
+  if (!url || typeof url !== 'string') return null;
+  const match = url.match(YOUTUBE_URL_REGEX);
+  return match ? `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg` : null;
 }
 
-export function validateVideoFile(file: File): { valid: boolean; errorKey?: string } {
-  if (!file || !file.type?.startsWith('video/')) {
-    return { valid: false, errorKey: 'invalidVideoFormat' };
-  }
-  const maxBytes = 100 * 1024 * 1024; // 100MB
-  if (file.size > maxBytes) {
-    return { valid: false, errorKey: 'videoTooLarge' };
-  }
-  return { valid: true };
+/**
+ * Enhanced video processing for CarMediaGallery
+ * Handles both thumbnail generation and embed URL creation
+ */
+// Type for video processing result
+export interface VideoProcessingResult {
+  thumbnailUrl: string | null;
+  embedUrl: string | null;
+  isYouTube: boolean;
+  videoId?: string;
 }
+
+export function processVideoForGallery(url: string): VideoProcessingResult {
+  if (!url || typeof url !== 'string') {
+    return { thumbnailUrl: null, embedUrl: null, isYouTube: false };
+  }
+
+  const match = url.match(YOUTUBE_URL_REGEX);
+  const isYT = Boolean(match);
+  const videoId = match?.[1];
+  
+  return {
+    thumbnailUrl: isYT && videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null,
+    embedUrl: isYT && videoId ? `https://www.youtube.com/embed/${videoId}` : null,
+    isYouTube: isYT,
+    videoId
+  };
+}
+
+
+
+
 
 export function normalizeVideoUrls(urls: Array<VideoUrlInput | string>): VideoUrlInput[] {
   if (!Array.isArray(urls)) return [];

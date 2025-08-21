@@ -14,9 +14,13 @@ import { useLanguageDirection } from '@/utils/languageDirection';
 // Translation support
 import { useTranslation } from 'react-i18next';
 
+// Media utilities
+import { processVideoForGallery } from '@/utils/mediaUtils';
+
 // Constants
 const SWIPE_THRESHOLD = 50;
 const THUMBNAIL_SIZES = "(max-width: 640px) 25vw, (max-width: 768px) 16vw, (max-width: 1024px) 12vw, 10vw";
+const MAIN_IMAGE_SIZES = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw";
 
 // Types for internal state
 interface SwipeState {
@@ -46,10 +50,13 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(initialIndex);
   const [selectedVideo, setSelectedVideo] = useState<CarMedia | null>(null);
+  const [isVideoFullscreen, setIsVideoFullscreen] = useState(false);
   
   // Swipe state using custom state structure
   const [touchState, setTouchState] = useState<SwipeState>({ start: null, end: null, isActive: false });
   const [mouseState, setMouseState] = useState<SwipeState>({ start: null, end: null, isActive: false });
+  
+
   
   // Refs for touch handling
   const mainGalleryRef = useRef<HTMLDivElement>(null);
@@ -202,33 +209,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isModalOpen, isRTL, goToPrevious, goToNext]);
 
-  // Memoized utility functions
-  const videoUtils = useMemo(() => ({
-    isYouTubeUrl: (url: string): boolean => {
-      try {
-        return url.includes('youtube.com') || url.includes('youtu.be');
-      } catch {
-        return false;
-      }
-    },
-    
-    getYouTubeEmbedUrl: (url: string): string => {
-      try {
-        let videoId = '';
-        
-        if (url.includes('youtu.be/')) {
-          videoId = url.split('youtu.be/')[1].split('?')[0];
-        } else if (url.includes('youtube.com/watch')) {
-          const urlParams = new URLSearchParams(new URL(url).search);
-          videoId = urlParams.get('v') || '';
-        }
-        
-        return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
-      } catch {
-        return '';
-      }
-    }
-  }), []);
+  // Removed local videoUtils - now using imported processVideoForGallery utility
 
   // Memoized render functions for better performance
   const renderImageContent = useCallback((item: CarMedia, idx: number = 0, isModalView: boolean = false) => (
@@ -239,11 +220,11 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
       style={{ objectFit: 'contain' }}
       className="w-full h-full"
       priority={!isModalView && idx === initialIndex}
-      sizes={isModalView ? "100vw" : "(max-width: 768px) 100vw, 50vw"}
+      sizes={isModalView ? "100vw" : MAIN_IMAGE_SIZES}
     />
   ), [initialIndex]);
 
-  const renderVideoContent = useCallback((item: CarMedia) => {
+  const renderVideoContent = useCallback((item: CarMedia, isFullscreen: boolean = false) => {
     if (!item.url) {
       return (
         <div className="w-full h-full flex items-center justify-center bg-gray-100">
@@ -252,8 +233,9 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
       );
     }
 
-    if (videoUtils.isYouTubeUrl(item.url)) {
-      const embedUrl = videoUtils.getYouTubeEmbedUrl(item.url);
+    const { embedUrl, isYouTube } = processVideoForGallery(item.url);
+    
+    if (isYouTube) {
       if (!embedUrl) {
         return (
           <div className="w-full h-full flex items-center justify-center bg-gray-100">
@@ -262,11 +244,16 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
         );
       }
 
+      // Add autoplay parameter for fullscreen mode to continue playback
+      const fullscreenEmbedUrl = isFullscreen 
+        ? `${embedUrl}?autoplay=1&rel=0&modestbranding=1`
+        : `${embedUrl}?rel=0&modestbranding=1`;
+
       return (
         <div className="w-full h-full flex items-center justify-center">
           <div className="w-full h-full">
             <iframe
-              src={embedUrl}
+              src={fullscreenEmbedUrl}
               title={item.alt || 'Video content'}
               className="w-full h-full"
               frameBorder="0"
@@ -290,7 +277,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
         </video>
       </div>
     );
-  }, [videoUtils]);
+  }, []);
 
 
 
@@ -303,19 +290,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
     );
   }
 
-  // Debug logging in development (optimized)
-  if (process.env.NODE_ENV === 'development') {
-    console.log('CarMediaGallery Debug:', {
-      mediaCount: mediaStats.totalCount,
-      imagesCount: mediaStats.imageCount,
-      videosCount: mediaStats.videoCount,
-      initialIndex,
-      currentMediaIndex,
-      currentMediaType: currentMedia?.type,
-      firstImage: mediaStats.images[0]?.url,
-      videoUrls: mediaStats.videos.map(v => v.url)
-    });
-  }
+
 
   // Main component rendering
   return (
@@ -344,80 +319,82 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                 {renderImageContent(currentMedia, currentMediaIndex, false)}
               </div>
             ) : (
-              /* Show current video thumbnail with play button */
+              /* Show inline video player directly */
               <div 
                 className="relative w-full h-full flex items-center justify-center cursor-pointer"
-                onClick={() => setSelectedVideo(currentMedia)}
+                onClick={() => {
+                  setSelectedVideo(currentMedia);
+                  setIsVideoFullscreen(true);
+                }}
               >
-                {currentMedia.thumbnailUrl ? (
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={currentMedia.thumbnailUrl}
-                      alt={currentMedia.alt}
-                      fill
-                      style={{ objectFit: 'contain' }}
-                      className="w-full h-full"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-40 transition-opacity">
-                      <div className="bg-black bg-opacity-60 rounded-full p-5 text-white">
-                        <Play className="w-12 h-12" />
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    <Play className="w-24 h-24 text-gray-400" />
-                  </div>
-                )}
+                {/* Always show inline video player for videos */}
+                <div className="relative w-full h-full">
+                  {!isVideoFullscreen && renderVideoContent(currentMedia, false)}
+                  {/* Fullscreen button overlay */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedVideo(currentMedia);
+                      setIsVideoFullscreen(true);
+                    }}
+                    className="absolute top-4 right-4 p-2 bg-black bg-opacity-60 rounded-lg text-white hover:bg-opacity-80 transition-all duration-200"
+                    aria-label="Open in fullscreen"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             )}
 
-            {/* Media count stamp - AutoTrader style */}
-            <div className={`absolute top-3 z-20 ${isRTL ? 'right-3' : 'left-3'}`}>
-              <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'} bg-gray-900 bg-opacity-90 backdrop-blur-sm rounded-md px-2.5 py-1.5 text-white text-sm font-medium`}>
-                {mediaStats.totalCount === 1 ? (
-                  // For single item, show just the type icon
-                  currentMedia?.type === 'image' ? (
-                    <Camera className="w-5 h-5" />
-                  ) : (
-                    <Video className="w-5 h-5" />
-                  )
-                ) : (
-                  // For multiple items, show counts like AutoTrader
-                  <>
-                    {mediaStats.videoCount > 0 && (
-                      <div className="flex items-center space-x-1">
-                        <Video className="w-5 h-5" />
-                        {mediaStats.videoCount > 1 && <span>{mediaStats.videoCount}</span>}
-                      </div>
-                    )}
-                    {mediaStats.imageCount > 0 && (
-                      <div className="flex items-center space-x-1">
-                        <Camera className="w-5 h-5" />
-                        {mediaStats.imageCount > 1 && <span>{mediaStats.imageCount}</span>}
-                      </div>
-                    )}
-                  </>
-                )}
+            {/* Media position indicator with type icons */}
+            {mediaStats.hasMultiple && (
+              <div className={`absolute top-3 z-20 ${isRTL ? 'right-3' : 'left-3'}`}>
+                <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'} bg-gray-900 bg-opacity-90 backdrop-blur-sm rounded-md px-2.5 py-1.5 text-white text-sm font-medium`}>
+                  <span className="text-xs font-medium">
+                    {currentMediaIndex + 1} / {mediaStats.totalCount}
+                  </span>
+                  {mediaStats.videoCount > 0 && (
+                    <div className="flex items-center">
+                      <Video className="w-4 h-4" />
+                      {mediaStats.videoCount > 1 && <span className="ml-1 text-xs">{mediaStats.videoCount}</span>}
+                    </div>
+                  )}
+                  {mediaStats.imageCount > 0 && (
+                    <div className="flex items-center">
+                      <Camera className="w-4 h-4" />
+                      {mediaStats.imageCount > 1 && <span className="ml-1 text-xs">{mediaStats.imageCount}</span>}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* View gallery button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsModalOpen(true);
-              }}
-              className={`absolute bottom-3 z-20 flex items-center ${isRTL ? 'space-x-reverse space-x-2 left-3' : 'space-x-2 right-3'} bg-black bg-opacity-70 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm font-medium hover:bg-opacity-80 transition-all duration-200`}
-            >
-              <div className="grid grid-cols-2 gap-1">
-                <div className="w-2 h-2 bg-white rounded-sm opacity-80"></div>
-                <div className="w-2 h-2 bg-white rounded-sm opacity-80"></div>
-                <div className="w-2 h-2 bg-white rounded-sm opacity-80"></div>
-                <div className="w-2 h-2 bg-white rounded-sm opacity-80"></div>
+            {/* Dot navigation - Bottom center (AutoTrader/Blocket style) */}
+            {mediaStats.hasMultiple && (
+              <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 z-20">
+                <div className="flex items-center space-x-2 bg-gray-900 bg-opacity-75 backdrop-blur-sm rounded-full px-3 py-2">
+                  {media.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentMediaIndex(index);
+                      }}
+                      className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                        index === currentMediaIndex
+                          ? 'bg-white scale-125'
+                          : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                      }`}
+                      aria-label={`Go to media ${index + 1}`}
+                    />
+                  ))}
+                </div>
               </div>
-              <span>{mediaStats.totalCount === 1 ? t('viewImage') : t('viewGallery')}</span>
-            </button>
+            )}
+
+
             
             {/* Navigation arrows for all media - AutoTrader style */}
             {mediaStats.hasMultiple && (
@@ -446,18 +423,9 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
               </>
             )}
             
-            {/* Media counter - AutoTrader style (always show) */}
-            <div className="absolute bottom-4 right-4 px-3 py-1.5 bg-black bg-opacity-75 text-white text-sm font-medium rounded-lg">
-              {currentMediaIndex + 1}/{mediaStats.totalCount}
-            </div>
 
-            {/* Swipe hint for touch devices and drag hint for desktop */}
-            {mediaStats.hasMultiple && (
-              <div className={`absolute bottom-4 left-4 px-2 py-1 bg-black bg-opacity-50 text-white text-xs rounded-md transition-opacity duration-200 ${(touchState.isActive || mouseState.isActive) ? 'opacity-100' : 'opacity-0 md:opacity-60'}`}>
-                <span className="md:hidden">{isRTL ? '← اسحب للتنقل →' : '← Swipe to navigate →'}</span>
-                <span className="hidden md:inline">{isRTL ? '← اسحب للتنقل →' : '← Drag to navigate →'}</span>
-              </div>
-            )}
+
+
           </>
         )}
       </div>
@@ -519,13 +487,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
         </div>
       )}
 
-      {/* Debug section for development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-          <strong>Debug:</strong> Total media: {mediaStats.totalCount}, Current: {currentMediaIndex + 1}, 
-          Type: {currentMedia?.type}, Images: {mediaStats.imageCount}, Videos: {mediaStats.videoCount}
-        </div>
-      )}
+
 
       {/* Modal/Lightbox for all media (images and videos) */}
       {isModalOpen && (
@@ -561,6 +523,29 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
               {mediaStats.hasMultiple && (
                 <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-30 px-3 py-2 bg-black bg-opacity-20 rounded-md text-white text-lg font-medium">
                   {t('mediaCount', { current: currentMediaIndex + 1, total: mediaStats.totalCount })}
+                </div>
+              )}
+
+              {/* Modal dot navigation */}
+              {mediaStats.hasMultiple && (
+                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30">
+                  <div className="flex items-center space-x-3 bg-black bg-opacity-40 backdrop-blur-sm rounded-full px-4 py-2">
+                    {media.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentMediaIndex(index);
+                        }}
+                        className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                          index === currentMediaIndex
+                            ? 'bg-white scale-125'
+                            : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                        }`}
+                        aria-label={`Go to media ${index + 1}`}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -605,10 +590,13 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
       )}
 
       {/* Video modal */}
-      {selectedVideo && (
+      {selectedVideo && isVideoFullscreen && (
         <Dialog
-          open={!!selectedVideo}
-          onClose={() => setSelectedVideo(null)}
+          open={isVideoFullscreen}
+          onClose={() => {
+            setSelectedVideo(null);
+            setIsVideoFullscreen(false);
+          }}
           className="fixed inset-0 z-50"
         >
           <div className="fixed inset-0 bg-black bg-opacity-95" aria-hidden="true" />
@@ -617,7 +605,10 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
             <div className="relative w-full h-full max-w-none bg-black">
               {/* Close button */}
               <button
-                onClick={() => setSelectedVideo(null)}
+                onClick={() => {
+                  setSelectedVideo(null);
+                  setIsVideoFullscreen(false);
+                }}
                 className="absolute top-4 right-4 z-30 p-3 bg-black bg-opacity-60 rounded-full text-white hover:bg-opacity-80 transition-all duration-200"
                 aria-label="Close video"
               >
@@ -626,7 +617,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
 
               {/* Video content */}
               <div className="w-full h-full flex items-center justify-center">
-                {renderVideoContent(selectedVideo)}
+                {renderVideoContent(selectedVideo, true)}
               </div>
               
               {/* Video navigation buttons - Only show if we have multiple videos */}

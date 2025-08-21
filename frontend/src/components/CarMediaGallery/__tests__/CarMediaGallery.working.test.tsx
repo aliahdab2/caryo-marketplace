@@ -12,8 +12,7 @@ jest.mock('react-i18next', () => ({
         return `${options.current} of ${options.total}`;
       }
       const translations: { [key: string]: string } = {
-        'viewGallery': 'View gallery',
-        'viewImage': 'View image',
+        // No additional translations needed
       };
       return translations[key] || key;
     },
@@ -102,8 +101,10 @@ describe('CarMediaGallery - Working Tests', () => {
     it('renders with multiple images', () => {
       render(<CarMediaGallery media={sampleImages} />);
       
-      expect(screen.getByText('1/3')).toBeInTheDocument();
-      expect(screen.getByText('View gallery')).toBeInTheDocument();
+      expect(screen.getByText('1 / 3')).toBeInTheDocument();
+      // Verify main gallery area is clickable (no longer need View gallery button)
+      const mainGalleryArea = screen.getByText('1 / 3').closest('.car-media-gallery');
+      expect(mainGalleryArea?.querySelector('.h-full.cursor-pointer')).toBeInTheDocument();
       expect(screen.getByLabelText('Next media')).toBeInTheDocument();
       expect(screen.getByLabelText('Previous media')).toBeInTheDocument();
     });
@@ -111,8 +112,11 @@ describe('CarMediaGallery - Working Tests', () => {
     it('renders with single image', () => {
       render(<CarMediaGallery media={[sampleImages[0]]} />);
       
-      expect(screen.getByText('1/1')).toBeInTheDocument();
-      expect(screen.getByText('View image')).toBeInTheDocument();
+      // Single items don't show position indicators
+      expect(screen.queryByText('1 / 1')).not.toBeInTheDocument();
+      // Verify main gallery area is clickable (no longer need View image button)
+      const mainGalleryArea = screen.getByRole('img', { name: /First car image/i }).closest('.car-media-gallery');
+      expect(mainGalleryArea?.querySelector('.h-full.cursor-pointer')).toBeInTheDocument();
       expect(screen.queryByLabelText('Next media')).not.toBeInTheDocument();
       expect(screen.queryByLabelText('Previous media')).not.toBeInTheDocument();
     });
@@ -126,7 +130,7 @@ describe('CarMediaGallery - Working Tests', () => {
     it('respects initialIndex prop', () => {
       render(<CarMediaGallery media={sampleImages} initialIndex={1} />);
       
-      expect(screen.getByText('2/3')).toBeInTheDocument();
+      expect(screen.getByText('2 / 3')).toBeInTheDocument();
     });
   });
 
@@ -134,45 +138,45 @@ describe('CarMediaGallery - Working Tests', () => {
     it('navigates forward with next button', () => {
       render(<CarMediaGallery media={sampleImages} />);
       
-      expect(screen.getByText('1/3')).toBeInTheDocument();
+      expect(screen.getByText('1 / 3')).toBeInTheDocument();
       
       const nextButton = screen.getByLabelText('Next media');
       fireEvent.click(nextButton);
       
-      expect(screen.getByText('2/3')).toBeInTheDocument();
+      expect(screen.getByText('2 / 3')).toBeInTheDocument();
     });
 
     it('navigates backward with previous button', () => {
       render(<CarMediaGallery media={sampleImages} initialIndex={1} />);
       
-      expect(screen.getByText('2/3')).toBeInTheDocument();
+      expect(screen.getByText('2 / 3')).toBeInTheDocument();
       
       const prevButton = screen.getByLabelText('Previous media');
       fireEvent.click(prevButton);
       
-      expect(screen.getByText('1/3')).toBeInTheDocument();
+      expect(screen.getByText('1 / 3')).toBeInTheDocument();
     });
 
     it('wraps around from last to first', () => {
       render(<CarMediaGallery media={sampleImages} initialIndex={2} />);
       
-      expect(screen.getByText('3/3')).toBeInTheDocument();
+      expect(screen.getByText('3 / 3')).toBeInTheDocument();
       
       const nextButton = screen.getByLabelText('Next media');
       fireEvent.click(nextButton);
       
-      expect(screen.getByText('1/3')).toBeInTheDocument();
+      expect(screen.getByText('1 / 3')).toBeInTheDocument();
     });
 
     it('wraps around from first to last', () => {
       render(<CarMediaGallery media={sampleImages} />);
       
-      expect(screen.getByText('1/3')).toBeInTheDocument();
+      expect(screen.getByText('1 / 3')).toBeInTheDocument();
       
       const prevButton = screen.getByLabelText('Previous media');
       fireEvent.click(prevButton);
       
-      expect(screen.getByText('3/3')).toBeInTheDocument();
+      expect(screen.getByText('3 / 3')).toBeInTheDocument();
     });
   });
 
@@ -180,9 +184,10 @@ describe('CarMediaGallery - Working Tests', () => {
     it('opens modal when clicking main image area', async () => {
       render(<CarMediaGallery media={sampleImages} />);
       
-      // Click on the main gallery area (use a more specific selector)
-      const galleryButton = screen.getByText('View gallery');
-      fireEvent.click(galleryButton);
+      // Click on the main image area to open modal (use the main gallery container)
+      const mainGalleryArea = screen.getByText('1 / 3').closest('.car-media-gallery');
+      const mainImageContainer = mainGalleryArea?.querySelector('.h-full.cursor-pointer');
+      fireEvent.click(mainImageContainer!);
       
       await waitFor(() => {
         expect(screen.getByTestId('modal')).toBeInTheDocument();
@@ -193,8 +198,9 @@ describe('CarMediaGallery - Working Tests', () => {
       render(<CarMediaGallery media={sampleImages} />);
       
       // Open modal
-      const galleryButton = screen.getByText('View gallery');
-      fireEvent.click(galleryButton);
+      const mainGalleryArea = screen.getByText('1 / 3').closest('.car-media-gallery');
+      const mainImageContainer = mainGalleryArea?.querySelector('.h-full.cursor-pointer');
+      fireEvent.click(mainImageContainer!);
       
       await waitFor(() => {
         expect(screen.getByTestId('modal')).toBeInTheDocument();
@@ -213,8 +219,9 @@ describe('CarMediaGallery - Working Tests', () => {
       render(<CarMediaGallery media={sampleImages} />);
       
       // Open modal
-      const galleryButton = screen.getByText('View gallery');
-      fireEvent.click(galleryButton);
+      const mainGalleryArea = screen.getByText('1 / 3').closest('.car-media-gallery');
+      const mainImageContainer = mainGalleryArea?.querySelector('.h-full.cursor-pointer');
+      fireEvent.click(mainImageContainer!);
       
       await waitFor(() => {
         expect(screen.getByTestId('modal')).toBeInTheDocument();
@@ -237,8 +244,8 @@ describe('CarMediaGallery - Working Tests', () => {
       const playIcons = screen.getAllByTestId('play-icon');
       expect(playIcons.length).toBeGreaterThan(0);
       
-      // Should show video count
-      expect(screen.getByText('1/2')).toBeInTheDocument();
+      // Should show video count (with spaces in new format)
+      expect(screen.getByText('1 / 2')).toBeInTheDocument();
     });
 
     it('shows video type indicator', () => {
@@ -251,7 +258,7 @@ describe('CarMediaGallery - Working Tests', () => {
     it('handles mixed media types', () => {
       render(<CarMediaGallery media={mixedMedia} />);
       
-      expect(screen.getByText('1/3')).toBeInTheDocument();
+      expect(screen.getByText('1 / 3')).toBeInTheDocument();
       
       // Should show both camera and video icons (there may be multiple)
       expect(screen.getAllByTestId('camera-icon').length).toBeGreaterThan(0);
@@ -264,8 +271,9 @@ describe('CarMediaGallery - Working Tests', () => {
       render(<CarMediaGallery media={sampleImages} />);
       
       // Open modal
-      const galleryButton = screen.getByText('View gallery');
-      fireEvent.click(galleryButton);
+      const mainGalleryArea = screen.getByText('1 / 3').closest('.car-media-gallery');
+      const mainImageContainer = mainGalleryArea?.querySelector('.h-full.cursor-pointer');
+      fireEvent.click(mainImageContainer!);
       
       await waitFor(() => {
         expect(screen.getByTestId('modal')).toBeInTheDocument();
@@ -313,7 +321,8 @@ describe('CarMediaGallery - Working Tests', () => {
       
       render(<CarMediaGallery media={invalidMedia} />);
       
-      expect(screen.getByText('1/1')).toBeInTheDocument();
+      // Single items don't show position indicators
+      expect(screen.queryByText('1 / 1')).not.toBeInTheDocument();
     });
 
     it('handles media without alt text', () => {
@@ -327,7 +336,8 @@ describe('CarMediaGallery - Working Tests', () => {
       
       render(<CarMediaGallery media={mediaWithoutAlt} />);
       
-      expect(screen.getByText('1/1')).toBeInTheDocument();
+      // Single items don't show position indicators
+      expect(screen.queryByText('1 / 1')).not.toBeInTheDocument();
     });
   });
 
@@ -343,8 +353,9 @@ describe('CarMediaGallery - Working Tests', () => {
       render(<CarMediaGallery media={sampleImages} />);
       
       // Open modal
-      const galleryButton = screen.getByText('View gallery');
-      fireEvent.click(galleryButton);
+      const mainGalleryArea = screen.getByText('1 / 3').closest('.car-media-gallery');
+      const mainImageContainer = mainGalleryArea?.querySelector('.h-full.cursor-pointer');
+      fireEvent.click(mainImageContainer!);
       
       await waitFor(() => {
         const modal = screen.getByTestId('modal');
@@ -363,8 +374,10 @@ describe('CarMediaGallery - Working Tests', () => {
       
       render(<CarMediaGallery media={largeMediaArray} />);
       
-      expect(screen.getByText('1/50')).toBeInTheDocument();
-      expect(screen.getByText('View gallery')).toBeInTheDocument();
+      expect(screen.getByText('1 / 50')).toBeInTheDocument();
+      // Verify main gallery area is present and clickable
+      const mainGalleryArea = screen.getByText('1 / 50').closest('.car-media-gallery');
+      expect(mainGalleryArea?.querySelector('.h-full.cursor-pointer')).toBeInTheDocument();
     });
 
     it('handles rapid navigation without breaking', () => {
@@ -377,8 +390,8 @@ describe('CarMediaGallery - Working Tests', () => {
         fireEvent.click(nextButton);
       }
       
-      // Should still be functional
-      expect(screen.getByText(/[1-3]\/3/)).toBeInTheDocument();
+      // Should still be functional (with spaces in new format)
+      expect(screen.getByText(/[1-3] \/ 3/)).toBeInTheDocument();
     });
   });
 
@@ -394,7 +407,8 @@ describe('CarMediaGallery - Working Tests', () => {
       
       render(<CarMediaGallery media={longAltMedia} />);
       
-      expect(screen.getByText('1/1')).toBeInTheDocument();
+      // Single items don't show position indicators
+      expect(screen.queryByText('1 / 1')).not.toBeInTheDocument();
     });
 
     it('handles special characters in URLs', () => {
@@ -408,7 +422,8 @@ describe('CarMediaGallery - Working Tests', () => {
       
       render(<CarMediaGallery media={specialCharMedia} />);
       
-      expect(screen.getByText('1/1')).toBeInTheDocument();
+      // Single items don't show position indicators
+      expect(screen.queryByText('1 / 1')).not.toBeInTheDocument();
     });
   });
 });

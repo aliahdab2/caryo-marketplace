@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MdDirectionsCar } from 'react-icons/md';
+import { Play } from 'lucide-react';
 import { CarListing } from '@/services/publicApi';
 import { transformMinioUrl } from '@/utils/mediaUtils';
 import ViewModeToggle, { ViewMode } from '@/components/search/ViewModeToggle';
@@ -24,6 +25,39 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
   isRTL = false
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+
+  // Helper function to check if media item is a video
+  const isVideoMedia = (mediaItem: { url: string; type: string }): boolean => {
+    if (mediaItem.type?.toLowerCase().includes('video')) return true;
+    
+    // Check if it's a YouTube URL
+    try {
+      const urlObj = new URL(mediaItem.url);
+      return urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be');
+    } catch {
+      return false;
+    }
+  };
+
+  // Helper function to get display media (prioritize images, show video if no images)
+  const getDisplayMedia = (media: CarListing['media']) => {
+    if (!media || media.length === 0) return null;
+    
+    // First try to find an image
+    const imageMedia = media.find(item => !isVideoMedia(item));
+    if (imageMedia) {
+      return { ...imageMedia, isVideo: false };
+    }
+    
+    // If no images, use the first video
+    const videoMedia = media.find(item => isVideoMedia(item));
+    if (videoMedia) {
+      return { ...videoMedia, isVideo: true };
+    }
+    
+    // Fallback to first media item
+    return { ...media[0], isVideo: isVideoMedia(media[0]) };
+  };
 
   const containerClassName = viewMode === 'grid'
     ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
@@ -86,7 +120,8 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                 media: car.media?.map(m => ({
                   url: m.url,
                   isPrimary: m.type === 'primary' || false,
-                  contentType: m.type
+                  contentType: m.type,
+                  type: isVideoMedia(m) ? 'video' : 'image'
                 }))
               };
 
@@ -105,6 +140,8 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
             }
 
             // Grid view (original cards)
+            const displayMedia = getDisplayMedia(car.media);
+            
             return (
               <div
                 key={car.id}
@@ -112,12 +149,20 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
               >
                 <div className="relative h-48">
                   <Image
-                    src={transformMinioUrl(car.media?.[0]?.url || '') || "/images/logo.png"}
+                    src={displayMedia ? transformMinioUrl(displayMedia.url) || displayMedia.url : "/images/logo.png"}
                     alt={car.title}
                     fill
                     className="object-cover"
                     unoptimized
                   />
+                  {/* Video Play Icon Overlay */}
+                  {displayMedia?.isVideo && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                      <div className="bg-white bg-opacity-90 rounded-full p-3 shadow-lg">
+                        <Play className="w-6 h-6 text-gray-800" fill="currentColor" />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="p-5">
                   <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
