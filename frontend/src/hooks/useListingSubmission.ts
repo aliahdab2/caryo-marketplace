@@ -63,15 +63,8 @@ export function useListingSubmission({
       if (mode === 'create') {
         const result = await createListing(formData);
         
-        // Upload images sequentially (API limitation)
-        if (formData.images && formData.images.length > 0) {
-          const validImages = formData.images.filter((img) => img && img instanceof File);
-          console.log(`[Create Mode] Uploading ${validImages.length} new images out of ${formData.images.length} total images`);
-          for (let i = 0; i < validImages.length; i++) {
-            const image = validImages[i] as File;
-            await uploadListingImage(result.id, image);
-          }
-        }
+        // Images are already uploaded by createListing() - no need to upload again
+        console.log(`[Create Mode] Images already handled by createListing() - skipping duplicate upload of ${formData.images?.length || 0} images`);
 
         // Add external video URLs if provided
         if (formData.videoUrls && formData.videoUrls.length > 0) {
