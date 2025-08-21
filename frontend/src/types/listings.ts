@@ -208,6 +208,7 @@ export interface Listing {
     slug: string;
   };
   media?: { 
+    id?: number;
     url: string; 
     type?: string; 
     isPrimary?: boolean; 
@@ -317,6 +318,8 @@ export interface ListingFormData {
   videoUrls?: VideoUrlInput[]; // External video URLs (YouTube)
   existingImageUrls?: string[]; // URLs of existing images (for edit mode)
   existingVideoUrls?: string[]; // URLs of existing videos (for edit mode)
+  existingMediaItems?: Array<{ id: number; url: string; type: string; isPrimary?: boolean }>; // Full media objects with IDs for deletion tracking
+  mediaToDelete?: number[]; // IDs of media items to delete
   status: 'active' | 'expired' | 'pending' | 'sold' | '';
   created?: string;
   expires?: string;

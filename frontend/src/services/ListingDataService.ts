@@ -91,12 +91,24 @@ export class ListingDataService {
   private static async transformApiToForm(listing: Listing): Promise<Partial<ListingFormData>> {
     console.log('[ListingDataService] Transforming API data to form format');
     
-    // Separate media by type
+    // Separate media by type and preserve full media objects with IDs
     const imageUrls: string[] = [];
     const videoUrls: string[] = [];
+    const existingMediaItems: Array<{ id: number; url: string; type: string; isPrimary?: boolean }> = [];
 
     if (listing.media && Array.isArray(listing.media)) {
       listing.media.forEach((mediaItem) => {
+        // Preserve full media object with ID for deletion tracking
+        if (mediaItem.id) {
+          existingMediaItems.push({
+            id: mediaItem.id,
+            url: mediaItem.url,
+            type: mediaItem.type || 'unknown',
+            isPrimary: mediaItem.isPrimary
+          });
+        }
+
+        // Also maintain the existing URL arrays for backward compatibility
         if (mediaItem.type?.startsWith('image/')) {
           imageUrls.push(mediaItem.url);
         } else if (mediaItem.type?.startsWith('video/') || 
@@ -190,7 +202,9 @@ export class ListingDataService {
       })),
               status: (listing.status as 'active' | 'pending' | 'sold' | 'expired') || 'active',
       existingImageUrls: imageUrls,
-      existingVideoUrls: videoUrls.filter(url => url.includes('youtube'))
+      existingVideoUrls: videoUrls.filter(url => url.includes('youtube')),
+      existingMediaItems: existingMediaItems,
+      mediaToDelete: [] // Initialize empty array for tracking deletions
     };
 
     console.log('[ListingDataService] Transformation complete:', {

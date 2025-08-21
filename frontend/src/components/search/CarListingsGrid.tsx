@@ -98,7 +98,8 @@ const CarListingsGrid: React.FC<CarListingsGridProps> = ({
             media: listing.media?.map(m => ({
               url: m.url,
               isPrimary: m.isPrimary,
-              contentType: m.contentType
+              contentType: m.contentType,
+              type: m.mediaType || (m.contentType?.toLowerCase().includes('video') ? 'video' : 'image')
             }))
           };
 

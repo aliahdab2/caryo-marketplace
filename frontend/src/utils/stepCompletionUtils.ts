@@ -43,7 +43,10 @@ export function calculateStepCompletion(
     // Special handling for different field types
     if (field === 'images') {
       // Images field should be an array with at least one item
-      hasValue = Array.isArray(value) && value.length > 0;
+      // For edit mode, also check existingImageUrls
+      const hasImages = Array.isArray(value) && value.length > 0;
+      const hasExistingImages = Array.isArray(formData.existingImageUrls) && formData.existingImageUrls.length > 0;
+      hasValue = hasImages || hasExistingImages;
     } else if (typeof value === 'string') {
       // String fields - check if not empty after trimming
       hasValue = value.trim().length > 0;

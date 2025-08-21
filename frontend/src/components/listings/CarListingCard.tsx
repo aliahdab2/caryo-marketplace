@@ -7,9 +7,10 @@ import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { formatNumber } from '@/utils/localization';
 import { timeAgo } from '@/utils/dateUtils';
 import FavoriteButton from '@/components/common/FavoriteButton';
-import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
+import { transformMinioUrl, getDefaultImageUrl, processVideoForGallery } from '@/utils/mediaUtils';
 import { useLanguageDirection } from '@/utils/languageDirection';
 import YearBadge from '@/components/ui/YearBadge';
+import { Play } from 'lucide-react';
 
 // Move namespaces outside component to prevent recreation on every render
 const COMMON_NAMESPACES = ['common', 'search'];
@@ -119,9 +120,60 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
     return fuelType;
   };
 
-  // Get the primary image or fallback to first image
-  const primaryImage = listing.media?.find(m => m.isPrimary)?.url || listing.media?.[0]?.url;
-  const imageUrl = primaryImage ? transformMinioUrl(primaryImage) : getDefaultImageUrl();
+  // Helper function to check if media item is a video
+  const isVideoMedia = (mediaItem: { url: string; type?: string; contentType?: string }): boolean => {
+    if (mediaItem.type?.toLowerCase().includes('video') || 
+        mediaItem.contentType?.toLowerCase().includes('video')) return true;
+    
+    // Check if it's a YouTube URL
+    try {
+      const urlObj = new URL(mediaItem.url);
+      return urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be');
+    } catch {
+      return false;
+    }
+  };
+
+  // Helper function to get display media (prioritize images, show video if no images)
+  const getDisplayMedia = (media: CarListingCardData['media']) => {
+    if (!media || media.length === 0) return null;
+    
+    // First try to find a primary image
+    const primaryImage = media.find(item => item.isPrimary && !isVideoMedia(item));
+    if (primaryImage) {
+      return { ...primaryImage, isVideo: false };
+    }
+    
+    // Then try to find any image
+    const imageMedia = media.find(item => !isVideoMedia(item));
+    if (imageMedia) {
+      return { ...imageMedia, isVideo: false };
+    }
+    
+    // If no images, use the first video with thumbnail
+    const videoMedia = media.find(item => isVideoMedia(item));
+    if (videoMedia) {
+      // For videos, use enhanced processing
+      const videoInfo = processVideoForGallery(videoMedia.url);
+      const displayUrl = videoInfo.thumbnailUrl || videoMedia.url;
+      return { ...videoMedia, url: displayUrl, isVideo: true };
+    }
+    
+    // Fallback to first media item
+    const firstMedia = media[0];
+    const isVideo = isVideoMedia(firstMedia);
+    let displayUrl = firstMedia.url;
+    
+    // For videos, use enhanced processing
+    if (isVideo) {
+      const videoInfo = processVideoForGallery(firstMedia.url);
+      displayUrl = videoInfo.thumbnailUrl || firstMedia.url;
+    }
+    
+    return { ...firstMedia, url: displayUrl, isVideo };
+  };
+
+  const displayMedia = getDisplayMedia(listing.media);
 
   return (
     <div className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -141,7 +193,7 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
         {/* Image */}
         <div className="relative h-48 w-full overflow-hidden">
           <Image
-            src={imageUrl}
+            src={displayMedia ? transformMinioUrl(displayMedia.url) : getDefaultImageUrl()}
             alt={listing.title}
             className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
             fill
@@ -151,6 +203,14 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
               e.currentTarget.src = getDefaultImageUrl();
             }}
           />
+          {/* Video Play Icon Overlay */}
+          {displayMedia?.isVideo && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+              <div className="bg-white bg-opacity-90 rounded-full p-3 shadow-lg">
+                <Play className="w-6 h-6 text-gray-800" fill="currentColor" />
+              </div>
+            </div>
+          )}
           
           {/* Year Badge */}
           <YearBadge 

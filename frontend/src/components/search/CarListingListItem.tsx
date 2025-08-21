@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MdLocationOn, MdLocalGasStation, MdSettings, MdDateRange } from 'react-icons/md';
+import { Play } from 'lucide-react';
 import FavoriteButton from '@/components/common/FavoriteButton';
 import { CarListingCardData } from '@/components/listings/CarListingCard';
 import { transformMinioUrl } from '@/utils/mediaUtils';
@@ -93,7 +94,47 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
 
 
 
-  const primaryImage = listing.media?.find(m => m.isPrimary)?.url || listing.media?.[0]?.url;
+  // Helper function to check if media item is a video
+  const isVideoMedia = (mediaItem: { url: string; type?: string; contentType?: string }): boolean => {
+    if (mediaItem.type?.toLowerCase().includes('video') || 
+        mediaItem.contentType?.toLowerCase().includes('video')) return true;
+    
+    // Check if it's a YouTube URL
+    try {
+      const urlObj = new URL(mediaItem.url);
+      return urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be');
+    } catch {
+      return false;
+    }
+  };
+
+  // Helper function to get display media (prioritize images, show video if no images)
+  const getDisplayMedia = (media: CarListingCardData['media']) => {
+    if (!media || media.length === 0) return null;
+    
+    // First try to find a primary image
+    const primaryImage = media.find(item => item.isPrimary && !isVideoMedia(item));
+    if (primaryImage) {
+      return { ...primaryImage, isVideo: false };
+    }
+    
+    // Then try to find any image
+    const imageMedia = media.find(item => !isVideoMedia(item));
+    if (imageMedia) {
+      return { ...imageMedia, isVideo: false };
+    }
+    
+    // If no images, use the first video
+    const videoMedia = media.find(item => isVideoMedia(item));
+    if (videoMedia) {
+      return { ...videoMedia, isVideo: true };
+    }
+    
+    // Fallback to first media item
+    return { ...media[0], isVideo: isVideoMedia(media[0]) };
+  };
+
+  const displayMedia = getDisplayMedia(listing.media);
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-100/60 dark:border-gray-800/60 transition-all duration-500 overflow-hidden group hover:shadow-xl hover:shadow-blue-500/10 dark:hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-800 hover:-translate-y-1">
@@ -102,12 +143,20 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
           {/* Image & Favorite */}
           <div className="relative w-full lg:w-72 h-48 lg:h-52 flex-shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700">
             <Image
-              src={primaryImage ? transformMinioUrl(primaryImage) : '/images/logo.png'}
+              src={displayMedia ? transformMinioUrl(displayMedia.url) : '/images/logo.png'}
               alt={listing.title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
               unoptimized
             />
+            {/* Video Play Icon Overlay */}
+            {displayMedia?.isVideo && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                <div className="bg-white bg-opacity-90 rounded-full p-3 shadow-lg">
+                  <Play className="w-6 h-6 text-gray-800" fill="currentColor" />
+                </div>
+              </div>
+            )}
             {/* Gradient overlay for better text contrast */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             
