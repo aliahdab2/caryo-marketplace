@@ -42,7 +42,6 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   const [newPreviewUrls, setNewPreviewUrls] = useState<string[]>([]);
 
   const existingImages = useMemo(() => formData.existingImageUrls || [], [formData.existingImageUrls]);
-  const existingMediaItems = useMemo(() => formData.existingMediaItems || [], [formData.existingMediaItems]);
   const imagePreviewUrls = useMemo(() => {
     return [...existingImages, ...newPreviewUrls];
   }, [existingImages, newPreviewUrls]);
@@ -341,24 +340,9 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                   onClick={(e) => {
                     e.stopPropagation();
                     if (index < existingImages.length) {
-                      // Removing an existing image - track for deletion
-                      const mediaItemToDelete = existingMediaItems.find(item => item.url === existingImages[index]);
                       const updatedExisting = existingImages.filter((_, i) => i !== index);
-                      const updatedMediaItems = existingMediaItems.filter(item => item.url !== existingImages[index]);
-                      
-                      // Add to deletion list if we have the media ID
-                      const updatedMediaToDelete = [...(formData.mediaToDelete || [])];
-                      if (mediaItemToDelete?.id) {
-                        updatedMediaToDelete.push(mediaItemToDelete.id);
-                      }
-                      
-                      onFormDataChange({ 
-                        existingImageUrls: updatedExisting,
-                        existingMediaItems: updatedMediaItems,
-                        mediaToDelete: updatedMediaToDelete
-                      });
+                      onFormDataChange({ existingImageUrls: updatedExisting });
                     } else {
-                      // Removing a new image - just remove from arrays
                       const newIdx = index - existingImages.length;
                       const updated = (formData.images || []).filter((_, i) => i !== newIdx);
                       const toRevoke = newPreviewUrls[newIdx];
