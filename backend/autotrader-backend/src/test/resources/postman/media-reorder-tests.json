@@ -1,0 +1,520 @@
+{
+  "info": {
+    "name": "AutoTrader API - Media Reorder Tests",
+    "description": "Tests for the media reordering functionality",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Setup - Create Test User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"User created successfully\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{test_username}}\",\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/signup",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "signup"]
+        }
+      }
+    },
+    {
+      "name": "Setup - Login Test User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Login successful\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.accessToken).to.exist;",
+              "    pm.collectionVariables.set(\"auth_token\", response.accessToken);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{test_username}}\",\n  \"password\": \"{{test_password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/signin",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "signin"]
+        }
+      }
+    },
+    {
+      "name": "Setup - Create Test Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Listing created successfully\", function () {",
+              "    pm.response.to.have.status(201);",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.id).to.exist;",
+              "    pm.collectionVariables.set(\"test_listing_id\", response.id);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Test Car for Media Reorder\",\n  \"modelId\": 1,\n  \"transmissionId\": 1,\n  \"fuelTypeId\": 1,\n  \"bodyStyleId\": 1,\n  \"modelYear\": 2020,\n  \"price\": 25000,\n  \"currency\": \"USD\",\n  \"mileage\": 50000,\n  \"locationId\": 1,\n  \"description\": \"Test listing for media reordering tests\",\n  \"contactName\": \"Test User\",\n  \"contactEmail\": \"test@example.com\",\n  \"contactPhone\": \"+1-555-123-4567\",\n  \"contactPreference\": \"email\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/listings",
+          "host": ["{{base_url}}"],
+          "path": ["api", "listings"]
+        }
+      }
+    },
+    {
+      "name": "Setup - Upload Test Images",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Images uploaded successfully\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Store media IDs for reordering tests",
+              "pm.test(\"Extract media IDs\", function () {",
+              "    const response = pm.response.json();",
+              "    if (response.media && response.media.length >= 3) {",
+              "        pm.collectionVariables.set(\"media_id_1\", response.media[0].id);",
+              "        pm.collectionVariables.set(\"media_id_2\", response.media[1].id);",
+              "        pm.collectionVariables.set(\"media_id_3\", response.media[2].id);",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "test-image-1.jpg"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/listings/{{test_listing_id}}/upload-image",
+          "host": ["{{base_url}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "upload-image"]
+        }
+      }
+    },
+    {
+      "name": "Media Reorder - Success Case",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Media reordered successfully\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response contains updated listing\", function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.id).to.exist;",
+              "    pm.expect(response.media).to.be.an('array');",
+              "});",
+              "",
+              "pm.test(\"Media items are in correct order\", function () {",
+              "    const response = pm.response.json();",
+              "    if (response.media && response.media.length >= 2) {",
+              "        // Verify the sort order matches our request",
+              "        const sortedMedia = response.media.sort((a, b) => a.sortOrder - b.sortOrder);",
+              "        pm.expect(sortedMedia[0].sortOrder).to.equal(0);",
+              "        pm.expect(sortedMedia[1].sortOrder).to.equal(1);",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\n  {\n    \"id\": {{media_id_2}},\n    \"sortOrder\": 0\n  },\n  {\n    \"id\": {{media_id_1}},\n    \"sortOrder\": 1\n  }\n]"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/listings/{{test_listing_id}}/media/order",
+          "host": ["{{base_url}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "media", "order"]
+        }
+      }
+    },
+    {
+      "name": "Media Reorder - Empty Array",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Empty array handled successfully\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response contains listing\", function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.id).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[]"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/listings/{{test_listing_id}}/media/order",
+          "host": ["{{base_url}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "media", "order"]
+        }
+      }
+    },
+    {
+      "name": "Media Reorder - Unauthorized (No Token)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Unauthorized access rejected\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\n  {\n    \"id\": {{media_id_1}},\n    \"sortOrder\": 0\n  }\n]"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/listings/{{test_listing_id}}/media/order",
+          "host": ["{{base_url}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "media", "order"]
+        }
+      }
+    },
+    {
+      "name": "Media Reorder - Listing Not Found",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Listing not found error\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test(\"Error message present\", function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.message).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\n  {\n    \"id\": {{media_id_1}},\n    \"sortOrder\": 0\n  }\n]"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/listings/999999/media/order",
+          "host": ["{{base_url}}"],
+          "path": ["api", "listings", "999999", "media", "order"]
+        }
+      }
+    },
+    {
+      "name": "Media Reorder - Invalid Media ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Invalid media ID rejected\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test(\"Error message indicates invalid media\", function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.message).to.include('belong');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\n  {\n    \"id\": 999999,\n    \"sortOrder\": 0\n  }\n]"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/listings/{{test_listing_id}}/media/order",
+          "host": ["{{base_url}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "media", "order"]
+        }
+      }
+    },
+    {
+      "name": "Media Reorder - Invalid JSON",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Invalid JSON rejected\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "invalid json content"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/listings/{{test_listing_id}}/media/order",
+          "host": ["{{base_url}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "media", "order"]
+        }
+      }
+    },
+    {
+      "name": "Media Reorder - Validation Error (Negative Sort Order)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Validation error for negative sort order\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\n  {\n    \"id\": {{media_id_1}},\n    \"sortOrder\": -1\n  }\n]"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/listings/{{test_listing_id}}/media/order",
+          "host": ["{{base_url}}"],
+          "path": ["api", "listings", "{{test_listing_id}}", "media", "order"]
+        }
+      }
+    },
+    {
+      "name": "Cleanup - Delete Test Listing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Listing deleted successfully\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/listings/{{test_listing_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "listings", "{{test_listing_id}}"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "test_username",
+      "value": "mediareordertest"
+    },
+    {
+      "key": "test_email",
+      "value": "mediareordertest@example.com"
+    },
+    {
+      "key": "test_password",
+      "value": "testpassword123"
+    },
+    {
+      "key": "auth_token",
+      "value": ""
+    },
+    {
+      "key": "test_listing_id",
+      "value": ""
+    },
+    {
+      "key": "media_id_1",
+      "value": ""
+    },
+    {
+      "key": "media_id_2",
+      "value": ""
+    },
+    {
+      "key": "media_id_3",
+      "value": ""
+    }
+  ]
+}

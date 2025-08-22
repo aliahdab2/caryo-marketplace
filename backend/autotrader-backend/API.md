@@ -1971,6 +1971,108 @@ To run all API tests automatically:
   }
   ```
 
+### Reorder Media Items
+
+- **Endpoint**: `PUT /api/listings/{listingId}/media/order`
+- **Access**: Authenticated owner of the listing
+- **Description**: Updates the sort order of multiple media items for a car listing. This allows users to reorder images and videos to change their display sequence.
+- **Authentication**: Required (JWT token)
+- **Content-Type**: `application/json`
+- **Parameters**:
+  - `listingId` (path parameter): ID of the car listing
+- **Request Body**: Array of media reorder objects
+  ```json
+  [
+    {
+      "id": 1,
+      "sortOrder": 2
+    },
+    {
+      "id": 2,
+      "sortOrder": 0
+    },
+    {
+      "id": 3,
+      "sortOrder": 1
+    }
+  ]
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": 123,
+    "title": "2024 Honda Civic",
+    "description": "Excellent condition",
+    "price": 25000,
+    "currency": "USD",
+    "media": [
+      {
+        "id": 2,
+        "url": "https://storage.example.com/listings/123/image2.jpg",
+        "contentType": "image/jpeg",
+        "sortOrder": 0,
+        "isPrimary": true
+      },
+      {
+        "id": 3,
+        "url": "https://storage.example.com/listings/123/image3.jpg",
+        "contentType": "image/jpeg",
+        "sortOrder": 1,
+        "isPrimary": false
+      },
+      {
+        "id": 1,
+        "url": "https://storage.example.com/listings/123/image1.jpg",
+        "contentType": "image/jpeg",
+        "sortOrder": 2,
+        "isPrimary": false
+      }
+    ]
+  }
+  ```
+- **Response (400 Bad Request)**:
+  ```json
+  {
+    "message": "One or more media items do not belong to this listing"
+  }
+  ```
+- **Response (401 Unauthorized)**:
+  ```json
+  {
+    "message": "User must be logged in to reorder media"
+  }
+  ```
+- **Response (403 Forbidden)**:
+  ```json
+  {
+    "message": "You don't have permission to modify this listing"
+  }
+  ```
+- **Response (404 Not Found)**:
+  ```json
+  {
+    "message": "Listing not found"
+  }
+  ```
+
+**Usage Example:**
+```bash
+curl -X PUT http://localhost:8080/api/listings/123/media/order \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '[
+    {"id": 1, "sortOrder": 2},
+    {"id": 2, "sortOrder": 0},
+    {"id": 3, "sortOrder": 1}
+  ]'
+```
+
+**Notes:**
+- All media items in the request must belong to the specified listing
+- Sort order values should start from 0 and be sequential for best results
+- The first media item (sortOrder: 0) will be displayed as the primary image
+- Empty arrays are allowed and will not modify any media items
+
 #### Filter Listings (GET)
 - **Endpoint**: `GET /api/listings/filter`
 - **Access**: Public

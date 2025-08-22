@@ -42,6 +42,7 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   const [newPreviewUrls, setNewPreviewUrls] = useState<string[]>([]);
 
   const existingImages = useMemo(() => formData.existingImageUrls || [], [formData.existingImageUrls]);
+  const existingMediaItems = useMemo(() => formData.existingMediaItems || [], [formData.existingMediaItems]);
   const imagePreviewUrls = useMemo(() => {
     return [...existingImages, ...newPreviewUrls];
   }, [existingImages, newPreviewUrls]);
@@ -108,28 +109,41 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
     if (draggedImageIndex === null || draggedImageIndex === dropIndex) return;
 
     const existingCount = existingImages.length;
-    if (draggedImageIndex < existingCount || dropIndex < existingCount) {
+    
+    // Handle reordering existing images
+    if (draggedImageIndex < existingCount && dropIndex < existingCount) {
+      const reorderedExisting = [...existingImages];
+      const draggedUrl = reorderedExisting[draggedImageIndex];
+      reorderedExisting.splice(draggedImageIndex, 1);
+      reorderedExisting.splice(dropIndex, 0, draggedUrl);
+      
+      onFormDataChange({ existingImageUrls: reorderedExisting });
       setDraggedImageIndex(null);
       setDragOverImageIndex(null);
       return;
     }
-    const from = draggedImageIndex - existingCount;
-    const to = dropIndex - existingCount;
+    
+    // Handle reordering new images (existing logic)
+    if (draggedImageIndex >= existingCount && dropIndex >= existingCount) {
+      const from = draggedImageIndex - existingCount;
+      const to = dropIndex - existingCount;
 
-    const files = [...(formData.images || [])];
-    const previews = [...newPreviewUrls];
-    const draggedImage = files[from];
-    const draggedPreviewUrl = previews[from];
-    files.splice(from, 1);
-    previews.splice(from, 1);
-    files.splice(to, 0, draggedImage);
-    previews.splice(to, 0, draggedPreviewUrl);
+      const files = [...(formData.images || [])];
+      const previews = [...newPreviewUrls];
+      const draggedImage = files[from];
+      const draggedPreviewUrl = previews[from];
+      files.splice(from, 1);
+      previews.splice(from, 1);
+      files.splice(to, 0, draggedImage);
+      previews.splice(to, 0, draggedPreviewUrl);
 
-    onFormDataChange({ images: files });
-    setNewPreviewUrls(previews);
+      onFormDataChange({ images: files });
+      setNewPreviewUrls(previews);
+    }
+    
     setDraggedImageIndex(null);
     setDragOverImageIndex(null);
-  }, [draggedImageIndex, formData.images, newPreviewUrls, onFormDataChange, existingImages.length]);
+  }, [draggedImageIndex, formData.images, newPreviewUrls, onFormDataChange, existingImages]);
 
   const handleImageDragEnd = useCallback(() => {
     setDraggedImageIndex(null);
@@ -340,8 +354,22 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                   onClick={(e) => {
                     e.stopPropagation();
                     if (index < existingImages.length) {
+                      // Removing an existing image - track for deletion
+                      const mediaItemToDelete = existingMediaItems.find(item => item.url === existingImages[index]);
                       const updatedExisting = existingImages.filter((_, i) => i !== index);
-                      onFormDataChange({ existingImageUrls: updatedExisting });
+                      const updatedMediaItems = existingMediaItems.filter(item => item.url !== existingImages[index]);
+                      
+                      // Add to deletion list if we have the media ID
+                      const updatedMediaToDelete = [...(formData.mediaToDelete || [])];
+                      if (mediaItemToDelete?.id) {
+                        updatedMediaToDelete.push(mediaItemToDelete.id);
+                      }
+                      
+                      onFormDataChange({ 
+                        existingImageUrls: updatedExisting,
+                        existingMediaItems: updatedMediaItems,
+                        mediaToDelete: updatedMediaToDelete
+                      });
                     } else {
                       const newIdx = index - existingImages.length;
                       const updated = (formData.images || []).filter((_, i) => i !== newIdx);

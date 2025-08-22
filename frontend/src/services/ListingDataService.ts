@@ -204,7 +204,8 @@ export class ListingDataService {
       existingImageUrls: imageUrls,
       existingVideoUrls: videoUrls.filter(url => url.includes('youtube')),
       existingMediaItems: existingMediaItems,
-      mediaToDelete: [] // Initialize empty array for tracking deletions
+      mediaToDelete: [], // Initialize empty array for tracking deletions
+      originalImageOrder: [...imageUrls] // Store original order for comparison
     };
 
     console.log('[ListingDataService] Transformation complete:', {

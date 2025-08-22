@@ -1232,6 +1232,50 @@ public class CarListingController {
         }
     }
 
+    @PutMapping("/{id}/media/order")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        summary = "Reorder media items for a car listing",
+        description = "Updates the sort order of multiple media items for a car listing. Only the owner of the listing can reorder media items. The request body should contain an array of media items with their new sort orders.",
+        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Media items reordered successfully", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input - media items don't belong to listing"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden (not owner)"),
+            @ApiResponse(responseCode = "404", description = "Listing not found")
+        }
+    )
+    public ResponseEntity<?> reorderMedia(
+            @Parameter(description = "ID of the listing to reorder media for", required = true) 
+            @PathVariable("id") Long id,
+            @Parameter(description = "Array of media items with their new sort orders", required = true)
+            @Valid @RequestBody List<com.autotrader.autotraderbackend.payload.request.MediaReorderRequest> reorderRequests,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        try {
+            log.info("User {} attempting to reorder media for listing ID {}", userDetails.getUsername(), id);
+            CarListingResponse response = carListingService.reorderMedia(id, reorderRequests, userDetails.getUsername());
+            log.info("Successfully reordered {} media items for listing ID {} by user {}", 
+                    reorderRequests.size(), id, userDetails.getUsername());
+            return ResponseEntity.ok(response);
+        } catch (ResourceNotFoundException e) {
+            log.warn("Media reorder failed for listing ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        } catch (SecurityException e) {
+            log.warn("User {} not authorized to reorder media for listing ID {}: {}", 
+                    userDetails.getUsername(), id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid media reorder request for listing ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Unexpected error during media reorder for listing ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "An unexpected error occurred while reordering media"));
+        }
+    }
+
 }
 
 

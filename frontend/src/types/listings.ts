@@ -320,6 +320,7 @@ export interface ListingFormData {
   existingVideoUrls?: string[]; // URLs of existing videos (for edit mode)
   existingMediaItems?: Array<{ id: number; url: string; type: string; isPrimary?: boolean }>; // Full media objects with IDs for deletion tracking
   mediaToDelete?: number[]; // IDs of media items to delete
+  originalImageOrder?: string[]; // Original order of image URLs for comparison
   status: 'active' | 'expired' | 'pending' | 'sold' | '';
   created?: string;
   expires?: string;

@@ -3,6 +3,7 @@ import { ListingFormData, UpdateListingData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
 import { createListing, updateListing, uploadListingImage } from '@/services/listings';
 import { addExternalVideoToListing } from '@/services/videoService';
+import { hasImageOrderChanged, getImageReorderMapping, reorderMediaItems } from '@/services/mediaService';
 
 type ValidationMode = 'final' | 'navigation' | 'accessibility';
 
@@ -137,6 +138,33 @@ export function useListingSubmission({
           for (let i = 0; i < newImages.length; i++) {
             const image = newImages[i] as File;
             await uploadListingImage(listingId, image);
+          }
+        }
+
+        // Handle image reordering if the order has changed
+        if (formData.originalImageOrder && formData.existingImageUrls && formData.existingMediaItems) {
+          const orderChanged = hasImageOrderChanged(formData.originalImageOrder, formData.existingImageUrls);
+          
+          if (orderChanged) {
+            console.log('[Edit Mode] Image order changed, reordering media items');
+            try {
+              const reorderMapping = getImageReorderMapping(
+                formData.originalImageOrder,
+                formData.existingImageUrls,
+                formData.existingMediaItems
+              );
+              
+              if (reorderMapping.length > 0) {
+                await reorderMediaItems(listingId, reorderMapping);
+                console.log(`[Edit Mode] Successfully reordered ${reorderMapping.length} media items`);
+              }
+            } catch (reorderError) {
+              console.error('Failed to reorder media items:', reorderError);
+              // Don't fail the entire listing update for reordering errors
+              // The user can try reordering again later
+            }
+          } else {
+            console.log('[Edit Mode] Image order unchanged, skipping reorder');
           }
         }
 

@@ -1528,4 +1528,62 @@ public class CarListingService {
         
         return modified;
     }
+
+    /**
+     * Reorder media items for a car listing.
+     * Updates the sortOrder of multiple media items in a single transaction.
+     *
+     * @param listingId The ID of the car listing
+     * @param reorderRequests List of media items with their new sort orders
+     * @param username The username of the user making the request
+     * @return The updated car listing response
+     * @throws ResourceNotFoundException if the listing is not found
+     * @throws SecurityException if the user is not authorized to modify the listing
+     * @throws IllegalArgumentException if any media item doesn't belong to the listing
+     */
+    @Transactional
+    public CarListingResponse reorderMedia(Long listingId, List<com.autotrader.autotraderbackend.payload.request.MediaReorderRequest> reorderRequests, String username) {
+        Objects.requireNonNull(listingId, "Listing ID cannot be null");
+        Objects.requireNonNull(reorderRequests, "Reorder requests cannot be null");
+        if (StringUtils.isBlank(username)) {
+            throw new IllegalArgumentException("Username cannot be blank");
+        }
+
+        log.info("Reordering media for listing ID: {} by user: {}", listingId, username);
+        
+        // Find the listing and validate ownership
+        CarListing listing = findListingById(listingId);
+        User user = findUserByUsername(username);
+        authorizeListingModification(listing, user, "reorder media for");
+
+        // Validate that all media items belong to this listing
+        List<Long> mediaIds = reorderRequests.stream()
+                .map(com.autotrader.autotraderbackend.payload.request.MediaReorderRequest::getId)
+                .toList();
+        
+        List<ListingMedia> mediaItems = listing.getMedia().stream()
+                .filter(media -> mediaIds.contains(media.getId()))
+                .toList();
+        
+        if (mediaItems.size() != mediaIds.size()) {
+            throw new IllegalArgumentException("One or more media items do not belong to this listing");
+        }
+
+        // Update sort orders
+        for (com.autotrader.autotraderbackend.payload.request.MediaReorderRequest request : reorderRequests) {
+            ListingMedia mediaItem = mediaItems.stream()
+                    .filter(media -> media.getId().equals(request.getId()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Media item with ID " + request.getId() + " not found"));
+            
+            mediaItem.setSortOrder(request.getSortOrder());
+            log.debug("Updated media ID {} to sort order {}", request.getId(), request.getSortOrder());
+        }
+
+        // Save the listing (cascade will save media items)
+        CarListing updatedListing = carListingRepository.save(listing);
+        log.info("Successfully reordered {} media items for listing ID: {}", reorderRequests.size(), listingId);
+        
+        return carListingMapper.toCarListingResponse(updatedListing);
+    }
 }

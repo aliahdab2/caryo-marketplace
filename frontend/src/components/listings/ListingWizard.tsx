@@ -201,6 +201,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
     existingVideoUrls: initialData.existingVideoUrls || [],
     existingMediaItems: initialData.existingMediaItems || [],
     mediaToDelete: initialData.mediaToDelete || [],
+    originalImageOrder: initialData.originalImageOrder || [],
     status: initialData.status || 'active'
   }));
 
@@ -378,6 +379,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
           existingVideoUrls: loadedData.existingVideoUrls || prevFormData.existingVideoUrls || [],
           existingMediaItems: loadedData.existingMediaItems || prevFormData.existingMediaItems || [],
           mediaToDelete: loadedData.mediaToDelete || prevFormData.mediaToDelete || [],
+          originalImageOrder: loadedData.originalImageOrder || prevFormData.originalImageOrder || [],
           features: loadedData.features || prevFormData.features || []
         }));
         if (mode === 'edit' && !initialSnapshotRef.current) {
