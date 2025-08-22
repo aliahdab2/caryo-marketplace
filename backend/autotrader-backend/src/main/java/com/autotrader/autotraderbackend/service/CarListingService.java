@@ -1569,15 +1569,17 @@ public class CarListingService {
             throw new IllegalArgumentException("One or more media items do not belong to this listing");
         }
 
-        // Update sort orders
+                // Update sort orders with validation
         for (com.autotrader.autotraderbackend.payload.request.MediaReorderRequest request : reorderRequests) {
             ListingMedia mediaItem = mediaItems.stream()
                     .filter(media -> media.getId().equals(request.getId()))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Media item with ID " + request.getId() + " not found"));
-            
+
+            Integer oldSortOrder = mediaItem.getSortOrder();
             mediaItem.setSortOrder(request.getSortOrder());
-            log.debug("Updated media ID {} to sort order {}", request.getId(), request.getSortOrder());
+            log.debug("Updated media ID {} from sort order {} to {}", 
+                     request.getId(), oldSortOrder, request.getSortOrder());
         }
 
         // Save the listing (cascade will save media items)

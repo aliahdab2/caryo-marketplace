@@ -97,6 +97,38 @@ export function processVideoForGallery(url: string): VideoProcessingResult {
   };
 }
 
+/**
+ * Checks if a URL is likely an uploaded video file based on file extension
+ */
+export function isUploadedVideoFile(url: string): boolean {
+  if (!url || typeof url !== 'string') return false;
+  
+  const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.wmv', '.flv', '.mkv', '.m4v', '.3gp'];
+  const lowerUrl = url.toLowerCase();
+  
+  return videoExtensions.some(ext => lowerUrl.includes(ext));
+}
+
+/**
+ * Gets the appropriate MIME type for a video URL
+ */
+export function getVideoMimeType(url: string): string {
+  if (!url || typeof url !== 'string') return 'video/mp4';
+  
+  const lowerUrl = url.toLowerCase();
+  
+  if (lowerUrl.includes('.webm')) return 'video/webm';
+  if (lowerUrl.includes('.mov') || lowerUrl.includes('.quicktime')) return 'video/quicktime';
+  if (lowerUrl.includes('.avi')) return 'video/x-msvideo';
+  if (lowerUrl.includes('.wmv')) return 'video/x-ms-wmv';
+  if (lowerUrl.includes('.flv')) return 'video/x-flv';
+  if (lowerUrl.includes('.mkv')) return 'video/x-matroska';
+  if (lowerUrl.includes('.3gp')) return 'video/3gpp';
+  
+  // Default to MP4
+  return 'video/mp4';
+}
+
 
 
 

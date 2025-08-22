@@ -9,6 +9,16 @@ export interface MediaReorderItem {
  */
 export async function reorderMediaItems(listingId: string, items: MediaReorderItem[]): Promise<void> {
   try {
+    // Validate inputs
+    if (!listingId || !items || !Array.isArray(items)) {
+      throw new Error('Invalid parameters: listingId and items array are required');
+    }
+
+    if (items.length === 0) {
+      console.log('No items to reorder, skipping API call');
+      return;
+    }
+
     // Import getSession at runtime to avoid SSR issues
     const { getSession } = await import('next-auth/react');
     const session = await getSession();
@@ -17,9 +27,11 @@ export async function reorderMediaItems(listingId: string, items: MediaReorderIt
       throw new Error('You need to log in to reorder media');
     }
     
-    console.log('Reordering media items:', { listingId, items });
+    console.log('Reordering media items:', { listingId, itemCount: items.length, items });
     
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/${listingId}/media/order`, {
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/${listingId}/media/order`;
+    
+    const response = await fetch(apiUrl, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -29,8 +41,16 @@ export async function reorderMediaItems(listingId: string, items: MediaReorderIt
     });
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to reorder media: ${response.status}`);
+      let errorMessage = `Failed to reorder media: ${response.status} ${response.statusText}`;
+      
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch (parseError) {
+        console.warn('Could not parse error response:', parseError);
+      }
+      
+      throw new Error(errorMessage);
     }
     
     console.log('Media reordered successfully');

@@ -215,9 +215,9 @@ export async function getCarListingsForSavedSearch(
       governorateNameAr: listing.governorateNameAr,
       media: (listing.media || []).map(m => ({
         url: m.url,
-        type: m.type,
-        isPrimary: undefined,
-        contentType: undefined
+        type: m.mediaType === 'video' ? 'video' : 'image',
+        isPrimary: m.isPrimary,
+        contentType: m.contentType
       }))
     }));
     

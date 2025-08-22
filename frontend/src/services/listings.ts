@@ -986,6 +986,11 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       },
       currency: 'SAR'
     };
+
+    // Clear cache since a new listing has been created
+    clearMyListingsCache();
+    
+    return listing;
   } catch (error) {
     console.error('[Create Listing] Error:', error);
     if (error instanceof ApiError) {
@@ -1090,6 +1095,63 @@ export async function uploadListingImage(listingId: string | number, imageFile: 
   } catch (error) {
     console.error('[Upload Image] Error:', error);
     throw error instanceof ApiError ? error : new ApiError('Failed to upload image', 500);
+  }
+}
+
+// Upload video for an existing listing
+export async function uploadListingVideo(listingId: string | number, videoFile: File): Promise<{ message: string; videoKey: string }> {
+  try {
+    // Import getSession at runtime to avoid SSR issues
+    const { getSession } = await import('next-auth/react');
+    const session = await getSession();
+    
+    if (!session?.accessToken) {
+      throw new ApiError('You need to log in to upload videos', 401);
+    }
+    
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('file', videoFile, videoFile.name);
+    
+    // Use fetch directly for file upload
+    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/${listingId}/upload-video`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.accessToken}`
+        // Do NOT set Content-Type - let browser set it with boundary for multipart/form-data
+      },
+      body: formData,
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[Upload Video] HTTP ${response.status}:`, errorText);
+      
+      switch (response.status) {
+        case 401:
+          throw new ApiError('You need to log in to upload videos', 401);
+        case 403:
+          throw new ApiError('You do not have permission to upload videos for this listing', 403);
+        case 404:
+          throw new ApiError('Listing not found', 404);
+        case 413:
+          throw new ApiError('Video file is too large', 413);
+        case 415:
+          throw new ApiError('Video format not supported. Please use MP4, WebM, or MOV', 415);
+        default:
+          throw new ApiError(`Failed to upload video: ${errorText}`, response.status);
+      }
+    }
+    
+    const result = await response.json();
+    console.log('[Upload Video] Success:', result);
+    return result;
+  } catch (error) {
+    console.error('[Upload Video] Error:', error);
+    throw error instanceof ApiError ? error : new ApiError('Failed to upload video', 500);
   }
 }
 

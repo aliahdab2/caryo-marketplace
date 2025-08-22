@@ -79,7 +79,18 @@ export interface GovernorateResponse {
 export interface ListingMediaResponse {
   id: number;
   url: string;
-  type: string;
+  fileKey: string;
+  fileName: string;
+  contentType: string;
+  size: number;
+  sortOrder: number;
+  isPrimary: boolean;
+  mediaType: string;
+  
+  // Video-specific fields
+  videoSource?: string;        // 'upload', 'youtube', 'vimeo', 'external'
+  externalUrl?: string;        // External video URL for YouTube, Vimeo, etc.
+  durationSeconds?: number;    // Video duration in seconds
 }
 
 export interface CarListingFilterParams {

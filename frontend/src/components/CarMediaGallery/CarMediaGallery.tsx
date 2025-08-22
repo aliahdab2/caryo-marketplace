@@ -15,7 +15,7 @@ import { useLanguageDirection } from '@/utils/languageDirection';
 import { useTranslation } from 'react-i18next';
 
 // Media utilities
-import { processVideoForGallery } from '@/utils/mediaUtils';
+import { processVideoForGallery, getVideoMimeType } from '@/utils/mediaUtils';
 
 // Constants
 const SWIPE_THRESHOLD = 50;
@@ -228,7 +228,10 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
     if (!item.url) {
       return (
         <div className="w-full h-full flex items-center justify-center bg-gray-100">
-          <p className="text-gray-500">Video unavailable</p>
+          <div className="text-center">
+            <Video className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+            <p className="text-gray-500">Video unavailable</p>
+          </div>
         </div>
       );
     }
@@ -239,7 +242,11 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
       if (!embedUrl) {
         return (
           <div className="w-full h-full flex items-center justify-center bg-gray-100">
-            <p className="text-gray-500">Invalid YouTube URL</p>
+            <div className="text-center">
+              <Video className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+              <p className="text-gray-500">Invalid YouTube URL</p>
+              <p className="text-xs text-gray-400 mt-1">Please check the video link</p>
+            </div>
           </div>
         );
       }
@@ -265,14 +272,23 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
       );
     }
 
+    // Handle uploaded video files
     return (
-      <div className="w-full h-full flex items-center justify-center">
+      <div className="w-full h-full flex items-center justify-center bg-black">
         <video
           src={item.url}
           controls
           className="w-full h-full object-contain"
           preload="metadata"
+          controlsList="nodownload"
+          onError={(e) => {
+            console.error('Video loading error:', e);
+          }}
+          onLoadStart={() => {
+            console.log('Video loading started:', item.url);
+          }}
         >
+          <source src={item.url} type={getVideoMimeType(item.url)} />
           Your browser does not support the video tag.
         </video>
       </div>

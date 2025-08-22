@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { MdDirectionsCar } from 'react-icons/md';
 import { Play } from 'lucide-react';
-import { CarListing } from '@/services/publicApi';
+import { CarListing, ListingMediaResponse } from '@/services/publicApi';
 import { transformMinioUrl } from '@/utils/mediaUtils';
 import ViewModeToggle, { ViewMode } from '@/components/search/ViewModeToggle';
 import CarListingListItem from '@/components/search/CarListingListItem';
@@ -27,16 +27,25 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   // Helper function to check if media item is a video
-  const isVideoMedia = (mediaItem: { url: string; type: string }): boolean => {
-    if (mediaItem.type?.toLowerCase().includes('video')) return true;
+  const isVideoMedia = (mediaItem: ListingMediaResponse): boolean => {
+    // Check mediaType first (preferred method)
+    if (mediaItem.mediaType?.toLowerCase() === 'video') return true;
     
-    // Check if it's a YouTube URL
-    try {
-      const urlObj = new URL(mediaItem.url);
-      return urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be');
-    } catch {
-      return false;
+    // Check videoSource
+    if (mediaItem.videoSource === 'upload' || mediaItem.videoSource === 'youtube') return true;
+    
+    // Check if it's a YouTube URL (fallback)
+    const urlToCheck = mediaItem.externalUrl || mediaItem.url;
+    if (urlToCheck) {
+      try {
+        const urlObj = new URL(urlToCheck);
+        return urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be');
+      } catch {
+        return false;
+      }
     }
+    
+    return false;
   };
 
   // Helper function to get display media (prioritize images, show video if no images)
@@ -119,8 +128,8 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                 governorateNameAr: car.locationDetails?.displayNameAr || car.governorateDetails?.displayNameAr || "غير معروف",
                 media: car.media?.map(m => ({
                   url: m.url,
-                  isPrimary: m.type === 'primary' || false,
-                  contentType: m.type,
+                  isPrimary: m.isPrimary || false,
+                  contentType: m.contentType,
                   type: isVideoMedia(m) ? 'video' : 'image'
                 }))
               };

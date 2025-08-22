@@ -27,20 +27,40 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
   // Convert listing media to CarMedia format using useMemo for performance
   const convertedMedia = useMemo(() => {
     const media: CarMedia[] = listing.media?.map(item => {
-      // Determine if this is a video based on type or URL
-              const isVideo = item.type?.toLowerCase().includes('video') || 
-                       processVideoForGallery(item.url).isYouTube;
+      // Determine if this is a video based on mediaType, videoSource, or URL
+      const isVideo = item.mediaType?.toLowerCase() === 'video' || 
+                     item.videoSource === 'upload' ||
+                     item.videoSource === 'youtube' ||
+                     processVideoForGallery(item.url || item.externalUrl || '').isYouTube;
 
-      // For videos, process with enhanced utility
+      // For videos, process with enhanced utility and handle different video sources
       let thumbnailUrl: string | undefined = undefined;
+      let videoUrl: string = '';
+      
       if (isVideo) {
-        const videoInfo = processVideoForGallery(item.url);
-        thumbnailUrl = videoInfo.thumbnailUrl || undefined;
+        if (item.videoSource === 'youtube' && item.externalUrl) {
+          // YouTube video - use external URL and generate thumbnail
+          videoUrl = item.externalUrl;
+          const videoInfo = processVideoForGallery(item.externalUrl);
+          thumbnailUrl = videoInfo.thumbnailUrl || undefined;
+        } else if (item.videoSource === 'upload' && item.url) {
+          // Uploaded video file - use direct URL
+          videoUrl = transformMinioUrl(item.url);
+          // For uploaded videos, we could generate a thumbnail in the future
+          // For now, we'll let the video element handle it
+        } else {
+          // Fallback: try to process as YouTube URL
+          videoUrl = transformMinioUrl(item.url || '');
+          const videoInfo = processVideoForGallery(videoUrl);
+          thumbnailUrl = videoInfo.thumbnailUrl || undefined;
+        }
+      } else {
+        videoUrl = transformMinioUrl(item.url || '');
       }
 
       return {
         type: isVideo ? 'video' : 'image',
-        url: transformMinioUrl(item.url),
+        url: videoUrl,
         alt: listing.title || (isVideo ? 'Car video' : 'Car image'),
         width: 800,
         height: 600,

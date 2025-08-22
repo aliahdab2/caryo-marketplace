@@ -283,14 +283,14 @@ describe('CarMediaGallery - Working Tests', () => {
       fireEvent.keyDown(document, { key: 'ArrowRight' });
       
       await waitFor(() => {
-        expect(screen.getByText('2 of 3')).toBeInTheDocument();
+        expect(screen.getByText('2 / 3')).toBeInTheDocument();
       });
       
       // Navigate with left arrow
       fireEvent.keyDown(document, { key: 'ArrowLeft' });
       
       await waitFor(() => {
-        expect(screen.getByText('1 of 3')).toBeInTheDocument();
+        expect(screen.getByText('1 / 3')).toBeInTheDocument();
       });
     });
   });
