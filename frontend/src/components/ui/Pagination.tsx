@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useCallback } from 'react';
-import { MdChevronLeft, MdChevronRight } from 'react-icons/md';
+import { MdChevronLeft, MdChevronRight, MdFirstPage, MdLastPage } from 'react-icons/md';
 import { useTranslation } from 'react-i18next';
 import type { PaginationProps } from '@/types/ui';
 
@@ -14,7 +14,8 @@ const Pagination: React.FC<PaginationProps> = ({
   showInfo = true,
   isRTL = false,
   className = '',
-  resultsText
+  resultsText,
+  scrollTargetSelector
 }) => {
   const { t } = useTranslation(['common', 'search']);
 
@@ -69,21 +70,58 @@ const Pagination: React.FC<PaginationProps> = ({
   }, [currentPage, totalPages]);
 
   // Memoize page change handlers to prevent unnecessary re-renders
+  const scrollIntoView = (behavior: ScrollBehavior = 'smooth') => {
+    const doScroll = () => {
+      if (scrollTargetSelector) {
+        const el = document.querySelector(scrollTargetSelector) as HTMLElement | null;
+        if (el) {
+          try {
+            el.scrollIntoView({ behavior, block: 'start', inline: 'nearest' });
+            return;
+          } catch {}
+        }
+      }
+      try {
+        window.scrollTo({ top: 0, behavior });
+      } catch {
+        window.scrollTo(0, 0);
+      }
+    };
+    // Defer to next frame(s) so new page content can render before scrolling
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => requestAnimationFrame(doScroll));
+    } else {
+      setTimeout(doScroll, 0);
+    }
+  };
+
   const handlePreviousPage = useCallback(() => {
     if (currentPage > 1) {
       onPageChange(currentPage - 1);
-      // Force scroll to top immediately
-      window.scrollTo(0, 0);
+      scrollIntoView('smooth');
     }
-  }, [currentPage, onPageChange]);
+  }, [currentPage, onPageChange, scrollTargetSelector]);
 
   const handleNextPage = useCallback(() => {
     if (currentPage < totalPages) {
       onPageChange(currentPage + 1);
-      // Force scroll to top immediately
-      window.scrollTo(0, 0);
+      scrollIntoView('smooth');
     }
-  }, [currentPage, totalPages, onPageChange]);
+  }, [currentPage, totalPages, onPageChange, scrollTargetSelector]);
+
+  const handleFirstPage = useCallback(() => {
+    if (currentPage !== 1) {
+      onPageChange(1);
+      scrollIntoView('smooth');
+    }
+  }, [currentPage, onPageChange, scrollTargetSelector]);
+
+  const handleLastPage = useCallback(() => {
+    if (currentPage !== totalPages) {
+      onPageChange(totalPages);
+      scrollIntoView('smooth');
+    }
+  }, [currentPage, totalPages, onPageChange, scrollTargetSelector]);
 
   const handlePageClick = useCallback((pageNumber: number) => {
     if (pageNumber !== currentPage) {
@@ -147,6 +185,30 @@ const Pagination: React.FC<PaginationProps> = ({
         aria-label={t('common:pagination', 'Pagination')}
         dir={isRTL ? 'rtl' : 'ltr'}
       >
+        {/* First page button */}
+        <button
+          onClick={handleFirstPage}
+          disabled={currentPage === 1}
+          className={`
+            relative inline-flex items-center justify-center
+            w-10 h-10 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md
+            hover:bg-gray-50 hover:text-gray-700 hover:border-gray-400
+            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-500 disabled:hover:border-gray-300
+            focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500
+            transition-all duration-200 ease-in-out
+            dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:hover:border-gray-500
+            shadow-sm hover:shadow-md active:scale-95
+          `}
+          aria-label={t('common:firstPage', 'First page')}
+          title={t('common:firstPage', 'First page')}
+        >
+          {isRTL ? (
+            <MdLastPage className="w-5 h-5" aria-hidden="true" />
+          ) : (
+            <MdFirstPage className="w-5 h-5" aria-hidden="true" />
+          )}
+        </button>
+
         {/* Previous button */}
         <button
           onClick={handlePreviousPage}
@@ -172,7 +234,7 @@ const Pagination: React.FC<PaginationProps> = ({
         </button>
 
         {/* Spacer */}
-        <div className={`${isRTL ? 'w-6 ml-6' : 'w-6 mr-6'}`} />
+        <div className={`${isRTL ? 'w-4 ml-4' : 'w-4 mr-4'}`} />
 
         {/* Page numbers container */}
         <div className={`flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700 ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
@@ -216,7 +278,7 @@ const Pagination: React.FC<PaginationProps> = ({
         </div>
 
         {/* Spacer */}
-        <div className={`${isRTL ? 'w-6 mr-6' : 'w-6 ml-6'}`} />
+        <div className={`${isRTL ? 'w-4 mr-4' : 'w-4 ml-4'}`} />
 
         {/* Next button */}
         <button
@@ -239,6 +301,30 @@ const Pagination: React.FC<PaginationProps> = ({
             <MdChevronLeft className="w-5 h-5" aria-hidden="true" />
           ) : (
             <MdChevronRight className="w-5 h-5" aria-hidden="true" />
+          )}
+        </button>
+
+        {/* Last page button */}
+        <button
+          onClick={handleLastPage}
+          disabled={currentPage === totalPages}
+          className={`
+            relative inline-flex items-center justify-center
+            w-10 h-10 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md
+            hover:bg-gray-50 hover:text-gray-700 hover:border-gray-400
+            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-500 disabled:hover:border-gray-300
+            focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500
+            transition-all duration-200 ease-in-out
+            dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:hover:border-gray-500
+            shadow-sm hover:shadow-md active:scale-95
+          `}
+          aria-label={t('common:lastPage', 'Last page')}
+          title={t('common:lastPage', 'Last page')}
+        >
+          {isRTL ? (
+            <MdFirstPage className="w-5 h-5" aria-hidden="true" />
+          ) : (
+            <MdLastPage className="w-5 h-5" aria-hidden="true" />
           )}
         </button>
       </nav>

@@ -76,6 +76,7 @@ export default function AdvancedSearchPage() {
   const prevFiltersRef = useRef<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [currentPage, setCurrentPage] = useState(0);
+  const shouldScrollAfterPageChange = useRef(false);
   
   // New state for all models (for makeModel filter modal)
   const [allModels, setAllModels] = useState<CarModel[]>([]);
@@ -532,6 +533,27 @@ export default function AdvancedSearchPage() {
       executeSearch(false);
     }
   }, [hasInitialized, listingFilters, executeSearch]);
+
+  // After listings load following a page change, scroll to results top (best practice: content-driven scroll)
+  useEffect(() => {
+    if (!hasInitialized) return;
+    if (!shouldScrollAfterPageChange.current) return;
+
+    // When new content present, focus and scroll into view for accessibility and stability
+    const target = document.getElementById('results-top');
+    if (target) {
+      // Focus for a11y
+      target.focus({ preventScroll: true } as unknown as FocusOptions);
+      // Scroll with margin offset handled via scroll-mt classes
+      try {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    shouldScrollAfterPageChange.current = false;
+  }, [enhancedCarListings, hasInitialized]);
 
   // Update URL when filters change (but not during initial load)
   useEffect(() => {
@@ -1296,7 +1318,7 @@ export default function AdvancedSearchPage() {
         </div>
 
         {/* Results Info */}
-        <div className="flex items-center justify-between mb-6" data-results-section>
+        <div id="results-top" tabIndex={-1} className="flex items-center justify-between mb-6 scroll-mt-24 md:scroll-mt-28" data-results-section>
           <div className="flex flex-col gap-3">
             {/* Sort Dropdown - Top row, left aligned */}
             <SortDropdown
@@ -1376,20 +1398,9 @@ export default function AdvancedSearchPage() {
               itemsPerPage={20}
               onPageChange={(page) => {
                 const newPage = page - 1; // Convert from 1-based to 0-based
+                shouldScrollAfterPageChange.current = true;
                 setCurrentPage(newPage);
                 updateUrlFromFilters(filters, newPage);
-                
-                // Force scroll to top using multiple methods
-                // Method 1: Direct scroll
-                window.scrollTo(0, 0);
-                
-                // Method 2: Smooth scroll
-                setTimeout(() => {
-                  window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                  });
-                }, 10);
               }}
               showInfo={true}
               isRTL={isRTL}
