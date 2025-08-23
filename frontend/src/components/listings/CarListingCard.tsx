@@ -176,7 +176,7 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
   const displayMedia = getDisplayMedia(listing.media);
 
   return (
-    <div className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out h-full flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Favorite Button */}
       <div className={`absolute top-2 ${isRTL ? 'left-2' : 'right-2'} z-10`} onClick={(e) => e.stopPropagation()}>
         <FavoriteButton
@@ -189,7 +189,7 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
         />
       </div>
 
-      <Link href={`/listings/${listing.id}`} className="block group">
+      <Link href={`/listings/${listing.id}`} className="flex flex-col h-full group">
         {/* Image */}
         <div className="relative h-48 w-full overflow-hidden">
           <Image
@@ -222,7 +222,7 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
         </div>
 
         {/* Content */}
-        <div className={`p-4 ${isRTL ? 'text-right' : 'text-left'}`}>
+        <div className={`p-4 flex-1 flex flex-col ${isRTL ? 'text-right' : 'text-left'}`}>
           <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
             {listing.title}
           </h3>
@@ -237,6 +237,9 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
             {listing.transmission && <div>{getTransmissionText(listing.transmission)}</div>}
             {listing.fuelType && <div>{getFuelTypeText(listing.fuelType)}</div>}
           </div>
+          
+          {/* Spacer to push location info to bottom */}
+          <div className="flex-1"></div>
           
           <div className="text-sm text-gray-500 dark:text-gray-400">
             {timeAgo(listing.createdAt, i18n.language)}
