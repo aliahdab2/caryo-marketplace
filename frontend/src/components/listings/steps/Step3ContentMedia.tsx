@@ -65,7 +65,7 @@ const Step3ContentMedia: React.FC<Step3ContentMediaProps> = ({
             aria-describedby="title-hint"
           />
           {/* Status icon */}
-          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+          <div className={`pointer-events-none absolute inset-y-0 ${isRTL ? 'left-3' : 'right-3'} flex items-center`}>
             {formErrors.title ? (
               <svg className="w-5 h-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
@@ -102,7 +102,7 @@ const Step3ContentMedia: React.FC<Step3ContentMediaProps> = ({
             aria-describedby="description-hint"
           />
           {/* Status icon */}
-          <div className="pointer-events-none absolute top-3 right-3 flex items-start">
+          <div className={`pointer-events-none absolute top-3 ${isRTL ? 'left-3' : 'right-3'} flex items-start`}>
             {formErrors.description ? (
               <svg className="w-5 h-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />

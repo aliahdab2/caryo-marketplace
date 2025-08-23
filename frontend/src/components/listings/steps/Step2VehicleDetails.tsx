@@ -78,7 +78,7 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
             className="w-full h-12 px-4 py-3 rounded-xl border-2 transition-colors duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           />
           {/* Status icon */}
-          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+          <div className={`pointer-events-none absolute inset-y-0 ${isRTL ? 'left-3' : 'right-3'} flex items-center`}>
             {formErrors.mileage ? (
               <svg className="w-5 h-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
@@ -119,7 +119,7 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
               aria-describedby="engine-hint"
             />
             {/* Status icon */}
-            <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+            <div className={`pointer-events-none absolute inset-y-0 ${isRTL ? 'left-3' : 'right-3'} flex items-center`}>
               {formData.engine ? (
                 <svg className="w-5 h-5 text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
@@ -200,7 +200,7 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
               aria-describedby="color-hint"
             />
             {/* Status icon */}
-            <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+            <div className={`pointer-events-none absolute inset-y-0 ${isRTL ? 'left-3' : 'right-3'} flex items-center`}>
               {formData.color ? (
                 <svg className="w-5 h-5 text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useCallback } from 'react';
-import { MdChevronLeft, MdChevronRight, MdFirstPage, MdLastPage } from 'react-icons/md';
+import { MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import { useTranslation } from 'react-i18next';
 import type { PaginationProps } from '@/types/ui';
 
@@ -100,28 +100,14 @@ const Pagination: React.FC<PaginationProps> = ({
       onPageChange(currentPage - 1);
       scrollIntoView('smooth');
     }
-  }, [currentPage, onPageChange, scrollTargetSelector]);
+  }, [currentPage, onPageChange, scrollIntoView]);
 
   const handleNextPage = useCallback(() => {
     if (currentPage < totalPages) {
       onPageChange(currentPage + 1);
       scrollIntoView('smooth');
     }
-  }, [currentPage, totalPages, onPageChange, scrollTargetSelector]);
-
-  const handleFirstPage = useCallback(() => {
-    if (currentPage !== 1) {
-      onPageChange(1);
-      scrollIntoView('smooth');
-    }
-  }, [currentPage, onPageChange, scrollTargetSelector]);
-
-  const handleLastPage = useCallback(() => {
-    if (currentPage !== totalPages) {
-      onPageChange(totalPages);
-      scrollIntoView('smooth');
-    }
-  }, [currentPage, totalPages, onPageChange, scrollTargetSelector]);
+  }, [currentPage, totalPages, onPageChange, scrollIntoView]);
 
   const handlePageClick = useCallback((pageNumber: number) => {
     if (pageNumber !== currentPage) {

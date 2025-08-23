@@ -42,6 +42,7 @@ const StepActions: React.FC<StepActionsProps> = ({
           onClick={onPrev}
           disabled={isFirstStep}
           className="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          tabIndex={-1}
         >
           <svg className={`w-4 h-4 ${rtlSpacing.mr('2')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={leftArrowPath} />
