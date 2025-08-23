@@ -115,3 +115,31 @@ export interface DeleteConfirmationModalProps {
   type?: 'danger' | 'warning';
   className?: string;
 }
+
+/**
+ * Pagination Types
+ */
+export interface PaginationProps {
+  /** Current page number (1-based) */
+  currentPage: number;
+  /** Total number of pages */
+  totalPages: number;
+  /** Total number of items across all pages */
+  totalItems?: number;
+  /** Number of items per page */
+  itemsPerPage?: number;
+  /** Callback when page changes */
+  onPageChange: (page: number) => void;
+  /** Whether to show the results info text */
+  showInfo?: boolean;
+  /** Whether the interface is right-to-left */
+  isRTL?: boolean;
+  /** Additional CSS classes */
+  className?: string;
+  /** Custom text for results info */
+  resultsText?: {
+    showing: string;
+    of: string;
+    items: string;
+  };
+}

@@ -13,7 +13,7 @@ import {
   Governorate
 } from '@/services/api';
 import { useApiData, useFormSelection } from '@/hooks/useApiData';
-import { useListingCount } from '@/hooks/useListingCount';
+// Removed useListingCount import as it's no longer used
 import BrandSelect from './selects/BrandSelect';
 import ModelSelect from './selects/ModelSelect';
 import GovernorateSelect from './selects/GovernorateSelect';
@@ -66,18 +66,7 @@ const HomeSearchBar = React.memo(() => {
   
 
 
-  // Resolve selected slugs for the counting API
-  const selectedBrandSlug = useMemo(() => {
-    if (selectedMake === null || !carMakes) return undefined;
-    const brand = carMakes.find((m) => m.id === selectedMake);
-    return brand?.slug || undefined;
-  }, [selectedMake, carMakes]);
-
-  const selectedModelSlug = useMemo(() => {
-    if (selectedModel === null || !availableModels) return undefined;
-    const model = availableModels.find((m) => m.id === selectedModel);
-    return model?.slug || undefined;
-  }, [selectedModel, availableModels]);
+  // Removed selectedBrandSlug and selectedModelSlug as they're no longer used
 
   // Sort governorates by current language
   const sortedGovernorates = useMemo(() => {
@@ -90,11 +79,7 @@ const HomeSearchBar = React.memo(() => {
     });
   }, [governorates, currentLanguage]);
 
-  const { count: listingsCount } = useListingCount({
-    brands: selectedBrandSlug ? [selectedBrandSlug] : undefined,
-    models: selectedModelSlug ? [selectedModelSlug] : undefined,
-    locations: selectedGovernorateSlug ? [selectedGovernorateSlug] : undefined,
-  });
+  // Removed listingsCount as it's no longer used for dynamic button text
 
   // Stable search button label to prevent size changes
   const searchButtonLabel = useMemo(() => {

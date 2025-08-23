@@ -44,6 +44,7 @@ import SortDropdown from '@/components/search/SortDropdown';
 import ViewModeToggle from '@/components/search/ViewModeToggle';
 import { ViewMode } from '@/components/search/ViewModeToggle';
 import { createSavedSearch, deleteSavedSearch, SavedSearchRequest } from '@/services/savedSearches';
+import Pagination from '@/components/ui/Pagination';
 
 
 // Move namespaces outside component to prevent recreation on every render
@@ -74,6 +75,7 @@ export default function AdvancedSearchPage() {
   const [savedSearchId, setSavedSearchId] = useState<string | null>(null);
   const prevFiltersRef = useRef<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [currentPage, setCurrentPage] = useState(0);
   
   // New state for all models (for makeModel filter modal)
   const [allModels, setAllModels] = useState<CarModel[]>([]);
@@ -128,7 +130,7 @@ export default function AdvancedSearchPage() {
       sellerTypeIds: filters.sellerTypeIds,
       searchQuery: searchQuery.trim() || undefined, // Include search query
       size: 20, // Default page size
-      page: 0, // Default to first page
+      page: currentPage, // Use current page state
       sort: getSortValue(selectedSort), // Use selectedSort state
       
       // Add missing filter fields that are defined in CarListingFilterParams
@@ -151,7 +153,8 @@ export default function AdvancedSearchPage() {
   }, [
     filters,
     searchQuery,
-    selectedSort
+    selectedSort,
+    currentPage
   ]);
 
   // Car listings state using optimized filtering with dynamic API selection
@@ -437,6 +440,15 @@ export default function AdvancedSearchPage() {
       initialFilters.fuelTypeSlugs = fuelTypeSlugs.filter(slug => slug.trim());
     }
 
+    // Handle page parameter
+    const pageParam = searchParams.get('page');
+    if (pageParam) {
+      const pageNumber = parseInt(pageParam);
+      if (!isNaN(pageNumber) && pageNumber >= 0) {
+        setCurrentPage(pageNumber);
+      }
+    }
+
     setFilters(initialFilters);
     setHasInitialized(true);
   }, [hasInitialized, searchParams]);
@@ -461,7 +473,7 @@ export default function AdvancedSearchPage() {
   // Function to update URL when filters change
   // URLs use clean singular form (brand/model) for SEO and UX
   // Backend API expects plural form (brandSlugs/modelSlugs)
-  const updateUrlFromFilters = useCallback((newFilters: AdvancedSearchFilters) => {
+  const updateUrlFromFilters = useCallback((newFilters: AdvancedSearchFilters, page?: number) => {
 
     const params = new URLSearchParams();
     
@@ -503,10 +515,16 @@ export default function AdvancedSearchPage() {
       newFilters.sellerTypeIds.forEach(id => params.append('sellerTypeId', id.toString()));
     }
     
+    // Add page parameter (only if not first page)
+    const pageToUse = page !== undefined ? page : currentPage;
+    if (pageToUse > 0) {
+      params.append('page', pageToUse.toString());
+    }
+    
     // Update URL without causing a page reload
     const newUrl = `/search${params.toString() ? `?${params.toString()}` : ''}`;
     router.replace(newUrl, { scroll: false });
-  }, [router]);
+  }, [router, currentPage]);
 
   // Trigger search after filters are initialized - always search to show results
   useEffect(() => {
@@ -1190,12 +1208,27 @@ export default function AdvancedSearchPage() {
     }
   }, [session, filters, searchQuery, router, hasActiveFilters, generateAlertName, isMonitoring, savedSearchId]);
 
+  // Scroll behavior is now handled directly in onPageChange
+
+  // Pagination is now handled by the Pagination component
+
+  // Reset to first page when filters change (but not when page itself changes)
+  useEffect(() => {
+    if (hasInitialized && currentPage > 0) {
+      setCurrentPage(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, searchQuery, hasInitialized]); // Intentionally exclude currentPage to avoid infinite loop
+
   // Filter pill component with memo for performance
   const handleSearch = () => {
     setSearchLoading(true);
     
     // Close location dropdown if open
     setShowLocationDropdown(false);
+    
+    // Reset to first page on new search
+    setCurrentPage(0);
     
     // The URL is already updated by the filters, so just execute search
     // The search query will be sent to the backend which will handle both English and Arabic text search
@@ -1230,17 +1263,18 @@ export default function AdvancedSearchPage() {
         />
 
         {/* Enhanced Filter Bar */}
-        <FilterPills
-          setActiveFilterModal={setActiveFilterModal}
-          isFilterActive={isFilterActive}
-          getFilterDisplayText={getFilterDisplayText}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          t={t as any}
-          isRTL={isRTL}
-        />
+        <div data-filter-section>
+          <FilterPills
+            setActiveFilterModal={setActiveFilterModal}
+            isFilterActive={isFilterActive}
+            getFilterDisplayText={getFilterDisplayText}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            t={t as any}
+            isRTL={isRTL}
+          />
 
-        {/* Filter Chips */}
-        <FilterChips
+          {/* Filter Chips */}
+          <FilterChips
           filters={filters}
           isFilterActive={isFilterActive}
           filterCount={filterCount}
@@ -1259,9 +1293,10 @@ export default function AdvancedSearchPage() {
           t={t as any}
           isRTL={isRTL}
         />
+        </div>
 
         {/* Results Info */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6" data-results-section>
           <div className="flex flex-col gap-3">
             {/* Sort Dropdown - Top row, left aligned */}
             <SortDropdown
@@ -1316,7 +1351,8 @@ export default function AdvancedSearchPage() {
         </div>
 
         {/* Car Listings Grid with Smooth Transitions */}
-        <CarListingsGrid
+        <div data-listings-grid>
+          <CarListingsGrid
           carListings={enhancedCarListings}
           isLoadingListings={isLoadingListings}
           isManualSearch={isManualSearch}
@@ -1327,27 +1363,37 @@ export default function AdvancedSearchPage() {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           t={t as any}
         />
+        </div>
 
-        {/* Pagination */}
+        {/* Modern Pagination */}
         {enhancedCarListings && enhancedCarListings.totalPages > 1 && (
-          <div className="mt-8 flex justify-center">
-            <div className="flex items-center space-x-2">
-              <button
-                disabled={enhancedCarListings.page === 0}
-                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <span className="px-3 py-2 text-sm text-gray-700">
-                Page {enhancedCarListings.page + 1} of {enhancedCarListings.totalPages}
-              </span>
-              <button
-                disabled={enhancedCarListings.last}
-                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
+          <div className="mt-8">
+            <Pagination
+              currentPage={enhancedCarListings.page + 1} // Convert from 0-based to 1-based
+              totalPages={enhancedCarListings.totalPages}
+              totalItems={enhancedCarListings.totalElements}
+              itemsPerPage={20}
+              onPageChange={(page) => {
+                const newPage = page - 1; // Convert from 1-based to 0-based
+                setCurrentPage(newPage);
+                updateUrlFromFilters(filters, newPage);
+                
+                // Force scroll to top using multiple methods
+                // Method 1: Direct scroll
+                window.scrollTo(0, 0);
+                
+                // Method 2: Smooth scroll
+                setTimeout(() => {
+                  window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                  });
+                }, 10);
+              }}
+              showInfo={true}
+              isRTL={isRTL}
+              className="w-full"
+            />
           </div>
         )}
 
