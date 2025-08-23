@@ -479,7 +479,7 @@
   "locationFilterLabel": "تصفية حسب الموقع",
   "allLocations": "جميع المحافظات",
   "showAllFilters": "إظهار جميع الفلاتر",
-  "results": "نتائج",
+  "results": "النتائج",
   "saveSearch": "حفظ البحث",
   "makeAndModel": "الماركة والموديل",
   "bodyStyle": "نوع الهيكل",
@@ -530,5 +530,11 @@
   "maxPrice": "أعلى سعر",
   "listings.addToFavorites": "أضف إلى المفضلة",
   "gridView": "عرض الشبكة",
-  "listView": "عرض القائمة"
+  "listView": "عرض القائمة",
+  "pagination": "ترقيم الصفحات",
+  "previousPage": "الصفحة السابقة",
+  "nextPage": "الصفحة التالية",
+  "goToPage": "الانتقال إلى الصفحة {{page}}",
+  "showing": "عرض",
+  "of": "من أصل"
 }

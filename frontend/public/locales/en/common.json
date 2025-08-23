@@ -154,5 +154,11 @@
   "gridView": "Grid view",
   "listView": "List view",
   "priceRange": "Price Range",
-  "km": "km"
+  "km": "km",
+  "pagination": "Pagination",
+  "previousPage": "Previous page",
+  "nextPage": "Next page",
+  "goToPage": "Go to page {{page}}",
+  "showing": "Showing",
+  "of": "of"
 }
