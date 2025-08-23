@@ -96,14 +96,10 @@ const HomeSearchBar = React.memo(() => {
     locations: selectedGovernorateSlug ? [selectedGovernorateSlug] : undefined,
   });
 
-  // Memoized search button label to avoid recalculation on every render
+  // Stable search button label to prevent size changes
   const searchButtonLabel = useMemo(() => {
-    if (listingsCount === null) return t('searchButton', 'Search Cars');
-    const count = Number.isFinite(listingsCount) ? listingsCount : 0;
-    const fallback = `Search ${count} cars`;
-    const result = t('searchWithCount', { count, defaultValue: fallback } as unknown as string);
-    return typeof result === 'string' ? result : fallback;
-  }, [listingsCount, t]);
+    return t('searchButton', 'Search Cars');
+  }, [t]);
 
   // Persistence removed
 
@@ -197,11 +193,11 @@ const HomeSearchBar = React.memo(() => {
               <button
                 type="submit"
                 onClick={handleSearch}
-                className="w-full h-12 px-4 xs:px-6 bg-blue-600 text-white text-sm xs:text-base font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors whitespace-nowrap flex items-center justify-center"
+                className="w-full h-12 px-4 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors whitespace-nowrap flex items-center justify-center"
                 aria-label={t('searchButton', 'Search Cars')}
               >
                 <svg 
-                  className="w-4 xs:w-5 h-4 xs:h-5 mr-1.5 xs:mr-2 rtl:ml-1.5 rtl:xs:ml-2 rtl:mr-0" 
+                  className="w-4 h-4 mr-1.5 rtl:ml-1.5 rtl:mr-0" 
                   fill="none" 
                   stroke="currentColor" 
                   viewBox="0 0 24 24" 
@@ -214,10 +210,9 @@ const HomeSearchBar = React.memo(() => {
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
                   />
                 </svg>
-                <span className="hidden xs:inline tabular-nums min-w-[14ch] text-center" aria-live="polite">
+                <span className="tabular-nums text-center" aria-live="polite">
                   {searchButtonLabel}
                 </span>
-                <span className="xs:hidden">{t('search', 'Search')}</span>
               </button>
             </div>
           </div>

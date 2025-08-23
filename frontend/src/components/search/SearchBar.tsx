@@ -94,7 +94,7 @@ export default function SearchBar({
                   px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800
                   text-white rounded text-sm font-medium flex items-center justify-center transition-all duration-200 transform hover:scale-[1.02]
                   min-w-[80px] touch-manipulation
-                  sm:absolute sm:top-1 sm:bottom-1 sm:px-4 sm:text-xs sm:min-w-0 sm:hover:scale-100
+                  sm:absolute sm:top-1 sm:bottom-1 sm:px-4 sm:min-w-0 sm:hover:scale-100
                   ${currentLanguage === 'ar' ? 'sm:left-1 sm:rounded-md' : 'sm:right-1 sm:rounded-md'}
                 `}
                 aria-label={t('searchButton', 'Search for cars')}
