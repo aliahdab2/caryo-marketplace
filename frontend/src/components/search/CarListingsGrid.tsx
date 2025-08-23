@@ -51,7 +51,7 @@ const CarListingsGrid: React.FC<CarListingsGridProps> = ({
       isLoading={isLoadingListings}
       className={containerClassName}
       loadingType={isManualSearch ? 'overlay' : 'full'}
-      minimumLoadingTime={isManualSearch ? 100 : 200}
+      minimumLoadingTime={isManualSearch ? 150 : 350}
       loadingComponent={
         isManualSearch ? (
           // Subtle spinner for manual searches
