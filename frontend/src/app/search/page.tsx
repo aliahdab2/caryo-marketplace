@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { MdNotificationsNone, MdNotifications } from 'react-icons/md';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useAuthUser } from '@/contexts/SessionContext';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useOptimizedFiltering } from '@/hooks/useOptimizedFiltering';
 
@@ -158,8 +158,8 @@ export default function AdvancedSearchPage() {
   ]);
 
   // Car listings state using optimized filtering with dynamic API selection
-  const { data: session } = useSession();
-  const isAuthenticated = !!session?.user;
+  const user = useAuthUser();
+  const isAuthenticated = !!user;
 
   // Choose API function based on authentication status with proper type casting
   const fetchListingsFunction = useMemo(() => {
@@ -1126,7 +1126,7 @@ export default function AdvancedSearchPage() {
 
   // Toggle alert: create if not monitoring, delete if monitoring
   const handleToggleAlert = useCallback(async () => {
-    if (!session?.user) {
+    if (!user) {
       // Redirect to login if not authenticated
       router.push('/auth/signin');
       return;
@@ -1141,7 +1141,7 @@ export default function AdvancedSearchPage() {
     if (isMonitoring && savedSearchId) {
       try {
         setIsSavingAlert(true);
-        const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
+        const token = user?.accessToken;
         await deleteSavedSearch(savedSearchId, token);
         setIsMonitoring(false);
         setSavedSearchId(null);
@@ -1156,7 +1156,7 @@ export default function AdvancedSearchPage() {
     setIsSavingAlert(true);
     
     try {
-      const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
+      const token = user?.accessToken;
       
       // Transform frontend filters to backend format (same as CreateAlertModal)
       const backendFilters: Record<string, unknown> = {};
@@ -1206,7 +1206,7 @@ export default function AdvancedSearchPage() {
     } finally {
       setIsSavingAlert(false);
     }
-  }, [session, filters, searchQuery, router, hasActiveFilters, generateAlertName, isMonitoring, savedSearchId]);
+  }, [user, filters, searchQuery, router, hasActiveFilters, generateAlertName, isMonitoring, savedSearchId]);
 
   // Scroll behavior is now handled directly in onPageChange
 
@@ -1362,6 +1362,7 @@ export default function AdvancedSearchPage() {
           isRTL={isRTL}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           t={t as any}
+          user={user}
         />
         </div>
 

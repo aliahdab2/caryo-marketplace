@@ -2,7 +2,7 @@
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { useAuthStatus } from "@/hooks/useAuthSession";
+import { useAuthStatus } from "@/contexts/SessionContext";
 import type { MainLayoutProps } from "@/types/components";
 // Import DevTools component conditionally
 import dynamic from "next/dynamic";

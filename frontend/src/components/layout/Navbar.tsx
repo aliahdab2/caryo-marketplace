@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { usePathname } from "next/navigation";
 import ToggleLanguageSwitcher from "@/components/ToggleLanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
-import { useAuthUser } from "@/hooks/useAuthSession";
+import { useAuthUser } from "@/contexts/SessionContext";
 import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdMail, MdMailOutline, MdBookmark, MdSearch, MdNotificationsNone, MdNotifications } from "react-icons/md";
 import { FiSearch } from "react-icons/fi";
 import { NAVIGATION_ROUTES } from "@/utils/navigationUtils";

@@ -2,15 +2,11 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import FavoriteButton from '@/components/common/FavoriteButton';
-import { useSession } from 'next-auth/react';
 import * as sessionManager from '@/services/auth/session-manager';
-import { createMockSession } from '@/tests/mocks/session-mock';
 
-// Mock next-auth/react
+// Mock next-auth/react for signIn function
 jest.mock('next-auth/react', () => ({
-  useSession: jest.fn(),
   signIn: jest.fn(),
-  getSession: jest.fn(),
 }));
 
 // Mock react-i18next
@@ -37,22 +33,27 @@ jest.mock('@/services/auth/session-manager', () => ({
 }));
 
 describe('FavoriteButton Component', () => {
+  // Mock user object for tests
+  const mockUser = {
+    id: 'user123',
+    name: 'Test User',
+    email: 'test@example.com',
+    image: null,
+    roles: ['user'],
+    isAdmin: false,
+    accessToken: 'mock-access-token',
+  };
+
   // Common test props
   const defaultProps = {
     listingId: 'list123',
     onToggle: jest.fn(),
+    user: mockUser,
   };
   
   // Setup before each test
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    // Default authenticated session using createMockSession
-    const mockSession = createMockSession();
-    (useSession as jest.Mock).mockReturnValue({
-      data: mockSession,
-      status: 'authenticated',
-    });
     
     // Default session validation
     (sessionManager.validateSession as jest.Mock).mockResolvedValue({
@@ -273,14 +274,8 @@ describe('FavoriteButton Component', () => {
   test('renders with unauthenticated session', async () => {
     const user = userEvent.setup();
     
-    // Mock an unauthenticated session
-    (useSession as jest.Mock).mockReturnValue({
-      data: null,
-      status: 'unauthenticated',
-    });
-    
     const onToggle = jest.fn();
-    render(<FavoriteButton listingId="list123" onToggle={onToggle} />);
+    render(<FavoriteButton listingId="list123" onToggle={onToggle} user={null} />);
     
     // Verify the button is rendered in default state
     const button = screen.getByRole('button', { name: /Add to favorites/i });

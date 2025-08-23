@@ -1,4 +1,4 @@
-import { getSession } from 'next-auth/react';
+import { getSession } from '@/utils/auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 

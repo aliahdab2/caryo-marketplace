@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSession } from 'next-auth/react';
+import { useSessionContext } from '@/contexts/SessionContext';
 
 
 import Breadcrumb, { createSavedAlertsBreadcrumb } from '@/components/ui/Breadcrumb';
@@ -15,7 +15,7 @@ import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 
 export default function SavedAlertsPage() {
   const { t, i18n } = useTranslation(['search', 'common']);
-  const { data: session, status } = useSession();
+  const { user, status } = useSessionContext();
   const [mounted, setMounted] = useState(false);
   const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,14 +39,14 @@ export default function SavedAlertsPage() {
 
   const loadMatchingListings = useCallback(async (savedSearch: SavedSearchResponse) => {
     try {
-      const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
+      const token = user?.accessToken;
       const listings = await getCarListingsForSavedSearch(savedSearch, token);
       setMatchingListings(listings);
     } catch (error) {
       console.error('Error loading matching listings:', error);
       setMatchingListings([]);
     }
-  }, [session]);
+  }, [user]);
 
   const handleSelectSearch = useCallback((search: SavedSearchResponse) => {
     // Only proceed if switching to a different search or if no search is selected
@@ -68,7 +68,7 @@ export default function SavedAlertsPage() {
     
     try {
       setIsDeleting(true);
-      const token = session?.accessToken as string;
+      const token = user?.accessToken as string;
       await deleteSavedSearch(alertToDelete.id, token);
       
       // Remove from local state
@@ -157,7 +157,7 @@ export default function SavedAlertsPage() {
     }
 
     try {
-      const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
+      const token = user?.accessToken;
       // Update the name based on current language
       const updatedSearch = await updateSavedSearch(selectedSearch.id, {
         nameEn: isRTL ? selectedSearch.nameEn : editingName.trim(),
@@ -181,7 +181,7 @@ export default function SavedAlertsPage() {
       console.error('Error updating alert name:', error);
       alert(t('search:alertUpdateError', 'Failed to update alert name. Please try again.'));
     }
-  }, [selectedSearch, editingName, session, t, isRTL]);
+  }, [selectedSearch, editingName, user, t, isRTL]);
 
   const handleCancelEditName = useCallback(() => {
     setIsEditingName(false);
@@ -189,11 +189,11 @@ export default function SavedAlertsPage() {
   }, []);
 
   const loadSavedSearches = useCallback(async () => {
-    if (!session?.accessToken) return;
+    if (!user?.accessToken) return;
     
     try {
       setIsLoading(true);
-      const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
+      const token = user?.accessToken;
       const searches = await getUserSavedSearches(token);
       setSavedSearches(searches);
     } catch (error) {
@@ -201,7 +201,7 @@ export default function SavedAlertsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [session]);
+  }, [user]);
 
   // Auto-select first search when searches are loaded and no search is selected
   useEffect(() => {
@@ -220,19 +220,19 @@ export default function SavedAlertsPage() {
 
   useEffect(() => {
     if (status === 'loading') {
-      return; // Don't do anything while session is loading
+      return; // Don't do anything while user is loading
     }
     
-    if (session?.accessToken) {
+    if (user?.accessToken) {
       loadSavedSearches();
     } else {
-      // Reset auto-selection flag when session changes
+      // Reset auto-selection flag when user changes
       hasAutoSelectedRef.current = false;
       setSelectedSearch(null);
       setSavedSearches([]);
       setIsLoading(false);
     }
-  }, [session, status, loadSavedSearches]);
+  }, [user, status, loadSavedSearches]);
 
   if (!mounted || status === 'loading') {
     return (

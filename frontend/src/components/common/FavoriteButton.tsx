@@ -2,9 +2,19 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuthUser } from '@/hooks/useAuthSession';
 import { useRouter } from 'next/navigation';
 import { FavoriteButtonProps } from '@/types/components';
+
+// User type for the prop
+interface User {
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  roles?: string[];
+  isAdmin?: boolean;
+  accessToken?: string;
+}
 
 const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   listingId,
@@ -13,14 +23,14 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   variant = 'filled',
   onToggle,
   initialFavorite = false,
-  showText = false
+  showText = false,
+  user = null
 }) => {
   const { t } = useTranslation('common');
   const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isLoading, setIsLoading] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const user = useAuthUser();
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const statusCheckedRef = useRef(false);
 

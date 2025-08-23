@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useAuthSession } from "@/hooks/useAuthSession";
+import { useSessionContext } from "@/contexts/SessionContext";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect, FormEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -33,7 +33,7 @@ const SignInPage: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [credentialsCorrect, setCredentialsCorrect] = useState(false);
 
-  const { session } = useAuthSession();
+  const { user } = useSessionContext();
 
   // Extract callback URL from search params if present
   useEffect(() => {
@@ -162,14 +162,14 @@ const SignInPage: React.FC = () => {
   // Safe redirect when user already has an active session
   // Only redirect after callbackUrl has been properly loaded from localStorage
   useEffect(() => {
-    if (session && !redirecting && callbackUrlLoaded) {
-      // Add a slight delay to ensure session is fully processed
+    if (user && !redirecting && callbackUrlLoaded) {
+      // Add a slight delay to ensure user is fully processed
       setRedirecting(true);
       
-      // Log session state for debugging
-      console.log('Redirecting with session:', {
-        hasUser: !!session?.user,
-        hasToken: !!session?.accessToken,
+      // Log user state for debugging
+      console.log('Redirecting with user:', {
+        hasUser: !!user,
+        hasToken: !!user?.accessToken,
         callbackUrl
       });
       
@@ -182,7 +182,7 @@ const SignInPage: React.FC = () => {
         }
       }, 500);
     }
-  }, [session, router, callbackUrl, redirecting, callbackUrlLoaded]);
+  }, [user, router, callbackUrl, redirecting, callbackUrlLoaded]);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">

@@ -1,5 +1,19 @@
-import { Session } from 'next-auth';
-import { getSession, signIn, signOut } from 'next-auth/react';
+import { getSession } from '@/utils/auth';
+import { signIn, signOut } from 'next-auth/react';
+
+// Define our session type to match what we get from getSession
+interface SessionData {
+  user?: {
+    id?: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    roles?: string[];
+    isAdmin?: boolean;
+  };
+  accessToken?: string;
+  expires?: string;
+}
 
 /**
  * Token expiration threshold in seconds
@@ -100,7 +114,7 @@ export async function validateSession(): Promise<SessionValidationResult> {
  * @param session The user session
  * @returns Expiration timestamp in seconds, or null if not available
  */
-function getTokenExpiration(session: Session): number | null {
+function getTokenExpiration(session: SessionData): number | null {
   // Check for explicit expiration
   if (session.expires) {
     return Math.floor(new Date(session.expires).getTime() / 1000);
@@ -152,7 +166,7 @@ export async function refreshSessionIfNeeded(): Promise<boolean> {
  * @param redirectUrl URL to redirect to after login
  * @returns The current session if valid, null otherwise (and triggers a redirect)
  */
-export async function ensureValidSession(redirectUrl?: string): Promise<Session | null> {
+export async function ensureValidSession(redirectUrl?: string): Promise<SessionData | null> {
   const validation = await validateSession();
   
   if (!validation.isValid && validation.redirectToLogin) {
@@ -234,7 +248,16 @@ export async function apiRequest(
   url: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  // Validate the session before making the request
+  // Get the current session (this also validates it)
+  const session = await getSession();
+  if (!session?.accessToken) {
+    // Redirect to login
+    const returnUrl = window.location.pathname;
+    window.location.href = `/auth/signin?returnUrl=${encodeURIComponent(returnUrl)}`;
+    throw new Error('No access token in session');
+  }
+  
+  // Validate the session for expiration
   const validation = await validateSession();
   
   if (!validation.isValid) {
@@ -247,21 +270,17 @@ export async function apiRequest(
         window.location.href = `/auth/signin?returnUrl=${encodeURIComponent(returnUrl)}`;
         throw new Error('Session invalid and refresh failed');
       }
+      // Get the refreshed session
+      const refreshedSession = await getSession();
+      if (!refreshedSession?.accessToken) {
+        throw new Error('No access token after refresh');
+      }
     } else {
       // Redirect to login if session is invalid and not refreshable
       const returnUrl = window.location.pathname;
       window.location.href = `/auth/signin?returnUrl=${encodeURIComponent(returnUrl)}`;
       throw new Error('No valid session');
     }
-  }
-  
-  // Get the current session
-  const session = await getSession();
-  if (!session?.accessToken) {
-    // Redirect to login
-    const returnUrl = window.location.pathname;
-    window.location.href = `/auth/signin?returnUrl=${encodeURIComponent(returnUrl)}`;
-    throw new Error('No access token in session');
   }
   
   // Set default headers

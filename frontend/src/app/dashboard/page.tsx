@@ -1,7 +1,7 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
-import { useAuthUser } from "@/hooks/useAuthSession";
+import { signOut } from "next-auth/react";
+import { useAuthUser } from "@/contexts/SessionContext";
 import Link from "next/link";
 import { useLazyTranslation } from '../../hooks/useLazyTranslation';
 import { formatNumber } from "../../utils/localization";
@@ -26,7 +26,6 @@ const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings', 'search'];
 
 export default function Dashboard() {
   const user = useAuthUser();
-  const { data: session } = useSession();
   const { t, i18n, ready } = useLazyTranslation(DASHBOARD_NAMESPACES);
   const [favoritesCount, setFavoritesCount] = useState<number>(0);
   const [alertsCount, setAlertsCount] = useState<number>(0);
@@ -37,7 +36,7 @@ export default function Dashboard() {
   
 
 
-  // Fetch favorites and alerts count when component mounts or session changes
+  // Fetch favorites and alerts count when component mounts or user changes
   useEffect(() => {
     let mounted = true;
 
@@ -84,10 +83,10 @@ export default function Dashboard() {
           }
         }
 
-        // Fetch alerts count - only if we have a session with access token
-        if (session?.accessToken) {
+        // Fetch alerts count - only if we have a user with access token
+        if (user?.accessToken) {
           try {
-            const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
+            const token = user.accessToken;
             const savedSearches = await getUserSavedSearches(token);
             if (mounted) {
               setAlertsCount(savedSearches.length);
@@ -99,7 +98,7 @@ export default function Dashboard() {
             }
           }
         } else {
-          console.log('[DASHBOARD] No session or access token available for alerts');
+          console.log('[DASHBOARD] No user or access token available for alerts');
           if (mounted) {
             setAlertsCount(0);
           }
@@ -123,7 +122,7 @@ export default function Dashboard() {
     return () => {
       mounted = false;
     };
-  }, [user, session]);
+  }, [user]);
 
   // Load recent listings using real data
   useEffect(() => {

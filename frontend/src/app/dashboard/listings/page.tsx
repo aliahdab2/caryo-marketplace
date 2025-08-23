@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { getSession } from "next-auth/react";
+import { useAuthUser } from "@/contexts/SessionContext";
 import { getMyListings, deleteListingById, deleteMultipleListings } from "../../../services/listings";
 import { Listing } from "../../../types/listings";
 import { ListingsView } from "@/components/listings";
@@ -19,7 +19,7 @@ import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
 import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
 
 export default function ListingsPage() {
-
+  const user = useAuthUser();
 	const [search, setSearch] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
 	const [sortBy, setSortBy] = useState("newest");
@@ -59,17 +59,13 @@ export default function ListingsPage() {
         setLoading(true);
         setError(null);
         
-        // Start both session check and listings fetch in parallel for better performance
-        const [session, userListings] = await Promise.all([
-          getSession(),
-          getMyListings().catch(() => null) // Don't fail if listings fail, let session check handle auth
-        ]);
-        
-        if (session && session.accessToken) {
+        // Check if user is authenticated and fetch listings
+        if (user && user.accessToken) {
+          const userListings = await getMyListings().catch(() => null);
           if (userListings) {
             setListings(userListings);
           } else {
-            // Retry listings fetch if it failed but session is valid
+            // Retry listings fetch if it failed but user is valid
             const retryListings = await getMyListings();
             setListings(retryListings);
           }
@@ -85,7 +81,7 @@ export default function ListingsPage() {
     };
 
     loadListings();
-  }, []);
+  }, [user]);
   
   // Hook for the sticky header effect
   useEffect(() => {

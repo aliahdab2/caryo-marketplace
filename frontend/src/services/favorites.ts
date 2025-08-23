@@ -1,5 +1,4 @@
-import { getSession } from 'next-auth/react';
-import type { Session } from 'next-auth';
+import { getSession } from '@/utils/auth';
 import { 
   FavoriteServiceOptions, 
   FavoriteStatusResponse, 
@@ -108,14 +107,12 @@ const sleep = (ms: number): Promise<void> =>
  * Add a listing to the user's favorites
  * @param {string} listingId - The ID of the listing to favorite
  * @param {FavoriteServiceOptions} [options] - Optional configuration for the operation
- * @param {Session | null} [session] - Optional session object for authentication
  * @returns {Promise<void>}
  * @throws {FavoriteServiceError} If the operation fails
  */
 export async function addToFavorites(
   listingId: string, 
-  _options?: FavoriteServiceOptions,
-  _session?: Session | null
+  _options?: FavoriteServiceOptions
 ): Promise<void> {
   const numericId = validateListingId(listingId);
   
@@ -156,14 +153,12 @@ export async function addToFavorites(
  * Remove a listing from the user's favorites
  * @param {string} listingId - The ID of the listing to unfavorite
  * @param {FavoriteServiceOptions} [options] - Optional configuration for the operation
- * @param {Session | null} [session] - Optional session object for authentication
  * @returns {Promise<void>}
  * @throws {FavoriteServiceError} If the operation fails
  */
 export async function removeFromFavorites(
   listingId: string,
-  _options?: FavoriteServiceOptions,
-  _session?: Session | null
+  _options?: FavoriteServiceOptions
 ): Promise<void> {
   const numericId = validateListingId(listingId);
   
@@ -203,14 +198,12 @@ export async function removeFromFavorites(
  * Check if a listing is in the user's favorites
  * @param {string} listingId - The ID of the listing to check
  * @param {FavoriteServiceOptions} [options] - Optional configuration for the operation
- * @param {Session | null} [session] - Optional session object for authentication
  * @returns {Promise<FavoriteStatusResponse>}
  * @throws {FavoriteServiceError} If the operation fails
  */
 export async function checkFavoriteStatus(
   listingId: string,
-  _options?: FavoriteServiceOptions,
-  _session?: Session | null
+  _options?: FavoriteServiceOptions
 ): Promise<FavoriteStatusResponse> {
   const numericId = validateListingId(listingId);
   
@@ -252,28 +245,24 @@ export async function checkFavoriteStatus(
  * Check if a listing is favorited by the user
  * @param {string} listingId - The ID of the listing to check
  * @param {FavoriteServiceOptions} [options] - Optional configuration
- * @param {Session | null} [session] - Optional session object
  * @returns {Promise<FavoriteStatusResponse>} - The favorite status response
  */
 export async function isFavorited(
   listingId: string,
-  _options?: FavoriteServiceOptions,
-  _session?: Session | null
+  _options?: FavoriteServiceOptions
 ): Promise<FavoriteStatusResponse> {
   // This is an alias for checkFavoriteStatus for backward compatibility
-  return checkFavoriteStatus(listingId, _options, _session);
+  return checkFavoriteStatus(listingId, _options);
 }
 
 /**
  * Get all favorites for the current user
  * @param {FavoriteServiceOptions} [options] - Optional configuration for the operation
- * @param {Session | null} [session] - Optional session object for authentication
  * @returns {Promise<UserFavoritesResponse>}
  * @throws {FavoriteServiceError} If the operation fails
  */
 export async function getUserFavorites(
-  _options?: FavoriteServiceOptions,
-  _session?: Session | null
+  _options?: FavoriteServiceOptions
 ): Promise<UserFavoritesResponse> {
   const { apiRequest, validateSession } = await import('./auth/session-manager');
   

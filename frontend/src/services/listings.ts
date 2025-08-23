@@ -315,8 +315,8 @@ export async function getListingById(id: string | number): Promise<Listing> {
 // Update an existing listing
 export async function updateListing(id: string | number, data: UpdateListingData): Promise<Listing> {
   try {
-    // Import getSession at runtime to avoid SSR issues
-    const { getSession } = await import('next-auth/react');
+    // Import getSession from our auth utils instead of NextAuth
+    const { getSession } = await import('@/utils/auth');
     const session = await getSession();
     
     if (!session?.accessToken) {
@@ -1039,8 +1039,8 @@ export async function getMyListingById(id: string | number): Promise<Listing> {
 // Upload image for an existing listing
 export async function uploadListingImage(listingId: string | number, imageFile: File): Promise<{ message: string; imageKey: string }> {
   try {
-    // Import getSession at runtime to avoid SSR issues
-    const { getSession } = await import('next-auth/react');
+    // Import getSession from our auth utils instead of NextAuth
+    const { getSession } = await import('@/utils/auth');
     const session = await getSession();
     
     if (!session?.accessToken) {

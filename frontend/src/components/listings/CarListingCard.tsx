@@ -59,12 +59,22 @@ interface CarListingCardProps {
   listing: CarListingCardData;
   onFavoriteToggle?: (isFavorite: boolean) => void;
   initialFavorite?: boolean;
+  user?: {
+    id?: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    roles?: string[];
+    isAdmin?: boolean;
+    accessToken?: string;
+  } | null;
 }
 
 const CarListingCard: React.FC<CarListingCardProps> = ({ 
   listing, 
   onFavoriteToggle,
-  initialFavorite = false 
+  initialFavorite = false,
+  user = null
 }) => {
   const { i18n, t } = useLazyTranslation(COMMON_NAMESPACES);
   const { isRTL } = useLanguageDirection();
@@ -186,6 +196,7 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
           className="shadow-md hover:shadow-lg"
           initialFavorite={initialFavorite}
           onToggle={onFavoriteToggle}
+          user={user}
         />
       </div>
 

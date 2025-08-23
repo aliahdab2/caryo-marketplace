@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuthSession } from "@/hooks/useAuthSession";
+import { useSessionContext } from "@/contexts/SessionContext";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
@@ -46,7 +46,7 @@ const formatRole = (role: string) => {
 
 export default function ProfilePage() {
   // Use optimized auth hook instead of direct useSession
-  const { session } = useAuthSession();
+  const { user } = useSessionContext();
   const { t } = useTranslation('common');
   const [isEditing, setIsEditing] = useState(false);
   const [userRoles, setUserRoles] = useState<string>('');
@@ -64,13 +64,13 @@ export default function ProfilePage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Check if user logged in via OAuth (like Google)
-  const isOAuthUser = session?.user?.image?.includes('googleusercontent.com') || 
+  const isOAuthUser = user?.image?.includes('googleusercontent.com') || 
                       localStorage.getItem('authMethod') === 'oauth';
   
   // Form state (in a real app, this would be handled with React Hook Form)
   const [formData, setFormData] = useState({
-    name: session?.user?.name || '',
-    email: session?.user?.email || '',
+    name: user?.name || '',
+    email: user?.email || '',
     phone: '',
     location: '',
     bio: ''
@@ -90,7 +90,7 @@ export default function ProfilePage() {
             } else {
               setUserRoles('No roles assigned');
               // Automatically try to refresh roles if empty and user is logged in
-              if (session?.user?.email) {
+              if (user?.email) {
                 await fetchRolesFromBackend();
               }
             }
@@ -103,14 +103,14 @@ export default function ProfilePage() {
       } else {
         setUserRoles('No roles found');
         // Automatically try to refresh roles if not found and user is logged in
-        if (session?.user?.email) {
+        if (user?.email) {
           await fetchRolesFromBackend();
         }
       }
     };
 
     const fetchRolesFromBackend = async () => {
-      if (!session?.user?.email) return;
+      if (!user?.email) return;
 
       try {
         const response = await fetch('http://localhost:8080/api/auth/social-login', {
@@ -120,10 +120,10 @@ export default function ProfilePage() {
           },
           body: JSON.stringify({
             provider: "google",
-            email: session.user.email,
-            name: session.user.name || "",
+            email: user?.email,
+            name: user?.name || "",
             providerAccountId: "auto-refresh",
-            image: session.user.image || ""
+            image: user?.image || ""
           }),
         });
 
@@ -148,7 +148,7 @@ export default function ProfilePage() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [session]);
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -207,7 +207,7 @@ export default function ProfilePage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.accessToken}`
+          'Authorization': `Bearer ${user?.accessToken}`
         },
         body: JSON.stringify({
           currentPassword: passwordForm.currentPassword,
@@ -445,7 +445,7 @@ export default function ProfilePage() {
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <div className="relative">
                 <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-5xl font-bold text-white shadow-xl">
-                  {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : '?'}
+                  {user?.name ? user.name.charAt(0).toUpperCase() : '?'}
                 </div>
                 <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white dark:border-gray-800 flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -455,10 +455,10 @@ export default function ProfilePage() {
               </div>
               <div className="text-center sm:text-left flex-1">
                 <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
-                  {session?.user?.name || t('notAvailable')}
+                  {user?.name || t('notAvailable')}
                 </h2>
                 <p className="text-lg text-gray-600 dark:text-gray-300 mb-3">
-                  {session?.user?.email || t('notAvailable')}
+                  {user?.email || t('notAvailable')}
                 </p>
                 <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                   {userRoles.split(', ').filter(role => role.trim()).map((role, index) => {
@@ -492,7 +492,7 @@ export default function ProfilePage() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center py-2">
                     <span className="text-gray-600 dark:text-gray-400 font-medium">{t('auth.userId')}</span>
-                    <span className="text-gray-900 dark:text-white font-semibold">{session?.user?.id || t('notAvailable')}</span>
+                    <span className="text-gray-900 dark:text-white font-semibold">{user?.id || t('notAvailable')}</span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-t border-gray-200 dark:border-gray-600">
                     <span className="text-gray-600 dark:text-gray-400 font-medium">{t('contactInformation.memberSince')}</span>

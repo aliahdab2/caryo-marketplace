@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from 'next-auth/react';
+import { useSessionContext } from '@/contexts/SessionContext';
 import { useEffect, useCallback, useRef } from 'react';
 
 /**
@@ -9,7 +9,7 @@ import { useEffect, useCallback, useRef } from 'react';
  * Optimized to reduce unnecessary API calls
  */
 export default function AuthDataHandler() {
-  const { data: session, status } = useSession();
+  const { user, status } = useSessionContext();
   const lastUpdateRef = useRef<string | null>(null);
 
   // Function to fetch roles from backend when not available in session
@@ -23,9 +23,9 @@ export default function AuthDataHandler() {
         body: JSON.stringify({
           provider: "google",
           email,
-          name: session?.user?.name || "",
+          name: user?.name || "",
           providerAccountId: "auth-handler-request",
-          image: session?.user?.image || ""
+          image: user?.image || ""
         }),
       });
 
@@ -37,7 +37,7 @@ export default function AuthDataHandler() {
       console.warn('Failed to fetch user roles from backend:', error);
     }
     return ['ROLE_USER']; // Default fallback
-  }, [session]);
+  }, [user]);
 
   useEffect(() => {
     const handleSessionUpdate = async () => {
@@ -45,31 +45,31 @@ export default function AuthDataHandler() {
 
       // Create a session signature to detect changes
       const sessionSignature = JSON.stringify({
-        email: session?.user?.email,
-        name: session?.user?.name,
-        accessToken: session?.accessToken,
-        roles: session?.user && 'roles' in session.user ? session.user.roles : null,
-        authenticated: !!session
+        email: user?.email,
+        name: user?.name,
+        accessToken: user?.accessToken,
+        roles: user?.roles,
+        authenticated: !!user
       });
 
       // Only update if session actually changed
       if (lastUpdateRef.current === sessionSignature) return;
       lastUpdateRef.current = sessionSignature;
 
-      if (session?.user && session.accessToken) {
+      if (user && user.accessToken) {
         // Store user data in localStorage for use by auth utilities
         try {
-          localStorage.setItem('authToken', session.accessToken);
-          localStorage.setItem('username', session.user.name || '');
+          localStorage.setItem('authToken', user.accessToken);
+          localStorage.setItem('username', user.name || '');
           
-          // Handle roles - prioritize session roles, fallback to backend
+          // Handle roles - prioritize user roles, fallback to backend
           let roles: string[] = [];
           
-          if (session.user && 'roles' in session.user && Array.isArray(session.user.roles) && session.user.roles.length > 0) {
-            roles = session.user.roles;
-          } else if (session.user.email) {
-            // Fetch roles from backend if not in session
-            roles = await fetchUserRoles(session.user.email);
+          if (user.roles && Array.isArray(user.roles) && user.roles.length > 0) {
+            roles = user.roles;
+          } else if (user.email) {
+            // Fetch roles from backend if not in user
+            roles = await fetchUserRoles(user.email);
           } else {
             roles = ['ROLE_USER']; // Default fallback
           }
@@ -79,7 +79,7 @@ export default function AuthDataHandler() {
           console.error('Error storing auth data in localStorage:', error);
         }
       } else if (status === 'unauthenticated') {
-        // Clear localStorage when no session
+        // Clear localStorage when no user
         localStorage.removeItem('authToken');
         localStorage.removeItem('username');
         localStorage.removeItem('userRoles');
@@ -87,7 +87,7 @@ export default function AuthDataHandler() {
     };
 
     handleSessionUpdate();
-  }, [session, status, fetchUserRoles]);
+  }, [user, status, fetchUserRoles]);
 
   // This component doesn't render anything
   return null;

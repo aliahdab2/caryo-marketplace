@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSession } from 'next-auth/react';
+import { useAuthUser } from '@/contexts/SessionContext';
 import { MdNotificationsNone, MdEdit, MdDelete, MdEmail, MdMailOutline } from 'react-icons/md';
 import { useLanguage } from '@/components/EnhancedLanguageProvider';
 import { 
@@ -22,7 +22,7 @@ export default function SavedSearchesManager({
 }: SavedSearchesManagerProps) {
   const { t } = useTranslation(['search', 'common']);
   const { direction } = useLanguage();
-  const { data: session } = useSession();
+  const user = useAuthUser();
   const isRTL = direction.isRTL;
   
   const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);
@@ -34,7 +34,7 @@ export default function SavedSearchesManager({
   const loadSavedSearches = useCallback(async () => {
     try {
       setIsLoading(true);
-      const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
+      const token = user?.accessToken;
       const searches = await getUserSavedSearches(token);
       setSavedSearches(searches);
     } catch (error) {
@@ -42,7 +42,7 @@ export default function SavedSearchesManager({
     } finally {
       setIsLoading(false);
     }
-  }, [session]);
+  }, [user]);
 
   // Load saved searches
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function SavedSearchesManager({
 
     try {
       setDeletingId(id);
-      const token = (session as unknown as Record<string, unknown>)?.accessToken as string | undefined;
+      const token = user?.accessToken;
       await deleteSavedSearch(id, token);
       
       // Remove from local state

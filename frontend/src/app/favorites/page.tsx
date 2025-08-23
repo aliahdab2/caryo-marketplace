@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuthStatus } from '@/hooks/useAuthSession';
+import { useAuthStatus, useAuthUser } from '@/contexts/SessionContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getUserFavorites, removeFromFavorites } from '@/services/favorites';
@@ -21,6 +21,7 @@ type FilterTab = 'all' | 'available' | 'removed';
 export default function FavoritesPage() {
   const { t, i18n } = useTranslation(['favorites', 'common']);
   const status = useAuthStatus();
+  const user = useAuthUser();
   const router = useRouter();
   
   const [favorites, setFavorites] = useState<Listing[]>([]);
@@ -279,6 +280,7 @@ export default function FavoritesPage() {
                           className="shadow-md hover:shadow-lg z-10"
                           initialFavorite={true}
                           onToggle={(isFavorite) => handleFavoriteToggle(listing.id.toString(), isFavorite)}
+                          user={user}
                         />
                       </div>
                     </div>
