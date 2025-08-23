@@ -3,7 +3,14 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { getSession } from '@/utils/auth';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
+
+// Debug flag to control logging verbosity
+const DEBUG = (process.env.NEXT_PUBLIC_DEBUG_SESSION || '').toLowerCase() === 'true';
+
+// Module-level log deduplication across all hook instances
+const loggedStatusSignatures = new Set<string>();
+let lastLoggedNextAuthStatus: string | undefined;
 
 // Session query key factory
 export const sessionKeys = {
@@ -19,21 +26,30 @@ export const sessionKeys = {
 export function useOptimizedSession() {
   const { status: nextAuthStatus, update } = useSession();
   
-  console.log(`🔄 [OptimizedSession] NextAuth status: ${nextAuthStatus}`);
+  // Log NextAuth status only when it actually changes (deduped globally)
+  useEffect(() => {
+    if (!DEBUG) return;
+    if (lastLoggedNextAuthStatus !== nextAuthStatus) {
+      console.log(`🔄 [OptimizedSession] NextAuth status: ${nextAuthStatus}`);
+      lastLoggedNextAuthStatus = nextAuthStatus;
+    }
+  }, [nextAuthStatus]);
   
   // Use React Query to cache and deduplicate session data
   const sessionQuery = useQuery({
     queryKey: sessionKeys.user(),
     queryFn: async () => {
-      console.log(`🌐 [OptimizedSession] Query function executed`);
+      if (DEBUG) console.log(`🌐 [OptimizedSession] Query function executed`);
       // Use our custom getSession for additional caching and logging
       const session = await getSession();
-      console.log('📊 [OptimizedSession] Session data from getSession:', {
-        hasUser: !!session?.user,
-        userId: session?.user?.id,
-        hasToken: !!session?.accessToken,
-        expires: session?.expires
-      });
+      if (DEBUG) {
+        console.log('📊 [OptimizedSession] Session data from getSession:', {
+          hasUser: !!session?.user,
+          userId: session?.user?.id,
+          hasToken: !!session?.accessToken,
+          expires: session?.expires
+        });
+      }
       return session;
     },
     enabled: nextAuthStatus !== 'loading', // Only run when NextAuth has loaded
@@ -44,28 +60,41 @@ export function useOptimizedSession() {
   });
 
   // Derived state
-  const user = sessionQuery.data?.user ? {
-    id: sessionQuery.data.user.id,
-    name: sessionQuery.data.user.name,
-    email: sessionQuery.data.user.email,
-    image: sessionQuery.data.user.image,
-    roles: (sessionQuery.data.user as { roles?: string[] })?.roles || [],
-    isAdmin: ((sessionQuery.data.user as { roles?: string[] })?.roles || []).includes('ROLE_ADMIN'),
-    accessToken: (sessionQuery.data as { accessToken?: string })?.accessToken,
-  } : null;
+  const user = useMemo(() => {
+    if (!sessionQuery.data?.user) return null;
+    const roles = (sessionQuery.data.user as { roles?: string[] })?.roles || [];
+    return {
+      id: sessionQuery.data.user.id,
+      name: sessionQuery.data.user.name,
+      email: sessionQuery.data.user.email,
+      image: sessionQuery.data.user.image,
+      roles,
+      isAdmin: roles.includes('ROLE_ADMIN'),
+      accessToken: (sessionQuery.data as { accessToken?: string })?.accessToken,
+    };
+  }, [sessionQuery.data]);
 
   const isAuthenticated = !!user;
   const isLoading = nextAuthStatus === 'loading' || sessionQuery.isLoading;
-  const status = nextAuthStatus === 'loading' ? 'loading' : 
-                 isAuthenticated ? 'authenticated' : 'unauthenticated';
+  const status = useMemo(() => (
+    nextAuthStatus === 'loading' ? 'loading' : (isAuthenticated ? 'authenticated' : 'unauthenticated')
+  ), [nextAuthStatus, isAuthenticated]);
 
-  console.log(`📊 [OptimizedSession] Status: ${status}, User: ${user?.id || 'none'}`);
+  // Log derived status only when it actually changes (deduped globally)
+  useEffect(() => {
+    if (!DEBUG) return;
+    const sig = `${status}-${user?.id || 'none'}`;
+    if (!loggedStatusSignatures.has(sig)) {
+      console.log(`📊 [OptimizedSession] Status: ${status}, User: ${user?.id || 'none'}`);
+      loggedStatusSignatures.add(sig);
+    }
+  }, [status, user?.id]);
 
-  const refreshSession = async () => {
-    console.log('🔄 [OptimizedSession] Refreshing session...');
+  const refreshSession = useCallback(async () => {
+    if (DEBUG) console.log('🔄 [OptimizedSession] Refreshing session...');
     await sessionQuery.refetch();
     await update();
-  };
+  }, [sessionQuery, update]);
 
   return {
     user,
@@ -85,9 +114,11 @@ export function useOptimizedSession() {
  * Hook to get just the user data (most common use case)
  */
 export function useOptimizedUser() {
-  const callStack = new Error().stack;
-  const caller = callStack?.split('\n')[2]?.trim() || 'unknown';
-  console.log(`👤 [OptimizedSession] useOptimizedUser() called from: ${caller}`);
+  if (DEBUG) {
+    const callStack = new Error().stack;
+    const caller = callStack?.split('\n')[2]?.trim() || 'unknown';
+    console.log(`👤 [OptimizedSession] useOptimizedUser() called from: ${caller}`);
+  }
   
   const { user } = useOptimizedSession();
   return user;
@@ -97,9 +128,11 @@ export function useOptimizedUser() {
  * Hook to get authentication status
  */
 export function useOptimizedAuthStatus() {
-  const callStack = new Error().stack;
-  const caller = callStack?.split('\n')[2]?.trim() || 'unknown';
-  console.log(`🔍 [OptimizedSession] useOptimizedAuthStatus() called from: ${caller}`);
+  if (DEBUG) {
+    const callStack = new Error().stack;
+    const caller = callStack?.split('\n')[2]?.trim() || 'unknown';
+    console.log(`🔍 [OptimizedSession] useOptimizedAuthStatus() called from: ${caller}`);
+  }
   
   const { isAuthenticated, isLoading, status } = useOptimizedSession();
   return { isAuthenticated, isLoading, status };

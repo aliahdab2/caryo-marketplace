@@ -114,47 +114,11 @@ export async function isAuthenticated() {
  * @returns A Promise that resolves to an object with the Authorization header
  */
 export async function getAuthHeaders(): Promise<Record<string, string>> {
-  try {
-    // Check if we have stored credentials
-    let token = localStorage.getItem('authToken');
-    
-    if (!token) {
-      // Prompt user for credentials (temporary solution)
-      const username = prompt('Username:') || 'admin';
-      const password = prompt('Password:') || 'Admin123!';
-      
-      const authResponse = await fetch('http://localhost:8080/api/auth/signin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      
-      if (!authResponse.ok) {
-        throw new Error('Failed to authenticate');
-      }
-      
-      const authData = await authResponse.json();
-      token = authData.token;
-      
-      if (!token) {
-        throw new Error('No token received from server');
-      }
-      
-      // Store token for future use
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('userRoles', JSON.stringify(authData.roles));
-      localStorage.setItem('username', authData.username);
-    }
-    
-    return { 'Authorization': `Bearer ${token}` };
-  } catch (error) {
-    console.error('Authentication failed:', error);
-    // Clear stored credentials on failure
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userRoles');
-    localStorage.removeItem('username');
-    throw error;
+  const session = await getSession();
+  if (!session?.accessToken) {
+    throw new Error('No access token available');
   }
+  return { Authorization: `Bearer ${session.accessToken}` };
 }
 
 /**
@@ -165,7 +129,6 @@ export function isAdmin(): boolean {
   try {
     const roles = localStorage.getItem('userRoles');
     if (!roles) return false;
-    
     const roleArray = JSON.parse(roles);
     return Array.isArray(roleArray) && roleArray.includes('ROLE_ADMIN');
   } catch {

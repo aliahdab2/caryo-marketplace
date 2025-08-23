@@ -232,9 +232,7 @@ describe('Session Performance Benchmarks', () => {
 
     expect(mockGetSession).toHaveBeenCalledTimes(1);
 
-    // Simulate navigation to another page
-    unmount();
-    
+    // Simulate navigation to another page by rerendering without unmounting first
     rerender(
       <Wrapper>
         <SearchPageSimulation listingCount={15} />

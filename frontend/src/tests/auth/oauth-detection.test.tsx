@@ -1,23 +1,15 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { useSessionContext } from '@/contexts/SessionContext';
+import { useOptimizedSession } from '@/hooks/useOptimizedSession';
 import ProfilePage from '@/app/dashboard/profile/page';
 // Import our i18n mock
 import '../mocks/i18n-mock';
 
 // Mock the session context
-jest.mock('@/contexts/SessionContext');
+jest.mock('@/hooks/useOptimizedSession');
 
-// Extended user interface for testing OAuth users
-interface ExtendedUser {
-  id?: string;
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
-  provider?: string;
-  roles?: string[];
-}
+// Removed unused ExtendedUser test interface
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -41,7 +33,7 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-const mockUseSessionContext = useSessionContext as jest.MockedFunction<typeof useSessionContext>;
+const mockUseOptimizedSession = useOptimizedSession as jest.MockedFunction<typeof useOptimizedSession>;
 
 describe('OAuth User Detection in Profile Page', () => {
   beforeEach(() => {
@@ -53,7 +45,7 @@ describe('OAuth User Detection in Profile Page', () => {
     // Set up localStorage to indicate OAuth
     localStorage.setItem('authMethod', 'oauth');
     
-    mockUseSessionContext.mockReturnValue({
+    mockUseOptimizedSession.mockReturnValue({
       user: {
         id: '1',
         name: 'John Doe',
@@ -78,7 +70,7 @@ describe('OAuth User Detection in Profile Page', () => {
   });
 
   it('should hide change password for Google OAuth users (image URL)', () => {
-    mockUseSessionContext.mockReturnValue({
+    mockUseOptimizedSession.mockReturnValue({
       user: {
         id: '1',
         name: 'John Doe',
@@ -102,30 +94,18 @@ describe('OAuth User Detection in Profile Page', () => {
   });
 
   it('should show change password for regular email/password users', () => {
-    mockUseSessionContext.mockReturnValue({
-      session: {
-        user: {
-          id: '1',
-          name: 'John Doe',
-          email: 'john@email.com',
-          image: null,
-          roles: ['USER']
-        } as ExtendedUser,
-        accessToken: 'mock-token',
-        expires: '2024-12-31T23:59:59.999Z'
-      },
-      status: 'authenticated',
-      isLoading: false,
-      isAuthenticated: true,
+    mockUseOptimizedSession.mockReturnValue({
       user: {
         id: '1',
         name: 'John Doe',
         email: 'john@email.com',
         image: null,
-        roles: ['USER']
-      } as ExtendedUser,
-      userRoles: ['USER'],
-      isAdmin: false
+        roles: ['USER'],
+        accessToken: 'mock-token'
+      },
+      status: 'authenticated',
+      isLoading: false,
+      isAuthenticated: true,
     });
 
     render(<ProfilePage />);

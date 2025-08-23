@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuthUser } from "@/contexts/SessionContext";
+import { useOptimizedUser } from "@/hooks/useOptimizedSession";
 import { getMyListings, deleteListingById, deleteMultipleListings } from "../../../services/listings";
 import { Listing } from "../../../types/listings";
 import { ListingsView } from "@/components/listings";
@@ -19,7 +19,7 @@ import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
 import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
 
 export default function ListingsPage() {
-  const user = useAuthUser();
+  const user = useOptimizedUser();
 	const [search, setSearch] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
 	const [sortBy, setSortBy] = useState("newest");
@@ -54,6 +54,15 @@ export default function ListingsPage() {
   
   // Load user's listings from API with optimizations
   useEffect(() => {
+    // Guard duplicate fetches for same user in Strict Mode
+    type SignatureRef = { current: string | null };
+    const signatureRef: SignatureRef = (ListingsPage as unknown as { _listingsSignatureRef?: SignatureRef })._listingsSignatureRef || ((ListingsPage as unknown as { _listingsSignatureRef: SignatureRef })._listingsSignatureRef = { current: null });
+    const signature = `${user?.id || 'none'}-${user?.accessToken ? 'token' : 'no-token'}`;
+    if (signatureRef.current === signature) {
+      return;
+    }
+    signatureRef.current = signature;
+
     const loadListings = async () => {
       try {
         setLoading(true);

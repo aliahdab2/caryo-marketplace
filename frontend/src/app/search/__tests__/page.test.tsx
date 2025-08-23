@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';
 import AdvancedSearchPage from '../page';
 import * as useApiDataHook from '@/hooks/useApiData';
@@ -153,11 +154,26 @@ describe('AdvancedSearchPage', () => {
   const mockExecuteSearch = jest.fn();
 
   // Test wrapper component that provides required context
-  const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <SessionProvider session={null}>
-      {children}
-    </SessionProvider>
-  );
+  const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const client = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+          staleTime: 0,
+          gcTime: 0,
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
+        },
+      },
+    });
+    return (
+      <QueryClientProvider client={client}>
+        <SessionProvider session={null}>
+          {children}
+        </SessionProvider>
+      </QueryClientProvider>
+    );
+  };
 
   // Helper function to render components with required providers
   const _renderWithProviders = (component: React.ReactElement) => {

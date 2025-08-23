@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { useAuthUser } from "@/contexts/SessionContext";
+import { useOptimizedUser } from "@/hooks/useOptimizedSession";
 import Link from "next/link";
 import { useLazyTranslation } from '../../hooks/useLazyTranslation';
 import { formatNumber } from "../../utils/localization";
@@ -25,7 +25,7 @@ import { ListingsView } from '@/components/listings';
 const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings', 'search'];
 
 export default function Dashboard() {
-  const user = useAuthUser();
+  const user = useOptimizedUser();
   const { t, i18n, ready } = useLazyTranslation(DASHBOARD_NAMESPACES);
   const [favoritesCount, setFavoritesCount] = useState<number>(0);
   const [alertsCount, setAlertsCount] = useState<number>(0);
@@ -38,6 +38,15 @@ export default function Dashboard() {
 
   // Fetch favorites and alerts count when component mounts or user changes
   useEffect(() => {
+    // Guard to prevent duplicate fetches in React Strict Mode for the same user
+    type SignatureRef = { current: string | null };
+    const signatureRef: SignatureRef = (Dashboard as unknown as { _countsSignatureRef?: SignatureRef })._countsSignatureRef || ((Dashboard as unknown as { _countsSignatureRef: SignatureRef })._countsSignatureRef = { current: null });
+    const signature = `${user?.id || 'none'}-${user?.accessToken ? 'token' : 'no-token'}`;
+    if (signatureRef.current === signature) {
+      return;
+    }
+    signatureRef.current = signature;
+
     let mounted = true;
 
     const loadCounts = async () => {

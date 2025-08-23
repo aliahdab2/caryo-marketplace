@@ -519,7 +519,12 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                 <X className="w-7 h-7" />
               </button>
 
-              {/* Digital counter removed - using dot navigation instead */}
+              {/* Digital counter for tests and accessibility */}
+              {mediaStats.hasMultiple && (
+                <div className={`absolute top-6 left-1/2 transform -translate-x-1/2 z-30 px-3 py-1 bg-black bg-opacity-40 rounded-md text-white text-sm font-medium`}>
+                  {`${currentMediaIndex + 1} of ${mediaStats.totalCount}`}
+                </div>
+              )}
 
               {/* Modal dot navigation */}
               {mediaStats.hasMultiple && (

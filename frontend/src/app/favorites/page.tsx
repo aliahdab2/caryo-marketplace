@@ -1,7 +1,7 @@
 "use client";
 
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useOptimizedAuthStatus, useOptimizedUser } from '@/hooks/useOptimizedSession';
 import { useRouter } from 'next/navigation';
@@ -23,6 +23,7 @@ export default function FavoritesPage() {
   const { isAuthenticated, isLoading: isAuthLoading } = useOptimizedAuthStatus();
   const user = useOptimizedUser();
   const router = useRouter();
+  const fetchedSignatureRef = useRef<string | null>(null);
   
   const [favorites, setFavorites] = useState<Listing[]>([]);
   const [filteredFavorites, setFilteredFavorites] = useState<Listing[]>([]);
@@ -41,6 +42,11 @@ export default function FavoritesPage() {
 
     // Fetch favorites when auth status is confirmed
     if (isAuthenticated) {
+      const signature = String(user?.id || 'none');
+      if (fetchedSignatureRef.current === signature) {
+        return;
+      }
+      fetchedSignatureRef.current = signature;
       fetchFavorites();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -241,7 +247,7 @@ export default function FavoritesPage() {
                 {!isLoading && !error && filteredFavorites.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredFavorites.map((listing) => (
+              {filteredFavorites.map((listing, index) => (
                 <div key={listing.id} className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out">
                   <Link href={`/listings/${listing.id}`} className="block group">
                     <div className="relative h-48 w-full overflow-hidden">
@@ -255,6 +261,7 @@ export default function FavoritesPage() {
                         className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        priority={index === 0}
                         unoptimized
                         onError={(e) => {
                           e.currentTarget.src = getDefaultImageUrl();
@@ -289,14 +296,14 @@ export default function FavoritesPage() {
                         {listing.title}
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 capitalize">
-                        {listing.location?.city || t('listings.locationNotSpecified', { ns: 'listings' })}
+                        {listing.location?.city || t('locationNotSpecified', { ns: 'listings' })}
                       </p>
                       <h4 className="text-xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                         {formatNumber(listing.price, i18n.language, { style: 'currency', currency: listing.currency || 'SYP' })}
                       </h4>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
                         <p>
-                          {t('listings.posted', { ns: 'listings' })}: {formatDate(new Date(listing.createdAt), i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
+                          {t('posted', { ns: 'listings' })}: {formatDate(new Date(listing.createdAt), i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
                         </p>
                       </div>
                     </div>

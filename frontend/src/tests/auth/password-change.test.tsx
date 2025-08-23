@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useSession } from 'next-auth/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ProfilePage from '@/app/dashboard/profile/page';
 // Import our i18n mock
 import '../mocks/i18n-mock';
@@ -83,7 +84,12 @@ describe('Password Change Functionality', () => {
       update: jest.fn()
     });
 
-    render(<ProfilePage />);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0 } } });
+    render(
+      <QueryClientProvider client={client}>
+        <ProfilePage />
+      </QueryClientProvider>
+    );
 
     // Should show change password button
     expect(screen.getByText('Change Password')).toBeInTheDocument();
@@ -106,7 +112,12 @@ describe('Password Change Functionality', () => {
       update: jest.fn()
     });
 
-    render(<ProfilePage />);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0 } } });
+    render(
+      <QueryClientProvider client={client}>
+        <ProfilePage />
+      </QueryClientProvider>
+    );
 
     // Click the change password button
     const [changePasswordButton] = screen.getAllByRole('button', { name: 'Change Password' });
@@ -137,7 +148,12 @@ describe('Password Change Functionality', () => {
       update: jest.fn()
     });
 
-    render(<ProfilePage />);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0 } } });
+    render(
+      <QueryClientProvider client={client}>
+        <ProfilePage />
+      </QueryClientProvider>
+    );
 
     // Open modal
     const [changePasswordButton] = screen.getAllByRole('button', { name: 'Change Password' });
@@ -202,7 +218,12 @@ describe('Password Change Functionality', () => {
       update: jest.fn()
     });
 
-    render(<ProfilePage />);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0 } } });
+    render(
+      <QueryClientProvider client={client}>
+        <ProfilePage />
+      </QueryClientProvider>
+    );
 
     // Open modal
     const changePasswordButton = screen.getByRole('button', { name: 'Change Password' });
@@ -267,7 +288,12 @@ describe('Password Change Functionality', () => {
       update: jest.fn()
     });
 
-    render(<ProfilePage />);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0 } } });
+    render(
+      <QueryClientProvider client={client}>
+        <ProfilePage />
+      </QueryClientProvider>
+    );
 
     // Open modal and submit form
     const [changePasswordButton] = screen.getAllByRole('button', { name: 'Change Password' });
