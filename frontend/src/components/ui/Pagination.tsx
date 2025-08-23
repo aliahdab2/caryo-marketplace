@@ -185,24 +185,6 @@ const Pagination: React.FC<PaginationProps> = ({
         aria-label={t('common:pagination', 'Pagination')}
         dir={isRTL ? 'rtl' : 'ltr'}
       >
-        {/* First page button */}
-        <button
-          onClick={handleFirstPage}
-          disabled={currentPage === 1}
-          className={`inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-medium
-            text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 hover:text-gray-800
-            disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-            transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200`}
-          aria-label={t('common:firstPage', 'First page')}
-          title={t('common:firstPage', 'First page')}
-        >
-          {isRTL ? (
-            <MdLastPage className="w-5 h-5" aria-hidden="true" />
-          ) : (
-            <MdFirstPage className="w-5 h-5" aria-hidden="true" />
-          )}
-        </button>
-
         {/* Previous button */}
         <button
           onClick={handlePreviousPage}
@@ -222,7 +204,7 @@ const Pagination: React.FC<PaginationProps> = ({
         </button>
 
         {/* Spacer */}
-        <div className={`${isRTL ? 'w-4 ml-4' : 'w-4 mr-4'}`} />
+        <div className={`${isRTL ? 'w-3 ml-3' : 'w-3 mr-3'}`} />
 
         {/* Page numbers container */}
         <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1.5' : 'space-x-1.5'}`}>
@@ -253,7 +235,7 @@ const Pagination: React.FC<PaginationProps> = ({
         </div>
 
         {/* Spacer */}
-        <div className={`${isRTL ? 'w-4 mr-4' : 'w-4 ml-4'}`} />
+        <div className={`${isRTL ? 'w-3 mr-3' : 'w-3 ml-3'}`} />
 
         {/* Next button */}
         <button
@@ -267,21 +249,6 @@ const Pagination: React.FC<PaginationProps> = ({
             <MdChevronLeft className="w-5 h-5" aria-hidden="true" />
           ) : (
             <MdChevronRight className="w-5 h-5" aria-hidden="true" />
-          )}
-        </button>
-
-        {/* Last page button */}
-        <button
-          onClick={handleLastPage}
-          disabled={currentPage === totalPages}
-          className={`inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200`}
-          aria-label={t('common:lastPage', 'Last page')}
-          title={t('common:lastPage', 'Last page')}
-        >
-          {isRTL ? (
-            <MdFirstPage className="w-5 h-5" aria-hidden="true" />
-          ) : (
-            <MdLastPage className="w-5 h-5" aria-hidden="true" />
           )}
         </button>
       </nav>
