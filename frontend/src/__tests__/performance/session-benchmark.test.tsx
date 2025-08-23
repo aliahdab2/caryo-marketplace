@@ -14,7 +14,7 @@ jest.mock('next-auth/react', () => ({
   SessionProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-const { useSession } = require('next-auth/react');
+import { useSession as mockUseSession } from 'next-auth/react';
 
 // Component that uses session data (simulates FavoriteButton)
 const SessionConsumer = ({ id }: { id: number }) => {
@@ -53,13 +53,15 @@ const createTestWrapper = () => {
     },
   });
 
-  return ({ children }: { children: React.ReactNode }) => (
+  const TestWrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       <SessionProvider refetchInterval={5 * 60} refetchOnWindowFocus={false}>
         {children}
       </SessionProvider>
     </QueryClientProvider>
   );
+  TestWrapper.displayName = 'TestWrapper';
+  return TestWrapper;
 };
 
 describe('Session Performance Benchmarks', () => {
@@ -81,7 +83,7 @@ describe('Session Performance Benchmarks', () => {
       roles: ['ROLE_USER'],
     };
 
-    useSession.mockReturnValue({
+    (mockUseSession as jest.Mock).mockReturnValue({
       data: { user: mockUser },
       status: 'authenticated',
       update: jest.fn(),
@@ -126,7 +128,7 @@ describe('Session Performance Benchmarks', () => {
       roles: ['ROLE_USER'],
     };
 
-    useSession.mockReturnValue({
+    (mockUseSession as jest.Mock).mockReturnValue({
       data: { user: mockUser },
       status: 'authenticated',
       update: jest.fn(),
@@ -167,7 +169,7 @@ describe('Session Performance Benchmarks', () => {
       roles: ['ROLE_USER'],
     };
 
-    useSession.mockReturnValue({
+    (mockUseSession as jest.Mock).mockReturnValue({
       data: { user: mockUser },
       status: 'authenticated',
       update: jest.fn(),
@@ -207,7 +209,7 @@ describe('Session Performance Benchmarks', () => {
       roles: ['ROLE_USER'],
     };
 
-    useSession.mockReturnValue({
+    (mockUseSession as jest.Mock).mockReturnValue({
       data: { user: mockUser },
       status: 'authenticated',
       update: jest.fn(),
@@ -255,7 +257,7 @@ describe('Session Performance Benchmarks', () => {
       roles: ['ROLE_USER'],
     };
 
-    useSession.mockReturnValue({
+    (mockUseSession as jest.Mock).mockReturnValue({
       data: { user: mockUser },
       status: 'authenticated',
       update: jest.fn(),
@@ -266,7 +268,7 @@ describe('Session Performance Benchmarks', () => {
     const Wrapper = createTestWrapper();
 
     // Measure memory before
-    const memoryBefore = (performance as any).memory?.usedJSHeapSize || 0;
+    const memoryBefore = (performance as { memory?: { usedJSHeapSize?: number } }).memory?.usedJSHeapSize || 0;
 
     render(
       <Wrapper>
@@ -279,7 +281,7 @@ describe('Session Performance Benchmarks', () => {
     });
 
     // Measure memory after
-    const memoryAfter = (performance as any).memory?.usedJSHeapSize || 0;
+    const memoryAfter = (performance as { memory?: { usedJSHeapSize?: number } }).memory?.usedJSHeapSize || 0;
     const memoryUsed = memoryAfter - memoryBefore;
 
     // With React Query's efficient caching, memory usage should be reasonable

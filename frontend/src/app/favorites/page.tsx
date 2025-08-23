@@ -20,7 +20,7 @@ type FilterTab = 'all' | 'available' | 'removed';
 
 export default function FavoritesPage() {
   const { t, i18n } = useTranslation(['favorites', 'common']);
-  const { isAuthenticated, isLoading: isAuthLoading, status } = useOptimizedAuthStatus();
+  const { isAuthenticated, isLoading: isAuthLoading } = useOptimizedAuthStatus();
   const user = useOptimizedUser();
   const router = useRouter();
   

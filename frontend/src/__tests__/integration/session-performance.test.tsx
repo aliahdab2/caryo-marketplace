@@ -14,7 +14,7 @@ jest.mock('next-auth/react', () => ({
   SessionProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-const { useSession } = require('next-auth/react');
+import { useSession as mockUseSession } from 'next-auth/react';
 
 // Test components that simulate real usage
 const UserProfile = () => {
@@ -64,13 +64,15 @@ const createTestWrapper = () => {
     },
   });
 
-  return ({ children }: { children: React.ReactNode }) => (
+  const TestWrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       <SessionProvider refetchInterval={5 * 60} refetchOnWindowFocus={false}>
         {children}
       </SessionProvider>
     </QueryClientProvider>
   );
+  TestWrapper.displayName = 'TestWrapper';
+  return TestWrapper;
 };
 
 describe('Session Performance Integration Tests', () => {
@@ -92,7 +94,7 @@ describe('Session Performance Integration Tests', () => {
       roles: ['ROLE_USER'],
     };
 
-    useSession.mockReturnValue({
+    (mockUseSession as jest.Mock).mockReturnValue({
       data: { user: mockUser },
       status: 'authenticated',
       update: jest.fn(),
@@ -136,7 +138,7 @@ describe('Session Performance Integration Tests', () => {
       roles: ['ROLE_USER'],
     };
 
-    useSession.mockReturnValue({
+    (mockUseSession as jest.Mock).mockReturnValue({
       data: { user: mockUser },
       status: 'authenticated',
       update: jest.fn(),
@@ -179,7 +181,7 @@ describe('Session Performance Integration Tests', () => {
   });
 
   it('should handle unauthenticated state efficiently', async () => {
-    useSession.mockReturnValue({
+    (mockUseSession as jest.Mock).mockReturnValue({
       data: null,
       status: 'unauthenticated',
       update: jest.fn(),
@@ -211,7 +213,7 @@ describe('Session Performance Integration Tests', () => {
   });
 
   it('should handle loading state correctly across multiple components', () => {
-    useSession.mockReturnValue({
+    (mockUseSession as jest.Mock).mockReturnValue({
       data: null,
       status: 'loading',
       update: jest.fn(),
@@ -243,7 +245,7 @@ describe('Session Performance Integration Tests', () => {
       roles: ['ROLE_USER'],
     };
 
-    useSession.mockReturnValue({
+    (mockUseSession as jest.Mock).mockReturnValue({
       data: { user: mockUser },
       status: 'authenticated',
       update: jest.fn(),

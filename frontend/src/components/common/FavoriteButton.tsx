@@ -5,16 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { FavoriteButtonProps } from '@/types/components';
 
-// User type for the prop
-interface User {
-  id?: string;
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
-  roles?: string[];
-  isAdmin?: boolean;
-  accessToken?: string;
-}
+
 
 const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   listingId,

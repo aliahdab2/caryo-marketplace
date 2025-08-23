@@ -14,7 +14,7 @@ jest.mock('next-auth/react', () => ({
   SessionProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-const { useSession } = require('next-auth/react');
+import { useSession as mockUseSession } from 'next-auth/react';
 
 // Test wrapper with providers
 const createWrapper = () => {
@@ -28,13 +28,15 @@ const createWrapper = () => {
     },
   });
 
-  return ({ children }: { children: React.ReactNode }) => (
+  const TestWrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
         {children}
       </SessionProvider>
     </QueryClientProvider>
   );
+  TestWrapper.displayName = 'TestWrapper';
+  return TestWrapper;
 };
 
 describe('useOptimizedSession', () => {
@@ -50,7 +52,7 @@ describe('useOptimizedSession', () => {
 
   describe('useOptimizedSession', () => {
     it('should return loading state initially', () => {
-      useSession.mockReturnValue({
+      (mockUseSession as jest.Mock).mockReturnValue({
         data: null,
         status: 'loading',
         update: jest.fn(),
@@ -80,7 +82,7 @@ describe('useOptimizedSession', () => {
         expires: '2024-12-31T23:59:59.999Z',
       };
 
-      useSession.mockReturnValue({
+      (mockUseSession as jest.Mock).mockReturnValue({
         data: mockSessionData,
         status: 'authenticated',
         update: jest.fn(),
@@ -110,7 +112,7 @@ describe('useOptimizedSession', () => {
     });
 
     it('should return unauthenticated state when no session', async () => {
-      useSession.mockReturnValue({
+      (mockUseSession as jest.Mock).mockReturnValue({
         data: null,
         status: 'unauthenticated',
         update: jest.fn(),
@@ -133,7 +135,7 @@ describe('useOptimizedSession', () => {
 
     it('should provide refreshSession function', async () => {
       const mockUpdate = jest.fn();
-      useSession.mockReturnValue({
+      (mockUseSession as jest.Mock).mockReturnValue({
         data: null,
         status: 'unauthenticated',
         update: mockUpdate,
@@ -168,7 +170,7 @@ describe('useOptimizedSession', () => {
         isAdmin: false,
       };
 
-      useSession.mockReturnValue({
+      (mockUseSession as jest.Mock).mockReturnValue({
         data: { user: mockUser },
         status: 'authenticated',
         update: jest.fn(),
@@ -186,7 +188,7 @@ describe('useOptimizedSession', () => {
     });
 
     it('should return null when unauthenticated', async () => {
-      useSession.mockReturnValue({
+      (mockUseSession as jest.Mock).mockReturnValue({
         data: null,
         status: 'unauthenticated',
         update: jest.fn(),
@@ -206,7 +208,7 @@ describe('useOptimizedSession', () => {
 
   describe('useOptimizedAuthStatus', () => {
     it('should return correct auth status for authenticated user', async () => {
-      useSession.mockReturnValue({
+      (mockUseSession as jest.Mock).mockReturnValue({
         data: { user: { id: '123' } },
         status: 'authenticated',
         update: jest.fn(),
@@ -227,7 +229,7 @@ describe('useOptimizedSession', () => {
     });
 
     it('should return correct auth status for unauthenticated user', async () => {
-      useSession.mockReturnValue({
+      (mockUseSession as jest.Mock).mockReturnValue({
         data: null,
         status: 'unauthenticated',
         update: jest.fn(),
@@ -248,7 +250,7 @@ describe('useOptimizedSession', () => {
     });
 
     it('should return loading state initially', () => {
-      useSession.mockReturnValue({
+      (mockUseSession as jest.Mock).mockReturnValue({
         data: null,
         status: 'loading',
         update: jest.fn(),
@@ -266,7 +268,7 @@ describe('useOptimizedSession', () => {
 
   describe('Performance and Caching', () => {
     it('should deduplicate concurrent session calls', async () => {
-      useSession.mockReturnValue({
+      (mockUseSession as jest.Mock).mockReturnValue({
         data: { user: { id: '123' } },
         status: 'authenticated',
         update: jest.fn(),
@@ -301,7 +303,7 @@ describe('useOptimizedSession', () => {
     it('should cache session data and not refetch immediately', async () => {
       const wrapper = createWrapper();
       
-      useSession.mockReturnValue({
+      (mockUseSession as jest.Mock).mockReturnValue({
         data: { user: { id: '123' } },
         status: 'authenticated',
         update: jest.fn(),

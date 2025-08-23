@@ -17,7 +17,7 @@ export const sessionKeys = {
  * This replaces our custom session management with industry-standard patterns
  */
 export function useOptimizedSession() {
-  const { data: nextAuthSession, status: nextAuthStatus, update } = useSession();
+  const { status: nextAuthStatus, update } = useSession();
   
   console.log(`🔄 [OptimizedSession] NextAuth status: ${nextAuthStatus}`);
   
@@ -49,9 +49,9 @@ export function useOptimizedSession() {
     name: sessionQuery.data.user.name,
     email: sessionQuery.data.user.email,
     image: sessionQuery.data.user.image,
-    roles: (sessionQuery.data.user as any)?.roles || [],
-    isAdmin: ((sessionQuery.data.user as any)?.roles || []).includes('ROLE_ADMIN'),
-    accessToken: (sessionQuery.data as any)?.accessToken,
+    roles: (sessionQuery.data.user as { roles?: string[] })?.roles || [],
+    isAdmin: ((sessionQuery.data.user as { roles?: string[] })?.roles || []).includes('ROLE_ADMIN'),
+    accessToken: (sessionQuery.data as { accessToken?: string })?.accessToken,
   } : null;
 
   const isAuthenticated = !!user;

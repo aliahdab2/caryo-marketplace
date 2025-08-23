@@ -75,7 +75,7 @@ const Pagination: React.FC<PaginationProps> = ({
       // Force scroll to top immediately
       window.scrollTo(0, 0);
     }
-  }, [currentPage, onPageChange, totalPages]);
+  }, [currentPage, onPageChange]);
 
   const handleNextPage = useCallback(() => {
     if (currentPage < totalPages) {
