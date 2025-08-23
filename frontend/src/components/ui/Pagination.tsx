@@ -70,7 +70,7 @@ const Pagination: React.FC<PaginationProps> = ({
   }, [currentPage, totalPages]);
 
   // Memoize page change handlers to prevent unnecessary re-renders
-  const scrollIntoView = (behavior: ScrollBehavior = 'smooth') => {
+  const scrollIntoViewStable = useCallback((behavior: ScrollBehavior = 'smooth') => {
     const doScroll = () => {
       if (scrollTargetSelector) {
         const el = document.querySelector(scrollTargetSelector) as HTMLElement | null;
@@ -87,27 +87,26 @@ const Pagination: React.FC<PaginationProps> = ({
         window.scrollTo(0, 0);
       }
     };
-    // Defer to next frame(s) so new page content can render before scrolling
     if (typeof requestAnimationFrame === 'function') {
       requestAnimationFrame(() => requestAnimationFrame(doScroll));
     } else {
       setTimeout(doScroll, 0);
     }
-  };
+  }, [scrollTargetSelector]);
 
   const handlePreviousPage = useCallback(() => {
     if (currentPage > 1) {
       onPageChange(currentPage - 1);
-      scrollIntoView('smooth');
+      scrollIntoViewStable('smooth');
     }
-  }, [currentPage, onPageChange, scrollIntoView]);
+  }, [currentPage, onPageChange, scrollIntoViewStable]);
 
   const handleNextPage = useCallback(() => {
     if (currentPage < totalPages) {
       onPageChange(currentPage + 1);
-      scrollIntoView('smooth');
+      scrollIntoViewStable('smooth');
     }
-  }, [currentPage, totalPages, onPageChange, scrollIntoView]);
+  }, [currentPage, totalPages, onPageChange, scrollIntoViewStable]);
 
   const handlePageClick = useCallback((pageNumber: number) => {
     if (pageNumber !== currentPage) {
