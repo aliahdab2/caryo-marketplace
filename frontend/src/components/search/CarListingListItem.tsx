@@ -19,6 +19,15 @@ interface CarListingListItemProps {
   initialFavorite?: boolean;
   t?: (key: string, fallback?: string) => string;
   isRTL?: boolean;
+  user?: {
+    id?: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    roles?: string[];
+    isAdmin?: boolean;
+    accessToken?: string;
+  } | null;
 }
 
 const CarListingListItem: React.FC<CarListingListItemProps> = ({
@@ -26,7 +35,8 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
   onFavoriteToggle,
   initialFavorite = false,
   t = (key: string, fallback?: string) => fallback || key,
-  isRTL: _propIsRTL = false // Keep prop for backward compatibility but don't rely on it
+  isRTL: _propIsRTL = false, // Keep prop for backward compatibility but don't rely on it
+  user = null
 }) => {
   // Determine RTL internally like the grid component does
   const { isRTL } = useLanguageDirection();
@@ -169,6 +179,7 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
                 className="shadow-md hover:shadow-lg"
                 initialFavorite={initialFavorite}
                 onToggle={onFavoriteToggle}
+                user={user}
               />
             </div>
             

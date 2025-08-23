@@ -1,5 +1,4 @@
 import { Listing } from './listings';
-import { Session } from 'next-auth';
 
 /**
  * Interface for favorite action handlers
@@ -13,7 +12,9 @@ export interface FavoriteHandlers {
  * Type for favorites service options
  */
 export interface FavoriteServiceOptions {
-  session: Session;
+  // Options for favorite service operations
+  retryCount?: number;
+  timeout?: number;
 }
 
 /**

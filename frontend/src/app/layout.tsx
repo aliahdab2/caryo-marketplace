@@ -3,13 +3,14 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { cookies } from 'next/headers';
 import "./globals.css";
 // RTL styles are conditionally loaded client-side for performance
-import AuthProvider from "@/components/AuthProvider";
+
 import LanguageProvider from "@/components/EnhancedLanguageProvider";
 import I18nProvider from "@/components/I18nProvider";
 import MainLayout from "@/components/layout/MainLayout";
 import ClientRTLStylesLoader from "@/components/layout/ClientRTLStylesLoader";
 import AuthDataHandler from "@/components/auth/AuthDataHandler";
 import AutoLanguageDetector from "@/components/AutoLanguageDetector";
+import ClientProviders from "@/providers/ClientProviders";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -98,7 +99,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
+        <ClientProviders>
           <AuthDataHandler />
           <I18nProvider>
             <LanguageProvider>
@@ -106,7 +107,7 @@ export default async function RootLayout({
               <MainLayout>{children}</MainLayout>
             </LanguageProvider>
           </I18nProvider>
-        </AuthProvider>
+        </ClientProviders>
       </body>
     </html>
   );

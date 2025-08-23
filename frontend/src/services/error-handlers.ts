@@ -2,7 +2,6 @@
  * Utility functions for handling API errors in a consistent way
  */
 
-import { Session } from 'next-auth';
 import { isFavorited } from './favorites';
 import { FavoriteServiceOptions } from '@/types/favorites';
 
@@ -86,8 +85,7 @@ export async function handleFavoriteApiError(
   error: unknown, 
   listingId: string,
   expectedState: boolean,
-  options?: FavoriteServiceOptions,
-  session?: Session | null
+  options?: FavoriteServiceOptions
 ): Promise<boolean> {
   // Extract error details
   const errorMessage = extractErrorMessage(error);
@@ -101,7 +99,7 @@ export async function handleFavoriteApiError(
     const checkState = async (retryCount = 3, delayMs = 300): Promise<boolean> => {
       try {
         // Verify the actual state to see if the operation succeeded despite the error
-        const actualState = await isFavorited(listingId, options, session);
+        const actualState = await isFavorited(listingId, options);
         
         // If the state matches what we expected after the operation, consider it successful
         if (actualState.isFavorite === expectedState) {

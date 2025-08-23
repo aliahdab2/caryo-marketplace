@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { useAuthSession } from "@/hooks/useAuthSession";
+import { useOptimizedSession } from "@/hooks/useOptimizedSession";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState, useCallback, memo } from "react";
 import Link from "next/link";
@@ -70,31 +70,34 @@ const SidebarItem = memo(function SidebarItem({
 
 // Memoized User profile component with improved styling
 type UserProfileSession = {
-  user?: {
-    name?: string | null;
-    email?: string | null;
-  };
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  roles?: string[];
+  isAdmin?: boolean;
+  accessToken?: string;
 } | null;
 
 const UserProfile = memo(function UserProfile({ 
-  session, 
+  user, 
   t 
 }: { 
-  session: UserProfileSession; 
+  user: UserProfileSession; 
   t: (key: string) => string;
 }) {
   return (
     <div className="flex items-center mb-4 group">
       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-sm
                     group-hover:scale-105 transition-transform duration-200">
-        {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : '?'}
+        {user?.name ? user.name.charAt(0).toUpperCase() : '?'}
       </div>
       <div className="ml-3 overflow-hidden">
         <p className="text-sm font-medium truncate group-hover:text-primary transition-colors duration-200">
-          {session?.user?.name || t('guest')}
+          {user?.name || t('guest')}
         </p>
         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-          {session?.user?.email || ''}
+          {user?.email || ''}
         </p>
       </div>
     </div>
@@ -106,7 +109,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { session, status } = useAuthSession();
+  const { user, status } = useOptimizedSession();
   const router = useRouter();
   const { t } = useTranslation('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -267,7 +270,7 @@ export default function DashboardLayout({
       >
         {/* Mobile User Profile */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80">
-          <UserProfile session={session} t={t} />
+          <UserProfile user={user} t={t} />
         </div>
         
         <nav className="p-4">
@@ -375,7 +378,7 @@ export default function DashboardLayout({
         {/* User Profile & Logout */}
         <div className="mt-auto p-4 border-t border-gray-200 dark:border-gray-700 
                        bg-gray-50/50 dark:bg-gray-800/50">
-          <UserProfile session={session} t={t} />
+          <UserProfile user={user} t={t} />
           
           <button 
             onClick={() => signOut({ callbackUrl: "/" })}

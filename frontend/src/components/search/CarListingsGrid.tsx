@@ -20,6 +20,15 @@ interface CarListingsGridProps {
   viewMode: ViewMode;
   isRTL?: boolean;
   t: (key: string, fallback?: string) => string;
+  user?: {
+    id?: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    roles?: string[];
+    isAdmin?: boolean;
+    accessToken?: string;
+  } | null;
 }
 
 const CarListingsGrid: React.FC<CarListingsGridProps> = ({
@@ -30,7 +39,8 @@ const CarListingsGrid: React.FC<CarListingsGridProps> = ({
   executeSearch,
   viewMode = 'grid',
   isRTL = false,
-  t
+  t,
+  user = null
 }) => {
   const containerClassName = viewMode === 'grid' 
     ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
@@ -112,6 +122,7 @@ const CarListingsGrid: React.FC<CarListingsGridProps> = ({
                     // Handle favorite toggle if needed
                   }}
                   initialFavorite={false}
+                  user={user}
                 />
               ) : (
                 <CarListingListItem
@@ -122,6 +133,7 @@ const CarListingsGrid: React.FC<CarListingsGridProps> = ({
                   initialFavorite={false}
                   t={t}
                   isRTL={isRTL}
+                  user={user}
                 />
               )}
             </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuthSession } from "@/hooks/useAuthSession";
+import { useOptimizedSession } from "@/hooks/useOptimizedSession";
 import Link from "next/link";
 import { 
   MdHelp,
@@ -30,7 +30,7 @@ interface FAQItem {
 
 export default function SupportPage() {
   const { t } = useTranslation('dashboard');
-  const { session } = useAuthSession();
+  const { user } = useOptimizedSession();
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
@@ -156,8 +156,8 @@ export default function SupportPage() {
         </h1>
         <p className="text-gray-600 dark:text-gray-400 text-lg">
           {t('support.subtitle', 'Get help with your account and listings')}
-          {session?.user?.name && (
-            <span className="font-medium"> • Welcome, {session.user.name}</span>
+          {user?.name && (
+            <span className="font-medium"> • Welcome, {user.name}</span>
           )}
         </p>
       </div>

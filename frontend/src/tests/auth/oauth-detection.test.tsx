@@ -1,13 +1,13 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { useAuthSession } from '@/hooks/useAuthSession';
+import { useSessionContext } from '@/contexts/SessionContext';
 import ProfilePage from '@/app/dashboard/profile/page';
 // Import our i18n mock
 import '../mocks/i18n-mock';
 
-// Mock the auth session hook
-jest.mock('@/hooks/useAuthSession');
+// Mock the session context
+jest.mock('@/contexts/SessionContext');
 
 // Extended user interface for testing OAuth users
 interface ExtendedUser {
@@ -41,7 +41,7 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-const mockUseAuthSession = useAuthSession as jest.MockedFunction<typeof useAuthSession>;
+const mockUseSessionContext = useSessionContext as jest.MockedFunction<typeof useSessionContext>;
 
 describe('OAuth User Detection in Profile Page', () => {
   beforeEach(() => {
@@ -53,30 +53,18 @@ describe('OAuth User Detection in Profile Page', () => {
     // Set up localStorage to indicate OAuth
     localStorage.setItem('authMethod', 'oauth');
     
-    mockUseAuthSession.mockReturnValue({
-      session: {
-        user: {
-          id: '1',
-          name: 'John Doe',
-          email: 'john@gmail.com',
-          image: 'https://lh3.googleusercontent.com/a/xyz',
-          roles: ['USER']
-        } as ExtendedUser,
-        accessToken: 'mock-token',
-        expires: '2024-12-31T23:59:59.999Z'
-      },
-      status: 'authenticated',
-      isLoading: false,
-      isAuthenticated: true,
+    mockUseSessionContext.mockReturnValue({
       user: {
         id: '1',
         name: 'John Doe',
         email: 'john@gmail.com',
         image: 'https://lh3.googleusercontent.com/a/xyz',
-        roles: ['USER']
-      } as ExtendedUser,
-      userRoles: ['USER'],
-      isAdmin: false
+        roles: ['USER'],
+        accessToken: 'mock-token'
+      },
+      status: 'authenticated',
+      isLoading: false,
+      isAuthenticated: true
     });
 
     render(<ProfilePage />);
@@ -90,30 +78,18 @@ describe('OAuth User Detection in Profile Page', () => {
   });
 
   it('should hide change password for Google OAuth users (image URL)', () => {
-    mockUseAuthSession.mockReturnValue({
-      session: {
-        user: {
-          id: '1',
-          name: 'John Doe',
-          email: 'john@gmail.com',
-          image: 'https://lh3.googleusercontent.com/a/xyz',
-          roles: ['USER']
-        } as ExtendedUser,
-        accessToken: 'mock-token',
-        expires: '2024-12-31T23:59:59.999Z'
-      },
-      status: 'authenticated',
-      isLoading: false,
-      isAuthenticated: true,
+    mockUseSessionContext.mockReturnValue({
       user: {
         id: '1',
         name: 'John Doe',
         email: 'john@gmail.com',
         image: 'https://lh3.googleusercontent.com/a/xyz',
-        roles: ['USER']
-      } as ExtendedUser,
-      userRoles: ['USER'],
-      isAdmin: false
+        roles: ['USER'],
+        accessToken: 'mock-token'
+      },
+      status: 'authenticated',
+      isLoading: false,
+      isAuthenticated: true
     });
 
     render(<ProfilePage />);
@@ -126,7 +102,7 @@ describe('OAuth User Detection in Profile Page', () => {
   });
 
   it('should show change password for regular email/password users', () => {
-    mockUseAuthSession.mockReturnValue({
+    mockUseSessionContext.mockReturnValue({
       session: {
         user: {
           id: '1',

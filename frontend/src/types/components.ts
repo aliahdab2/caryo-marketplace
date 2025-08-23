@@ -121,6 +121,15 @@ export interface FavoriteButtonProps extends FavoriteHandlers {
   size?: 'sm' | 'md' | 'lg';
   variant?: 'filled' | 'outline';
   showText?: boolean;
+  user?: {
+    id?: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    roles?: string[];
+    isAdmin?: boolean;
+    accessToken?: string;
+  } | null;
 }
 
 /**

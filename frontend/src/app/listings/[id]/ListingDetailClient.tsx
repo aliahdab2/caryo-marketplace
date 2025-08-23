@@ -6,6 +6,7 @@ import { formatDate, formatNumber } from '../../../utils/localization';
 import { CarListing } from '@/services/publicApi';
 import { transformMinioUrl, processVideoForGallery } from '@/utils/mediaUtils';
 import FavoriteButton from '@/components/common/FavoriteButton';
+import { useOptimizedUser } from '@/hooks/useOptimizedSession';
 
 // Component imports for the new enhanced layout
 import BreadcrumbNavigation from './components/BreadcrumbNavigation';
@@ -21,6 +22,7 @@ interface ListingDetailClientProps {
 export default function ListingDetailClient({ initialListing }: ListingDetailClientProps) {
   const { t, i18n } = useTranslation('listings');
   const [showPhoneNumber, setShowPhoneNumber] = useState(false);
+  const user = useOptimizedUser();
   
   const listing = initialListing;
 
@@ -107,6 +109,7 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
                     onToggle={(newState) => {
                       console.log(`[LISTING] Favorite state changed to ${newState}`);
                     }}
+                    user={user}
                   />
                   <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
                     {t('save')}

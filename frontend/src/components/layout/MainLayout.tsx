@@ -2,7 +2,7 @@
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { useAuthStatus } from "@/hooks/useAuthSession";
+import { useOptimizedAuthStatus } from "@/hooks/useOptimizedSession";
 import type { MainLayoutProps } from "@/types/components";
 // Import DevTools component conditionally
 import dynamic from "next/dynamic";
@@ -18,7 +18,7 @@ const DevNavLink = dynamic(() => import("@/components/dev/DevNavLink"), {
 });
 
 export default function MainLayout({ children }: MainLayoutProps) {
-  const { isLoading } = useAuthStatus();
+  const { isLoading } = useOptimizedAuthStatus();
   
   return (
     <div className="flex flex-col min-h-screen">
