@@ -220,7 +220,7 @@ describe('Session Performance Benchmarks', () => {
     const Wrapper = createTestWrapper();
 
     // Simulate multiple page navigations
-    const { unmount, rerender } = render(
+    const { rerender } = render(
       <Wrapper>
         <SearchPageSimulation listingCount={10} />
       </Wrapper>
