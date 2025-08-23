@@ -14,7 +14,8 @@ const Pagination: React.FC<PaginationProps> = ({
   showInfo = true,
   isRTL = false,
   className = '',
-  resultsText
+  resultsText,
+  scrollTargetSelector
 }) => {
   const { t } = useTranslation(['common', 'search']);
 
@@ -69,21 +70,43 @@ const Pagination: React.FC<PaginationProps> = ({
   }, [currentPage, totalPages]);
 
   // Memoize page change handlers to prevent unnecessary re-renders
+  const scrollIntoViewStable = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    const doScroll = () => {
+      if (scrollTargetSelector) {
+        const el = document.querySelector(scrollTargetSelector) as HTMLElement | null;
+        if (el) {
+          try {
+            el.scrollIntoView({ behavior, block: 'start', inline: 'nearest' });
+            return;
+          } catch {}
+        }
+      }
+      try {
+        window.scrollTo({ top: 0, behavior });
+      } catch {
+        window.scrollTo(0, 0);
+      }
+    };
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => requestAnimationFrame(doScroll));
+    } else {
+      setTimeout(doScroll, 0);
+    }
+  }, [scrollTargetSelector]);
+
   const handlePreviousPage = useCallback(() => {
     if (currentPage > 1) {
       onPageChange(currentPage - 1);
-      // Force scroll to top immediately
-      window.scrollTo(0, 0);
+      scrollIntoViewStable('smooth');
     }
-  }, [currentPage, onPageChange]);
+  }, [currentPage, onPageChange, scrollIntoViewStable]);
 
   const handleNextPage = useCallback(() => {
     if (currentPage < totalPages) {
       onPageChange(currentPage + 1);
-      // Force scroll to top immediately
-      window.scrollTo(0, 0);
+      scrollIntoViewStable('smooth');
     }
-  }, [currentPage, totalPages, onPageChange]);
+  }, [currentPage, totalPages, onPageChange, scrollIntoViewStable]);
 
   const handlePageClick = useCallback((pageNumber: number) => {
     if (pageNumber !== currentPage) {
@@ -151,16 +174,10 @@ const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={handlePreviousPage}
           disabled={currentPage === 1}
-          className={`
-            relative inline-flex items-center justify-center
-            w-10 h-10 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md
-            hover:bg-gray-50 hover:text-gray-700 hover:border-gray-400
-            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-500 disabled:hover:border-gray-300
-            focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500
-            transition-all duration-200 ease-in-out
-            dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:hover:border-gray-500
-            shadow-sm hover:shadow-md active:scale-95
-          `}
+          className={`inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-medium
+            text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 hover:text-gray-800
+            disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+            transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200`}
           aria-label={t('common:previousPage', 'Previous page')}
           title={t('common:previousPage', 'Previous page')}
         >
@@ -172,17 +189,14 @@ const Pagination: React.FC<PaginationProps> = ({
         </button>
 
         {/* Spacer */}
-        <div className={`${isRTL ? 'w-6 ml-6' : 'w-6 mr-6'}`} />
+        <div className={`${isRTL ? 'w-3 ml-3' : 'w-3 mr-3'}`} />
 
         {/* Page numbers container */}
-        <div className={`flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700 ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
+        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1.5' : 'space-x-1.5'}`}>
           {visiblePages.map((page, index) => {
             if (page === '...') {
               return (
-                <span
-                  key={`dots-${index}`}
-                  className="relative inline-flex items-center justify-center w-10 h-10 text-sm font-medium text-gray-500 dark:text-gray-400"
-                >
+                <span key={`dots-${index}`} className="inline-flex items-center justify-center w-9 h-9 text-sm font-medium text-gray-400 dark:text-gray-500">
                   ...
                 </span>
               );
@@ -195,17 +209,7 @@ const Pagination: React.FC<PaginationProps> = ({
               <button
                 key={pageNumber}
                 onClick={() => handlePageClick(pageNumber)}
-                className={`
-                  relative inline-flex items-center justify-center
-                  w-10 h-10 text-sm font-medium rounded-md
-                  transition-all duration-200 ease-in-out
-                  focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                  ${
-                    isCurrentPage
-                      ? 'bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 hover:border-blue-700 shadow-md'
-                      : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:border-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-gray-200 dark:hover:border-gray-500'
-                  }
-                `}
+                className={`inline-flex items-center justify-center w-9 h-9 text-sm font-medium rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isCurrentPage ? 'bg-blue-600 text-white' : 'text-gray-700 bg-white border border-transparent hover:bg-gray-100 hover:text-gray-900 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}`}
                 aria-label={t('common:goToPage', 'Go to page {{page}}', { page: pageNumber })}
                 aria-current={isCurrentPage ? 'page' : undefined}
               >
@@ -216,22 +220,13 @@ const Pagination: React.FC<PaginationProps> = ({
         </div>
 
         {/* Spacer */}
-        <div className={`${isRTL ? 'w-6 mr-6' : 'w-6 ml-6'}`} />
+        <div className={`${isRTL ? 'w-3 mr-3' : 'w-3 ml-3'}`} />
 
         {/* Next button */}
         <button
           onClick={handleNextPage}
           disabled={currentPage === totalPages}
-          className={`
-            relative inline-flex items-center justify-center
-            w-10 h-10 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md
-            hover:bg-gray-50 hover:text-gray-700 hover:border-gray-400
-            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-500 disabled:hover:border-gray-300
-            focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500
-            transition-all duration-200 ease-in-out
-            dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:hover:border-gray-500
-            shadow-sm hover:shadow-md active:scale-95
-          `}
+          className={`inline-flex items-center justify-center w-9 h-9 rounded-full text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200`}
           aria-label={t('common:nextPage', 'Next page')}
           title={t('common:nextPage', 'Next page')}
         >

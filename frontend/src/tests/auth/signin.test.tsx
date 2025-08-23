@@ -1,5 +1,6 @@
 import React from 'react';
 import { act as rtlAct, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import SignInPage from '@/app/auth/signin/page';
 import { signIn, useSession } from 'next-auth/react';
@@ -158,7 +159,12 @@ describe('SignInPage', () => {
   });
 
   test('renders the sign-in form correctly', async () => {
-    render(<SignInPage />);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0, refetchOnWindowFocus: false, refetchOnReconnect: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <SignInPage />
+      </QueryClientProvider>
+    );
     expect(screen.getByRole('heading', { name: /sign_in/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
@@ -170,7 +176,12 @@ describe('SignInPage', () => {
   });
 
   test('shows validation errors when form is submitted with empty fields', async () => {
-    const { container } = render(<SignInPage />);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0, refetchOnWindowFocus: false, refetchOnReconnect: false } } });
+    const { container } = render(
+      <QueryClientProvider client={client}>
+        <SignInPage />
+      </QueryClientProvider>
+    );
     
     // Wait for initial verification to complete
     await waitFor(() => expect(mockOnVerified).toHaveBeenCalledWith(true));
@@ -201,7 +212,12 @@ describe('SignInPage', () => {
     (signIn as jest.Mock).mockImplementation(mockSignIn);
     // No need to mock useRouter().push here as it's done globally and cleared in beforeEach
 
-    render(<SignInPage />);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0, refetchOnWindowFocus: false, refetchOnReconnect: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <SignInPage />
+      </QueryClientProvider>
+    );
 
     await rtlAct(async () => {
       await userEvent.type(screen.getByLabelText(/username/i), 'testuser');
@@ -238,7 +254,12 @@ describe('SignInPage', () => {
     (signIn as jest.Mock).mockImplementation(mockSignIn);
     // No need to mock useRouter().push here
 
-    render(<SignInPage />);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0, refetchOnWindowFocus: false, refetchOnReconnect: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <SignInPage />
+      </QueryClientProvider>
+    );
 
     await rtlAct(async () => {
       await userEvent.type(screen.getByLabelText(/username/i), 'testuser');
@@ -264,7 +285,12 @@ describe('SignInPage', () => {
     // Set initial state for this specific test
     mockIsVerified = false; 
 
-    render(<SignInPage />);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0, refetchOnWindowFocus: false, refetchOnReconnect: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <SignInPage />
+      </QueryClientProvider>
+    );
 
     // Initial state: verification not complete.
     let button = screen.getByRole('button', { name: /sign_in/i });

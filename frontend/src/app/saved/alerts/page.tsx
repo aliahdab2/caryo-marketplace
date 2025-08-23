@@ -46,7 +46,7 @@ export default function SavedAlertsPage() {
       console.error('Error loading matching listings:', error);
       setMatchingListings([]);
     }
-  }, [user]);
+  }, [user?.accessToken]);
 
   const handleSelectSearch = useCallback((search: SavedSearchResponse) => {
     // Only proceed if switching to a different search or if no search is selected
@@ -54,7 +54,7 @@ export default function SavedAlertsPage() {
       setSelectedSearch(search);
       loadMatchingListings(search);
     }
-  }, [loadMatchingListings, selectedSearch]);
+  }, [loadMatchingListings, selectedSearch?.id]);
 
     const handleDeleteAlert = async (alertId: string) => {
     const alertToDeleteObj = savedSearches.find(search => search.id === alertId);
@@ -201,7 +201,7 @@ export default function SavedAlertsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user?.accessToken]);
 
   // Auto-select first search when searches are loaded and no search is selected
   useEffect(() => {
@@ -232,7 +232,7 @@ export default function SavedAlertsPage() {
       setSavedSearches([]);
       setIsLoading(false);
     }
-  }, [user, status, loadSavedSearches]);
+  }, [user?.accessToken, status, loadSavedSearches]);
 
   if (!mounted || status === 'loading') {
     return (

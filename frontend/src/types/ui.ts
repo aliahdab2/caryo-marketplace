@@ -142,4 +142,6 @@ export interface PaginationProps {
     of: string;
     items: string;
   };
+  /** Optional CSS selector to smoothly scroll into view after page change */
+  scrollTargetSelector?: string;
 }

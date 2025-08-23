@@ -283,6 +283,49 @@ export async function fetchLatestListingsPublic(limit: number = 12): Promise<Car
   }
 }
 
+// Paged latest listings for homepage
+export interface PagedListingsResult {
+  items: CarListing[];
+  totalItems: number;
+  totalPages: number;
+  page: number; // zero-based from backend
+}
+
+export async function fetchLatestListingsPage(params: { page?: number; size?: number } = {}): Promise<PagedListingsResult> {
+  const { page = 0, size = 12 } = params;
+  try {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', String(page));
+    queryParams.append('size', String(size));
+    queryParams.append('sort', 'createdAt,desc');
+
+    const url = `${API_BASE_URL}/api/listings?${queryParams.toString()}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch latest listings (paged): ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    const items: CarListing[] = result.content || [];
+    const totalItems: number = typeof result.totalElements === 'number' ? result.totalElements : items.length;
+    const totalPages: number = typeof result.totalPages === 'number' ? result.totalPages : 1;
+    const currentPage: number = typeof result.number === 'number' ? result.number : page;
+
+    return { items, totalItems, totalPages, page: currentPage };
+  } catch (error) {
+    console.error('Error fetching latest listings (paged):', error);
+    return { items: [], totalItems: 0, totalPages: 1, page: 0 };
+  }
+}
+
 /**
  * Fetch featured/latest listings for homepage (server-side, no authentication required)
  * @deprecated Use fetchLatestListingsPublic instead

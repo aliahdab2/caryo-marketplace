@@ -220,7 +220,7 @@ describe('Session Performance Benchmarks', () => {
     const Wrapper = createTestWrapper();
 
     // Simulate multiple page navigations
-    const { unmount, rerender } = render(
+    const { rerender } = render(
       <Wrapper>
         <SearchPageSimulation listingCount={10} />
       </Wrapper>
@@ -232,9 +232,7 @@ describe('Session Performance Benchmarks', () => {
 
     expect(mockGetSession).toHaveBeenCalledTimes(1);
 
-    // Simulate navigation to another page
-    unmount();
-    
+    // Simulate navigation to another page by rerendering without unmounting first
     rerender(
       <Wrapper>
         <SearchPageSimulation listingCount={15} />
