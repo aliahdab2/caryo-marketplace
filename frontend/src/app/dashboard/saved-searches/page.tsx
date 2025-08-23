@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSessionContext } from '@/contexts/SessionContext';
+import { useOptimizedSession } from '@/hooks/useOptimizedSession';
 import Link from 'next/link';
 import { FaSearch, FaTrash } from 'react-icons/fa';
 import { getUserSavedSearches, SavedSearchResponse, getCarListingsForSavedSearch, deleteSavedSearch, updateSavedSearch } from '@/services/savedSearches';
@@ -13,7 +13,7 @@ import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 
 export default function DashboardSavedSearchesPage() {
   const { t, i18n } = useTranslation(['search', 'common']);
-  const { user, status } = useSessionContext();
+  const { user, status } = useOptimizedSession();
   const [mounted, setMounted] = useState(false);
   const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);

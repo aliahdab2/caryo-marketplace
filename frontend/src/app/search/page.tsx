@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { MdNotificationsNone, MdNotifications } from 'react-icons/md';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuthUser } from '@/contexts/SessionContext';
+import { useOptimizedUser } from '@/hooks/useOptimizedSession';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useOptimizedFiltering } from '@/hooks/useOptimizedFiltering';
 
@@ -158,7 +158,7 @@ export default function AdvancedSearchPage() {
   ]);
 
   // Car listings state using optimized filtering with dynamic API selection
-  const user = useAuthUser();
+  const user = useOptimizedUser();
   const isAuthenticated = !!user;
 
   // Choose API function based on authentication status with proper type casting

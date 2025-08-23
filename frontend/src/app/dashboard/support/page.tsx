@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSessionContext } from "@/contexts/SessionContext";
+import { useOptimizedSession } from "@/hooks/useOptimizedSession";
 import Link from "next/link";
 import { 
   MdHelp,
@@ -30,7 +30,7 @@ interface FAQItem {
 
 export default function SupportPage() {
   const { t } = useTranslation('dashboard');
-  const { user } = useSessionContext();
+  const { user } = useOptimizedSession();
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 

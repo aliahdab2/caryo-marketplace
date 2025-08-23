@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { useSessionContext } from "@/contexts/SessionContext";
+import { useOptimizedSession } from "@/hooks/useOptimizedSession";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState, useCallback, memo } from "react";
 import Link from "next/link";
@@ -109,7 +109,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, status } = useSessionContext();
+  const { user, status } = useOptimizedSession();
   const router = useRouter();
   const { t } = useTranslation('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

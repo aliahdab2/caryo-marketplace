@@ -49,20 +49,31 @@ function InnerSessionProvider({ children }: SessionProviderProps) {
   
   // Custom session fetcher that only calls API once
   const fetchSession = useCallback(async (force = false) => {
+    const callStack = new Error().stack;
+    const caller = callStack?.split('\n')[2]?.trim() || 'unknown';
+    console.log(`🔄 [SessionContext] fetchSession() called from: ${caller}, force=${force}`);
+    
     if (sessionFetchedRef.current && !force) {
-      console.log('[SessionContext] Session already fetched, skipping');
+      console.log('⏭️ [SessionContext] Session already fetched, skipping');
       return;
     }
     
     try {
+      console.log('🚀 [SessionContext] Starting session fetch...');
       sessionFetchedRef.current = true;
       setStatus('loading');
       
       const sessionData = await getSession();
+      console.log('📦 [SessionContext] Session data received:', {
+        hasUser: !!sessionData?.user,
+        userId: sessionData?.user?.id,
+        status: sessionData?.user ? 'authenticated' : 'unauthenticated'
+      });
+      
       setSession(sessionData);
       setStatus(sessionData?.user ? 'authenticated' : 'unauthenticated');
     } catch (error) {
-      console.error('[SessionContext] Error fetching session:', error);
+      console.error('❌ [SessionContext] Error fetching session:', error);
       setSession(null);
       setStatus('unauthenticated');
     }
@@ -176,11 +187,19 @@ export function useSessionContext() {
 
 // Convenience hooks
 export function useAuthUser() {
+  const callStack = new Error().stack;
+  const caller = callStack?.split('\n')[2]?.trim() || 'unknown';
+  console.log(`👤 [SessionContext] useAuthUser() called from: ${caller}`);
+  
   const { user } = useSessionContext();
   return user;
 }
 
 export function useAuthStatus() {
+  const callStack = new Error().stack;
+  const caller = callStack?.split('\n')[2]?.trim() || 'unknown';
+  console.log(`🔍 [SessionContext] useAuthStatus() called from: ${caller}`);
+  
   const { isAuthenticated, isLoading, status } = useSessionContext();
   return { isAuthenticated, isLoading, status, isUnauthenticated: status === 'unauthenticated' };
 }

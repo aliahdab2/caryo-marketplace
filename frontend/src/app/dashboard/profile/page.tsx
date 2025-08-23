@@ -1,6 +1,6 @@
 "use client";
 
-import { useSessionContext } from "@/contexts/SessionContext";
+import { useOptimizedSession } from "@/hooks/useOptimizedSession";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
@@ -46,7 +46,7 @@ const formatRole = (role: string) => {
 
 export default function ProfilePage() {
   // Use optimized auth hook instead of direct useSession
-  const { user } = useSessionContext();
+  const { user } = useOptimizedSession();
   const { t } = useTranslation('common');
   const [isEditing, setIsEditing] = useState(false);
   const [userRoles, setUserRoles] = useState<string>('');

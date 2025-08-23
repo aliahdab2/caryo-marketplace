@@ -6,7 +6,7 @@ import { formatDate, formatNumber } from '../../../utils/localization';
 import { CarListing } from '@/services/publicApi';
 import { transformMinioUrl, processVideoForGallery } from '@/utils/mediaUtils';
 import FavoriteButton from '@/components/common/FavoriteButton';
-import { useAuthUser } from '@/contexts/SessionContext';
+import { useOptimizedUser } from '@/hooks/useOptimizedSession';
 
 // Component imports for the new enhanced layout
 import BreadcrumbNavigation from './components/BreadcrumbNavigation';
@@ -22,7 +22,7 @@ interface ListingDetailClientProps {
 export default function ListingDetailClient({ initialListing }: ListingDetailClientProps) {
   const { t, i18n } = useTranslation('listings');
   const [showPhoneNumber, setShowPhoneNumber] = useState(false);
-  const user = useAuthUser();
+  const user = useOptimizedUser();
   
   const listing = initialListing;
 

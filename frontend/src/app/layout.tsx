@@ -10,7 +10,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import ClientRTLStylesLoader from "@/components/layout/ClientRTLStylesLoader";
 import AuthDataHandler from "@/components/auth/AuthDataHandler";
 import AutoLanguageDetector from "@/components/AutoLanguageDetector";
-import { SessionProvider } from "@/contexts/SessionContext";
+import ClientProviders from "@/providers/ClientProviders";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -99,7 +99,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SessionProvider>
+        <ClientProviders>
           <AuthDataHandler />
           <I18nProvider>
             <LanguageProvider>
@@ -107,7 +107,7 @@ export default async function RootLayout({
               <MainLayout>{children}</MainLayout>
             </LanguageProvider>
           </I18nProvider>
-        </SessionProvider>
+        </ClientProviders>
       </body>
     </html>
   );

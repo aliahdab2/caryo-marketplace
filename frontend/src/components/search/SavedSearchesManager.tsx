@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuthUser } from '@/contexts/SessionContext';
+import { useOptimizedUser } from '@/hooks/useOptimizedSession';
 import { MdNotificationsNone, MdEdit, MdDelete, MdEmail, MdMailOutline } from 'react-icons/md';
 import { useLanguage } from '@/components/EnhancedLanguageProvider';
 import { 
@@ -22,7 +22,7 @@ export default function SavedSearchesManager({
 }: SavedSearchesManagerProps) {
   const { t } = useTranslation(['search', 'common']);
   const { direction } = useLanguage();
-  const user = useAuthUser();
+  const user = useOptimizedUser();
   const isRTL = direction.isRTL;
   
   const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);

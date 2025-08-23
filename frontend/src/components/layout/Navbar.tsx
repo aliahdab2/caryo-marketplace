@@ -8,14 +8,14 @@ import { useTranslation } from "react-i18next";
 import { usePathname } from "next/navigation";
 import ToggleLanguageSwitcher from "@/components/ToggleLanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
-import { useAuthUser } from "@/contexts/SessionContext";
+import { useOptimizedUser } from "@/hooks/useOptimizedSession";
 import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdMail, MdMailOutline, MdBookmark, MdSearch, MdNotificationsNone, MdNotifications } from "react-icons/md";
 import { FiSearch } from "react-icons/fi";
 import { NAVIGATION_ROUTES } from "@/utils/navigationUtils";
 import type { ComponentProps } from "@/types/components";
 
 export default function Navbar({ className }: ComponentProps) {
-  const user = useAuthUser(); // Use optimized hook instead of full session
+  const user = useOptimizedUser(); // Use optimized hook instead of full session
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);

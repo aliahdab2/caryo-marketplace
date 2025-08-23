@@ -38,6 +38,10 @@ export interface SessionValidationResult {
  * @returns SessionValidationResult with validation status
  */
 export async function validateSession(): Promise<SessionValidationResult> {
+  const callStack = new Error().stack;
+  const caller = callStack?.split('\n')[2]?.trim() || 'unknown';
+  console.log(`🔒 [SessionManager] validateSession() called from: ${caller}`);
+  
   try {
     const session = await getSession();
     
@@ -248,6 +252,10 @@ export async function apiRequest(
   url: string,
   options: RequestInit = {}
 ): Promise<Response> {
+  const callStack = new Error().stack;
+  const caller = callStack?.split('\n')[2]?.trim() || 'unknown';
+  console.log(`🌐 [SessionManager] apiRequest() called from: ${caller} for URL: ${url}`);
+  
   // Get the current session (this also validates it)
   const session = await getSession();
   if (!session?.accessToken) {

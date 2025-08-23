@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuthStatus, useAuthUser } from '@/contexts/SessionContext';
+import { useOptimizedAuthStatus, useOptimizedUser } from '@/hooks/useOptimizedSession';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getUserFavorites, removeFromFavorites } from '@/services/favorites';
@@ -20,8 +20,8 @@ type FilterTab = 'all' | 'available' | 'removed';
 
 export default function FavoritesPage() {
   const { t, i18n } = useTranslation(['favorites', 'common']);
-  const status = useAuthStatus();
-  const user = useAuthUser();
+  const { isAuthenticated, isLoading: isAuthLoading, status } = useOptimizedAuthStatus();
+  const user = useOptimizedUser();
   const router = useRouter();
   
   const [favorites, setFavorites] = useState<Listing[]>([]);
@@ -34,17 +34,17 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     // Redirect to login if user is not authenticated
-    if (status.isUnauthenticated) {
+    if (!isAuthenticated && !isAuthLoading) {
       router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname));
       return;
     }
 
     // Fetch favorites when auth status is confirmed
-    if (status.isAuthenticated) {
+    if (isAuthenticated) {
       fetchFavorites();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, router]);
+  }, [isAuthenticated, isAuthLoading, router]);
 
   // Filter favorites based on active tab
   useEffect(() => {

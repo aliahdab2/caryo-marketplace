@@ -1,6 +1,6 @@
 "use client";
 
-import { useSessionContext } from '@/contexts/SessionContext';
+import { useOptimizedSession } from '@/hooks/useOptimizedSession';
 import { useEffect, useCallback, useRef } from 'react';
 
 /**
@@ -9,7 +9,7 @@ import { useEffect, useCallback, useRef } from 'react';
  * Optimized to reduce unnecessary API calls
  */
 export default function AuthDataHandler() {
-  const { user, status } = useSessionContext();
+  const { user, status } = useOptimizedSession();
   const lastUpdateRef = useRef<string | null>(null);
 
   // Function to fetch roles from backend when not available in session
