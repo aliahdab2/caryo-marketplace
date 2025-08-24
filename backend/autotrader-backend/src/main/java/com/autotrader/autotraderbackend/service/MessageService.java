@@ -25,6 +25,13 @@ public class MessageService {
         enMessages.put("success.contact.form", "Thank you for your message. We'll get back to you soon!");
         enMessages.put("error.invalid.data", "Invalid data: {error}");
         enMessages.put("error.server", "Sorry, there was an error processing your message. Please try again later.");
+        enMessages.put("password.reset.subject", "Password Reset Request - {websiteName}");
+        enMessages.put("password.reset.confirmation.subject", "Password Successfully Changed - {websiteName}");
+        enMessages.put("password.reset.success", "If the email exists, a password reset link has been sent.");
+        enMessages.put("password.reset.completed", "Password has been reset successfully!");
+        enMessages.put("password.reset.invalid.token", "Invalid or expired reset token.");
+        enMessages.put("password.reset.token.expired", "Reset token has expired. Please request a new one.");
+        enMessages.put("password.reset.rate.limited", "Too many password reset attempts. Please try again later.");
         
         // Arabic messages
         Map<String, String> arMessages = new HashMap<>();
@@ -37,6 +44,13 @@ public class MessageService {
         arMessages.put("success.contact.form", "شكراً لك على رسالتك. سنرد عليك قريباً!");
         arMessages.put("error.invalid.data", "بيانات غير صحيحة: {error}");
         arMessages.put("error.server", "عذراً، حدث خطأ في معالجة رسالتك. يرجى المحاولة مرة أخرى لاحقاً.");
+        arMessages.put("password.reset.subject", "طلب إعادة تعيين كلمة المرور - {websiteName}");
+        arMessages.put("password.reset.confirmation.subject", "تم تغيير كلمة المرور بنجاح - {websiteName}");
+        arMessages.put("password.reset.success", "إذا كان البريد الإلكتروني موجود، فقد تم إرسال رابط إعادة تعيين كلمة المرور.");
+        arMessages.put("password.reset.completed", "تم إعادة تعيين كلمة المرور بنجاح!");
+        arMessages.put("password.reset.invalid.token", "رمز إعادة التعيين غير صحيح أو منتهي الصلاحية.");
+        arMessages.put("password.reset.token.expired", "انتهت صلاحية رمز إعادة التعيين. يرجى طلب رمز جديد.");
+        arMessages.put("password.reset.rate.limited", "محاولات كثيرة لإعادة تعيين كلمة المرور. يرجى المحاولة لاحقاً.");
         
         MESSAGES.put("en", enMessages);
         MESSAGES.put("ar", arMessages);

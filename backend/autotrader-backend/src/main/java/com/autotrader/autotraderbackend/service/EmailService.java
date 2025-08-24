@@ -6,231 +6,163 @@ import com.autotrader.autotraderbackend.model.User;
 import java.util.Map;
 
 /**
- * Service interface for sending emails.
- * Supports both simple text emails and templated HTML emails with multi-language support.
+ * Email service interface for sending various types of emails.
+ * Supports templated emails, simple text emails, and listing-related notifications.
  */
 public interface EmailService {
     
     /**
-     * Send a templated email using Thymeleaf.
-     * 
-     * @param to recipient email address
-     * @param subject email subject
-     * @param templateName name of the Thymeleaf template (without .html extension)
-     * @param variables template variables
+     * Send templated email with default language.
      */
     void sendTemplatedEmail(String to, String subject, String templateName, Map<String, Object> variables);
     
     /**
-     * Send a templated email with language support.
-     * 
-     * @param to recipient email address
-     * @param subject email subject
-     * @param templateName name of the Thymeleaf template (without .html extension)
-     * @param variables template variables
-     * @param language language code (en, ar)
+     * Send templated email with specified language.
      */
     void sendTemplatedEmail(String to, String subject, String templateName, Map<String, Object> variables, String language);
     
     /**
-     * Send a simple text email.
-     * 
-     * @param to recipient email address
-     * @param subject email subject
-     * @param text email body text
+     * Send simple text email.
      */
     void sendSimpleEmail(String to, String subject, String text);
     
     /**
-     * Send listing approved notification to seller.
-     * 
-     * @param seller the seller user
-     * @param listing the approved listing
+     * Send listing approved email with default language.
      */
     void sendListingApprovedEmail(User seller, CarListing listing);
     
     /**
-     * Send listing approved notification to seller with specified language.
-     * 
-     * @param seller the seller user
-     * @param listing the approved listing
-     * @param language language code (en, ar)
+     * Send listing approved email with specified language.
      */
     void sendListingApprovedEmail(User seller, CarListing listing, String language);
     
     /**
-     * Send listing expired notification to seller.
-     * 
-     * @param seller the seller user
-     * @param listing the expired listing
+     * Send listing expired email with default language.
      */
     void sendListingExpiredEmail(User seller, CarListing listing);
     
     /**
-     * Send listing expired notification to seller with specified language.
-     * 
-     * @param seller the seller user
-     * @param listing the expired listing
-     * @param language language code (en, ar)
+     * Send listing expired email with specified language.
      */
     void sendListingExpiredEmail(User seller, CarListing listing, String language);
     
     /**
-     * Send listing renewal initiated notification to seller.
-     * 
-     * @param seller the seller user
-     * @param listing the listing being renewed
-     * @param renewalDays number of days for renewal
+     * Send password reset email with default language.
+     */
+    void sendPasswordResetEmail(String toEmail, String username, String resetUrl);
+    
+    /**
+     * Send password reset email with specified language.
+     */
+    void sendPasswordResetEmail(String toEmail, String username, String resetUrl, String language);
+    
+    /**
+     * Send password reset confirmation email with default language.
+     */
+    void sendPasswordResetConfirmationEmail(String toEmail, String username);
+    
+    /**
+     * Send password reset confirmation email with specified language.
+     */
+    void sendPasswordResetConfirmationEmail(String toEmail, String username, String language);
+    
+    /**
+     * Send listing renewal email with default language.
      */
     void sendListingRenewalEmail(User seller, CarListing listing, int renewalDays);
     
     /**
-     * Send listing renewal initiated notification to seller with specified language.
-     * 
-     * @param seller the seller user
-     * @param listing the listing being renewed
-     * @param renewalDays number of days for renewal
-     * @param language language code (en, ar)
+     * Send listing renewal email with specified language.
      */
     void sendListingRenewalEmail(User seller, CarListing listing, int renewalDays, String language);
     
     /**
-     * Send welcome email to new user.
-     * 
-     * @param user the new user
+     * Send contact form notification email.
      */
-    void sendWelcomeEmail(User user);
+    void sendContactFormNotificationEmail(String name, String email, String subject, String message, String language);
     
     /**
-     * Send welcome email to new user with specified language.
-     * 
-     * @param user the new user
-     * @param language language code (en, ar)
+     * Send contact form confirmation email.
      */
-    void sendWelcomeEmail(User user, String language);
+    void sendContactFormConfirmationEmail(String name, String email, String language);
     
     /**
-     * Send contact form submission to support team.
-     * 
-     * @param name sender name
-     * @param email sender email
-     * @param message sender message
-     */
-    void sendContactFormEmail(String name, String email, String message);
-    
-    /**
-     * Send contact form submission to support team with specified language.
-     * 
-     * @param name sender name
-     * @param email sender email
-     * @param message sender message
-     * @param language language code (en, ar)
+     * Send contact form email (legacy method name).
      */
     void sendContactFormEmail(String name, String email, String message, String language);
     
     /**
-     * Send contact form confirmation to sender.
-     * 
-     * @param name sender name
-     * @param email sender email
-     */
-    void sendContactFormConfirmation(String name, String email);
-    
-    /**
-     * Send contact form confirmation to sender with specified language.
-     * 
-     * @param name sender name
-     * @param email sender email
-     * @param language language code (en, ar)
+     * Send contact form confirmation (legacy method name).
      */
     void sendContactFormConfirmation(String name, String email, String language);
     
     /**
-     * Send listing sold confirmation email to seller.
-     * 
-     * @param seller the seller user
-     * @param listing the sold listing
-     */
-    void sendListingSoldEmail(User seller, CarListing listing);
-    
-    /**
-     * Send listing sold confirmation email to seller with specified language.
-     * 
-     * @param seller the seller user
-     * @param listing the sold listing
-     * @param language language code (en, ar)
-     */
-    void sendListingSoldEmail(User seller, CarListing listing, String language);
-    
-    /**
-     * Send listing archived by admin notification to seller.
-     * 
-     * @param seller the seller user
-     * @param listing the archived listing
-     * @param reason optional reason for archiving
-     */
-    void sendListingArchivedByAdminEmail(User seller, CarListing listing, String reason);
-    
-    /**
-     * Send listing archived by admin notification to seller with specified language.
-     * 
-     * @param seller the seller user
-     * @param listing the archived listing
-     * @param reason optional reason for archiving
-     * @param language language code (en, ar)
-     */
-    void sendListingArchivedByAdminEmail(User seller, CarListing listing, String reason, String language);
-    
-    /**
-     * Send feedback request email to seller after listing is sold.
-     * 
-     * @param seller the seller user
-     * @param listing the sold listing
+     * Send listing feedback request email.
      */
     void sendListingFeedbackRequestEmail(User seller, CarListing listing);
     
     /**
-     * Send feedback request email to seller after listing is sold with specified language.
-     * 
-     * @param seller the seller user
-     * @param listing the sold listing
-     * @param language language code (en, ar)
+     * Send listing feedback request email with specified language.
      */
     void sendListingFeedbackRequestEmail(User seller, CarListing listing, String language);
     
     /**
-     * Send newsletter confirmation email.
-     * 
-     * @param email recipient email address
-     * @param confirmationUrl URL to confirm subscription
-     * @param unsubscribeUrl URL to unsubscribe
+     * Send welcome email with default language.
+     */
+    void sendWelcomeEmail(User user);
+    
+    /**
+     * Send welcome email with specified language.
+     */
+    void sendWelcomeEmail(User user, String language);
+    
+    /**
+     * Send contact form email with default language.
+     */
+    void sendContactFormEmail(String name, String email, String message);
+    
+    /**
+     * Send contact form confirmation with default language.
+     */
+    void sendContactFormConfirmation(String name, String email);
+    
+    /**
+     * Send listing sold email with default language.
+     */
+    void sendListingSoldEmail(User seller, CarListing listing);
+    
+    /**
+     * Send listing sold email with specified language.
+     */
+    void sendListingSoldEmail(User seller, CarListing listing, String language);
+    
+    /**
+     * Send listing archived by admin email with default language.
+     */
+    void sendListingArchivedByAdminEmail(User seller, CarListing listing, String reason);
+    
+    /**
+     * Send listing archived by admin email with specified language.
+     */
+    void sendListingArchivedByAdminEmail(User seller, CarListing listing, String reason, String language);
+    
+    /**
+     * Send newsletter confirmation email with default parameters.
      */
     void sendNewsletterConfirmationEmail(String email, String confirmationUrl, String unsubscribeUrl);
     
     /**
      * Send newsletter confirmation email with specified language.
-     * 
-     * @param email recipient email address
-     * @param confirmationUrl URL to confirm subscription
-     * @param unsubscribeUrl URL to unsubscribe
-     * @param language language code (en, ar)
      */
     void sendNewsletterConfirmationEmail(String email, String confirmationUrl, String unsubscribeUrl, String language);
     
     /**
-     * Send newsletter welcome email after confirmation.
-     * 
-     * @param email recipient email address
-     * @param unsubscribeUrl URL to unsubscribe
+     * Send newsletter welcome email with default language.
      */
     void sendNewsletterWelcomeEmail(String email, String unsubscribeUrl);
     
     /**
-     * Send newsletter welcome email after confirmation with specified language.
-     * 
-     * @param email recipient email address
-     * @param unsubscribeUrl URL to unsubscribe
-     * @param language language code (en, ar)
+     * Send newsletter welcome email with specified language.
      */
     void sendNewsletterWelcomeEmail(String email, String unsubscribeUrl, String language);
-} 
+}

@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.springframework.util.StringUtils;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.annotation.Recover;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -299,6 +302,20 @@ public class EmailServiceImpl implements EmailService {
             variables,
             language
         );
+    }
+
+    @Override
+    public void sendContactFormConfirmationEmail(String name, String email, String language) {
+        // Delegate to the existing method
+        sendContactFormConfirmation(name, email, language);
+    }
+
+    @Override
+    public void sendContactFormNotificationEmail(String name, String email, String subject, String message, String language) {
+        // Delegate to the existing method - the existing method takes name, email, message, language
+        // but the interface expects name, email, subject, message, language
+        // We'll use the message parameter and ignore the separate subject for now
+        sendContactFormEmail(name, email, message, language);
     }
     
     @Override
@@ -638,11 +655,207 @@ public class EmailServiceImpl implements EmailService {
     }
     
     /**
+     * Send password reset email with default language.
+     */
+    @Override
+    public void sendPasswordResetEmail(String toEmail, String username, String resetUrl) {
+        sendPasswordResetEmail(toEmail, username, resetUrl, defaultLanguage);
+    }
+    
+    /**
+     * Send password reset email with retry logic and specified language.
+     */
+    @Override
+    @Retryable(
+        retryFor = {Exception.class}, 
+        maxAttempts = 3, 
+        backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
+    public void sendPasswordResetEmail(String toEmail, String username, String resetUrl, String language) {
+        try {
+            // Input validation
+            if (!StringUtils.hasText(toEmail) || !StringUtils.hasText(username) || !StringUtils.hasText(resetUrl)) {
+                throw new IllegalArgumentException("Email, username, and reset URL are required");
+            }
+            
+            if (!SUPPORTED_LANGUAGES.contains(language)) {
+                language = defaultLanguage;
+            }
+            
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("userName", username);
+            variables.put("resetUrl", resetUrl);
+            
+            String subject = language.equals("ar") ? 
+                "طلب إعادة تعيين كلمة المرور - " + getWebsiteName(language) : 
+                "Password Reset Request - " + getWebsiteName(language);
+            
+            sendTemplatedEmail(toEmail, subject, "password-reset", variables, language);
+            log.info("Password reset email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
+            
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to: {} in language: {} (attempt failed)", maskEmail(toEmail), language, e);
+            throw new EmailSendException("Failed to send password reset email", e);
+        }
+    }
+    
+    /**
+     * Recovery method for password reset email sending failures.
+     */
+    @Recover
+    public void recoverPasswordResetEmail(Exception ex, String toEmail, String username, String resetUrl) {
+        log.error("All attempts to send password reset email failed for: {}. Error: {}", 
+            maskEmail(toEmail), ex.getMessage());
+        // In production, you might want to:
+        // 1. Store failed email in a queue for later retry
+        // 2. Send alert to administrators
+        // 3. Use alternative notification method (SMS, etc.)
+        throw new EmailSendException("Failed to send password reset email after all retry attempts", ex);
+    }
+
+    /**
+     * Send password reset confirmation email with default language.
+     */
+    @Override
+    public void sendPasswordResetConfirmationEmail(String toEmail, String username) {
+        sendPasswordResetConfirmationEmail(toEmail, username, defaultLanguage);
+    }
+    
+    /**
+     * Send password reset confirmation email with retry logic and specified language.
+     */
+    @Override
+    @Retryable(
+        retryFor = {Exception.class}, 
+        maxAttempts = 3, 
+        backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
+    public void sendPasswordResetConfirmationEmail(String toEmail, String username, String language) {
+        try {
+            // Input validation
+            if (!StringUtils.hasText(toEmail) || !StringUtils.hasText(username)) {
+                throw new IllegalArgumentException("Email and username are required");
+            }
+            
+            if (!SUPPORTED_LANGUAGES.contains(language)) {
+                language = defaultLanguage;
+            }
+            
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("userName", username);
+            
+            String subject = language.equals("ar") ? 
+                "تم تغيير كلمة المرور بنجاح - " + getWebsiteName(language) : 
+                "Password Successfully Changed - " + getWebsiteName(language);
+            
+            sendTemplatedEmail(toEmail, subject, "password-reset-confirmation", variables, language);
+            log.info("Password reset confirmation email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
+            
+        } catch (Exception e) {
+            log.error("Failed to send password reset confirmation email to: {} in language: {} (attempt failed)", maskEmail(toEmail), language, e);
+            throw new EmailSendException("Failed to send password reset confirmation email", e);
+        }
+    }
+    
+    /**
+     * Recovery method for password reset confirmation email sending failures.
+     */
+    @Recover
+    public void recoverPasswordResetConfirmationEmail(Exception ex, String toEmail, String username) {
+        log.error("All attempts to send password reset confirmation email failed for: {}. Error: {}", 
+            maskEmail(toEmail), ex.getMessage());
+        throw new EmailSendException("Failed to send password reset confirmation email after all retry attempts", ex);
+    }
+
+    
+
+    /**
      * Custom exception for email sending errors.
      */
     public static class EmailSendException extends RuntimeException {
         public EmailSendException(String message, Throwable cause) {
             super(message, cause);
         }
+    }
+    
+    /**
+     * Enhanced email sending with additional validation
+     */
+    private void sendSimpleEmailWithValidation(String toEmail, String subject, String body) {
+        try {
+            // Additional email format validation
+            if (!isValidEmailFormat(toEmail)) {
+                throw new IllegalArgumentException("Invalid email format: " + toEmail);
+            }
+            
+            // Check for suspicious content
+            if (containsSuspiciousContent(body)) {
+                log.warn("Email body contains suspicious content for recipient: {}", maskEmail(toEmail));
+            }
+            
+            sendSimpleEmail(toEmail, subject, body);
+            
+        } catch (Exception e) {
+            log.error("Enhanced email validation failed for: {}", maskEmail(toEmail), e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Mask email address for logging (privacy protection)
+     */
+    private String maskEmail(String email) {
+        if (!StringUtils.hasText(email)) {
+            return "invalid-email";
+        }
+        
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 0) {
+            return "invalid-email";
+        }
+        
+        String localPart = email.substring(0, atIndex);
+        String domain = email.substring(atIndex);
+        
+        if (localPart.length() <= 2) {
+            return "*".repeat(localPart.length()) + domain;
+        }
+        
+        return localPart.charAt(0) + "*".repeat(localPart.length() - 2) + localPart.charAt(localPart.length() - 1) + domain;
+    }
+    
+    /**
+     * Basic email format validation
+     */
+    private boolean isValidEmailFormat(String email) {
+        return StringUtils.hasText(email) && 
+               email.contains("@") && 
+               email.contains(".") && 
+               email.length() > 5 &&
+               !email.startsWith("@") &&
+               !email.endsWith("@");
+    }
+    
+    /**
+     * Check for suspicious content in email body
+     */
+    private boolean containsSuspiciousContent(String body) {
+        if (!StringUtils.hasText(body)) {
+            return false;
+        }
+        
+        String lowerBody = body.toLowerCase();
+        String[] suspiciousPatterns = {
+            "<script", "javascript:", "onclick=", "onerror=", 
+            "eval(", "document.cookie", "window.location"
+        };
+        
+        for (String pattern : suspiciousPatterns) {
+            if (lowerBody.contains(pattern)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 } 
