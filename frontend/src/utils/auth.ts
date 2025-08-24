@@ -25,48 +25,43 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
  * @returns A Promise that resolves to the session or null if not authenticated
  */
 export async function getSession() {
-  const callStack = new Error().stack;
-  const caller = callStack?.split('\n')[2]?.trim() || 'unknown';
-  console.log(`🔐 [AUTH] getSession() called from: ${caller}`);
-  
   try {
     // Return cached session if it's still valid
     const now = Date.now();
     if (sessionCache && (now - sessionCacheTime) < CACHE_DURATION) {
-      console.log(`✅ [AUTH] Using cached session (${Math.floor((now - sessionCacheTime) / 1000)}s old)`);
       return sessionCache;
     }
 
     // If there's already a request in progress, wait for it
     if (sessionPromise) {
-      console.log(`⏳ [AUTH] Waiting for existing session request`);
       return await sessionPromise;
     }
 
-    console.log(`🌐 [AUTH] Fetching fresh session from API`);
-    console.trace('[AUTH] Full call stack:');
-    
     // Create a new promise for this request
     sessionPromise = (async () => {
       try {
-        const response = await fetch('/api/auth/session');
+        const response = await fetch('/api/auth/session', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Important: include cookies
+        });
+        
         if (response.ok) {
           const session = await response.json();
           sessionCache = session;
           sessionCacheTime = Date.now();
-          console.log(`✅ [AUTH] Session fetched successfully:`, {
-            hasUser: !!session?.user,
-            userId: session?.user?.id,
-            hasToken: !!session?.accessToken,
-            expires: session?.expires
-          });
           return session;
+        } else if (response.status === 401) {
+          sessionCache = null;
+          sessionCacheTime = Date.now();
+          return null;
+        } else {
+          sessionCache = null;
+          sessionCacheTime = Date.now();
+          return null;
         }
-        
-        console.log(`❌ [AUTH] Session fetch failed: ${response.status} ${response.statusText}`);
-        sessionCache = null;
-        sessionCacheTime = Date.now();
-        return null;
       } finally {
         // Clear the promise when done
         sessionPromise = null;

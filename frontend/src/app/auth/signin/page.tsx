@@ -42,31 +42,26 @@ const SignInPage: React.FC = () => {
       const returnUrl = searchParams.get('returnUrl');
       const callback = searchParams.get('callbackUrl');
       
-      // Check localStorage for redirect URL (from FavoriteButton or other sources) - fallback only
-      const storedRedirect = localStorage.getItem('redirectAfterAuth');
-      
-      console.log('Sign-in redirect setup:', { returnUrl, callback, storedRedirect });
+              // Check localStorage for redirect URL (from FavoriteButton or other sources) - fallback only
+        const storedRedirect = localStorage.getItem('redirectAfterAuth');
       
       // Prefer URL parameters over localStorage, then default to /dashboard
       const redirectTarget = returnUrl || callback || storedRedirect || '/dashboard';
       
       // Clear the stored redirect URL if we found one (cleanup)
-      if (storedRedirect) {
-        localStorage.removeItem('redirectAfterAuth');
-        console.log('Cleaned up stored redirect URL:', storedRedirect);
-      }
+              if (storedRedirect) {
+          localStorage.removeItem('redirectAfterAuth');
+        }
       
       try {
         if (redirectTarget.startsWith('/')) {
           setCallbackUrl(redirectTarget);
-          console.log('Set callbackUrl to:', redirectTarget);
         } else {
           const url = new URL(decodeURIComponent(redirectTarget));
           if (url.origin === window.location.origin) {
             // Include the full path and any query parameters or hash
             const finalUrl = url.pathname + url.search + url.hash;
             setCallbackUrl(finalUrl);
-            console.log('Set callbackUrl to:', finalUrl);
           }
         }
       } catch (e) {
@@ -140,7 +135,6 @@ const SignInPage: React.FC = () => {
           setRedirecting(true);
           // Always prefer our callbackUrl over the result.url to ensure proper redirect
           const redirectUrl = callbackUrl;
-          console.log('Redirecting after sign-in:', { callbackUrl, resultUrl: result.url, chosen: redirectUrl });
           try {
             router?.push?.(redirectUrl);
           } catch (e) {
