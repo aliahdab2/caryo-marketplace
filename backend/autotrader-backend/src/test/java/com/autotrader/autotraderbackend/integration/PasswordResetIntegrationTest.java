@@ -233,7 +233,7 @@ class PasswordResetIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(containsString("Password must be between 8 and 128 characters")));
+                .andExpect(jsonPath("$.newPassword").value(containsString("Password must be between 8 and 128 characters")));
     }
 
     @Test
