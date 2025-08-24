@@ -97,6 +97,11 @@ public interface EmailService {
     void sendContactFormConfirmation(String name, String email, String language);
     
     /**
+     * Health check method to verify email service is working.
+     */
+    boolean isEmailServiceHealthy();
+    
+    /**
      * Send listing feedback request email.
      */
     void sendListingFeedbackRequestEmail(User seller, CarListing listing);

@@ -57,6 +57,23 @@ export default function ResetPasswordPage() {
     if (password.length < 8) {
       return t('auth:passwordTooShort', 'Password must be at least 8 characters long');
     }
+    
+    if (password.length > 128) {
+      return t('auth:passwordTooLong', 'Password must be no more than 128 characters long');
+    }
+    
+    // Count character types (more flexible - need at least 2 types)
+    let characterTypes = 0;
+    
+    if (/[a-z]/.test(password)) characterTypes++;
+    if (/[A-Z]/.test(password)) characterTypes++;
+    if (/\d/.test(password)) characterTypes++;
+    if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) characterTypes++;
+    
+    if (characterTypes < 2) {
+      return t('auth:passwordNeedsTwoTypes', 'Password must contain at least 2 different character types (lowercase, uppercase, numbers, or special characters)');
+    }
+    
     return null;
   };
 
@@ -106,7 +123,25 @@ export default function ResetPasswordPage() {
           router.push('/auth/signin');
         }, 3000);
       } else {
-        setError(data.message || t('auth:invalidResetToken', 'Invalid or expired reset token. Please request a new password reset.'));
+        // Handle different types of errors more specifically
+        if (response.status === 400) {
+          // Check if it's a validation error
+          if (data.newPassword) {
+            // Backend validation error for password field
+            setError(data.newPassword);
+          } else if (data.message) {
+            // General validation error
+            setError(data.message);
+          } else {
+            setError(t('auth:passwordValidationFailed', 'Password does not meet security requirements. Please check the requirements and try again.'));
+          }
+        } else if (response.status === 401 || response.status === 404) {
+          setError(t('auth:invalidResetToken', 'Invalid or expired reset token. Please request a new password reset.'));
+        } else if (response.status === 429) {
+          setError(t('auth:tooManyAttempts', 'Too many attempts. Please try again later.'));
+        } else {
+          setError(data.message || t('auth:resetPasswordFailed', 'Failed to reset password. Please try again.'));
+        }
       }
     } catch (_e) {
       setError(t('errors:networkError', 'Network error. Please check your connection and try again.'));
@@ -196,6 +231,36 @@ export default function ResetPasswordPage() {
               disabled={submitting}
               dir={isRTL ? 'rtl' : 'ltr'}
             />
+            
+            {/* Password Requirements */}
+            <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-xs font-medium text-blue-800 dark:text-blue-300 mb-2">
+                {t('auth:passwordRequirements', 'Password Requirements:')}
+              </p>
+              <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                <li className={`flex items-center ${newPassword.length >= 8 ? 'text-green-600 dark:text-green-400' : ''}`}>
+                  <span className="mr-2">{newPassword.length >= 8 ? '✓' : '•'}</span>
+                  {t('auth:requirementLength', 'At least 8 characters')}
+                </li>
+                {(() => {
+                  let characterTypes = 0;
+                  if (/[a-z]/.test(newPassword)) characterTypes++;
+                  if (/[A-Z]/.test(newPassword)) characterTypes++;
+                  if (/\d/.test(newPassword)) characterTypes++;
+                  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword)) characterTypes++;
+                  
+                  return (
+                    <li className={`flex items-center ${characterTypes >= 2 ? 'text-green-600 dark:text-green-400' : ''}`}>
+                      <span className="mr-2">{characterTypes >= 2 ? '✓' : '•'}</span>
+                      {t('auth:requirementTwoTypes', 'At least 2 character types: letters, numbers, or symbols')}
+                    </li>
+                  );
+                })()}
+                <li className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  {t('auth:passwordHint', 'Examples: Password1, mypass!, Hello123, test@home')}
+                </li>
+              </ul>
+            </div>
           </div>
 
           <div>

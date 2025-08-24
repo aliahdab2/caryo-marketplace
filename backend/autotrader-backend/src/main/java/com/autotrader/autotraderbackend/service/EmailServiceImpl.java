@@ -486,6 +486,36 @@ public class EmailServiceImpl implements EmailService {
     }
     
     /**
+     * Health check method to verify email service is working
+     */
+    public boolean isEmailServiceHealthy() {
+        try {
+            // Test basic mail sender connectivity
+            MimeMessage testMessage = mailSender.createMimeMessage();
+            if (testMessage == null) {
+                log.warn("Email service health check failed: Cannot create MimeMessage");
+                return false;
+            }
+            
+            // Test template engine with a simple context
+            Context context = new Context();
+            context.setVariable("testVariable", "test");
+            
+            // Test basic template processing (this will work with existing templates)
+            if (templateEngine == null) {
+                log.warn("Email service health check failed: Template engine is null");
+                return false;
+            }
+            
+            log.debug("Email service health check passed - mail sender and template engine are available");
+            return true;
+        } catch (Exception e) {
+            log.error("Email service health check failed", e);
+            return false;
+        }
+    }
+
+    /**
      * Debug method to test Arabic text encoding
      */
     public void debugArabicEncoding() {

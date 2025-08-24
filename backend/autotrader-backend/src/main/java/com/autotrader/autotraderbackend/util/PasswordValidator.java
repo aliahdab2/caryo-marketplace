@@ -49,21 +49,27 @@ public class PasswordValidator {
             errors.add("Password must not exceed " + MAX_LENGTH + " characters");
         }
         
-        // Character requirements
-        if (!LOWERCASE.matcher(trimmedPassword).find()) {
-            errors.add("Password must contain at least one lowercase letter");
+        // Character requirements - require at least 2 of 4 character types (more flexible)
+        int characterTypeCount = 0;
+        
+        if (LOWERCASE.matcher(trimmedPassword).find()) {
+            characterTypeCount++;
         }
         
-        if (!UPPERCASE.matcher(trimmedPassword).find()) {
-            errors.add("Password must contain at least one uppercase letter");
+        if (UPPERCASE.matcher(trimmedPassword).find()) {
+            characterTypeCount++;
         }
         
-        if (!DIGIT.matcher(trimmedPassword).find()) {
-            errors.add("Password must contain at least one digit");
+        if (DIGIT.matcher(trimmedPassword).find()) {
+            characterTypeCount++;
         }
         
-        if (!SPECIAL_CHAR.matcher(trimmedPassword).find()) {
-            errors.add("Password must contain at least one special character");
+        if (SPECIAL_CHAR.matcher(trimmedPassword).find()) {
+            characterTypeCount++;
+        }
+        
+        if (characterTypeCount < 2) {
+            errors.add("Password must contain at least 2 different character types (lowercase, uppercase, numbers, or special characters)");
         }
         
         // Check for common weak passwords
@@ -75,9 +81,9 @@ public class PasswordValidator {
             }
         }
         
-        // Check for sequential characters (only obvious sequences)
-        if (hasObviousSequentialChars(trimmedPassword)) {
-            errors.add("Password should not contain obvious sequential characters (e.g., 123, abc)");
+        // Check for very obvious sequential characters (only very long sequences)
+        if (hasVeryObviousSequentialChars(trimmedPassword)) {
+            errors.add("Password should not contain very long sequential patterns (e.g., 12345, abcde)");
         }
         
         // Check for repeated characters (only excessive repetition)
@@ -89,21 +95,21 @@ public class PasswordValidator {
     }
     
     /**
-     * Checks if password contains obvious sequential characters (only common sequences)
+     * Checks if password contains very obvious sequential characters (only long sequences)
      */
-    private boolean hasObviousSequentialChars(String password) {
+    private boolean hasVeryObviousSequentialChars(String password) {
         String lowerPassword = password.toLowerCase();
         
-        // Check for common obvious sequences
-        String[] obviousSequences = {
-            "123", "234", "345", "456", "567", "678", "789", "890",
-            "321", "432", "543", "654", "765", "876", "987", "098",
-            "abc", "bcd", "cde", "def", "efg", "fgh", "ghi", "hij",
-            "cba", "dcb", "edc", "fed", "gfe", "hgf", "ihg", "jih",
-            "qwe", "wer", "ert", "rty", "tyu", "yui", "uio", "iop"
+        // Only check for very long obvious sequences (5+ characters)
+        String[] veryObviousSequences = {
+            "12345", "23456", "34567", "45678", "56789", "67890",
+            "54321", "65432", "76543", "87654", "98765", "09876",
+            "abcde", "bcdef", "cdefg", "defgh", "efghi", "fghij",
+            "edcba", "fedcb", "gfedc", "hgfed", "ihgfe", "jihgf",
+            "qwert", "werty", "ertyu", "rtyui", "tyuio", "yuiop"
         };
         
-        for (String sequence : obviousSequences) {
+        for (String sequence : veryObviousSequences) {
             if (lowerPassword.contains(sequence)) {
                 return true;
             }

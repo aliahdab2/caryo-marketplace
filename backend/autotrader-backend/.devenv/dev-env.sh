@@ -211,6 +211,7 @@ start_dev_env() {
     echo -e "${CYAN}Available Services:${NC}"
     echo -e "- API Server:     ${GREEN}http://localhost:${SERVER_PORT:-8080}${NC}"
     echo -e "- Swagger UI:     ${GREEN}http://localhost:${SERVER_PORT:-8080}/swagger-ui/index.html${NC}"
+    echo -e "- Mail Server:    ${GREEN}http://localhost:8025${NC} (Mailpit Web UI)"
     echo -e "- MinIO Console:  ${GREEN}http://localhost:${MINIO_CONSOLE_PORT:-9001}${NC} (${MINIO_ROOT_USER:-minioadmin}/${MINIO_ROOT_PASSWORD:-minioadmin})"
     echo -e "- Adminer:        ${GREEN}http://localhost:8081${NC} (postgres/${DB_PASSWORD:-postgres})"
     echo -e "- Debug Port:     ${GREEN}${JVM_DEBUG_PORT:-5005}${NC}"
@@ -343,6 +344,14 @@ health_check() {
             echo -e "${RED}✗ Redis not available${NC}"
             failed=1
         fi
+    fi
+
+    # Check Email Service
+    if curl -s --max-time 5 "http://localhost:${SERVER_PORT:-8080}/api/debug/email/health" | grep -q '"healthy":true'; then
+        echo -e "${GREEN}✓ Email service is healthy${NC}"
+    else
+        echo -e "${RED}✗ Email service is not healthy${NC}"
+        failed=1
     fi
 
     if [ $failed -eq 0 ]; then

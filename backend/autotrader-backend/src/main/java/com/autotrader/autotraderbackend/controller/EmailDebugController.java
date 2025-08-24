@@ -2,9 +2,12 @@ package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.payload.response.MessageResponse;
 import com.autotrader.autotraderbackend.service.EmailService;
+import com.autotrader.autotraderbackend.repository.PasswordResetTokenRepository;
+import com.autotrader.autotraderbackend.model.PasswordResetToken;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +25,9 @@ public class EmailDebugController {
 
     @Autowired
     private EmailService emailService;
+    
+    @Autowired
+    private PasswordResetTokenRepository tokenRepository;
     
     @Value("${app.website.name}")
     private String websiteName;
@@ -90,6 +96,66 @@ public class EmailDebugController {
             log.error("Error sending test password reset email", e);
             return ResponseEntity.badRequest()
                 .body(new MessageResponse("Error: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/password-reset-tokens")
+    @Operation(summary = "Debug: List all password reset tokens", description = "Lists all password reset tokens for debugging")
+    public ResponseEntity<?> listPasswordResetTokens() {
+        try {
+            List<PasswordResetToken> tokens = tokenRepository.findAll();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("totalTokens", tokens.size());
+            response.put("tokens", tokens.stream().map(token -> {
+                Map<String, Object> tokenInfo = new HashMap<>();
+                tokenInfo.put("id", token.getId());
+                tokenInfo.put("token", token.getToken());
+                tokenInfo.put("userId", token.getUser().getId());
+                tokenInfo.put("userEmail", token.getUser().getEmail());
+                tokenInfo.put("expiryDate", token.getExpiryDate().toString());
+                tokenInfo.put("used", token.isUsed());
+                tokenInfo.put("expired", token.isExpired());
+                tokenInfo.put("valid", token.isValid());
+                return tokenInfo;
+            }).toList());
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error listing password reset tokens", e);
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse("Error: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/health")
+    @Operation(summary = "Email Service Health Check", description = "Checks if the email service is healthy and working")
+    public ResponseEntity<?> emailHealthCheck() {
+        try {
+            boolean isHealthy = emailService.isEmailServiceHealthy();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("healthy", isHealthy);
+            response.put("status", isHealthy ? "UP" : "DOWN");
+            response.put("service", "EmailService");
+            response.put("timestamp", java.time.Instant.now().toString());
+            
+            if (isHealthy) {
+                response.put("message", "Email service is healthy and ready");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("message", "Email service is not healthy");
+                return ResponseEntity.status(503).body(response); // Service Unavailable
+            }
+        } catch (Exception e) {
+            log.error("Error checking email service health", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("healthy", false);
+            errorResponse.put("status", "DOWN");
+            errorResponse.put("service", "EmailService");
+            errorResponse.put("error", e.getMessage());
+            errorResponse.put("timestamp", java.time.Instant.now().toString());
+            return ResponseEntity.status(503).body(errorResponse);
         }
     }
 }
