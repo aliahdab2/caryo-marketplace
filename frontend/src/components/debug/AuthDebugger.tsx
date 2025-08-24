@@ -71,7 +71,7 @@ export default function AuthDebugger() {
         </div>
         
         <div>
-          <strong>Provider:</strong> {user?.provider || 'null'}
+          <strong>Is Admin:</strong> {user?.isAdmin ? 'true' : 'false'}
         </div>
         
         <hr className="my-3" />
