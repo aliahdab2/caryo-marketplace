@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
+import { PasswordValidation, usePasswordValidation } from '@/components/auth/PasswordValidation';
 
 export default function ResetPasswordPage() {
   const { t, i18n } = useTranslation(['auth', 'errors']);
@@ -53,29 +54,8 @@ export default function ResetPasswordPage() {
     validateToken(tokenParam);
   }, [searchParams, t, validateToken]);
 
-  const validatePassword = (password: string): string | null => {
-    if (password.length < 8) {
-      return t('auth:passwordTooShort', 'Password must be at least 8 characters long');
-    }
-    
-    if (password.length > 128) {
-      return t('auth:passwordTooLong', 'Password must be no more than 128 characters long');
-    }
-    
-    // Count character types (more flexible - need at least 2 types)
-    let characterTypes = 0;
-    
-    if (/[a-z]/.test(password)) characterTypes++;
-    if (/[A-Z]/.test(password)) characterTypes++;
-    if (/\d/.test(password)) characterTypes++;
-    if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) characterTypes++;
-    
-    if (characterTypes < 2) {
-      return t('auth:passwordNeedsTwoTypes', 'Password must contain at least 2 different character types (lowercase, uppercase, numbers, or special characters)');
-    }
-    
-    return null;
-  };
+  // Use centralized password validation
+  const { isValid: isPasswordValid, firstError: passwordError } = usePasswordValidation(newPassword);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,8 +66,7 @@ export default function ResetPasswordPage() {
     }
 
     // Client-side validation
-    const passwordError = validatePassword(newPassword);
-    if (passwordError) {
+    if (!isPasswordValid && passwordError) {
       setError(passwordError);
       return;
     }
@@ -233,34 +212,7 @@ export default function ResetPasswordPage() {
             />
             
             {/* Password Requirements */}
-            <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <p className="text-xs font-medium text-blue-800 dark:text-blue-300 mb-2">
-                {t('auth:passwordRequirements', 'Password Requirements:')}
-              </p>
-              <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                <li className={`flex items-center ${newPassword.length >= 8 ? 'text-green-600 dark:text-green-400' : ''}`}>
-                  <span className="mr-2">{newPassword.length >= 8 ? '✓' : '•'}</span>
-                  {t('auth:requirementLength', 'At least 8 characters')}
-                </li>
-                {(() => {
-                  let characterTypes = 0;
-                  if (/[a-z]/.test(newPassword)) characterTypes++;
-                  if (/[A-Z]/.test(newPassword)) characterTypes++;
-                  if (/\d/.test(newPassword)) characterTypes++;
-                  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword)) characterTypes++;
-                  
-                  return (
-                    <li className={`flex items-center ${characterTypes >= 2 ? 'text-green-600 dark:text-green-400' : ''}`}>
-                      <span className="mr-2">{characterTypes >= 2 ? '✓' : '•'}</span>
-                      {t('auth:requirementTwoTypes', 'At least 2 character types: letters, numbers, or symbols')}
-                    </li>
-                  );
-                })()}
-                <li className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  {t('auth:passwordHint', 'Examples: Password1, mypass!, Hello123, test@home')}
-                </li>
-              </ul>
-            </div>
+            <PasswordValidation password={newPassword} />
           </div>
 
           <div>

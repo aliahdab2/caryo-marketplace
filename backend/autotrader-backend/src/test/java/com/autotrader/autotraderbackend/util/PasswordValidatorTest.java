@@ -87,55 +87,79 @@ class PasswordValidatorTest {
     }
 
     @Test
-    void validatePassword_WithNoLowercase_ShouldReturnInvalid() {
-        // Arrange
-        String password = "PASSWORD123!";
+    void validatePassword_Ali123123_ShouldReturnValid() {
+        // Arrange - The user's example password
+        String password = "Ali123123";
 
         // Act
         PasswordValidator.PasswordValidationResult result = passwordValidator.validatePassword(password);
 
         // Assert
-        assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("lowercase letter")));
+        assertTrue(result.isValid(), "Ali123123 should be valid (has uppercase + lowercase + digits = 3 types)");
     }
 
     @Test
-    void validatePassword_WithNoUppercase_ShouldReturnInvalid() {
-        // Arrange
-        String password = "password123!";
+    void validatePassword_WithOnlyOneCharacterType_ShouldReturnInvalid() {
+        // Arrange - Only lowercase letters
+        String password = "password";
 
         // Act
         PasswordValidator.PasswordValidationResult result = passwordValidator.validatePassword(password);
 
         // Assert
         assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("uppercase letter")));
+        assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("2 different character types")));
     }
 
     @Test
-    void validatePassword_WithNoDigit_ShouldReturnInvalid() {
-        // Arrange
-        String password = "Password!";
+    void validatePassword_WithTwoCharacterTypes_ShouldReturnValid() {
+        // Arrange - Use passwords that aren't in the common passwords list
+        String password1 = "MySecret"; // Uppercase + lowercase (2 types) - 8 chars
+        String password2 = "mysecret456"; // Lowercase + digits (2 types)  
+        String password3 = "MYSECRET!!!"; // Uppercase + special (2 types)
 
         // Act
-        PasswordValidator.PasswordValidationResult result = passwordValidator.validatePassword(password);
+        PasswordValidator.PasswordValidationResult result1 = passwordValidator.validatePassword(password1);
+        PasswordValidator.PasswordValidationResult result2 = passwordValidator.validatePassword(password2);
+        PasswordValidator.PasswordValidationResult result3 = passwordValidator.validatePassword(password3);
 
         // Assert
-        assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("digit")));
+        assertTrue(result1.isValid(), "MySecret with uppercase + lowercase should be valid");
+        assertTrue(result2.isValid(), "mysecret456 should be valid");
+        assertTrue(result3.isValid(), "MYSECRET!!! should be valid");
+    }
+    
+    @Test
+    void validatePassword_PreviouslyStrictPasswords_ShouldNowBeValid() {
+        // Arrange - These were invalid under strict rules but should be valid now (avoid common passwords)
+        String password1 = "mysecret456!"; // lowercase + digits + special (3 types)
+        String password2 = "MYSECRET456!"; // uppercase + digits + special (3 types)  
+        String password3 = "MySecret!"; // uppercase + lowercase + special (3 types)
+        String password4 = "MySecret456"; // uppercase + lowercase + digits (3 types)
+
+        // Act
+        PasswordValidator.PasswordValidationResult result1 = passwordValidator.validatePassword(password1);
+        PasswordValidator.PasswordValidationResult result2 = passwordValidator.validatePassword(password2);
+        PasswordValidator.PasswordValidationResult result3 = passwordValidator.validatePassword(password3);
+        PasswordValidator.PasswordValidationResult result4 = passwordValidator.validatePassword(password4);
+
+        // Assert
+        assertTrue(result1.isValid(), "mysecret456! should be valid (3 character types)");
+        assertTrue(result2.isValid(), "MYSECRET456! should be valid (3 character types)");
+        assertTrue(result3.isValid(), "MySecret! should be valid (3 character types)");
+        assertTrue(result4.isValid(), "MySecret456 should be valid (3 character types)");
     }
 
     @Test
-    void validatePassword_WithNoSpecialCharacter_ShouldReturnInvalid() {
-        // Arrange
-        String password = "Password123";
+    void validatePassword_WithThreeCharacterTypes_ShouldReturnValid() {
+        // Arrange - MySecret456 has uppercase + lowercase + digits (3 types)
+        String password = "MySecret456";
 
         // Act
         PasswordValidator.PasswordValidationResult result = passwordValidator.validatePassword(password);
 
         // Assert
-        assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("special character")));
+        assertTrue(result.isValid(), "MySecret456 should be valid (has 3 character types)");
     }
 
     @ParameterizedTest
@@ -150,39 +174,28 @@ class PasswordValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"password123!", "PASSWORD123!", "Password!", "Password123"})
-    void validatePassword_WithMissingRequirements_ShouldReturnInvalid(String invalidPassword) {
-        // Act
+    @ValueSource(strings = {"password", "PASSWORD", "12345678", "!@#$%^&*"})
+    void validatePassword_WithOnlyOneCharacterType_ShouldReturnInvalid(String invalidPassword) {
+        // Act - These passwords only have 1 character type, should be invalid
         PasswordValidator.PasswordValidationResult result = passwordValidator.validatePassword(invalidPassword);
 
         // Assert
-        assertFalse(result.isValid(), "Password should be invalid: " + invalidPassword);
+        assertFalse(result.isValid(), "Password should be invalid (only 1 character type): " + invalidPassword);
         assertFalse(result.getErrors().isEmpty());
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"password123!", "Password123password", "letmein123!", "admin123!"})
-    void validatePassword_WithCommonWeakPatterns_ShouldReturnInvalid(String weakPassword) {
-        // Act
+    @ValueSource(strings = {"password", "123456", "admin", "qwerty", "letmein"})
+    void validatePassword_WithExactCommonWeakPasswords_ShouldReturnInvalid(String weakPassword) {
+        // Act - These are exact matches to common weak passwords
         PasswordValidator.PasswordValidationResult result = passwordValidator.validatePassword(weakPassword);
 
         // Assert
         assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("common weak patterns")));
+        assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("too common and weak")));
     }
 
-    @Test
-    void validatePassword_WithObviousSequentialCharacters_ShouldReturnInvalid() {
-        // Arrange
-        String password = "MySecret123!";
-
-        // Act
-        PasswordValidator.PasswordValidationResult result = passwordValidator.validatePassword(password);
-
-        // Assert
-        assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("sequential characters")));
-    }
+    // Removed sequential character tests - too restrictive
 
     @Test
     void validatePassword_WithExcessiveRepeatedCharacters_ShouldReturnInvalid() {
@@ -209,31 +222,9 @@ class PasswordValidatorTest {
         assertTrue(result.isValid());
     }
 
-    @Test
-    void validatePassword_WithDescendingSequence_ShouldReturnInvalid() {
-        // Arrange
-        String password = "MySecret321!";
+    // Removed sequential character tests - too restrictive
 
-        // Act
-        PasswordValidator.PasswordValidationResult result = passwordValidator.validatePassword(password);
-
-        // Assert
-        assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("sequential characters")));
-    }
-
-    @Test
-    void validatePassword_WithAlphabeticalSequence_ShouldReturnInvalid() {
-        // Arrange
-        String password = "MySecretabc1!";
-
-        // Act
-        PasswordValidator.PasswordValidationResult result = passwordValidator.validatePassword(password);
-
-        // Assert
-        assertFalse(result.isValid());
-        assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("sequential characters")));
-    }
+    // Removed sequential character tests - too restrictive
     
     @Test
     void validatePassword_WithNonObviousSequence_ShouldReturnValid() {
@@ -245,6 +236,24 @@ class PasswordValidatorTest {
 
         // Assert
         assertTrue(result.isValid());
+    }
+    
+    @Test
+    void validatePassword_WithShortSequences_ShouldReturnValid() {
+        // Arrange - Short sequences (3-4 chars) should now be allowed - make sure 8+ chars
+        String password1 = "Ali123!!";  // 8 chars
+        String password2 = "MySecret321!";
+        String password3 = "Password456!";
+
+        // Act
+        PasswordValidator.PasswordValidationResult result1 = passwordValidator.validatePassword(password1);
+        PasswordValidator.PasswordValidationResult result2 = passwordValidator.validatePassword(password2);
+        PasswordValidator.PasswordValidationResult result3 = passwordValidator.validatePassword(password3);
+
+        // Assert
+        assertTrue(result1.isValid(), "Ali123!! should be valid (short sequence allowed)");
+        assertTrue(result2.isValid(), "MySecret321! should be valid (short sequence allowed)");
+        assertTrue(result3.isValid(), "Password456! should be valid (short sequence allowed)");
     }
 
     @Test
@@ -259,11 +268,9 @@ class PasswordValidatorTest {
         assertFalse(result.isValid());
         assertTrue(result.getErrors().size() > 1);
         
-        // Should have errors for: length, uppercase, digit, special character
+        // Should have errors for: length and character types
         assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("at least 8 characters")));
-        assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("uppercase letter")));
-        assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("digit")));
-        assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("special character")));
+        assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("2 different character types")));
     }
 
     @Test

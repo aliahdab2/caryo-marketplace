@@ -11,6 +11,7 @@ import ClientRTLStylesLoader from "@/components/layout/ClientRTLStylesLoader";
 import AuthDataHandler from "@/components/auth/AuthDataHandler";
 import AutoLanguageDetector from "@/components/AutoLanguageDetector";
 import ClientProviders from "@/providers/ClientProviders";
+import AuthDebugger from "@/components/debug/AuthDebugger";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -105,6 +106,10 @@ export default async function RootLayout({
             <LanguageProvider>
               <AutoLanguageDetector />
               <MainLayout>{children}</MainLayout>
+              {/* Temporary debug component - remove after fixing auth issue */}
+              {process.env.NODE_ENV === 'development' && (
+                <AuthDebugger />
+              )}
             </LanguageProvider>
           </I18nProvider>
         </ClientProviders>

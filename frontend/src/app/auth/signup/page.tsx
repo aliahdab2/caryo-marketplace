@@ -10,6 +10,7 @@ import SimpleVerification from '@/components/auth/SimpleVerification';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePasswordValidation, PasswordRequirementText } from '@/components/auth/PasswordValidation';
 
 export default function SignUpPage() {
   const [username, setUsername] = useState("");
@@ -23,6 +24,7 @@ export default function SignUpPage() {
   const [callbackUrl, setCallbackUrl] = useState("/dashboard");
   const router = useRouter();
   const { t } = useTranslation('auth');
+  const { isValid: isPasswordValid, firstError: passwordError } = usePasswordValidation(password);
 
   // Extract callback URL from search params if present
   useEffect(() => {
@@ -63,8 +65,9 @@ export default function SignUpPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError(t('passwordTooShort'));
+    // Use centralized password validation
+    if (!isPasswordValid && passwordError) {
+      setError(passwordError);
       return;
     }
 
@@ -377,9 +380,7 @@ export default function SignUpPage() {
                     placeholder="••••••••"
                   />
                 </div>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {t('passwordRequirement')}
-                </p>
+                <PasswordRequirementText className="mt-1" />
               </div>
               
               <div className="mb-5">
@@ -400,7 +401,7 @@ export default function SignUpPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    minLength={6}
+                    minLength={8}
                     disabled={loading}
                     className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
                     placeholder={t('confirmPasswordPlaceholder')}

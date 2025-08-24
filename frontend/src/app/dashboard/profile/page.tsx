@@ -4,6 +4,7 @@ import { useOptimizedSession } from "@/hooks/useOptimizedSession";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
+import { usePasswordValidation } from '@/components/auth/PasswordValidation';
 
 // Helper function to format role names and get styling
 const formatRole = (role: string) => {
@@ -62,6 +63,9 @@ export default function ProfilePage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Use centralized password validation
+  const { isValid: isPasswordValid, firstError: passwordValidationError } = usePasswordValidation(passwordForm.newPassword);
   
   // Check if user logged in via OAuth (like Google)
   const isOAuthUser = user?.image?.includes('googleusercontent.com') || 
@@ -195,8 +199,9 @@ export default function ProfilePage() {
       return;
     }
 
-    if (passwordForm.newPassword.length < 8) {
-      setPasswordError(t('auth.passwordTooShort'));
+    // Use centralized password validation
+    if (!isPasswordValid && passwordValidationError) {
+      setPasswordError(passwordValidationError);
       return;
     }
 
