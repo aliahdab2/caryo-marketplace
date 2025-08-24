@@ -18,6 +18,8 @@ import org.springframework.retry.annotation.Recover;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+
+import com.autotrader.autotraderbackend.util.ArabicTextUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Arrays;
@@ -35,6 +37,7 @@ public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
+    private final MessageService messageService;
     
     @Value("${app.email.from}")
     private String fromEmail;
@@ -81,21 +84,16 @@ public class EmailServiceImpl implements EmailService {
             
             helper.setFrom(fromEmail);
             helper.setTo(to);
-            helper.setSubject(subject);
             
-            // Set explicit headers for proper Arabic text handling
-            message.setHeader("Content-Type", "text/html; charset=UTF-8");
-            message.setHeader("Content-Transfer-Encoding", "8bit"); // Use 8bit for better Unicode support
-            message.setHeader("MIME-Version", "1.0");
+            // Use centralized Arabic text encoding utility
+            helper.setSubject(ArabicTextUtils.encodeForEmailSubject(subject));
             
-            // Set language-specific headers
-            if (language != null && language.equals("ar")) {
-                message.setHeader("Content-Language", "ar-SA");
-            }
+            // Let MimeMessageHelper handle encoding properly - don't override headers
+            // The helper with UTF-8 charset should handle Arabic text correctly
             
             Context context = new Context();
-            // Set UTF-8 locale for proper character handling
-            context.setLocale(java.util.Locale.forLanguageTag(language.equals("ar") ? "ar-SA" : "en-US"));
+            // Set UTF-8 locale for proper character handling using centralized utility
+            context.setLocale(java.util.Locale.forLanguageTag(ArabicTextUtils.getLocaleForLanguage(language)));
             
             if (variables != null) {
                 variables.forEach(context::setVariable);
@@ -723,9 +721,10 @@ public class EmailServiceImpl implements EmailService {
             variables.put("userName", username);
             variables.put("resetUrl", resetUrl);
             
-            String subject = language.equals("ar") ? 
-                "طلب إعادة تعيين كلمة المرور - " + getWebsiteName(language) : 
-                "Password Reset Request - " + getWebsiteName(language);
+            // Use MessageService for proper localization and encoding
+            Map<String, String> subjectParams = new HashMap<>();
+            subjectParams.put("websiteName", getWebsiteName(language));
+            String subject = messageService.getMessage("password.reset.subject", language, subjectParams);
             
             sendTemplatedEmail(toEmail, subject, "password-reset", variables, language);
             log.info("Password reset email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
@@ -781,9 +780,10 @@ public class EmailServiceImpl implements EmailService {
             Map<String, Object> variables = new HashMap<>();
             variables.put("userName", username);
             
-            String subject = language.equals("ar") ? 
-                "تم تغيير كلمة المرور بنجاح - " + getWebsiteName(language) : 
-                "Password Successfully Changed - " + getWebsiteName(language);
+            // Use MessageService for proper localization and encoding
+            Map<String, String> subjectParams = new HashMap<>();
+            subjectParams.put("websiteName", getWebsiteName(language));
+            String subject = messageService.getMessage("password.reset.confirmation.subject", language, subjectParams);
             
             sendTemplatedEmail(toEmail, subject, "password-reset-confirmation", variables, language);
             log.info("Password reset confirmation email sent successfully to: {} in language: {}", maskEmail(toEmail), language);

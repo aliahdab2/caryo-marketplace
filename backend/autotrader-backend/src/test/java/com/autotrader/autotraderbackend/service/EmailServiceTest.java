@@ -34,13 +34,16 @@ class EmailServiceTest {
     private org.thymeleaf.TemplateEngine templateEngine;
 
     @Mock
+    private MessageService messageService;
+
+    @Mock
     private MimeMessage mimeMessage;
 
     private EmailServiceImpl emailService;
 
     @BeforeEach
     void setUp() {
-        emailService = new EmailServiceImpl(mailSender, templateEngine);
+        emailService = new EmailServiceImpl(mailSender, templateEngine, messageService);
         
         // Set configuration values
         ReflectionTestUtils.setField(emailService, "fromEmail", "noreply@autotrader.com");

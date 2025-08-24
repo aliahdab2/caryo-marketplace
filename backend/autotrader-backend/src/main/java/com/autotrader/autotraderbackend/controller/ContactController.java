@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.payload.ContactFormRequest;
 import com.autotrader.autotraderbackend.service.EmailService;
+import com.autotrader.autotraderbackend.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -30,6 +31,7 @@ import java.util.Map;
 public class ContactController {
 
     private final EmailService emailService;
+    private final MessageService messageService;
 
     /**
      * Submit a contact form message with language support.
@@ -91,12 +93,12 @@ public class ContactController {
         )
     })
     public ResponseEntity<ContactResponse> submitContactForm(@Valid @RequestBody ContactFormRequest request) {
+        // Validate and normalize language outside try block for error handling
+        String language = normalizeLanguage(request.getLanguage());
+        
         try {
             log.info("Contact form submission received from: {} ({}) [Language: {}]", 
                     request.getName(), request.getEmail(), request.getLanguage());
-            
-            // Validate and normalize language
-            String language = normalizeLanguage(request.getLanguage());
             
             // Send email to support team
             emailService.sendContactFormEmail(request.getName(), request.getEmail(), request.getMessage(), language);
@@ -106,25 +108,20 @@ public class ContactController {
             
             log.info("Contact form processed successfully for: {} [Language: {}]", request.getEmail(), language);
             
-            String successMessage = language.equals("ar") ? 
-                "شكراً لك على رسالتك. سنرد عليك قريباً!" : 
-                "Thank you for your message. We'll get back to you soon!";
+            String successMessage = messageService.getMessage("success.contact.form", language);
             
             return ResponseEntity.ok(new ContactResponse(successMessage, "success"));
             
         } catch (IllegalArgumentException e) {
             log.warn("Invalid contact form submission: {}", e.getMessage());
-            String errorMessage = request.getLanguage() != null && request.getLanguage().equals("ar") ? 
-                "بيانات غير صحيحة: " + e.getMessage() : 
-                "Invalid data: " + e.getMessage();
+            Map<String, String> errorParams = Map.of("error", e.getMessage());
+            String errorMessage = messageService.getMessage("error.invalid.data", language, errorParams);
             return ResponseEntity.badRequest().body(new ContactResponse(errorMessage, "error"));
             
         } catch (Exception e) {
             log.error("Failed to process contact form submission from: {}", request.getEmail(), e);
             
-            String errorMessage = request.getLanguage() != null && request.getLanguage().equals("ar") ? 
-                "عذراً، حدث خطأ في معالجة رسالتك. يرجى المحاولة مرة أخرى لاحقاً." : 
-                "Sorry, there was an error processing your message. Please try again later.";
+            String errorMessage = messageService.getMessage("error.server", language);
             
             return ResponseEntity.internalServerError().body(new ContactResponse(errorMessage, "error"));
         }

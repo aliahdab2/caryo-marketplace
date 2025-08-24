@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.service;
 
 import org.springframework.stereotype.Service;
+import com.autotrader.autotraderbackend.util.ArabicTextUtils;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -67,11 +68,14 @@ public class MessageService {
         
         if (params != null) {
             for (Map.Entry<String, String> entry : params.entrySet()) {
-                template = template.replace("{" + entry.getKey() + "}", entry.getValue());
+                // Normalize Arabic text in parameters
+                String value = ArabicTextUtils.normalizeArabicText(entry.getValue());
+                template = template.replace("{" + entry.getKey() + "}", value);
             }
         }
         
-        return template;
+        // Normalize the final template for Arabic text
+        return ArabicTextUtils.normalizeArabicText(template);
     }
     
     /**

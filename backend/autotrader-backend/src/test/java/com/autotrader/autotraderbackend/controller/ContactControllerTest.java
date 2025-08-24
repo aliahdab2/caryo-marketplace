@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.payload.ContactFormRequest;
 import com.autotrader.autotraderbackend.service.EmailService;
+import com.autotrader.autotraderbackend.service.MessageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +15,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -27,13 +30,24 @@ class ContactControllerTest {
 
     @Mock
     private EmailService emailService;
+    
+    @Mock
+    private MessageService messageService;
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
-        ContactController controller = new ContactController(emailService);
+        // Setup MessageService mocks with lenient stubbing to avoid unnecessary stubbing exceptions
+        lenient().when(messageService.getMessage("success.contact.form", "en")).thenReturn("Thank you for your message. We'll get back to you soon!");
+        lenient().when(messageService.getMessage("success.contact.form", "ar")).thenReturn("شكراً لك على رسالتك. سنرد عليك قريباً!");
+        lenient().when(messageService.getMessage(eq("error.invalid.data"), eq("en"), any())).thenReturn("Invalid data: test error");
+        lenient().when(messageService.getMessage(eq("error.invalid.data"), eq("ar"), any())).thenReturn("بيانات غير صحيحة: test error");
+        lenient().when(messageService.getMessage("error.server", "en")).thenReturn("Sorry, there was an error processing your message. Please try again later.");
+        lenient().when(messageService.getMessage("error.server", "ar")).thenReturn("عذراً، حدث خطأ في معالجة رسالتك. يرجى المحاولة مرة أخرى لاحقاً.");
+        
+        ContactController controller = new ContactController(emailService, messageService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
         objectMapper = new ObjectMapper();
     }
