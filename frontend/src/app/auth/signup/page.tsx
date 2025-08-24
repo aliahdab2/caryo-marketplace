@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { authService } from "@/services/auth";
@@ -94,26 +94,54 @@ export default function SignUpPage() {
         // Backend auto-login successful - user is already authenticated
         setSuccessMessage(t('signupSuccess'));
         
-        // Short delay to show success message, then redirect
+        // Short delay to show success message, then establish NextAuth session
         setTimeout(async () => {
           try {
-            // Trigger NextAuth session update with the new credentials
+            // Since backend already authenticated, we need to establish NextAuth session
+            // This will trigger the NextAuth authorize function with the same credentials
             const signInResult = await signIn("credentials", {
               redirect: false,
               username,
               password,
-              callbackUrl,
             });
 
             if (signInResult?.ok) {
-              router.push(callbackUrl);
+              console.log('NextAuth signIn successful, establishing session...');
+              
+              // Give NextAuth time to establish the session, then redirect
+              setTimeout(async () => {
+                try {
+                  // Force session refresh
+                  const session = await getSession();
+                  console.log('Session after signIn:', session);
+                  
+                  if (session?.user) {
+                    console.log('Session confirmed, redirecting to:', callbackUrl);
+                    // Use window.location for full page redirect to ensure session is loaded
+                    window.location.href = callbackUrl;
+                  } else {
+                    console.warn('No session found, using router redirect as fallback');
+                    router.push(callbackUrl);
+                  }
+                } catch (sessionError) {
+                  console.error('Session check failed:', sessionError);
+                  // Fallback to router redirect
+                  router.push(callbackUrl);
+                }
+              }, 300);
+            } else if (signInResult?.error) {
+              // If NextAuth sign-in failed, show error but don't redirect
+              setError(signInResult.error);
+              setLoading(false);
             } else {
-              // Fallback: redirect anyway since backend auth was successful
-              router.push(callbackUrl);
+              // Unknown error
+              setError(t('errorOccurred'));
+              setLoading(false);
             }
-          } catch {
-            // Fallback: redirect anyway since backend auth was successful
-            router.push(callbackUrl);
+          } catch (error) {
+            console.error('NextAuth session establishment failed:', error);
+            setError(t('errorOccurred'));
+            setLoading(false);
           }
         }, 1500);
       } else {

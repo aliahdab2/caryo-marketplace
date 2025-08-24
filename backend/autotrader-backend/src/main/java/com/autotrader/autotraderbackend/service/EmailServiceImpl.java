@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Arrays;
 import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Implementation of EmailService using Spring Mail and Thymeleaf.
@@ -76,15 +77,21 @@ public class EmailServiceImpl implements EmailService {
         
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
             
             helper.setFrom(fromEmail);
             helper.setTo(to);
             helper.setSubject(subject);
             
-            // Set explicit Content-Type with UTF-8 encoding
+            // Set explicit headers for proper Arabic text handling
             message.setHeader("Content-Type", "text/html; charset=UTF-8");
-            message.setHeader("Content-Transfer-Encoding", "quoted-printable");
+            message.setHeader("Content-Transfer-Encoding", "8bit"); // Use 8bit for better Unicode support
+            message.setHeader("MIME-Version", "1.0");
+            
+            // Set language-specific headers
+            if (language != null && language.equals("ar")) {
+                message.setHeader("Content-Language", "ar-SA");
+            }
             
             Context context = new Context();
             // Set UTF-8 locale for proper character handling
