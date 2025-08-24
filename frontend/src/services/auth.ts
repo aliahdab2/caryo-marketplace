@@ -56,12 +56,12 @@ export const authService = {
    * Register a new user
    * 
    * @param userData User registration data
-   * @returns Success message
+   * @returns Success message or JWT response (if auto-login successful)
    */
-  async signup(userData: SignupCredentials): Promise<MessageResponse> {
+  async signup(userData: SignupCredentials): Promise<MessageResponse | AuthResponse> {
     try {
       // Use type assertion to handle the API's expected input type
-      return await api.post<MessageResponse>(
+      return await api.post<MessageResponse | AuthResponse>(
         '/api/auth/signup', 
         userData as unknown as Record<string, unknown>
       );

@@ -165,7 +165,32 @@ public class AuthController {
         user.setRoles(roles);
         userRepository.save(user);
 
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        // Auto-login the user after successful registration
+        // This is a best practice to improve user experience
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(signUpRequest.getUsername(), signUpRequest.getPassword())
+            );
+            
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = jwtUtils.generateJwtToken(authentication);
+            
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            List<String> rolesList = userDetails.getAuthorities().stream()
+                .map(item -> item.getAuthority())
+                .collect(Collectors.toList());
+            
+            // Return JWT response for immediate login
+            return ResponseEntity.ok(new JwtResponse(jwt,
+                                                   userDetails.getId(),
+                                                   userDetails.getUsername(),
+                                                   userDetails.getEmail(),
+                                                   rolesList));
+        } catch (Exception e) {
+            // If auto-login fails, still return success message
+            // This ensures registration doesn't fail if there's an authentication issue
+            return ResponseEntity.ok(new MessageResponse("User registered successfully! Please sign in."));
+        }
     }
 
     @Operation(

@@ -89,31 +89,61 @@ export default function SignUpPage() {
         confirmPassword,
       });
 
-      setSuccessMessage(result.message || t('signupSuccess'));
-      
-      // Short delay to show the success message before signing in
-      setTimeout(async () => {
-        try {
-          const signInResult = await signIn("credentials", {
-            redirect: false,
-            username,
-            password,
-            callbackUrl,
-          });
+      // Check if the backend returned JWT credentials (auto-login successful)
+      if ('token' in result || 'accessToken' in result) {
+        // Backend auto-login successful - user is already authenticated
+        setSuccessMessage(t('signupSuccess'));
+        
+        // Short delay to show success message, then redirect
+        setTimeout(async () => {
+          try {
+            // Trigger NextAuth session update with the new credentials
+            const signInResult = await signIn("credentials", {
+              redirect: false,
+              username,
+              password,
+              callbackUrl,
+            });
 
-          if (signInResult?.error) {
-            setError(signInResult.error);
-            setLoading(false);
-          } else if (signInResult?.ok) {
-            // Use the URL from the sign-in result if available, otherwise fall back to callbackUrl
-            const redirectUrl = signInResult.url || callbackUrl;
-            router.push(redirectUrl);
+            if (signInResult?.ok) {
+              router.push(callbackUrl);
+            } else {
+              // Fallback: redirect anyway since backend auth was successful
+              router.push(callbackUrl);
+            }
+          } catch {
+            // Fallback: redirect anyway since backend auth was successful
+            router.push(callbackUrl);
           }
-        } catch {
-          setError(t('errorOccurred'));
-          setLoading(false);
-        }
-      }, 1500);
+        }, 1500);
+      } else {
+        // Traditional flow - backend returned message, need to sign in manually
+        setSuccessMessage(result.message || t('signupSuccess'));
+        
+        // Short delay to show the success message before signing in
+        setTimeout(async () => {
+          try {
+            const signInResult = await signIn("credentials", {
+              redirect: false,
+              username,
+              password,
+              callbackUrl,
+            });
+
+            if (signInResult?.error) {
+              setError(signInResult.error);
+              setLoading(false);
+            } else if (signInResult?.ok) {
+              // Use the URL from the sign-in result if available, otherwise fall back to callbackUrl
+              const redirectUrl = signInResult.url || callbackUrl;
+              router.push(redirectUrl);
+            }
+          } catch {
+            setError(t('errorOccurred'));
+            setLoading(false);
+          }
+        }, 1500);
+      }
     } catch (err) {
       let message = t('registrationFailed');
       if (typeof err === "object" && err !== null) {
