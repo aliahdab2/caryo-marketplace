@@ -132,7 +132,8 @@ export const authOptions: NextAuthOptions = {
             || (response as unknown as { token?: string; accessToken?: string }).accessToken;
           if (response && respToken) {
             // Store the roles and token in the user object for later use
-            (user as AugmentedUser).roles = response.user?.roles || [];
+            // Backend returns roles directly, not nested under user
+            (user as AugmentedUser).roles = (response as unknown as { roles?: string[] }).roles || [];
             (user as AugmentedUser).token = respToken;
             (user as AugmentedUser).provider = "google";
             return true;

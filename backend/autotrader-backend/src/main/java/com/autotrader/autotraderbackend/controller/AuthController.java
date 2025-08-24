@@ -207,7 +207,18 @@ public class AuthController {
             user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Error: User not found."));
             
-            // You could update the user with additional social provider info here if needed
+            // Ensure existing OAuth users have at least the default role
+            if (user.getRoles() == null || user.getRoles().isEmpty()) {
+                Set<Role> roles = new HashSet<>();
+                Role userRole = roleRepository.findByName("ROLE_USER")
+                    .orElseGet(() -> {
+                        Role newRole = new Role("ROLE_USER");
+                        return roleRepository.save(newRole);
+                    });
+                roles.add(userRole);
+                user.setRoles(roles);
+                userRepository.save(user);
+            }
         } else {
             // Create new user with info from social provider
             // Generate a username from the email or name
@@ -254,6 +265,48 @@ public class AuthController {
             user.getEmail(), 
             roles
         ));
+    }
+
+    @Operation(
+        summary = "Fix User Roles",
+        description = "Ensure current user has default roles (temporary fix endpoint)"
+    )
+    @PostMapping("/fix-roles")
+    public ResponseEntity<?> fixUserRoles() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse("Error: User not authenticated!"));
+        }
+
+        String username = authentication.getName();
+        
+        // Find the user in the database
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse("Error: User not found!"));
+        }
+        
+        // Ensure user has at least the default role
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            Set<Role> roles = new HashSet<>();
+            Role userRole = roleRepository.findByName("ROLE_USER")
+                .orElseGet(() -> {
+                    Role newRole = new Role("ROLE_USER");
+                    return roleRepository.save(newRole);
+                });
+            roles.add(userRole);
+            user.setRoles(roles);
+            userRepository.save(user);
+            
+            return ResponseEntity.ok(new MessageResponse("Roles fixed successfully! User now has: " + 
+                user.getRoles().stream().map(Role::getName).collect(Collectors.toList())));
+        } else {
+            return ResponseEntity.ok(new MessageResponse("User already has roles: " + 
+                user.getRoles().stream().map(Role::getName).collect(Collectors.toList())));
+        }
     }
 
     @Operation(

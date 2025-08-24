@@ -2,6 +2,7 @@
 
 import { useOptimizedSession } from '@/hooks/useOptimizedSession';
 import { useState, useEffect } from 'react';
+import { signOut, signIn } from 'next-auth/react';
 
 /**
  * Debug component to help diagnose authentication issues
@@ -42,6 +43,50 @@ export default function AuthDebugger() {
       window.location.reload();
     } catch (error) {
       console.error('Error clearing auth data:', error);
+    }
+  };
+
+  const fixUserRoles = async () => {
+    try {
+      const authToken = localStorage.getItem('authToken');
+      if (!authToken) {
+        alert('No auth token found. Please log in first.');
+        return;
+      }
+
+      const response = await fetch('http://localhost:8080/api/auth/fix-roles', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert('Success: ' + data.message);
+        // Reload to refresh session with new roles
+        window.location.reload();
+      } else {
+        alert('Error: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error fixing roles:', error);
+      alert('Error fixing roles: ' + error);
+    }
+  };
+
+  const refreshSession = async () => {
+    try {
+      // Sign out and back in to get fresh session with roles
+      await signOut({ redirect: false });
+      setTimeout(() => {
+        signIn('google');
+      }, 1000);
+    } catch (error) {
+      console.error('Error refreshing session:', error);
+      alert('Error refreshing session: ' + error);
     }
   };
 
@@ -89,12 +134,28 @@ export default function AuthDebugger() {
         </div>
       </div>
       
-      <button
-        onClick={clearAllAuthData}
-        className="mt-4 w-full bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm"
-      >
-        Clear All Auth Data & Reload
-      </button>
+      <div className="mt-4 space-y-2">
+        <button
+          onClick={refreshSession}
+          className="w-full bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm"
+        >
+          Refresh Session (Get New Token)
+        </button>
+        
+        <button
+          onClick={fixUserRoles}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm"
+        >
+          Fix Missing Roles
+        </button>
+        
+        <button
+          onClick={clearAllAuthData}
+          className="w-full bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm"
+        >
+          Clear All Auth Data & Reload
+        </button>
+      </div>
     </div>
   );
 }
