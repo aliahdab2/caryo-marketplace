@@ -534,13 +534,13 @@ export default function AdvancedSearchPage() {
     }
   }, [hasInitialized, listingFilters, executeSearch]);
 
-  // After listings load following a page change, scroll to results top (best practice: content-driven scroll)
+  // After listings load following a page change, scroll to filter bar (best practice: content-driven scroll)
   useEffect(() => {
     if (!hasInitialized) return;
     if (!shouldScrollAfterPageChange.current) return;
 
     // When new content present, focus and scroll into view for accessibility and stability
-    const target = document.getElementById('results-top');
+    const target = document.getElementById('filters-top');
     if (target) {
       // Focus for a11y
       target.focus({ preventScroll: true } as unknown as FocusOptions);
@@ -1285,7 +1285,7 @@ export default function AdvancedSearchPage() {
         />
 
         {/* Enhanced Filter Bar */}
-        <div data-filter-section>
+        <div id="filters-top" data-filter-section className="scroll-mt-24 md:scroll-mt-28">
           <FilterPills
             setActiveFilterModal={setActiveFilterModal}
             isFilterActive={isFilterActive}
@@ -1318,7 +1318,7 @@ export default function AdvancedSearchPage() {
         </div>
 
         {/* Results Info */}
-        <div id="results-top" tabIndex={-1} className="flex items-center justify-between mb-6 scroll-mt-24 md:scroll-mt-28" data-results-section>
+        <div tabIndex={-1} className="flex items-center justify-between mb-6" data-results-section>
           <div className="flex flex-col gap-3">
             {/* Sort Dropdown - Top row, left aligned */}
             <SortDropdown
@@ -1405,6 +1405,7 @@ export default function AdvancedSearchPage() {
               showInfo={true}
               isRTL={isRTL}
               className="w-full"
+              autoScroll={false}
             />
           </div>
         )}

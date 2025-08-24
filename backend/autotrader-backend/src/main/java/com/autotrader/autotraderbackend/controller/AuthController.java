@@ -5,12 +5,15 @@ import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.payload.request.ChangePasswordRequest;
+import com.autotrader.autotraderbackend.payload.request.ForgotPasswordRequest;
+import com.autotrader.autotraderbackend.payload.request.ResetPasswordRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.payload.response.MessageResponse;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
 import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
+import com.autotrader.autotraderbackend.service.PasswordResetService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.HashSet;
 import java.util.List;
@@ -48,6 +52,9 @@ public class AuthController {
 
     @Autowired
     private JwtUtils jwtUtils;
+
+    @Autowired
+    private PasswordResetService passwordResetService;
 
     @Operation(
         summary = "Login",
@@ -158,7 +165,32 @@ public class AuthController {
         user.setRoles(roles);
         userRepository.save(user);
 
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        // Auto-login the user after successful registration
+        // This is a best practice to improve user experience
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(signUpRequest.getUsername(), signUpRequest.getPassword())
+            );
+            
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = jwtUtils.generateJwtToken(authentication);
+            
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            List<String> rolesList = userDetails.getAuthorities().stream()
+                .map(item -> item.getAuthority())
+                .collect(Collectors.toList());
+            
+            // Return JWT response for immediate login
+            return ResponseEntity.ok(new JwtResponse(jwt,
+                                                   userDetails.getId(),
+                                                   userDetails.getUsername(),
+                                                   userDetails.getEmail(),
+                                                   rolesList));
+        } catch (Exception e) {
+            // If auto-login fails, still return success message
+            // This ensures registration doesn't fail if there's an authentication issue
+            return ResponseEntity.ok(new MessageResponse("User registered successfully! Please sign in."));
+        }
     }
 
     @Operation(
@@ -260,5 +292,89 @@ public class AuthController {
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("Password changed successfully!"));
+    }
+
+    @Operation(
+        summary = "Forgot Password",
+        description = "Initiates password reset process by sending reset link to user's email"
+    )
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest,
+            HttpServletRequest request) {
+        
+        String clientIp = getClientIpAddress(request);
+        PasswordResetService.PasswordResetResult result = passwordResetService.initiatePasswordReset(
+            forgotPasswordRequest.getEmail(), clientIp);
+        
+        if (result.isRateLimited()) {
+            return ResponseEntity.status(429) // Too Many Requests
+                .body(new MessageResponse(result.getMessage()));
+        }
+        
+        // Always return 200 OK for success/error to avoid user enumeration
+        return ResponseEntity.ok(new MessageResponse(result.getMessage()));
+    }
+
+    @Operation(
+        summary = "Validate Reset Token",
+        description = "Validates if a password reset token is valid and not expired"
+    )
+    @GetMapping("/reset-password/validate")
+    public ResponseEntity<?> validateResetToken(@RequestParam String token) {
+        boolean isValid = passwordResetService.validateResetToken(token);
+        
+        if (isValid) {
+            return ResponseEntity.ok(new MessageResponse("Token is valid"));
+        } else {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse("Error: Invalid or expired reset token"));
+        }
+    }
+
+    @Operation(
+        summary = "Reset Password",
+        description = "Resets user password using valid reset token"
+    )
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest resetPasswordRequest,
+            HttpServletRequest request) {
+        
+        String clientIp = getClientIpAddress(request);
+        PasswordResetService.PasswordResetResult result = passwordResetService.resetPassword(
+            resetPasswordRequest.getToken(), 
+            resetPasswordRequest.getNewPassword(),
+            clientIp
+        );
+        
+        if (result.isRateLimited()) {
+            return ResponseEntity.status(429) // Too Many Requests
+                .body(new MessageResponse(result.getMessage()));
+        }
+        
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(new MessageResponse(result.getMessage()));
+        } else {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse(result.getMessage()));
+        }
+    }
+    
+    /**
+     * Helper method to extract client IP address from request
+     */
+    private String getClientIpAddress(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isEmpty() && !"unknown".equalsIgnoreCase(xRealIp)) {
+            return xRealIp;
+        }
+        
+        return request.getRemoteAddr();
     }
 }

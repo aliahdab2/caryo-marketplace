@@ -144,4 +144,6 @@ export interface PaginationProps {
   };
   /** Optional CSS selector to smoothly scroll into view after page change */
   scrollTargetSelector?: string;
+  /** Enable built-in auto scroll on page change (default: true). Set false if parent handles scrolling. */
+  autoScroll?: boolean;
 }

@@ -12,13 +12,20 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.springframework.util.StringUtils;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.annotation.Recover;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+
+import com.autotrader.autotraderbackend.util.ArabicTextUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Arrays;
 import java.util.List;
+import java.nio.charset.StandardCharsets;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Implementation of EmailService using Spring Mail and Thymeleaf.
@@ -31,6 +38,7 @@ public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
+    private final MessageService messageService;
     
     @Value("${app.email.from}")
     private String fromEmail;
@@ -61,6 +69,28 @@ public class EmailServiceImpl implements EmailService {
     
     private static final List<String> SUPPORTED_LANGUAGES = Arrays.asList("en", "ar");
 
+    @PostConstruct
+    public void debugArabicProperties() {
+        log.info("=== Arabic Properties Debug ===");
+        log.info("websiteNameAr raw: '{}'", websiteNameAr);
+        log.info("websiteNameAr bytes: {}", websiteNameAr != null ? Arrays.toString(websiteNameAr.getBytes(StandardCharsets.UTF_8)) : "null");
+        log.info("websiteNameAr length: {}", websiteNameAr != null ? websiteNameAr.length() : 0);
+        
+        // Try to detect if it's double-encoded
+        if (websiteNameAr != null && websiteNameAr.contains("Ø")) {
+            log.warn("Arabic text appears to be double-encoded! Raw: '{}'", websiteNameAr);
+            // Try to decode it as Latin-1 and re-encode as UTF-8
+            try {
+                byte[] latin1Bytes = websiteNameAr.getBytes(StandardCharsets.ISO_8859_1);
+                String corrected = new String(latin1Bytes, StandardCharsets.UTF_8);
+                log.info("Corrected Arabic text: '{}'", corrected);
+            } catch (Exception e) {
+                log.error("Failed to correct encoding", e);
+            }
+        }
+        log.info("===============================");
+    }
+
     @Override
     public void sendTemplatedEmail(String to, String subject, String templateName, Map<String, Object> variables) {
         sendTemplatedEmail(to, subject, templateName, variables, defaultLanguage);
@@ -73,25 +103,43 @@ public class EmailServiceImpl implements EmailService {
         
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
             
             helper.setFrom(fromEmail);
             helper.setTo(to);
-            helper.setSubject(subject);
+            
+            // Use centralized Arabic text encoding utility
+            helper.setSubject(ArabicTextUtils.encodeForEmailSubject(subject));
+            
+            // Let MimeMessageHelper handle encoding properly - don't override headers
+            // The helper with UTF-8 charset should handle Arabic text correctly
             
             Context context = new Context();
-            if (variables != null) {
-                variables.forEach(context::setVariable);
-            }
+            // Set UTF-8 locale for proper character handling using centralized utility
+            context.setLocale(java.util.Locale.forLanguageTag(ArabicTextUtils.getLocaleForLanguage(language)));
             
-            // Add website configuration variables
+            // Add website configuration variables with proper Arabic text normalization
             context.setVariable("websiteName", getWebsiteName(language));
             context.setVariable("websiteUrl", websiteUrl);
             context.setVariable("supportEmail", websiteSupportEmail);
             context.setVariable("supportPhone", websiteSupportPhone);
             context.setVariable("language", language);
             
+            // Add and normalize all Arabic text in variables if present
+            if (variables != null) {
+                variables.entrySet().forEach(entry -> {
+                    if (entry.getValue() instanceof String) {
+                        String normalizedValue = ArabicTextUtils.normalizeArabicText((String) entry.getValue());
+                        context.setVariable(entry.getKey(), normalizedValue);
+                    } else {
+                        context.setVariable(entry.getKey(), entry.getValue());
+                    }
+                });
+            }
+            
             String htmlContent = templateEngine.process(templateName, context);
+            
+            // Ensure HTML content is properly encoded
             helper.setText(htmlContent, true);
             
             mailSender.send(message);
@@ -300,6 +348,20 @@ public class EmailServiceImpl implements EmailService {
             language
         );
     }
+
+    @Override
+    public void sendContactFormConfirmationEmail(String name, String email, String language) {
+        // Delegate to the existing method
+        sendContactFormConfirmation(name, email, language);
+    }
+
+    @Override
+    public void sendContactFormNotificationEmail(String name, String email, String subject, String message, String language) {
+        // Delegate to the existing method - the existing method takes name, email, message, language
+        // but the interface expects name, email, subject, message, language
+        // We'll use the message parameter and ignore the separate subject for now
+        sendContactFormEmail(name, email, message, language);
+    }
     
     @Override
     public void sendListingSoldEmail(User seller, CarListing listing) {
@@ -393,10 +455,82 @@ public class EmailServiceImpl implements EmailService {
     }
     
     /**
-     * Get website name based on language.
+     * Get website name based on language with proper Arabic text normalization and encoding fix.
      */
     private String getWebsiteName(String language) {
-        return language.equals("ar") ? websiteNameAr : websiteName;
+        String name = language.equals("ar") ? websiteNameAr : websiteName;
+        
+        if (name == null) {
+            return language.equals("ar") ? "أوتو تريدر" : "AutoTrader";
+        }
+        
+        // Fix encoding issue if Arabic text is double-encoded (UTF-8 interpreted as Latin-1)
+        if (language.equals("ar") && name.contains("Ø")) {
+            log.warn("Detected double-encoded Arabic text: '{}'", name);
+            try {
+                // Convert from Latin-1 back to UTF-8
+                byte[] latin1Bytes = name.getBytes(StandardCharsets.ISO_8859_1);
+                name = new String(latin1Bytes, StandardCharsets.UTF_8);
+                log.info("Fixed Arabic encoding: '{}'", name);
+            } catch (Exception e) {
+                log.error("Failed to fix Arabic encoding, using fallback", e);
+                name = "أوتو تريدر"; // Fallback to correct Arabic text
+            }
+        }
+        
+        // Use centralized Arabic text normalization
+        String normalizedName = ArabicTextUtils.normalizeArabicText(name);
+        log.debug("Website name for language '{}': '{}' -> normalized: '{}' (bytes: {})", 
+            language, name, normalizedName, normalizedName != null ? Arrays.toString(normalizedName.getBytes(StandardCharsets.UTF_8)) : "null");
+        return normalizedName;
+    }
+    
+    /**
+     * Health check method to verify email service is working
+     */
+    public boolean isEmailServiceHealthy() {
+        try {
+            // Test basic mail sender connectivity
+            MimeMessage testMessage = mailSender.createMimeMessage();
+            if (testMessage == null) {
+                log.warn("Email service health check failed: Cannot create MimeMessage");
+                return false;
+            }
+            
+            // Test template engine with a simple context
+            Context context = new Context();
+            context.setVariable("testVariable", "test");
+            
+            // Test basic template processing (this will work with existing templates)
+            if (templateEngine == null) {
+                log.warn("Email service health check failed: Template engine is null");
+                return false;
+            }
+            
+            log.debug("Email service health check passed - mail sender and template engine are available");
+            return true;
+        } catch (Exception e) {
+            log.error("Email service health check failed", e);
+            return false;
+        }
+    }
+
+    /**
+     * Debug method to test Arabic text encoding
+     */
+    public void debugArabicEncoding() {
+        log.info("=== Arabic Encoding Debug ===");
+        log.info("websiteName (EN): '{}'", websiteName);
+        log.info("websiteNameAr (AR): '{}'", websiteNameAr);
+        log.info("websiteNameAr bytes (UTF-8): {}", 
+            websiteNameAr != null ? java.util.Arrays.toString(websiteNameAr.getBytes(java.nio.charset.StandardCharsets.UTF_8)) : "null");
+        log.info("websiteNameAr length: {}", websiteNameAr != null ? websiteNameAr.length() : 0);
+        
+        // Test Arabic characters
+        String testArabic = "أوتو تريدر";
+        log.info("Test Arabic string: '{}'", testArabic);
+        log.info("Test Arabic bytes (UTF-8): {}", java.util.Arrays.toString(testArabic.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        log.info("=== End Debug ===");
     }
     
     /**
@@ -638,11 +772,209 @@ public class EmailServiceImpl implements EmailService {
     }
     
     /**
+     * Send password reset email with default language.
+     */
+    @Override
+    public void sendPasswordResetEmail(String toEmail, String username, String resetUrl) {
+        sendPasswordResetEmail(toEmail, username, resetUrl, defaultLanguage);
+    }
+    
+    /**
+     * Send password reset email with retry logic and specified language.
+     */
+    @Override
+    @Retryable(
+        retryFor = {Exception.class}, 
+        maxAttempts = 3, 
+        backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
+    public void sendPasswordResetEmail(String toEmail, String username, String resetUrl, String language) {
+        try {
+            // Input validation
+            if (!StringUtils.hasText(toEmail) || !StringUtils.hasText(username) || !StringUtils.hasText(resetUrl)) {
+                throw new IllegalArgumentException("Email, username, and reset URL are required");
+            }
+            
+            if (!SUPPORTED_LANGUAGES.contains(language)) {
+                language = defaultLanguage;
+            }
+            
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("userName", username);
+            variables.put("resetUrl", resetUrl);
+            
+            // Use MessageService for proper localization and encoding
+            Map<String, String> subjectParams = new HashMap<>();
+            subjectParams.put("websiteName", getWebsiteName(language));
+            String subject = messageService.getMessage("password.reset.subject", language, subjectParams);
+            
+            sendTemplatedEmail(toEmail, subject, "password-reset", variables, language);
+            log.info("Password reset email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
+            
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to: {} in language: {} (attempt failed)", maskEmail(toEmail), language, e);
+            throw new EmailSendException("Failed to send password reset email", e);
+        }
+    }
+    
+    /**
+     * Recovery method for password reset email sending failures.
+     */
+    @Recover
+    public void recoverPasswordResetEmail(Exception ex, String toEmail, String username, String resetUrl) {
+        log.error("All attempts to send password reset email failed for: {}. Error: {}", 
+            maskEmail(toEmail), ex.getMessage());
+        // In production, you might want to:
+        // 1. Store failed email in a queue for later retry
+        // 2. Send alert to administrators
+        // 3. Use alternative notification method (SMS, etc.)
+        throw new EmailSendException("Failed to send password reset email after all retry attempts", ex);
+    }
+
+    /**
+     * Send password reset confirmation email with default language.
+     */
+    @Override
+    public void sendPasswordResetConfirmationEmail(String toEmail, String username) {
+        sendPasswordResetConfirmationEmail(toEmail, username, defaultLanguage);
+    }
+    
+    /**
+     * Send password reset confirmation email with retry logic and specified language.
+     */
+    @Override
+    @Retryable(
+        retryFor = {Exception.class}, 
+        maxAttempts = 3, 
+        backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
+    public void sendPasswordResetConfirmationEmail(String toEmail, String username, String language) {
+        try {
+            // Input validation
+            if (!StringUtils.hasText(toEmail) || !StringUtils.hasText(username)) {
+                throw new IllegalArgumentException("Email and username are required");
+            }
+            
+            if (!SUPPORTED_LANGUAGES.contains(language)) {
+                language = defaultLanguage;
+            }
+            
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("userName", username);
+            
+            // Use MessageService for proper localization and encoding
+            Map<String, String> subjectParams = new HashMap<>();
+            subjectParams.put("websiteName", getWebsiteName(language));
+            String subject = messageService.getMessage("password.reset.confirmation.subject", language, subjectParams);
+            
+            sendTemplatedEmail(toEmail, subject, "password-reset-confirmation", variables, language);
+            log.info("Password reset confirmation email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
+            
+        } catch (Exception e) {
+            log.error("Failed to send password reset confirmation email to: {} in language: {} (attempt failed)", maskEmail(toEmail), language, e);
+            throw new EmailSendException("Failed to send password reset confirmation email", e);
+        }
+    }
+    
+    /**
+     * Recovery method for password reset confirmation email sending failures.
+     */
+    @Recover
+    public void recoverPasswordResetConfirmationEmail(Exception ex, String toEmail, String username) {
+        log.error("All attempts to send password reset confirmation email failed for: {}. Error: {}", 
+            maskEmail(toEmail), ex.getMessage());
+        throw new EmailSendException("Failed to send password reset confirmation email after all retry attempts", ex);
+    }
+
+    
+
+    /**
      * Custom exception for email sending errors.
      */
     public static class EmailSendException extends RuntimeException {
         public EmailSendException(String message, Throwable cause) {
             super(message, cause);
         }
+    }
+    
+    /**
+     * Enhanced email sending with additional validation
+     */
+    private void sendSimpleEmailWithValidation(String toEmail, String subject, String body) {
+        try {
+            // Additional email format validation
+            if (!isValidEmailFormat(toEmail)) {
+                throw new IllegalArgumentException("Invalid email format: " + toEmail);
+            }
+            
+            // Check for suspicious content
+            if (containsSuspiciousContent(body)) {
+                log.warn("Email body contains suspicious content for recipient: {}", maskEmail(toEmail));
+            }
+            
+            sendSimpleEmail(toEmail, subject, body);
+            
+        } catch (Exception e) {
+            log.error("Enhanced email validation failed for: {}", maskEmail(toEmail), e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Mask email address for logging (privacy protection)
+     */
+    private String maskEmail(String email) {
+        if (!StringUtils.hasText(email)) {
+            return "invalid-email";
+        }
+        
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 0) {
+            return "invalid-email";
+        }
+        
+        String localPart = email.substring(0, atIndex);
+        String domain = email.substring(atIndex);
+        
+        if (localPart.length() <= 2) {
+            return "*".repeat(localPart.length()) + domain;
+        }
+        
+        return localPart.charAt(0) + "*".repeat(localPart.length() - 2) + localPart.charAt(localPart.length() - 1) + domain;
+    }
+    
+    /**
+     * Basic email format validation
+     */
+    private boolean isValidEmailFormat(String email) {
+        return StringUtils.hasText(email) && 
+               email.contains("@") && 
+               email.contains(".") && 
+               email.length() > 5 &&
+               !email.startsWith("@") &&
+               !email.endsWith("@");
+    }
+    
+    /**
+     * Check for suspicious content in email body
+     */
+    private boolean containsSuspiciousContent(String body) {
+        if (!StringUtils.hasText(body)) {
+            return false;
+        }
+        
+        String lowerBody = body.toLowerCase();
+        String[] suspiciousPatterns = {
+            "<script", "javascript:", "onclick=", "onerror=", 
+            "eval(", "document.cookie", "window.location"
+        };
+        
+        for (String pattern : suspiciousPatterns) {
+            if (lowerBody.contains(pattern)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 } 

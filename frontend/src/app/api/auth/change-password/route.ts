@@ -36,9 +36,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (newPassword.length < 8) {
+    // Use centralized password validation
+    const { validatePassword } = await import('@/utils/passwordValidation');
+    const validationResult = validatePassword(newPassword);
+    if (!validationResult.isValid) {
       return NextResponse.json(
-        { message: 'New password must be at least 8 characters long' },
+        { message: validationResult.errors[0] || 'Invalid password' },
         { status: 400 }
       );
     }

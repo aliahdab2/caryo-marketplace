@@ -15,7 +15,8 @@ const Pagination: React.FC<PaginationProps> = ({
   isRTL = false,
   className = '',
   resultsText,
-  scrollTargetSelector
+  scrollTargetSelector,
+  autoScroll = true
 }) => {
   const { t } = useTranslation(['common', 'search']);
 
@@ -97,16 +98,16 @@ const Pagination: React.FC<PaginationProps> = ({
   const handlePreviousPage = useCallback(() => {
     if (currentPage > 1) {
       onPageChange(currentPage - 1);
-      scrollIntoViewStable('smooth');
+      if (autoScroll) scrollIntoViewStable('smooth');
     }
-  }, [currentPage, onPageChange, scrollIntoViewStable]);
+  }, [currentPage, onPageChange, scrollIntoViewStable, autoScroll]);
 
   const handleNextPage = useCallback(() => {
     if (currentPage < totalPages) {
       onPageChange(currentPage + 1);
-      scrollIntoViewStable('smooth');
+      if (autoScroll) scrollIntoViewStable('smooth');
     }
-  }, [currentPage, totalPages, onPageChange, scrollIntoViewStable]);
+  }, [currentPage, totalPages, onPageChange, scrollIntoViewStable, autoScroll]);
 
   const handlePageClick = useCallback((pageNumber: number) => {
     if (pageNumber !== currentPage) {

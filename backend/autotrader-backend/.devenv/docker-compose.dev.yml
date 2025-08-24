@@ -33,6 +33,19 @@ services:
       SPRING_DEVTOOLS_LIVERELOAD_ENABLED: ${DEV_MODE:-true}
       SPRINGDOC_SWAGGER_UI_CSRF_ENABLED: "false"
       SPRINGDOC_API_DOCS_ENABLED: "true"
+      # Email configuration for Mailpit
+      SPRING_MAIL_HOST: mailpit
+      SPRING_MAIL_PORT: 1025
+      SPRING_MAIL_USERNAME: ""
+      SPRING_MAIL_PASSWORD: ""
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "false"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "false"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED: "false"
+      APP_EMAIL_FROM: "noreply@autotrader.dev"
+      APP_EMAIL_SUPPORT: "support@autotrader.dev"
+      # Debug logging for email
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_MAIL: DEBUG
+      LOGGING_LEVEL_JAKARTA_MAIL: DEBUG
     depends_on:
       postgres:
         condition: service_started
@@ -40,6 +53,8 @@ services:
         condition: service_healthy
       createbuckets:
         condition: service_completed_successfully
+      mailpit:
+        condition: service_started
     networks:
       - backend-network
     volumes:
@@ -131,9 +146,9 @@ services:
     networks:
       - backend-network
 
-  # Mailhog (mail catching service)
-  mailhog:
-    image: axllent/mailpit:latest # Changed to latest
+  # Mailpit (mail catching service)
+  mailpit:
+    image: axllent/mailpit:latest
     container_name: mailpit
     ports:
       - "1025:1025"

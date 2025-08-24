@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { authService } from "@/services/auth";
@@ -10,6 +10,7 @@ import SimpleVerification from '@/components/auth/SimpleVerification';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePasswordValidation, PasswordRequirementText } from '@/components/auth/PasswordValidation';
 
 export default function SignUpPage() {
   const [username, setUsername] = useState("");
@@ -23,6 +24,7 @@ export default function SignUpPage() {
   const [callbackUrl, setCallbackUrl] = useState("/dashboard");
   const router = useRouter();
   const { t } = useTranslation('auth');
+  const { isValid: isPasswordValid, firstError: passwordError } = usePasswordValidation(password);
 
   // Extract callback URL from search params if present
   useEffect(() => {
@@ -63,8 +65,9 @@ export default function SignUpPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError(t('passwordTooShort'));
+    // Use centralized password validation
+    if (!isPasswordValid && passwordError) {
+      setError(passwordError);
       return;
     }
 
@@ -89,31 +92,89 @@ export default function SignUpPage() {
         confirmPassword,
       });
 
-      setSuccessMessage(result.message || t('signupSuccess'));
-      
-      // Short delay to show the success message before signing in
-      setTimeout(async () => {
-        try {
-          const signInResult = await signIn("credentials", {
-            redirect: false,
-            username,
-            password,
-            callbackUrl,
-          });
+      // Check if the backend returned JWT credentials (auto-login successful)
+      if ('token' in result || 'accessToken' in result) {
+        // Backend auto-login successful - user is already authenticated
+        setSuccessMessage(t('signupSuccess'));
+        
+        // Short delay to show success message, then establish NextAuth session
+        setTimeout(async () => {
+          try {
+            // Since backend already authenticated, we need to establish NextAuth session
+            // This will trigger the NextAuth authorize function with the same credentials
+            const signInResult = await signIn("credentials", {
+              redirect: false,
+              username,
+              password,
+            });
 
-          if (signInResult?.error) {
-            setError(signInResult.error);
+            if (signInResult?.ok) {
+              console.log('NextAuth signIn successful, establishing session...');
+              
+              // Give NextAuth time to establish the session, then redirect
+              setTimeout(async () => {
+                try {
+                  // Force session refresh
+                  const session = await getSession();
+                  console.log('Session after signIn:', session);
+                  
+                  if (session?.user) {
+                    console.log('Session confirmed, redirecting to:', callbackUrl);
+                    // Use window.location for full page redirect to ensure session is loaded
+                    window.location.href = callbackUrl;
+                  } else {
+                    console.warn('No session found, using router redirect as fallback');
+                    router.push(callbackUrl);
+                  }
+                } catch (sessionError) {
+                  console.error('Session check failed:', sessionError);
+                  // Fallback to router redirect
+                  router.push(callbackUrl);
+                }
+              }, 300);
+            } else if (signInResult?.error) {
+              // If NextAuth sign-in failed, show error but don't redirect
+              setError(signInResult.error);
+              setLoading(false);
+            } else {
+              // Unknown error
+              setError(t('errorOccurred'));
+              setLoading(false);
+            }
+          } catch (error) {
+            console.error('NextAuth session establishment failed:', error);
+            setError(t('errorOccurred'));
             setLoading(false);
-          } else if (signInResult?.ok) {
-            // Use the URL from the sign-in result if available, otherwise fall back to callbackUrl
-            const redirectUrl = signInResult.url || callbackUrl;
-            router.push(redirectUrl);
           }
-        } catch {
-          setError(t('errorOccurred'));
-          setLoading(false);
-        }
-      }, 1500);
+        }, 1500);
+      } else {
+        // Traditional flow - backend returned message, need to sign in manually
+        setSuccessMessage(result.message || t('signupSuccess'));
+        
+        // Short delay to show the success message before signing in
+        setTimeout(async () => {
+          try {
+            const signInResult = await signIn("credentials", {
+              redirect: false,
+              username,
+              password,
+              callbackUrl,
+            });
+
+            if (signInResult?.error) {
+              setError(signInResult.error);
+              setLoading(false);
+            } else if (signInResult?.ok) {
+              // Use the URL from the sign-in result if available, otherwise fall back to callbackUrl
+              const redirectUrl = signInResult.url || callbackUrl;
+              router.push(redirectUrl);
+            }
+          } catch {
+            setError(t('errorOccurred'));
+            setLoading(false);
+          }
+        }, 1500);
+      }
     } catch (err) {
       let message = t('registrationFailed');
       if (typeof err === "object" && err !== null) {
@@ -319,9 +380,7 @@ export default function SignUpPage() {
                     placeholder="••••••••"
                   />
                 </div>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {t('passwordRequirement')}
-                </p>
+                <PasswordRequirementText className="mt-1" />
               </div>
               
               <div className="mb-5">
@@ -342,7 +401,7 @@ export default function SignUpPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    minLength={6}
+                    minLength={8}
                     disabled={loading}
                     className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
                     placeholder={t('confirmPasswordPlaceholder')}

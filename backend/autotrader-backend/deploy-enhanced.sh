@@ -267,6 +267,14 @@ health_check() {
         failed=1
     fi
 
+    # Check Email Service
+    if curl -s --max-time 5 "http://localhost:${SERVER_PORT:-8080}/api/debug/email/health" | grep -q '"healthy":true'; then
+        echo -e "${GREEN}✓ Email service is healthy${NC}"
+    else
+        echo -e "${RED}✗ Email service is not healthy${NC}"
+        failed=1
+    fi
+
     if [ $failed -eq 0 ]; then
         echo -e "\n${GREEN}All services are healthy!${NC}"
         return 0
@@ -454,6 +462,7 @@ show_service_info() {
     echo -e "- Backend API:    ${GREEN}http://localhost:${SERVER_PORT:-8080}${NC}"
     echo -e "- Swagger UI:     ${GREEN}http://localhost:${SERVER_PORT:-8080}/swagger-ui/index.html${NC}"
     echo -e "- Health Check:   ${GREEN}http://localhost:${SERVER_PORT:-8080}/actuator/health${NC}"
+    echo -e "- Mail Server:    ${GREEN}SMTP configured (check logs for details)${NC}"
     echo -e "- MinIO Console:  ${GREEN}http://localhost:9001${NC}"
     echo -e "- Nginx (HTTP):   ${GREEN}http://localhost:80${NC}"
     echo -e "- Nginx (HTTPS):  ${GREEN}https://localhost:443${NC}"
