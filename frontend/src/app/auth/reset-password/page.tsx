@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
@@ -20,20 +20,7 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Validate token on component mount
-  useEffect(() => {
-    const tokenParam = searchParams.get('token');
-    if (!tokenParam) {
-      setError(t('auth:invalidResetToken', 'Invalid or expired reset token. Please request a new password reset.'));
-      setValidatingToken(false);
-      return;
-    }
-
-    setToken(tokenParam);
-    validateToken(tokenParam);
-  }, [searchParams, t]);
-
-  const validateToken = async (tokenToValidate: string) => {
+  const validateToken = useCallback(async (tokenToValidate: string) => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       const response = await fetch(`${API_URL}/api/auth/reset-password/validate?token=${encodeURIComponent(tokenToValidate)}`, {
@@ -46,12 +33,25 @@ export default function ResetPasswordPage() {
         const data = await response.json();
         setError(data.message || t('auth:invalidResetToken', 'Invalid or expired reset token. Please request a new password reset.'));
       }
-    } catch (e) {
+    } catch (_e) {
       setError(t('errors:networkError', 'Network error. Please check your connection and try again.'));
     } finally {
       setValidatingToken(false);
     }
-  };
+  }, [t]);
+
+  // Validate token on component mount
+  useEffect(() => {
+    const tokenParam = searchParams.get('token');
+    if (!tokenParam) {
+      setError(t('auth:invalidResetToken', 'Invalid or expired reset token. Please request a new password reset.'));
+      setValidatingToken(false);
+      return;
+    }
+
+    setToken(tokenParam);
+    validateToken(tokenParam);
+  }, [searchParams, t, validateToken]);
 
   const validatePassword = (password: string): string | null => {
     if (password.length < 8) {
@@ -108,7 +108,7 @@ export default function ResetPasswordPage() {
       } else {
         setError(data.message || t('auth:invalidResetToken', 'Invalid or expired reset token. Please request a new password reset.'));
       }
-    } catch (e) {
+    } catch (_e) {
       setError(t('errors:networkError', 'Network error. Please check your connection and try again.'));
     } finally {
       setSubmitting(false);

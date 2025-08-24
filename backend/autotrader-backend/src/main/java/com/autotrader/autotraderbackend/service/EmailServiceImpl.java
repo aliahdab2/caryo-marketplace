@@ -82,7 +82,14 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
             
+            // Set explicit Content-Type with UTF-8 encoding
+            message.setHeader("Content-Type", "text/html; charset=UTF-8");
+            message.setHeader("Content-Transfer-Encoding", "quoted-printable");
+            
             Context context = new Context();
+            // Set UTF-8 locale for proper character handling
+            context.setLocale(java.util.Locale.forLanguageTag(language.equals("ar") ? "ar-SA" : "en-US"));
+            
             if (variables != null) {
                 variables.forEach(context::setVariable);
             }
@@ -95,6 +102,8 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("language", language);
             
             String htmlContent = templateEngine.process(templateName, context);
+            
+            // Ensure HTML content is properly encoded
             helper.setText(htmlContent, true);
             
             mailSender.send(message);
@@ -413,7 +422,28 @@ public class EmailServiceImpl implements EmailService {
      * Get website name based on language.
      */
     private String getWebsiteName(String language) {
-        return language.equals("ar") ? websiteNameAr : websiteName;
+        String name = language.equals("ar") ? websiteNameAr : websiteName;
+        log.debug("Website name for language '{}': '{}' (bytes: {})", 
+            language, name, name != null ? java.util.Arrays.toString(name.getBytes(java.nio.charset.StandardCharsets.UTF_8)) : "null");
+        return name;
+    }
+    
+    /**
+     * Debug method to test Arabic text encoding
+     */
+    public void debugArabicEncoding() {
+        log.info("=== Arabic Encoding Debug ===");
+        log.info("websiteName (EN): '{}'", websiteName);
+        log.info("websiteNameAr (AR): '{}'", websiteNameAr);
+        log.info("websiteNameAr bytes (UTF-8): {}", 
+            websiteNameAr != null ? java.util.Arrays.toString(websiteNameAr.getBytes(java.nio.charset.StandardCharsets.UTF_8)) : "null");
+        log.info("websiteNameAr length: {}", websiteNameAr != null ? websiteNameAr.length() : 0);
+        
+        // Test Arabic characters
+        String testArabic = "أوتو تريدر";
+        log.info("Test Arabic string: '{}'", testArabic);
+        log.info("Test Arabic bytes (UTF-8): {}", java.util.Arrays.toString(testArabic.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        log.info("=== End Debug ===");
     }
     
     /**

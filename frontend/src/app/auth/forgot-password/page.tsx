@@ -37,7 +37,7 @@ const ForgotPasswordPage: React.FC = () => {
       } else {
         setError(data.message || t('errors:general', 'An error occurred. Please try again.'));
       }
-    } catch (e) {
+    } catch (_e) {
       setError(t('errors:networkError', 'Network error. Please check your connection and try again.'));
     } finally {
       setSubmitting(false);
