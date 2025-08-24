@@ -389,4 +389,13 @@ public class PasswordResetService {
             SUCCESS, ERROR, RATE_LIMITED
         }
     }
+    
+    /**
+     * Clear rate limiting cache - useful for testing
+     */
+    public void clearRateLimitCache() {
+        emailAttempts.clear();
+        ipAttempts.clear();
+        logger.debug("Rate limiting cache cleared");
+    }
 }

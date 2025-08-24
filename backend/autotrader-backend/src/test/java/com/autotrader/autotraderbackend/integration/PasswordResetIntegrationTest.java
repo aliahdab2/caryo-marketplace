@@ -6,6 +6,7 @@ import com.autotrader.autotraderbackend.payload.request.ForgotPasswordRequest;
 import com.autotrader.autotraderbackend.payload.request.ResetPasswordRequest;
 import com.autotrader.autotraderbackend.repository.PasswordResetTokenRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.service.PasswordResetService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,9 @@ class PasswordResetIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private PasswordResetService passwordResetService;
+
     private User testUser;
 
     @BeforeEach
@@ -54,9 +58,12 @@ class PasswordResetIntegrationTest {
         // Clean up any existing data
         tokenRepository.deleteAll();
         userRepository.deleteAll();
+        
+        // Clear rate limiting cache
+        passwordResetService.clearRateLimitCache();
 
         // Create test user
-        testUser = new User("testuser", "test@example.com", passwordEncoder.encode("OldPassword123!"));
+        testUser = new User("testuser", "test@example.com", passwordEncoder.encode("OldSecureP@ssw0rd!"));
         testUser = userRepository.save(testUser);
     }
 
@@ -175,7 +182,7 @@ class PasswordResetIntegrationTest {
 
         ResetPasswordRequest request = new ResetPasswordRequest();
         request.setToken("valid-token");
-        request.setNewPassword("NewPassword123!");
+        request.setNewPassword("NewSecureP@ssw0rd!");
 
         String oldPasswordHash = testUser.getPassword();
 
@@ -189,7 +196,7 @@ class PasswordResetIntegrationTest {
         // Verify password was changed
         User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
         assertNotEquals(oldPasswordHash, updatedUser.getPassword());
-        assertTrue(passwordEncoder.matches("NewPassword123!", updatedUser.getPassword()));
+        assertTrue(passwordEncoder.matches("NewSecureP@ssw0rd!", updatedUser.getPassword()));
 
         // Verify token was marked as used
         PasswordResetToken updatedToken = tokenRepository.findByToken("valid-token").orElseThrow();
@@ -201,7 +208,7 @@ class PasswordResetIntegrationTest {
         // Arrange
         ResetPasswordRequest request = new ResetPasswordRequest();
         request.setToken("invalid-token");
-        request.setNewPassword("NewPassword123!");
+        request.setNewPassword("NewSecureP@ssw0rd!");
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/reset-password")
@@ -237,7 +244,7 @@ class PasswordResetIntegrationTest {
 
         ResetPasswordRequest request = new ResetPasswordRequest();
         request.setToken("valid-token");
-        request.setNewPassword("OldPassword123!"); // Same as current password
+        request.setNewPassword("OldSecureP@ssw0rd!"); // Same as current password
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/reset-password")
@@ -256,7 +263,7 @@ class PasswordResetIntegrationTest {
 
         ResetPasswordRequest request = new ResetPasswordRequest();
         request.setToken("used-token");
-        request.setNewPassword("NewPassword123!");
+        request.setNewPassword("NewSecureP@ssw0rd!");
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/reset-password")
@@ -288,7 +295,7 @@ class PasswordResetIntegrationTest {
         // Step 4: Reset the password
         ResetPasswordRequest resetRequest = new ResetPasswordRequest();
         resetRequest.setToken(token.getToken());
-        resetRequest.setNewPassword("NewSecurePassword123!");
+        resetRequest.setNewPassword("NewSecureP@ssw0rd2!");
 
         String oldPasswordHash = testUser.getPassword();
 
@@ -300,7 +307,7 @@ class PasswordResetIntegrationTest {
         // Step 5: Verify password was changed and token was invalidated
         User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
         assertNotEquals(oldPasswordHash, updatedUser.getPassword());
-        assertTrue(passwordEncoder.matches("NewSecurePassword123!", updatedUser.getPassword()));
+        assertTrue(passwordEncoder.matches("NewSecureP@ssw0rd2!", updatedUser.getPassword()));
 
         PasswordResetToken updatedToken = tokenRepository.findByToken(token.getToken()).orElseThrow();
         assertTrue(updatedToken.isUsed());
@@ -308,7 +315,7 @@ class PasswordResetIntegrationTest {
         // Step 6: Verify token cannot be used again
         ResetPasswordRequest secondResetRequest = new ResetPasswordRequest();
         secondResetRequest.setToken(token.getToken());
-        secondResetRequest.setNewPassword("AnotherPassword123!");
+        secondResetRequest.setNewPassword("AnotherSecureP@ssw0rd!");
 
         mockMvc.perform(post("/api/auth/reset-password")
                 .contentType(MediaType.APPLICATION_JSON)
