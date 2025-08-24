@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Arrays;
 import java.util.List;
 import java.nio.charset.StandardCharsets;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Implementation of EmailService using Spring Mail and Thymeleaf.
@@ -68,6 +69,28 @@ public class EmailServiceImpl implements EmailService {
     
     private static final List<String> SUPPORTED_LANGUAGES = Arrays.asList("en", "ar");
 
+    @PostConstruct
+    public void debugArabicProperties() {
+        log.info("=== Arabic Properties Debug ===");
+        log.info("websiteNameAr raw: '{}'", websiteNameAr);
+        log.info("websiteNameAr bytes: {}", websiteNameAr != null ? Arrays.toString(websiteNameAr.getBytes(StandardCharsets.UTF_8)) : "null");
+        log.info("websiteNameAr length: {}", websiteNameAr != null ? websiteNameAr.length() : 0);
+        
+        // Try to detect if it's double-encoded
+        if (websiteNameAr != null && websiteNameAr.contains("Ø")) {
+            log.warn("Arabic text appears to be double-encoded! Raw: '{}'", websiteNameAr);
+            // Try to decode it as Latin-1 and re-encode as UTF-8
+            try {
+                byte[] latin1Bytes = websiteNameAr.getBytes(StandardCharsets.ISO_8859_1);
+                String corrected = new String(latin1Bytes, StandardCharsets.UTF_8);
+                log.info("Corrected Arabic text: '{}'", corrected);
+            } catch (Exception e) {
+                log.error("Failed to correct encoding", e);
+            }
+        }
+        log.info("===============================");
+    }
+
     @Override
     public void sendTemplatedEmail(String to, String subject, String templateName, Map<String, Object> variables) {
         sendTemplatedEmail(to, subject, templateName, variables, defaultLanguage);
@@ -95,16 +118,24 @@ public class EmailServiceImpl implements EmailService {
             // Set UTF-8 locale for proper character handling using centralized utility
             context.setLocale(java.util.Locale.forLanguageTag(ArabicTextUtils.getLocaleForLanguage(language)));
             
-            if (variables != null) {
-                variables.forEach(context::setVariable);
-            }
-            
-            // Add website configuration variables
+            // Add website configuration variables with proper Arabic text normalization
             context.setVariable("websiteName", getWebsiteName(language));
             context.setVariable("websiteUrl", websiteUrl);
             context.setVariable("supportEmail", websiteSupportEmail);
             context.setVariable("supportPhone", websiteSupportPhone);
             context.setVariable("language", language);
+            
+            // Add and normalize all Arabic text in variables if present
+            if (variables != null) {
+                variables.entrySet().forEach(entry -> {
+                    if (entry.getValue() instanceof String) {
+                        String normalizedValue = ArabicTextUtils.normalizeArabicText((String) entry.getValue());
+                        context.setVariable(entry.getKey(), normalizedValue);
+                    } else {
+                        context.setVariable(entry.getKey(), entry.getValue());
+                    }
+                });
+            }
             
             String htmlContent = templateEngine.process(templateName, context);
             
@@ -424,13 +455,34 @@ public class EmailServiceImpl implements EmailService {
     }
     
     /**
-     * Get website name based on language.
+     * Get website name based on language with proper Arabic text normalization and encoding fix.
      */
     private String getWebsiteName(String language) {
         String name = language.equals("ar") ? websiteNameAr : websiteName;
-        log.debug("Website name for language '{}': '{}' (bytes: {})", 
-            language, name, name != null ? java.util.Arrays.toString(name.getBytes(java.nio.charset.StandardCharsets.UTF_8)) : "null");
-        return name;
+        
+        if (name == null) {
+            return language.equals("ar") ? "أوتو تريدر" : "AutoTrader";
+        }
+        
+        // Fix encoding issue if Arabic text is double-encoded (UTF-8 interpreted as Latin-1)
+        if (language.equals("ar") && name.contains("Ø")) {
+            log.warn("Detected double-encoded Arabic text: '{}'", name);
+            try {
+                // Convert from Latin-1 back to UTF-8
+                byte[] latin1Bytes = name.getBytes(StandardCharsets.ISO_8859_1);
+                name = new String(latin1Bytes, StandardCharsets.UTF_8);
+                log.info("Fixed Arabic encoding: '{}'", name);
+            } catch (Exception e) {
+                log.error("Failed to fix Arabic encoding, using fallback", e);
+                name = "أوتو تريدر"; // Fallback to correct Arabic text
+            }
+        }
+        
+        // Use centralized Arabic text normalization
+        String normalizedName = ArabicTextUtils.normalizeArabicText(name);
+        log.debug("Website name for language '{}': '{}' -> normalized: '{}' (bytes: {})", 
+            language, name, normalizedName, normalizedName != null ? Arrays.toString(normalizedName.getBytes(StandardCharsets.UTF_8)) : "null");
+        return normalizedName;
     }
     
     /**
