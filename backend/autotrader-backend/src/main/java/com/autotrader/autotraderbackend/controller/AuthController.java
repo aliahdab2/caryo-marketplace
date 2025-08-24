@@ -207,7 +207,18 @@ public class AuthController {
             user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Error: User not found."));
             
-            // You could update the user with additional social provider info here if needed
+            // Ensure existing OAuth users have at least the default role
+            if (user.getRoles() == null || user.getRoles().isEmpty()) {
+                Set<Role> roles = new HashSet<>();
+                Role userRole = roleRepository.findByName("ROLE_USER")
+                    .orElseGet(() -> {
+                        Role newRole = new Role("ROLE_USER");
+                        return roleRepository.save(newRole);
+                    });
+                roles.add(userRole);
+                user.setRoles(roles);
+                userRepository.save(user);
+            }
         } else {
             // Create new user with info from social provider
             // Generate a username from the email or name
@@ -255,6 +266,8 @@ public class AuthController {
             roles
         ));
     }
+
+
 
     @Operation(
         summary = "Change Password",
