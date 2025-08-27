@@ -42,16 +42,16 @@ const SignInPage: React.FC = () => {
       const returnUrl = searchParams.get('returnUrl');
       const callback = searchParams.get('callbackUrl');
       
-              // Check localStorage for redirect URL (from FavoriteButton or other sources) - fallback only
-        const storedRedirect = localStorage.getItem('redirectAfterAuth');
+      // Check localStorage for redirect URL (from FavoriteButton or other sources) - fallback only
+      const storedRedirect = localStorage.getItem('redirectAfterAuth');
       
       // Prefer URL parameters over localStorage, then default to /dashboard
       const redirectTarget = returnUrl || callback || storedRedirect || '/dashboard';
       
       // Clear the stored redirect URL if we found one (cleanup)
-              if (storedRedirect) {
-          localStorage.removeItem('redirectAfterAuth');
-        }
+      if (storedRedirect) {
+        localStorage.removeItem('redirectAfterAuth');
+      }
       
       try {
         if (redirectTarget.startsWith('/')) {
