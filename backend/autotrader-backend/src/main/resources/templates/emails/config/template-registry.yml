@@ -1,0 +1,156 @@
+# Email Template Registry
+# Centralized configuration for all email templates
+
+templates:
+  # User Management Templates
+  welcome:
+    path: "user-management/welcome.html"
+    description: "Welcome email for new users"
+    category: "user-management"
+    variables: ["userName", "userEmail", "websiteName", "websiteUrl", "language"]
+    languages: ["en", "ar"]
+    features: ["responsive", "bilingual", "personalized"]
+
+  welcome-enhanced:
+    path: "user-management/welcome-enhanced.html"
+    description: "Enhanced welcome email with more features"
+    category: "user-management"
+    variables: ["userName", "userEmail", "websiteName", "websiteUrl", "language"]
+    languages: ["en", "ar"]
+    features: ["responsive", "bilingual", "personalized", "enhanced"]
+
+  password-reset:
+    path: "user-management/password-reset.html"
+    description: "Password reset email with secure token"
+    category: "user-management"
+    variables: ["userName", "resetUrl", "websiteName", "expiryHours", "language"]
+    languages: ["en", "ar"]
+    features: ["secure", "time-limited", "bilingual"]
+
+  password-reset-confirmation:
+    path: "user-management/password-reset-confirmation.html"
+    description: "Password reset confirmation email"
+    category: "user-management"
+    variables: ["userName", "websiteName", "loginUrl", "language"]
+    languages: ["en", "ar"]
+    features: ["confirmation", "bilingual"]
+
+  # Notification Templates
+  listing-approved:
+    path: "notifications/listing-approved.html"
+    description: "Listing approval notification"
+    category: "notifications"
+    variables: ["userName", "listingTitle", "listingUrl", "websiteName", "language"]
+    languages: ["en", "ar"]
+    features: ["notification", "actionable"]
+
+  listing-approved-improved:
+    path: "notifications/listing-approved-improved.html"
+    description: "Enhanced listing approval notification"
+    category: "notifications"
+    variables: ["userName", "listingTitle", "listingUrl", "websiteName", "language"]
+    languages: ["en", "ar"]
+    features: ["notification", "actionable", "enhanced"]
+
+  listing-expired:
+    path: "notifications/listing-expired.html"
+    description: "Listing expiration notification"
+    category: "notifications"
+    variables: ["userName", "listingTitle", "expiryDate", "renewalUrl", "websiteName", "language"]
+    languages: ["en", "ar"]
+    features: ["notification", "actionable", "time-sensitive"]
+
+  listing-renewal:
+    path: "notifications/listing-renewal.html"
+    description: "Listing renewal reminder"
+    category: "notifications"
+    variables: ["userName", "listingTitle", "expiryDate", "renewalUrl", "websiteName", "language"]
+    languages: ["en", "ar"]
+    features: ["reminder", "actionable", "time-sensitive"]
+
+  # Communication Templates
+  contact-form:
+    path: "communication/contact-form.html"
+    description: "Contact form notification to admin"
+    category: "communication"
+    variables: ["senderName", "senderEmail", "message", "timestamp", "supportEmail", "language"]
+    languages: ["en", "ar"]
+    features: ["notification", "form-data"]
+
+  contact-confirmation:
+    path: "communication/contact-confirmation.html"
+    description: "Contact form confirmation to sender"
+    category: "communication"
+    variables: ["userName", "supportEmail", "websiteName", "language"]
+    languages: ["en", "ar"]
+    features: ["confirmation", "support-info"]
+
+  contact-confirmation-improved:
+    path: "communication/contact-confirmation-improved.html"
+    description: "Enhanced contact form confirmation"
+    category: "communication"
+    variables: ["userName", "supportEmail", "websiteName", "language"]
+    languages: ["en", "ar"]
+    features: ["confirmation", "support-info", "enhanced"]
+
+  # Base Templates
+  base-email:
+    path: "base/base-email.html"
+    description: "Base email template with common styling"
+    category: "base"
+    variables: ["content", "language"]
+    languages: ["en", "ar"]
+    features: ["base-template", "responsive", "bilingual"]
+
+# Categories
+categories:
+  user-management:
+    description: "User account related emails"
+    templates: ["welcome", "welcome-enhanced", "password-reset", "password-reset-confirmation"]
+    features: ["personalized", "secure", "bilingual"]
+
+  notifications:
+    description: "System notifications and alerts"
+    templates: ["listing-approved", "listing-approved-improved", "listing-expired", "listing-renewal"]
+    features: ["actionable", "time-sensitive", "bilingual"]
+
+  communication:
+    description: "User communication and support"
+    templates: ["contact-form", "contact-confirmation", "contact-confirmation-improved"]
+    features: ["support", "confirmation", "bilingual"]
+
+  base:
+    description: "Base templates and layouts"
+    templates: ["base-email"]
+    features: ["base-template", "responsive", "bilingual"]
+
+# Features
+features:
+  responsive:
+    description: "Mobile-friendly responsive design"
+    css-classes: ["mobile-first", "flexible-layout"]
+
+  bilingual:
+    description: "Supports both English and Arabic"
+    languages: ["en", "ar"]
+    rtl-support: true
+
+  personalized:
+    description: "Personalized with user data"
+    variables: ["userName", "userEmail"]
+
+  secure:
+    description: "Security-focused templates"
+    features: ["token-based", "time-limited"]
+
+  actionable:
+    description: "Contains call-to-action buttons"
+    features: ["cta-buttons", "clear-actions"]
+
+  time-sensitive:
+    description: "Time-sensitive content"
+    features: ["expiry-notification", "urgent-actions"]
+
+  enhanced:
+    description: "Enhanced version with additional features"
+    features: ["improved-design", "better-ux"]

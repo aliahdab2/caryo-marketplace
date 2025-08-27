@@ -70,11 +70,8 @@
         <div class="content">
             <p th:text="${language == 'ar' ? 'مرحباً ' + userName + '،' : 'Hello ' + userName + ','}">Hello User,</p>
             
-            <p th:if="${language == 'en'}" th:text="'Welcome to ' + ${websiteName} + '! We are excited to have you join our community of car enthusiasts and sellers.'">
-                Welcome to AutoTrader! We are excited to have you join our community of car enthusiasts and sellers.
-            </p>
-            <p th:if="${language == 'ar'}" th:text="'مرحباً بك في ' + ${websiteName} + '! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.'">
-                مرحباً بك في AutoTrader! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.
+            <p th:text="${language == 'ar' ? 'مرحباً بك في ' + websiteName + '! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.' : 'Welcome to ' + websiteName + '! We&apos;re excited to have you join our community of car enthusiasts and sellers.'}">
+                Welcome to AutoTrader! We're excited to have you join our community of car enthusiasts and sellers.
             </p>
             
             <p th:text="${language == 'ar' ? 'مع ' + websiteName + '، يمكنك:' : 'With ' + websiteName + ', you can:'}">With AutoTrader, you can:</p>

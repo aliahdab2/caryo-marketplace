@@ -2,6 +2,8 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.constants.EmailTemplateConstants;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +41,8 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
     private final MessageService messageService;
+    private final EmailTemplateService emailTemplateService;
+    private final EmailTemplateBuilder emailTemplateBuilder;
     
     @Value("${app.email.from}")
     private String fromEmail;
@@ -286,13 +290,34 @@ public class EmailServiceImpl implements EmailService {
             "مرحباً بك في " + getWebsiteName(language) + "!" : 
             "Welcome to " + getWebsiteName(language) + "!";
         
-        sendTemplatedEmail(
-            user.getEmail(),
-            subject,
-            "welcome",
-            variables,
-            language
-        );
+        // Use the EmailTemplateBuilder for better template management
+        try {
+            EmailTemplateBuilder.EmailTemplateData templateData = emailTemplateBuilder
+                .template(EmailTemplateConstants.TEMPLATE_WELCOME)
+                .language(language)
+                .user(user.getUsername(), user.getEmail())
+                .website(getWebsiteName(language), websiteUrl)
+                .withLanguage()
+                .build();
+            
+            sendTemplatedEmail(
+                user.getEmail(),
+                subject,
+                templateData.getTemplateName(),
+                templateData.getVariables(),
+                templateData.getLanguage()
+            );
+        } catch (Exception e) {
+            log.error("Failed to build welcome email template for user: {}", user.getEmail(), e);
+            // Fallback to direct template usage
+            sendTemplatedEmail(
+                user.getEmail(),
+                subject,
+                "welcome",
+                variables,
+                language
+            );
+        }
     }
 
     @Override

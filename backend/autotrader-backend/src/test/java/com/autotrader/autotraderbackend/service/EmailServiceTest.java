@@ -41,9 +41,15 @@ class EmailServiceTest {
 
     private EmailServiceImpl emailService;
 
+    @Mock
+    private EmailTemplateService emailTemplateService;
+
+    @Mock
+    private EmailTemplateBuilder emailTemplateBuilder;
+
     @BeforeEach
     void setUp() {
-        emailService = new EmailServiceImpl(mailSender, templateEngine, messageService);
+        emailService = new EmailServiceImpl(mailSender, templateEngine, messageService, emailTemplateService, emailTemplateBuilder);
         
         // Set configuration values
         ReflectionTestUtils.setField(emailService, "fromEmail", "noreply@autotrader.com");
