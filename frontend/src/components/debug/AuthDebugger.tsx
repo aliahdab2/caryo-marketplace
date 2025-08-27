@@ -1,14 +1,16 @@
 'use client';
 
 import { useOptimizedSession } from '@/hooks/useOptimizedSession';
+import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 
 /**
  * Debug component to help diagnose authentication issues
- * Shows current session data and localStorage contents
+ * Shows current session data from NextAuth and localStorage contents
  */
 export default function AuthDebugger() {
   const { user, status } = useOptimizedSession();
+  const { data: nextAuthSession, status: nextAuthStatus } = useSession();
   const [localStorageData, setLocalStorageData] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -18,6 +20,14 @@ export default function AuthDebugger() {
       data.authToken = localStorage.getItem('authToken') || 'null';
       data.username = localStorage.getItem('username') || 'null';
       data.userRoles = localStorage.getItem('userRoles') || 'null';
+
+      // Check for NextAuth localStorage keys
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.includes('nextauth') || key.includes('auth')) {
+          data[key] = localStorage.getItem(key) || 'null';
+        }
+      });
     } catch (error) {
       console.error('Error reading localStorage:', error);
     }
@@ -29,7 +39,7 @@ export default function AuthDebugger() {
       localStorage.removeItem('authToken');
       localStorage.removeItem('username');
       localStorage.removeItem('userRoles');
-      
+
       // Also clear any NextAuth session data
       const keys = Object.keys(localStorage);
       keys.forEach(key => {
@@ -37,7 +47,7 @@ export default function AuthDebugger() {
           localStorage.removeItem(key);
         }
       });
-      
+
       // Reload the page to refresh session
       window.location.reload();
     } catch (error) {
@@ -48,47 +58,77 @@ export default function AuthDebugger() {
   return (
     <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-4 shadow-lg max-w-md z-50">
       <h3 className="font-bold text-lg mb-3 text-gray-900 dark:text-white">Auth Debug Info</h3>
-      
+
       <div className="space-y-2 text-sm">
         <div>
           <strong>Session Status:</strong> {status}
         </div>
-        
+
+        <div>
+          <strong>NextAuth Status:</strong> {nextAuthStatus}
+        </div>
+
         <div>
           <strong>User ID:</strong> {user?.id || 'null'}
         </div>
-        
+
         <div>
           <strong>User Name:</strong> {user?.name || 'null'}
         </div>
-        
+
         <div>
           <strong>User Email:</strong> {user?.email || 'null'}
         </div>
-        
+
         <div>
-          <strong>User Roles:</strong> {user?.roles ? JSON.stringify(user.roles) : 'null'}
+          <strong>User Roles:</strong> {user?.roles ? JSON.stringify(user.roles as string[]) : 'null'}
         </div>
-        
+
         <div>
           <strong>Is Admin:</strong> {user?.isAdmin ? 'true' : 'false'}
         </div>
-        
+
+        <div>
+          <strong>Access Token:</strong> {user?.accessToken ? 'present' : 'null'}
+        </div>
+
         <hr className="my-3" />
-        
+
+        <div>
+          <strong>NextAuth User:</strong> {nextAuthSession?.user ? 'present' : 'null'}
+        </div>
+
+        <div>
+          <strong>NextAuth Token:</strong> {(nextAuthSession as { accessToken?: string })?.accessToken ? 'present' : 'null'}
+        </div>
+
+        <hr className="my-3" />
+
         <div>
           <strong>localStorage username:</strong> {localStorageData.username}
         </div>
-        
+
         <div>
           <strong>localStorage authToken:</strong> {localStorageData.authToken ? 'present' : 'null'}
         </div>
-        
+
         <div>
           <strong>localStorage userRoles:</strong> {localStorageData.userRoles}
         </div>
+
+        {/* Show NextAuth localStorage keys */}
+        {Object.entries(localStorageData).map(([key, value]) => {
+          if (key.includes('nextauth') || key.includes('auth')) {
+            return (
+              <div key={key}>
+                <strong>{key}:</strong> {value.length > 50 ? `${value.substring(0, 50)}...` : value}
+              </div>
+            );
+          }
+          return null;
+        })}
       </div>
-      
+
       <button
         onClick={clearAllAuthData}
         className="mt-4 w-full bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm"
