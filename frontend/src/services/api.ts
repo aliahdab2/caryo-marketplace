@@ -265,6 +265,13 @@ async function apiRequest<T>(
     } else {
       responseData = await response.text();
     }
+    
+    // Debug: Log the raw response for troubleshooting (can be removed in production)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Raw response data:', responseData);
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+    }
 
     // Check for errors
     if (!response.ok) {
@@ -298,14 +305,23 @@ async function apiRequest<T>(
          detailedErrorMessage = `Error ${response.status}: ${response.statusText}`;
       }
         
-      // Log detailed error information for debugging
-      console.error('API error details:', { 
+      // Log detailed error information for debugging - using direct values
+      console.error('API error details - Status:', response.status);
+      console.error('API error details - StatusText:', response.statusText);
+      console.error('API error details - URL:', url);
+      console.error('API error details - Message:', detailedErrorMessage);
+      console.error('API error details - RawResponse:', JSON.stringify(responseData));
+      
+      // Create error details object with explicit values
+      const errorDetails = {
         status: response.status, 
         statusText: response.statusText,
         url: url,
         message: detailedErrorMessage, 
-        rawResponse: responseData 
-      });
+        rawResponse: JSON.stringify(responseData)
+      };
+      
+      console.error('API error details object:', errorDetails);
       
       throw new ApiError(detailedErrorMessage, response.status, responseData);
     }
