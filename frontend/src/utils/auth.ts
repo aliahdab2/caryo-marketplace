@@ -22,6 +22,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Get the current session with caching to avoid multiple API calls
+ * Now uses NextAuth's getServerSession via our API route
  * @returns A Promise that resolves to the session or null if not authenticated
  */
 export async function getSession() {
@@ -62,6 +63,11 @@ export async function getSession() {
           sessionCacheTime = Date.now();
           return null;
         }
+      } catch (fetchError) {
+        console.error(`❌ [AUTH] Fetch error:`, fetchError);
+        sessionCache = null;
+        sessionCacheTime = Date.now();
+        return null;
       } finally {
         // Clear the promise when done
         sessionPromise = null;
@@ -72,6 +78,8 @@ export async function getSession() {
   } catch (error) {
     console.error('Error getting session:', error);
     sessionPromise = null;
+    sessionCache = null;
+    sessionCacheTime = Date.now();
     return null;
   }
 }

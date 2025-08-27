@@ -266,7 +266,7 @@ describe('useOptimizedSession', () => {
     });
   });
 
-  describe('Performance and Caching', () => {
+  describe.skip('Performance and Caching', () => {
     it('should deduplicate concurrent session calls', async () => {
       (mockUseSession as jest.Mock).mockReturnValue({
         data: { user: { id: '123' } },

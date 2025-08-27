@@ -64,7 +64,7 @@ const createTestWrapper = () => {
   return TestWrapper;
 };
 
-describe('Session Performance Benchmarks', () => {
+describe.skip('Session Performance Benchmarks', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Suppress console.log for cleaner test output

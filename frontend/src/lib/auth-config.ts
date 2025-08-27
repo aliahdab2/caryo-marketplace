@@ -201,5 +201,5 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/signin",
     error: "/auth/error",
   },
-  debug: false, // Disable debug in all environments to reduce console noise
+  debug: process.env.NODE_ENV === 'development', // Enable debug in development
 };

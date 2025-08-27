@@ -8,6 +8,8 @@ const mockTranslations: Record<string, string> = {
   'signInDescription': 'Sign in to access your account and continue your journey with us.',
   'privacy_policy': 'Privacy Policy',
   'terms_of_service': 'Terms of Service',
+  'auth.privacy_policy': 'Privacy Policy',
+  'auth.terms_of_service': 'Terms of Service',
   'signIn': 'sign_in', // Changed back to match test expectation
   'fieldRequired': 'fieldRequired', // Changed to return the key
   'verificationRequired': 'Verification is required to proceed.',
