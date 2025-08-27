@@ -17,6 +17,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.retry.annotation.Recover;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -28,6 +30,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.nio.charset.StandardCharsets;
 import jakarta.annotation.PostConstruct;
+import java.util.concurrent.ConcurrentHashMap;
+import java.time.LocalDateTime;
+import java.time.Duration;
+import java.util.ArrayList;
 
 /**
  * Implementation of EmailService using Spring Mail and Thymeleaf.
@@ -36,6 +42,7 @@ import jakarta.annotation.PostConstruct;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@EnableAsync
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
@@ -43,6 +50,7 @@ public class EmailServiceImpl implements EmailService {
     private final MessageService messageService;
     private final EmailTemplateService emailTemplateService;
     private final EmailTemplateBuilder emailTemplateBuilder;
+    private final EmailContentValidationService contentValidationService;
     
     @Value("${app.email.from}")
     private String fromEmail;
@@ -72,8 +80,16 @@ public class EmailServiceImpl implements EmailService {
     private String supportedLanguages;
     
     private static final List<String> SUPPORTED_LANGUAGES = Arrays.asList("en", "ar");
-
-    @PostConstruct
+    
+    // Rate limiting configuration
+    private static final int MAX_EMAILS_PER_MINUTE = 5;
+    private static final int MAX_EMAILS_PER_HOUR = 20;
+    private static final Duration RATE_LIMIT_WINDOW = Duration.ofMinutes(1);
+    private static final Duration HOURLY_RATE_LIMIT_WINDOW = Duration.ofHours(1);
+    
+    // Rate limiting storage
+    private final Map<String, List<LocalDateTime>> userEmailTimestamps = new ConcurrentHashMap<>();
+    private final Map<String, List<LocalDateTime>> globalEmailTimestamps = new ConcurrentHashMap<>();
     public void debugArabicProperties() {
         log.info("=== Arabic Properties Debug ===");
         log.info("websiteNameAr raw: '{}'", websiteNameAr);
@@ -95,15 +111,105 @@ public class EmailServiceImpl implements EmailService {
         log.info("===============================");
     }
 
+    /**
+     * Check if user is rate limited for emails.
+     */
+    private boolean isRateLimited(String userIdentifier) {
+        LocalDateTime now = LocalDateTime.now();
+        
+        // Clean old timestamps
+        userEmailTimestamps.computeIfPresent(userIdentifier, (key, timestamps) -> {
+            timestamps.removeIf(timestamp -> Duration.between(timestamp, now).compareTo(RATE_LIMIT_WINDOW) > 0);
+            return timestamps;
+        });
+        
+        // Check minute limit
+        List<LocalDateTime> userTimestamps = userEmailTimestamps.computeIfAbsent(userIdentifier, k -> new ArrayList<>());
+        if (userTimestamps.size() >= MAX_EMAILS_PER_MINUTE) {
+            log.warn("Rate limit exceeded for user: {} - {} emails in last minute", userIdentifier, userTimestamps.size());
+            return true;
+        }
+        
+        // Check hourly limit
+        long hourlyCount = userTimestamps.stream()
+            .filter(timestamp -> Duration.between(timestamp, now).compareTo(HOURLY_RATE_LIMIT_WINDOW) <= 0)
+            .count();
+        if (hourlyCount >= MAX_EMAILS_PER_HOUR) {
+            log.warn("Hourly rate limit exceeded for user: {} - {} emails in last hour", userIdentifier, hourlyCount);
+            return true;
+        }
+        
+        // Add current timestamp
+        userTimestamps.add(now);
+        return false;
+    }
+    
+    /**
+     * Check if global rate limit is exceeded.
+     */
+    private boolean isGlobalRateLimited() {
+        LocalDateTime now = LocalDateTime.now();
+        String globalKey = "global";
+        
+        // Clean old timestamps
+        globalEmailTimestamps.computeIfPresent(globalKey, (key, timestamps) -> {
+            timestamps.removeIf(timestamp -> Duration.between(timestamp, now).compareTo(RATE_LIMIT_WINDOW) > 0);
+            return timestamps;
+        });
+        
+        List<LocalDateTime> globalTimestamps = globalEmailTimestamps.computeIfAbsent(globalKey, k -> new ArrayList<>());
+        if (globalTimestamps.size() >= MAX_EMAILS_PER_MINUTE * 10) { // 10x user limit
+            log.warn("Global rate limit exceeded - {} emails in last minute", globalTimestamps.size());
+            return true;
+        }
+        
+        globalTimestamps.add(now);
+        return false;
+    }
+
     @Override
     public void sendTemplatedEmail(String to, String subject, String templateName, Map<String, Object> variables) {
         sendTemplatedEmail(to, subject, templateName, variables, defaultLanguage);
+    }
+
+    /**
+     * Send templated email asynchronously.
+     * This method runs in a separate thread to avoid blocking the main application.
+     */
+    @Async("emailTaskExecutor")
+    public void sendTemplatedEmailAsync(String to, String subject, String templateName, Map<String, Object> variables) {
+        sendTemplatedEmail(to, subject, templateName, variables, defaultLanguage);
+    }
+
+    /**
+     * Send templated email asynchronously with language support.
+     * This method runs in a separate thread to avoid blocking the main application.
+     */
+    @Async("emailTaskExecutor")
+    public void sendTemplatedEmailAsync(String to, String subject, String templateName, Map<String, Object> variables, String language) {
+        sendTemplatedEmail(to, subject, templateName, variables, language);
     }
 
     @Override
     public void sendTemplatedEmail(String to, String subject, String templateName, Map<String, Object> variables, String language) {
         // Validate inputs
         validateEmailInputs(to, subject, templateName, language);
+        
+        // Validate email content before sending
+        EmailContentValidationService.ValidationResult validationResult = 
+            contentValidationService.validateEmailContent(subject, "", to);
+        
+        if (!validationResult.isValid()) {
+            log.error("Email content validation failed for recipient: {}. Errors: {}", 
+                to, validationResult.getErrors());
+            throw new EmailSendException("Email content validation failed: " + String.join(", ", validationResult.getErrors()), 
+                new IllegalArgumentException("Content validation failed"));
+        }
+        
+        if (validationResult.hasWarnings()) {
+            log.warn("Email content validation warnings for recipient: {}. Warnings: {}", 
+                to, validationResult.getWarnings());
+        }
         
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -282,6 +388,17 @@ public class EmailServiceImpl implements EmailService {
             return;
         }
         
+        // Check rate limiting
+        if (isGlobalRateLimited()) {
+            log.warn("Global rate limit exceeded, skipping welcome email for user: {}", user.getEmail());
+            return;
+        }
+        
+        if (isRateLimited(user.getEmail())) {
+            log.warn("Rate limit exceeded for user: {}, skipping welcome email", user.getEmail());
+            return;
+        }
+        
         Map<String, Object> variables = new HashMap<>();
         variables.put("userName", user.getUsername());
         variables.put("userEmail", user.getEmail());
@@ -300,7 +417,7 @@ public class EmailServiceImpl implements EmailService {
                 .withLanguage()
                 .build();
             
-            sendTemplatedEmail(
+            sendTemplatedEmailAsync(
                 user.getEmail(),
                 subject,
                 templateData.getTemplateName(),
@@ -310,7 +427,7 @@ public class EmailServiceImpl implements EmailService {
         } catch (Exception e) {
             log.error("Failed to build welcome email template for user: {}", user.getEmail(), e);
             // Fallback to direct template usage
-            sendTemplatedEmail(
+            sendTemplatedEmailAsync(
                 user.getEmail(),
                 subject,
                 "welcome",
