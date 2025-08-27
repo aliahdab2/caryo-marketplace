@@ -96,6 +96,19 @@ services:
       - LOGGING_LEVEL_COM_AUTOTRADER=DEBUG # Enhanced logging
       - SPRING_JPA_SHOW_SQL=true  # Show SQL queries
       - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true  # Format SQL for readability
+      # Gmail SMTP Configuration for real email delivery
+      - GMAIL_USERNAME=ahdabeslov@gmail.com
+      - GMAIL_APP_PASSWORD=rbfd jgkx ienc cixl
+      - APP_EMAIL_FROM=ahdabeslov@gmail.com
+      - APP_EMAIL_SUPPORT=ahdabeslov@gmail.com
+      # Override Mailpit settings with Gmail SMTP
+      - SPRING_MAIL_HOST=smtp.gmail.com
+      - SPRING_MAIL_PORT=587
+      - SPRING_MAIL_USERNAME=ahdabeslov@gmail.com
+      - SPRING_MAIL_PASSWORD=rbfd jgkx ienc cixl
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=true
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED=true
     volumes:
       - ./:/app  # Mount the entire project for hot reloading
       - ~/.gradle:/home/gradle/.gradle  # Mount Gradle cache
