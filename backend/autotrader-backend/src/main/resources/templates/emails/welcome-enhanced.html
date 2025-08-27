@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="x-apple-disable-message-reformatting">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title th:text="${language == 'ar' ? 'مرحباً بك في ' + websiteName : 'Welcome to ' + websiteName}">Welcome</title>
+    
+    <!-- CSS Styles -->
+    <style>
+        /* Reset styles */
+        body, table, td, p, a, li, blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        
+        table, td {
+            /* Microsoft Outlook table spacing fix */
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+        
+        img {
+            -ms-interpolation-mode: bicubic;
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+        }
+        
+        /* Base styles */
+        body {
+            background-color: #f4f4f4;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+        }
+        
+        /* Arabic font support */
+        .arabic-text {
+            font-family: 'Tahoma', 'Arial', sans-serif;
+            direction: rtl;
+            text-align: right;
+        }
+        
+        /* Container */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        
+        /* Header */
+        .email-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .logo {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-title {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .welcome-subtitle {
+            color: #f0f0f0;
+            font-size: 16px;
+            margin: 10px 0 0 0;
+        }
+        
+        /* Content */
+        .email-content {
+            padding: 40px 30px;
+        }
+        
+        .content-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .content-text {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #555555;
+        }
+        
+        .features-list {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .features-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .features-list li {
+            margin-bottom: 10px;
+            color: #555555;
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 10px 5px;
+            text-align: center;
+        }
+        
+        .btn-secondary {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #6c757d;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 10px 5px;
+            text-align: center;
+        }
+        
+        .btn-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        /* Footer */
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .footer-text {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .footer-links {
+            margin-top: 20px;
+        }
+        
+        .footer-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Responsive */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+            }
+            
+            .email-content {
+                padding: 20px 15px !important;
+            }
+            
+            .email-header {
+                padding: 30px 15px !important;
+            }
+            
+            .welcome-title {
+                font-size: 24px !important;
+            }
+            
+            .btn-primary, .btn-secondary {
+                display: block !important;
+                width: 100% !important;
+                margin: 10px 0 !important;
+            }
+        }
+        
+        /* RTL Support */
+        [dir="rtl"] {
+            text-align: right;
+        }
+        
+        [dir="rtl"] .features-list ul {
+            padding-right: 20px;
+            padding-left: 0;
+        }
+        
+        [dir="rtl"] .btn-container {
+            text-align: center;
+        }
+    </style>
+</head>
+<body th:dir="${language == 'ar' ? 'rtl' : 'ltr'}">
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <div class="logo">🚗 <span th:text="${websiteName}">AutoTrader</span></div>
+            <h1 class="welcome-title" th:text="${language == 'ar' ? 'مرحباً بك في ' + websiteName + '!' : 'Welcome to ' + websiteName + '!'}">Welcome!</h1>
+            <p class="welcome-subtitle" th:text="${language == 'ar' ? 'منصة السيارات الموثوقة' : 'Your Trusted Car Marketplace'}">Your Trusted Car Marketplace</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="email-content">
+            <h2 class="content-title" th:text="${language == 'ar' ? 'مرحباً ' + userName + '!' : 'Hello ' + userName + '!'}">Hello!</h2>
+            
+            <p class="content-text" th:if="${language == 'en'}" th:text="'Welcome to ' + ${websiteName} + '! We are excited to have you join our community of car enthusiasts and sellers.'">
+                Welcome to AutoTrader! We are excited to have you join our community of car enthusiasts and sellers.
+            </p>
+            <p class="content-text" th:if="${language == 'ar'}" th:text="'مرحباً بك في ' + ${websiteName} + '! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.'">
+                مرحباً بك في AutoTrader! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.
+            </p>
+            
+            <p class="content-text" th:text="${language == 'ar' ? 'مع ' + websiteName + '، يمكنك:' : 'With ' + websiteName + ', you can:'}">With AutoTrader, you can:</p>
+            
+            <div class="features-list">
+                <ul>
+                    <li th:text="${language == 'ar' ? 'إنشاء وإدارة إعلانات سياراتك بسهولة' : 'Create and manage your car listings easily'}">Create and manage your car listings easily</li>
+                    <li th:text="${language == 'ar' ? 'تصفح آلاف المركبات من مختلف العلامات التجارية' : 'Browse thousands of vehicles from various brands'}">Browse thousands of vehicles from various brands</li>
+                    <li th:text="${language == 'ar' ? 'التواصل المباشر مع المشترين والبائعين' : 'Connect directly with buyers and sellers'}">Connect directly with buyers and sellers</li>
+                    <li th:text="${language == 'ar' ? 'الحصول على إشعارات فورية حول إعلاناتك' : 'Get instant notifications about your listings'}">Get instant notifications about your listings</li>
+                    <li th:text="${language == 'ar' ? 'الوصول إلى أدوات تحليلية متقدمة' : 'Access advanced analytics tools'}">Access advanced analytics tools</li>
+                    <li th:text="${language == 'ar' ? 'الاستفادة من نظام تقييم موثوق' : 'Benefit from a trusted rating system'}">Benefit from a trusted rating system</li>
+                </ul>
+            </div>
+            
+            <p class="content-text" th:text="${language == 'ar' ? 'مستعد للبدء؟ أنشئ إعلانك الأول أو تصفح السيارات المتاحة!' : 'Ready to get started? Create your first listing or browse available cars!'}">
+                Ready to get started? Create your first listing or browse available cars!
+            </p>
+            
+            <!-- Call to Action Buttons -->
+            <div class="btn-container">
+                <a th:href="${websiteUrl} + '/dashboard/listings'" class="btn-primary" th:text="${language == 'ar' ? 'أنشئ إعلانك الأول' : 'Create Your First Listing'}">Create Your First Listing</a>
+                <a th:href="${websiteUrl} + '/search'" class="btn-secondary" th:text="${language == 'ar' ? 'تصفح السيارات' : 'Browse Cars'}">Browse Cars</a>
+            </div>
+            
+            <p class="content-text" th:if="${language == 'en'}" th:text="'If you have any questions or need assistance, do not hesitate to contact our support team. We are here to help!'">
+                If you have any questions or need assistance, do not hesitate to contact our support team. We are here to help!
+            </p>
+            <p class="content-text" th:if="${language == 'ar'}" th:text="'إذا كان لديك أي أسئلة أو تحتاج إلى مساعدة، لا تتردد في التواصل مع فريق الدعم لدينا. نحن هنا لمساعدتك!'">
+                إذا كان لديك أي أسئلة أو تحتاج إلى مساعدة، لا تتردد في التواصل مع فريق الدعم لدينا. نحن هنا لمساعدتك!
+            </p>
+            
+            <p class="content-text" th:text="${language == 'ar' ? 'شكراً لك لاختيار ' + websiteName + '!' : 'Thank you for choosing ' + websiteName + '!'}">
+                Thank you for choosing AutoTrader!
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="email-footer">
+            <p class="footer-text" th:text="${language == 'ar' ? 'شكراً لك على استخدام ' + websiteName + ' - منصتك الموثوقة للسيارات' : 'Thank you for using ' + websiteName + ' - Your Trusted Car Marketplace'}">
+                Thank you for using AutoTrader - Your Trusted Car Marketplace
+            </p>
+            
+            <div class="footer-links">
+                <a th:href="${websiteUrl} + '/contact'" th:text="${language == 'ar' ? 'اتصل بنا' : 'Contact Us'}">Contact Us</a>
+                <a th:href="${websiteUrl} + '/support'" th:text="${language == 'ar' ? 'الدعم الفني' : 'Support'}">Support</a>
+                <a th:href="${websiteUrl} + '/privacy'" th:text="${language == 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy'}">Privacy Policy</a>
+                <a th:href="${websiteUrl} + '/terms'" th:text="${language == 'ar' ? 'الشروط والأحكام' : 'Terms of Service'}">Terms of Service</a>
+            </div>
+            
+            <p class="footer-text" th:text="${language == 'ar' ? '© ٢٠٢٥ ' + websiteName + '. جميع الحقوق محفوظة.' : '© 2025 ' + websiteName + '. All rights reserved.'}">
+                © 2025 AutoTrader. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
