@@ -90,27 +90,7 @@ public class EmailServiceImpl implements EmailService {
     // Rate limiting storage
     private final Map<String, List<LocalDateTime>> userEmailTimestamps = new ConcurrentHashMap<>();
     private final Map<String, List<LocalDateTime>> globalEmailTimestamps = new ConcurrentHashMap<>();
-    public void debugArabicProperties() {
-        log.info("=== Arabic Properties Debug ===");
-        log.info("websiteNameAr raw: '{}'", websiteNameAr);
-        log.info("websiteNameAr bytes: {}", websiteNameAr != null ? Arrays.toString(websiteNameAr.getBytes(StandardCharsets.UTF_8)) : "null");
-        log.info("websiteNameAr length: {}", websiteNameAr != null ? websiteNameAr.length() : 0);
-        
-        // Try to detect if it's double-encoded
-        if (websiteNameAr != null && websiteNameAr.contains("Ø")) {
-            log.warn("Arabic text appears to be double-encoded! Raw: '{}'", websiteNameAr);
-            // Try to decode it as Latin-1 and re-encode as UTF-8
-            try {
-                byte[] latin1Bytes = websiteNameAr.getBytes(StandardCharsets.ISO_8859_1);
-                String corrected = new String(latin1Bytes, StandardCharsets.UTF_8);
-                log.info("Corrected Arabic text: '{}'", corrected);
-            } catch (Exception e) {
-                log.error("Failed to correct encoding", e);
-            }
-        }
-        log.info("===============================");
-    }
-
+    
     /**
      * Check if user is rate limited for emails.
      */
@@ -407,34 +387,13 @@ public class EmailServiceImpl implements EmailService {
             "مرحباً بك في " + getWebsiteName(language) + "!" : 
             "Welcome to " + getWebsiteName(language) + "!";
         
-        // Use the EmailTemplateBuilder for better template management
-        try {
-            EmailTemplateBuilder.EmailTemplateData templateData = emailTemplateBuilder
-                .template(EmailTemplateConstants.TEMPLATE_WELCOME)
-                .language(language)
-                .user(user.getUsername(), user.getEmail())
-                .website(getWebsiteName(language), websiteUrl)
-                .withLanguage()
-                .build();
-            
-            sendTemplatedEmailAsync(
-                user.getEmail(),
-                subject,
-                templateData.getTemplateName(),
-                templateData.getVariables(),
-                templateData.getLanguage()
-            );
-        } catch (Exception e) {
-            log.error("Failed to build welcome email template for user: {}", user.getEmail(), e);
-            // Fallback to direct template usage
-            sendTemplatedEmailAsync(
-                user.getEmail(),
-                subject,
-                "welcome",
-                variables,
-                language
-            );
-        }
+        sendTemplatedEmailAsync(
+            user.getEmail(),
+            subject,
+            "welcome",
+            variables,
+            language
+        );
     }
 
     @Override
@@ -597,7 +556,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     /**
-     * Get website name based on language with proper Arabic text normalization and encoding fix.
+     * Get website name based on language with proper Arabic text normalization.
      */
     private String getWebsiteName(String language) {
         String name = language.equals("ar") ? websiteNameAr : websiteName;
@@ -606,25 +565,8 @@ public class EmailServiceImpl implements EmailService {
             return language.equals("ar") ? "أوتو تريدر" : "AutoTrader";
         }
         
-        // Fix encoding issue if Arabic text is double-encoded (UTF-8 interpreted as Latin-1)
-        if (language.equals("ar") && name.contains("Ø")) {
-            log.warn("Detected double-encoded Arabic text: '{}'", name);
-            try {
-                // Convert from Latin-1 back to UTF-8
-                byte[] latin1Bytes = name.getBytes(StandardCharsets.ISO_8859_1);
-                name = new String(latin1Bytes, StandardCharsets.UTF_8);
-                log.info("Fixed Arabic encoding: '{}'", name);
-            } catch (Exception e) {
-                log.error("Failed to fix Arabic encoding, using fallback", e);
-                name = "أوتو تريدر"; // Fallback to correct Arabic text
-            }
-        }
-        
         // Use centralized Arabic text normalization
-        String normalizedName = ArabicTextUtils.normalizeArabicText(name);
-        log.debug("Website name for language '{}': '{}' -> normalized: '{}' (bytes: {})", 
-            language, name, normalizedName, normalizedName != null ? Arrays.toString(normalizedName.getBytes(StandardCharsets.UTF_8)) : "null");
-        return normalizedName;
+        return ArabicTextUtils.normalizeArabicText(name);
     }
     
     /**
@@ -657,24 +599,6 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    /**
-     * Debug method to test Arabic text encoding
-     */
-    public void debugArabicEncoding() {
-        log.info("=== Arabic Encoding Debug ===");
-        log.info("websiteName (EN): '{}'", websiteName);
-        log.info("websiteNameAr (AR): '{}'", websiteNameAr);
-        log.info("websiteNameAr bytes (UTF-8): {}", 
-            websiteNameAr != null ? java.util.Arrays.toString(websiteNameAr.getBytes(java.nio.charset.StandardCharsets.UTF_8)) : "null");
-        log.info("websiteNameAr length: {}", websiteNameAr != null ? websiteNameAr.length() : 0);
-        
-        // Test Arabic characters
-        String testArabic = "أوتو تريدر";
-        log.info("Test Arabic string: '{}'", testArabic);
-        log.info("Test Arabic bytes (UTF-8): {}", java.util.Arrays.toString(testArabic.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-        log.info("=== End Debug ===");
-    }
-    
     /**
      * Helper method to generate a listing title for emails based on language.
      */
@@ -932,7 +856,6 @@ public class EmailServiceImpl implements EmailService {
     )
     public void sendPasswordResetEmail(String toEmail, String username, String resetUrl, String language) {
         try {
-            // Input validation
             if (!StringUtils.hasText(toEmail) || !StringUtils.hasText(username) || !StringUtils.hasText(resetUrl)) {
                 throw new IllegalArgumentException("Email, username, and reset URL are required");
             }
@@ -945,16 +868,15 @@ public class EmailServiceImpl implements EmailService {
             variables.put("userName", username);
             variables.put("resetUrl", resetUrl);
             
-            // Use MessageService for proper localization and encoding
-            Map<String, String> subjectParams = new HashMap<>();
-            subjectParams.put("websiteName", getWebsiteName(language));
-            String subject = messageService.getMessage("password.reset.subject", language, subjectParams);
+            String subject = language.equals("ar") ? 
+                "إعادة تعيين كلمة المرور" : 
+                "Password Reset Request";
             
             sendTemplatedEmail(toEmail, subject, "password-reset", variables, language);
             log.info("Password reset email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
             
         } catch (Exception e) {
-            log.error("Failed to send password reset email to: {} in language: {} (attempt failed)", maskEmail(toEmail), language, e);
+            log.error("Failed to send password reset email to: {} in language: {}", maskEmail(toEmail), language, e);
             throw new EmailSendException("Failed to send password reset email", e);
         }
     }
@@ -966,10 +888,6 @@ public class EmailServiceImpl implements EmailService {
     public void recoverPasswordResetEmail(Exception ex, String toEmail, String username, String resetUrl) {
         log.error("All attempts to send password reset email failed for: {}. Error: {}", 
             maskEmail(toEmail), ex.getMessage());
-        // In production, you might want to:
-        // 1. Store failed email in a queue for later retry
-        // 2. Send alert to administrators
-        // 3. Use alternative notification method (SMS, etc.)
         throw new EmailSendException("Failed to send password reset email after all retry attempts", ex);
     }
 
@@ -1004,16 +922,15 @@ public class EmailServiceImpl implements EmailService {
             Map<String, Object> variables = new HashMap<>();
             variables.put("userName", username);
             
-            // Use MessageService for proper localization and encoding
-            Map<String, String> subjectParams = new HashMap<>();
-            subjectParams.put("websiteName", getWebsiteName(language));
-            String subject = messageService.getMessage("password.reset.confirmation.subject", language, subjectParams);
+            String subject = language.equals("ar") ? 
+                "تأكيد إعادة تعيين كلمة المرور" : 
+                "Password Reset Confirmation";
             
             sendTemplatedEmail(toEmail, subject, "password-reset-confirmation", variables, language);
             log.info("Password reset confirmation email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
             
         } catch (Exception e) {
-            log.error("Failed to send password reset confirmation email to: {} in language: {} (attempt failed)", maskEmail(toEmail), language, e);
+            log.error("Failed to send password reset confirmation email to: {} in language: {}", maskEmail(toEmail), language, e);
             throw new EmailSendException("Failed to send password reset confirmation email", e);
         }
     }
