@@ -175,21 +175,9 @@ public class EmailServiceImpl implements EmailService {
         // Validate inputs
         validateEmailInputs(to, subject, templateName, language);
         
-        // Validate email content before sending
-        EmailContentValidationService.ValidationResult validationResult = 
-            contentValidationService.validateEmailContent(subject, "", to);
-        
-        if (!validationResult.isValid()) {
-            log.error("Email content validation failed for recipient: {}. Errors: {}", 
-                to, validationResult.getErrors());
-            throw new EmailSendException("Email content validation failed: " + String.join(", ", validationResult.getErrors()), 
-                new IllegalArgumentException("Content validation failed"));
-        }
-        
-        if (validationResult.hasWarnings()) {
-            log.warn("Email content validation warnings for recipient: {}. Warnings: {}", 
-                to, validationResult.getWarnings());
-        }
+        // For templated emails, we skip content validation since templates are predefined and safe
+        // Content validation is more appropriate for user-generated content in simple emails
+        log.debug("Skipping content validation for templated email to: {} (template: {})", to, templateName);
         
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -872,7 +860,7 @@ public class EmailServiceImpl implements EmailService {
                 "إعادة تعيين كلمة المرور" : 
                 "Password Reset Request";
             
-            sendTemplatedEmail(toEmail, subject, "password-reset", variables, language);
+            sendTemplatedEmail(toEmail, subject, "user-management/password-reset", variables, language);
             log.info("Password reset email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
             
         } catch (Exception e) {
@@ -926,7 +914,7 @@ public class EmailServiceImpl implements EmailService {
                 "تأكيد إعادة تعيين كلمة المرور" : 
                 "Password Reset Confirmation";
             
-            sendTemplatedEmail(toEmail, subject, "password-reset-confirmation", variables, language);
+            sendTemplatedEmail(toEmail, subject, "user-management/password-reset-confirmation", variables, language);
             log.info("Password reset confirmation email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
             
         } catch (Exception e) {
