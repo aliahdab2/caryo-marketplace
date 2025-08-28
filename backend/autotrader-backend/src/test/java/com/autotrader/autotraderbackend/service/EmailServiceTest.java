@@ -16,6 +16,8 @@ import jakarta.mail.internet.MimeMessage;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -75,25 +77,25 @@ class EmailServiceTest {
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(anyString(), any(Context.class))).thenReturn("<html><body>Test Email</body></html>");
         
-        // Mock EmailContentValidationService behavior
+        // Mock EmailContentValidationService behavior with lenient
         EmailContentValidationService.ValidationResult validResult = new EmailContentValidationService.ValidationResult();
-        when(contentValidationService.validateEmailContent(anyString(), anyString(), anyString())).thenReturn(validResult);
+        lenient().when(contentValidationService.validateEmailContent(anyString(), anyString(), anyString())).thenReturn(validResult);
         
-        // Mock EmailTemplateBuilder behavior
-        when(emailTemplateBuilder.template(anyString())).thenReturn(emailTemplateBuilder);
-        when(emailTemplateBuilder.language(anyString())).thenReturn(emailTemplateBuilder);
-        when(emailTemplateBuilder.user(anyString(), anyString())).thenReturn(emailTemplateBuilder);
-        when(emailTemplateBuilder.website(anyString(), anyString())).thenReturn(emailTemplateBuilder);
-        when(emailTemplateBuilder.withLanguage()).thenReturn(emailTemplateBuilder);
+        // Mock EmailTemplateBuilder behavior with lenient
+        lenient().when(emailTemplateBuilder.template(anyString())).thenReturn(emailTemplateBuilder);
+        lenient().when(emailTemplateBuilder.language(anyString())).thenReturn(emailTemplateBuilder);
+        lenient().when(emailTemplateBuilder.user(anyString(), anyString())).thenReturn(emailTemplateBuilder);
+        lenient().when(emailTemplateBuilder.website(anyString(), anyString())).thenReturn(emailTemplateBuilder);
+        lenient().when(emailTemplateBuilder.withLanguage()).thenReturn(emailTemplateBuilder);
         
         EmailTemplateBuilder.EmailTemplateData templateData = new EmailTemplateBuilder.EmailTemplateData(
             "welcome", "en", Map.of("userName", "testuser", "userEmail", "test@example.com")
         );
-        when(emailTemplateBuilder.build()).thenReturn(templateData);
+        lenient().when(emailTemplateBuilder.build()).thenReturn(templateData);
         
-        // Mock EmailTemplateService behavior
-        when(emailTemplateService.getTemplatePath(anyString())).thenReturn(Optional.of("welcome.html"));
-        when(emailTemplateService.getTemplateMetadata(anyString())).thenReturn(Optional.of(Map.of("path", "welcome.html")));
+        // Mock EmailTemplateService behavior with lenient
+        lenient().when(emailTemplateService.getTemplatePath(anyString())).thenReturn(Optional.of("welcome.html"));
+        lenient().when(emailTemplateService.getTemplateMetadata(anyString())).thenReturn(Optional.of(Map.of("path", "welcome.html")));
     }
 
     // ==================== Simple Email Tests ====================

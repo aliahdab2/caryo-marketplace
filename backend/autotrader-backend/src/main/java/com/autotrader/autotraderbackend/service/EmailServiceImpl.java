@@ -130,7 +130,7 @@ public class EmailServiceImpl implements EmailService {
             return true;
         }
         
-        // Check hourly limit
+        // Check hourly limit (excluding the current timestamp that's about to be added)
         long hourlyCount = userTimestamps.stream()
             .filter(timestamp -> Duration.between(timestamp, now).compareTo(HOURLY_RATE_LIMIT_WINDOW) <= 0)
             .count();
