@@ -33,16 +33,16 @@ services:
       SPRING_DEVTOOLS_LIVERELOAD_ENABLED: ${DEV_MODE:-true}
       SPRINGDOC_SWAGGER_UI_CSRF_ENABLED: "false"
       SPRINGDOC_API_DOCS_ENABLED: "true"
-      # Email configuration for Mailpit
-      SPRING_MAIL_HOST: mailpit
-      SPRING_MAIL_PORT: 1025
-      SPRING_MAIL_USERNAME: ""
-      SPRING_MAIL_PASSWORD: ""
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "false"
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "false"
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED: "false"
-      APP_EMAIL_FROM: "noreply@autotrader.dev"
-      APP_EMAIL_SUPPORT: "support@autotrader.dev"
+      # Email configuration for Gmail SMTP (real email delivery)
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: "ahdabeslov@gmail.com"
+      SPRING_MAIL_PASSWORD: "rbfd jgkx ienc cixl"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED: "true"
+      APP_EMAIL_FROM: "ahdabeslov@gmail.com"
+      APP_EMAIL_SUPPORT: "ahdabeslov@gmail.com"
       # Debug logging for email
       LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_MAIL: DEBUG
       LOGGING_LEVEL_JAKARTA_MAIL: DEBUG

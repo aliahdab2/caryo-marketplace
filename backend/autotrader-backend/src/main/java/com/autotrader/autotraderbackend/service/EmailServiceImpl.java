@@ -2,6 +2,8 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.constants.EmailTemplateConstants;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +17,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.retry.annotation.Recover;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -26,6 +30,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.nio.charset.StandardCharsets;
 import jakarta.annotation.PostConstruct;
+import java.util.concurrent.ConcurrentHashMap;
+import java.time.LocalDateTime;
+import java.time.Duration;
+import java.util.ArrayList;
 
 /**
  * Implementation of EmailService using Spring Mail and Thymeleaf.
@@ -34,11 +42,15 @@ import jakarta.annotation.PostConstruct;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@EnableAsync
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
     private final MessageService messageService;
+    private final EmailTemplateService emailTemplateService;
+    private final EmailTemplateBuilder emailTemplateBuilder;
+    private final EmailContentValidationService contentValidationService;
     
     @Value("${app.email.from}")
     private String fromEmail;
@@ -68,27 +80,71 @@ public class EmailServiceImpl implements EmailService {
     private String supportedLanguages;
     
     private static final List<String> SUPPORTED_LANGUAGES = Arrays.asList("en", "ar");
-
-    @PostConstruct
-    public void debugArabicProperties() {
-        log.info("=== Arabic Properties Debug ===");
-        log.info("websiteNameAr raw: '{}'", websiteNameAr);
-        log.info("websiteNameAr bytes: {}", websiteNameAr != null ? Arrays.toString(websiteNameAr.getBytes(StandardCharsets.UTF_8)) : "null");
-        log.info("websiteNameAr length: {}", websiteNameAr != null ? websiteNameAr.length() : 0);
+    
+    // Rate limiting configuration
+    private static final int MAX_EMAILS_PER_MINUTE = 5;
+    private static final int MAX_EMAILS_PER_HOUR = 20;
+    private static final Duration RATE_LIMIT_WINDOW = Duration.ofMinutes(1);
+    private static final Duration HOURLY_RATE_LIMIT_WINDOW = Duration.ofHours(1);
+    
+    // Rate limiting storage
+    private final Map<String, List<LocalDateTime>> userEmailTimestamps = new ConcurrentHashMap<>();
+    private final Map<String, List<LocalDateTime>> globalEmailTimestamps = new ConcurrentHashMap<>();
+    
+    /**
+     * Check if user is rate limited for emails.
+     */
+    private boolean isRateLimited(String userIdentifier) {
+        LocalDateTime now = LocalDateTime.now();
         
-        // Try to detect if it's double-encoded
-        if (websiteNameAr != null && websiteNameAr.contains("Ø")) {
-            log.warn("Arabic text appears to be double-encoded! Raw: '{}'", websiteNameAr);
-            // Try to decode it as Latin-1 and re-encode as UTF-8
-            try {
-                byte[] latin1Bytes = websiteNameAr.getBytes(StandardCharsets.ISO_8859_1);
-                String corrected = new String(latin1Bytes, StandardCharsets.UTF_8);
-                log.info("Corrected Arabic text: '{}'", corrected);
-            } catch (Exception e) {
-                log.error("Failed to correct encoding", e);
-            }
+        // Clean old timestamps
+        userEmailTimestamps.computeIfPresent(userIdentifier, (key, timestamps) -> {
+            timestamps.removeIf(timestamp -> Duration.between(timestamp, now).compareTo(RATE_LIMIT_WINDOW) > 0);
+            return timestamps;
+        });
+        
+        // Check minute limit
+        List<LocalDateTime> userTimestamps = userEmailTimestamps.computeIfAbsent(userIdentifier, k -> new ArrayList<>());
+        if (userTimestamps.size() >= MAX_EMAILS_PER_MINUTE) {
+            log.warn("Rate limit exceeded for user: {} - {} emails in last minute", userIdentifier, userTimestamps.size());
+            return true;
         }
-        log.info("===============================");
+        
+        // Check hourly limit (excluding the current timestamp that's about to be added)
+        long hourlyCount = userTimestamps.stream()
+            .filter(timestamp -> Duration.between(timestamp, now).compareTo(HOURLY_RATE_LIMIT_WINDOW) <= 0)
+            .count();
+        if (hourlyCount >= MAX_EMAILS_PER_HOUR) {
+            log.warn("Hourly rate limit exceeded for user: {} - {} emails in last hour", userIdentifier, hourlyCount);
+            return true;
+        }
+        
+        // Add current timestamp
+        userTimestamps.add(now);
+        return false;
+    }
+    
+    /**
+     * Check if global rate limit is exceeded.
+     */
+    private boolean isGlobalRateLimited() {
+        LocalDateTime now = LocalDateTime.now();
+        String globalKey = "global";
+        
+        // Clean old timestamps
+        globalEmailTimestamps.computeIfPresent(globalKey, (key, timestamps) -> {
+            timestamps.removeIf(timestamp -> Duration.between(timestamp, now).compareTo(RATE_LIMIT_WINDOW) > 0);
+            return timestamps;
+        });
+        
+        List<LocalDateTime> globalTimestamps = globalEmailTimestamps.computeIfAbsent(globalKey, k -> new ArrayList<>());
+        if (globalTimestamps.size() >= MAX_EMAILS_PER_MINUTE * 10) { // 10x user limit
+            log.warn("Global rate limit exceeded - {} emails in last minute", globalTimestamps.size());
+            return true;
+        }
+        
+        globalTimestamps.add(now);
+        return false;
     }
 
     @Override
@@ -96,10 +152,44 @@ public class EmailServiceImpl implements EmailService {
         sendTemplatedEmail(to, subject, templateName, variables, defaultLanguage);
     }
 
+    /**
+     * Send templated email asynchronously.
+     * This method runs in a separate thread to avoid blocking the main application.
+     */
+    @Async("emailTaskExecutor")
+    public void sendTemplatedEmailAsync(String to, String subject, String templateName, Map<String, Object> variables) {
+        sendTemplatedEmail(to, subject, templateName, variables, defaultLanguage);
+    }
+
+    /**
+     * Send templated email asynchronously with language support.
+     * This method runs in a separate thread to avoid blocking the main application.
+     */
+    @Async("emailTaskExecutor")
+    public void sendTemplatedEmailAsync(String to, String subject, String templateName, Map<String, Object> variables, String language) {
+        sendTemplatedEmail(to, subject, templateName, variables, language);
+    }
+
     @Override
     public void sendTemplatedEmail(String to, String subject, String templateName, Map<String, Object> variables, String language) {
         // Validate inputs
         validateEmailInputs(to, subject, templateName, language);
+        
+        // Validate email content before sending
+        EmailContentValidationService.ValidationResult validationResult = 
+            contentValidationService.validateEmailContent(subject, "", to);
+        
+        if (!validationResult.isValid()) {
+            log.error("Email content validation failed for recipient: {}. Errors: {}", 
+                to, validationResult.getErrors());
+            throw new EmailSendException("Email content validation failed: " + String.join(", ", validationResult.getErrors()), 
+                new IllegalArgumentException("Content validation failed"));
+        }
+        
+        if (validationResult.hasWarnings()) {
+            log.warn("Email content validation warnings for recipient: {}. Warnings: {}", 
+                to, validationResult.getWarnings());
+        }
         
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -278,6 +368,17 @@ public class EmailServiceImpl implements EmailService {
             return;
         }
         
+        // Check rate limiting
+        if (isGlobalRateLimited()) {
+            log.warn("Global rate limit exceeded, skipping welcome email for user: {}", user.getEmail());
+            return;
+        }
+        
+        if (isRateLimited(user.getEmail())) {
+            log.warn("Rate limit exceeded for user: {}, skipping welcome email", user.getEmail());
+            return;
+        }
+        
         Map<String, Object> variables = new HashMap<>();
         variables.put("userName", user.getUsername());
         variables.put("userEmail", user.getEmail());
@@ -286,7 +387,7 @@ public class EmailServiceImpl implements EmailService {
             "مرحباً بك في " + getWebsiteName(language) + "!" : 
             "Welcome to " + getWebsiteName(language) + "!";
         
-        sendTemplatedEmail(
+        sendTemplatedEmailAsync(
             user.getEmail(),
             subject,
             "welcome",
@@ -455,7 +556,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     /**
-     * Get website name based on language with proper Arabic text normalization and encoding fix.
+     * Get website name based on language with proper Arabic text normalization.
      */
     private String getWebsiteName(String language) {
         String name = language.equals("ar") ? websiteNameAr : websiteName;
@@ -464,25 +565,8 @@ public class EmailServiceImpl implements EmailService {
             return language.equals("ar") ? "أوتو تريدر" : "AutoTrader";
         }
         
-        // Fix encoding issue if Arabic text is double-encoded (UTF-8 interpreted as Latin-1)
-        if (language.equals("ar") && name.contains("Ø")) {
-            log.warn("Detected double-encoded Arabic text: '{}'", name);
-            try {
-                // Convert from Latin-1 back to UTF-8
-                byte[] latin1Bytes = name.getBytes(StandardCharsets.ISO_8859_1);
-                name = new String(latin1Bytes, StandardCharsets.UTF_8);
-                log.info("Fixed Arabic encoding: '{}'", name);
-            } catch (Exception e) {
-                log.error("Failed to fix Arabic encoding, using fallback", e);
-                name = "أوتو تريدر"; // Fallback to correct Arabic text
-            }
-        }
-        
         // Use centralized Arabic text normalization
-        String normalizedName = ArabicTextUtils.normalizeArabicText(name);
-        log.debug("Website name for language '{}': '{}' -> normalized: '{}' (bytes: {})", 
-            language, name, normalizedName, normalizedName != null ? Arrays.toString(normalizedName.getBytes(StandardCharsets.UTF_8)) : "null");
-        return normalizedName;
+        return ArabicTextUtils.normalizeArabicText(name);
     }
     
     /**
@@ -515,24 +599,6 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    /**
-     * Debug method to test Arabic text encoding
-     */
-    public void debugArabicEncoding() {
-        log.info("=== Arabic Encoding Debug ===");
-        log.info("websiteName (EN): '{}'", websiteName);
-        log.info("websiteNameAr (AR): '{}'", websiteNameAr);
-        log.info("websiteNameAr bytes (UTF-8): {}", 
-            websiteNameAr != null ? java.util.Arrays.toString(websiteNameAr.getBytes(java.nio.charset.StandardCharsets.UTF_8)) : "null");
-        log.info("websiteNameAr length: {}", websiteNameAr != null ? websiteNameAr.length() : 0);
-        
-        // Test Arabic characters
-        String testArabic = "أوتو تريدر";
-        log.info("Test Arabic string: '{}'", testArabic);
-        log.info("Test Arabic bytes (UTF-8): {}", java.util.Arrays.toString(testArabic.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-        log.info("=== End Debug ===");
-    }
-    
     /**
      * Helper method to generate a listing title for emails based on language.
      */
@@ -790,7 +856,6 @@ public class EmailServiceImpl implements EmailService {
     )
     public void sendPasswordResetEmail(String toEmail, String username, String resetUrl, String language) {
         try {
-            // Input validation
             if (!StringUtils.hasText(toEmail) || !StringUtils.hasText(username) || !StringUtils.hasText(resetUrl)) {
                 throw new IllegalArgumentException("Email, username, and reset URL are required");
             }
@@ -803,16 +868,15 @@ public class EmailServiceImpl implements EmailService {
             variables.put("userName", username);
             variables.put("resetUrl", resetUrl);
             
-            // Use MessageService for proper localization and encoding
-            Map<String, String> subjectParams = new HashMap<>();
-            subjectParams.put("websiteName", getWebsiteName(language));
-            String subject = messageService.getMessage("password.reset.subject", language, subjectParams);
+            String subject = language.equals("ar") ? 
+                "إعادة تعيين كلمة المرور" : 
+                "Password Reset Request";
             
             sendTemplatedEmail(toEmail, subject, "password-reset", variables, language);
             log.info("Password reset email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
             
         } catch (Exception e) {
-            log.error("Failed to send password reset email to: {} in language: {} (attempt failed)", maskEmail(toEmail), language, e);
+            log.error("Failed to send password reset email to: {} in language: {}", maskEmail(toEmail), language, e);
             throw new EmailSendException("Failed to send password reset email", e);
         }
     }
@@ -824,10 +888,6 @@ public class EmailServiceImpl implements EmailService {
     public void recoverPasswordResetEmail(Exception ex, String toEmail, String username, String resetUrl) {
         log.error("All attempts to send password reset email failed for: {}. Error: {}", 
             maskEmail(toEmail), ex.getMessage());
-        // In production, you might want to:
-        // 1. Store failed email in a queue for later retry
-        // 2. Send alert to administrators
-        // 3. Use alternative notification method (SMS, etc.)
         throw new EmailSendException("Failed to send password reset email after all retry attempts", ex);
     }
 
@@ -862,16 +922,15 @@ public class EmailServiceImpl implements EmailService {
             Map<String, Object> variables = new HashMap<>();
             variables.put("userName", username);
             
-            // Use MessageService for proper localization and encoding
-            Map<String, String> subjectParams = new HashMap<>();
-            subjectParams.put("websiteName", getWebsiteName(language));
-            String subject = messageService.getMessage("password.reset.confirmation.subject", language, subjectParams);
+            String subject = language.equals("ar") ? 
+                "تأكيد إعادة تعيين كلمة المرور" : 
+                "Password Reset Confirmation";
             
             sendTemplatedEmail(toEmail, subject, "password-reset-confirmation", variables, language);
             log.info("Password reset confirmation email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
             
         } catch (Exception e) {
-            log.error("Failed to send password reset confirmation email to: {} in language: {} (attempt failed)", maskEmail(toEmail), language, e);
+            log.error("Failed to send password reset confirmation email to: {} in language: {}", maskEmail(toEmail), language, e);
             throw new EmailSendException("Failed to send password reset confirmation email", e);
         }
     }

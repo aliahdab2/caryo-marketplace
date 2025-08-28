@@ -3,42 +3,62 @@ package com.autotrader.autotraderbackend.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
-import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.spring6.SpringTemplateEngine;
+import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ResourceLoader;
 
 /**
- * Configuration for email template processing with proper UTF-8 support.
- * Ensures Arabic text is properly encoded in email templates.
+ * Configuration for email template management.
+ * Provides custom template resolvers and follows Spring Boot best practices.
  */
 @Configuration
-@Profile("!test") // Apply to all profiles except test (test has its own config)
 public class EmailTemplateConfig {
 
+
+
     /**
-     * Template engine specifically configured for email templates with UTF-8 support.
+     * Primary template resolver for email templates.
+     * Resolves templates from the organized directory structure.
      */
-    @Bean(name = "emailTemplateEngine")
+    @Bean
     @Primary
-    public TemplateEngine emailTemplateEngine() {
-        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
-        
-        ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
-        templateResolver.setPrefix("templates/emails/");
-        templateResolver.setSuffix(".html");
-        templateResolver.setTemplateMode(TemplateMode.HTML);
-        templateResolver.setCharacterEncoding("UTF-8");
-        templateResolver.setCacheable(false); // Disable caching for development
-        templateResolver.setOrder(1);
-        templateResolver.setCheckExistence(true);
-        
-        // Ensure UTF-8 encoding is forced
-        templateResolver.setForceTemplateMode(true);
-        
-        templateEngine.setTemplateResolver(templateResolver);
-        
-        return templateEngine;
+    public SpringResourceTemplateResolver emailTemplateResolver() {
+        SpringResourceTemplateResolver resolver = new SpringResourceTemplateResolver();
+        resolver.setPrefix("classpath:templates/emails/");
+        resolver.setSuffix(".html");
+        resolver.setTemplateMode(TemplateMode.HTML);
+        resolver.setCharacterEncoding("UTF-8");
+        resolver.setCacheable(false); // Disable cache for development
+        resolver.setOrder(1);
+        return resolver;
+    }
+
+    /**
+     * Fallback template resolver for backward compatibility.
+     */
+    @Bean
+    public SpringResourceTemplateResolver fallbackTemplateResolver() {
+        SpringResourceTemplateResolver resolver = new SpringResourceTemplateResolver();
+        resolver.setPrefix("classpath:templates/");
+        resolver.setSuffix(".html");
+        resolver.setTemplateMode(TemplateMode.HTML);
+        resolver.setCharacterEncoding("UTF-8");
+        resolver.setCacheable(false);
+        resolver.setOrder(2);
+        return resolver;
+    }
+
+    /**
+     * Configure template engine with multiple resolvers.
+     */
+    @Bean
+    public SpringTemplateEngine templateEngine() {
+        SpringTemplateEngine engine = new SpringTemplateEngine();
+        engine.addTemplateResolver(emailTemplateResolver());
+        engine.addTemplateResolver(fallbackTemplateResolver());
+        engine.setEnableSpringELCompiler(true);
+        return engine;
     }
 }

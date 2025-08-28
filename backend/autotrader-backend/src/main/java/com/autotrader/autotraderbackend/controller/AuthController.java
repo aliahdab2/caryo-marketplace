@@ -14,6 +14,7 @@ import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
 import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 import com.autotrader.autotraderbackend.service.PasswordResetService;
+import com.autotrader.autotraderbackend.service.EmailService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,6 +56,9 @@ public class AuthController {
 
     @Autowired
     private PasswordResetService passwordResetService;
+
+    @Autowired
+    private EmailService emailService;
 
     @Operation(
         summary = "Login",
@@ -164,6 +168,15 @@ public class AuthController {
 
         user.setRoles(roles);
         userRepository.save(user);
+
+        // Send welcome email to the new user
+        try {
+            emailService.sendWelcomeEmail(user);
+        } catch (Exception e) {
+            // Log the error but don't fail the registration
+            // Welcome email is important but not critical for registration
+            System.err.println("Failed to send welcome email to " + user.getEmail() + ": " + e.getMessage());
+        }
 
         // Auto-login the user after successful registration
         // This is a best practice to improve user experience

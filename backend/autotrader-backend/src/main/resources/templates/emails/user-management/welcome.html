@@ -3,8 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Email client compatibility -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="format-detection" content="date=no">
+    <meta name="format-detection" content="address=no">
+    <meta name="format-detection" content="email=no">
     <title th:text="${language == 'ar' ? 'مرحباً بك في ' + websiteName : 'Welcome to ' + websiteName}">Welcome</title>
     <style>
+        /* Reset styles for email clients */
+        body, table, td, p, a, li, blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        img {
+            -ms-interpolation-mode: bicubic;
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+        }
+        
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
@@ -58,6 +82,33 @@
         [dir="rtl"] {
             text-align: right;
         }
+        
+        /* Mobile responsiveness */
+        @media only screen and (max-width: 600px) {
+            .container {
+                width: 100% !important;
+                padding: 15px !important;
+                margin: 0 !important;
+            }
+            .cta-button {
+                display: block !important;
+                width: 100% !important;
+                margin: 10px 0 !important;
+                text-align: center !important;
+            }
+            body {
+                padding: 10px !important;
+            }
+            .header {
+                margin-bottom: 20px !important;
+            }
+            .logo {
+                font-size: 24px !important;
+            }
+            .welcome-message {
+                font-size: 16px !important;
+            }
+        }
     </style>
 </head>
 <body th:dir="${language == 'ar' ? 'rtl' : 'ltr'}">
@@ -70,11 +121,8 @@
         <div class="content">
             <p th:text="${language == 'ar' ? 'مرحباً ' + userName + '،' : 'Hello ' + userName + ','}">Hello User,</p>
             
-            <p th:if="${language == 'en'}" th:text="'Welcome to ' + ${websiteName} + '! We are excited to have you join our community of car enthusiasts and sellers.'">
-                Welcome to AutoTrader! We are excited to have you join our community of car enthusiasts and sellers.
-            </p>
-            <p th:if="${language == 'ar'}" th:text="'مرحباً بك في ' + ${websiteName} + '! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.'">
-                مرحباً بك في AutoTrader! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.
+            <p th:text="${language == 'ar' ? 'مرحباً بك في ' + websiteName + '! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.' : 'Welcome to ' + websiteName + '! We&apos;re excited to have you join our community of car enthusiasts and sellers.'}">
+                Welcome to AutoTrader! We're excited to have you join our community of car enthusiasts and sellers.
             </p>
             
             <p th:text="${language == 'ar' ? 'مع ' + websiteName + '، يمكنك:' : 'With ' + websiteName + ', you can:'}">With AutoTrader, you can:</p>
