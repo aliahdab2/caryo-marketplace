@@ -387,7 +387,7 @@ export default function MessagesPage() {
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
 
-  const filteredConversations = conversations;
+
 
   // Check if user is authenticated
   if (!session?.user && !loading) {
@@ -424,95 +424,116 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className={`h-screen bg-white dark:bg-gray-900 flex ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={`h-screen bg-gray-50 dark:bg-gray-900 flex ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Left Sidebar - Conversations */}
-      <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex w-full lg:w-80 ${isRTL ? 'border-l' : 'border-r'} border-gray-200 dark:border-gray-700 flex-col ${selectedConversation && !showSidebar ? 'absolute inset-0 z-10 lg:relative lg:z-auto' : ''}`}>
+      <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex w-full lg:w-80 ${isRTL ? 'border-l' : 'border-r'} border-gray-200 dark:border-gray-700 flex-col bg-white dark:bg-gray-800 shadow-sm ${selectedConversation && !showSidebar ? 'absolute inset-0 z-10 lg:relative lg:z-auto' : ''}`}>
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            {t('title')}
-          </h1>
-          
-
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+              <MessageCircle className="w-6 h-6 mr-3 text-blue-600 dark:text-blue-400" />
+              {t('title')}
+            </h1>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {conversations.length} {conversations.length === 1 ? t('conversation') : t('conversations')}
+            </div>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {t('manageConversations')}
+          </p>
         </div>
 
         {/* Conversations List */}
         <div className="flex-1 overflow-y-auto">
-          {filteredConversations.length === 0 ? (
-            <div className="p-6 text-center text-gray-500">
-              <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>{t('noConversations')}</p>
-              <p className="text-sm mt-2">{t('startConversation')}</p>
+          {conversations.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                <MessageCircle className="h-8 w-8 opacity-50" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('noConversations')}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{t('startConversation')}</p>
+              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+                {t('browseListings')}
+              </button>
             </div>
           ) : (
-            filteredConversations.map((conversation) => {
-              const otherUser = Number(session?.user?.id) === conversation.buyer.id 
-                ? conversation.seller 
-                : conversation.buyer;
-              
-              return (
-                <div
-                  key={conversation.id}
-                  className={`p-3 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-                    selectedConversation?.id === conversation.id
-                      ? `bg-blue-50 dark:bg-blue-900/20 ${isRTL ? 'border-l-4 border-l-blue-500' : 'border-r-4 border-r-blue-500'}`
-                      : ''
-                  }`}
-                  onClick={() => handleConversationSelect(conversation)}
-                >
-                  <div className="flex items-center gap-3">
-                    {/* Listing Image */}
-                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700">
-                      <Image
-                        src={(() => {
-                          if (!conversation.listingImageUrl) return getDefaultImageUrl();
-                          const url = transformMinioUrl(conversation.listingImageUrl);
-                          return url || getDefaultImageUrl();
-                        })()}
-                        alt={`${conversation.listingBrand} ${conversation.listingModel}`}
-                        width={48}
-                        height={48}
-                        className="w-full h-full object-cover"
-                        unoptimized
-                        onError={(e) => { e.currentTarget.src = getDefaultImageUrl(); }}
-                      />
-                    </div>
-                    
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-white truncate text-sm">
-                          {conversation.listingBrand} {conversation.listingModel} {conversation.listingYear}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          {conversation.unreadCount > 0 && (
-                            <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[18px] h-4 flex items-center justify-center text-[10px] font-medium">
-                              {conversation.unreadCount}
+            <div className="p-2">
+              {conversations.map((conversation) => {
+                const otherUser = Number(session?.user?.id) === conversation.buyer.id 
+                  ? conversation.seller 
+                  : conversation.buyer;
+                
+                return (
+                  <div
+                    key={conversation.id}
+                    className={`p-4 rounded-xl cursor-pointer transition-all duration-200 mb-2 ${
+                      selectedConversation?.id === conversation.id
+                        ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-700 shadow-sm'
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border-2 border-transparent'
+                    }`}
+                    onClick={() => handleConversationSelect(conversation)}
+                  >
+                    <div className="flex items-start gap-4">
+                      {/* Listing Image */}
+                      <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700 shadow-sm">
+                        <Image
+                          src={(() => {
+                            if (!conversation.listingImageUrl) return getDefaultImageUrl();
+                            const url = transformMinioUrl(conversation.listingImageUrl);
+                            return url || getDefaultImageUrl();
+                          })()}
+                          alt={`${conversation.listingBrand} ${conversation.listingModel}`}
+                          width={56}
+                          height={56}
+                          className="w-full h-full object-cover"
+                          unoptimized
+                          onError={(e) => { e.currentTarget.src = getDefaultImageUrl(); }}
+                        />
+                      </div>
+                      
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight">
+                            {conversation.listingBrand} {conversation.listingModel} {conversation.listingYear}
+                          </h3>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {conversation.unreadCount > 0 && (
+                              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full min-w-[20px] h-5 flex items-center justify-center text-[10px] font-bold">
+                                {conversation.unreadCount}
+                              </span>
+                            )}
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {formatTimeAgo(conversation.lastMessageAt)}
                             </span>
-                          )}
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatTimeAgo(conversation.lastMessageAt)}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-xs font-bold">
+                              {otherUser.username.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                            {otherUser.username}
+                          </p>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <p className={`text-sm text-gray-600 dark:text-gray-400 truncate flex-1 ${isRTL ? 'ml-2' : 'mr-2'}`}>
+                            {conversation.recentMessages?.[0]?.content || 'No messages yet'}
+                          </p>
+                          <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                            {conversation.listingPrice} {conversation.listingCurrency}
                           </span>
                         </div>
                       </div>
-                      
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-1 truncate">
-                        {otherUser.username}
-                      </p>
-                      
-                      <div className="flex items-center justify-between">
-                        <p className={`text-xs text-gray-600 dark:text-gray-400 truncate flex-1 ${isRTL ? 'ml-2' : 'mr-2'}`}>
-                          {conversation.recentMessages?.[0]?.content || 'No messages yet'}
-                        </p>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                          {conversation.listingPrice} {conversation.listingCurrency}
-                        </span>
-                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
         </div>
       </div>
@@ -620,20 +641,19 @@ export default function MessagesPage() {
                 
                 {/* Listing Details */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">
-                    {selectedConversation.listingBrand} {selectedConversation.listingModel} {selectedConversation.listingYear}
-                  </h3>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                      {selectedConversation.listingPrice} {selectedConversation.listingCurrency}
-                    </span>
-                    <button 
-                      onClick={() => window.open(`/listings/${selectedConversation.listingId}`, '_blank')}
-                      className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                    >
-                      {t('view_listing')}
-                    </button>
-                  </div>
+                  <button 
+                    onClick={() => window.open(`/listings/${selectedConversation.listingId}`, '_blank')}
+                    className="w-full text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg p-2 -m-2 transition-colors"
+                  >
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                      {selectedConversation.listingBrand} {selectedConversation.listingModel} {selectedConversation.listingYear}
+                    </h3>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                        {selectedConversation.listingPrice} {selectedConversation.listingCurrency}
+                      </span>
+                    </div>
+                  </button>
                 </div>
               </div>
             </div>

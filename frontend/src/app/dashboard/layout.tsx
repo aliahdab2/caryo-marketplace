@@ -116,7 +116,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   // Focused pages: hide the sidebar to emulate the Saved Alerts experience
-  const focusedRoutes = ['/dashboard/listings', '/dashboard/profile', '/dashboard/settings'];
+  const focusedRoutes = ['/dashboard/listings', '/dashboard/profile', '/dashboard/settings', '/dashboard/messages'];
   const isFocusedPage = !!(pathname && focusedRoutes.some(route => pathname === route || pathname.startsWith(route + '/')));
 
   // Handle authentication redirection with a consistent user experience
