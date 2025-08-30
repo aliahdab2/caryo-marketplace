@@ -347,7 +347,7 @@ public class ConversationService {
     }
 
     private String getListingImageUrl(CarListing listing) {
-        // Return the file key - frontend will handle URL transformation
+        // Get the primary media and return the file key - frontend will handle URL transformation
         if (listing.getMedia() != null && !listing.getMedia().isEmpty()) {
             ListingMedia primaryMedia = listing.getMedia().stream()
                     .filter(m -> Boolean.TRUE.equals(m.getIsPrimary()))
