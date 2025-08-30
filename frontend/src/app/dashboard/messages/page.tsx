@@ -426,7 +426,7 @@ export default function MessagesPage() {
   return (
     <div className={`h-screen bg-white dark:bg-gray-900 flex ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Left Sidebar - Conversations */}
-      <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex w-full lg:w-96 ${isRTL ? 'border-l' : 'border-r'} border-gray-200 dark:border-gray-700 flex-col ${selectedConversation && !showSidebar ? 'absolute inset-0 z-10 lg:relative lg:z-auto' : ''}`}>
+      <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex w-full lg:w-80 ${isRTL ? 'border-l' : 'border-r'} border-gray-200 dark:border-gray-700 flex-col ${selectedConversation && !showSidebar ? 'absolute inset-0 z-10 lg:relative lg:z-auto' : ''}`}>
         {/* Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
