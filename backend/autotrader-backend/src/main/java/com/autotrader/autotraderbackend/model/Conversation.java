@@ -167,6 +167,10 @@ public class Conversation {
         this.deletedAt = null;
     }
     
+    public boolean canSendMessages() {
+        return isActive() && !isBlocked();
+    }
+    
     public int getUnreadCountForUser(User user) {
         if (!isParticipant(user)) {
             return 0;

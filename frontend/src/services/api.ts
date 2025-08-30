@@ -204,14 +204,14 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 type RequestOptions = {
   method: string;
   headers: Record<string, string>;
-  body?: string;
+  body?: string | FormData;
   timeout?: number; // Request timeout in ms
   credentials?: RequestCredentials;
   mode?: RequestMode;
 };
 
 // Define a type for request data
-type RequestData = Record<string, unknown> | unknown[] | null | undefined;
+type RequestData = Record<string, unknown> | unknown[] | FormData | null | undefined;
 
 /**
  * Generic function to make API requests
@@ -225,11 +225,34 @@ async function apiRequest<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
   
+  // Get session for authentication
+  const authHeaders: Record<string, string> = {};
+  
+  // Only add auth headers for client-side requests (not SSR)
+  if (typeof window !== 'undefined') {
+    try {
+      // Import getSession dynamically to avoid SSR issues
+      const { getSession } = await import('@/utils/auth');
+      const session = await getSession();
+      
+      console.log('🔍 [API Debug] Session:', session);
+      console.log('🔍 [API Debug] AccessToken:', session?.accessToken);
+      
+      if (session?.accessToken) {
+        authHeaders.Authorization = `Bearer ${session.accessToken}`;
+        console.log('🔍 [API Debug] Authorization header set:', authHeaders.Authorization.substring(0, 20) + '...');
+      } else {
+        console.warn('🔍 [API Debug] No access token found in session');
+      }
+    } catch (error) {
+      console.warn('Failed to get session for API request:', error);
+    }
+  }
+  
   const options: RequestOptions = {
     method,
     headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      ...authHeaders,
       ...customHeaders,
     },
     mode: 'cors',
@@ -237,8 +260,33 @@ async function apiRequest<T>(
     timeout
   };
 
+  // Handle FormData vs JSON data
   if (data) {
-    options.body = JSON.stringify(data);
+    if (data instanceof FormData) {
+      // For FormData, don't set Content-Type (browser will set it with boundary)
+      options.body = data;
+      options.headers = {
+        'Accept': 'application/json',
+        ...authHeaders,
+        ...customHeaders,
+      };
+    } else {
+      // For JSON data, set appropriate headers and stringify
+      options.headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...authHeaders,
+        ...customHeaders,
+      };
+      options.body = JSON.stringify(data);
+    }
+  } else {
+    // No data, just set Accept header
+    options.headers = {
+      'Accept': 'application/json',
+      ...authHeaders,
+      ...customHeaders,
+    };
   }
 
   try {
@@ -358,6 +406,9 @@ export const api = {
   
   put: <T>(endpoint: string, data: RequestData, customHeaders?: Record<string, string>, timeout?: number) => 
     apiRequest<T>(endpoint, 'PUT', data, customHeaders, timeout),
+  
+  patch: <T>(endpoint: string, data?: RequestData, customHeaders?: Record<string, string>, timeout?: number) => 
+    apiRequest<T>(endpoint, 'PATCH', data, customHeaders, timeout),
   
   delete: <T>(endpoint: string, customHeaders?: Record<string, string>) => 
     apiRequest<T>(endpoint, 'DELETE', undefined, customHeaders),

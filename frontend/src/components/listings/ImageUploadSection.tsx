@@ -7,6 +7,7 @@ import { FormErrors } from '@/types/forms';
 import ErrorMessage from './shared/ErrorMessage';
 import { useCallback as useCallbackPerf, useRef } from 'react';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
+import { validateCarListingImages } from '@/utils/imageValidation';
 
 // Optimized throttle hook for frequent operations
 function useThrottle<T extends (...args: any[]) => any>(func: T, delay: number): T { // eslint-disable-line @typescript-eslint/no-explicit-any -- Necessary for generic function throttling
@@ -69,20 +70,40 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
     setIsDragOver(false);
   }, [setIsDragOver]);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
 
     const files = Array.from(e.dataTransfer.files);
-    const validFiles: File[] = [];
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    
+    if (imageFiles.length === 0) return;
 
-    files.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        validFiles.push(file);
+    // Validate images using shared utility
+    const validation = await validateCarListingImages(imageFiles);
+    
+    const validFiles: File[] = [];
+    const errors: string[] = [];
+    
+    validation.results.forEach((result, index) => {
+      if (result.isValid) {
+        validFiles.push(imageFiles[index]);
+        // Show warnings if any
+        if (result.warnings.length > 0) {
+          console.warn(`${imageFiles[index].name}: ${result.warnings.join(', ')}`);
+        }
+      } else {
+        errors.push(`${imageFiles[index].name}: ${result.errors.join(', ')}`);
       }
     });
-
+    
+    // Show errors if any
+    if (errors.length > 0) {
+      alert(`Some images could not be added:\n\n${errors.join('\n')}`);
+    }
+    
+    // Add valid images
     if (validFiles.length > 0) {
       onFormDataChange({ images: [...(formData.images || []), ...validFiles] });
     }
@@ -249,13 +270,43 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
               className="sr-only"
               multiple
               accept="image/*"
-              onChange={(e) => {
+              onChange={async (e) => {
                 const files = e.target.files;
                 if (!files) return;
+                
                 const selected = Array.from(files).filter(f => f.type.startsWith('image/'));
-                if (selected.length > 0) {
-                  onFormDataChange({ images: [...(formData.images || []), ...selected] });
+                if (selected.length === 0) return;
+                
+                // Validate images using shared utility
+                const validation = await validateCarListingImages(selected);
+                
+                const validFiles: File[] = [];
+                const errors: string[] = [];
+                
+                validation.results.forEach((result, index) => {
+                  if (result.isValid) {
+                    validFiles.push(selected[index]);
+                    // Show warnings if any
+                    if (result.warnings.length > 0) {
+                      console.warn(`${selected[index].name}: ${result.warnings.join(', ')}`);
+                    }
+                  } else {
+                    errors.push(`${selected[index].name}: ${result.errors.join(', ')}`);
+                  }
+                });
+                
+                // Show errors if any
+                if (errors.length > 0) {
+                  alert(`Some images could not be added:\n\n${errors.join('\n')}`);
                 }
+                
+                // Add valid images
+                if (validFiles.length > 0) {
+                  onFormDataChange({ images: [...(formData.images || []), ...validFiles] });
+                }
+                
+                // Clear the input
+                e.target.value = '';
               }}
               aria-describedby="image-upload-hint"
               aria-label="Select car images to upload (PNG, JPG, JPEG, max 5MB each, up to 10 images)"
