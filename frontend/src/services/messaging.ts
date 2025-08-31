@@ -105,12 +105,12 @@ export interface MessageAttachmentResponse {
   createdAt: string;
   isDeleted: boolean;
   humanReadableSize: string;
-  isImage: boolean;
-  isDocument: boolean;
-  isVideo: boolean;
-  isAudio: boolean;
+  image: boolean;
+  document: boolean;
+  video: boolean;
+  audio: boolean;
   fileExtension: string;
-  isValidFileType: boolean;
+  validFileType: boolean;
 }
 
 export interface ParticipantSummary {

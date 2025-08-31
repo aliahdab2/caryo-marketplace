@@ -90,19 +90,18 @@ class SendMessageRequestTest {
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = {"   "})
-    @DisplayName("Should fail validation when content is invalid")
-    void shouldFailValidationWhenContentIsInvalid(String invalidContent) {
+    @DisplayName("Should allow empty content for image-only messages")
+    void shouldAllowEmptyContentForImageOnlyMessages(String emptyContent) {
         // Arrange
         SendMessageRequest request = new SendMessageRequest();
-        request.setContent(invalidContent);
+        request.setContent(emptyContent);
         request.setMessageType("text");
 
         // Act
         Set<ConstraintViolation<SendMessageRequest>> violations = validator.validate(request);
 
         // Assert
-        assertEquals(1, violations.size(), "Should have exactly one validation violation");
-        assertEquals("content", violations.iterator().next().getPropertyPath().toString());
+        assertTrue(violations.isEmpty(), "Should allow empty content for image-only messages");
     }
 
     @Test

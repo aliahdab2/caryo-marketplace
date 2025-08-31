@@ -175,7 +175,7 @@ public class ConversationService {
         Message message = Message.builder()
                 .conversation(conversation)
                 .sender(sender)
-                .content(request.getContent().trim())
+                .content(request.getContent() != null ? request.getContent().trim() : "")
                 .messageType(MessageType.valueOf(request.getMessageType().toUpperCase()))
                 .build();
 
@@ -242,7 +242,22 @@ public class ConversationService {
         }
 
         Page<Message> messages = messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId, pageable);
-        return messages.map(this::mapToMessageResponse);
+        
+        // Batch load attachments for all messages to avoid N+1 queries
+        List<Long> messageIds = messages.getContent().stream()
+                .map(Message::getId)
+                .collect(Collectors.toList());
+        
+        final Map<Long, List<MessageAttachment>> attachmentsByMessageId;
+        if (!messageIds.isEmpty()) {
+            List<MessageAttachment> allAttachments = messageAttachmentRepository.findByMessageIdInOrderByCreatedAtAsc(messageIds);
+            attachmentsByMessageId = allAttachments.stream()
+                    .collect(Collectors.groupingBy(attachment -> attachment.getMessage().getId()));
+        } else {
+            attachmentsByMessageId = new HashMap<>();
+        }
+        
+        return messages.map(message -> mapToMessageResponseWithAttachments(message, attachmentsByMessageId.get(message.getId())));
     }
 
     /**
@@ -315,7 +330,11 @@ public class ConversationService {
     }
 
     private MessageResponse mapToMessageResponse(Message message) {
-        return MessageResponse.builder()
+        // Load attachments for this message
+        List<MessageAttachment> attachments = messageAttachmentRepository.findByMessageIdOrderByCreatedAtAsc(message.getId());
+        log.debug("Message {} has {} attachments", message.getId(), attachments != null ? attachments.size() : 0);
+        
+        MessageResponse response = MessageResponse.builder()
                 .id(message.getId())
                 .conversationId(message.getConversation().getId())
                 .content(message.getDisplayContent())
@@ -328,6 +347,16 @@ public class ConversationService {
                 .isDeleted(message.isDeleted())
                 .sender(mapToMessageUserSummary(message.getSender()))
                 .build();
+        
+        // Add attachments if any exist
+        if (attachments != null && !attachments.isEmpty()) {
+            List<MessageResponse.MessageAttachmentResponse> attachmentSummaries = attachments.stream()
+                    .map(this::mapToAttachmentSummary)
+                    .collect(Collectors.toList());
+            response.setAttachments(attachmentSummaries);
+        }
+        
+        return response;
     }
 
     private MessageResponse.UserSummary mapToMessageUserSummary(User user) {
@@ -520,12 +549,12 @@ public class ConversationService {
                 .createdAt(attachment.getCreatedAt())
                 .isDeleted(attachment.isDeleted())
                 .humanReadableSize(attachment.getHumanReadableSize())
-                .isImage(attachment.isImage())
-                .isDocument(attachment.isDocument())
-                .isVideo(attachment.isVideo())
-                .isAudio(attachment.isAudio())
+                .image(attachment.isImage())
+                .document(attachment.isDocument())
+                .video(attachment.isVideo())
+                .audio(attachment.isAudio())
                 .fileExtension(attachment.getFileExtension())
-                .isValidFileType(attachment.isValidFileType())
+                .validFileType(attachment.isValidFileType())
                 .build();
     }
 

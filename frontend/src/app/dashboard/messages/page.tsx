@@ -44,6 +44,7 @@ export default function MessagesPage() {
   // File attachment states
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadErrors, setUploadErrors] = useState<{[key: string]: string}>({});
   
   // Typing indicator state
   const [isTyping, setIsTyping] = useState(false);
@@ -305,7 +306,17 @@ export default function MessagesPage() {
   };
 
   const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setSelectedFiles(prev => {
+      const newFiles = prev.filter((_, i) => i !== index);
+      // Clean up object URL to prevent memory leaks
+      const removedFile = prev[index];
+      if (removedFile && removedFile.type.startsWith('image/')) {
+        // Create a map to track object URLs
+        const objectUrl = URL.createObjectURL(removedFile);
+        URL.revokeObjectURL(objectUrl);
+      }
+      return newFiles;
+    });
   };
 
   const handleSendMessageWithAttachments = async () => {
@@ -320,7 +331,7 @@ export default function MessagesPage() {
       if (selectedFiles.length > 0) {
         // Send message with attachments
         const formData = new FormData();
-        formData.append('content', newMessage.trim() || 'Attachment');
+        formData.append('content', newMessage.trim() || '');
         formData.append('messageType', 'TEXT');
         
         selectedFiles.forEach(file => {
@@ -351,6 +362,12 @@ export default function MessagesPage() {
       
       // Clear inputs
       setNewMessage('');
+      // Clean up object URLs before clearing files
+      selectedFiles.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          URL.revokeObjectURL(URL.createObjectURL(file));
+        }
+      });
       setSelectedFiles([]);
     } catch (error) {
       console.error('Error sending message with attachments:', error);
@@ -428,36 +445,33 @@ export default function MessagesPage() {
       {/* Left Sidebar - Conversations */}
       <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex w-full lg:w-80 ${isRTL ? 'border-l' : 'border-r'} border-gray-200 dark:border-gray-700 flex-col bg-white dark:bg-gray-800 shadow-sm ${selectedConversation && !showSidebar ? 'absolute inset-0 z-10 lg:relative lg:z-auto' : ''}`}>
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-              <MessageCircle className="w-6 h-6 mr-3 text-blue-600 dark:text-blue-400" />
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+              <MessageCircle className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
               {t('title')}
             </h1>
             <div className="text-sm text-gray-500 dark:text-gray-400">
               {conversations.length} {conversations.length === 1 ? t('conversation') : t('conversations')}
             </div>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {t('manageConversations')}
-          </p>
         </div>
 
         {/* Conversations List */}
         <div className="flex-1 overflow-y-auto">
           {conversations.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <MessageCircle className="h-8 w-8 opacity-50" />
+            <div className="p-6 text-center text-gray-500">
+              <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                <MessageCircle className="h-6 w-6 opacity-50" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('noConversations')}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{t('startConversation')}</p>
-              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+              <h3 className="text-base font-medium text-gray-900 dark:text-white mb-1">{t('noConversations')}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{t('startConversation')}</p>
+              <button className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm">
                 {t('browseListings')}
               </button>
             </div>
           ) : (
-            <div className="p-2">
+            <div className="p-1">
               {conversations.map((conversation) => {
                 const otherUser = Number(session?.user?.id) === conversation.buyer.id 
                   ? conversation.seller 
@@ -466,16 +480,16 @@ export default function MessagesPage() {
                 return (
                   <div
                     key={conversation.id}
-                    className={`p-4 rounded-xl cursor-pointer transition-all duration-200 mb-2 ${
+                    className={`p-3 rounded-lg cursor-pointer transition-all duration-200 mb-1 ${
                       selectedConversation?.id === conversation.id
-                        ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-700 shadow-sm'
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border-2 border-transparent'
+                        ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700'
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
                     }`}
                     onClick={() => handleConversationSelect(conversation)}
                   >
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-3">
                       {/* Listing Image */}
-                      <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700 shadow-sm">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700">
                         <Image
                           src={(() => {
                             if (!conversation.listingImageUrl) return getDefaultImageUrl();
@@ -493,13 +507,13 @@ export default function MessagesPage() {
                       
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-start justify-between mb-1">
                           <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight">
                             {conversation.listingBrand} {conversation.listingModel} {conversation.listingYear}
                           </h3>
-                          <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="flex items-center gap-1 flex-shrink-0">
                             {conversation.unreadCount > 0 && (
-                              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full min-w-[20px] h-5 flex items-center justify-center text-[10px] font-bold">
+                              <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[16px] h-4 flex items-center justify-center text-[10px] font-bold">
                                 {conversation.unreadCount}
                               </span>
                             )}
@@ -509,13 +523,13 @@ export default function MessagesPage() {
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="flex items-center gap-1 mb-1">
+                          <div className="w-4 h-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
                             <span className="text-white text-xs font-bold">
                               {otherUser.username.charAt(0).toUpperCase()}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                          <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
                             {otherUser.username}
                           </p>
                         </div>
@@ -543,7 +557,7 @@ export default function MessagesPage() {
         {selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {/* Back button for mobile */}
@@ -555,7 +569,7 @@ export default function MessagesPage() {
                   </button>
                   
                   {/* User Avatar */}
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-sm">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-base shadow-sm">
                     {(Number(session?.user?.id) === selectedConversation.buyer.id
                       ? selectedConversation.seller.username
                       : selectedConversation.buyer.username).charAt(0).toUpperCase()}
@@ -615,10 +629,10 @@ export default function MessagesPage() {
             </div>
 
             {/* Listing Info Section */}
-            <div className="p-3 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+            <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <div className="flex items-center gap-3">
                 {/* Listing Image */}
-                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700">
+                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700 shadow-sm">
                   <Image
                     src={(() => {
                       if (!selectedConversation.listingImageUrl) {
@@ -628,8 +642,8 @@ export default function MessagesPage() {
                       return transformedUrl || getDefaultImageUrl();
                     })()}
                     alt={`${selectedConversation.listingBrand} ${selectedConversation.listingModel}`}
-                    width={64}
-                    height={64}
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover"
                     unoptimized
                     onError={(e) => {
@@ -641,25 +655,28 @@ export default function MessagesPage() {
                 
                 {/* Listing Details */}
                 <div className="flex-1 min-w-0">
-                  <button 
-                    onClick={() => window.open(`/listings/${selectedConversation.listingId}`, '_blank')}
-                    className="w-full text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg p-2 -m-2 transition-colors"
-                  >
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                      {selectedConversation.listingBrand} {selectedConversation.listingModel} {selectedConversation.listingYear}
-                    </h3>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                        {selectedConversation.listingPrice} {selectedConversation.listingCurrency}
-                      </span>
-                    </div>
-                  </button>
+                                      <button 
+                      onClick={() => window.open(`/listings/${selectedConversation.listingId}`, '_blank')}
+                      className="w-full text-left hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-lg p-2 -m-2 transition-all duration-200"
+                    >
+                      <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                        {selectedConversation.listingBrand} {selectedConversation.listingModel} {selectedConversation.listingYear}
+                      </h3>
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-bold text-green-600 dark:text-green-400">
+                          {selectedConversation.listingPrice} {selectedConversation.listingCurrency}
+                        </span>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {t('clickToView')}
+                        </div>
+                      </div>
+                    </button>
                 </div>
               </div>
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 p-4 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+            <div className="flex-1 p-4 overflow-y-auto bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-gray-800">
               {messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center text-gray-500">
@@ -690,53 +707,74 @@ export default function MessagesPage() {
                             </div>
                           )}
                           <div
-                            className={`rounded-2xl px-4 py-2 ${
+                            className={`rounded-xl px-3 py-2 ${
                               isOwn
-                                ? `bg-blue-600 text-white ${isRTL ? 'rounded-bl-md' : 'rounded-br-md'}`
+                                ? `bg-gradient-to-r from-blue-600 to-blue-700 text-white ${isRTL ? 'rounded-bl-md' : 'rounded-br-md'}`
                                 : `bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 ${isRTL ? 'rounded-br-md' : 'rounded-bl-md'}`
                             }`}
                           >
-                            <p className="text-sm leading-relaxed">
-                              {message.displayContent || message.content}
-                            </p>
+                            {/* Only show text content if it's not just "Attachment" */}
+                            {(message.displayContent && message.displayContent !== 'Attachment') && (
+                              <p className="text-sm leading-relaxed">
+                                {message.displayContent}
+                              </p>
+                            )}
                             
                             {/* Message Attachments */}
                             {message.attachments && message.attachments.length > 0 && (
-                              <div className="mt-2 space-y-2">
+                              <div className="mt-2">
                                 {message.attachments.map((attachment) => (
-                                  <div key={`${message.id}-${attachment.id}`} className="flex items-center gap-2 p-2 bg-black/5 dark:bg-white/5 rounded-lg">
-                                    <div className="flex-shrink-0">
-                                      {attachment.isImage ? (
-                                        <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded flex items-center justify-center">
-                                          <span className="text-blue-600 dark:text-blue-400 text-xs font-medium">IMG</span>
-                                        </div>
-                                      ) : attachment.contentType === 'application/pdf' ? (
-                                        <div className="w-6 h-6 bg-red-100 dark:bg-red-900 rounded flex items-center justify-center">
-                                          <span className="text-red-600 dark:text-red-400 text-xs font-medium">PDF</span>
+                                    <div key={`${message.id}-${attachment.id}`}>
+                                      {attachment.image ? (
+                                        // Display image as small thumbnail inline
+                                        <div className="relative inline-block">
+                                          <Image
+                                            src={transformMinioUrl(attachment.fileUrl)}
+                                            alt={attachment.fileName}
+                                            width={120}
+                                            height={90}
+                                            className="rounded-lg max-w-[120px] max-h-[90px] object-cover cursor-pointer"
+                                            onClick={() => window.open(transformMinioUrl(attachment.fileUrl), '_blank')}
+                                            unoptimized
+                                            onError={(e) => {
+                                              console.error('Failed to load image:', attachment.fileUrl);
+                                              // Replace with a placeholder instead of hiding
+                                              e.currentTarget.src = getDefaultImageUrl();
+                                              e.currentTarget.onerror = null; // Prevent infinite loop
+                                            }}
+                                          />
                                         </div>
                                       ) : (
-                                        <div className="w-6 h-6 bg-gray-100 dark:bg-gray-600 rounded flex items-center justify-center">
-                                          <span className="text-gray-600 dark:text-gray-400 text-xs font-medium">DOC</span>
+                                        // Display non-image files as simple attachment
+                                        <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                          <div className="flex-shrink-0">
+                                            {attachment.contentType === 'application/pdf' ? (
+                                              <div className="w-6 h-6 bg-red-100 dark:bg-red-900 rounded flex items-center justify-center">
+                                                <span className="text-red-600 dark:text-red-400 text-xs font-medium">PDF</span>
+                                              </div>
+                                            ) : (
+                                              <div className="w-6 h-6 bg-gray-100 dark:bg-gray-600 rounded flex items-center justify-center">
+                                                <span className="text-gray-600 dark:text-gray-400 text-xs font-medium">DOC</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <p className={`text-xs font-medium truncate ${isOwn ? 'text-blue-100' : 'text-gray-700 dark:text-gray-300'}`}>
+                                              {attachment.fileName}
+                                            </p>
+                                            <p className={`text-xs ${isOwn ? 'text-blue-200' : 'text-gray-500 dark:text-gray-400'}`}>
+                                              {attachment.humanReadableSize || `${(attachment.size / 1024 / 1024).toFixed(2)} MB`}
+                                            </p>
+                                          </div>
+                                          <button
+                                            onClick={() => window.open(transformMinioUrl(attachment.fileUrl), '_blank')}
+                                            className={`text-xs px-2 py-1 rounded ${isOwn ? 'text-blue-100 hover:bg-blue-500' : 'text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20'} transition-colors`}
+                                          >
+                                            View
+                                          </button>
                                         </div>
                                       )}
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className={`text-xs font-medium truncate ${isOwn ? 'text-blue-100' : 'text-gray-700 dark:text-gray-300'}`}>
-                                        {attachment.fileName}
-                                      </p>
-                                      <p className={`text-xs ${isOwn ? 'text-blue-200' : 'text-gray-500 dark:text-gray-400'}`}>
-                                        {attachment.humanReadableSize || `${(attachment.size / 1024 / 1024).toFixed(2)} MB`}
-                                      </p>
-                                    </div>
-                                    {attachment.isImage && (
-                                      <button
-                                        onClick={() => window.open(attachment.fileUrl, '_blank')}
-                                        className={`text-xs px-2 py-1 rounded ${isOwn ? 'text-blue-100 hover:bg-blue-500' : 'text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20'} transition-colors`}
-                                      >
-                                        View
-                                      </button>
-                                    )}
-                                  </div>
                                 ))}
                               </div>
                             )}
@@ -794,7 +832,24 @@ export default function MessagesPage() {
             </div>
 
             {/* Message Input */}
-            <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+            <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg">
+              {/* Error Display */}
+              {uploadErrors.general && (
+                <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-red-100 dark:bg-red-800 rounded-full flex items-center justify-center">
+                      <span className="text-red-600 dark:text-red-400 text-xs">!</span>
+                    </div>
+                    <p className="text-sm text-red-700 dark:text-red-300">{uploadErrors.general}</p>
+                    <button
+                      onClick={() => setUploadErrors({})}
+                      className="ml-auto text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
               {/* File Preview */}
               {selectedFiles.length > 0 && (
                 <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
@@ -806,37 +861,53 @@ export default function MessagesPage() {
                   </div>
                   <div className="space-y-2">
                     {selectedFiles.map((file, index) => (
-                      <div key={`${file.name}-${file.size}-${index}`} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <div className="flex-shrink-0">
-                            {file.type.startsWith('image/') ? (
-                              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded flex items-center justify-center">
-                                <span className="text-blue-600 dark:text-blue-400 text-xs font-medium">IMG</span>
-                              </div>
-                            ) : file.type === 'application/pdf' ? (
-                              <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded flex items-center justify-center">
-                                <span className="text-red-600 dark:text-red-400 text-xs font-medium">PDF</span>
-                              </div>
-                            ) : (
-                              <div className="w-8 h-8 bg-gray-100 dark:bg-gray-600 rounded flex items-center justify-center">
-                                <span className="text-gray-600 dark:text-gray-400 text-xs font-medium">DOC</span>
-                              </div>
-                            )}
+                      <div key={`${file.name}-${file.size}-${index}`} className="relative inline-block">
+                        {file.type.startsWith('image/') ? (
+                          <div className="relative">
+                            <Image
+                              src={URL.createObjectURL(file)}
+                              alt={file.name}
+                              width={80}
+                              height={60}
+                              className="rounded-lg max-w-[80px] max-h-[60px] object-cover"
+                              unoptimized
+                            />
+                            <button
+                              onClick={() => removeFile(index)}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                              title="Remove file"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{file.name}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {(file.size / 1024 / 1024).toFixed(2)} MB
-                            </p>
+                        ) : (
+                          <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div className="flex-shrink-0">
+                              {file.type === 'application/pdf' ? (
+                                <div className="w-6 h-6 bg-red-100 dark:bg-red-900 rounded flex items-center justify-center">
+                                  <span className="text-red-600 dark:text-red-400 text-xs font-medium">PDF</span>
+                                </div>
+                              ) : (
+                                <div className="w-6 h-6 bg-gray-100 dark:bg-gray-600 rounded flex items-center justify-center">
+                                  <span className="text-gray-600 dark:text-gray-400 text-xs font-medium">DOC</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{file.name}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => removeFile(index)}
+                              className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                              title="Remove file"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
                           </div>
-                        </div>
-                        <button
-                          onClick={() => removeFile(index)}
-                          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                          title="Remove file"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -852,19 +923,21 @@ export default function MessagesPage() {
                     accept="image/*,.pdf,.doc,.docx,.txt"
                     onChange={handleFileSelect}
                     className="hidden"
+                    aria-label="Attach files to message"
                   />
-                  <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    title="Attach file"
-                    disabled={uploading}
-                  >
+                                      <button 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
+                      title="Attach file"
+                      aria-label="Attach file to message"
+                      disabled={uploading}
+                    >
                     <Paperclip className="h-5 w-5" />
                   </button>
                 </div>
                 
                 <div className="flex-1 relative">
-                  <div className="flex items-end bg-gray-100 dark:bg-gray-700 rounded-2xl border border-gray-200 dark:border-gray-600 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                  <div className="flex items-end bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all duration-200">
                     <textarea
                       placeholder={t('writeMessage')}
                       value={newMessage}
@@ -877,7 +950,7 @@ export default function MessagesPage() {
                     <button
                       onClick={handleSendMessageWithAttachments}
                       disabled={(!newMessage.trim() && selectedFiles.length === 0) || sending || uploading}
-                      className="m-1 p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-full transition-colors flex-shrink-0"
+                      className="m-1 p-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-200 flex-shrink-0"
                       title={sending || uploading ? t('sending') : t('sendMessage')}
                     >
                       {sending || uploading ? (

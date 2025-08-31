@@ -88,12 +88,12 @@ public class MessageResponse {
         
         // Helper fields for frontend
         private String humanReadableSize;
-        private boolean isImage;
-        private boolean isDocument;
-        private boolean isVideo;
-        private boolean isAudio;
+        private boolean image;
+        private boolean document;
+        private boolean video;
+        private boolean audio;
         private String fileExtension;
-        private boolean isValidFileType;
+        private boolean validFileType;
     }
     
     // Helper methods for frontend

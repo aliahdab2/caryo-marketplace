@@ -28,6 +28,11 @@ public interface MessageAttachmentRepository extends JpaRepository<MessageAttach
     List<MessageAttachment> findByMessageIdOrderByCreatedAtAsc(Long messageId);
     
     /**
+     * Find all attachments for multiple messages by message IDs (batch loading)
+     */
+    List<MessageAttachment> findByMessageIdInOrderByCreatedAtAsc(List<Long> messageIds);
+    
+    /**
      * Find all non-deleted attachments for a message
      */
     @Query("SELECT ma FROM MessageAttachment ma WHERE ma.message.id = :messageId AND ma.deletedAt IS NULL ORDER BY ma.createdAt ASC")

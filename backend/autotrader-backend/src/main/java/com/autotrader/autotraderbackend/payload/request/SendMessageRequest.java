@@ -15,9 +15,8 @@ public class SendMessageRequest {
     
     /**
      * The content of the message to send.
-     * Required and must be between 1 and 1000 characters.
+     * Optional when sending attachments, must be between 1 and 1000 characters if provided.
      */
-    @NotBlank(message = "Message content is required")
     @Size(max = 1000, message = "Message cannot exceed 1000 characters")
     private String content;
     

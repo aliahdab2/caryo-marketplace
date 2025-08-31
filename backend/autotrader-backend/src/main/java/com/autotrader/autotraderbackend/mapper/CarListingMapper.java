@@ -405,8 +405,8 @@ public class CarListingMapper {
             log.debug("Using external URL for {} video: {}", media.getVideoSource(), 
                 Objects.nonNull(mediaUrl) ? "[URL Present]" : "[URL Null]");
         } else {
-            // For uploaded files (images and uploaded videos), generate signed URL
-            mediaUrl = generateSignedUrl(listingId, media.getFileKey());
+            // For uploaded files (images and uploaded videos), return file key for frontend transformation
+            mediaUrl = media.getFileKey();
         }
         mediaResponse.setUrl(mediaUrl);
         

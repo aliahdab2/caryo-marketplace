@@ -44,9 +44,8 @@ public class Message {
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
     
-    @NotBlank(message = "Message content is required")
-    @Size(min = 1, max = 1000, message = "Message content must be between 1 and 1000 characters")
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Size(max = 1000, message = "Message content cannot exceed 1000 characters")
+    @Column(nullable = true, columnDefinition = "TEXT")
     private String content;
     
     @NotNull(message = "Message type is required")
