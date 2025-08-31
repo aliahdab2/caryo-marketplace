@@ -46,8 +46,8 @@ export default function MessagesPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadErrors, setUploadErrors] = useState<{[key: string]: string}>({});
   
-  // Typing indicator state
-  const [isTyping, setIsTyping] = useState(false);
+  // Typing indicator state (for other person typing)
+  const [otherPersonTyping, setOtherPersonTyping] = useState(false);
   
   // Modal states
   const [showBlockModal, setShowBlockModal] = useState(false);
@@ -80,16 +80,16 @@ export default function MessagesPage() {
     }
   };
 
-  // Typing indicator logic
-  useEffect(() => {
-    if (newMessage.trim()) {
-      setIsTyping(true);
-      const timer = setTimeout(() => setIsTyping(false), 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setIsTyping(false);
-    }
-  }, [newMessage]);
+  // TODO: Implement real-time typing indicators with WebSocket/Server-Sent Events
+  // For now, we'll remove the self-typing indicator as it's confusing UX
+  // The typing indicator should only show when the OTHER person is typing
+  
+  // Real typing indicator would work like this:
+  // 1. When user types, send "typing_start" event to server
+  // 2. Server broadcasts to other participants in conversation
+  // 3. Show typing indicator for other person
+  // 4. Send "typing_stop" after user stops typing for 2-3 seconds
+  // 5. Auto-hide typing indicator after timeout
 
   // Action loading state
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -803,8 +803,8 @@ export default function MessagesPage() {
                     );
                   })}
                   
-                  {/* Typing indicator */}
-                  {isTyping && (
+                  {/* Typing indicator - only show when OTHER person is typing */}
+                  {otherPersonTyping && (
                     <div className="flex justify-start">
                       <div className="flex items-center gap-2 max-w-[75%]">
                         <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-xs">
