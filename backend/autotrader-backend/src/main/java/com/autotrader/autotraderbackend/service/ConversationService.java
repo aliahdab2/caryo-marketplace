@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.web.multipart.MultipartFile;
+import org.apache.tika.Tika;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -337,7 +338,8 @@ public class ConversationService {
         MessageResponse response = MessageResponse.builder()
                 .id(message.getId())
                 .conversationId(message.getConversation().getId())
-                .content(message.getDisplayContent())
+                .content(message.getContent())
+                .displayContent(message.getContent())
                 .messageType(message.getMessageType().name())
                 .isRead(message.isRead())
                 .readAt(message.getReadAt())
@@ -407,14 +409,15 @@ public class ConversationService {
             throw new BadRequestException("File cannot be empty");
         }
 
-        // Check file type and size
-        String contentType = file.getContentType();
-        if (contentType == null || !isAllowedFileType(contentType)) {
-            throw new BadRequestException("Unsupported file type: " + contentType);
+        // Check file type and size using Apache Tika for security
+        if (!isAllowedFileType(file)) {
+            throw new BadRequestException("Unsupported file type: " + file.getContentType());
         }
 
-        if (file.getSize() > 10 * 1024 * 1024) { // 10MB limit
-            throw new BadRequestException("File size cannot exceed 10MB");
+        long maxFileSize = getMaxFileSize(file.getContentType());
+        if (file.getSize() > maxFileSize) {
+            String maxSizeMB = String.valueOf(maxFileSize / (1024 * 1024));
+            throw new BadRequestException("File size cannot exceed " + maxSizeMB + "MB for this file type");
         }
 
         // Generate file key
@@ -558,13 +561,7 @@ public class ConversationService {
                 .build();
     }
 
-    private boolean isAllowedFileType(String contentType) {
-        return contentType.startsWith("image/") ||
-               contentType.startsWith("application/pdf") ||
-               contentType.startsWith("application/msword") ||
-               contentType.startsWith("application/vnd.openxmlformats-officedocument") ||
-               contentType.equals("text/plain");
-    }
+
 
     /**
      * Validate that a user is a participant in the conversation
@@ -574,5 +571,84 @@ public class ConversationService {
             !conversation.getSeller().getId().equals(user.getId())) {
             throw new BadRequestException("User is not a participant in this conversation");
         }
+    }
+
+    /**
+     * Check if the file type is allowed for message attachments using Apache Tika for security
+     * Following best practices from Blocket and AutoTrader UK
+     */
+    private boolean isAllowedFileType(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return false;
+        }
+        
+        try {
+            // Use Apache Tika for deep file inspection (security best practice)
+            Tika tika = new Tika();
+            String detectedType = tika.detect(file.getInputStream()).toLowerCase().trim();
+            
+            // Reset input stream for later use
+            file.getInputStream().reset();
+            
+            // Image types (existing support)
+            if (detectedType.startsWith("image/")) {
+                return detectedType.equals("image/jpeg") ||
+                       detectedType.equals("image/jpg") ||
+                       detectedType.equals("image/png") ||
+                       detectedType.equals("image/webp") ||
+                       detectedType.equals("image/gif");
+            }
+            
+            // Document types (new support)
+            switch (detectedType) {
+                // PDF documents
+                case "application/pdf":
+                    return true;
+                
+                // Microsoft Word documents
+                case "application/msword": // .doc
+                case "application/vnd.openxmlformats-officedocument.wordprocessingml.document": // .docx
+                    return true;
+                
+                // Microsoft Excel spreadsheets (for service records, etc.)
+                case "application/vnd.ms-excel": // .xls
+                case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": // .xlsx
+                    return true;
+                
+                // Plain text files
+                case "text/plain":
+                    return true;
+                
+                // Rich Text Format
+                case "application/rtf":
+                    return true;
+                    
+                default:
+                    log.warn("Rejected file type: {} for file: {}", detectedType, file.getOriginalFilename());
+                    return false;
+            }
+        } catch (Exception e) {
+            log.error("Error detecting file type for: {}, error: {}", file.getOriginalFilename(), e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get maximum file size based on file type
+     */
+    private long getMaxFileSize(String contentType) {
+        if (contentType == null) {
+            return 10 * 1024 * 1024; // 10MB default
+        }
+        
+        String normalizedType = contentType.toLowerCase().trim();
+        
+        // Images: 10MB limit
+        if (normalizedType.startsWith("image/")) {
+            return 10 * 1024 * 1024;
+        }
+        
+        // Documents: 25MB limit (larger for comprehensive documents)
+        return 25 * 1024 * 1024;
     }
 }
