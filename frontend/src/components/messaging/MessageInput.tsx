@@ -18,9 +18,10 @@ const formatFileSize = (bytes: number) => {
 interface ImagePreviewProps {
   file: File;
   onRemove: () => void;
+  isRTL?: boolean;
 }
 
-function ImagePreview({ file, onRemove }: ImagePreviewProps) {
+function ImagePreview({ file, onRemove, isRTL = false }: ImagePreviewProps) {
   return (
     <div className="relative group">
       <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
@@ -40,7 +41,7 @@ function ImagePreview({ file, onRemove }: ImagePreviewProps) {
           </button>
         </div>
       </div>
-      <div className="mt-1 text-center">
+      <div className={`mt-1 ${isRTL ? 'text-right' : 'text-center'}`}>
         <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{file.name}</p>
         <p className="text-xs text-gray-500 dark:text-gray-500">{formatFileSize(file.size)}</p>
       </div>
@@ -52,9 +53,10 @@ function ImagePreview({ file, onRemove }: ImagePreviewProps) {
 interface DocumentPreviewProps {
   file: File;
   onRemove: () => void;
+  isRTL?: boolean;
 }
 
-function DocumentPreview({ file, onRemove }: DocumentPreviewProps) {
+function DocumentPreview({ file, onRemove, isRTL = false }: DocumentPreviewProps) {
   const getFileIcon = (file: File) => {
     if (file.type === 'application/pdf') {
       return { icon: '📄', color: 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400', label: 'PDF' };
@@ -72,11 +74,11 @@ function DocumentPreview({ file, onRemove }: DocumentPreviewProps) {
   const fileInfo = getFileIcon(file);
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
+    <div className={`flex items-center gap-3 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-colors ${isRTL ? 'flex-row-reverse' : ''}`}>
       <div className={`w-10 h-10 rounded-lg ${fileInfo.color} flex items-center justify-center flex-shrink-0`}>
         <span className="text-xs font-bold">{fileInfo.label}</span>
       </div>
-      <div className="flex-1 min-w-0">
+      <div className={`flex-1 min-w-0 ${isRTL ? 'text-right' : 'text-left'}`}>
         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
           {file.name}
         </p>
@@ -86,7 +88,7 @@ function DocumentPreview({ file, onRemove }: DocumentPreviewProps) {
       </div>
       <button
         onClick={onRemove}
-        className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
+        className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors hover:scale-110 transform"
         title="Remove file"
       >
         <X className="h-4 w-4" />
@@ -127,15 +129,16 @@ export default function MessageInput({
   const { t } = useTranslation('messages');
 
   const canSend = (!newMessage.trim() && selectedFiles.length === 0) || sending || uploading;
+  const shouldShowSendButton = newMessage.trim() || selectedFiles.length > 0;
 
   return (
     <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-      {/* File preview area - Enhanced visibility */}
+      {/* File preview area - Enhanced visibility with RTL support */}
       {selectedFiles.length > 0 && (
-        <div className="px-4 pb-2">
+        <div className={`px-4 pb-2 ${isRTL ? 'text-right' : 'text-left'}`}>
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-700">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
+            <div className={`flex items-center justify-between mb-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                 <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
                   {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''} ready to send
@@ -143,8 +146,8 @@ export default function MessageInput({
               </div>
               <button
                 onClick={onClearAllFiles}
-                className="text-blue-500 hover:text-red-600 dark:text-blue-400 dark:hover:text-red-400 transition-colors"
-                title="Clear all files"
+                className="text-blue-500 hover:text-red-600 dark:text-blue-400 dark:hover:text-red-400 transition-colors hover:scale-110 transform"
+                title={t('clearAllFiles')}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -155,9 +158,9 @@ export default function MessageInput({
               {/* Images Section */}
               {selectedFiles.filter(file => file.type.startsWith('image/')).length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className={`flex items-center gap-2 mb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                     <span className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">
-                      📷 Images ({selectedFiles.filter(file => file.type.startsWith('image/')).length})
+                      📷 {t('images')} ({selectedFiles.filter(file => file.type.startsWith('image/')).length})
                     </span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -169,6 +172,7 @@ export default function MessageInput({
                           key={`${file.name}-${index}`}
                           file={file}
                           onRemove={() => onRemoveFile(index)}
+                          isRTL={isRTL}
                         />
                       ))}
                   </div>
@@ -178,9 +182,9 @@ export default function MessageInput({
               {/* Documents Section */}
               {selectedFiles.filter(file => !file.type.startsWith('image/')).length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className={`flex items-center gap-2 mb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                     <span className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">
-                      📎 Documents ({selectedFiles.filter(file => !file.type.startsWith('image/')).length})
+                      📎 {t('documents')} ({selectedFiles.filter(file => !file.type.startsWith('image/')).length})
                     </span>
                   </div>
                   <div className="space-y-2">
@@ -192,6 +196,7 @@ export default function MessageInput({
                           key={`${file.name}-${index}`}
                           file={file}
                           onRemove={() => onRemoveFile(index)}
+                          isRTL={isRTL}
                         />
                       ))}
                   </div>
@@ -203,11 +208,12 @@ export default function MessageInput({
       )}
 
       <div className="p-4">
-        <div className="flex items-end bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all duration-200">
+        <div className={`flex items-end bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all duration-200 ${isRTL ? 'flex-row-reverse' : ''}`}>
           {/* File Upload Buttons - positioned like Blocket */}
-          <div className="flex items-end p-2">
+          <div className={`flex items-end p-2 ${isRTL ? 'order-3' : 'order-1'}`}>
             <FileUpload
               uploading={uploading}
+              isRTL={isRTL}
               onImageSelect={onImageSelect}
               onDocumentSelect={onDocumentSelect}
             />
@@ -219,22 +225,27 @@ export default function MessageInput({
             onChange={(e) => onMessageChange(e.target.value)}
             onKeyDown={onKeyPress}
             rows={1}
-            className="flex-1 p-3 bg-transparent border-0 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-0 focus:outline-none resize-none text-sm max-h-32"
+            className={`flex-1 p-3 bg-transparent border-0 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-0 focus:outline-none resize-none text-sm max-h-32 ${isRTL ? 'text-right order-2' : 'text-left order-2'}`}
             style={{ minHeight: '44px' }}
+            dir={isRTL ? 'rtl' : 'ltr'}
           />
           
-          <button
-            onClick={onSendMessage}
-            disabled={canSend}
-            className="m-1 p-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-200 flex-shrink-0"
-            title={sending || uploading ? t('sending') : t('sendMessage')}
-          >
-            {sending || uploading ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-            ) : (
-              <Send className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
-            )}
-          </button>
+          {shouldShowSendButton && (
+            <div className={`flex items-end p-2 ${isRTL ? 'order-1' : 'order-3'}`}>
+              <button
+                onClick={onSendMessage}
+                disabled={canSend}
+                className="p-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-200 flex-shrink-0 group"
+                title={sending || uploading ? t('sending') : t('sendMessage')}
+              >
+                {sending || uploading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                ) : (
+                  <Send className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''} group-hover:scale-110 transition-transform`} />
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

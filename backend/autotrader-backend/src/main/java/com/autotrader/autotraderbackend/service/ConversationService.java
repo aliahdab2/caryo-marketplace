@@ -409,15 +409,18 @@ public class ConversationService {
             throw new BadRequestException("File cannot be empty");
         }
 
-        // Check file type and size using Apache Tika for security
-        if (!isAllowedFileType(file)) {
-            throw new BadRequestException("Unsupported file type: " + file.getContentType());
-        }
-
-        long maxFileSize = getMaxFileSize(file.getContentType());
+        String contentType = file.getContentType();
+        
+        // Check file size first (before expensive Tika validation)
+        long maxFileSize = getMaxFileSize(contentType);
         if (file.getSize() > maxFileSize) {
             String maxSizeMB = String.valueOf(maxFileSize / (1024 * 1024));
             throw new BadRequestException("File size cannot exceed " + maxSizeMB + "MB for this file type");
+        }
+
+        // Check file type using Apache Tika for security
+        if (!isAllowedFileType(file)) {
+            throw new BadRequestException("Unsupported file type: " + contentType);
         }
 
         // Generate file key
@@ -442,6 +445,10 @@ public class ConversationService {
                 .build();
 
         attachment = messageAttachmentRepository.save(attachment);
+        
+        if (attachment == null) {
+            throw new BadRequestException("Failed to save attachment");
+        }
 
         Map<String, Object> result = new HashMap<>();
         result.put("id", attachment.getId());
@@ -494,7 +501,7 @@ public class ConversationService {
     private MessageAttachment createMessageAttachment(Message message, MultipartFile file) {
         // Validate file
         String contentType = file.getContentType();
-        if (contentType == null || !isAllowedFileType(contentType)) {
+        if (contentType == null || !isAllowedFileType(file)) {
             throw new BadRequestException("Unsupported file type: " + contentType);
         }
 
@@ -582,13 +589,38 @@ public class ConversationService {
             return false;
         }
         
+        String declaredContentType = file.getContentType();
+        
+        // First check declared content type for obvious rejections
+        if (declaredContentType != null) {
+            String normalizedDeclared = declaredContentType.toLowerCase().trim();
+            // Reject obviously dangerous types based on declared content type
+            if (normalizedDeclared.contains("javascript") || 
+                normalizedDeclared.contains("executable") ||
+                normalizedDeclared.contains("script") ||
+                normalizedDeclared.equals("text/html") ||
+                normalizedDeclared.startsWith("video/") ||
+                normalizedDeclared.startsWith("audio/")) {
+                log.warn("Rejected file based on declared content type: {} for file: {}", declaredContentType, file.getOriginalFilename());
+                return false;
+            }
+        }
+        
         try {
             // Use Apache Tika for deep file inspection (security best practice)
             Tika tika = new Tika();
             String detectedType = tika.detect(file.getInputStream()).toLowerCase().trim();
             
+            log.debug("File type detection - Declared: {}, Detected: {} for file: {}", 
+                     declaredContentType, detectedType, file.getOriginalFilename());
+            
             // Reset input stream for later use
-            file.getInputStream().reset();
+            try {
+                file.getInputStream().reset();
+            } catch (Exception resetException) {
+                // Input stream might not support reset, that's okay
+                log.debug("Could not reset input stream for file: {}", file.getOriginalFilename());
+            }
             
             // Image types (existing support)
             if (detectedType.startsWith("image/")) {
@@ -630,6 +662,40 @@ public class ConversationService {
         } catch (Exception e) {
             log.error("Error detecting file type for: {}, error: {}", file.getOriginalFilename(), e.getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Check if the file type is allowed for message attachments (String version)
+     */
+    private boolean isAllowedFileType(String contentType) {
+        if (contentType == null) {
+            return false;
+        }
+        
+        String normalizedType = contentType.toLowerCase().trim();
+        
+        // Image types
+        if (normalizedType.startsWith("image/")) {
+            return normalizedType.equals("image/jpeg") ||
+                   normalizedType.equals("image/jpg") ||
+                   normalizedType.equals("image/png") ||
+                   normalizedType.equals("image/webp") ||
+                   normalizedType.equals("image/gif");
+        }
+        
+        // Document types
+        switch (normalizedType) {
+            case "application/pdf":
+            case "application/msword":
+            case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+            case "application/vnd.ms-excel":
+            case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+            case "text/plain":
+            case "application/rtf":
+                return true;
+            default:
+                return false;
         }
     }
 

@@ -1,11 +1,22 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 
 import { Check, CheckCheck, Download } from 'lucide-react';
 import { MessageResponse } from '@/services/messaging';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
 import Image from 'next/image';
+import CarMediaGallery from '@/components/CarMediaGallery';
+
+interface AttachmentType {
+  id: number;
+  fileName: string;
+  fileUrl: string;
+  contentType?: string;
+  size: number;
+  image?: boolean;
+  humanReadableSize?: string;
+}
 
 interface MessageBubbleProps {
   message: MessageResponse;
@@ -15,6 +26,8 @@ interface MessageBubbleProps {
 }
 
 export default function MessageBubble({ message, isOwn, isRTL: _isRTL, onDownloadDocument }: MessageBubbleProps) {
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const galleryRef = useRef<HTMLDivElement>(null);
 
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString([], { 
@@ -23,73 +36,110 @@ export default function MessageBubble({ message, isOwn, isRTL: _isRTL, onDownloa
     });
   };
 
+  // Extract all images from attachments for gallery
+  const imageAttachments = message.attachments?.filter(attachment => 
+    attachment.image || attachment.contentType?.startsWith('image/')
+  ) || [];
+
+  const galleryMedia = imageAttachments.map(attachment => ({
+    type: 'image' as const,
+    url: transformMinioUrl(attachment.fileUrl),
+    alt: attachment.fileName || 'Message attachment'
+  }));
+
+  const handleImageClick = (clickedAttachment: AttachmentType) => {
+    const clickedIndex = imageAttachments.findIndex(att => att.id === clickedAttachment.id);
+    setSelectedImageIndex(clickedIndex >= 0 ? clickedIndex : 0);
+    
+    // Trigger the CarMediaGallery modal by simulating a click on the gallery
+    setTimeout(() => {
+      if (galleryRef.current) {
+        const clickableElement = galleryRef.current.querySelector('.cursor-pointer') as HTMLElement;
+        if (clickableElement) {
+          clickableElement.click();
+        }
+      }
+    }, 100);
+  };
+
   return (
-    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`max-w-xs lg:max-w-md ${isOwn ? 'order-2' : 'order-1'}`}>
-        <div
-          className={`rounded-2xl px-4 py-2 ${
-            isOwn
-              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-          }`}
-        >
-          {/* Message Content */}
-          {message.displayContent && message.displayContent.trim() && (
-            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-              {message.displayContent}
-            </p>
-          )}
+    <>
+      <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4`}>
+        <div className={`max-w-xs lg:max-w-md ${isOwn ? 'order-2' : 'order-1'}`}>
+          <div
+            className={`rounded-2xl px-4 py-2 ${
+              isOwn
+                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+            }`}
+          >
+            {/* Message Content */}
+            {message.displayContent && message.displayContent.trim() && (
+              <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                {message.displayContent}
+              </p>
+            )}
 
-          {/* Attachments */}
-          {message.attachments && message.attachments.length > 0 && (
-            <div className={`${message.displayContent && message.displayContent.trim() ? 'mt-2' : ''} space-y-2`}>
-              {message.attachments.map((attachment, index) => (
-                <AttachmentDisplay
-                  key={`${attachment.id}-${index}`}
-                  attachment={attachment}
-                  isOwn={isOwn}
-                  onDownloadDocument={onDownloadDocument}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Message Time and Status */}
-          <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-            <span className={`text-xs ${isOwn ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>
-              {formatTime(message.createdAt)}
-            </span>
-            {isOwn && (
-              <div className="flex items-center">
-                {message.isRead ? (
-                  <CheckCheck className="h-3 w-3 text-blue-200" />
-                ) : (
-                  <Check className="h-3 w-3 text-blue-200" />
-                )}
+            {/* Attachments */}
+            {message.attachments && message.attachments.length > 0 && (
+              <div className={`${message.displayContent && message.displayContent.trim() ? 'mt-2' : ''} space-y-2`}>
+                {message.attachments.map((attachment, index) => (
+                  <AttachmentDisplay
+                    key={`${attachment.id}-${index}`}
+                    attachment={attachment}
+                    isOwn={isOwn}
+                    onDownloadDocument={onDownloadDocument}
+                    onImageClick={handleImageClick}
+                  />
+                ))}
               </div>
             )}
+
+            {/* Message Time and Status */}
+            <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+              <span className={`text-xs ${isOwn ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>
+                {formatTime(message.createdAt)}
+              </span>
+              {isOwn && (
+                <div className="flex items-center">
+                  {message.isRead ? (
+                    <CheckCheck className="h-3 w-3 text-blue-200" />
+                  ) : (
+                    <Check className="h-3 w-3 text-blue-200" />
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* CarMediaGallery with built-in modal - hidden but functional */}
+      {galleryMedia.length > 0 && (
+        <div 
+          ref={galleryRef}
+          className="fixed top-0 left-0 w-0 h-0 overflow-hidden opacity-0"
+          style={{ zIndex: -1 }}
+        >
+          <CarMediaGallery
+            media={galleryMedia}
+            initialIndex={selectedImageIndex}
+            key={`gallery-${selectedImageIndex}`} // Force re-render when index changes
+          />
+        </div>
+      )}
+    </>
   );
 }
 
 interface AttachmentDisplayProps {
-  attachment: {
-    id: number;
-    fileName: string;
-    fileUrl: string;
-    contentType?: string;
-    size: number;
-    image?: boolean;
-    humanReadableSize?: string;
-  };
+  attachment: AttachmentType;
   isOwn: boolean;
   onDownloadDocument: (fileKey: string, fileName: string) => void;
+  onImageClick?: (attachment: AttachmentType) => void;
 }
 
-function AttachmentDisplay({ attachment, isOwn, onDownloadDocument }: AttachmentDisplayProps) {
+function AttachmentDisplay({ attachment, isOwn, onDownloadDocument, onImageClick }: AttachmentDisplayProps) {
   const isImage = attachment.image || attachment.contentType?.startsWith('image/');
 
   if (isImage) {
@@ -100,8 +150,8 @@ function AttachmentDisplay({ attachment, isOwn, onDownloadDocument }: Attachment
           alt={attachment.fileName}
           width={200}
           height={150}
-          className="rounded-lg max-w-[200px] max-h-[150px] object-cover cursor-pointer"
-          onClick={() => window.open(transformMinioUrl(attachment.fileUrl), '_blank')}
+          className="rounded-lg max-w-[200px] max-h-[150px] object-cover cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={() => onImageClick ? onImageClick(attachment) : window.open(transformMinioUrl(attachment.fileUrl), '_blank')}
           unoptimized
           onError={(e) => {
             console.error('Failed to load image:', attachment.fileUrl);

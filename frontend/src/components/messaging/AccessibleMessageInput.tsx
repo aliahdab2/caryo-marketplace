@@ -126,6 +126,7 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
   const characterCount = value.length;
   const isNearLimit = characterCount > maxLength * 0.8;
   const isOverLimit = characterCount > maxLength;
+  const shouldShowSendButton = value.trim() || selectedFiles.length > 0;
   
   return (
     <div className="space-y-3">
@@ -260,15 +261,17 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
         </div>
         
         {/* Send Button */}
-        <button
-          onClick={handleSend}
-          disabled={(!value.trim() && selectedFiles.length === 0) || disabled || isOverLimit}
-          className="p-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          aria-label={t('sendMessage')}
-          type="button"
-        >
-          <Send className="h-4 w-4" />
-        </button>
+        {shouldShowSendButton && (
+          <button
+            onClick={handleSend}
+            disabled={(!value.trim() && selectedFiles.length === 0) || disabled || isOverLimit}
+            className="p-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            aria-label={t('sendMessage')}
+            type="button"
+          >
+            <Send className="h-4 w-4" />
+          </button>
+        )}
       </div>
       
       {/* Drag and Drop Overlay */}
