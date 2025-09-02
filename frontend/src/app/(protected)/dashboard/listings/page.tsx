@@ -3,8 +3,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useOptimizedUser } from "@/hooks/useOptimizedSession";
-import { getMyListings, deleteListingById, deleteMultipleListings } from "../../../services/listings";
-import { Listing } from "../../../types/listings";
+import { getMyListings, deleteListingById, deleteMultipleListings } from "@/services/listings";
+import { Listing } from "@/types/listings";
 import { ListingsView } from "@/components/listings";
 import { 
   MdSearch, 
