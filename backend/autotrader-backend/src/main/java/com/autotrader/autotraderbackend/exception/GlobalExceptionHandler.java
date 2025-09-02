@@ -96,6 +96,19 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handle security exceptions thrown by service-layer guards
+     */
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSecurityException(
+            SecurityException ex, WebRequest request) {
+        Locale locale = getUserLocale(request);
+        String message = getMessage("error.access.denied", locale);
+        log.warn("Security exception: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(message));
+    }
+
+    /**
      * Handle storage exceptions (file upload/validation errors)
      */
     @ExceptionHandler(StorageException.class)
