@@ -2,7 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useOptimizedSession } from "@/hooks/useOptimizedSession";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useEffect, FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useApiErrorHandler } from '@/utils/apiErrorHandler';
@@ -21,6 +21,7 @@ const SignInPage: React.FC = () => {
 
   const { t } = useTranslation(['auth', 'errors']);
   const router = useRouter();
+  const _searchParams = useSearchParams();
   const { getErrorMessage } = useApiErrorHandler();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +29,7 @@ const SignInPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("/dashboard");
+  const [verificationSuccess, setVerificationSuccess] = useState(false);
   const [callbackUrlLoaded, setCallbackUrlLoaded] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -46,6 +48,8 @@ const SignInPage: React.FC = () => {
       const searchParams = new URLSearchParams(window.location.search);
       const returnUrl = searchParams.get('returnUrl');
       const callback = searchParams.get('callbackUrl');
+      const verified = searchParams.get('verified');
+      const email = searchParams.get('email');
       
       // Check localStorage for redirect URL (from FavoriteButton or other sources) - fallback only
       const storedRedirect = localStorage.getItem('redirectAfterAuth');
@@ -73,6 +77,16 @@ const SignInPage: React.FC = () => {
         if (process.env.NODE_ENV !== 'test') {
           console.warn('Error parsing redirect URL:', e);
           setCallbackUrl('/dashboard');
+        }
+      }
+      
+      // Handle email verification success
+      if (verified === 'true') {
+        setVerificationSuccess(true);
+        
+        // Pre-fill username with email if provided
+        if (email) {
+          setUsername(decodeURIComponent(email));
         }
       }
       
@@ -288,6 +302,15 @@ const SignInPage: React.FC = () => {
                   <line x1="12" y1="16" x2="12.01" y2="16"></line>
                 </svg>
                 {error}
+              </div>
+            )}
+            {verificationSuccess && (
+              <div role="alert" className="mb-6 p-3 sm:p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-md dark:bg-green-900/30 dark:text-green-200 dark:border-green-700 flex items-center text-xs sm:text-sm">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                {t('auth:emailVerified')} {t('auth:pleaseSignIn')}
               </div>
             )}
             {showSuccess && (

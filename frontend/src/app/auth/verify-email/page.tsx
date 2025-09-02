@@ -10,6 +10,7 @@ export default function VerifyEmailPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'invalid'>('loading');
   const [message, setMessage] = useState('');
   const [hasAttempted, setHasAttempted] = useState(false);
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -42,9 +43,14 @@ export default function VerifyEmailPage() {
           setStatus('success');
           setMessage(data.message || 'Perfect! Your email has been verified successfully. You can now sign in to your account.');
           
+          // Store the verified email for use in JSX
+          const email = data.email || searchParams.get('email') || '';
+          setVerifiedEmail(email);
+          
           // Redirect to sign-in page after 4 seconds (give users time to read)
           setTimeout(() => {
-            router.push('/auth/signin?verified=true');
+            const redirectUrl = `/auth/signin?verified=true${email ? `&email=${encodeURIComponent(email)}` : ''}`;
+            router.push(redirectUrl);
           }, 4000);
         } else {
           setStatus('error');
@@ -116,7 +122,7 @@ export default function VerifyEmailPage() {
                 Redirecting to sign in page in a few seconds...
               </p>
               <Link
-                href="/auth/signin?verified=true"
+                href={`/auth/signin?verified=true${verifiedEmail ? `&email=${encodeURIComponent(verifiedEmail)}` : ''}`}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
               >
                 Sign In Now
