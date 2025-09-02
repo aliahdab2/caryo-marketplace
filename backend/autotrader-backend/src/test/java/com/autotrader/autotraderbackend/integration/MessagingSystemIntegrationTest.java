@@ -5,7 +5,7 @@ import com.autotrader.autotraderbackend.payload.request.CreateConversationReques
 import com.autotrader.autotraderbackend.payload.request.SendMessageRequest;
 import com.autotrader.autotraderbackend.payload.response.ApiResponse;
 import com.autotrader.autotraderbackend.payload.response.ConversationResponse;
-import com.autotrader.autotraderbackend.payload.response.MessageResponse;
+
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.ConversationRepository;
 import com.autotrader.autotraderbackend.repository.MessageRepository;
@@ -214,7 +214,7 @@ public class MessagingSystemIntegrationTest {
 
         // Try to access conversation as unauthorized user
         mockMvc.perform(get("/api/conversations/{id}/messages", conversation.getId()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isBadRequest());
     }
 
     @Test

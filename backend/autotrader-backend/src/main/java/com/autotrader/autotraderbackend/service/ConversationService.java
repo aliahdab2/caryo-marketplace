@@ -12,7 +12,7 @@ import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.MessageAttachmentRepository;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.exception.BadRequestException;
-import org.springframework.security.access.AccessDeniedException;
+
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -240,7 +240,7 @@ public class ConversationService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
         if (!conversation.isParticipant(user)) {
-            throw new AccessDeniedException("Access denied: Not a participant in this conversation");
+            throw new BadRequestException("Access denied: Not a participant in this conversation");
         }
 
         Page<Message> messages = messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId, pageable);
