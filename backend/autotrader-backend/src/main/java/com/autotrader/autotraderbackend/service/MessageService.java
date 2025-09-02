@@ -58,6 +58,8 @@ public class MessageService {
         enMessages.put("email.account_verification.subject", "Verify your {websiteName} account");
         enMessages.put("email.security_alert.subject", "Security Alert - {websiteName}");
         enMessages.put("email.email_change.subject", "Email Change Confirmation - {websiteName}");
+        enMessages.put("email.password_reset.security_alert", "Didn't make this change?");
+        enMessages.put("email.password_reset.security_message", "If you did not change your password, please contact our support team immediately at {supportEmail} or phone {supportPhone}.");
         
         // Email footer and common elements
         enMessages.put("email.footer.copyright", "© {year} {websiteName}. All rights reserved.");
@@ -118,6 +120,8 @@ public class MessageService {
         arMessages.put("email.account_verification.subject", "تحقق من حسابك في {websiteName}");
         arMessages.put("email.security_alert.subject", "تنبيه أمني - {websiteName}");
         arMessages.put("email.email_change.subject", "تأكيد تغيير البريد الإلكتروني - {websiteName}");
+        arMessages.put("email.password_reset.security_alert", "لم تقم بهذا التغيير؟");
+        arMessages.put("email.password_reset.security_message", "إذا لم تقم بتغيير كلمة المرور، يرجى الاتصال بفريق الدعم الفني فوراً على {supportEmail} أو الهاتف {supportPhone}.");
         
         // Email footer and common elements (Arabic)
         arMessages.put("email.footer.copyright", "© {year} {websiteName}. جميع الحقوق محفوظة.");
