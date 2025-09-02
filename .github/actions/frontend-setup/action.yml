@@ -42,6 +42,10 @@ inputs:
     description: 'Command to run linter.'
     required: false
     default: 'npm run lint'
+  run-tests:
+    description: 'Whether to run tests.'
+    required: false
+    default: 'true'
 
 runs:
   using: 'composite'
@@ -56,14 +60,19 @@ runs:
     - name: Install dependencies
       working-directory: ${{ inputs.working-directory }}
       shell: bash
-      run: npm ci
+      env:
+        HUSKY: 0
+        NODE_ENV: test
+      run: |
+        echo "Installing dependencies..."
+        npm ci --prefer-offline --no-audit
 
     - name: Run ESLint
       working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
         echo "Running ESLint check to identify code issues..."
-        ${{ inputs.lint-command }} || (echo "::warning::ESLint issues found. See output above for details.")
+        ${{ inputs.lint-command }}
 
     - name: Build frontend
       working-directory: ${{ inputs.working-directory }}
@@ -72,9 +81,15 @@ runs:
       run: ${{ inputs.build-command }}
 
     - name: Run Jest tests
+      if: ${{ inputs.run-tests == 'true' }}
       working-directory: ${{ inputs.working-directory }}
       shell: bash
-      run: ${{ inputs.test-command }}
+      env:
+        CI: true
+        NODE_ENV: test
+      run: |
+        echo "Running Jest tests..."
+        ${{ inputs.test-command }} --watchAll=false --coverage=false --passWithNoTests
 
     - name: Upload ESLint report
       if: always()

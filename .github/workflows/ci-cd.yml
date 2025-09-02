@@ -45,7 +45,7 @@ jobs:
           # First try to use the Gradle CLI if available
           if command -v gradle &> /dev/null; then
             echo "Using gradle CLI to generate wrapper"
-            gradle wrapper --gradle-version=8.5
+            gradle wrapper --gradle-version=8.7
           else
             # If gradle CLI isn't available, use any gradle wrapper in other projects
             echo "Trying to copy Gradle wrapper from elsewhere"
@@ -139,8 +139,8 @@ jobs:
       uses: ./.github/actions/frontend-setup
       with:
         working-directory: './frontend'
-        node-version: '18'
-        cache-dependency-path: './frontend/package.json'
+        node-version: '20'
+        cache-dependency-path: './frontend/package-lock.json'
         # Default values for commands and report paths are used from the action itself
 
   # This job runs quick tests before building/deploying for pushes to main
@@ -173,8 +173,8 @@ jobs:
       uses: ./.github/actions/frontend-setup
       with:
         working-directory: './frontend'
-        node-version: '18'
-        cache-dependency-path: './frontend/package.json'
+        node-version: '20'
+        cache-dependency-path: './frontend/package-lock.json'
         run-tests: 'false'  # Skip tests, just build to ensure code compiles
         
   # docker-build:
