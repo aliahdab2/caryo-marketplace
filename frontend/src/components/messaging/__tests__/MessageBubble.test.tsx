@@ -8,10 +8,12 @@ jest.mock('@/components/CarMediaGallery', () => {
   return function MockCarMediaGallery({ media, initialIndex }: any) {
     const handleClick = () => {
       // Simulate modal opening
-      const modal = document.createElement('div');
-      modal.setAttribute('data-testid', 'gallery-modal');
-      modal.textContent = `Gallery Modal - Image ${initialIndex + 1} of ${media.length}`;
-      document.body.appendChild(modal);
+      if (typeof document !== 'undefined') {
+        const modal = document.createElement('div');
+        modal.setAttribute('data-testid', 'gallery-modal');
+        modal.textContent = `Gallery Modal - Image ${initialIndex + 1} of ${media.length}`;
+        document.body.appendChild(modal);
+      }
     };
 
     return (

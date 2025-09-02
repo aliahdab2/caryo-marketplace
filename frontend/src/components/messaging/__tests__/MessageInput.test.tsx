@@ -60,15 +60,15 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
 describe('MessageInput', () => {
   const mockProps = {
     newMessage: '',
-    setNewMessage: jest.fn(),
+    onMessageChange: jest.fn(),
+    onKeyPress: jest.fn(),
     onSendMessage: jest.fn(),
+    onImageSelect: jest.fn(),
+    onDocumentSelect: jest.fn(),
     selectedFiles: [],
-    setSelectedFiles: jest.fn(),
     sending: false,
     uploading: false,
     isRTL: false,
-    conversationId: 1,
-    onUploadProgress: jest.fn(),
   };
 
   beforeEach(() => {
@@ -127,9 +127,9 @@ describe('MessageInput', () => {
 
     it('hides send button when message becomes empty', async () => {
       const user = userEvent.setup();
-      const setNewMessage = jest.fn();
+      const onMessageChange = jest.fn();
       
-      render(<MessageInput {...mockProps} newMessage="Hello" setNewMessage={setNewMessage} />);
+      render(<MessageInput {...mockProps} newMessage="Hello" onMessageChange={onMessageChange} />);
       
       // Initially should show send button
       expect(screen.getByRole('button')).toBeInTheDocument();
@@ -138,14 +138,14 @@ describe('MessageInput', () => {
       const textarea = screen.getByPlaceholderText('writeMessage');
       await user.clear(textarea);
       
-      expect(setNewMessage).toHaveBeenCalledWith('');
+      expect(onMessageChange).toHaveBeenCalledWith('');
     });
 
     it('shows send button when message is typed', async () => {
       const user = userEvent.setup();
-      const setNewMessage = jest.fn();
+      const onMessageChange = jest.fn();
       
-      render(<MessageInput {...mockProps} setNewMessage={setNewMessage} />);
+      render(<MessageInput {...mockProps} onMessageChange={onMessageChange} />);
       
       // Initially should not show send button
       expect(screen.queryByRole('button', { name: /send/i })).not.toBeInTheDocument();
@@ -154,7 +154,7 @@ describe('MessageInput', () => {
       const textarea = screen.getByPlaceholderText('writeMessage');
       await user.type(textarea, 'Hello');
       
-      expect(setNewMessage).toHaveBeenCalledWith('Hello');
+      expect(onMessageChange).toHaveBeenCalledWith('Hello');
     });
   });
 
@@ -292,24 +292,24 @@ describe('MessageInput', () => {
   describe('Textarea Behavior', () => {
     it('updates message when typing', async () => {
       const user = userEvent.setup();
-      const setNewMessage = jest.fn();
-      render(<MessageInput {...mockProps} setNewMessage={setNewMessage} />);
+      const onMessageChange = jest.fn();
+      render(<MessageInput {...mockProps} onMessageChange={onMessageChange} />);
       
       const textarea = screen.getByPlaceholderText('writeMessage');
       await user.type(textarea, 'Hello world');
       
-      expect(setNewMessage).toHaveBeenCalledWith('Hello world');
+      expect(onMessageChange).toHaveBeenCalledWith('Hello world');
     });
 
     it('handles multiline messages with Shift+Enter', async () => {
       const user = userEvent.setup();
-      const setNewMessage = jest.fn();
-      render(<MessageInput {...mockProps} setNewMessage={setNewMessage} />);
+      const onMessageChange = jest.fn();
+      render(<MessageInput {...mockProps} onMessageChange={onMessageChange} />);
       
       const textarea = screen.getByPlaceholderText('writeMessage');
       await user.type(textarea, 'Line 1{shift}{enter}Line 2');
       
-      expect(setNewMessage).toHaveBeenCalledWith('Line 1\nLine 2');
+      expect(mockProps.onMessageChange).toHaveBeenCalledWith('Line 1\nLine 2');
     });
 
     it('auto-resizes textarea based on content', () => {
@@ -348,7 +348,7 @@ describe('MessageInput', () => {
       render(<MessageInput {...mockProps} newMessage="Hello" />);
       
       const textarea = screen.getByPlaceholderText('writeMessage');
-      expect(textarea).toHaveAttribute('aria-label', 'typeMessage');
+      expect(textarea).toHaveAttribute('aria-label', 'writeMessage');
       
       const sendButton = screen.getByRole('button');
       expect(sendButton).toHaveAttribute('title', 'sendMessage');
@@ -386,8 +386,8 @@ describe('MessageInput', () => {
 
     it('handles rapid typing and state changes', async () => {
       const user = userEvent.setup();
-      const setNewMessage = jest.fn();
-      render(<MessageInput {...mockProps} setNewMessage={setNewMessage} />);
+      const onMessageChange = jest.fn();
+      render(<MessageInput {...mockProps} onMessageChange={onMessageChange} />);
       
       const textarea = screen.getByPlaceholderText('writeMessage');
       
@@ -396,7 +396,7 @@ describe('MessageInput', () => {
       await user.clear(textarea);
       await user.type(textarea, 'World');
       
-      expect(setNewMessage).toHaveBeenCalledWith('World');
+      expect(onMessageChange).toHaveBeenCalledWith('World');
     });
   });
 });

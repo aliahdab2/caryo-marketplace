@@ -10,20 +10,22 @@ jest.mock('@/components/CarMediaGallery', () => {
   return function MockCarMediaGallery({ media, initialIndex }: any) {
     const handleClick = () => {
       // Simulate modal opening with keyboard support
-      const modal = document.createElement('div');
-      modal.setAttribute('data-testid', 'gallery-modal');
-      modal.setAttribute('tabindex', '0');
-      modal.textContent = `Gallery Modal - Image ${initialIndex + 1} of ${media.length}`;
-      
-      // Add keyboard event listener
-      modal.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          modal.remove();
-        }
-      });
-      
-      document.body.appendChild(modal);
-      modal.focus();
+      if (typeof document !== 'undefined') {
+        const modal = document.createElement('div');
+        modal.setAttribute('data-testid', 'gallery-modal');
+        modal.setAttribute('tabindex', '0');
+        modal.textContent = `Gallery Modal - Image ${initialIndex + 1} of ${media.length}`;
+        
+        // Add keyboard event listener
+        modal.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            modal.remove();
+          }
+        });
+        
+        document.body.appendChild(modal);
+        modal.focus();
+      }
     };
 
     return (
