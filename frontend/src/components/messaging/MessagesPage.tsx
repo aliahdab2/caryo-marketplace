@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'next/navigation';
@@ -237,7 +237,7 @@ export default function MessagesPage() {
     if (selectedConversation && session?.user?.id) {
       loadMessages(selectedConversation.id);
     }
-  }, [selectedConversation, session?.user?.id]);
+  }, [selectedConversation, session?.user?.id, loadMessages]);
 
   const loadConversations = async () => {
     try {
@@ -251,19 +251,7 @@ export default function MessagesPage() {
     }
   };
 
-  const loadMessages = async (conversationId: number) => {
-    try {
-      const response = await MessagingService.getConversationMessages(conversationId);
-      setMessages(response.content || []);
-      
-      // Mark all messages in this conversation as read
-      await markConversationAsRead(conversationId);
-    } catch (error) {
-      console.error('Error loading messages:', error);
-    }
-  };
-
-  const markConversationAsRead = async (conversationId: number) => {
+  const markConversationAsRead = useCallback(async (conversationId: number) => {
     try {
       await MessagingService.markAllMessagesAsRead(conversationId);
       
@@ -283,7 +271,19 @@ export default function MessagesPage() {
     } catch (error) {
       console.error('Error marking conversation as read:', error);
     }
-  };
+  }, []);
+
+  const loadMessages = useCallback(async (conversationId: number) => {
+    try {
+      const response = await MessagingService.getConversationMessages(conversationId);
+      setMessages(response.content || []);
+      
+      // Mark all messages in this conversation as read
+      await markConversationAsRead(conversationId);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  }, [markConversationAsRead]);
 
   const handleSendMessageWithAttachments = async () => {
     if (!selectedConversation || (!newMessage.trim() && selectedFiles.length === 0) || sending || uploading) return;

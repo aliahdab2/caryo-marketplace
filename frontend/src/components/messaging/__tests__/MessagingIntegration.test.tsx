@@ -112,10 +112,10 @@ describe('Messaging Integration Tests', () => {
 
   describe('Complete Messaging Flow', () => {
     it('should handle complete message sending flow with text', async () => {
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       const mockSendMessage = jest.fn();
       const mockSetMessage = jest.fn();
-      const mockSetFiles = jest.fn();
+      const _mockSetFiles = jest.fn();
 
       // Render message input
       render(
@@ -175,7 +175,7 @@ describe('Messaging Integration Tests', () => {
     it('should handle complete message sending flow with files', async () => {
       const mockSendMessage = jest.fn();
       const mockSetMessage = jest.fn();
-      const mockSetFiles = jest.fn();
+      const _mockSetFiles = jest.fn();
 
       const testFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
 
@@ -440,7 +440,7 @@ describe('Messaging Integration Tests', () => {
     it('should handle loading states during message sending', () => {
       const mockSendMessage = jest.fn();
       const mockSetMessage = jest.fn();
-      const mockSetFiles = jest.fn();
+      const _mockSetFiles = jest.fn();
 
       // Test sending state
       render(

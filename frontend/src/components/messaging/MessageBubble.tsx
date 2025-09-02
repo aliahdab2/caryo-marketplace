@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 
-import { Check, CheckCheck, Download, Clock, Eye } from 'lucide-react';
+import { Check, CheckCheck, Download } from 'lucide-react';
 import { MessageResponse } from '@/services/messaging';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
 import Image from 'next/image';
@@ -27,7 +27,6 @@ interface MessageBubbleProps {
 
 export default function MessageBubble({ message, isOwn, isRTL: _isRTL, onDownloadDocument }: MessageBubbleProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [showReadDetails, setShowReadDetails] = useState(false);
   const galleryRef = useRef<HTMLDivElement>(null);
 
   const formatTime = (dateString: string) => {
