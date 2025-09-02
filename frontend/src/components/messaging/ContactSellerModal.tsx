@@ -41,6 +41,16 @@ export default function ContactSellerModal({
     }
   }, [isOpen, listingTitle, message, t]);
 
+  // Handle close modal function
+  const handleClose = useCallback(() => {
+    if (!loading) {
+      setMessage('');
+      setSubject('');
+      setError(null);
+      onClose();
+    }
+  }, [loading, onClose]);
+
   // Handle ESC key, focus management, and body scroll
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
@@ -133,15 +143,6 @@ export default function ContactSellerModal({
       setLoading(false);
     }
   };
-
-  const handleClose = useCallback(() => {
-    if (!loading) {
-      setMessage('');
-      setSubject('');
-      setError(null);
-      onClose();
-    }
-  }, [loading, onClose]);
 
   // Handle backdrop click to close modal
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {

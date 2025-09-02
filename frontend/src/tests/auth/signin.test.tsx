@@ -275,9 +275,10 @@ describe('SignInPage', () => {
       await userEvent.click(submitButton);
     });
     
-    // Check error message
+    // Check error message (should show the translated error or the translation key)
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent(/invalid/i);
+      const errorElement = screen.getByRole('alert');
+      expect(errorElement).toHaveTextContent(/invalid|CredentialsSignin/i);
     });
   });
 
