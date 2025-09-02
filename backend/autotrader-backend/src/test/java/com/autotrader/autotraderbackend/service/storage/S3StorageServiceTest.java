@@ -130,9 +130,12 @@ class S3StorageServiceTest {
     void testDeleteFailed() {
         String key = "test_key";
 
-        // Simulate S3 delete failure
+        // Simulate S3 delete failure with proper error details
         when(s3Client.deleteObject(any(DeleteObjectRequest.class)))
-            .thenThrow(S3Exception.builder().build());
+            .thenThrow(S3Exception.builder()
+                .message("Simulated delete failure")
+                .statusCode(500)
+                .build());
 
         boolean result = s3StorageService.delete(key);
 
