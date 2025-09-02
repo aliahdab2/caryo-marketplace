@@ -5,7 +5,7 @@ import { MessageResponse } from '@/services/messaging';
 
 // Mock the CarMediaGallery component
 jest.mock('@/components/CarMediaGallery', () => {
-  return function MockCarMediaGallery({ media, initialIndex }: any) {
+  return function MockCarMediaGallery({ media, initialIndex }: { media: unknown[]; initialIndex: number }) {
     return (
       <div data-testid="car-media-gallery">
         <div 

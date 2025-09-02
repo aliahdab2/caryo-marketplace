@@ -1,11 +1,14 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MessageInput from '../MessageInput';
 
 // Mock the FileUpload component
 jest.mock('../FileUpload', () => {
-  return function MockFileUpload({ onImageSelect, onDocumentSelect }: any) {
+  return function MockFileUpload({ onImageSelect }: { 
+    onImageSelect: (event: React.ChangeEvent<HTMLInputElement>) => void; 
+    onDocumentSelect?: (event: React.ChangeEvent<HTMLInputElement>) => void; 
+  }) {
     return (
       <div data-testid="file-upload">
         <input

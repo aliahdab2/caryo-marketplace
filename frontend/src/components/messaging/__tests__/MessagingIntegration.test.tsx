@@ -7,7 +7,7 @@ import { MessageResponse } from '@/services/messaging';
 
 // Mock the CarMediaGallery component
 jest.mock('@/components/CarMediaGallery', () => {
-  return function MockCarMediaGallery({ media, initialIndex }: any) {
+  return function MockCarMediaGallery({ media, initialIndex }: { media: unknown[]; initialIndex: number }) {
     return (
       <div data-testid="car-media-gallery">
         <div 
@@ -40,7 +40,10 @@ jest.mock('@/components/CarMediaGallery', () => {
 
 // Mock FileUpload component
 jest.mock('../FileUpload', () => {
-  return function MockFileUpload({ onImageSelect, onDocumentSelect }: any) {
+  return function MockFileUpload({ onImageSelect }: { 
+    onImageSelect: (event: React.ChangeEvent<HTMLInputElement>) => void; 
+    onDocumentSelect?: (event: React.ChangeEvent<HTMLInputElement>) => void; 
+  }) {
     return (
       <div data-testid="file-upload">
         <input
@@ -118,15 +121,16 @@ describe('Messaging Integration Tests', () => {
       render(
         <MessageInput
           newMessage=""
-          setNewMessage={mockSetMessage}
+          onMessageChange={mockSetMessage}
           onSendMessage={mockSendMessage}
           selectedFiles={[]}
-          setSelectedFiles={mockSetFiles}
+          onImageSelect={jest.fn()}
+          onDocumentSelect={jest.fn()}
+          onRemoveFile={jest.fn()}
+          onClearAllFiles={jest.fn()}
           sending={false}
           uploading={false}
           isRTL={false}
-          conversationId={1}
-          onUploadProgress={jest.fn()}
         />
       );
 
@@ -134,24 +138,27 @@ describe('Messaging Integration Tests', () => {
       expect(screen.queryByRole('button')).not.toBeInTheDocument();
 
       // Type a message
-      const textarea = screen.getByPlaceholderText('typeMessage');
-      await user.type(textarea, 'Hello world!');
-
+      const textarea = screen.getByPlaceholderText('writeMessage');
+      
+      // Simulate typing by directly changing the textarea value and triggering onChange
+      fireEvent.change(textarea, { target: { value: 'Hello world!' } });
+      
       expect(mockSetMessage).toHaveBeenCalledWith('Hello world!');
 
       // Re-render with the new message to simulate state update
       render(
         <MessageInput
           newMessage="Hello world!"
-          setNewMessage={mockSetMessage}
+          onMessageChange={mockSetMessage}
           onSendMessage={mockSendMessage}
           selectedFiles={[]}
-          setSelectedFiles={mockSetFiles}
+          onImageSelect={jest.fn()}
+          onDocumentSelect={jest.fn()}
+          onRemoveFile={jest.fn()}
+          onClearAllFiles={jest.fn()}
           sending={false}
           uploading={false}
           isRTL={false}
-          conversationId={1}
-          onUploadProgress={jest.fn()}
         />
       );
 
@@ -166,7 +173,6 @@ describe('Messaging Integration Tests', () => {
     });
 
     it('should handle complete message sending flow with files', async () => {
-      const user = userEvent.setup();
       const mockSendMessage = jest.fn();
       const mockSetMessage = jest.fn();
       const mockSetFiles = jest.fn();
@@ -177,15 +183,16 @@ describe('Messaging Integration Tests', () => {
       render(
         <MessageInput
           newMessage=""
-          setNewMessage={mockSetMessage}
+          onMessageChange={mockSetMessage}
           onSendMessage={mockSendMessage}
           selectedFiles={[testFile]}
-          setSelectedFiles={mockSetFiles}
+          onImageSelect={jest.fn()}
+          onDocumentSelect={jest.fn()}
+          onRemoveFile={jest.fn()}
+          onClearAllFiles={jest.fn()}
           sending={false}
           uploading={false}
           isRTL={false}
-          conversationId={1}
-          onUploadProgress={jest.fn()}
         />
       );
 
@@ -195,7 +202,7 @@ describe('Messaging Integration Tests', () => {
       expect(sendButton).not.toBeDisabled();
 
       // File should be displayed
-      expect(screen.getByTestId('selected-file-0')).toHaveTextContent('test.jpg');
+      expect(screen.getByText('test.jpg')).toBeInTheDocument();
 
       // Send message with file
       fireEvent.click(sendButton);
@@ -439,15 +446,16 @@ describe('Messaging Integration Tests', () => {
       render(
         <MessageInput
           newMessage="Sending this message..."
-          setNewMessage={mockSetMessage}
+          onMessageChange={mockSetMessage}
           onSendMessage={mockSendMessage}
           selectedFiles={[]}
-          setSelectedFiles={mockSetFiles}
+          onImageSelect={jest.fn()}
+          onDocumentSelect={jest.fn()}
+          onRemoveFile={jest.fn()}
+          onClearAllFiles={jest.fn()}
           sending={true}
           uploading={false}
           isRTL={false}
-          conversationId={1}
-          onUploadProgress={jest.fn()}
         />
       );
 
@@ -460,21 +468,23 @@ describe('Messaging Integration Tests', () => {
       render(
         <MessageInput
           newMessage="Uploading files..."
-          setNewMessage={mockSetMessage}
+          onMessageChange={mockSetMessage}
           onSendMessage={mockSendMessage}
           selectedFiles={[new File(['test'], 'test.jpg', { type: 'image/jpeg' })]}
-          setSelectedFiles={mockSetFiles}
+          onImageSelect={jest.fn()}
+          onDocumentSelect={jest.fn()}
+          onRemoveFile={jest.fn()}
+          onClearAllFiles={jest.fn()}
           sending={false}
           uploading={true}
           isRTL={false}
-          conversationId={1}
-          onUploadProgress={jest.fn()}
         />
       );
 
-      const uploadingButton = screen.getByTitle('sending');
-      expect(uploadingButton).toBeDisabled();
-      expect(uploadingButton).toHaveAttribute('title', 'sending');
+      const uploadingButtons = screen.getAllByTitle('sending');
+      expect(uploadingButtons.length).toBeGreaterThan(0);
+      expect(uploadingButtons[0]).toBeDisabled();
+      expect(uploadingButtons[0]).toHaveAttribute('title', 'sending');
       expect(document.querySelector('.animate-spin')).toBeInTheDocument();
     });
   });
