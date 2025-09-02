@@ -13,19 +13,19 @@ The email service supports configurable website names for both English and Arabi
 #### Development Environment (`application-dev.properties`)
 ```properties
 # Website configuration
-app.website.name=AutoTrader
-app.website.name.ar=أوتو تريدر
+app.website.name=Caryo Marketplace
+app.website.name.ar=كاريو
 app.website.url=http://localhost:3000
-app.website.support-email=support@autotrader.com
+app.website.support-email=support@caryo.sy
 ```
 
 #### Production Environment (`application-prod.properties`)
 ```properties
 # Website configuration (configurable via environment variables)
-app.website.name=${WEBSITE_NAME:AutoTrader}
-app.website.name.ar=${WEBSITE_NAME_AR:أوتو تريدر}
-app.website.url=${WEBSITE_URL:https://autotrader.com}
-app.website.support-email=${WEBSITE_SUPPORT_EMAIL:support@autotrader.com}
+app.website.name=${WEBSITE_NAME:Caryo Marketplace}
+app.website.name.ar=${WEBSITE_NAME_AR:كاريو}
+app.website.url=${WEBSITE_URL:https://caryo.sy}
+app.website.support-email=${WEBSITE_SUPPORT_EMAIL:support@caryo.sy}
 ```
 
 ### 2. Language Configuration
@@ -205,19 +205,19 @@ app.email.default-language=en
 ### Development
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `app.website.name` | AutoTrader | English website name |
-| `app.website.name.ar` | أوتو تريدر | Arabic website name |
+| `app.website.name` | Caryo Marketplace | English website name |
+| `app.website.name.ar` | كاريو | Arabic website name |
 | `app.website.url` | http://localhost:3000 | Website URL |
-| `app.website.support-email` | support@autotrader.com | Support email |
+| `app.website.support-email` | support@caryo.sy | Support email |
 | `app.email.default-language` | en | Default email language |
 
 ### Production
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `WEBSITE_NAME` | AutoTrader | English website name |
-| `WEBSITE_NAME_AR` | أوتو تريدر | Arabic website name |
-| `WEBSITE_URL` | https://autotrader.com | Website URL |
-| `WEBSITE_SUPPORT_EMAIL` | support@autotrader.com | Support email |
+| `WEBSITE_NAME` | Caryo Marketplace | English website name |
+| `WEBSITE_NAME_AR` | كاريو | Arabic website name |
+| `WEBSITE_URL` | https://caryo.sy | Website URL |
+| `WEBSITE_SUPPORT_EMAIL` | support@caryo.sy | Support email |
 | `EMAIL_DEFAULT_LANGUAGE` | en | Default email language |
 
 ## 🚨 Troubleshooting

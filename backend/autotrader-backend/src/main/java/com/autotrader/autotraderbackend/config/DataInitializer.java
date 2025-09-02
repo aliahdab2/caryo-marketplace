@@ -39,12 +39,12 @@ public class DataInitializer implements CommandLineRunner {
     
     // Regular user credentials
     private static final String USER_USERNAME = "user";
-    private static final String USER_EMAIL = "user@autotrader.com";
+    private static final String USER_EMAIL = "user@caryo.sy";
     private static final String USER_PASSWORD = "Password123!";
     
     // Admin user credentials
     private static final String ADMIN_USERNAME = "admin";
-    private static final String ADMIN_EMAIL = "admin@autotrader.com";
+    private static final String ADMIN_EMAIL = "admin@caryo.sy";
     private static final String ADMIN_PASSWORD = "Admin123!";
 
     @Override

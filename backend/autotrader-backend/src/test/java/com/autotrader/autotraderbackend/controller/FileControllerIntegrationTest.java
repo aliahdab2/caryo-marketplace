@@ -69,7 +69,7 @@ class FileControllerIntegrationTest {
         mockMvc.perform(get("/api/files/key1"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Disposition", containsString("file.jpg")))
-                .andExpect(content().contentType(MediaType.IMAGE_JPEG));
+                .andExpect(content().contentType("image/jpeg;charset=UTF-8"));
     }
 
     @Test

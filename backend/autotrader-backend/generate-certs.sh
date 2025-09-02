@@ -21,7 +21,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -keyout $CERT_DIR/caryo.key \
   -out $CERT_DIR/caryo.crt \
   -subj "/C=US/ST=State/L=City/O=Caryo Marketplace/CN=localhost" \
-  -addext "subjectAltName=DNS:localhost,DNS:api.caryo.com"
+  -addext "subjectAltName=DNS:localhost,DNS:api.caryo.sy"
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}SSL certificates generated successfully!${NC}"

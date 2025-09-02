@@ -3,107 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${language == 'ar' ? 'مرحباً بك في ' + websiteName : 'Welcome to ' + websiteName}">Welcome</title>
+    <title th:text="${t.withWebsite('email.welcome.subject', websiteName)}">Welcome</title>
+    
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .email-container {
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .container {
             background-color: #ffffff;
-            padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+        
         .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
             text-align: center;
-            margin-bottom: 30px;
         }
+        
         .logo {
-            color: #2c3e50;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
             margin-bottom: 10px;
         }
-        .welcome-message {
-            font-size: 18px;
-            color: #27ae60;
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            font-size: 24px;
+            color: #333;
             margin-bottom: 20px;
         }
-        .content {
+        
+        .message {
+            font-size: 16px;
             margin-bottom: 30px;
+            color: #555;
         }
+        
+        .features {
+            margin: 30px 0;
+        }
+        
+        .features h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .features li {
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .features li:before {
+            content: "✓";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
         .cta-button {
             display: inline-block;
-            background-color: #3498db;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 12px 24px;
+            padding: 15px 30px;
             text-decoration: none;
             border-radius: 5px;
-            margin: 10px 0;
+            font-weight: bold;
+            margin: 20px 0;
         }
+        
         .footer {
+            background-color: #f8f9fa;
+            padding: 30px;
             text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            color: #7f8c8d;
-            font-size: 14px;
+            border-top: 1px solid #e9ecef;
         }
-        [dir="rtl"] {
+        
+        .footer-links {
+            margin-bottom: 20px;
+        }
+        
+        .footer-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        
+        .copyright {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        /* RTL Support */
+        .rtl {
+            direction: rtl;
             text-align: right;
+        }
+        
+        .rtl .features li {
+            padding-left: 0;
+            padding-right: 20px;
+        }
+        
+        .rtl .features li:before {
+            left: auto;
+            right: 0;
         }
     </style>
 </head>
-<body th:dir="${language == 'ar' ? 'rtl' : 'ltr'}">
-    <div class="container">
+<body th:class="${language == 'ar' ? 'rtl' : ''}">
+    <div class="email-container">
+        <!-- Header -->
         <div class="header">
-            <div class="logo">🚗 <span th:text="${websiteName}">AutoTrader</span></div>
-            <div class="welcome-message" th:text="${language == 'ar' ? 'مرحباً بك في ' + websiteName + '!' : 'Welcome to ' + websiteName + '!'}">Welcome!</div>
+            <div class="logo">🚗 <span th:text="${websiteName}">Caryo Marketplace</span></div>
+            <h1 th:text="${t.get('email.website.tagline')}">Your trusted car marketplace</h1>
         </div>
         
+        <!-- Content -->
         <div class="content">
-            <p th:text="${language == 'ar' ? 'مرحباً ' + userName + '،' : 'Hello ' + userName + ','}">Hello User,</p>
+            <h2 class="greeting">
+                <span th:text="${t.get('email.greeting.hello')}">Hello</span> 
+                <span th:text="${userName}">User</span>!
+            </h2>
             
-            <p th:if="${language == 'en'}" th:text="'Welcome to ' + ${websiteName} + '! We are excited to have you join our community of car enthusiasts and sellers.'">
-                Welcome to AutoTrader! We are excited to have you join our community of car enthusiasts and sellers.
-            </p>
-            <p th:if="${language == 'ar'}" th:text="'مرحباً بك في ' + ${websiteName} + '! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.'">
-                مرحباً بك في AutoTrader! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.
-            </p>
-            
-            <p th:text="${language == 'ar' ? 'مع ' + websiteName + '، يمكنك:' : 'With ' + websiteName + ', you can:'}">With AutoTrader, you can:</p>
-            <ul>
-                <li th:text="${language == 'ar' ? 'إنشاء وإدارة إعلانات سياراتك' : 'Create and manage your car listings'}">Create and manage your car listings</li>
-                <li th:text="${language == 'ar' ? 'تصفح آلاف المركبات' : 'Browse thousands of vehicles'}">Browse thousands of vehicles</li>
-                <li th:text="${language == 'ar' ? 'التواصل مع المشترين والبائعين' : 'Connect with buyers and sellers'}">Connect with buyers and sellers</li>
-                <li th:text="${language == 'ar' ? 'الحصول على إشعارات حول إعلاناتك' : 'Get notifications about your listings'}">Get notifications about your listings</li>
-            </ul>
-            
-            <p th:text="${language == 'ar' ? 'مستعد للبدء؟ أنشئ إعلانك الأول أو تصفح السيارات المتاحة!' : 'Ready to get started? Create your first listing or browse available cars!'}">
-                Ready to get started? Create your first listing or browse available cars!
+            <p class="message" th:text="${t.get('email.welcome.message')}">
+                Thank you for joining our community of car enthusiasts!
             </p>
             
-            <div style="text-align: center; margin: 30px 0;">
-                <a th:href="${websiteUrl} + '/dashboard/listings'" class="cta-button" th:text="${language == 'ar' ? 'أنشئ إعلانك الأول' : 'Create Your First Listing'}">Create Your First Listing</a>
-                <br>
-                <a th:href="${websiteUrl} + '/search'" class="cta-button" th:text="${language == 'ar' ? 'تصفح السيارات' : 'Browse Cars'}">Browse Cars</a>
+            <div class="features">
+                <h3 th:text="${t.get('email.welcome.getting_started')}">Getting Started</h3>
+                <ul>
+                    <li th:text="${t.get('email.welcome.browse_cars')}">Browse thousands of cars from trusted dealers and private sellers</li>
+                    <li th:text="${t.get('email.welcome.create_listing')}">Create your own listing to sell your car</li>
+                    <li th:text="${t.get('email.welcome.save_searches')}">Save your searches and get notified of new matches</li>
+                    <li th:text="${t.get('email.welcome.manage_account')}">Manage your account and preferences</li>
+                </ul>
             </div>
             
-            <p th:text="${language == 'ar' ? 'إذا كان لديك أي أسئلة، لا تتردد في التواصل مع فريق الدعم.' : 'If you have any questions, feel free to contact our support team.'}">
-                If you have any questions, feel free to contact our support team.
+            <div style="text-align: center;">
+                <a th:href="${websiteUrl}" class="cta-button" th:text="${t.get('email.welcome.explore_button')}">
+                    Start Exploring
+                </a>
+            </div>
+            
+            <p class="message" th:text="${t.get('email.welcome.need_help')}">
+                Need help getting started?
+            </p>
+            <p>
+                <a th:href="'mailto:' + ${supportEmail}" th:text="${t.get('email.welcome.contact_support')}">
+                    Contact our support team
+                </a>
+            </p>
+            
+            <p class="message" th:text="${t.get('email.welcome.community_guidelines')}">
+                Please review our community guidelines to ensure a safe and positive experience for everyone.
             </p>
         </div>
         
+        <!-- Footer -->
         <div class="footer">
-            <p th:text="${language == 'ar' ? 'شكراً لك على اختيار ' + websiteName + '!' : 'Thank you for choosing ' + websiteName + '!'}">Thank you for choosing AutoTrader!</p>
-            <p th:text="${language == 'ar' ? '© 2024 ' + websiteName + '. جميع الحقوق محفوظة.' : '© 2024 ' + websiteName + '. All rights reserved.'}">© 2024 AutoTrader. All rights reserved.</p>
+            <div class="footer-links">
+                <a th:href="${websiteUrl}" th:text="${t.get('email.button.visit_website')}">Visit Website</a>
+                <a th:href="'mailto:' + ${supportEmail}" th:text="${t.get('email.button.contact_support')}">Contact Support</a>
+            </div>
+            
+            <p class="copyright" th:text="${t.copyright(currentYear, websiteName)}">
+                © 2024 Caryo Marketplace. All rights reserved.
+            </p>
+            
+            <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                <span th:text="${t.get('email.phrase.team_signature')}">The Caryo Marketplace Team</span>
+            </p>
         </div>
     </div>
 </body>
-</html> 
+</html>

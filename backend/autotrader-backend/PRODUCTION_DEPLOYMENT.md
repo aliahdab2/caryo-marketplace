@@ -126,7 +126,7 @@ Key environment variables for production:
 | DB_PASSWORD | Database password | *None* |
 | MINIO_ACCESS_KEY | MinIO access key | minioadmin |
 | MINIO_SECRET_KEY | MinIO secret key | minioadmin |
-| S3_BUCKET_NAME | S3 bucket name | autotrader-assets |
+| S3_BUCKET_NAME | S3 bucket name | caryo-assets |
 | JWT_SECRET | JWT signing secret | *None* |
 
 ## Security Considerations

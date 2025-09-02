@@ -30,11 +30,11 @@ export const metadata: Metadata = {
   },
   description: "Your trusted platform for buying and selling vehicles across Syria. Find Toyota, Honda, BMW and more in Damascus, Aleppo, Homs. Browse thousands of verified car listings.",
   keywords: ["cars", "vehicles", "Syria", "Damascus", "Aleppo", "Homs", "Toyota", "Honda", "BMW", "car marketplace", "used cars", "new cars", "automotive"],
-  authors: [{ name: "Caryo Team", url: "https://caryo.com" }],
+  authors: [{ name: "Caryo Team", url: "https://caryo.sy" }],
   creator: "Caryo Marketplace",
   publisher: "Caryo Marketplace",
   applicationName: "Caryo",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://caryo.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://caryo.sy'),
   alternates: {
     canonical: "/",
     languages: {

@@ -1,16 +1,22 @@
 package com.autotrader.autotraderbackend.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.context.MessageSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.autotrader.autotraderbackend.util.ArabicTextUtils;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Locale;
 
 /**
  * Service for managing internationalized messages.
- * Centralizes all email subject lines and messages.
+ * Centralizes all email subject lines and messages with proper i18n support.
  */
 @Service
 public class MessageService {
+    
+    @Autowired(required = false)
+    private MessageSource messageSource;
     
     private static final Map<String, Map<String, String>> MESSAGES = new HashMap<>();
     
@@ -33,6 +39,35 @@ public class MessageService {
         enMessages.put("password.reset.invalid.token", "Invalid or expired reset token.");
         enMessages.put("password.reset.token.expired", "Reset token has expired. Please request a new one.");
         enMessages.put("password.reset.rate.limited", "Too many password reset attempts. Please try again later.");
+        
+        // Email subject lines (new format with email. prefix)
+        enMessages.put("email.listing_approved.subject", "Your listing has been approved!");
+        enMessages.put("email.listing_expired.subject", "Your listing has expired");
+        enMessages.put("email.listing_renewal.subject", "Your listing has been renewed");
+        enMessages.put("email.welcome.subject", "Welcome to {websiteName}!");
+        enMessages.put("email.contact_form.subject", "New contact form submission from {name}");
+        enMessages.put("email.contact_confirmation.subject", "Thank you for contacting us");
+        enMessages.put("email.listing_sold.subject", "Your listing has been sold!");
+        enMessages.put("email.listing_archived.subject", "Your listing has been archived");
+        enMessages.put("email.listing_feedback.subject", "How was your selling experience?");
+        enMessages.put("email.newsletter_confirmation.subject", "Confirm your subscription to {websiteName}");
+        enMessages.put("email.newsletter_welcome.subject", "Welcome to {websiteName} Newsletter!");
+        enMessages.put("email.password_reset.subject", "Password Reset Request");
+        enMessages.put("email.password_reset_confirmation.subject", "Password Successfully Changed");
+        enMessages.put("email.registration_confirmation.subject", "Welcome to {websiteName}!");
+        enMessages.put("email.account_verification.subject", "Verify your {websiteName} account");
+        enMessages.put("email.security_alert.subject", "Security Alert - {websiteName}");
+        enMessages.put("email.email_change.subject", "Email Change Confirmation - {websiteName}");
+        enMessages.put("email.password_reset.security_alert", "Didn't make this change?");
+        enMessages.put("email.password_reset.security_message", "If you did not change your password, please contact our support team immediately at {supportEmail} or phone {supportPhone}.");
+        
+        // Email footer and common elements
+        enMessages.put("email.footer.copyright", "© {year} {websiteName}. All rights reserved.");
+        enMessages.put("email.greeting.hello", "Hello");
+        enMessages.put("email.website.tagline", "Your Trusted Car Marketplace");
+        enMessages.put("email.welcome.title", "Welcome to {websiteName}!");
+        enMessages.put("email.welcome.message", "Thank you for joining our community of car enthusiasts!");
+        enMessages.put("email.welcome.browse_cars", "Browse thousands of cars from trusted dealers and private sellers");
         
         // Messaging system messages
         enMessages.put("message.marked.read.success", "Message marked as read successfully");
@@ -66,6 +101,35 @@ public class MessageService {
         arMessages.put("password.reset.invalid.token", "رمز إعادة التعيين غير صحيح أو منتهي الصلاحية.");
         arMessages.put("password.reset.token.expired", "انتهت صلاحية رمز إعادة التعيين. يرجى طلب رمز جديد.");
         arMessages.put("password.reset.rate.limited", "محاولات كثيرة لإعادة تعيين كلمة المرور. يرجى المحاولة لاحقاً.");
+        
+        // Email subject lines (Arabic - new format with email. prefix)
+        arMessages.put("email.listing_approved.subject", "تمت الموافقة على إعلانك!");
+        arMessages.put("email.listing_expired.subject", "انتهت صلاحية إعلانك");
+        arMessages.put("email.listing_renewal.subject", "تم تجديد إعلانك");
+        arMessages.put("email.welcome.subject", "مرحباً بك في {websiteName}!");
+        arMessages.put("email.contact_form.subject", "رسالة جديدة من {name}");
+        arMessages.put("email.contact_confirmation.subject", "شكراً لتواصلك معنا");
+        arMessages.put("email.listing_sold.subject", "تم بيع إعلانك!");
+        arMessages.put("email.listing_archived.subject", "تم أرشفة إعلانك");
+        arMessages.put("email.listing_feedback.subject", "كيف كانت تجربة البيع؟");
+        arMessages.put("email.newsletter_confirmation.subject", "تأكيد اشتراكك في {websiteName}");
+        arMessages.put("email.newsletter_welcome.subject", "مرحباً بك في نشرة {websiteName}!");
+        arMessages.put("email.password_reset.subject", "طلب إعادة تعيين كلمة المرور");
+        arMessages.put("email.password_reset_confirmation.subject", "تم تغيير كلمة المرور بنجاح");
+        arMessages.put("email.registration_confirmation.subject", "مرحباً بك في {websiteName}!");
+        arMessages.put("email.account_verification.subject", "تحقق من حسابك في {websiteName}");
+        arMessages.put("email.security_alert.subject", "تنبيه أمني - {websiteName}");
+        arMessages.put("email.email_change.subject", "تأكيد تغيير البريد الإلكتروني - {websiteName}");
+        arMessages.put("email.password_reset.security_alert", "لم تقم بهذا التغيير؟");
+        arMessages.put("email.password_reset.security_message", "إذا لم تقم بتغيير كلمة المرور، يرجى الاتصال بفريق الدعم الفني فوراً على {supportEmail} أو الهاتف {supportPhone}.");
+        
+        // Email footer and common elements (Arabic)
+        arMessages.put("email.footer.copyright", "© {year} {websiteName}. جميع الحقوق محفوظة.");
+        arMessages.put("email.greeting.hello", "مرحباً");
+        arMessages.put("email.website.tagline", "منصة السيارات الموثوقة");
+        arMessages.put("email.welcome.title", "مرحباً بك في {websiteName}!");
+        arMessages.put("email.welcome.message", "شكراً لانضمامك إلى مجتمع عشاق السيارات!");
+        arMessages.put("email.welcome.browse_cars", "تصفح آلاف السيارات من وكلاء موثوقين وبائعين خاصين");
         
         // Messaging system messages (Arabic)
         arMessages.put("message.marked.read.success", "تم وضع علامة على الرسالة كمقروءة بنجاح");
@@ -111,5 +175,78 @@ public class MessageService {
      */
     public String getMessage(String key, String language) {
         return getMessage(key, language, null);
+    }
+    
+    /**
+     * Note: MessageSource is now configured in Utf8Config.java for centralized UTF-8 handling.
+     * This ensures proper encoding for Arabic text and international characters.
+     */
+    
+    /**
+     * Get localized message using Spring's MessageSource (preferred method).
+     * This method supports proper i18n with .properties files.
+     */
+    public String getLocalizedMessage(String key, String language, Object... args) {
+        if (messageSource != null) {
+            try {
+                Locale locale = getLocaleFromLanguage(language);
+                String message = messageSource.getMessage(key, args, locale);
+                return ArabicTextUtils.normalizeArabicText(message);
+            } catch (Exception e) {
+                // Fall through to legacy method
+            }
+        }
+        
+        // Fallback to the old method if message not found in properties or MessageSource not available
+        Map<String, String> params = new HashMap<>();
+        if (args != null && args.length > 0) {
+            // Convert args to params map for backward compatibility
+            for (int i = 0; i < args.length; i++) {
+                params.put("arg" + i, String.valueOf(args[i]));
+            }
+        }
+        return getMessage(key, language, params);
+    }
+    
+    /**
+     * Get localized message with named parameters using Spring's MessageSource.
+     */
+    public String getLocalizedMessage(String key, String language, Map<String, Object> params) {
+        if (messageSource != null) {
+            try {
+                Locale locale = getLocaleFromLanguage(language);
+                
+                // For named parameters, we need to replace them in the template
+                String template = messageSource.getMessage(key, null, locale);
+                
+                if (params != null) {
+                    for (Map.Entry<String, Object> entry : params.entrySet()) {
+                        String value = ArabicTextUtils.normalizeArabicText(String.valueOf(entry.getValue()));
+                        template = template.replace("{" + entry.getKey() + "}", value);
+                    }
+                }
+                
+                return ArabicTextUtils.normalizeArabicText(template);
+            } catch (Exception e) {
+                // Fall through to legacy method
+            }
+        }
+        
+        // Fallback to the old method
+        Map<String, String> stringParams = new HashMap<>();
+        if (params != null) {
+            params.forEach((k, v) -> stringParams.put(k, String.valueOf(v)));
+        }
+        return getMessage(key, language, stringParams);
+    }
+    
+    /**
+     * Convert language code to Locale.
+     */
+    private Locale getLocaleFromLanguage(String language) {
+        if ("ar".equals(language)) {
+            return Locale.forLanguageTag("ar");
+        }
+        return Locale.ENGLISH; // Default to English
     }
 }

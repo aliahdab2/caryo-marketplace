@@ -98,7 +98,7 @@ public class EmailTemplateBuilder {
         variables.put(EmailTemplateConstants.VAR_MESSAGE, message);
         variables.put(EmailTemplateConstants.VAR_TIMESTAMP, java.time.LocalDateTime.now());
         variables.put(EmailTemplateConstants.VAR_LANGUAGE, language);
-        variables.put(EmailTemplateConstants.VAR_SUPPORT_EMAIL, "support@autotrader.com"); // Default support email
+        variables.put(EmailTemplateConstants.VAR_SUPPORT_EMAIL, "support@caryo.sy"); // Default support email
         return this;
     }
 

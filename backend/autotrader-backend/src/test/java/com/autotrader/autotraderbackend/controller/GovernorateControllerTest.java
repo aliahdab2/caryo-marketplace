@@ -137,7 +137,7 @@ class GovernorateControllerTest {
         mockMvc.perform(get(BASE_URL))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].slug", is(DAMASCUS_SLUG)))
                 .andExpect(jsonPath("$[1].slug", is(ALEPPO_SLUG)));
@@ -152,7 +152,7 @@ class GovernorateControllerTest {
         mockMvc.perform(get(BASE_URL))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(0)));
     }
 
@@ -170,7 +170,7 @@ class GovernorateControllerTest {
         mockMvc.perform(get(BASE_URL + "/country/" + countryCode))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(governorates.size())));
 
         if (COUNTRY_CODE_SY.equals(countryCode)) {
@@ -190,7 +190,7 @@ class GovernorateControllerTest {
         mockMvc.perform(get(BASE_URL + "/country/" + countryCode))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(0)));
     }
     
@@ -203,7 +203,7 @@ class GovernorateControllerTest {
         mockMvc.perform(get(BASE_URL + "/country/{countryCode}", ""))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(0)));
     }
 
@@ -216,7 +216,7 @@ class GovernorateControllerTest {
         mockMvc.perform(get(BASE_URL + "/" + DAMASCUS_SLUG))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$.slug", is(DAMASCUS_SLUG)))
                 .andExpect(jsonPath("$.displayNameEn", is("Damascus")))
                 .andExpect(jsonPath("$.countryCode", is(COUNTRY_CODE_SY)));

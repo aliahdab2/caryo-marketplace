@@ -94,7 +94,7 @@ DB_NAME=autotrader
 # MinIO Configuration
 MINIO_ACCESS_KEY=minioadmin
 MINIO_SECRET_KEY=change_me_in_production
-S3_BUCKET_NAME=autotrader-assets
+S3_BUCKET_NAME=caryo-assets
 S3_REGION=us-east-1
 
 # Application Configuration

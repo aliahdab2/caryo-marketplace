@@ -103,7 +103,7 @@ describe('Structured Data Generation', () => {
           '@type': 'Person',
           name: mockCarListing.sellerUsername
         },
-        url: 'https://caryo.com/listings/1'
+        url: 'https://caryo.sy/listings/1'
       });
     });
 
@@ -173,8 +173,8 @@ describe('Structured Data Generation', () => {
       expect(schema['@type']).toBe('Organization');
       expect(schema.name).toBe('Caryo Marketplace');
       expect(schema.description).toContain('automotive marketplace');
-      expect(schema.url).toBe('https://caryo.com');
-      expect(schema.logo).toBe('https://caryo.com/logo.png');
+      expect(schema.url).toBe('https://caryo.sy');
+      expect(schema.logo).toBe('https://caryo.sy/logo.png');
     });
 
     it('should include contact point information', () => {
@@ -227,14 +227,14 @@ describe('Structured Data Generation', () => {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://caryo.com/'
+        item: 'https://caryo.sy/'
       });
       
       expect(schema.itemListElement[1]).toEqual({
         '@type': 'ListItem',
         position: 2,
         name: 'Cars',
-        item: 'https://caryo.com/cars'
+        item: 'https://caryo.sy/cars'
       });
     });
 

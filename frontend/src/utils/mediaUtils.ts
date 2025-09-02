@@ -18,7 +18,7 @@ export function transformMinioUrl(url: string): string {
   const looksLikeStorageKey = !url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/');
   if (looksLikeStorageKey) {
     // Assume default bucket path exposed at localhost:9000
-    return `http://localhost:9000/autotrader-assets/${url}`;
+    return `http://localhost:9000/caryo-assets/${url}`;
   }
 
   // Skip transformation if it's not a MinIO docker hostname

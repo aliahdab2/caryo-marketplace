@@ -63,7 +63,7 @@ export async function generateMetadata({ params }: PageProps) {
     openGraph: {
       title: "Caryo Marketplace - Buy & Sell Cars in Syria",
       description: "Your trusted platform for buying and selling vehicles",
-      url: "https://caryo.com",
+      url: "https://caryo.sy",
       siteName: "Caryo Marketplace",
       images: [
         {
@@ -171,11 +171,11 @@ const vehicleSchema = {
 export async function generateMetadata({ params }: PageProps) {
   return {
     alternates: {
-      canonical: `https://caryo.com${pathname}`,
+      canonical: `https://caryo.sy${pathname}`,
       languages: {
-        'en': `https://caryo.com/en${pathname}`,
-        'ar': `https://caryo.com/ar${pathname}`,
-        'x-default': `https://caryo.com${pathname}`,
+        'en': `https://caryo.sy/en${pathname}`,
+        'ar': `https://caryo.sy/ar${pathname}`,
+        'x-default': `https://caryo.sy${pathname}`,
       },
     },
   };
@@ -216,7 +216,7 @@ export default function CarListingPage({ listing }) {
       <NextSeo
         title={`${listing.brand} ${listing.model} ${listing.year} - ${listing.location}`}
         description={listing.description}
-        canonical={`https://caryo.com/cars/${listing.slug}`}
+        canonical={`https://caryo.sy/cars/${listing.slug}`}
         openGraph={{
           type: 'article',
           title: listing.title,
@@ -242,16 +242,16 @@ export default function CarListingPage({ listing }) {
 ```javascript
 // next-sitemap.config.js
 module.exports = {
-  siteUrl: 'https://caryo.com',
+  siteUrl: 'https://caryo.sy',
   generateRobotsTxt: true,
   exclude: ['/admin/*', '/dashboard/*'],
   alternateRefs: [
     {
-      href: 'https://caryo.com/ar',
+      href: 'https://caryo.sy/ar',
       hreflang: 'ar',
     },
     {
-      href: 'https://caryo.com/en',
+      href: 'https://caryo.sy/en',
       hreflang: 'en',
     },
   ],
@@ -264,11 +264,11 @@ module.exports = {
       priority: 0.8,
       alternateRefs: [
         {
-          href: `https://caryo.com/en/cars/${car.slug}`,
+          href: `https://caryo.sy/en/cars/${car.slug}`,
           hreflang: 'en',
         },
         {
-          href: `https://caryo.com/ar/cars/${car.slug}`,
+          href: `https://caryo.sy/ar/cars/${car.slug}`,
           hreflang: 'ar',
         },
       ],

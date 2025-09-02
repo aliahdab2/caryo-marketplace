@@ -37,7 +37,6 @@ class EmailServiceTest {
     @Mock
     private org.thymeleaf.TemplateEngine templateEngine;
 
-    @Mock
     private MessageService messageService;
 
     @Mock
@@ -56,15 +55,16 @@ class EmailServiceTest {
 
     @BeforeEach
     void setUp() {
-        emailService = new EmailServiceImpl(mailSender, templateEngine, messageService, emailTemplateService, emailTemplateBuilder, contentValidationService);
+        messageService = new MessageService(); // Use real MessageService instance
+        emailService = new EmailServiceImpl(mailSender, templateEngine, messageService);
         
         // Set configuration values
-        ReflectionTestUtils.setField(emailService, "fromEmail", "noreply@autotrader.com");
-        ReflectionTestUtils.setField(emailService, "supportEmail", "support@autotrader.com");
-        ReflectionTestUtils.setField(emailService, "websiteName", "AutoTrader");
-        ReflectionTestUtils.setField(emailService, "websiteNameAr", "أوتو تريدر");
+        ReflectionTestUtils.setField(emailService, "fromEmail", "noreply@caryo.sy");
+        ReflectionTestUtils.setField(emailService, "supportEmail", "support@caryo.sy");
+        ReflectionTestUtils.setField(emailService, "websiteName", "Caryo Marketplace");
+        ReflectionTestUtils.setField(emailService, "websiteNameAr", "كاريو");
         ReflectionTestUtils.setField(emailService, "websiteUrl", "http://localhost:3000");
-        ReflectionTestUtils.setField(emailService, "websiteSupportEmail", "support@autotrader.com");
+        ReflectionTestUtils.setField(emailService, "websiteSupportEmail", "support@caryo.sy");
         ReflectionTestUtils.setField(emailService, "websiteSupportPhone", "+963-XXX-XXXX");
         ReflectionTestUtils.setField(emailService, "defaultLanguage", "en");
     }
