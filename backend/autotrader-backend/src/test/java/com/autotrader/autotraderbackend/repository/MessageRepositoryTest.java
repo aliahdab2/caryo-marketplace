@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -254,7 +255,7 @@ class MessageRepositoryTest {
     @DisplayName("Should mark message as read")
     void shouldMarkMessageAsRead() {
         // Arrange
-        LocalDateTime readAt = LocalDateTime.now();
+        LocalDateTime readAt = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
 
         // Act
         messageRepository.markMessageAsRead(message1.getId(), readAt);
@@ -264,7 +265,9 @@ class MessageRepositoryTest {
         // Assert
         Message updatedMessage = entityManager.find(Message.class, message1.getId());
         assertTrue(updatedMessage.isRead());
-        assertEquals(readAt, updatedMessage.getReadAt());
+        // Compare with microsecond precision to avoid nanosecond timing issues
+        assertEquals(readAt.truncatedTo(ChronoUnit.MICROS), 
+                    updatedMessage.getReadAt().truncatedTo(ChronoUnit.MICROS));
     }
 
     @Test
