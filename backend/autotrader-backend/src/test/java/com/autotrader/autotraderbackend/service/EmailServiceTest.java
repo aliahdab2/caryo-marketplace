@@ -488,7 +488,7 @@ class EmailServiceTest {
         
         // Wait for rate limit window to pass (in real scenario this would be 1 minute)
         // For testing, we'll just verify the behavior
-        Thread.sleep(100); // Small delay for testing
+        Thread.sleep(200); // Small delay for testing in CI environment
         
         // Assert - Should be able to send more emails after rate limit window
         assertDoesNotThrow(() -> {

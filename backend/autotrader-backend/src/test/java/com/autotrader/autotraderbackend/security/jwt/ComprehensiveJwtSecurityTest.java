@@ -203,7 +203,7 @@ class ComprehensiveJwtSecurityTest {
             
             // Wait for token to expire
             try {
-                Thread.sleep(100); // Ensure expiration
+                Thread.sleep(200); // Ensure expiration in CI environment
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

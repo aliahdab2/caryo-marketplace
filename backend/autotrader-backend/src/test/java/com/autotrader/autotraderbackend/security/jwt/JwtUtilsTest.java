@@ -98,7 +98,7 @@ public class JwtUtilsTest {
         String token = jwtUtils.generateJwtToken(authentication);
         
         // Wait for the token to expire
-        Thread.sleep(100); // Increased sleep time to ensure expiration
+        Thread.sleep(200); // Increased sleep time to ensure expiration in CI
         
         // Act & Assert
         assertThrows(ExpiredJwtTokenException.class, () -> {
