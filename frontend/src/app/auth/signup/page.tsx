@@ -92,89 +92,18 @@ export default function SignUpPage() {
         confirmPassword,
       });
 
-      // Check if the backend returned JWT credentials (auto-login successful)
-      if ('token' in result || 'accessToken' in result) {
-        // Backend auto-login successful - user is already authenticated
-        setSuccessMessage(t('signupSuccess'));
-        
-        // Short delay to show success message, then establish NextAuth session
-        setTimeout(async () => {
-          try {
-            // Since backend already authenticated, we need to establish NextAuth session
-            // This will trigger the NextAuth authorize function with the same credentials
-            const signInResult = await signIn("credentials", {
-              redirect: false,
-              username,
-              password,
-            });
-
-            if (signInResult?.ok) {
-              console.log('NextAuth signIn successful, establishing session...');
-              
-              // Give NextAuth time to establish the session, then redirect
-              setTimeout(async () => {
-                try {
-                  // Force session refresh
-                  const session = await getSession();
-                  console.log('Session after signIn:', session);
-                  
-                  if (session?.user) {
-                    console.log('Session confirmed, redirecting to:', callbackUrl);
-                    // Use window.location for full page redirect to ensure session is loaded
-                    window.location.href = callbackUrl;
-                  } else {
-                    console.warn('No session found, using router redirect as fallback');
-                    router.push(callbackUrl);
-                  }
-                } catch (sessionError) {
-                  console.error('Session check failed:', sessionError);
-                  // Fallback to router redirect
-                  router.push(callbackUrl);
-                }
-              }, 300);
-            } else if (signInResult?.error) {
-              // If NextAuth sign-in failed, show error but don't redirect
-              setError(signInResult.error);
-              setLoading(false);
-            } else {
-              // Unknown error
-              setError(t('errorOccurred'));
-              setLoading(false);
-            }
-          } catch (error) {
-            console.error('NextAuth session establishment failed:', error);
-            setError(t('errorOccurred'));
-            setLoading(false);
-          }
-        }, 1500);
-      } else {
-        // Traditional flow - backend returned message, need to sign in manually
-        setSuccessMessage(result.message || t('signupSuccess'));
-        
-        // Short delay to show the success message before signing in
-        setTimeout(async () => {
-          try {
-            const signInResult = await signIn("credentials", {
-              redirect: false,
-              username,
-              password,
-              callbackUrl,
-            });
-
-            if (signInResult?.error) {
-              setError(signInResult.error);
-              setLoading(false);
-            } else if (signInResult?.ok) {
-              // Use the URL from the sign-in result if available, otherwise fall back to callbackUrl
-              const redirectUrl = signInResult.url || callbackUrl;
-              router.push(redirectUrl);
-            }
-          } catch {
-            setError(t('errorOccurred'));
-            setLoading(false);
-          }
-        }, 1500);
+      // With email verification system, redirect to check-email page
+      setSuccessMessage(result.message || t('signupSuccess'));
+      
+      // Store email for the check-email page
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('signup-email', email);
       }
+      
+      // Short delay to show success message, then redirect to check-email
+      setTimeout(() => {
+        router.push(`/auth/check-email?email=${encodeURIComponent(email)}`);
+      }, 2000);
     } catch (err) {
       let message = t('registrationFailed');
       if (typeof err === "object" && err !== null) {

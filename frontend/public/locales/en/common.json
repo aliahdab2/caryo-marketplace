@@ -161,5 +161,6 @@
   "nextPage": "Next page",
   "goToPage": "Go to page {{page}}",
   "showing": "Showing",
-  "of": "of"
+  "of": "of",
+  "backToHome": "Back to Home"
 }

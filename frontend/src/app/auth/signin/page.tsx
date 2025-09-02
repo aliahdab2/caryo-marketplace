@@ -116,11 +116,12 @@ const SignInPage: React.FC = () => {
       });
 
       if (result?.error) {
-        if (result.error.toLowerCase().includes('invalid') || 
+        if (result.error === 'CredentialsSignin' ||
+            result.error.toLowerCase().includes('invalid') || 
             result.error.toLowerCase().includes('credentials') ||
             result.error.toLowerCase().includes('password') ||
             result.error.toLowerCase().includes('user')) {
-          setError(t('errors:invalidCredentials', 'Invalid username or password. Please try again.'));
+          setError(t('errors:CredentialsSignin', 'Invalid username or password. Please try again.'));
         } else {
           setError(getErrorMessage({ message: result.error }));
         }
