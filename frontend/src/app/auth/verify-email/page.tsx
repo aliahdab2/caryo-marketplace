@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 
 export default function VerifyEmailPage() {
-  const { t } = useTranslation('auth');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'invalid'>('loading');
