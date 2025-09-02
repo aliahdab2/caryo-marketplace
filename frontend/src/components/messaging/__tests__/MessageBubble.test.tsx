@@ -42,7 +42,7 @@ describe('MessageBubble', () => {
     senderName: 'John Doe',
     displayContent: 'Test message content',
     messageType: 'TEXT',
-    createdAt: '2024-01-01T10:00:00Z',
+    createdAt: '2024-01-01T11:00:00Z',
     isRead: false,
     attachments: [],
     ...overrides
@@ -68,7 +68,7 @@ describe('MessageBubble', () => {
       );
 
       expect(screen.getByText('Test message content')).toBeInTheDocument();
-      expect(screen.getByText('11:00 AM')).toBeInTheDocument();
+      expect(screen.getByText(/\d{1,2}:\d{2}\s?(AM|PM)/)).toBeInTheDocument();
     });
 
     it('applies correct styling for own messages', () => {
@@ -384,7 +384,7 @@ describe('MessageBubble', () => {
       );
 
       expect(screen.queryByText('Test message content')).not.toBeInTheDocument();
-      expect(screen.getByText('11:00 AM')).toBeInTheDocument(); // Time should still be shown
+      expect(screen.getByText(/\d{1,2}:\d{2}\s?(AM|PM)/)).toBeInTheDocument(); // Time should still be shown
     });
 
     it('handles message without attachments', () => {

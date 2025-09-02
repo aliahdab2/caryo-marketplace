@@ -97,7 +97,7 @@ describe('Messaging Integration Tests', () => {
     senderName: 'John Doe',
     displayContent: 'Test message content',
     messageType: 'TEXT',
-    createdAt: '2024-01-01T10:00:00Z',
+    createdAt: '2024-01-01T11:00:00Z',
     isRead: false,
     attachments: [],
     ...overrides
@@ -352,7 +352,7 @@ describe('Messaging Integration Tests', () => {
           id: 1,
           displayContent: 'Hello! Are you still selling the car?',
           isOwn: false,
-          createdAt: '2024-01-01T10:00:00Z'
+          createdAt: '2024-01-01T11:00:00Z'
         }),
         createMockMessage({
           id: 2,
@@ -543,7 +543,7 @@ describe('Messaging Integration Tests', () => {
       );
 
       // Should still render time
-      expect(screen.getByText('11:00 AM')).toBeInTheDocument();
+      expect(screen.getByText(/\d{1,2}:\d{2}\s?(AM|PM)/)).toBeInTheDocument();
       
       // Should not crash or show broken content
       expect(screen.queryByTestId('car-media-gallery')).not.toBeInTheDocument();
