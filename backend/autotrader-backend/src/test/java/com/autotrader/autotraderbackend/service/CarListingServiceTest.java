@@ -91,6 +91,7 @@ class CarListingServiceTest {
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("testuser");
+        testUser.markEmailAsVerified(); // Mark user as verified for tests
 
         // Create test location with country and governorate
         Country country = new Country();

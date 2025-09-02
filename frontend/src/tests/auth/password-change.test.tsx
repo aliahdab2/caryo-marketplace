@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useSession } from 'next-auth/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import ProfilePage from '@/app/dashboard/profile/page';
+import ProfilePage from '@/app/(protected)/dashboard/profile/page';
 // Import our i18n mock
 import '../mocks/i18n-mock';
 

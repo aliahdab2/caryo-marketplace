@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useOptimizedSession } from '@/hooks/useOptimizedSession';
-import ProfilePage from '@/app/dashboard/profile/page';
+import ProfilePage from '@/app/(protected)/dashboard/profile/page';
 // Import our i18n mock
 import '../mocks/i18n-mock';
 
