@@ -3,6 +3,8 @@ package com.autotrader.autotraderbackend.controller;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
+import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +38,9 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @Autowired
+    private UserRepository userRepository;
 
     private String baseUrl;
 
@@ -211,6 +216,11 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
             // Verify signup was successful
             assertEquals(HttpStatus.OK, signupResponse.getStatusCode(), 
                 "User registration should succeed. Response body: " + signupResponse.getBody());
+            
+            // Mark user as email verified for testing (since this test is about authorization, not email verification)
+            User registeredUser = userRepository.findByUsername(username).orElseThrow();
+            registeredUser.markEmailAsVerified();
+            userRepository.save(registeredUser);
             
             // Login to get JWT token
             LoginRequest loginRequest = new LoginRequest();
