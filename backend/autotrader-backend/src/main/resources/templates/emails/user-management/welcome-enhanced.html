@@ -222,7 +222,7 @@
     <div class="email-container">
         <!-- Header -->
         <div class="email-header">
-            <div class="logo">🚗 <span th:text="${websiteName}">AutoTrader</span></div>
+            <div class="logo">🚗 <span th:text="${websiteName}">Caryo Marketplace</span></div>
             <h1 class="welcome-title" th:text="${language == 'ar' ? 'مرحباً بك في ' + websiteName + '!' : 'Welcome to ' + websiteName + '!'}">Welcome!</h1>
             <p class="welcome-subtitle" th:text="${language == 'ar' ? 'منصة السيارات الموثوقة' : 'Your Trusted Car Marketplace'}">Your Trusted Car Marketplace</p>
         </div>
@@ -232,13 +232,13 @@
             <h2 class="content-title" th:text="${language == 'ar' ? 'مرحباً ' + userName + '!' : 'Hello ' + userName + '!'}">Hello!</h2>
             
             <p class="content-text" th:if="${language == 'en'}" th:text="'Welcome to ' + ${websiteName} + '! We are excited to have you join our community of car enthusiasts and sellers.'">
-                Welcome to AutoTrader! We are excited to have you join our community of car enthusiasts and sellers.
+                Welcome to Caryo Marketplace! We are excited to have you join our community of car enthusiasts and sellers.
             </p>
             <p class="content-text" th:if="${language == 'ar'}" th:text="'مرحباً بك في ' + ${websiteName} + '! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.'">
-                مرحباً بك في AutoTrader! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.
+                مرحباً بك في كاريو! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.
             </p>
             
-            <p class="content-text" th:text="${language == 'ar' ? 'مع ' + websiteName + '، يمكنك:' : 'With ' + websiteName + ', you can:'}">With AutoTrader, you can:</p>
+            <p class="content-text" th:text="${language == 'ar' ? 'مع ' + websiteName + '، يمكنك:' : 'With ' + websiteName + ', you can:'}">With Caryo Marketplace, you can:</p>
             
             <div class="features-list">
                 <ul>
@@ -269,14 +269,14 @@
             </p>
             
             <p class="content-text" th:text="${language == 'ar' ? 'شكراً لك لاختيار ' + websiteName + '!' : 'Thank you for choosing ' + websiteName + '!'}">
-                Thank you for choosing AutoTrader!
+                Thank you for choosing Caryo Marketplace!
             </p>
         </div>
         
         <!-- Footer -->
         <div class="email-footer">
             <p class="footer-text" th:text="${language == 'ar' ? 'شكراً لك على استخدام ' + websiteName + ' - منصتك الموثوقة للسيارات' : 'Thank you for using ' + websiteName + ' - Your Trusted Car Marketplace'}">
-                Thank you for using AutoTrader - Your Trusted Car Marketplace
+                Thank you for using Caryo Marketplace - Your Trusted Car Marketplace
             </p>
             
             <div class="footer-links">
@@ -287,7 +287,7 @@
             </div>
             
             <p class="footer-text" th:text="${language == 'ar' ? '© ٢٠٢٥ ' + websiteName + '. جميع الحقوق محفوظة.' : '© 2025 ' + websiteName + '. All rights reserved.'}">
-                © 2025 AutoTrader. All rights reserved.
+                © 2025 Caryo Marketplace. All rights reserved.
             </p>
         </div>
     </div>
