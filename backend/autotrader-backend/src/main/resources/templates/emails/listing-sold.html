@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${language == 'ar' ? 'تم وضع علامة تم البيع على إعلانك' : 'Your listing has been marked as sold'}">Listing Sold</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+        .container { background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; }
+        .logo { color: #2c3e50; font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+        .info { background-color: #f8f9fa; padding: 20px; border-radius: 5px; border-left: 4px solid #3498db; }
+        .cta-button { display: inline-block; background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 10px 0; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #7f8c8d; font-size: 14px; }
+        [dir="rtl"] { text-align: right; }
+    </style>
+    <meta name="x-apple-disable-message-reformatting">
+</head>
+<body th:dir="${language == 'ar' ? 'rtl' : 'ltr'}">
+    <div class="container">
+        <div class="header">
+            <div class="logo">🚗 <span th:text="${websiteName}">AutoTrader</span></div>
+            <h2 th:text="${language == 'ar' ? 'تم وضع علامة تم البيع على إعلانك' : 'Your listing has been marked as sold'}">Your listing has been marked as sold</h2>
+        </div>
+
+        <p th:text="${language == 'ar' ? 'مرحباً ' + userName + '،' : 'Hello ' + userName + ','}">Hello User,</p>
+        <p th:text="${language == 'ar' ? 'لقد تم وضع علامة تم البيع على إعلانك.' : 'Your listing has been marked as sold.'}">Your listing has been marked as sold.</p>
+
+        <div class="info">
+            <p th:text="${language == 'ar' ? 'العنوان: ' + listingTitle : 'Title: ' + listingTitle}">Title: Listing</p>
+            <p th:text="${language == 'ar' ? 'رقم الإعلان: ' + listingId : 'Listing ID: ' + listingId}">Listing ID: #1</p>
+        </div>
+
+        <div style="text-align:center; margin: 20px 0;">
+            <a class="cta-button" th:href="${listingUrl}" th:text="${language == 'ar' ? 'عرض الإعلان' : 'View Listing'}">View Listing</a>
+        </div>
+
+        <div class="footer">
+            <p th:text="${language == 'ar' ? '© 2024 ' + websiteName + '. جميع الحقوق محفوظة.' : '© 2024 ' + websiteName + '. All rights reserved.'}">© 2024 AutoTrader. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+
+

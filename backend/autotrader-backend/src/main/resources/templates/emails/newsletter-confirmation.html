@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${language == 'ar' ? 'تأكيد الاشتراك في النشرة الإخبارية' : 'Confirm Newsletter Subscription'}">Newsletter Confirmation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .content {
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        .unsubscribe {
+            margin-top: 20px;
+            font-size: 11px;
+            color: #999;
+        }
+        /* RTL Support for Arabic */
+        .rtl {
+            direction: rtl;
+            text-align: right;
+        }
+        .rtl .header {
+            text-align: center;
+        }
+    </style>
+</head>
+<body th:class="${language == 'ar' ? 'rtl' : ''}">
+    <div class="container">
+        <div class="header">
+            <div class="logo" th:text="${websiteName}">Caryo</div>
+            <h1 th:text="${language == 'ar' ? 'تأكيد الاشتراك في النشرة الإخبارية' : 'Confirm Your Newsletter Subscription'}">
+                Confirm Your Newsletter Subscription
+            </h1>
+        </div>
+        
+        <div class="content">
+            <p th:text="${language == 'ar' ? 'مرحباً،' : 'Hello,'}">Hello,</p>
+            
+            <p th:text="${language == 'ar' ? 
+                'شكراً لك على الاشتراك في النشرة الإخبارية لموقع ' + ${websiteName} + '. للتأكيد من اشتراكك، يرجى النقر على الزر أدناه:' : 
+                'Thank you for subscribing to the ' + ${websiteName} + ' newsletter. To confirm your subscription, please click the button below:'}">
+                Thank you for subscribing to our newsletter. Please confirm your subscription.
+            </p>
+            
+            <div style="text-align: center;">
+                <a th:href="${confirmationUrl}" class="button" 
+                   th:text="${language == 'ar' ? 'تأكيد الاشتراك' : 'Confirm Subscription'}">
+                    Confirm Subscription
+                </a>
+            </div>
+            
+            <p th:text="${language == 'ar' ? 
+                'إذا لم تتمكن من النقر على الزر، يمكنك نسخ الرابط التالي ولصقه في متصفحك:' : 
+                'If you cannot click the button, copy and paste this link into your browser:'}">
+                If you cannot click the button, copy this link:
+            </p>
+            
+            <p style="word-break: break-all; color: #007bff;">
+                <a th:href="${confirmationUrl}" th:text="${confirmationUrl}">Confirmation Link</a>
+            </p>
+            
+            <p th:text="${language == 'ar' ? 
+                'إذا لم تقم بالاشتراك في هذه النشرة، يمكنك تجاهل هذا البريد الإلكتروني.' : 
+                'If you did not subscribe to this newsletter, you can safely ignore this email.'}">
+                If you did not subscribe, please ignore this email.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p th:text="${language == 'ar' ? 
+                'هذا البريد الإلكتروني تم إرساله من ' + ${websiteName} : 
+                'This email was sent from ' + ${websiteName}}">
+                This email was sent from Caryo
+            </p>
+            <p th:text="${language == 'ar' ? 
+                'للاستفسارات، تواصل معنا على: ' + ${supportEmail} : 
+                'For questions, contact us at: ' + ${supportEmail}}">
+                For questions, contact us
+            </p>
+            
+            <div class="unsubscribe">
+                <p th:text="${language == 'ar' ? 
+                    'لإلغاء الاشتراك، انقر هنا:' : 
+                    'To unsubscribe, click here:'}">
+                    To unsubscribe:
+                </p>
+                <a th:href="${unsubscribeUrl}" 
+                   th:text="${language == 'ar' ? 'إلغاء الاشتراك' : 'Unsubscribe'}">
+                    Unsubscribe
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

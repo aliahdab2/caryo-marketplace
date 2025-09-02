@@ -170,4 +170,44 @@ public interface EmailService {
      * Send newsletter welcome email with specified language.
      */
     void sendNewsletterWelcomeEmail(String email, String unsubscribeUrl, String language);
+    
+    /**
+     * Send user registration confirmation email.
+     */
+    void sendRegistrationConfirmationEmail(String email, String username, String confirmationUrl);
+    
+    /**
+     * Send user registration confirmation email with specified language.
+     */
+    void sendRegistrationConfirmationEmail(String email, String username, String confirmationUrl, String language);
+    
+    /**
+     * Send account verification email.
+     */
+    void sendAccountVerificationEmail(String email, String username, String verificationUrl);
+    
+    /**
+     * Send account verification email with specified language.
+     */
+    void sendAccountVerificationEmail(String email, String username, String verificationUrl, String language);
+    
+    /**
+     * Send email change confirmation.
+     */
+    void sendEmailChangeConfirmation(String oldEmail, String newEmail, String confirmationUrl);
+    
+    /**
+     * Send email change confirmation with specified language.
+     */
+    void sendEmailChangeConfirmation(String oldEmail, String newEmail, String confirmationUrl, String language);
+    
+    /**
+     * Send security alert email.
+     */
+    void sendSecurityAlertEmail(String email, String username, String alertType, String details);
+    
+    /**
+     * Send security alert email with specified language.
+     */
+    void sendSecurityAlertEmail(String email, String username, String alertType, String details, String language);
 }

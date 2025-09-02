@@ -34,6 +34,20 @@ public class MessageService {
         enMessages.put("password.reset.token.expired", "Reset token has expired. Please request a new one.");
         enMessages.put("password.reset.rate.limited", "Too many password reset attempts. Please try again later.");
         
+        // Messaging system messages
+        enMessages.put("message.marked.read.success", "Message marked as read successfully");
+        enMessages.put("messages.marked.read.all.success", "All messages marked as read successfully");
+        enMessages.put("conversation.archived.success", "Conversation archived successfully");
+        enMessages.put("conversation.status.updated.success", "Conversation status updated successfully");
+        enMessages.put("conversation.created.success", "Conversation created successfully");
+        enMessages.put("message.sent.success", "Message sent successfully");
+        
+        // Error messages
+        enMessages.put("error.resource.not.found", "{resource} not found");
+        enMessages.put("error.access.denied", "Access denied");
+        enMessages.put("error.validation.failed", "Validation failed: {details}");
+        enMessages.put("error.server.internal", "An internal server error occurred");
+        
         // Arabic messages
         Map<String, String> arMessages = new HashMap<>();
         arMessages.put("listing.approved.subject", "تمت الموافقة على إعلانك!");
@@ -52,6 +66,20 @@ public class MessageService {
         arMessages.put("password.reset.invalid.token", "رمز إعادة التعيين غير صحيح أو منتهي الصلاحية.");
         arMessages.put("password.reset.token.expired", "انتهت صلاحية رمز إعادة التعيين. يرجى طلب رمز جديد.");
         arMessages.put("password.reset.rate.limited", "محاولات كثيرة لإعادة تعيين كلمة المرور. يرجى المحاولة لاحقاً.");
+        
+        // Messaging system messages (Arabic)
+        arMessages.put("message.marked.read.success", "تم وضع علامة على الرسالة كمقروءة بنجاح");
+        arMessages.put("messages.marked.read.all.success", "تم وضع علامة على جميع الرسائل كمقروءة بنجاح");
+        arMessages.put("conversation.archived.success", "تم أرشفة المحادثة بنجاح");
+        arMessages.put("conversation.status.updated.success", "تم تحديث حالة المحادثة بنجاح");
+        arMessages.put("conversation.created.success", "تم إنشاء المحادثة بنجاح");
+        arMessages.put("message.sent.success", "تم إرسال الرسالة بنجاح");
+        
+        // Error messages (Arabic)
+        arMessages.put("error.resource.not.found", "{resource} غير موجود");
+        arMessages.put("error.access.denied", "تم رفض الوصول");
+        arMessages.put("error.validation.failed", "فشل في التحقق: {details}");
+        arMessages.put("error.server.internal", "حدث خطأ داخلي في الخادم");
         
         MESSAGES.put("en", enMessages);
         MESSAGES.put("ar", arMessages);

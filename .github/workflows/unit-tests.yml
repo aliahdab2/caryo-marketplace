@@ -31,12 +31,15 @@ jobs:
     # Run unit tests using Gradle
     - name: Run Unit Tests
       working-directory: ./backend/autotrader-backend
+      env:
+        SPRING_PROFILES_ACTIVE: test
+        GRADLE_OPTS: "-Xmx2g -Dfile.encoding=UTF-8"
       run: |
         echo "Running unit tests (excluding integration tests)..."
-        export SPRING_PROFILES_ACTIVE=unit,h2
-        
+        echo "Java version: $(java -version 2>&1 | head -n 1)"
+        echo "Gradle version: $(./gradlew --version | head -n 1)"
         # Run the test task which is already configured to exclude integration tests
-        ./gradlew test --info
+        ./gradlew clean test --info --stacktrace --no-daemon
         
         # Check exit code
         if [ $? -ne 0 ]; then

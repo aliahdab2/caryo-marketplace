@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${language == 'ar' ? 'مرحباً بك في نشرة ' + ${websiteName} + ' الإخبارية' : 'Welcome to ' + ${websiteName} + ' Newsletter'}">Welcome to Newsletter</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 20px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        .welcome-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .content {
+            margin: 20px 0;
+        }
+        .benefits {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        .benefits ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .benefits li {
+            margin: 10px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .button:hover {
+            background-color: #218838;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        .unsubscribe {
+            margin-top: 20px;
+            font-size: 11px;
+            color: #999;
+        }
+        /* RTL Support for Arabic */
+        .rtl {
+            direction: rtl;
+            text-align: right;
+        }
+        .rtl .header {
+            text-align: center;
+        }
+        .rtl .benefits {
+            border-left: none;
+            border-right: 4px solid #28a745;
+        }
+        .rtl .benefits ul {
+            padding-right: 20px;
+            padding-left: 0;
+        }
+    </style>
+</head>
+<body th:class="${language == 'ar' ? 'rtl' : ''}">
+    <div class="container">
+        <div class="header">
+            <div class="welcome-icon">🎉</div>
+            <div class="logo" th:text="${websiteName}">Caryo</div>
+            <h1 th:text="${language == 'ar' ? 'مرحباً بك!' : 'Welcome!'}">Welcome!</h1>
+            <p th:text="${language == 'ar' ? 
+                'شكراً لك على تأكيد اشتراكك في نشرتنا الإخبارية' : 
+                'Thank you for confirming your newsletter subscription'}">
+                Thank you for confirming your subscription
+            </p>
+        </div>
+        
+        <div class="content">
+            <p th:text="${language == 'ar' ? 
+                'أهلاً وسهلاً بك في مجتمع ' + ${websiteName} + '!' : 
+                'Welcome to the ' + ${websiteName} + ' community!'}">
+                Welcome to our community!
+            </p>
+            
+            <p th:text="${language == 'ar' ? 
+                'نحن متحمسون لمشاركة أحدث الأخبار والعروض والمحتوى الحصري معك.' : 
+                'We\'re excited to share the latest news, offers, and exclusive content with you.'}">
+                We're excited to share updates with you.
+            </p>
+            
+            <div class="benefits">
+                <h3 th:text="${language == 'ar' ? 'ما يمكنك توقعه:' : 'What to expect:'}">What to expect:</h3>
+                <ul>
+                    <li th:text="${language == 'ar' ? 
+                        'إشعارات حول السيارات الجديدة المتاحة' : 
+                        'Notifications about new cars available'}">
+                        New car notifications
+                    </li>
+                    <li th:text="${language == 'ar' ? 
+                        'عروض وخصومات حصرية' : 
+                        'Exclusive offers and discounts'}">
+                        Exclusive offers
+                    </li>
+                    <li th:text="${language == 'ar' ? 
+                        'نصائح لبيع وشراء السيارات' : 
+                        'Tips for buying and selling cars'}">
+                        Car buying/selling tips
+                    </li>
+                    <li th:text="${language == 'ar' ? 
+                        'تحديثات حول ميزات الموقع الجديدة' : 
+                        'Updates about new website features'}">
+                        Website feature updates
+                    </li>
+                    <li th:text="${language == 'ar' ? 
+                        'محتوى تعليمي حول السيارات' : 
+                        'Educational content about cars'}">
+                        Educational car content
+                    </li>
+                </ul>
+            </div>
+            
+            <p th:text="${language == 'ar' ? 
+                'ابدأ بتصفح أحدث السيارات المتاحة على موقعنا:' : 
+                'Start browsing the latest cars available on our website:'}">
+                Start browsing our latest cars:
+            </p>
+            
+            <div style="text-align: center;">
+                <a th:href="${websiteUrl}" class="button" 
+                   th:text="${language == 'ar' ? 'تصفح السيارات' : 'Browse Cars'}">
+                    Browse Cars
+                </a>
+            </div>
+            
+            <p th:text="${language == 'ar' ? 
+                'إذا كان لديك أي أسئلة أو تحتاج إلى مساعدة، لا تتردد في التواصل معنا.' : 
+                'If you have any questions or need help, don\'t hesitate to contact us.'}">
+                If you have questions, contact us.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p th:text="${language == 'ar' ? 
+                'شكراً لانضمامك إلى ' + ${websiteName} : 
+                'Thank you for joining ' + ${websiteName}}">
+                Thank you for joining us
+            </p>
+            <p th:text="${language == 'ar' ? 
+                'للاستفسارات، تواصل معنا على: ' + ${supportEmail} : 
+                'For questions, contact us at: ' + ${supportEmail}}">
+                For questions, contact us
+            </p>
+            
+            <div class="unsubscribe">
+                <p th:text="${language == 'ar' ? 
+                    'لإلغاء الاشتراك في أي وقت، انقر هنا:' : 
+                    'To unsubscribe at any time, click here:'}">
+                    To unsubscribe:
+                </p>
+                <a th:href="${unsubscribeUrl}" 
+                   th:text="${language == 'ar' ? 'إلغاء الاشتراك' : 'Unsubscribe'}">
+                    Unsubscribe
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

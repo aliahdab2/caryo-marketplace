@@ -6,6 +6,7 @@ import com.autotrader.autotraderbackend.payload.NewsletterSubscriptionResponse;
 import com.autotrader.autotraderbackend.repository.NewsletterSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -242,20 +243,21 @@ public class NewsletterService {
         }
     }
 
+    @Value("${app.website.url}")
+    private String websiteUrl;
+
     /**
      * Build confirmation URL.
      */
     private String buildConfirmationUrl(String token) {
-        String baseUrl = "http://localhost:8080"; // Development URL - will be configurable in production
-        return baseUrl + "/api/public/newsletter/confirm?token=" + token;
+        return websiteUrl + "/api/public/newsletter/confirm?token=" + token;
     }
 
     /**
      * Build unsubscribe URL.
      */
     private String buildUnsubscribeUrl(String token) {
-        String baseUrl = "http://localhost:8080"; // Development URL - will be configurable in production
-        return baseUrl + "/api/public/newsletter/unsubscribe?token=" + token;
+        return websiteUrl + "/api/public/newsletter/unsubscribe?token=" + token;
     }
 
     /**

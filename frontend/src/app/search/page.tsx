@@ -137,18 +137,17 @@ export default function AdvancedSearchPage() {
       // Add missing filter fields that are defined in CarListingFilterParams
       transmissionId: filters.transmissionId,
       fuelTypeSlugs: filters.fuelTypeSlugs,
-              bodyType: filters.bodyType,
-      conditionId: filters.conditionId
+      bodyType: filters.bodyType,
+      conditionId: filters.conditionId,
+      
+      // Slug-based filtering - ensure we have valid arrays
+      brands: filters.brands && filters.brands.length > 0 
+        ? filters.brands.filter(brand => brand && brand.trim()) 
+        : undefined,
+      models: filters.models && filters.models.length > 0 
+        ? filters.models.filter(model => model && model.trim()) 
+        : undefined
     };
-
-    // Slug-based filtering - ensure we have valid arrays
-    if (filters.brands && filters.brands.length > 0) {
-      params.brands = filters.brands.filter(brand => brand && brand.trim());
-    }
-    
-    if (filters.models && filters.models.length > 0) {
-      params.models = filters.models.filter(model => model && model.trim());
-    }
 
     return params;
   }, [

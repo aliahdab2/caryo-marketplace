@@ -43,7 +43,7 @@ jobs:
           # First try to use the Gradle CLI if available
           if command -v gradle &> /dev/null; then
             echo "Using gradle CLI to generate wrapper"
-            gradle wrapper --gradle-version=8.5
+            gradle wrapper --gradle-version=8.7
           else
             # If gradle CLI isn't available, use any gradle wrapper in other projects
             echo "Trying to copy Gradle wrapper from elsewhere"
@@ -94,23 +94,31 @@ jobs:
       uses: ./.github/actions/docker-services-setup
       env:
         # Set env vars at job level so they're available to docker-compose directly
-        MINIO_ROOT_USER: "newuser"
-        MINIO_ROOT_PASSWORD: "newpassword"
+        MINIO_ROOT_USER: "testuser"
+        MINIO_ROOT_PASSWORD: "testpassword123"
+        POSTGRES_PASSWORD: "testpassword"
+        REDIS_PASSWORD: "testredispassword"
       with:
         docker-compose-file: "./backend/autotrader-backend/docker-compose.dev.yml"
         services: "db minio createbuckets redis"
-        wait-time: '5'  # Minimize static wait, rely on health checks
+        wait-time: '10'  # Increase wait time for CI environment
         db-container-name: "autotrader-backend-db-1"
         db-user: "autotrader"
         minio-container-name: "autotrader-backend-minio-1"
         createbuckets-container-name: "autotrader-backend-createbuckets-1"
-        post-minio-ready-wait-seconds: '5'  # Minimize post-ready wait
-        minio-root-user: "newuser"  # Custom MinIO user
-        minio-root-password: "newpassword"  # Custom MinIO password
+        post-minio-ready-wait-seconds: '10'  # Increase post-ready wait for CI
+        minio-root-user: "testuser"  # Custom MinIO user
+        minio-root-password: "testpassword123"  # Custom MinIO password
 
     # Run the actual integration tests
     - name: Run Integration Tests
       working-directory: ./backend/autotrader-backend
+      env:
+        SPRING_PROFILES_ACTIVE: integration,test
+        POSTGRES_PASSWORD: testpassword
+        REDIS_PASSWORD: testredispassword
+        MINIO_ROOT_USER: testuser
+        MINIO_ROOT_PASSWORD: testpassword123
       run: |
         echo "Running integration tests..."
         if ./gradlew tasks --all | grep -q "integrationTest"; then

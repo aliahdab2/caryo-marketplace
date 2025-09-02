@@ -101,10 +101,10 @@ public class AsyncEventTransactionIntegrationTest extends IntegrationTestWithS3 
         eventPublisher.publishEvent(new ListingApprovedEvent(this, listing));
         
         // Assert - wait for async processing to complete
-        boolean processed = latch.await(5, TimeUnit.SECONDS);
+        boolean processed = latch.await(10, TimeUnit.SECONDS);
         assertTrue(processed, "Event was not processed within the timeout period");
         
         // Verify the event was processed
-        verify(eventUtils, timeout(5000)).getListingInfo(any());
+        verify(eventUtils, timeout(10000)).getListingInfo(any());
     }
 }

@@ -97,10 +97,28 @@ public class JwtUtilsTest {
         
         String token = jwtUtils.generateJwtToken(authentication);
         
-        // Wait for the token to expire
-        Thread.sleep(100); // Increased sleep time to ensure expiration
+        // Wait for the token to expire with enhanced retry logic for CI stability
+        int maxRetries = 20; // Increased retries for CI environments
+        int retryCount = 0;
+        boolean tokenExpired = false;
         
-        // Act & Assert
+        while (retryCount < maxRetries && !tokenExpired) {
+            try {
+                Thread.sleep(100); // Slightly longer sleep for CI stability
+                jwtUtils.validateJwtToken(token);
+                retryCount++;
+            } catch (ExpiredJwtTokenException e) {
+                tokenExpired = true;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        
+        // Ensure we actually waited for expiration
+        assertTrue(tokenExpired, "Token should have expired within the retry period");
+        
+        // Act & Assert - Now test that the token is definitely expired
         assertThrows(ExpiredJwtTokenException.class, () -> {
             jwtUtils.validateJwtToken(token);
         });

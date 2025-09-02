@@ -104,9 +104,7 @@ class CarListingMapperTest {
 
     @Test
     void toCarListingResponse_WithFullData_ShouldMapCorrectly() {
-        // Arrange
-        String expectedSignedUrl = "http://example.com/signed/image.jpg";
-        when(storageService.getSignedUrl(eq("listings/10/image.jpg"), anyLong())).thenReturn(expectedSignedUrl);
+        // Arrange - No longer using storageService mocking
 
         // Act
         CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
@@ -150,9 +148,10 @@ class CarListingMapperTest {
         assertEquals(0, mediaResponse.getSortOrder());
         assertTrue(mediaResponse.getIsPrimary());
         assertEquals("image", mediaResponse.getMediaType());
-        assertEquals(expectedSignedUrl, mediaResponse.getUrl());
+        assertEquals("listings/10/image.jpg", mediaResponse.getUrl());
 
-        verify(storageService).getSignedUrl(eq("listings/10/image.jpg"), anyLong());
+        // No longer using storageService.getSignedUrl - returning file key directly
+        verify(storageService, never()).getSignedUrl(anyString(), anyLong());
     }
 
     @Test
@@ -190,7 +189,8 @@ class CarListingMapperTest {
         // Assert
         assertNotNull(response);
         assertEquals(1, response.getMedia().size());
-        assertNull(response.getMedia().get(0).getUrl());
+        // Blank file key should return blank string, not null
+        assertEquals("   ", response.getMedia().get(0).getUrl());
         verify(storageService, never()).getSignedUrl(anyString(), anyLong());
     }
 
@@ -219,10 +219,8 @@ class CarListingMapperTest {
     }
 
     @Test
-    void toCarListingResponse_WhenGetSignedUrlThrowsUnsupportedOperation_ShouldHaveNullMediaUrl() {
-        // Arrange - using primary image file key for test
-        when(storageService.getSignedUrl(eq("listings/10/image.jpg"), anyLong()))
-                .thenThrow(new UnsupportedOperationException("Not supported"));
+    void toCarListingResponse_WhenGetSignedUrlThrowsUnsupportedOperation_ShouldReturnFileKey() {
+        // Arrange - No longer using storageService, so no need to mock exceptions
 
         // Act
         CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
@@ -230,15 +228,14 @@ class CarListingMapperTest {
         // Assert
         assertNotNull(response);
         assertEquals(1, response.getMedia().size());
-        assertNull(response.getMedia().get(0).getUrl());
-        verify(storageService).getSignedUrl(eq("listings/10/image.jpg"), anyLong());
+        // Should return file key directly, not null
+        assertEquals("listings/10/image.jpg", response.getMedia().get(0).getUrl());
+        verify(storageService, never()).getSignedUrl(anyString(), anyLong());
     }
 
     @Test
-    void toCarListingResponse_WhenGetSignedUrlThrowsGenericException_ShouldHaveNullMediaUrl() {
-        // Arrange - using primary image file key for test
-        when(storageService.getSignedUrl(eq("listings/10/image.jpg"), anyLong()))
-                .thenThrow(new RuntimeException("Something went wrong"));
+    void toCarListingResponse_WhenGetSignedUrlThrowsGenericException_ShouldReturnFileKey() {
+        // Arrange - No longer using storageService, so no need to mock exceptions
 
         // Act
         CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
@@ -246,15 +243,15 @@ class CarListingMapperTest {
         // Assert
         assertNotNull(response);
         assertEquals(1, response.getMedia().size());
-        assertNull(response.getMedia().get(0).getUrl());
-        verify(storageService).getSignedUrl(eq("listings/10/image.jpg"), anyLong());
+        // Should return file key directly, not null
+        assertEquals("listings/10/image.jpg", response.getMedia().get(0).getUrl());
+        verify(storageService, never()).getSignedUrl(anyString(), anyLong());
     }
     
     @Test
     void toCarListingResponse_WithMultipleMedia_ShouldMapAllMedia() {
         // Arrange - add a second media item
-        String expectedSignedUrl1 = "http://example.com/signed/image1.jpg";
-        String expectedSignedUrl2 = "http://example.com/signed/image2.jpg";
+        // No longer using signed URLs - expecting file keys directly
         
         // Clear existing media and add two new items
         testCarListing.getMedia().clear();
@@ -283,8 +280,7 @@ class CarListingMapperTest {
         secondaryImage.setMediaType("image");
         testCarListing.addMedia(secondaryImage);
         
-        when(storageService.getSignedUrl(eq("listings/10/image1.jpg"), anyLong())).thenReturn(expectedSignedUrl1);
-        when(storageService.getSignedUrl(eq("listings/10/image2.jpg"), anyLong())).thenReturn(expectedSignedUrl2);
+        // No longer using storageService mocking
         
         // Act
         CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
@@ -306,7 +302,7 @@ class CarListingMapperTest {
         assertEquals(0, media1.getSortOrder());
         assertTrue(media1.getIsPrimary());
         assertEquals("image", media1.getMediaType());
-        assertEquals(expectedSignedUrl1, media1.getUrl());
+        assertEquals("listings/10/image1.jpg", media1.getUrl());
         
         // Check second media item
         ListingMediaResponse media2 = response.getMedia().get(1);
@@ -318,10 +314,9 @@ class CarListingMapperTest {
         assertEquals(1, media2.getSortOrder());
         assertFalse(media2.getIsPrimary());
         assertEquals("image", media2.getMediaType());
-        assertEquals(expectedSignedUrl2, media2.getUrl());
+        assertEquals("listings/10/image2.jpg", media2.getUrl());
         
-        // Verify that signed URLs were generated for both images
-        verify(storageService).getSignedUrl(eq("listings/10/image1.jpg"), anyLong());
-        verify(storageService).getSignedUrl(eq("listings/10/image2.jpg"), anyLong());
+        // No longer using storageService.getSignedUrl - returning file keys directly
+        verify(storageService, never()).getSignedUrl(anyString(), anyLong());
     }
 }

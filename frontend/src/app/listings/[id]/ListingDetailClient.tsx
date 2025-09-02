@@ -14,6 +14,7 @@ import CarMediaGallery from '@/components/CarMediaGallery/CarMediaGallery';
 import { CarMedia } from '@/components/CarMediaGallery/types';
 import CarFacts from './components/CarFacts';
 import CarFeatures from './components/CarFeatures';
+import ContactSellerModal from '@/components/messaging/ContactSellerModal';
 
 interface ListingDetailClientProps {
   initialListing: CarListing;
@@ -22,6 +23,7 @@ interface ListingDetailClientProps {
 export default function ListingDetailClient({ initialListing }: ListingDetailClientProps) {
   const { t, i18n } = useTranslation('listings');
   const [showPhoneNumber, setShowPhoneNumber] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
   const user = useOptimizedUser();
   
   const listing = initialListing;
@@ -146,7 +148,10 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
                 
                 {/* Action Buttons - Blocket Style */}
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center">
+                  <button 
+                    onClick={() => setShowContactModal(true)}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center"
+                  >
                     <svg className="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
@@ -274,6 +279,15 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
           </div>
         </div>
       </div>
+
+      {/* Contact Seller Modal */}
+      <ContactSellerModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        listingId={listing.id}
+        listingTitle={listing.title}
+        sellerName={listing.sellerUsername || 'Seller'}
+      />
     </div>
   );
 }

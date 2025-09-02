@@ -45,7 +45,7 @@ jobs:
           # First try to use the Gradle CLI if available
           if command -v gradle &> /dev/null; then
             echo "Using gradle CLI to generate wrapper"
-            gradle wrapper --gradle-version=8.5
+            gradle wrapper --gradle-version=8.7
           else
             # If gradle CLI isn't available, use any gradle wrapper in other projects
             echo "Trying to copy Gradle wrapper from elsewhere"
@@ -91,12 +91,16 @@ jobs:
 
     - name: Run Unit Tests (excluding integration tests)
       working-directory: ./backend/autotrader-backend
+      env:
+        SPRING_PROFILES_ACTIVE: test
+        GRADLE_OPTS: "-Xmx2g -Dfile.encoding=UTF-8"
       run: |
         echo "Running unit tests (excluding integration tests)..."
-        export SPRING_PROFILES_ACTIVE=unit,h2
+        echo "Java version: $(java -version 2>&1 | head -n 1)"
+        echo "Gradle version: $(./gradlew --version | head -n 1)"
         
         # Run tests with specific options
-        ./gradlew test --info
+        ./gradlew clean test --info --stacktrace --no-daemon
         
         # Generate JaCoCo test coverage report
         ./gradlew jacocoTestReport --info
@@ -106,25 +110,16 @@ jobs:
         if [ -d "build/test-results/test" ]; then
           TEST_CLASSES=$(find build/test-results/test -name "TEST-*.xml" | wc -l)
           echo "Total Test Classes: $TEST_CLASSES"
-          
-          # Use XML parsing fallback for test count
-          echo "Using XML parsing fallback for test count:"
-          find build/test-results/test -name "TEST-*.xml" | wc -l | xargs -I{} echo "Total Test Classes: {}"
-          TEST_COUNT=$(grep -r "tests=" build/test-results/test --include="TEST-*.xml" | awk -F'tests="' '{sum += $2+0} END {print sum}')
-          echo "Total Tests: $TEST_COUNT"
-          
-          FAILURES=$(grep -r "failures=" build/test-results/test --include="TEST-*.xml" | awk -F'failures="' '{sum += $2+0} END {print sum}')
-          echo "Failures: $FAILURES"
-        else
-          echo "No test results found in build/test-results/test"
         fi
-
-    - name: Upload test results
+    
+    - name: Upload Test Results
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: backend-test-results
-        path: backend/autotrader-backend/build/reports/tests/
+        path: |
+          backend/autotrader-backend/build/reports/tests/test/
+          backend/autotrader-backend/build/test-results/test/
 
   frontend-build-and-test:
     runs-on: ubuntu-latest
@@ -139,8 +134,8 @@ jobs:
       uses: ./.github/actions/frontend-setup
       with:
         working-directory: './frontend'
-        node-version: '18'
-        cache-dependency-path: './frontend/package.json'
+        node-version: '20'
+        cache-dependency-path: './frontend/package-lock.json'
         # Default values for commands and report paths are used from the action itself
 
   # This job runs quick tests before building/deploying for pushes to main
@@ -173,8 +168,8 @@ jobs:
       uses: ./.github/actions/frontend-setup
       with:
         working-directory: './frontend'
-        node-version: '18'
-        cache-dependency-path: './frontend/package.json'
+        node-version: '20'
+        cache-dependency-path: './frontend/package-lock.json'
         run-tests: 'false'  # Skip tests, just build to ensure code compiles
         
   # docker-build:
