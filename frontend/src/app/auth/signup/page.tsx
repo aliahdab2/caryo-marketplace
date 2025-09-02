@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn, getSession } from "next-auth/react";
+// Removed unused imports: signIn, getSession
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { authService } from "@/services/auth";
@@ -21,7 +21,7 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [isVerified, setIsVerified] = useState(false);
-  const [callbackUrl, setCallbackUrl] = useState("/dashboard");
+  const [_callbackUrl, setCallbackUrl] = useState("/dashboard");
   const router = useRouter();
   const { t } = useTranslation('auth');
   const { isValid: isPasswordValid, firstError: passwordError } = usePasswordValidation(password);
@@ -93,7 +93,8 @@ export default function SignUpPage() {
       });
 
       // With email verification system, redirect to check-email page
-      setSuccessMessage(result.message || t('signupSuccess'));
+      const message = 'message' in result ? result.message : t('signupSuccess');
+      setSuccessMessage(message);
       
       // Store email for the check-email page
       if (typeof window !== 'undefined') {

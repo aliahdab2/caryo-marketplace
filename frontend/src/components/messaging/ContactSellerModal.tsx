@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
@@ -93,7 +93,7 @@ export default function ContactSellerModal({
       // Restore body scroll when modal closes
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, loading]);
+  }, [isOpen, loading, handleClose]);
 
   const handleSendMessage = async () => {
     // This modal should only be shown to authenticated users
@@ -134,14 +134,14 @@ export default function ContactSellerModal({
     }
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (!loading) {
       setMessage('');
       setSubject('');
       setError(null);
       onClose();
     }
-  };
+  }, [loading, onClose]);
 
   // Handle backdrop click to close modal
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {

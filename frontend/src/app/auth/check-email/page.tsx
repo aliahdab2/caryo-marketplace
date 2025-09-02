@@ -3,13 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Mail, CheckCircle, ArrowLeft, RefreshCw, Shield } from 'lucide-react';
+import { Mail, CheckCircle, RefreshCw } from 'lucide-react';
 import useLazyTranslation from '@/hooks/useLazyTranslation';
-import Image from 'next/image';
 
 export default function CheckEmailPage() {
   const { t } = useLazyTranslation(['auth', 'common']);
-  const router = useRouter();
+  const _router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState<string>('');
   const [resending, setResending] = useState(false);
