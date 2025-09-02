@@ -26,6 +26,12 @@ public class UserDetailsImpl implements UserDetails {
     private String password;
 
     private Collection<? extends GrantedAuthority> authorities;
+    
+    // Derived flags for account state
+    private boolean accountNonExpired = true;
+    private boolean accountNonLocked = true;
+    private boolean credentialsNonExpired = true;
+    private boolean enabled = true;
 
     public UserDetailsImpl(Long id, String username, String email, String password,
             Collection<? extends GrantedAuthority> authorities) {
@@ -46,12 +52,26 @@ public class UserDetailsImpl implements UserDetails {
                 .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toList());
 
-        return new UserDetailsImpl(
+        UserDetailsImpl details = new UserDetailsImpl(
                 user.getId(), 
                 user.getUsername(), 
                 user.getEmail(),
                 user.getPassword(), 
                 authorities);
+        
+        // Best practice: disable login for unverified/inactive users
+        // Enable only if user can login and has verified email and active status
+        boolean isEnabled = Boolean.TRUE.equals(user.getEmailVerified())
+                && user.isActive()
+                && user.canLogin();
+
+        details.enabled = isEnabled;
+        // Keep other flags default true; customize here if you later add lock/expiry logic
+        details.accountNonExpired = true;
+        details.accountNonLocked = true;
+        details.credentialsNonExpired = true;
+
+        return details;
     }
 
     @Override
@@ -79,22 +99,22 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;  // For simplicity, accounts never expire
+        return accountNonExpired;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;  // For simplicity, accounts are never locked
+        return accountNonLocked;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;  // For simplicity, credentials never expire
+        return credentialsNonExpired;
     }
 
     @Override
     public boolean isEnabled() {
-        return true;  // For simplicity, all accounts are enabled
+        return enabled;
     }
 
     @Override

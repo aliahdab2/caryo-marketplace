@@ -65,7 +65,7 @@
   "blockUserSuccess": "User has been blocked successfully",
   "reportUserSuccess": "User has been reported successfully",
   "deleteConversationSuccess": "Conversation has been deleted successfully",
-  "writeMessage": "Write your message...",
   "chatting_about": "Chatting about",
-  "view_listing": "View Listing"
+  "view_listing": "View Listing",
+  "errorNotAuthenticated": "Error: This modal should only be shown to authenticated users."
 }

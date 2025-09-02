@@ -160,6 +160,11 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
                 Object.class
         );
 
+        // Mark user as email verified for testing (since this test is about listing lifecycle, not email verification)
+        User registeredUser = userRepository.findByUsername("carowner").orElseThrow();
+        registeredUser.markEmailAsVerified();
+        userRepository.save(registeredUser);
+
         // 2. Login with the registered user
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername("carowner");

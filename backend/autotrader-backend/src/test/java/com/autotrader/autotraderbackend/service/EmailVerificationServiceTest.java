@@ -92,10 +92,11 @@ class EmailVerificationServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
         // When
-        boolean result = emailVerificationService.verifyEmail(token);
+        var result = emailVerificationService.verifyEmail(token);
 
         // Then
-        assertTrue(result);
+        assertTrue(result.isSuccess());
+        assertNotNull(result.getMessage());
         assertTrue(testUser.isEmailVerified());
         assertEquals(AccountStatus.VERIFIED, testUser.getAccountStatus());
         assertNull(testUser.getEmailVerificationToken());
@@ -108,12 +109,14 @@ class EmailVerificationServiceTest {
         // Given
         String token = "invalid-token";
         when(userRepository.findByEmailVerificationToken(token)).thenReturn(Optional.empty());
+        when(userRepository.findTopByEmailVerifiedTrueAndEmailVerifiedAtAfterOrderByEmailVerifiedAtDesc(any())).thenReturn(Optional.empty());
 
         // When
-        boolean result = emailVerificationService.verifyEmail(token);
+        var result = emailVerificationService.verifyEmail(token);
 
         // Then
-        assertFalse(result);
+        assertFalse(result.isSuccess());
+        assertNotNull(result.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -127,10 +130,12 @@ class EmailVerificationServiceTest {
         when(userRepository.findByEmailVerificationToken(token)).thenReturn(Optional.of(testUser));
 
         // When
-        boolean result = emailVerificationService.verifyEmail(token);
+        var result = emailVerificationService.verifyEmail(token);
 
         // Then
-        assertFalse(result);
+        assertFalse(result.isSuccess());
+        assertNotNull(result.getMessage());
+        assertTrue(result.getMessage().contains("expired"));
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -146,10 +151,12 @@ class EmailVerificationServiceTest {
         when(userRepository.findByEmailVerificationToken(token)).thenReturn(Optional.of(testUser));
 
         // When
-        boolean result = emailVerificationService.verifyEmail(token);
+        var result = emailVerificationService.verifyEmail(token);
 
         // Then
-        assertTrue(result); // Should return true since email is already verified
+        assertTrue(result.isSuccess()); // Should return true since email is already verified
+        assertNotNull(result.getMessage());
+        assertTrue(result.getMessage().contains("already verified"));
         verify(userRepository, never()).save(any(User.class)); // No need to save
     }
 
@@ -266,21 +273,48 @@ class EmailVerificationServiceTest {
     @Test
     void verifyEmail_NullToken() {
         // When
-        boolean result = emailVerificationService.verifyEmail(null);
+        var result = emailVerificationService.verifyEmail(null);
 
         // Then
-        assertFalse(result);
+        assertFalse(result.isSuccess());
+        assertNotNull(result.getMessage());
         verify(userRepository, never()).findByEmailVerificationToken(any());
     }
 
     @Test
     void verifyEmail_EmptyToken() {
         // When
-        boolean result = emailVerificationService.verifyEmail("");
+        var result = emailVerificationService.verifyEmail("");
 
         // Then
-        assertFalse(result);
+        assertFalse(result.isSuccess());
+        assertNotNull(result.getMessage());
         verify(userRepository, never()).findByEmailVerificationToken(any());
+    }
+
+    @Test
+    void verifyEmail_InvalidToken_WithRecentlyVerifiedUser() {
+        // Given
+        String token = "invalid-token";
+        User recentlyVerifiedUser = new User();
+        recentlyVerifiedUser.setUsername("recentuser");
+        recentlyVerifiedUser.setEmail("recent@example.com");
+        recentlyVerifiedUser.setEmailVerified(true);
+        recentlyVerifiedUser.setEmailVerifiedAt(LocalDateTime.now().minusMinutes(2));
+        
+        when(userRepository.findByEmailVerificationToken(token)).thenReturn(Optional.empty());
+        when(userRepository.findTopByEmailVerifiedTrueAndEmailVerifiedAtAfterOrderByEmailVerifiedAtDesc(any()))
+            .thenReturn(Optional.of(recentlyVerifiedUser));
+
+        // When
+        var result = emailVerificationService.verifyEmail(token);
+
+        // Then
+        assertTrue(result.isSuccess());
+        assertNotNull(result.getMessage());
+        assertTrue(result.getMessage().contains("successfully verified"));
+        assertEquals("recent@example.com", result.getEmail());
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test

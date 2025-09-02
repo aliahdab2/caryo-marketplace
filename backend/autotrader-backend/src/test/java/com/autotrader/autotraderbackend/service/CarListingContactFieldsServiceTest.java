@@ -90,6 +90,7 @@ class CarListingContactFieldsServiceTest {
         testUser.setId(1L);
         testUser.setUsername("dealeruser");
         testUser.setEmail("dealer@caryo.sy");
+        testUser.markEmailAsVerified(); // Mark user as verified for tests
 
         // Setup test car model
         CarBrand testBrand = new CarBrand();

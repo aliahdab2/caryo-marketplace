@@ -15,6 +15,7 @@ import { CarMedia } from '@/components/CarMediaGallery/types';
 import CarFacts from './components/CarFacts';
 import CarFeatures from './components/CarFeatures';
 import ContactSellerModal from '@/components/messaging/ContactSellerModal';
+import SignInPromptModal from '@/components/auth/SignInPromptModal';
 
 interface ListingDetailClientProps {
   initialListing: CarListing;
@@ -24,6 +25,7 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
   const { t, i18n } = useTranslation('listings');
   const [showPhoneNumber, setShowPhoneNumber] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const user = useOptimizedUser();
   
   const listing = initialListing;
@@ -149,7 +151,13 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
                 {/* Action Buttons - Blocket Style */}
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button 
-                    onClick={() => setShowContactModal(true)}
+                    onClick={() => {
+                      if (user) {
+                        setShowContactModal(true);
+                      } else {
+                        setShowSignInPrompt(true);
+                      }
+                    }}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center"
                   >
                     <svg className="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,13 +288,22 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
         </div>
       </div>
 
-      {/* Contact Seller Modal */}
-      <ContactSellerModal
-        isOpen={showContactModal}
-        onClose={() => setShowContactModal(false)}
-        listingId={listing.id}
-        listingTitle={listing.title}
-        sellerName={listing.sellerUsername || 'Seller'}
+      {/* Contact Seller Modal - Only for authenticated users */}
+      {user && (
+        <ContactSellerModal
+          isOpen={showContactModal}
+          onClose={() => setShowContactModal(false)}
+          listingId={listing.id}
+          listingTitle={listing.title}
+          sellerName={listing.sellerUsername || 'Seller'}
+        />
+      )}
+
+      {/* Sign In Prompt Modal - For unauthenticated users */}
+      <SignInPromptModal
+        isOpen={showSignInPrompt}
+        onClose={() => setShowSignInPrompt(false)}
+        action={t('contactSeller')}
       />
     </div>
   );

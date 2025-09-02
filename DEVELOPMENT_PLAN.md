@@ -1,6 +1,6 @@
-# AutoTrader Marketplace Development Plan
+# Caryo Marketplace Development Plan
 
-This repository contains the development plan for the AutoTrader Marketplace project, a full-stack application for buying and selling cars.
+This repository contains the development plan for the Caryo Marketplace project, a full-stack application for buying and selling cars.
 
 ## 🎯 PROJECT STATUS: ALL CORE PHASES COMPLETED! ✅
 

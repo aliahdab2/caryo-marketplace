@@ -11,27 +11,27 @@ psql -h localhost -U postgres -d autotrader << 'EOF'
 
 -- Update the media URLs to use localhost instead of Docker internal hostname
 UPDATE media 
-SET url = REPLACE(url, 'http://autotrader-assets.minio:9000', 'http://localhost:9000')
-WHERE url LIKE 'http://autotrader-assets.minio:9000%';
+SET url = REPLACE(url, 'http://caryo-assets.minio:9000', 'http://localhost:9000')
+WHERE url LIKE 'http://caryo-assets.minio:9000%';
 
 -- Update the first 3 listings to use our uploaded images
 UPDATE media 
 SET 
-  url = 'http://localhost:9000/autotrader-assets/listings/1/main.jpg',
+  url = 'http://localhost:9000/caryo-assets/listings/1/main.jpg',
   file_key = 'listings/1/main.jpg',
   file_name = 'main.jpg'
 WHERE listing_id = 4;
 
 UPDATE media 
 SET 
-  url = 'http://localhost:9000/autotrader-assets/listings/2/main.jpg',
+  url = 'http://localhost:9000/caryo-assets/listings/2/main.jpg',
   file_key = 'listings/2/main.jpg',
   file_name = 'main.jpg'
 WHERE listing_id = 5;
 
 UPDATE media 
 SET 
-  url = 'http://localhost:9000/autotrader-assets/listings/3/main.jpg',
+  url = 'http://localhost:9000/caryo-assets/listings/3/main.jpg',
   file_key = 'listings/3/main.jpg',
   file_name = 'main.jpg'
 WHERE listing_id = 6;
@@ -54,7 +54,7 @@ echo ""
 echo "🔍 Testing image accessibility..."
 for i in 1 2 3; do
     echo -n "Testing image $i: "
-    if curl -s -I "http://localhost:9000/autotrader-assets/listings/$i/main.jpg" | grep -q "200 OK"; then
+    if curl -s -I "http://localhost:9000/caryo-assets/listings/$i/main.jpg" | grep -q "200 OK"; then
         echo "✅ OK"
     else
         echo "❌ Failed"

@@ -78,7 +78,7 @@ class EmailTemplateServiceTest {
             template-settings:
               default-language: "en"
               branding:
-                name: "AutoTrader"
+                name: "Caryo Marketplace"
                 logo: "/images/logo.png"
             """;
         
@@ -226,7 +226,7 @@ class EmailTemplateServiceTest {
         Map<String, Object> variables = Map.of(
             "userName", "testuser",
             "userEmail", "test@example.com",
-            "websiteName", "AutoTrader",
+            "websiteName", "Caryo Marketplace",
             "websiteUrl", "http://localhost:3000",
             "language", "en"
         );

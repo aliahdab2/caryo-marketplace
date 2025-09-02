@@ -103,6 +103,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         adminUser.setEmail(ADMIN_USERNAME + "@example.com");
         adminUser.setPassword(passwordEncoder.encode(ADMIN_PASSWORD));
         adminUser.setRoles(java.util.Set.of(adminRole));
+        adminUser.markEmailAsVerified(); // Mark admin as verified for tests
         userRepository.save(adminUser);
         adminToken = getAuthToken(ADMIN_USERNAME, ADMIN_PASSWORD);
 
@@ -112,6 +113,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         normalUser.setEmail(USER_USERNAME + "@example.com");
         normalUser.setPassword(passwordEncoder.encode(USER_PASSWORD));
         normalUser.setRoles(java.util.Set.of(userRole));
+        normalUser.markEmailAsVerified(); // Mark user as verified for tests
         userRepository.save(normalUser);
         userToken = getAuthToken(USER_USERNAME, USER_PASSWORD);
 

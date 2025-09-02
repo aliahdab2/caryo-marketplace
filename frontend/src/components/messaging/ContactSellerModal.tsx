@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
@@ -30,6 +30,8 @@ export default function ContactSellerModal({
   const [subject, setSubject] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const firstFocusableRef = useRef<HTMLInputElement>(null);
 
   // Set default message when modal opens
   React.useEffect(() => {
@@ -39,10 +41,75 @@ export default function ContactSellerModal({
     }
   }, [isOpen, listingTitle, message, t]);
 
+  // Handle close modal function
+  const handleClose = useCallback(() => {
+    if (!loading) {
+      setMessage('');
+      setSubject('');
+      setError(null);
+      onClose();
+    }
+  }, [loading, onClose]);
+
+  // Handle ESC key, focus management, and body scroll
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen && !loading) {
+        handleClose();
+      }
+    };
+
+    const handleTabKey = (event: KeyboardEvent) => {
+      if (event.key === 'Tab' && isOpen && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstElement = focusableElements[0] as HTMLElement;
+        const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+        if (event.shiftKey) {
+          // Shift + Tab
+          if (document.activeElement === firstElement) {
+            lastElement.focus();
+            event.preventDefault();
+          }
+        } else {
+          // Tab
+          if (document.activeElement === lastElement) {
+            firstElement.focus();
+            event.preventDefault();
+          }
+        }
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscKey);
+      document.addEventListener('keydown', handleTabKey);
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+      
+      // Focus the first focusable element when modal opens
+      setTimeout(() => {
+        if (firstFocusableRef.current) {
+          firstFocusableRef.current.focus();
+        }
+      }, 100);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+      document.removeEventListener('keydown', handleTabKey);
+      // Restore body scroll when modal closes
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, loading, handleClose]);
+
   const handleSendMessage = async () => {
+    // This modal should only be shown to authenticated users
     if (!session?.user) {
-      // Redirect to login
-      router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.href));
+      console.error('ContactSellerModal: User not authenticated');
+      onClose();
       return;
     }
 
@@ -77,25 +144,32 @@ export default function ContactSellerModal({
     }
   };
 
-  const handleClose = () => {
-    if (!loading) {
-      setMessage('');
-      setSubject('');
-      setError(null);
-      onClose();
+  // Handle backdrop click to close modal
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget && !loading) {
+      handleClose();
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
+      <div 
+        ref={modalRef}
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="contact-modal-title"
+      >
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h2 id="contact-modal-title" className="text-lg font-semibold text-gray-900 dark:text-white">
                 {t('contactSeller')}
               </h2>
             </div>
@@ -119,6 +193,7 @@ export default function ContactSellerModal({
               {t('subject')} ({t('optional')})
             </label>
             <input
+              ref={firstFocusableRef}
               type="text"
               id="subject"
               value={subject}
@@ -157,11 +232,11 @@ export default function ContactSellerModal({
             </div>
           )}
 
-          {/* Login prompt for non-authenticated users */}
+          {/* This modal should only be shown to authenticated users */}
           {!session?.user && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
-              <p className="text-sm text-blue-600 dark:text-blue-400">
-                {t('loginRequired')}
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {t('errorNotAuthenticated')}
               </p>
             </div>
           )}

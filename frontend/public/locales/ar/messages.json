@@ -65,7 +65,7 @@
   "blockUserSuccess": "تم حظر المستخدم بنجاح",
   "reportUserSuccess": "تم الإبلاغ عن المستخدم بنجاح",
   "deleteConversationSuccess": "تم حذف المحادثة بنجاح",
-  "writeMessage": "اكتب رسالتك...",
   "chatting_about": "محادثة حول",
-  "view_listing": "عرض الإعلان"
+  "view_listing": "عرض الإعلان",
+  "errorNotAuthenticated": "خطأ: يجب عرض هذا النموذج للمستخدمين المصادق عليهم فقط."
 }

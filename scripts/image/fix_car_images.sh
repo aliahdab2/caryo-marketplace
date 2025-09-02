@@ -14,7 +14,7 @@ set -e
 
 # Configuration
 MINIO_ALIAS="autotrader-local"
-BUCKET_NAME="autotrader-assets"
+BUCKET_NAME="caryo-assets"
 TEMP_DIR="temp_car_images"
 DEFAULT_LISTINGS=(6 7 8 9 10)  # Default listings to add primary images
 DEFAULT_MULTI_LISTINGS=(8)     # Default listings to add multiple images (Honda Civic is 8)
@@ -242,8 +242,8 @@ done
 
 echo ""
 echo "Image restoration complete! Images are available at URLs like:"
-echo "http://localhost:9000/autotrader-assets/sample/car-{listing_id}-{image_number}.jpg"
+echo "http://localhost:9000/caryo-assets/sample/car-{listing_id}-{image_number}.jpg"
 echo ""
 echo "Examples:"
-echo "  Primary image for listing 8 (Honda Civic): http://localhost:9000/autotrader-assets/sample/car-8-1.jpg"
-echo "  Second image for listing 8: http://localhost:9000/autotrader-assets/sample/car-8-2.jpg"
+echo "  Primary image for listing 8 (Honda Civic): http://localhost:9000/caryo-assets/sample/car-8-1.jpg"
+echo "  Second image for listing 8: http://localhost:9000/caryo-assets/sample/car-8-2.jpg"

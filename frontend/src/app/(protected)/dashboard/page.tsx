@@ -3,8 +3,8 @@
 import { signOut } from "next-auth/react";
 import { useOptimizedUser } from "@/hooks/useOptimizedSession";
 import Link from "next/link";
-import { useLazyTranslation } from '../../hooks/useLazyTranslation';
-import { formatNumber } from "../../utils/localization";
+import { useLazyTranslation } from '@/hooks/useLazyTranslation';
+import { formatNumber } from "@/utils/localization";
 import { useEffect, useState } from "react";
 import { 
   MdStarBorder, 

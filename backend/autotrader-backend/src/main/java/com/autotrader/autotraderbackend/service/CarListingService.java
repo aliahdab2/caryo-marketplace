@@ -90,6 +90,13 @@ public class CarListingService {
         log.info("Attempting to create new listing for user: {}", username);
         User user = findUserByUsername(username);
 
+        // Enforce verified email and active account status at service layer (defense in depth)
+        if (!user.isEmailVerified() || !user.isActive()) {
+            log.warn("User {} attempted to create listing without verified/active account (verified={}, active={})",
+                    username, user.isEmailVerified(), user.isActive());
+            throw new SecurityException("Email verification required to create listings. Please verify your account.");
+        }
+
         CarListing carListing = buildCarListingFromRequest(request, user);
         // isSold and isArchived are set within buildCarListingFromRequest
 

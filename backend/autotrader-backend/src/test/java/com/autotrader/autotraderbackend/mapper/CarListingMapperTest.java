@@ -115,10 +115,10 @@ class CarListingMapperTest {
         assertEquals(testCarListing.getTitle(), response.getTitle());
         
         // Test denormalized brand and model name fields
-        assertEquals(testCarListing.getBrandNameEn(), response.getBrandNameEn());
-        assertEquals(testCarListing.getBrandNameAr(), response.getBrandNameAr());
-        assertEquals(testCarListing.getModelNameEn(), response.getModelNameEn());
-        assertEquals(testCarListing.getModelNameAr(), response.getModelNameAr());
+        assertEquals(testCarListing.getBrandNameEn(), response.getBrand().getDisplayNameEn());
+        assertEquals(testCarListing.getBrandNameAr(), response.getBrand().getDisplayNameAr());
+        assertEquals(testCarListing.getModelNameEn(), response.getModel().getDisplayNameEn());
+        assertEquals(testCarListing.getModelNameAr(), response.getModel().getDisplayNameAr());
         
         assertEquals(testCarListing.getModelYear(), response.getModelYear());
         assertEquals(0, testCarListing.getPrice().compareTo(response.getPrice()));

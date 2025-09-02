@@ -1,6 +1,8 @@
 {
   "general": "An error occurred. Please try again.",
   "invalidCredentials": "Invalid username or password. Please try again.",
+  "CredentialsSignin": "Invalid username or password. Please try again.",
+  "resendFailed": "Failed to resend verification email. Please try again.",
   "loadingListings": "Failed to load listings. Please try again.",
   "networkError": "Network error. Please check your connection and try again.",
   "notFound": "The requested resource was not found.",

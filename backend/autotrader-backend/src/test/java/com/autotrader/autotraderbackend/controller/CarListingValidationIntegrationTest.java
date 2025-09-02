@@ -5,6 +5,7 @@ import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.repository.CarBrandRepository; // Added
 import com.autotrader.autotraderbackend.repository.CarModelRepository; // Added
 import com.autotrader.autotraderbackend.repository.LocationRepository; // Added
@@ -136,6 +137,11 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
                 signupRequest,
                 Object.class
         );
+
+        // Mark user as email verified for testing (since this test is about validation, not email verification)
+        User registeredUser = userRepository.findByUsername("validatoruser").orElseThrow();
+        registeredUser.markEmailAsVerified();
+        userRepository.save(registeredUser);
 
         // Login with the registered user
         LoginRequest loginRequest = new LoginRequest();

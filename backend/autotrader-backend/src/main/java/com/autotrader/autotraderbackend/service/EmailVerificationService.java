@@ -71,21 +71,32 @@ public class EmailVerificationService {
      * Verify email using the provided token.
      * 
      * @param token The verification token
-     * @return true if verification successful, false otherwise
+     * @return VerificationResult with status and details
      */
     @Transactional
-    public boolean verifyEmail(String token) {
+    public VerificationResult verifyEmail(String token) {
         try {
             if (token == null || token.trim().isEmpty()) {
                 log.warn("Email verification attempted with invalid token: {}", token);
-                return false;
+                return new VerificationResult(false, "Invalid verification token", null);
             }
             
             Optional<User> userOpt = userRepository.findByEmailVerificationToken(token);
             
             if (userOpt.isEmpty()) {
+                // Token not found - could be invalid or already used
                 log.warn("Email verification attempted with invalid token: {}", token);
-                return false;
+                
+                // For better UX, check if there's a recently verified user (within last 5 minutes)
+                // This handles the common case where users click verification links multiple times
+                Optional<User> recentlyVerifiedUser = findRecentlyVerifiedUser();
+                if (recentlyVerifiedUser.isPresent()) {
+                    User user = recentlyVerifiedUser.get();
+                    log.info("Found recently verified user: {} - showing success message for better UX", user.getUsername());
+                    return new VerificationResult(true, "Your email has been successfully verified! You can now sign in to your account.", user.getEmail());
+                }
+                
+                return new VerificationResult(false, "Invalid or expired verification token", null);
             }
             
             User user = userOpt.get();
@@ -93,13 +104,13 @@ public class EmailVerificationService {
             // Check if token has expired
             if (isTokenExpired(user.getEmailVerificationSentAt())) {
                 log.warn("Email verification attempted with expired token for user: {}", user.getUsername());
-                return false;
+                return new VerificationResult(false, "Your verification link has expired. Please request a new verification email from the sign-in page.", user.getEmail());
             }
             
             // Check if email is already verified
             if (user.isEmailVerified()) {
                 log.info("Email verification attempted for already verified user: {}", user.getUsername());
-                return true; // Return true since email is already verified
+                return new VerificationResult(true, "Great! Your email is already verified. You can sign in to your account.", user.getEmail());
             }
             
             // Mark email as verified
@@ -107,12 +118,45 @@ public class EmailVerificationService {
             userRepository.save(user);
             
             log.info("Email successfully verified for user: {} ({})", user.getUsername(), user.getEmail());
-            return true;
+            return new VerificationResult(true, "Perfect! Your email has been verified successfully. You can now sign in to your account.", user.getEmail());
             
         } catch (Exception e) {
             log.error("Error during email verification with token: {}. Error: {}", token, e.getMessage());
+            return new VerificationResult(false, "An error occurred during verification", null);
+        }
+    }
+
+    /**
+     * Check if a user with given email is already verified.
+     * This is used to provide better UX when verification tokens are invalid.
+     */
+    public boolean isEmailAlreadyVerified(String email) {
+        if (email == null || email.trim().isEmpty()) {
             return false;
         }
+        
+        return userRepository.findByEmail(email)
+                .map(User::isEmailVerified)
+                .orElse(false);
+    }
+
+    /**
+     * Result class for email verification operations
+     */
+    public static class VerificationResult {
+        private final boolean success;
+        private final String message;
+        private final String email;
+        
+        public VerificationResult(boolean success, String message, String email) {
+            this.success = success;
+            this.message = message;
+            this.email = email;
+        }
+        
+        public boolean isSuccess() { return success; }
+        public String getMessage() { return message; }
+        public String getEmail() { return email; }
     }
 
     /**
@@ -188,5 +232,21 @@ public class EmailVerificationService {
             return true;
         }
         return sentAt.isBefore(LocalDateTime.now().minusHours(tokenExpiryHours));
+    }
+
+    /**
+     * Find a recently verified user (within last 5 minutes).
+     * This helps with UX when users click verification links multiple times.
+     * 
+     * @return Optional<User> recently verified user
+     */
+    private Optional<User> findRecentlyVerifiedUser() {
+        try {
+            LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
+            return userRepository.findTopByEmailVerifiedTrueAndEmailVerifiedAtAfterOrderByEmailVerifiedAtDesc(fiveMinutesAgo);
+        } catch (Exception e) {
+            log.error("Error finding recently verified user: {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 }
