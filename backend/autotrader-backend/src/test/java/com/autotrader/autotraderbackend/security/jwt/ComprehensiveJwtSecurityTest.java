@@ -201,11 +201,22 @@ class ComprehensiveJwtSecurityTest {
             // Generate token with very short expiration
             String token = generateValidToken();
             
-            // Wait for token to expire
-            try {
-                Thread.sleep(200); // Ensure expiration in CI environment
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+            // Wait for token to expire with retry logic for CI stability
+            int maxRetries = 10;
+            int retryCount = 0;
+            boolean tokenExpired = false;
+            
+            while (retryCount < maxRetries && !tokenExpired) {
+                try {
+                    Thread.sleep(50); // Shorter sleep with retry
+                    jwtUtils.validateJwtToken(token);
+                    retryCount++;
+                } catch (ExpiredJwtTokenException e) {
+                    tokenExpired = true;
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
             }
             
             // Validation should throw ExpiredJwtTokenException
