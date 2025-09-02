@@ -405,6 +405,9 @@ public class ConversationService {
         validateUserParticipation(conversation, user);
 
         // Validate file
+        if (file == null) {
+            throw new BadRequestException("File cannot be null");
+        }
         if (file.isEmpty()) {
             throw new BadRequestException("File cannot be empty");
         }

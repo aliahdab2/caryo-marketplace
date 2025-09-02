@@ -73,6 +73,9 @@ class CarListingServiceTest {
     @Mock
     private CarListingMapper carListingMapper;
 
+    @Mock
+    private SavedSearchService savedSearchService;
+
     @InjectMocks
     private CarListingService carListingService;
 
