@@ -237,7 +237,7 @@ export class MessagingService {
    * Mark all messages in a conversation as read
    */
   static async markAllMessagesAsRead(conversationId: number): Promise<{ message: string }> {
-    const response = await api.patch<{ message: string }>(`/api/conversations/${conversationId}/read-all`);
+    const response = await api.patch<{ message: string }>(`/api/conversations/${conversationId}/messages/read-all`);
     return response;
   }
 
