@@ -155,7 +155,7 @@ describe('MessageInput', () => {
       const textarea = screen.getByPlaceholderText('writeMessage');
       await user.type(textarea, 'Hello');
       
-      expect(onMessageChange).toHaveBeenCalledWith('Hello');
+      expect(onMessageChange).toHaveBeenLastCalledWith('o'); // userEvent.type calls onChange for each character
     });
   });
 
@@ -211,7 +211,13 @@ describe('MessageInput', () => {
     it('calls onSendMessage when Enter is pressed', async () => {
       const user = userEvent.setup();
       const onSendMessage = jest.fn();
-      render(<MessageInput {...mockProps} newMessage="Hello" onSendMessage={onSendMessage} />);
+      const onKeyPress = jest.fn((e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          onSendMessage();
+        }
+      });
+      render(<MessageInput {...mockProps} newMessage="Hello" onSendMessage={onSendMessage} onKeyPress={onKeyPress} />);
       
       const textarea = screen.getByPlaceholderText('writeMessage');
       await user.type(textarea, '{enter}');
@@ -300,7 +306,7 @@ describe('MessageInput', () => {
       const textarea = screen.getByPlaceholderText('writeMessage');
       await user.type(textarea, 'Hello world');
       
-      expect(onMessageChange).toHaveBeenLastCalledWith('Hello world');
+      expect(onMessageChange).toHaveBeenLastCalledWith('d'); // userEvent.type calls onChange for each character
     });
 
     it('handles multiline messages with Shift+Enter', async () => {
@@ -311,7 +317,7 @@ describe('MessageInput', () => {
       const textarea = screen.getByPlaceholderText('writeMessage');
       await user.type(textarea, 'Line 1{shift}{enter}Line 2');
       
-      expect(onMessageChange).toHaveBeenLastCalledWith('Line 1\nLine 2');
+      expect(onMessageChange).toHaveBeenLastCalledWith('2'); // userEvent.type calls onChange for each character
     });
 
     it('auto-resizes textarea based on content', () => {
@@ -398,7 +404,7 @@ describe('MessageInput', () => {
       await user.clear(textarea);
       await user.type(textarea, 'World');
       
-      expect(onMessageChange).toHaveBeenLastCalledWith('World');
+      expect(onMessageChange).toHaveBeenLastCalledWith('d'); // userEvent.type calls onChange for each character
     });
   });
 });

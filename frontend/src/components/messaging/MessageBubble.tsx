@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 
-import { Check, CheckCheck, Download } from 'lucide-react';
+import { Check, CheckCheck, Download, Clock, Eye } from 'lucide-react';
 import { MessageResponse } from '@/services/messaging';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
 import Image from 'next/image';
@@ -27,6 +27,7 @@ interface MessageBubbleProps {
 
 export default function MessageBubble({ message, isOwn, isRTL: _isRTL, onDownloadDocument }: MessageBubbleProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [showReadDetails, setShowReadDetails] = useState(false);
   const galleryRef = useRef<HTMLDivElement>(null);
 
   const formatTime = (dateString: string) => {
@@ -34,6 +35,61 @@ export default function MessageBubble({ message, isOwn, isRTL: _isRTL, onDownloa
       hour: '2-digit', 
       minute: '2-digit' 
     });
+  };
+
+  const formatReadTime = (dateString: string) => {
+    const readDate = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - readDate.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) {
+      return 'Just now';
+    } else if (diffInMinutes < 60) {
+      return `${diffInMinutes}m ago`;
+    } else if (diffInMinutes < 1440) { // 24 hours
+      const hours = Math.floor(diffInMinutes / 60);
+      return `${hours}h ago`;
+    } else {
+      return readDate.toLocaleDateString([], { 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+  };
+
+  const getReadStatusIcon = () => {
+    if (!isOwn) return null;
+    
+    if (message.isRead) {
+      return (
+        <div className="relative group">
+          <CheckCheck className="h-3 w-3 text-green-400" />
+          {message.readAt && (
+            <div className="absolute -top-10 right-0 bg-gray-900 text-white text-xs px-2 py-1 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20 shadow-lg">
+              <div className="text-center">
+                <div className="font-medium text-green-400">✓ Seen</div>
+                <div className="text-gray-300">{formatReadTime(message.readAt)}</div>
+              </div>
+              {/* Tooltip arrow */}
+              <div className="absolute top-full right-2 w-0 h-0 border-l-2 border-r-2 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          )}
+        </div>
+      );
+    } else {
+      return (
+        <div className="relative group">
+          <Check className="h-3 w-3 text-blue-200" />
+          <div className="absolute -top-8 right-0 bg-gray-900 text-white text-xs px-2 py-1 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20 shadow-lg">
+            <div className="text-blue-300">✓ Sent</div>
+            {/* Tooltip arrow */}
+            <div className="absolute top-full right-2 w-0 h-0 border-l-2 border-r-2 border-t-4 border-transparent border-t-gray-900"></div>
+          </div>
+        </div>
+      );
+    }
   };
 
   // Extract all images from attachments for gallery
@@ -96,17 +152,13 @@ export default function MessageBubble({ message, isOwn, isRTL: _isRTL, onDownloa
             )}
 
             {/* Message Time and Status */}
-            <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+            <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : 'justify-start'} group`}>
               <span className={`text-xs ${isOwn ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>
                 {formatTime(message.createdAt)}
               </span>
               {isOwn && (
-                <div className="flex items-center">
-                  {message.isRead ? (
-                    <CheckCheck className="h-3 w-3 text-blue-200" />
-                  ) : (
-                    <Check className="h-3 w-3 text-blue-200" />
-                  )}
+                <div className="flex items-center relative">
+                  {getReadStatusIcon()}
                 </div>
               )}
             </div>

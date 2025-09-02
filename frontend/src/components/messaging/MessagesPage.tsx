@@ -255,8 +255,33 @@ export default function MessagesPage() {
     try {
       const response = await MessagingService.getConversationMessages(conversationId);
       setMessages(response.content || []);
+      
+      // Mark all messages in this conversation as read
+      await markConversationAsRead(conversationId);
     } catch (error) {
       console.error('Error loading messages:', error);
+    }
+  };
+
+  const markConversationAsRead = async (conversationId: number) => {
+    try {
+      await MessagingService.markAllMessagesAsRead(conversationId);
+      
+      // Update the conversation's unread count in the local state
+      setConversations(prev => 
+        prev.map(conv => 
+          conv.id === conversationId 
+            ? { ...conv, unreadCount: 0 }
+            : conv
+        )
+      );
+      
+      // Update messages to show as read
+      setMessages(prev => 
+        prev.map(msg => ({ ...msg, isRead: true, readAt: new Date().toISOString() }))
+      );
+    } catch (error) {
+      console.error('Error marking conversation as read:', error);
     }
   };
 

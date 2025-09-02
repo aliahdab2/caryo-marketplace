@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Check, CheckCheck } from 'lucide-react';
 import { ConversationResponse } from '@/services/messaging';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
 import Image from 'next/image';
@@ -173,18 +173,30 @@ function ConversationItem({ conversation, isSelected, onClick, isRTL: _isRTL }: 
           </p>
           
           {conversation.recentMessages && conversation.recentMessages.length > 0 && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {conversation.recentMessages[0].content}
-            </p>
-          )}
-          
-          {conversation.unreadCount > 0 && (
-            <div className="mt-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                {conversation.unreadCount}
-              </span>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate flex-1">
+                {conversation.recentMessages[0].content}
+              </p>
+              {/* Read status for the last message */}
+              {conversation.recentMessages[0].sender && (
+                <div className="flex items-center gap-1 ml-2">
+                  {conversation.recentMessages[0].isRead ? (
+                    <CheckCheck className="h-3 w-3 text-blue-500" />
+                  ) : (
+                    <Check className="h-3 w-3 text-gray-400" />
+                  )}
+                </div>
+              )}
             </div>
           )}
+          
+          <div className="flex items-center justify-between mt-2">
+            {conversation.unreadCount > 0 && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                {conversation.unreadCount} new
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </button>
