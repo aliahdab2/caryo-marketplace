@@ -246,14 +246,22 @@ export default function MessagesPage() {
         )
       );
       
-      // Update messages to show as read
+      // Update messages to show as read - but ONLY messages that were sent TO the current user
+      // Messages sent BY the current user should remain unread until the recipient reads them
+      const currentUserId = session?.user?.id ? Number(session.user.id) : 0;
       setMessages(prev => 
-        prev.map(msg => ({ ...msg, isRead: true, readAt: new Date().toISOString() }))
+        prev.map(msg => {
+          // Only mark as read if the message was sent by someone else (not the current user)
+          if (msg.sender.id !== currentUserId && !msg.isRead) {
+            return { ...msg, isRead: true, readAt: new Date().toISOString() };
+          }
+          return msg; // Keep original read status for messages sent by current user
+        })
       );
     } catch (error) {
       console.error('Error marking conversation as read:', error);
     }
-  }, []);
+  }, [session?.user?.id]);
 
   const loadMessages = useCallback(async (conversationId: number) => {
     try {
