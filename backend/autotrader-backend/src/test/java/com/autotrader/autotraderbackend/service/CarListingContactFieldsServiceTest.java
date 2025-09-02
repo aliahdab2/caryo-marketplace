@@ -89,7 +89,7 @@ class CarListingContactFieldsServiceTest {
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("dealeruser");
-        testUser.setEmail("dealer@autotrader.com");
+        testUser.setEmail("dealer@caryo.sy");
 
         // Setup test car model
         CarBrand testBrand = new CarBrand();
@@ -208,7 +208,7 @@ class CarListingContactFieldsServiceTest {
             CarListingResponse expectedResponse = new CarListingResponse();
             expectedResponse.setId(1L);
             expectedResponse.setContactName("dealeruser"); // Fallback to username
-            expectedResponse.setContactEmail("dealer@autotrader.com"); // Fallback to user email
+            expectedResponse.setContactEmail("dealer@caryo.sy"); // Fallback to user email
             expectedResponse.setContactPhone(null); // No fallback for phone
             expectedResponse.setContactPreference("email"); // Default preference
 
@@ -225,7 +225,7 @@ class CarListingContactFieldsServiceTest {
             // Assert
             assertNotNull(result);
             assertEquals("dealeruser", result.getContactName()); // Fallback
-            assertEquals("dealer@autotrader.com", result.getContactEmail()); // Fallback
+            assertEquals("dealer@caryo.sy", result.getContactEmail()); // Fallback
             assertNull(result.getContactPhone()); // No fallback
             assertEquals("email", result.getContactPreference()); // Default
 
@@ -310,7 +310,7 @@ class CarListingContactFieldsServiceTest {
             CarListingResponse expectedResponse = new CarListingResponse();
             expectedResponse.setId(1L);
             expectedResponse.setContactName("dealeruser"); // Fallback
-            expectedResponse.setContactEmail("dealer@autotrader.com"); // Fallback
+            expectedResponse.setContactEmail("dealer@caryo.sy"); // Fallback
             expectedResponse.setContactPhone(null); // No fallback
             expectedResponse.setContactPreference("email"); // Fallback
 
@@ -326,7 +326,7 @@ class CarListingContactFieldsServiceTest {
             // Assert
             assertNotNull(result);
             assertEquals("dealeruser", result.getContactName()); // Fallback to username
-            assertEquals("dealer@autotrader.com", result.getContactEmail()); // Fallback to user email
+            assertEquals("dealer@caryo.sy", result.getContactEmail()); // Fallback to user email
             assertNull(result.getContactPhone()); // No fallback
             assertEquals("email", result.getContactPreference()); // Fallback
 

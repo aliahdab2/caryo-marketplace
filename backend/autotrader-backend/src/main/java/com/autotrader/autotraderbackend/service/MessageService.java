@@ -1,16 +1,22 @@
 package com.autotrader.autotraderbackend.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.context.MessageSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.autotrader.autotraderbackend.util.ArabicTextUtils;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Locale;
 
 /**
  * Service for managing internationalized messages.
- * Centralizes all email subject lines and messages.
+ * Centralizes all email subject lines and messages with proper i18n support.
  */
 @Service
 public class MessageService {
+    
+    @Autowired
+    private MessageSource messageSource;
     
     private static final Map<String, Map<String, String>> MESSAGES = new HashMap<>();
     
@@ -111,5 +117,70 @@ public class MessageService {
      */
     public String getMessage(String key, String language) {
         return getMessage(key, language, null);
+    }
+    
+    /**
+     * Note: MessageSource is now configured in Utf8Config.java for centralized UTF-8 handling.
+     * This ensures proper encoding for Arabic text and international characters.
+     */
+    
+    /**
+     * Get localized message using Spring's MessageSource (preferred method).
+     * This method supports proper i18n with .properties files.
+     */
+    public String getLocalizedMessage(String key, String language, Object... args) {
+        try {
+            Locale locale = getLocaleFromLanguage(language);
+            String message = messageSource.getMessage(key, args, locale);
+            return ArabicTextUtils.normalizeArabicText(message);
+        } catch (Exception e) {
+            // Fallback to the old method if message not found in properties
+            Map<String, String> params = new HashMap<>();
+            if (args != null && args.length > 0) {
+                // Convert args to params map for backward compatibility
+                for (int i = 0; i < args.length; i++) {
+                    params.put("arg" + i, String.valueOf(args[i]));
+                }
+            }
+            return getMessage(key, language, params);
+        }
+    }
+    
+    /**
+     * Get localized message with named parameters using Spring's MessageSource.
+     */
+    public String getLocalizedMessage(String key, String language, Map<String, Object> params) {
+        try {
+            Locale locale = getLocaleFromLanguage(language);
+            
+            // For named parameters, we need to replace them in the template
+            String template = messageSource.getMessage(key, null, locale);
+            
+            if (params != null) {
+                for (Map.Entry<String, Object> entry : params.entrySet()) {
+                    String value = ArabicTextUtils.normalizeArabicText(String.valueOf(entry.getValue()));
+                    template = template.replace("{" + entry.getKey() + "}", value);
+                }
+            }
+            
+            return ArabicTextUtils.normalizeArabicText(template);
+        } catch (Exception e) {
+            // Fallback to the old method
+            Map<String, String> stringParams = new HashMap<>();
+            if (params != null) {
+                params.forEach((k, v) -> stringParams.put(k, String.valueOf(v)));
+            }
+            return getMessage(key, language, stringParams);
+        }
+    }
+    
+    /**
+     * Convert language code to Locale.
+     */
+    private Locale getLocaleFromLanguage(String language) {
+        if ("ar".equals(language)) {
+            return Locale.forLanguageTag("ar");
+        }
+        return Locale.ENGLISH; // Default to English
     }
 }

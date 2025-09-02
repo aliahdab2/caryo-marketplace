@@ -113,7 +113,7 @@ export interface WebSiteSchema extends BaseSchema {
 // Constants for consistent schema generation
 const SCHEMA_CONSTANTS = {
   CONTEXT: 'https://schema.org' as const,
-  BASE_URL: process.env.NEXT_PUBLIC_BASE_URL || 'https://caryo.com',
+  BASE_URL: process.env.NEXT_PUBLIC_BASE_URL || 'https://caryo.sy',
   ORGANIZATION_NAME: 'Caryo Marketplace',
   DEFAULT_CURRENCY: 'SYP' as const,
   DEFAULT_COUNTRY: 'SY',

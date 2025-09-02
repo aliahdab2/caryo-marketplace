@@ -259,7 +259,7 @@
     <div class="email-wrapper">
         <!-- Header -->
         <div class="header">
-            <div class="logo">🚗 <span th:text="${websiteName}">AutoTrader</span></div>
+            <div class="logo">🚗 <span th:text="${websiteName}">Caryo Marketplace</span></div>
             <div class="welcome-title" th:text="${language == 'ar' ? 'أهلاً وسهلاً بك!' : 'Welcome aboard!'}">أهلاً وسهلاً بك!</div>
             <div class="welcome-subtitle" th:text="${language == 'ar' ? 'نحن سعداء جداً بانضمامك إلينا' : 'We&apos;re thrilled to have you join us'}">نحن سعداء جداً بانضمامك إلينا</div>
         </div>
@@ -270,7 +270,7 @@
             
             <div class="main-message">
                 <p th:text="${language == 'ar' ? 'مرحباً بك في ' + websiteName + '، المنصة الرائدة لبيع وشراء السيارات في المنطقة! لقد اتخذت خطوة ممتازة بالانضمام إلى مجتمعنا المتنامي من محبي السيارات والتجار المحترفين.' : 'Welcome to ' + websiteName + ', the leading platform for buying and selling cars in the region! You&apos;ve made an excellent choice by joining our growing community of car enthusiasts and professional dealers.'}">
-                    مرحباً بك في أوتو تريدر، المنصة الرائدة لبيع وشراء السيارات في المنطقة! لقد اتخذت خطوة ممتازة بالانضمام إلى مجتمعنا المتنامي من محبي السيارات والتجار المحترفين.
+                    مرحباً بك في كاريو، المنصة الرائدة لبيع وشراء السيارات في المنطقة! لقد اتخذت خطوة ممتازة بالانضمام إلى مجتمعنا المتنامي من محبي السيارات والتجار المحترفين.
                 </p>
                 
                 <p th:text="${language == 'ar' ? 'نحن ملتزمون بتوفير تجربة استثنائية لك، سواء كنت تبحث عن سيارة أحلامك أو تريد بيع سيارتك الحالية بأفضل سعر ممكن.' : 'We are committed to providing you with an exceptional experience, whether you&apos;re looking for your dream car or want to sell your current vehicle at the best possible price.'}">
@@ -280,7 +280,7 @@
             
             <!-- Features Section -->
             <div class="features-section">
-                <div class="features-title" th:text="${language == 'ar' ? 'ماذا يمكنك أن تفعل مع ' + websiteName + '؟' : 'What can you do with ' + websiteName + '?'}">ماذا يمكنك أن تفعل مع أوتو تريدر؟</div>
+                <div class="features-title" th:text="${language == 'ar' ? 'ماذا يمكنك أن تفعل مع ' + websiteName + '؟' : 'What can you do with ' + websiteName + '?'}">ماذا يمكنك أن تفعل مع كاريو؟</div>
                 
                 <div class="features-grid">
                     <div class="feature-item">
@@ -326,14 +326,14 @@
             <div class="support-section">
                 <div class="support-text" th:text="${language == 'ar' ? 'هل تحتاج إلى مساعدة؟ فريق الدعم الفني متاح على مدار الساعة لمساعدتك!' : 'Need help? Our technical support team is available 24/7 to assist you!'}">هل تحتاج إلى مساعدة؟ فريق الدعم الفني متاح على مدار الساعة لمساعدتك!</div>
                 <div class="support-contact">
-                    <span th:text="${language == 'ar' ? '📧 ' + supportEmail + ' | 📱 واتساب: ' + supportPhone : '📧 ' + supportEmail + ' | 📱 WhatsApp: ' + supportPhone}">📧 support@autotrader.com | 📱 واتساب: +963-XXX-XXXX</span>
+                    <span th:text="${language == 'ar' ? '📧 ' + supportEmail + ' | 📱 واتساب: ' + supportPhone : '📧 ' + supportEmail + ' | 📱 WhatsApp: ' + supportPhone}">📧 support@caryo.sy | 📱 واتساب: +963-XXX-XXXX</span>
                 </div>
             </div>
         </div>
         
         <!-- Footer -->
         <div class="footer">
-            <div class="footer-message" th:text="${language == 'ar' ? 'شكراً لك على اختيار ' + websiteName + ' - شريكك الموثوق في عالم السيارات' : 'Thank you for choosing ' + websiteName + ' - your trusted partner in the automotive world'}">شكراً لك على اختيار أوتو تريدر - شريكك الموثوق في عالم السيارات</div>
+            <div class="footer-message" th:text="${language == 'ar' ? 'شكراً لك على اختيار ' + websiteName + ' - شريكك الموثوق في عالم السيارات' : 'Thank you for choosing ' + websiteName + ' - your trusted partner in the automotive world'}">شكراً لك على اختيار Caryo Marketplace - شريكك الموثوق في عالم السيارات</div>
             
             <div class="footer-links">
                 <a th:href="${websiteUrl + '/about'}" th:text="${language == 'ar' ? 'من نحن' : 'About Us'}">من نحن</a>
@@ -342,7 +342,7 @@
                 <a th:href="${websiteUrl + '/terms'}" th:text="${language == 'ar' ? 'شروط الاستخدام' : 'Terms of Use'}">شروط الاستخدام</a>
             </div>
             
-            <div class="copyright" th:text="${language == 'ar' ? '© ' + #dates.format(#dates.createNow(), 'yyyy') + ' ' + websiteName + '. جميع الحقوق محفوظة. | صُنع بـ ❤️ في سوريا' : '© ' + #dates.format(#dates.createNow(), 'yyyy') + ' ' + websiteName + '. All rights reserved. | Made with ❤️ in Syria'}">© 2024 أوتو تريدر. جميع الحقوق محفوظة. | صُنع بـ ❤️ في سوريا</div>
+            <div class="copyright" th:text="${language == 'ar' ? '© ' + #dates.format(#dates.createNow(), 'yyyy') + ' ' + websiteName + '. جميع الحقوق محفوظة. | صُنع بـ ❤️ في سوريا' : '© ' + #dates.format(#dates.createNow(), 'yyyy') + ' ' + websiteName + '. All rights reserved. | Made with ❤️ in Syria'}">© 2024 Caryo Marketplace. جميع الحقوق محفوظة. | صُنع بـ ❤️ في سوريا</div>
         </div>
     </div>
 </body>

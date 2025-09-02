@@ -339,8 +339,8 @@ Run tests with:
 app.frontend.url=http://localhost:3000
 
 # Email configuration
-app.email.from=noreply@autotrader.com
-app.email.support=support@autotrader.com
+app.email.from=noreply@caryo.sy
+app.email.support=support@caryo.sy
 app.website.name=Caryo Marketplace
 
 # Token expiry (in hours)

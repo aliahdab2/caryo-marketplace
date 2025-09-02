@@ -67,7 +67,7 @@ echo -e "\n${YELLOW}Verifying all services are running properly...${NC}"
 # NOTE: The separate create_admin_user.sh script is no longer needed since the admin user is
 # automatically created by DataInitializer.java at application startup with the following credentials:
 #   - Username: admin
-#   - Email: admin@autotrader.com
+#   - Email: admin@caryo.sy
 #   - Password: Admin123!
 # We just verify that the admin user is working properly with these credentials.
 echo -e "\n${YELLOW}Verifying admin user credentials...${NC}"
@@ -159,7 +159,7 @@ echo -e "\n${GREEN}========================================${NC}"
 echo -e "${YELLOW}Test Credentials (for debugging):${NC}"
 echo -e "Admin Username: ${GREEN}admin${NC}"
 echo -e "Admin Password: ${GREEN}Admin123!${NC}"
-echo -e "Admin Email: ${GREEN}admin@autotrader.com${NC}"
+echo -e "Admin Email: ${GREEN}admin@caryo.sy${NC}"
 echo -e "${YELLOW}These credentials are defined in environment.json${NC}"
 echo -e "${GREEN}========================================${NC}\n"
 
@@ -168,7 +168,7 @@ cat > "$REPORT_DIR/index.html" << EOL
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AutoTrader API Test Results</title>
+    <title>Caryo Marketplace API Test Results</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         h1 { color: #333; }
@@ -178,7 +178,7 @@ cat > "$REPORT_DIR/index.html" << EOL
     </style>
 </head>
 <body>
-    <h1>AutoTrader API Test Results</h1>
+    <h1>Caryo Marketplace API Test Results</h1>
     <p>Generated on: $(date)</p>
     <h2>Collection Reports:</h2>
     <div class="collection"><a href="collections/auth-tests-report.html">Authentication Tests</a></div>

@@ -1,6 +1,6 @@
 {
   "id": "123e4567-e89b-12d3-a456-426614174000",
-  "name": "AutoTrader Local Environment",
+  "name": "Caryo Marketplace Local Environment",
   "values": [
     {
       "key": "baseUrl",
@@ -46,7 +46,7 @@
     },
     {
       "key": "admin_email",
-      "value": "admin@autotrader.com",
+      "value": "admin@caryo.sy",
       "type": "default",
       "enabled": true
     }

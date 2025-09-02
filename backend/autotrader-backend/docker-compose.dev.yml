@@ -57,16 +57,16 @@ services:
       sleep 10 &&
       echo '>>> Setting up MinIO alias (myminio -> http://minio:9000)...' &&
       mc alias set myminio http://minio:9000 minioadmin minioadmin &&
-      echo '>>> Creating bucket myminio/autotrader-assets if not exists...' &&
-      mc mb --ignore-existing myminio/autotrader-assets &&
-      echo '>>> Setting bucket policy to public for myminio/autotrader-assets...' &&
-      mc policy set public myminio/autotrader-assets &&
+      echo '>>> Creating bucket myminio/caryo-assets if not exists...' &&
+      mc mb --ignore-existing myminio/caryo-assets &&
+      echo '>>> Setting bucket policy to public for myminio/caryo-assets...' &&
+      mc policy set public myminio/caryo-assets &&
       echo '>>> Listing source /sample-images/ directory contents:' &&
       ls -R /sample-images/ &&
-      echo '>>> Attempting to copy files from /sample-images/listings/ to myminio/autotrader-assets/listings/ ...' &&
-      mc cp --recursive /sample-images/listings/ myminio/autotrader-assets/listings/ &&
-      echo '>>> Listing MinIO bucket myminio/autotrader-assets/ contents after copy:' &&
-      mc ls --recursive myminio/autotrader-assets/ &&
+      echo '>>> Attempting to copy files from /sample-images/listings/ to myminio/caryo-assets/listings/ ...' &&
+      mc cp --recursive /sample-images/listings/ myminio/caryo-assets/listings/ &&
+      echo '>>> Listing MinIO bucket myminio/caryo-assets/ contents after copy:' &&
+      mc ls --recursive myminio/caryo-assets/ &&
       echo '>>> Createbuckets script finished successfully.' || (echo '>>> Createbuckets script FAILED.' && exit 1)"
     restart: "no"
 
@@ -87,7 +87,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=autotrader
       - STORAGE_S3_ENABLED=true
       - STORAGE_S3_ENDPOINT=http://minio:9000
-      - STORAGE_S3_BUCKET_NAME=autotrader-assets
+      - STORAGE_S3_BUCKET_NAME=caryo-assets
       - STORAGE_S3_ACCESS_KEY=minioadmin
       - STORAGE_S3_SECRET_KEY=minioadmin
       - STORAGE_S3_REGION=us-east-1

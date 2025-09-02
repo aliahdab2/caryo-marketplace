@@ -88,7 +88,7 @@ export const authOptions: NextAuthOptions = {
             return {
               id: data.id?.toString() || data.username,
               name: data.username,
-              email: data.email || `${data.username}@autotrader.com`,
+              email: data.email || `${data.username}@caryo.sy`,
               roles: data.roles || [],
               provider: "credentials",
               token: tokenOrAccessToken,

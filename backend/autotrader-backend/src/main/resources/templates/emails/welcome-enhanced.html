@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="x-apple-disable-message-reformatting">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title th:text="${language == 'ar' ? 'مرحباً بك في ' + websiteName : 'Welcome to ' + websiteName}">Welcome</title>
+    <title th:text="${t.withWebsite('email.welcome.subject', websiteName)}">Welcome</title>
     
     <!-- CSS Styles -->
     <style>
@@ -222,32 +222,25 @@
     <div class="email-container">
         <!-- Header -->
         <div class="email-header">
-            <div class="logo">🚗 <span th:text="${websiteName}">AutoTrader</span></div>
-            <h1 class="welcome-title" th:text="${language == 'ar' ? 'مرحباً بك في ' + websiteName + '!' : 'Welcome to ' + websiteName + '!'}">Welcome!</h1>
-            <p class="welcome-subtitle" th:text="${language == 'ar' ? 'منصة السيارات الموثوقة' : 'Your Trusted Car Marketplace'}">Your Trusted Car Marketplace</p>
+            <div class="logo">🚗 <span th:text="${websiteName}">Caryo Marketplace</span></div>
+            <h1 class="welcome-title" th:text="${t.withWebsite('email.welcome.title', websiteName)}">Welcome!</h1>
+            <p class="welcome-subtitle" th:text="${t.get('email.website.tagline')}">Your Trusted Car Marketplace</p>
         </div>
         
         <!-- Content -->
         <div class="email-content">
-            <h2 class="content-title" th:text="${language == 'ar' ? 'مرحباً ' + userName + '!' : 'Hello ' + userName + '!'}">Hello!</h2>
+            <h2 class="content-title" th:text="${t.get('email.greeting.hello')} + ' ' + ${userName} + '!'">Hello!</h2>
             
-            <p class="content-text" th:if="${language == 'en'}" th:text="'Welcome to ' + ${websiteName} + '! We are excited to have you join our community of car enthusiasts and sellers.'">
-                Welcome to AutoTrader! We are excited to have you join our community of car enthusiasts and sellers.
-            </p>
-            <p class="content-text" th:if="${language == 'ar'}" th:text="'مرحباً بك في ' + ${websiteName} + '! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.'">
-                مرحباً بك في AutoTrader! نحن متحمسون لانضمامك إلى مجتمعنا من عشاق السيارات والبائعين.
-            </p>
+            <p class="content-text" th:text="${t.get('email.welcome.message')}">Thank you for joining our community of car enthusiasts!</p>
             
-            <p class="content-text" th:text="${language == 'ar' ? 'مع ' + websiteName + '، يمكنك:' : 'With ' + websiteName + ', you can:'}">With AutoTrader, you can:</p>
+            <h3 th:text="${t.get('email.welcome.getting_started')}">Getting Started</h3>
             
             <div class="features-list">
                 <ul>
-                    <li th:text="${language == 'ar' ? 'إنشاء وإدارة إعلانات سياراتك بسهولة' : 'Create and manage your car listings easily'}">Create and manage your car listings easily</li>
-                    <li th:text="${language == 'ar' ? 'تصفح آلاف المركبات من مختلف العلامات التجارية' : 'Browse thousands of vehicles from various brands'}">Browse thousands of vehicles from various brands</li>
-                    <li th:text="${language == 'ar' ? 'التواصل المباشر مع المشترين والبائعين' : 'Connect directly with buyers and sellers'}">Connect directly with buyers and sellers</li>
-                    <li th:text="${language == 'ar' ? 'الحصول على إشعارات فورية حول إعلاناتك' : 'Get instant notifications about your listings'}">Get instant notifications about your listings</li>
-                    <li th:text="${language == 'ar' ? 'الوصول إلى أدوات تحليلية متقدمة' : 'Access advanced analytics tools'}">Access advanced analytics tools</li>
-                    <li th:text="${language == 'ar' ? 'الاستفادة من نظام تقييم موثوق' : 'Benefit from a trusted rating system'}">Benefit from a trusted rating system</li>
+                    <li th:text="${t.get('email.welcome.browse_cars')}">Browse thousands of cars from trusted dealers and private sellers</li>
+                    <li th:text="${t.get('email.welcome.create_listing')}">Create your own listing to sell your car</li>
+                    <li th:text="${t.get('email.welcome.save_searches')}">Save your searches and get notified of new matches</li>
+                    <li th:text="${t.get('email.welcome.manage_account')}">Manage your account and preferences</li>
                 </ul>
             </div>
             
@@ -269,14 +262,14 @@
             </p>
             
             <p class="content-text" th:text="${language == 'ar' ? 'شكراً لك لاختيار ' + websiteName + '!' : 'Thank you for choosing ' + websiteName + '!'}">
-                Thank you for choosing AutoTrader!
+                <span th:text="${language == 'ar' ? 'شكراً لك على اختيار ' + websiteName + '!' : 'Thank you for choosing ' + websiteName + '!'}">Thank you for choosing Caryo Marketplace!</span>
             </p>
         </div>
         
         <!-- Footer -->
         <div class="email-footer">
             <p class="footer-text" th:text="${language == 'ar' ? 'شكراً لك على استخدام ' + websiteName + ' - منصتك الموثوقة للسيارات' : 'Thank you for using ' + websiteName + ' - Your Trusted Car Marketplace'}">
-                Thank you for using AutoTrader - Your Trusted Car Marketplace
+                <span th:text="${language == 'ar' ? 'شكراً لك على استخدام ' + websiteName + ' - منصتك الموثوقة للسيارات' : 'Thank you for using ' + websiteName + ' - Your Trusted Car Marketplace'}">Thank you for using Caryo Marketplace - Your Trusted Car Marketplace</span>
             </p>
             
             <div class="footer-links">
@@ -286,9 +279,7 @@
                 <a th:href="${websiteUrl} + '/terms'" th:text="${language == 'ar' ? 'الشروط والأحكام' : 'Terms of Service'}">Terms of Service</a>
             </div>
             
-            <p class="footer-text" th:text="${language == 'ar' ? '© ٢٠٢٥ ' + websiteName + '. جميع الحقوق محفوظة.' : '© 2025 ' + websiteName + '. All rights reserved.'}">
-                © 2025 AutoTrader. All rights reserved.
-            </p>
+            <p class="footer-text" th:text="${t.copyright(currentYear, websiteName)}">© 2024 Caryo Marketplace. All rights reserved.</p>
         </div>
     </div>
 </body>

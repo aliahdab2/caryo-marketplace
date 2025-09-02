@@ -2,8 +2,6 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
-import com.autotrader.autotraderbackend.constants.EmailTemplateConstants;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +27,6 @@ import java.util.Map;
 import java.util.Arrays;
 import java.util.List;
 import java.nio.charset.StandardCharsets;
-import jakarta.annotation.PostConstruct;
 import java.util.concurrent.ConcurrentHashMap;
 import java.time.LocalDateTime;
 import java.time.Duration;
@@ -48,9 +45,6 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
     private final MessageService messageService;
-    private final EmailTemplateService emailTemplateService;
-    private final EmailTemplateBuilder emailTemplateBuilder;
-    private final EmailContentValidationService contentValidationService;
     
     @Value("${app.email.from}")
     private String fromEmail;
@@ -203,6 +197,10 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("supportPhone", websiteSupportPhone);
             context.setVariable("language", language);
             
+            // Add translation function to context for use in templates
+            context.setVariable("t", new TranslationHelper(messageService, language));
+            context.setVariable("currentYear", java.time.Year.now().getValue());
+            
             // Add and normalize all Arabic text in variables if present
             if (variables != null) {
                 variables.entrySet().forEach(entry -> {
@@ -270,9 +268,7 @@ public class EmailServiceImpl implements EmailService {
         variables.put("listingId", listing.getId());
         variables.put("listingUrl", websiteUrl + "/listings/" + listing.getId());
         
-        String subject = language.equals("ar") ? 
-            "تمت الموافقة على إعلانك!" : 
-            "Your listing has been approved!";
+        String subject = messageService.getLocalizedMessage("email.listing_approved.subject", language);
         
         sendTemplatedEmail(
             seller.getEmail(),
@@ -300,9 +296,7 @@ public class EmailServiceImpl implements EmailService {
         variables.put("listingId", listing.getId());
         variables.put("listingUrl", websiteUrl + "/listings/" + listing.getId());
         
-        String subject = language.equals("ar") ? 
-            "انتهت صلاحية إعلانك" : 
-            "Your listing has expired";
+        String subject = messageService.getLocalizedMessage("email.listing_expired.subject", language);
         
         sendTemplatedEmail(
             seller.getEmail(),
@@ -332,9 +326,7 @@ public class EmailServiceImpl implements EmailService {
         variables.put("listingUrl", websiteUrl + "/listings/" + listing.getId());
         variables.put("renewalDays", renewalDays);
         
-        String subject = language.equals("ar") ? 
-            "تم تجديد إعلانك" : 
-            "Your listing has been renewed";
+        String subject = messageService.getLocalizedMessage("email.listing_renewal.subject", language);
         
         sendTemplatedEmail(
             seller.getEmail(),
@@ -371,9 +363,9 @@ public class EmailServiceImpl implements EmailService {
         variables.put("userName", user.getUsername());
         variables.put("userEmail", user.getEmail());
         
-        String subject = language.equals("ar") ? 
-            "مرحباً بك في " + getWebsiteName(language) + "!" : 
-            "Welcome to " + getWebsiteName(language) + "!";
+        Map<String, Object> subjectParams = new HashMap<>();
+        subjectParams.put("websiteName", getWebsiteName(language));
+        String subject = messageService.getLocalizedMessage("email.welcome.subject", language, subjectParams);
         
         sendTemplatedEmailAsync(
             user.getEmail(),
@@ -399,9 +391,9 @@ public class EmailServiceImpl implements EmailService {
         variables.put("message", message);
         variables.put("timestamp", java.time.LocalDateTime.now());
         
-        String subject = language.equals("ar") ? 
-            "رسالة جديدة من " + name : 
-            "New contact form submission from " + name;
+        Map<String, Object> subjectParams = new HashMap<>();
+        subjectParams.put("name", name);
+        String subject = messageService.getLocalizedMessage("email.contact_form.subject", language, subjectParams);
         
         sendTemplatedEmail(
             websiteSupportEmail,
@@ -425,9 +417,7 @@ public class EmailServiceImpl implements EmailService {
         variables.put("userName", name);
         variables.put("supportEmail", websiteSupportEmail);
         
-        String subject = language.equals("ar") ? 
-            "شكراً لك على التواصل معنا" : 
-            "Thank you for contacting us";
+        String subject = messageService.getLocalizedMessage("email.contact_confirmation.subject", language);
         
         sendTemplatedEmail(
             email,
@@ -469,9 +459,7 @@ public class EmailServiceImpl implements EmailService {
         variables.put("listingId", listing.getId());
         variables.put("listingUrl", websiteUrl + "/listings/" + listing.getId());
         
-        String subject = language.equals("ar") ? 
-            "تأكيد بيع إعلانك" : 
-            "Your listing has been marked as sold";
+        String subject = messageService.getLocalizedMessage("email.listing_sold.subject", language);
         
         sendTemplatedEmail(
             seller.getEmail(),
@@ -500,9 +488,7 @@ public class EmailServiceImpl implements EmailService {
         variables.put("listingUrl", websiteUrl + "/listings/" + listing.getId());
         variables.put("reason", reason != null ? reason : (language.equals("ar") ? "غير محدد" : "No specific reason provided"));
         
-        String subject = language.equals("ar") ? 
-            "تم أرشفة إعلانك من قبل الإدارة" : 
-            "Your listing has been archived by admin";
+        String subject = messageService.getLocalizedMessage("email.listing_archived.subject", language);
         
         sendTemplatedEmail(
             seller.getEmail(),
@@ -530,9 +516,7 @@ public class EmailServiceImpl implements EmailService {
         variables.put("listingId", listing.getId());
         variables.put("feedbackUrl", websiteUrl + "/feedback?listing=" + listing.getId());
         
-        String subject = language.equals("ar") ? 
-            "شاركنا تجربتك - تقييم خدماتنا" : 
-            "Share your experience - Rate our services";
+        String subject = messageService.getLocalizedMessage("email.listing_feedback.subject", language);
         
         sendTemplatedEmail(
             seller.getEmail(),
@@ -764,9 +748,9 @@ public class EmailServiceImpl implements EmailService {
             variables.put("websiteUrl", websiteUrl);
             variables.put("supportEmail", supportEmail);
             
-            String subject = "en".equals(language) 
-                ? "Confirm Your Newsletter Subscription - " + websiteName
-                : "تأكيد الاشتراك في النشرة الإخبارية - " + websiteNameAr;
+            Map<String, Object> subjectParams = new HashMap<>();
+            subjectParams.put("websiteName", "en".equals(language) ? websiteName : websiteNameAr);
+            String subject = messageService.getLocalizedMessage("email.newsletter_confirmation.subject", language, subjectParams);
             
             sendTemplatedEmail(email, subject, "newsletter-confirmation", variables, language);
             log.info("Newsletter confirmation email sent to: {} in language: {}", email, language);
@@ -800,9 +784,9 @@ public class EmailServiceImpl implements EmailService {
             variables.put("websiteUrl", websiteUrl);
             variables.put("supportEmail", supportEmail);
             
-            String subject = "en".equals(language)
-                ? "Welcome to " + websiteName + " Newsletter!"
-                : "مرحباً بك في نشرة " + websiteNameAr + " الإخبارية!";
+            Map<String, Object> subjectParams = new HashMap<>();
+            subjectParams.put("websiteName", "en".equals(language) ? websiteName : websiteNameAr);
+            String subject = messageService.getLocalizedMessage("email.newsletter_welcome.subject", language, subjectParams);
             
             sendTemplatedEmail(email, subject, "newsletter-welcome", variables, language);
             log.info("Newsletter welcome email sent to: {} in language: {}", email, language);
@@ -856,9 +840,7 @@ public class EmailServiceImpl implements EmailService {
             variables.put("userName", username);
             variables.put("resetUrl", resetUrl);
             
-            String subject = language.equals("ar") ? 
-                "إعادة تعيين كلمة المرور" : 
-                "Password Reset Request";
+            String subject = messageService.getLocalizedMessage("email.password_reset.subject", language);
             
             sendTemplatedEmail(toEmail, subject, "user-management/password-reset", variables, language);
             log.info("Password reset email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
@@ -910,9 +892,7 @@ public class EmailServiceImpl implements EmailService {
             Map<String, Object> variables = new HashMap<>();
             variables.put("userName", username);
             
-            String subject = language.equals("ar") ? 
-                "تأكيد إعادة تعيين كلمة المرور" : 
-                "Password Reset Confirmation";
+            String subject = messageService.getLocalizedMessage("email.password_reset_confirmation.subject", language);
             
             sendTemplatedEmail(toEmail, subject, "user-management/password-reset-confirmation", variables, language);
             log.info("Password reset confirmation email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
@@ -1037,9 +1017,9 @@ public class EmailServiceImpl implements EmailService {
             "confirmationUrl", confirmationUrl
         );
 
-        String subject = language.equals("ar") ? 
-            "تأكيد التسجيل في " + getWebsiteName(language) : 
-            "Confirm Your Registration - " + getWebsiteName(language);
+        Map<String, Object> subjectParams = new HashMap<>();
+        subjectParams.put("websiteName", getWebsiteName(language));
+        String subject = messageService.getLocalizedMessage("email.registration_confirmation.subject", language, subjectParams);
 
         sendTemplatedEmail(email, subject, "emails/user-management/registration-confirmation", variables, language);
     }
@@ -1056,9 +1036,9 @@ public class EmailServiceImpl implements EmailService {
             "verificationUrl", verificationUrl
         );
 
-        String subject = language.equals("ar") ? 
-            "تأكيد الحساب - " + getWebsiteName(language) : 
-            "Account Verification - " + getWebsiteName(language);
+        Map<String, Object> subjectParams = new HashMap<>();
+        subjectParams.put("websiteName", getWebsiteName(language));
+        String subject = messageService.getLocalizedMessage("email.account_verification.subject", language, subjectParams);
 
         sendTemplatedEmail(email, subject, "emails/user-management/account-verification", variables, language);
     }
@@ -1076,9 +1056,9 @@ public class EmailServiceImpl implements EmailService {
             "details", details
         );
 
-        String subject = language.equals("ar") ? 
-            "تنبيه أمني - " + getWebsiteName(language) : 
-            "Security Alert - " + getWebsiteName(language);
+        Map<String, Object> subjectParams = new HashMap<>();
+        subjectParams.put("websiteName", getWebsiteName(language));
+        String subject = messageService.getLocalizedMessage("email.security_alert.subject", language, subjectParams);
 
         sendTemplatedEmail(email, subject, "emails/security/security-alert", variables, language);
     }
@@ -1096,9 +1076,9 @@ public class EmailServiceImpl implements EmailService {
             "confirmationUrl", confirmationUrl
         );
 
-        String subject = language.equals("ar") ? 
-            "تأكيد تغيير البريد الإلكتروني - " + getWebsiteName(language) : 
-            "Confirm Email Change - " + getWebsiteName(language);
+        Map<String, Object> subjectParams = new HashMap<>();
+        subjectParams.put("websiteName", getWebsiteName(language));
+        String subject = messageService.getLocalizedMessage("email.email_change.subject", language, subjectParams);
 
         sendTemplatedEmail(newEmail, subject, "emails/user-management/email-change-confirmation", variables, language);
     }

@@ -19,12 +19,12 @@ public class EmailProperties {
     /**
      * From email address for outgoing emails.
      */
-    private String from = "noreply@autotrader.com";
+    private String from = "noreply@caryo.sy";
     
     /**
      * Support email address.
      */
-    private String support = "support@autotrader.com";
+    private String support = "support@caryo.sy";
     
     /**
      * Default language for emails.
@@ -48,10 +48,10 @@ public class EmailProperties {
     
     @Data
     public static class Website {
-        private String name = "AutoTrader";
-        private String nameAr = "أوتو تريدر";
+        private String name = "Caryo Marketplace";
+        private String nameAr = "كاريو";
         private String url = "http://localhost:3000";
-        private String supportEmail = "support@autotrader.com";
+        private String supportEmail = "support@caryo.sy";
     }
     
     @Data

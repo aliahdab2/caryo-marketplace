@@ -74,7 +74,7 @@ Comprehensive test suite covering:
 
 Test emails use:
 - Seller: `seller@example.com`
-- Admin: `admin@autotrader.com`
+- Admin: `admin@caryo.sy`
 - Test listings with realistic car data
 
 ### Email Verification

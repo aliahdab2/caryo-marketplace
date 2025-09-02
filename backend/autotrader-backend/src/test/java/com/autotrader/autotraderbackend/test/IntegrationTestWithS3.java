@@ -41,7 +41,7 @@ public abstract class IntegrationTestWithS3 {
                             .withStrategy(Wait.forListeningPort()) // Add wait for port 9000
                             .withStartupTimeout(Duration.ofSeconds(30))); // Increase timeout for Docker environment
 
-    protected static final String BUCKET_NAME = "autotrader-assets";
+    protected static final String BUCKET_NAME = "caryo-assets";
     // No static S3Client or endpoint; use local client in @BeforeAll
 
     /**

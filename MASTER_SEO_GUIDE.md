@@ -124,7 +124,7 @@ Disallow: /auth
 Disallow: /admin
 Disallow: /api
 
-Sitemap: https://caryo.com/sitemap.xml
+Sitemap: https://caryo.sy/sitemap.xml
 ```
 
 #### **Sitemap Generation**

@@ -58,12 +58,12 @@ class DataInitializerTest {
         when(roleRepository.findByName("ROLE_ADMIN")).thenReturn(Optional.of(adminRole));
         
         // Setup findByUsername mock for all usernames
-        User mockUser = new User("user", "user@autotrader.com", "encoded_password");
+        User mockUser = new User("user", "user@caryo.sy", "encoded_password");
         Set<Role> userRoles = new HashSet<>();
         userRoles.add(userRole);
         mockUser.setRoles(userRoles);
         
-        User mockAdmin = new User("admin", "admin@autotrader.com", "encoded_password");
+        User mockAdmin = new User("admin", "admin@caryo.sy", "encoded_password");
         Set<Role> adminRoles = new HashSet<>();
         adminRoles.add(userRole);
         adminRoles.add(adminRole);
