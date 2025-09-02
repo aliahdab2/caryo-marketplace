@@ -51,32 +51,9 @@ export default function ConversationList({
   }
 
   return (
-    <div className={`${showSidebar ? 'block' : 'hidden'} lg:block lg:w-72 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full`}>
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          {t('conversations')}
-        </h2>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onShowDropdown}
-            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            title={t('moreOptions')}
-          >
-            <MoreHorizontal className="h-5 w-5" />
-          </button>
-          <button
-            onClick={onToggleSidebar}
-            className="lg:hidden p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            title={t('closeSidebar')}
-          >
-            <ArrowLeft className={`h-5 w-5 ${isRTL ? 'rotate-180' : ''}`} />
-          </button>
-        </div>
-      </div>
-
+    <div className="h-full">
       {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="h-full overflow-y-auto">
         {conversations.length === 0 ? (
           <div className="p-6 text-center text-gray-500 dark:text-gray-400">
             <p className="text-sm">{t('noConversations')}</p>

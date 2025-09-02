@@ -27,6 +27,7 @@ export default function MessagesPage() {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -232,6 +233,18 @@ export default function MessagesPage() {
       setLoading(false);
     }
   };
+
+  // Filter conversations based on search query
+  const filteredConversations = conversations.filter(conv => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      conv.listingTitle.toLowerCase().includes(searchLower) ||
+      conv.listingBrand.toLowerCase().includes(searchLower) ||
+      conv.listingModel.toLowerCase().includes(searchLower) ||
+      conv.buyer.username.toLowerCase().includes(searchLower) ||
+      conv.seller.username.toLowerCase().includes(searchLower)
+    );
+  });
 
   const markConversationAsRead = useCallback(async (conversationId: number) => {
     try {
@@ -444,15 +457,43 @@ export default function MessagesPage() {
   return (
     <div className="h-screen bg-gray-50 dark:bg-gray-900 flex">
       {/* Conversations Sidebar */}
-      <ConversationList
-        conversations={conversations}
-        selectedConversation={selectedConversation}
-        onConversationSelect={setSelectedConversation}
-        onToggleSidebar={() => setShowSidebar(!showSidebar)}
-        onShowDropdown={() => setShowDropdown(!showDropdown)}
-        showSidebar={showSidebar}
-        loading={loading}
-      />
+      <div className="w-full md:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+        {/* Header with search - scrollable if needed */}
+        <div className="flex-shrink-0 p-4 border-b border-gray-200 dark:border-gray-700">
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            {t('messages')}
+          </h1>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder={t('searchConversations')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
+                       bg-white dark:bg-gray-700 text-gray-900 dark:text-white 
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        {/* Conversations List - scrollable */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <ConversationList
+            conversations={filteredConversations}
+            selectedConversation={selectedConversation}
+            onConversationSelect={setSelectedConversation}
+            onToggleSidebar={() => setShowSidebar(!showSidebar)}
+            onShowDropdown={() => setShowDropdown(!showDropdown)}
+            showSidebar={showSidebar}
+            loading={loading}
+          />
+        </div>
+      </div>
 
       {/* Main Chat Area */}
       {selectedConversation ? (
