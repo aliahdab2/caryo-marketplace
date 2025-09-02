@@ -101,7 +101,8 @@ class EmailTemplateIntegrationTest {
             "userName", "testuser",
             "userEmail", "test@example.com",
             "websiteName", "AutoTrader",
-            "websiteUrl", "http://localhost:3000"
+            "websiteUrl", "http://localhost:3000",
+            "language", "en"
         );
 
         Map<String, Object> invalidVariables = Map.of(

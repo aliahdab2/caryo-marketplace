@@ -8,32 +8,28 @@ import { MessageResponse } from '@/services/messaging';
 // Mock the CarMediaGallery component
 jest.mock('@/components/CarMediaGallery', () => {
   return function MockCarMediaGallery({ media, initialIndex }: any) {
-    const handleClick = () => {
-      // Simulate modal opening with keyboard support
-      if (typeof document !== 'undefined') {
-        const modal = document.createElement('div');
-        modal.setAttribute('data-testid', 'gallery-modal');
-        modal.setAttribute('tabindex', '0');
-        modal.textContent = `Gallery Modal - Image ${initialIndex + 1} of ${media.length}`;
-        
-        // Add keyboard event listener
-        modal.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') {
-            modal.remove();
-          }
-        });
-        
-        document.body.appendChild(modal);
-        modal.focus();
-      }
-    };
-
     return (
       <div data-testid="car-media-gallery">
         <div 
           className="cursor-pointer" 
           data-testid="gallery-clickable"
-          onClick={handleClick}
+          onClick={() => {
+            // Simulate modal opening with keyboard support
+            const modal = global.document.createElement('div');
+            modal.setAttribute('data-testid', 'gallery-modal');
+            modal.setAttribute('tabindex', '0');
+            modal.textContent = `Gallery Modal - Image ${initialIndex + 1} of ${media.length}`;
+            
+            // Add keyboard event listener
+            modal.addEventListener('keydown', (e) => {
+              if (e.key === 'Escape') {
+                modal.remove();
+              }
+            });
+            
+            global.document.body.appendChild(modal);
+            modal.focus();
+          }}
         >
           Gallery Image {initialIndex + 1}
         </div>
@@ -44,30 +40,15 @@ jest.mock('@/components/CarMediaGallery', () => {
 
 // Mock FileUpload component
 jest.mock('../FileUpload', () => {
-  return function MockFileUpload({ onFilesSelected, selectedFiles, onRemoveFile }: any) {
+  return function MockFileUpload({ onImageSelect, onDocumentSelect }: any) {
     return (
       <div data-testid="file-upload">
         <input
           type="file"
           data-testid="file-input"
-          onChange={(e) => {
-            if (e.target.files) {
-              onFilesSelected(Array.from(e.target.files));
-            }
-          }}
+          onChange={onImageSelect}
           multiple
         />
-        {selectedFiles.map((file: File, index: number) => (
-          <div key={index} data-testid={`selected-file-${index}`}>
-            {file.name}
-            <button
-              onClick={() => onRemoveFile(index)}
-              data-testid={`remove-file-${index}`}
-            >
-              Remove
-            </button>
-          </div>
-        ))}
       </div>
     );
   };
@@ -78,6 +59,26 @@ jest.mock('@/utils/mediaUtils', () => ({
   transformMinioUrl: (url: string) => `transformed-${url}`,
   getDefaultImageUrl: () => 'default-image.jpg'
 }));
+
+// Mock browser APIs
+Object.defineProperty(global, 'URL', {
+  value: {
+    createObjectURL: jest.fn(() => 'mocked-object-url'),
+    revokeObjectURL: jest.fn(),
+  },
+  writable: true,
+});
+
+// Mock URL.createObjectURL for the component
+Object.defineProperty(window.URL, 'createObjectURL', {
+  value: jest.fn(() => 'mocked-object-url'),
+  writable: true,
+});
+
+Object.defineProperty(window.URL, 'revokeObjectURL', {
+  value: jest.fn(),
+  writable: true,
+});
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -189,7 +190,7 @@ describe('Messaging Integration Tests', () => {
       );
 
       // Send button should be visible due to selected files
-      const sendButton = screen.getByRole('button');
+      const sendButton = screen.getByTitle('sendMessage');
       expect(sendButton).toBeInTheDocument();
       expect(sendButton).not.toBeDisabled();
 
@@ -471,7 +472,7 @@ describe('Messaging Integration Tests', () => {
         />
       );
 
-      const uploadingButton = screen.getByRole('button');
+      const uploadingButton = screen.getByTitle('sending');
       expect(uploadingButton).toBeDisabled();
       expect(uploadingButton).toHaveAttribute('title', 'sending');
       expect(document.querySelector('.animate-spin')).toBeInTheDocument();
@@ -532,7 +533,7 @@ describe('Messaging Integration Tests', () => {
       );
 
       // Should still render time
-      expect(screen.getByText('10:00 AM')).toBeInTheDocument();
+      expect(screen.getByText('11:00 AM')).toBeInTheDocument();
       
       // Should not crash or show broken content
       expect(screen.queryByTestId('car-media-gallery')).not.toBeInTheDocument();

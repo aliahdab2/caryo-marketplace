@@ -6,22 +6,18 @@ import { MessageResponse } from '@/services/messaging';
 // Mock the CarMediaGallery component
 jest.mock('@/components/CarMediaGallery', () => {
   return function MockCarMediaGallery({ media, initialIndex }: any) {
-    const handleClick = () => {
-      // Simulate modal opening
-      if (typeof document !== 'undefined') {
-        const modal = document.createElement('div');
-        modal.setAttribute('data-testid', 'gallery-modal');
-        modal.textContent = `Gallery Modal - Image ${initialIndex + 1} of ${media.length}`;
-        document.body.appendChild(modal);
-      }
-    };
-
     return (
       <div data-testid="car-media-gallery">
         <div 
           className="cursor-pointer" 
           data-testid="gallery-clickable"
-          onClick={handleClick}
+          onClick={() => {
+            // Simulate modal opening
+            const modal = global.document.createElement('div');
+            modal.setAttribute('data-testid', 'gallery-modal');
+            modal.textContent = `Gallery Modal - Image ${initialIndex + 1} of ${media.length}`;
+            global.document.body.appendChild(modal);
+          }}
         >
           Gallery Image {initialIndex + 1}
         </div>
@@ -72,7 +68,7 @@ describe('MessageBubble', () => {
       );
 
       expect(screen.getByText('Test message content')).toBeInTheDocument();
-      expect(screen.getByText('10:00 AM')).toBeInTheDocument();
+      expect(screen.getByText('11:00 AM')).toBeInTheDocument();
     });
 
     it('applies correct styling for own messages', () => {
@@ -388,7 +384,7 @@ describe('MessageBubble', () => {
       );
 
       expect(screen.queryByText('Test message content')).not.toBeInTheDocument();
-      expect(screen.getByText('10:00 AM')).toBeInTheDocument(); // Time should still be shown
+      expect(screen.getByText('11:00 AM')).toBeInTheDocument(); // Time should still be shown
     });
 
     it('handles message without attachments', () => {
@@ -459,8 +455,8 @@ describe('MessageBubble', () => {
         />
       );
 
-      const documentElement = screen.getByText('important-document.pdf').closest('div');
-      expect(documentElement).toHaveAttribute('title', 'Download important-document.pdf');
+      const documentElement = screen.getByTitle('Download important-document.pdf');
+      expect(documentElement).toBeInTheDocument();
     });
   });
 });

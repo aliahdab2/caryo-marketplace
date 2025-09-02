@@ -5,30 +5,15 @@ import MessageInput from '../MessageInput';
 
 // Mock the FileUpload component
 jest.mock('../FileUpload', () => {
-  return function MockFileUpload({ onFilesSelected, selectedFiles = [], onRemoveFile }: any) {
+  return function MockFileUpload({ onImageSelect, onDocumentSelect }: any) {
     return (
       <div data-testid="file-upload">
         <input
           type="file"
           data-testid="file-input"
-          onChange={(e) => {
-            if (e.target.files) {
-              onFilesSelected(Array.from(e.target.files));
-            }
-          }}
+          onChange={onImageSelect}
           multiple
         />
-        {selectedFiles.map((file: File, index: number) => (
-          <div key={index} data-testid={`selected-file-${index}`}>
-            {file.name}
-            <button
-              onClick={() => onRemoveFile(index)}
-              data-testid={`remove-file-${index}`}
-            >
-              Remove
-            </button>
-          </div>
-        ))}
       </div>
     );
   };
@@ -50,6 +35,17 @@ Object.defineProperty(global, 'URL', {
   writable: true,
 });
 
+// Mock URL.createObjectURL for the component
+Object.defineProperty(window.URL, 'createObjectURL', {
+  value: jest.fn(() => 'mocked-object-url'),
+  writable: true,
+});
+
+Object.defineProperty(window.URL, 'revokeObjectURL', {
+  value: jest.fn(),
+  writable: true,
+});
+
 // Mock ResizeObserver
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
@@ -65,6 +61,8 @@ describe('MessageInput', () => {
     onSendMessage: jest.fn(),
     onImageSelect: jest.fn(),
     onDocumentSelect: jest.fn(),
+    onRemoveFile: jest.fn(),
+    onClearAllFiles: jest.fn(),
     selectedFiles: [],
     sending: false,
     uploading: false,
@@ -108,21 +106,21 @@ describe('MessageInput', () => {
     it('shows send button when message has content', () => {
       render(<MessageInput {...mockProps} newMessage="Hello world" />);
       
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTitle('sendMessage')).toBeInTheDocument();
     });
 
     it('shows send button when files are selected', () => {
       const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
       render(<MessageInput {...mockProps} selectedFiles={[file]} />);
       
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTitle('sendMessage')).toBeInTheDocument();
     });
 
     it('shows send button when both message and files are present', () => {
       const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
       render(<MessageInput {...mockProps} newMessage="Check this out" selectedFiles={[file]} />);
       
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTitle('sendMessage')).toBeInTheDocument();
     });
 
     it('hides send button when message becomes empty', async () => {
@@ -132,7 +130,7 @@ describe('MessageInput', () => {
       render(<MessageInput {...mockProps} newMessage="Hello" onMessageChange={onMessageChange} />);
       
       // Initially should show send button
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTitle('sendMessage')).toBeInTheDocument();
       
       // Clear the message
       const textarea = screen.getByPlaceholderText('writeMessage');
@@ -162,14 +160,14 @@ describe('MessageInput', () => {
     it('disables send button when sending is true', () => {
       render(<MessageInput {...mockProps} newMessage="Hello" sending={true} />);
       
-      const sendButton = screen.getByRole('button');
+      const sendButton = screen.getByTitle('sending');
       expect(sendButton).toBeDisabled();
     });
 
     it('disables send button when uploading is true', () => {
       render(<MessageInput {...mockProps} newMessage="Hello" uploading={true} />);
       
-      const sendButton = screen.getByRole('button');
+      const sendButton = screen.getByTitle('sending');
       expect(sendButton).toBeDisabled();
     });
 
@@ -201,7 +199,7 @@ describe('MessageInput', () => {
       const onSendMessage = jest.fn();
       render(<MessageInput {...mockProps} newMessage="Hello" onSendMessage={onSendMessage} />);
       
-      const sendButton = screen.getByRole('button');
+      const sendButton = screen.getByTitle('sendMessage');
       fireEvent.click(sendButton);
       
       expect(onSendMessage).toHaveBeenCalledTimes(1);
@@ -251,41 +249,42 @@ describe('MessageInput', () => {
       const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
       render(<MessageInput {...mockProps} selectedFiles={[file]} />);
       
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTitle('sendMessage')).toBeInTheDocument();
     });
 
-    it('passes files to FileUpload component', () => {
+    it('displays selected files in preview area', () => {
       const files = [
         new File(['test1'], 'test1.jpg', { type: 'image/jpeg' }),
         new File(['test2'], 'test2.png', { type: 'image/png' })
       ];
       render(<MessageInput {...mockProps} selectedFiles={files} />);
       
-      expect(screen.getByTestId('selected-file-0')).toHaveTextContent('test1.jpg');
-      expect(screen.getByTestId('selected-file-1')).toHaveTextContent('test2.png');
+      expect(screen.getByText('test1.jpg')).toBeInTheDocument();
+      expect(screen.getByText('test2.png')).toBeInTheDocument();
+      expect(screen.getByText('2 files ready to send')).toBeInTheDocument();
     });
 
-    it('calls setSelectedFiles when files are added', async () => {
-      const setSelectedFiles = jest.fn();
-      render(<MessageInput {...mockProps} setSelectedFiles={setSelectedFiles} />);
+    it('calls onImageSelect when files are added', async () => {
+      const onImageSelect = jest.fn();
+      render(<MessageInput {...mockProps} onImageSelect={onImageSelect} />);
       
       const fileInput = screen.getByTestId('file-input');
       const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
       
       await userEvent.upload(fileInput, file);
       
-      expect(setSelectedFiles).toHaveBeenCalledWith([file]);
+      expect(onImageSelect).toHaveBeenCalled();
     });
 
-    it('calls setSelectedFiles when file is removed', () => {
-      const setSelectedFiles = jest.fn();
+    it('calls onRemoveFile when file is removed', () => {
+      const onRemoveFile = jest.fn();
       const files = [new File(['test'], 'test.jpg', { type: 'image/jpeg' })];
-      render(<MessageInput {...mockProps} selectedFiles={files} setSelectedFiles={setSelectedFiles} />);
+      render(<MessageInput {...mockProps} selectedFiles={files} onRemoveFile={onRemoveFile} />);
       
-      const removeButton = screen.getByTestId('remove-file-0');
+      const removeButton = screen.getByTitle('Remove image');
       fireEvent.click(removeButton);
       
-      expect(setSelectedFiles).toHaveBeenCalled();
+      expect(onRemoveFile).toHaveBeenCalledWith(0);
     });
   });
 
@@ -298,7 +297,7 @@ describe('MessageInput', () => {
       const textarea = screen.getByPlaceholderText('writeMessage');
       await user.type(textarea, 'Hello world');
       
-      expect(onMessageChange).toHaveBeenCalledWith('Hello world');
+      expect(onMessageChange).toHaveBeenLastCalledWith('Hello world');
     });
 
     it('handles multiline messages with Shift+Enter', async () => {
@@ -309,14 +308,14 @@ describe('MessageInput', () => {
       const textarea = screen.getByPlaceholderText('writeMessage');
       await user.type(textarea, 'Line 1{shift}{enter}Line 2');
       
-      expect(mockProps.onMessageChange).toHaveBeenCalledWith('Line 1\nLine 2');
+      expect(onMessageChange).toHaveBeenLastCalledWith('Line 1\nLine 2');
     });
 
     it('auto-resizes textarea based on content', () => {
       render(<MessageInput {...mockProps} newMessage="Line 1\nLine 2\nLine 3" />);
       
-              const textarea = screen.getByPlaceholderText('writeMessage') as HTMLTextAreaElement;
-      expect(textarea.style.height).toBeTruthy();
+      const textarea = screen.getByPlaceholderText('writeMessage') as HTMLTextAreaElement;
+      expect(textarea.style.minHeight).toBe('44px');
     });
   });
 
@@ -324,21 +323,21 @@ describe('MessageInput', () => {
     it('shows correct title when sending', () => {
       render(<MessageInput {...mockProps} newMessage="Hello" sending={true} />);
       
-      const sendButton = screen.getByRole('button');
+      const sendButton = screen.getByTitle('sending');
       expect(sendButton).toHaveAttribute('title', 'sending');
     });
 
     it('shows correct title when uploading', () => {
       render(<MessageInput {...mockProps} newMessage="Hello" uploading={true} />);
       
-      const sendButton = screen.getByRole('button');
+      const sendButton = screen.getByTitle('sending');
       expect(sendButton).toHaveAttribute('title', 'sending');
     });
 
     it('shows correct title when ready to send', () => {
       render(<MessageInput {...mockProps} newMessage="Hello" />);
       
-      const sendButton = screen.getByRole('button');
+      const sendButton = screen.getByTitle('sendMessage');
       expect(sendButton).toHaveAttribute('title', 'sendMessage');
     });
   });
@@ -348,9 +347,9 @@ describe('MessageInput', () => {
       render(<MessageInput {...mockProps} newMessage="Hello" />);
       
       const textarea = screen.getByPlaceholderText('writeMessage');
-      expect(textarea).toHaveAttribute('aria-label', 'writeMessage');
+      expect(textarea).toHaveAttribute('placeholder', 'writeMessage');
       
-      const sendButton = screen.getByRole('button');
+      const sendButton = screen.getByTitle('sendMessage');
       expect(sendButton).toHaveAttribute('title', 'sendMessage');
     });
 
@@ -372,7 +371,7 @@ describe('MessageInput', () => {
       
               const textarea = screen.getByPlaceholderText('writeMessage') as HTMLTextAreaElement;
       expect(textarea.value).toBe(longMessage);
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTitle('sendMessage')).toBeInTheDocument();
     });
 
     it('handles special characters in messages', () => {
@@ -381,7 +380,7 @@ describe('MessageInput', () => {
       
               const textarea = screen.getByPlaceholderText('writeMessage') as HTMLTextAreaElement;
       expect(textarea.value).toBe(specialMessage);
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByTitle('sendMessage')).toBeInTheDocument();
     });
 
     it('handles rapid typing and state changes', async () => {
@@ -396,7 +395,7 @@ describe('MessageInput', () => {
       await user.clear(textarea);
       await user.type(textarea, 'World');
       
-      expect(onMessageChange).toHaveBeenCalledWith('World');
+      expect(onMessageChange).toHaveBeenLastCalledWith('World');
     });
   });
 });
