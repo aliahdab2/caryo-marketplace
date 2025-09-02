@@ -15,7 +15,7 @@ import java.util.Locale;
 @Service
 public class MessageService {
     
-    @Autowired(required = false)
+    @Autowired
     private MessageSource messageSource;
     
     private static final Map<String, Map<String, String>> MESSAGES = new HashMap<>();
@@ -56,6 +56,13 @@ public class MessageService {
         enMessages.put("email.password_reset_confirmation.subject", "Password Successfully Changed");
         enMessages.put("email.registration_confirmation.subject", "Welcome to {websiteName}!");
         enMessages.put("email.account_verification.subject", "Verify your {websiteName} account");
+        enMessages.put("email.account_verification.title", "Verify Your Account");
+        enMessages.put("email.account_verification.message", "Please verify your account to complete the setup process.");
+        enMessages.put("email.account_verification.instruction", "Click the button below to verify your email address and activate your account:");
+        enMessages.put("email.account_verification.button", "Verify My Account");
+        enMessages.put("email.account_verification.security_title", "Security Notice");
+        enMessages.put("email.account_verification.security_message", "This verification link will expire in 24 hours for security reasons. If you didn't create an account with us, please ignore this email.");
+        enMessages.put("email.account_verification.trouble_clicking", "Having trouble clicking the button? Copy and paste this link into your browser:");
         enMessages.put("email.security_alert.subject", "Security Alert - {websiteName}");
         enMessages.put("email.email_change.subject", "Email Change Confirmation - {websiteName}");
         enMessages.put("email.password_reset.security_alert", "Didn't make this change?");
@@ -63,6 +70,9 @@ public class MessageService {
         
         // Email footer and common elements
         enMessages.put("email.footer.copyright", "© {year} {websiteName}. All rights reserved.");
+        enMessages.put("email.footer.visit", "Visit Website");
+        enMessages.put("email.footer.contact", "If you have any questions, please contact us at");
+        enMessages.put("email.button.contact_support", "Contact Support");
         enMessages.put("email.greeting.hello", "Hello");
         enMessages.put("email.website.tagline", "Your Trusted Car Marketplace");
         enMessages.put("email.welcome.title", "Welcome to {websiteName}!");
@@ -118,6 +128,13 @@ public class MessageService {
         arMessages.put("email.password_reset_confirmation.subject", "تم تغيير كلمة المرور بنجاح");
         arMessages.put("email.registration_confirmation.subject", "مرحباً بك في {websiteName}!");
         arMessages.put("email.account_verification.subject", "تحقق من حسابك في {websiteName}");
+        arMessages.put("email.account_verification.title", "تأكيد حسابك");
+        arMessages.put("email.account_verification.message", "يرجى تأكيد حسابك لإكمال عملية الإعداد.");
+        arMessages.put("email.account_verification.instruction", "انقر على الزر أدناه للتحقق من عنوان بريدك الإلكتروني وتفعيل حسابك:");
+        arMessages.put("email.account_verification.button", "تأكيد حسابي");
+        arMessages.put("email.account_verification.security_title", "تنبيه أمني");
+        arMessages.put("email.account_verification.security_message", "ستنتهي صلاحية رابط التحقق هذا خلال 24 ساعة لأسباب أمنية. إذا لم تقم بإنشاء حساب معنا، يرجى تجاهل هذا البريد الإلكتروني.");
+        arMessages.put("email.account_verification.trouble_clicking", "هل تواجه مشكلة في النقر على الزر؟ انسخ والصق هذا الرابط في متصفحك:");
         arMessages.put("email.security_alert.subject", "تنبيه أمني - {websiteName}");
         arMessages.put("email.email_change.subject", "تأكيد تغيير البريد الإلكتروني - {websiteName}");
         arMessages.put("email.password_reset.security_alert", "لم تقم بهذا التغيير؟");
@@ -125,6 +142,9 @@ public class MessageService {
         
         // Email footer and common elements (Arabic)
         arMessages.put("email.footer.copyright", "© {year} {websiteName}. جميع الحقوق محفوظة.");
+        arMessages.put("email.footer.visit", "زيارة الموقع");
+        arMessages.put("email.footer.contact", "إذا كان لديك أي أسئلة، يرجى التواصل معنا على");
+        arMessages.put("email.button.contact_support", "اتصل بالدعم");
         arMessages.put("email.greeting.hello", "مرحباً");
         arMessages.put("email.website.tagline", "منصة السيارات الموثوقة");
         arMessages.put("email.welcome.title", "مرحباً بك في {websiteName}!");
@@ -187,25 +207,24 @@ public class MessageService {
      * This method supports proper i18n with .properties files.
      */
     public String getLocalizedMessage(String key, String language, Object... args) {
-        if (messageSource != null) {
-            try {
-                Locale locale = getLocaleFromLanguage(language);
-                String message = messageSource.getMessage(key, args, locale);
-                return ArabicTextUtils.normalizeArabicText(message);
-            } catch (Exception e) {
-                // Fall through to legacy method
+        try {
+            Locale locale = getLocaleFromLanguage(language);
+            String message = messageSource.getMessage(key, args, locale);
+            return ArabicTextUtils.normalizeArabicText(message);
+        } catch (Exception e) {
+            // Log the error for debugging
+            System.err.println("Failed to load message for key: " + key + ", language: " + language + ", error: " + e.getMessage());
+            
+            // Fallback to the old method if message not found in properties
+            Map<String, String> params = new HashMap<>();
+            if (args != null && args.length > 0) {
+                // Convert args to params map for backward compatibility
+                for (int i = 0; i < args.length; i++) {
+                    params.put("arg" + i, String.valueOf(args[i]));
+                }
             }
+            return getMessage(key, language, params);
         }
-        
-        // Fallback to the old method if message not found in properties or MessageSource not available
-        Map<String, String> params = new HashMap<>();
-        if (args != null && args.length > 0) {
-            // Convert args to params map for backward compatibility
-            for (int i = 0; i < args.length; i++) {
-                params.put("arg" + i, String.valueOf(args[i]));
-            }
-        }
-        return getMessage(key, language, params);
     }
     
     /**
