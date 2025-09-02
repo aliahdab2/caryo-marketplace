@@ -114,7 +114,6 @@ export default function DashboardLayout({
   const { t } = useTranslation('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-
   // Focused pages: hide the sidebar to emulate the Saved Alerts experience
   const focusedRoutes = ['/dashboard/listings', '/dashboard/profile', '/dashboard/settings', '/dashboard/messages'];
   const isFocusedPage = !!(pathname && focusedRoutes.some(route => pathname === route || pathname.startsWith(route + '/')));
