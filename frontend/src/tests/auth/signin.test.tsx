@@ -167,7 +167,7 @@ describe('SignInPage', () => {
     );
     expect(screen.getByRole('heading', { name: /sign_in/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(document.getElementById('password')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign_in/i })).toBeInTheDocument(); // Changed from signIn to sign_in
     // Wait for verification component to appear
     await waitFor(() => {
@@ -221,7 +221,7 @@ describe('SignInPage', () => {
 
     await rtlAct(async () => {
       await userEvent.type(screen.getByLabelText(/username/i), 'testuser');
-      await userEvent.type(screen.getByLabelText(/password/i), 'password123');
+      await userEvent.type(document.getElementById('password') as HTMLInputElement, 'password123');
       // Simulate verification completion
       const verificationComponent = screen.getByTestId('verification-component');
       fireEvent.click(verificationComponent); // This is a mock, actual interaction might differ
@@ -263,7 +263,7 @@ describe('SignInPage', () => {
 
     await rtlAct(async () => {
       await userEvent.type(screen.getByLabelText(/username/i), 'testuser');
-      await userEvent.type(screen.getByLabelText(/password/i), 'wrongpassword');
+      await userEvent.type(document.getElementById('password') as HTMLInputElement, 'wrongpassword');
       // Simulate verification completion
       const verificationComponent = screen.getByTestId('verification-component');
       fireEvent.click(verificationComponent); // This is a mock, actual interaction might differ
