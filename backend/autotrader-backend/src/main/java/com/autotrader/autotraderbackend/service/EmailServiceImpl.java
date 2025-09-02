@@ -1024,4 +1024,82 @@ public class EmailServiceImpl implements EmailService {
         
         return false;
     }
+
+    @Override
+    public void sendRegistrationConfirmationEmail(String email, String username, String confirmationUrl) {
+        sendRegistrationConfirmationEmail(email, username, confirmationUrl, "en");
+    }
+
+    @Override
+    public void sendRegistrationConfirmationEmail(String email, String username, String confirmationUrl, String language) {
+        Map<String, Object> variables = Map.of(
+            "username", username,
+            "confirmationUrl", confirmationUrl
+        );
+
+        String subject = language.equals("ar") ? 
+            "تأكيد التسجيل في " + getWebsiteName(language) : 
+            "Confirm Your Registration - " + getWebsiteName(language);
+
+        sendTemplatedEmail(email, subject, "emails/user-management/registration-confirmation", variables, language);
+    }
+
+    @Override
+    public void sendAccountVerificationEmail(String email, String username, String verificationUrl) {
+        sendAccountVerificationEmail(email, username, verificationUrl, "en");
+    }
+
+    @Override
+    public void sendAccountVerificationEmail(String email, String username, String verificationUrl, String language) {
+        Map<String, Object> variables = Map.of(
+            "username", username,
+            "verificationUrl", verificationUrl
+        );
+
+        String subject = language.equals("ar") ? 
+            "تأكيد الحساب - " + getWebsiteName(language) : 
+            "Account Verification - " + getWebsiteName(language);
+
+        sendTemplatedEmail(email, subject, "emails/user-management/account-verification", variables, language);
+    }
+
+    @Override
+    public void sendSecurityAlertEmail(String email, String username, String alertType, String details) {
+        sendSecurityAlertEmail(email, username, alertType, details, "en");
+    }
+
+    @Override
+    public void sendSecurityAlertEmail(String email, String username, String alertType, String details, String language) {
+        Map<String, Object> variables = Map.of(
+            "username", username,
+            "alertType", alertType,
+            "details", details
+        );
+
+        String subject = language.equals("ar") ? 
+            "تنبيه أمني - " + getWebsiteName(language) : 
+            "Security Alert - " + getWebsiteName(language);
+
+        sendTemplatedEmail(email, subject, "emails/security/security-alert", variables, language);
+    }
+
+    @Override
+    public void sendEmailChangeConfirmation(String oldEmail, String newEmail, String confirmationUrl) {
+        sendEmailChangeConfirmation(oldEmail, newEmail, confirmationUrl, "en");
+    }
+
+    @Override
+    public void sendEmailChangeConfirmation(String oldEmail, String newEmail, String confirmationUrl, String language) {
+        Map<String, Object> variables = Map.of(
+            "oldEmail", oldEmail,
+            "newEmail", newEmail,
+            "confirmationUrl", confirmationUrl
+        );
+
+        String subject = language.equals("ar") ? 
+            "تأكيد تغيير البريد الإلكتروني - " + getWebsiteName(language) : 
+            "Confirm Email Change - " + getWebsiteName(language);
+
+        sendTemplatedEmail(newEmail, subject, "emails/user-management/email-change-confirmation", variables, language);
+    }
 } 
