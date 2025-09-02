@@ -10,7 +10,7 @@ import Image from 'next/image';
 interface MessageListProps {
   selectedConversation: ConversationResponse;
   messages: MessageResponse[];
-  currentUserId: number;
+  currentUserId: number | null;
   isRTL: boolean;
   otherPersonTyping: boolean;
   onDownloadDocument: (fileKey: string, fileName: string) => void;
@@ -27,26 +27,32 @@ export default function MessageList({
   const { t } = useTranslation('messages');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when messages change (only within the messages container)
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      const messagesContainer = messagesEndRef.current.parentElement;
+      if (messagesContainer) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+    }
   };
 
   useEffect(() => {
+    // Only auto-scroll if user hasn't manually scrolled up
     scrollToBottom();
   }, [messages]);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-gray-50 dark:bg-gray-900">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Chat Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3">
+      <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3">
         <ChatHeader conversation={selectedConversation} />
       </div>
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="h-full flex items-center justify-center">
             <div className="text-center text-gray-500 dark:text-gray-400">
               <p className="text-sm">{t('noMessages')}</p>
               <p className="text-xs mt-1">{t('startConversation')}</p>
@@ -58,7 +64,7 @@ export default function MessageList({
               <MessageBubble
                 key={message.id}
                 message={message}
-                isOwn={message.sender.id === currentUserId}
+                isOwn={currentUserId != null && message.sender.id === currentUserId}
                 isRTL={isRTL}
                 onDownloadDocument={onDownloadDocument}
               />

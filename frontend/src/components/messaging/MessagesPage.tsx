@@ -246,22 +246,14 @@ export default function MessagesPage() {
         )
       );
       
-      // Update messages to show as read - but ONLY messages that were sent TO the current user
-      // Messages sent BY the current user should remain unread until the recipient reads them
-      const currentUserId = session?.user?.id ? Number(session.user.id) : 0;
+      // Update messages to show as read
       setMessages(prev => 
-        prev.map(msg => {
-          // Only mark as read if the message was sent by someone else (not the current user)
-          if (msg.sender.id !== currentUserId && !msg.isRead) {
-            return { ...msg, isRead: true, readAt: new Date().toISOString() };
-          }
-          return msg; // Keep original read status for messages sent by current user
-        })
+        prev.map(msg => ({ ...msg, isRead: true, readAt: new Date().toISOString() }))
       );
     } catch (error) {
       console.error('Error marking conversation as read:', error);
     }
-  }, [session?.user?.id]);
+  }, []);
 
   const loadMessages = useCallback(async (conversationId: number) => {
     try {
@@ -464,30 +456,34 @@ export default function MessagesPage() {
 
       {/* Main Chat Area */}
       {selectedConversation ? (
-        <div className="flex-1 flex flex-col">
-          <MessageList
-            selectedConversation={selectedConversation}
-            messages={messages}
-            currentUserId={session.user.id ? Number(session.user.id) : 0}
-            isRTL={isRTL}
-            otherPersonTyping={otherPersonTyping}
-            onDownloadDocument={downloadDocument}
-          />
+        <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <MessageList
+              selectedConversation={selectedConversation}
+              messages={messages}
+              currentUserId={session.user.id ? Number(session.user.id) : 0}
+              isRTL={isRTL}
+              otherPersonTyping={otherPersonTyping}
+              onDownloadDocument={downloadDocument}
+            />
+          </div>
           
-          <MessageInput
-            newMessage={newMessage}
-            selectedFiles={selectedFiles}
-            sending={sending}
-            uploading={uploading}
-            isRTL={isRTL}
-            onMessageChange={setNewMessage}
-            onKeyPress={handleKeyPress}
-            onSendMessage={handleSendMessageWithAttachments}
-            onImageSelect={handleImageSelect}
-            onDocumentSelect={handleDocumentSelect}
-            onRemoveFile={removeFile}
-            onClearAllFiles={() => setSelectedFiles([])}
-          />
+          <div className="flex-shrink-0">
+            <MessageInput
+              newMessage={newMessage}
+              selectedFiles={selectedFiles}
+              sending={sending}
+              uploading={uploading}
+              isRTL={isRTL}
+              onMessageChange={setNewMessage}
+              onKeyPress={handleKeyPress}
+              onSendMessage={handleSendMessageWithAttachments}
+              onImageSelect={handleImageSelect}
+              onDocumentSelect={handleDocumentSelect}
+              onRemoveFile={removeFile}
+              onClearAllFiles={() => setSelectedFiles([])}
+            />
+          </div>
         </div>
       ) : (
         <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
