@@ -103,7 +103,7 @@ public class GlobalExceptionHandler {
             StorageException ex, WebRequest request) {
         
         Locale locale = getUserLocale(request);
-        String message = getMessage("error.file.validation", locale, ex.getMessage());
+        String message = getMessage("error.validation.failed", locale, ex.getMessage());
         
         log.warn("Storage error: {}", ex.getMessage());
         
