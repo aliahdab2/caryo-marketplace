@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
  * Provides endpoints for verifying email addresses and resending verification emails.
  */
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/auth/verify-email")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Email Verification", description = "Email verification management")
@@ -31,7 +31,7 @@ public class EmailVerificationController {
             @ApiResponse(responseCode = "400", description = "Invalid or expired verification token")
         }
     )
-    @GetMapping("/verify-email")
+    @GetMapping("")
     public ResponseEntity<?> verifyEmail(@RequestParam("token") String token) {
         log.info("Email verification attempt with token: {}", token.substring(0, Math.min(token.length(), 8)) + "...");
         
@@ -59,7 +59,7 @@ public class EmailVerificationController {
             @ApiResponse(responseCode = "429", description = "Too many requests - rate limited")
         }
     )
-    @PostMapping("/resend-verification")
+    @PostMapping("/resend")
     public ResponseEntity<?> resendVerificationEmail(@RequestParam("email") String email) {
         log.info("Resend verification email request for: {}", email);
         
