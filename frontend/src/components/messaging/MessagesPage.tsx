@@ -221,24 +221,6 @@ export default function MessagesPage() {
     }
   }, [session?.user?.id]);
 
-  // Handle conversation selection from URL
-  useEffect(() => {
-    const conversationId = searchParams.get('conversation');
-    if (conversationId && conversations.length > 0) {
-      const conversation = conversations.find(c => c.id.toString() === conversationId);
-      if (conversation) {
-        setSelectedConversation(conversation);
-      }
-    }
-  }, [searchParams, conversations]);
-
-  // Load messages when conversation is selected
-  useEffect(() => {
-    if (selectedConversation && session?.user?.id) {
-      loadMessages(selectedConversation.id);
-    }
-  }, [selectedConversation, session?.user?.id, loadMessages]);
-
   const loadConversations = async () => {
     try {
       setLoading(true);
@@ -284,6 +266,24 @@ export default function MessagesPage() {
       console.error('Error loading messages:', error);
     }
   }, [markConversationAsRead]);
+
+  // Handle conversation selection from URL
+  useEffect(() => {
+    const conversationId = searchParams.get('conversation');
+    if (conversationId && conversations.length > 0) {
+      const conversation = conversations.find(c => c.id.toString() === conversationId);
+      if (conversation) {
+        setSelectedConversation(conversation);
+      }
+    }
+  }, [searchParams, conversations]);
+
+  // Load messages when conversation is selected
+  useEffect(() => {
+    if (selectedConversation && session?.user?.id) {
+      loadMessages(selectedConversation.id);
+    }
+  }, [selectedConversation, session?.user?.id, loadMessages]);
 
   const handleSendMessageWithAttachments = async () => {
     if (!selectedConversation || (!newMessage.trim() && selectedFiles.length === 0) || sending || uploading) return;
