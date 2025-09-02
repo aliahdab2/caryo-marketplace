@@ -88,6 +88,8 @@ public class ContactFieldsIntegrationTest {
         testUser.setUsername("testdealer");
         testUser.setEmail("dealer@caryo.sy");
         testUser.setPassword("password123");
+        // Mark user as email verified for testing
+        testUser.markEmailAsVerified();
         testUser = userRepository.save(testUser);
 
         // Find existing test location - the integration tests run with seeded data

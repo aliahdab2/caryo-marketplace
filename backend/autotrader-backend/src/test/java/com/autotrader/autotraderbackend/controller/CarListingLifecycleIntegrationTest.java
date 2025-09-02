@@ -123,6 +123,10 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         // Fetch the created user for associating with listings
         testUser = userRepository.findByUsername("carowner")
                 .orElseThrow(() -> new IllegalStateException("Test user 'carowner' not found after registration"));
+        
+        // Mark user as email verified for testing
+        testUser.markEmailAsVerified();
+        userRepository.save(testUser);
     }
 
     private void setupCarBrandAndModel() {
