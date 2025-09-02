@@ -9,6 +9,7 @@ export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'invalid'>('loading');
   const [message, setMessage] = useState('');
+  const [hasAttempted, setHasAttempted] = useState(false);
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -18,6 +19,12 @@ export default function VerifyEmailPage() {
       setMessage('Verification token is missing.');
       return;
     }
+
+    // Prevent multiple attempts
+    if (hasAttempted) {
+      return;
+    }
+    setHasAttempted(true);
 
     // Call the backend verification endpoint
     const verifyEmail = async () => {
@@ -33,19 +40,22 @@ export default function VerifyEmailPage() {
 
         if (response.ok) {
           setStatus('success');
-          setMessage(data.message || 'Email verified successfully! You can now sign in and create listings.');
+          setMessage(data.message || 'Perfect! Your email has been verified successfully. You can now sign in to your account.');
           
-          // Redirect to sign-in page after 3 seconds
+          // Redirect to sign-in page after 4 seconds (give users time to read)
           setTimeout(() => {
             router.push('/auth/signin?verified=true');
-          }, 3000);
+          }, 4000);
         } else {
           setStatus('error');
-          setMessage(data.message || 'Invalid or expired verification token. Please request a new verification email.');
           
-          // If it's an expired token, provide more helpful guidance
+          // Handle different error scenarios with appropriate messaging
           if (data.message && data.message.includes('expired')) {
             setMessage('Your verification link has expired. Please request a new verification email from the sign-in page.');
+          } else if (data.message && data.message.includes('Invalid')) {
+            setMessage('This verification link is not valid. Please check your email for the correct link or request a new one.');
+          } else {
+            setMessage(data.message || 'Unable to verify your email. Please try again or request a new verification email.');
           }
         }
       } catch (error) {
@@ -56,7 +66,7 @@ export default function VerifyEmailPage() {
     };
 
     verifyEmail();
-  }, [searchParams, router]);
+  }, [searchParams, router, hasAttempted]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -94,12 +104,20 @@ export default function VerifyEmailPage() {
         <div className="mt-8 space-y-4">
           {status === 'success' && (
             <div className="text-center">
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                <p className="text-sm text-green-700 font-medium">
+                  🎉 Welcome to Caryo Marketplace!
+                </p>
+                <p className="text-xs text-green-600 mt-1">
+                  You can now create listings, save favorites, and contact sellers.
+                </p>
+              </div>
               <p className="text-sm text-gray-600 mb-4">
                 Redirecting to sign in page in a few seconds...
               </p>
               <Link
-                href="/auth/signin"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                href="/auth/signin?verified=true"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
               >
                 Sign In Now
               </Link>

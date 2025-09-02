@@ -40,13 +40,13 @@ public class EmailVerificationController {
                     .body(new MessageResponse("Verification token is required"));
         }
         
-        boolean verified = emailVerificationService.verifyEmail(token);
+        var result = emailVerificationService.verifyEmail(token);
         
-        if (verified) {
-            return ResponseEntity.ok(new MessageResponse("Email verified successfully! You can now sign in and create listings."));
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(new MessageResponse(result.getMessage()));
         } else {
             return ResponseEntity.badRequest()
-                    .body(new MessageResponse("Invalid or expired verification token. Please request a new verification email."));
+                    .body(new MessageResponse(result.getMessage()));
         }
     }
 
