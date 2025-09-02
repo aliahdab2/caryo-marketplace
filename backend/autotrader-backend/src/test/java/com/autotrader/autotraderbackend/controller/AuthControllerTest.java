@@ -9,6 +9,7 @@ import com.autotrader.autotraderbackend.payload.response.MessageResponse;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
+import com.autotrader.autotraderbackend.service.EmailVerificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,6 +56,9 @@ public class AuthControllerTest {
 
     @Mock
     private JwtUtils jwtUtils;
+
+    @Mock
+    private EmailVerificationService emailVerificationService;
 
     @InjectMocks
     private AuthController authController;
@@ -140,6 +144,7 @@ public class AuthControllerTest {
         savedUser.setPassword("encoded-password");
         
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(emailVerificationService.sendVerificationEmail(any(User.class))).thenReturn(true);
 
         // Act
         ResponseEntity<?> response = authController.registerUser(signupRequest);
@@ -160,7 +165,7 @@ public class AuthControllerTest {
         } else if (responseBody instanceof MessageResponse) {
             // Auto-login failed, fallback message
             MessageResponse messageResponse = (MessageResponse) responseBody;
-            assertTrue(messageResponse.getMessage().contains("User registered successfully"));
+            assertTrue(messageResponse.getMessage().contains("Registration successful"));
         } else {
             fail("Response body should be either JwtResponse or MessageResponse");
         }
@@ -234,6 +239,7 @@ public class AuthControllerTest {
         savedUser.setPassword("encoded-password");
         
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(emailVerificationService.sendVerificationEmail(any(User.class))).thenReturn(true);
         
         // Create signup request with admin role
         SignupRequest adminSignupRequest = new SignupRequest();
@@ -263,7 +269,7 @@ public class AuthControllerTest {
         } else if (responseBody instanceof MessageResponse) {
             // Auto-login failed, fallback message
             MessageResponse messageResponse = (MessageResponse) responseBody;
-            assertTrue(messageResponse.getMessage().contains("User registered successfully"));
+            assertTrue(messageResponse.getMessage().contains("Registration successful"));
         } else {
             fail("Response body should be either JwtResponse or MessageResponse");
         }

@@ -113,11 +113,12 @@ public class CarListingControllerTest {
     @Test
     void createListing_ShouldReturnCreatedResponse() {
         // Arrange
+        when(carListingService.canUserCreateListings(anyString())).thenReturn(true);
         when(carListingService.createListing(any(CreateListingRequest.class), isNull(), anyString()))
                 .thenReturn(carListingResponse);
 
         // Act
-        ResponseEntity<CarListingResponse> response = carListingController.createListing(createRequest, userDetails);
+        ResponseEntity<?> response = carListingController.createListing(createRequest, userDetails);
 
         // Assert
         assertNotNull(response);
@@ -128,6 +129,7 @@ public class CarListingControllerTest {
     @Test
     void createListingWithImage_ShouldReturnCreatedResponse() {
         // Arrange
+        when(carListingService.canUserCreateListings(anyString())).thenReturn(true);
         when(carListingService.createListing(any(CreateListingRequest.class), any(MultipartFile.class), anyString()))
                 .thenReturn(carListingResponse);
 

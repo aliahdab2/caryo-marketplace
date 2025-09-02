@@ -122,6 +122,16 @@ public interface EmailService {
     void sendWelcomeEmail(User user, String language);
     
     /**
+     * Send email verification email to user.
+     */
+    void sendEmailVerificationEmail(User user, String verificationToken);
+    
+    /**
+     * Send email verification email with specified language.
+     */
+    void sendEmailVerificationEmail(User user, String verificationToken, String language);
+    
+    /**
      * Send contact form email with default language.
      */
     void sendContactFormEmail(String name, String email, String message);

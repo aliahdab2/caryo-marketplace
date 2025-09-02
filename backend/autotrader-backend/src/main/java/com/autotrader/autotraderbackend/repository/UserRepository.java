@@ -21,4 +21,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     void deleteByUsername(String username);
     
     List<User> findBySellerTypeIsNull();
+    
+    Optional<User> findByEmailVerificationToken(String token);
+    
+    List<User> findByEmailVerifiedFalse();
 }

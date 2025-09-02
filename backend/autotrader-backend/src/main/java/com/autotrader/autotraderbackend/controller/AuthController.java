@@ -14,7 +14,8 @@ import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
 import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 import com.autotrader.autotraderbackend.service.PasswordResetService;
-import com.autotrader.autotraderbackend.service.EmailService;
+
+import com.autotrader.autotraderbackend.service.EmailVerificationService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,7 +59,7 @@ public class AuthController {
     private PasswordResetService passwordResetService;
 
     @Autowired
-    private EmailService emailService;
+    private EmailVerificationService emailVerificationService;
 
     @Operation(
         summary = "Login",
@@ -169,41 +170,16 @@ public class AuthController {
         user.setRoles(roles);
         userRepository.save(user);
 
-        // Send welcome email to the new user
+        // Send email verification instead of welcome email
         try {
-            emailService.sendWelcomeEmail(user);
+            emailVerificationService.sendVerificationEmail(user);
         } catch (Exception e) {
             // Log the error but don't fail the registration
-            // Welcome email is important but not critical for registration
-            System.err.println("Failed to send welcome email to " + user.getEmail() + ": " + e.getMessage());
+            System.err.println("Failed to send verification email to " + user.getEmail() + ": " + e.getMessage());
         }
 
-        // Auto-login the user after successful registration
-        // This is a best practice to improve user experience
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(signUpRequest.getUsername(), signUpRequest.getPassword())
-            );
-            
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = jwtUtils.generateJwtToken(authentication);
-            
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            List<String> rolesList = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
-                .collect(Collectors.toList());
-            
-            // Return JWT response for immediate login
-            return ResponseEntity.ok(new JwtResponse(jwt,
-                                                   userDetails.getId(),
-                                                   userDetails.getUsername(),
-                                                   userDetails.getEmail(),
-                                                   rolesList));
-        } catch (Exception e) {
-            // If auto-login fails, still return success message
-            // This ensures registration doesn't fail if there's an authentication issue
-            return ResponseEntity.ok(new MessageResponse("User registered successfully! Please sign in."));
-        }
+        // Return success message with instruction to verify email
+        return ResponseEntity.ok(new MessageResponse("Registration successful! Please check your email to verify your account before signing in."));
     }
 
     @Operation(

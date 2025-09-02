@@ -66,6 +66,19 @@ public class CarListingService {
     private final SavedSearchService savedSearchService;
 
     /**
+     * Check if user can create listings (email verified and account active).
+     */
+    public boolean canUserCreateListings(String username) {
+        try {
+            User user = findUserByUsername(username);
+            return user.canCreateListings();
+        } catch (Exception e) {
+            log.warn("Error checking listing permissions for user {}: {}", username, e.getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Create a new car listing.
      */
     @Transactional

@@ -55,6 +55,24 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    // Email verification fields
+    @Column(name = "email_verified", nullable = false)
+    private Boolean emailVerified = false;
+
+    @Column(name = "email_verification_token")
+    private String emailVerificationToken;
+
+    @Column(name = "email_verification_sent_at")
+    private LocalDateTime emailVerificationSentAt;
+
+    @Column(name = "email_verified_at")
+    private LocalDateTime emailVerifiedAt;
+
+    // Account status
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_status", nullable = false)
+    private AccountStatus accountStatus = AccountStatus.PENDING_VERIFICATION;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -70,5 +88,31 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
+    }
+
+    // Helper methods for account status and verification
+    public boolean isEmailVerified() {
+        return Boolean.TRUE.equals(emailVerified);
+    }
+
+    public boolean canCreateListings() {
+        return isEmailVerified() && (accountStatus == AccountStatus.VERIFIED);
+    }
+
+    public boolean canLogin() {
+        return accountStatus != AccountStatus.SUSPENDED && accountStatus != AccountStatus.BANNED;
+    }
+
+    public boolean isActive() {
+        return accountStatus == AccountStatus.VERIFIED;
+    }
+
+    public void markEmailAsVerified() {
+        this.emailVerified = true;
+        this.emailVerifiedAt = LocalDateTime.now();
+        this.emailVerificationToken = null; // Clear the token
+        if (this.accountStatus == AccountStatus.PENDING_VERIFICATION) {
+            this.accountStatus = AccountStatus.VERIFIED;
+        }
     }
 }

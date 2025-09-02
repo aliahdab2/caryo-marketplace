@@ -129,20 +129,28 @@ public class CarListingController {
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Create a new car listing (no image)",
-        description = "Creates a new car listing with the provided details. Authentication required. The response will include an empty 'media' array initially.",
+        description = "Creates a new car listing with the provided details. Authentication and email verification required. The response will include an empty 'media' array initially.",
         security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
         responses = {
             @ApiResponse(responseCode = "201", description = "Listing created successfully, includes empty media array", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
+            @ApiResponse(responseCode = "403", description = "Forbidden - Email verification required")
         }
     )
-    public ResponseEntity<CarListingResponse> createListing(
+    public ResponseEntity<?> createListing(
             @Valid @RequestBody CreateListingRequest createRequest,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         log.info("Received request to create listing from user: {}", userDetails.getUsername());
+        
+        // Check if user can create listings (email verified)
+        if (!carListingService.canUserCreateListings(userDetails.getUsername())) {
+            log.warn("User {} attempted to create listing without email verification", userDetails.getUsername());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("message", "Email verification required to create listings. Please check your email and verify your account."));
+        }
+        
         CarListingResponse response = carListingService.createListing(createRequest, null, userDetails.getUsername());
         log.info("Successfully created listing with ID: {}", response.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -172,7 +180,16 @@ public class CarListingController {
             log.warn("Unauthorized attempt to create listing with image (UserDetails is null)");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "User must be logged in to create listings."));
         }
+        
         log.debug("Received request to create listing with image from user: {}", userDetails.getUsername());
+        
+        // Check if user can create listings (email verified)
+        if (!carListingService.canUserCreateListings(userDetails.getUsername())) {
+            log.warn("User {} attempted to create listing with image without email verification", userDetails.getUsername());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("message", "Email verification required to create listings. Please check your email and verify your account."));
+        }
+        
         if (image == null || image.isEmpty()) {
             log.warn("Create listing with image request received empty file.");
             return ResponseEntity.badRequest().body(Map.of("message", "Image file is required and cannot be empty."));

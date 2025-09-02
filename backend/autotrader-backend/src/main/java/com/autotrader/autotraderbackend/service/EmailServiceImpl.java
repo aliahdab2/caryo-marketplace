@@ -377,6 +377,67 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
+    public void sendEmailVerificationEmail(User user, String verificationToken) {
+        sendEmailVerificationEmail(user, verificationToken, defaultLanguage);
+    }
+
+    @Override
+    public void sendEmailVerificationEmail(User user, String verificationToken, String language) {
+        if (!validateUserEmailInputs(user, language)) {
+            return;
+        }
+        
+        if (verificationToken == null || verificationToken.trim().isEmpty()) {
+            log.error("Cannot send email verification: verification token is null or empty for user: {}", user.getEmail());
+            return;
+        }
+        
+        // Check rate limiting
+        if (isGlobalRateLimited()) {
+            log.warn("Global rate limit exceeded, skipping email verification for user: {}", user.getEmail());
+            return;
+        }
+
+        try {
+            // Build verification URL
+            String verificationUrl = websiteUrl + "/auth/verify-email?token=" + verificationToken;
+            
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("userName", user.getUsername());
+            variables.put("userEmail", user.getEmail());
+            variables.put("verificationUrl", verificationUrl);
+            variables.put("verificationToken", verificationToken);
+            variables.put("websiteName", getWebsiteName(language));
+            variables.put("websiteUrl", websiteUrl);
+            variables.put("supportEmail", websiteSupportEmail);
+            variables.put("language", language);
+            
+            // Add translation helper
+            variables.put("t", new TranslationHelper(messageService, language));
+            variables.put("currentYear", java.time.Year.now().getValue());
+            
+            Map<String, Object> subjectParams = new HashMap<>();
+            subjectParams.put("websiteName", getWebsiteName(language));
+            String subject = messageService.getLocalizedMessage("email.account_verification.subject", language, subjectParams);
+            
+            sendTemplatedEmail(
+                user.getEmail(),
+                subject,
+                "user-management/email-verification",
+                variables,
+                language
+            );
+            
+            log.info("Email verification sent successfully to user: {} ({})", user.getUsername(), user.getEmail());
+            
+        } catch (Exception e) {
+            log.error("Failed to send email verification to user: {} ({}). Error: {}", 
+                     user.getUsername(), user.getEmail(), e.getMessage());
+            throw new EmailSendException("Failed to send email verification email", e);
+        }
+    }
+
+    @Override
     public void sendContactFormEmail(String name, String email, String message) {
         sendContactFormEmail(name, email, message, defaultLanguage);
     }
