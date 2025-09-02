@@ -96,6 +96,22 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handle storage exceptions (file upload/validation errors)
+     */
+    @ExceptionHandler(StorageException.class)
+    public ResponseEntity<ApiResponse<Void>> handleStorageException(
+            StorageException ex, WebRequest request) {
+        
+        Locale locale = getUserLocale(request);
+        String message = getMessage("error.file.validation", locale, ex.getMessage());
+        
+        log.warn("Storage error: {}", ex.getMessage());
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(message));
+    }
+
+    /**
      * Handle validation errors from @Valid annotations
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)

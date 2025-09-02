@@ -10,16 +10,23 @@ import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.ConversationRepository;
 import com.autotrader.autotraderbackend.repository.MessageRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.repository.GovernorateRepository;
+import com.autotrader.autotraderbackend.repository.CarModelRepository;
+import com.autotrader.autotraderbackend.repository.CarBrandRepository;
+import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -30,7 +37,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -39,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests the complete flow from API endpoints to database persistence.
  */
 @SpringBootTest
-@AutoConfigureWebMvc
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 public class MessagingSystemIntegrationTest {
@@ -62,6 +69,18 @@ public class MessagingSystemIntegrationTest {
     @Autowired
     private MessageRepository messageRepository;
 
+    @Autowired
+    private GovernorateRepository governorateRepository;
+
+    @Autowired
+    private CarModelRepository carModelRepository;
+
+    @Autowired
+    private CarBrandRepository carBrandRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
     private User buyer;
     private User seller;
     private CarListing listing;
@@ -83,8 +102,9 @@ public class MessagingSystemIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "buyer@test.com")
     void testCompleteMessagingFlow() throws Exception {
+        // Authenticate as buyer
+        authenticateUser(buyer);
         // 1. Create conversation
         CreateConversationRequest createRequest = new CreateConversationRequest();
         createRequest.setListingId(listing.getId());
@@ -94,7 +114,6 @@ public class MessagingSystemIntegrationTest {
         MvcResult createResult = mockMvc.perform(post("/api/conversations")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
-                .with(user(buyer.getEmail()).authorities(() -> "ROLE_USER"))
                 .header("Accept-Language", "en"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("success"))
@@ -120,7 +139,6 @@ public class MessagingSystemIntegrationTest {
         mockMvc.perform(post("/api/conversations/{id}/messages", conversationId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(sendRequest))
-                .with(user(buyer.getEmail()).authorities(() -> "ROLE_USER"))
                 .header("Accept-Language", "en"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("success"))
@@ -131,22 +149,19 @@ public class MessagingSystemIntegrationTest {
         assertThat(messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId, Pageable.unpaged()).getContent()).hasSize(2);
 
         // 3. Get user's conversations
-        mockMvc.perform(get("/api/conversations/my-conversations")
-                .with(user(buyer.getEmail()).authorities(() -> "ROLE_USER")))
+        mockMvc.perform(get("/api/conversations/my-conversations"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content[0].id").value(conversationId));
 
         // 4. Get conversation messages
-        mockMvc.perform(get("/api/conversations/{id}/messages", conversationId)
-                .with(user(buyer.getEmail()).authorities(() -> "ROLE_USER")))
+        mockMvc.perform(get("/api/conversations/{id}/messages", conversationId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content").isNotEmpty());
 
         // 5. Archive conversation
         mockMvc.perform(patch("/api/conversations/{id}/archive", conversationId)
-                .with(user(buyer.getEmail()).authorities(() -> "ROLE_USER"))
                 .header("Accept-Language", "en"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
@@ -157,16 +172,16 @@ public class MessagingSystemIntegrationTest {
         assertThat(archivedConversation.getStatus()).isEqualTo(ConversationStatus.ARCHIVED);
 
         // 6. Verify archived conversation doesn't appear in active conversations
-        mockMvc.perform(get("/api/conversations/my-conversations")
-                .with(user(buyer.getEmail()).authorities(() -> "ROLE_USER")))
+        mockMvc.perform(get("/api/conversations/my-conversations"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content").isEmpty()); // Should be empty since conversation is archived
     }
 
     @Test
-    @WithMockUser(username = "buyer@test.com")
     void testInternationalizationSupport() throws Exception {
+        // Authenticate as buyer
+        authenticateUser(buyer);
         // Test Arabic language support
         CreateConversationRequest createRequest = new CreateConversationRequest();
         createRequest.setListingId(listing.getId());
@@ -176,7 +191,6 @@ public class MessagingSystemIntegrationTest {
         mockMvc.perform(post("/api/conversations")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
-                .with(user(buyer.getEmail()).authorities(() -> "ROLE_USER"))
                 .header("Accept-Language", "ar"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("success"))
@@ -185,32 +199,46 @@ public class MessagingSystemIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "unauthorized@test.com")
     void testUnauthorizedAccess() throws Exception {
-        // Create a conversation first
+        // Create a conversation first (as buyer)
+        authenticateUser(buyer);
         Conversation conversation = createTestConversation();
+        
+        // Verify the conversation was created and has a valid ID
+        assertThat(conversation.getId()).isNotNull();
+        assertThat(conversationRepository.findById(conversation.getId())).isPresent();
+
+        // Create an unauthorized user and authenticate as them
+        User unauthorizedUser = createTestUser("unauthorized@test.com", "Unauthorized User");
+        authenticateUser(unauthorizedUser);
 
         // Try to access conversation as unauthorized user
-        mockMvc.perform(get("/api/conversations/{id}/messages", conversation.getId())
-                .with(user("unauthorized@test.com").authorities(() -> "ROLE_USER")))
+        mockMvc.perform(get("/api/conversations/{id}/messages", conversation.getId()))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @WithMockUser(username = "buyer@test.com")
     void testValidationErrors() throws Exception {
+        // Authenticate as buyer
+        authenticateUser(buyer);
         // Test missing required fields
         CreateConversationRequest invalidRequest = new CreateConversationRequest();
         // Missing listingId and message
 
         mockMvc.perform(post("/api/conversations")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest))
-                .with(user(buyer.getEmail()).authorities(() -> "ROLE_USER")))
+                .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
     }
 
     // Helper methods
+
+    private void authenticateUser(User user) {
+        UserDetailsImpl userDetails = UserDetailsImpl.build(user);
+        UsernamePasswordAuthenticationToken authentication = 
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
 
     private User createTestUser(String email, String name) {
         User user = new User();
@@ -218,8 +246,12 @@ public class MessagingSystemIntegrationTest {
         user.setUsername(email);
         user.setPassword("hashedPassword");
         
-        // Create and save a basic role
-        Role userRole = new Role("ROLE_USER");
+        // Create and save a basic role if it doesn't exist
+        Role userRole = roleRepository.findByName("ROLE_USER")
+                .orElseGet(() -> {
+                    Role role = new Role("ROLE_USER");
+                    return roleRepository.save(role);
+                });
         user.setRoles(Set.of(userRole));
         
         user.setCreatedAt(LocalDateTime.now());
@@ -228,6 +260,30 @@ public class MessagingSystemIntegrationTest {
     }
 
     private CarListing createTestListing(User owner) {
+        // Create a test car brand and model if they don't exist
+        CarBrand testBrand = carBrandRepository.findAll().stream()
+                .findFirst()
+                .orElseGet(() -> {
+                    CarBrand brand = new CarBrand();
+                    brand.setName("Test Brand");
+                    brand.setSlug("test-brand");
+                    brand.setDisplayNameEn("Test Brand");
+                    brand.setDisplayNameAr("ماركة اختبار");
+                    return carBrandRepository.save(brand);
+                });
+        
+        CarModel testModel = carModelRepository.findAll().stream()
+                .findFirst()
+                .orElseGet(() -> {
+                    CarModel model = new CarModel();
+                    model.setName("Test Model");
+                    model.setSlug("test-model");
+                    model.setDisplayNameEn("Test Model");
+                    model.setDisplayNameAr("موديل اختبار");
+                    model.setBrand(testBrand);
+                    return carModelRepository.save(model);
+                });
+        
         CarListing listing = new CarListing();
         listing.setTitle("Test Car 2020");
         listing.setDescription("A great test car");
@@ -241,6 +297,13 @@ public class MessagingSystemIntegrationTest {
         listing.setSold(false);
         listing.setCreatedAt(LocalDateTime.now());
         listing.setUpdatedAt(LocalDateTime.now());
+        
+        // Set required relationships
+        listing.setModel(testModel);
+        listing.setGovernorate(governorateRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No governorates found in test database")));
+        
         return carListingRepository.save(listing);
     }
 
