@@ -44,7 +44,7 @@ class EmailTemplateBuilderTest {
         Map<String, Object> expectedVariables = Map.of(
             EmailTemplateConstants.VAR_USER_NAME, "testuser",
             EmailTemplateConstants.VAR_USER_EMAIL, "test@example.com",
-            EmailTemplateConstants.VAR_WEBSITE_NAME, "AutoTrader",
+            EmailTemplateConstants.VAR_WEBSITE_NAME, "Caryo Marketplace",
             EmailTemplateConstants.VAR_WEBSITE_URL, "http://localhost:3000",
             EmailTemplateConstants.VAR_LANGUAGE, "en"
         );
@@ -54,7 +54,7 @@ class EmailTemplateBuilderTest {
             .template(EmailTemplateConstants.TEMPLATE_WELCOME)
             .language(EmailTemplateConstants.LANGUAGE_ENGLISH)
             .user("testuser", "test@example.com")
-            .website("AutoTrader", "http://localhost:3000")
+            .website("Caryo Marketplace", "http://localhost:3000")
             .withLanguage()
             .build();
 
@@ -99,7 +99,7 @@ class EmailTemplateBuilderTest {
                 .template(EmailTemplateConstants.TEMPLATE_WELCOME)
                 .language("fr")
                 .user("testuser", "test@example.com")
-                .website("AutoTrader", "http://localhost:3000")
+                .website("Caryo Marketplace", "http://localhost:3000")
                 .withLanguage()
                 .build();
         });
@@ -128,7 +128,7 @@ class EmailTemplateBuilderTest {
             .template(EmailTemplateConstants.TEMPLATE_PASSWORD_RESET)
             .language(EmailTemplateConstants.LANGUAGE_ENGLISH)
             .user("testuser", "test@example.com")
-            .website("AutoTrader", "http://localhost:3000")
+            .website("Caryo Marketplace", "http://localhost:3000")
             .passwordReset("http://localhost:3000/reset?token=abc123", 24)
             .withLanguage()
             .build();
@@ -141,7 +141,7 @@ class EmailTemplateBuilderTest {
         Map<String, Object> variables = result.getVariables();
         assertEquals("testuser", variables.get(EmailTemplateConstants.VAR_USER_NAME));
         assertEquals("test@example.com", variables.get(EmailTemplateConstants.VAR_USER_EMAIL));
-        assertEquals("AutoTrader", variables.get(EmailTemplateConstants.VAR_WEBSITE_NAME));
+        assertEquals("Caryo Marketplace", variables.get(EmailTemplateConstants.VAR_WEBSITE_NAME));
         assertEquals("http://localhost:3000", variables.get(EmailTemplateConstants.VAR_WEBSITE_URL));
         assertEquals("http://localhost:3000/reset?token=abc123", variables.get(EmailTemplateConstants.VAR_RESET_URL));
         assertEquals(24, variables.get(EmailTemplateConstants.VAR_EXPIRY_HOURS));
@@ -159,7 +159,7 @@ class EmailTemplateBuilderTest {
             .template(EmailTemplateConstants.TEMPLATE_LISTING_APPROVED)
             .language(EmailTemplateConstants.LANGUAGE_ENGLISH)
             .user("testuser", "test@example.com")
-            .website("AutoTrader", "http://localhost:3000")
+            .website("Caryo Marketplace", "http://localhost:3000")
             .listing("2020 Toyota Camry", "http://localhost:3000/listings/123")
             .withLanguage()
             .build();
@@ -208,7 +208,7 @@ class EmailTemplateBuilderTest {
             .template(EmailTemplateConstants.TEMPLATE_WELCOME)
             .language(EmailTemplateConstants.LANGUAGE_ARABIC)
             .user("testuser", "test@example.com")
-            .website("AutoTrader", "http://localhost:3000")
+            .website("Caryo Marketplace", "http://localhost:3000")
             .withLanguage()
             .build();
 
@@ -229,7 +229,7 @@ class EmailTemplateBuilderTest {
             .template(EmailTemplateConstants.TEMPLATE_WELCOME)
             .language(EmailTemplateConstants.LANGUAGE_ENGLISH)
             .user("testuser", "test@example.com")
-            .website("AutoTrader", "http://localhost:3000")
+            .website("Caryo Marketplace", "http://localhost:3000")
             .variable("customVar", "customValue")
             .withLanguage()
             .build();
@@ -249,7 +249,7 @@ class EmailTemplateBuilderTest {
         EmailTemplateBuilder.EmailTemplateData result = templateBuilder
             .template(EmailTemplateConstants.TEMPLATE_WELCOME)
             .user("testuser", "test@example.com")
-            .website("AutoTrader", "http://localhost:3000")
+            .website("Caryo Marketplace", "http://localhost:3000")
             .withLanguage()
             .build();
 
@@ -265,7 +265,7 @@ class EmailTemplateBuilderTest {
             .template(EmailTemplateConstants.TEMPLATE_WELCOME)
             .language(EmailTemplateConstants.LANGUAGE_ENGLISH)
             .user("testuser", "test@example.com")
-            .website("AutoTrader", "http://localhost:3000")
+            .website("Caryo Marketplace", "http://localhost:3000")
             .withLanguage()
             .build();
 

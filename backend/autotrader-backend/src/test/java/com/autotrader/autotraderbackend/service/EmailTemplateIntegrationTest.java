@@ -26,8 +26,8 @@ import static org.junit.jupiter.api.Assertions.*;
     "spring.mail.password=test",
     "app.email.from=test@example.com",
     "app.email.support=support@example.com",
-    "app.website.name=AutoTrader",
-    "app.website.name.ar=أوتو تريدر",
+    "app.website.name=Caryo Marketplace",
+    "app.website.name.ar=كاريو",
     "app.website.url=http://localhost:3000"
 })
 class EmailTemplateIntegrationTest {
@@ -38,8 +38,7 @@ class EmailTemplateIntegrationTest {
     @Autowired
     private EmailTemplateBuilder emailTemplateBuilder;
 
-    @Autowired
-    private EmailService emailService;
+
 
     @Test
     void testTemplateRegistryLoading() {
@@ -100,7 +99,7 @@ class EmailTemplateIntegrationTest {
         Map<String, Object> validVariables = Map.of(
             "userName", "testuser",
             "userEmail", "test@example.com",
-            "websiteName", "AutoTrader",
+            "websiteName", "Caryo Marketplace",
             "websiteUrl", "http://localhost:3000",
             "language", "en"
         );
@@ -130,7 +129,7 @@ class EmailTemplateIntegrationTest {
             .template(EmailTemplateConstants.TEMPLATE_WELCOME)
             .language(EmailTemplateConstants.LANGUAGE_ENGLISH)
             .user("testuser", "test@example.com")
-            .website("AutoTrader", "http://localhost:3000")
+            .website("Caryo Marketplace", "http://localhost:3000")
             .withLanguage()
             .build();
 
@@ -142,7 +141,7 @@ class EmailTemplateIntegrationTest {
         Map<String, Object> variables = templateData.getVariables();
         assertEquals("testuser", variables.get("userName"));
         assertEquals("test@example.com", variables.get("userEmail"));
-        assertEquals("AutoTrader", variables.get("websiteName"));
+        assertEquals("Caryo Marketplace", variables.get("websiteName"));
         assertEquals("http://localhost:3000", variables.get("websiteUrl"));
         assertEquals("en", variables.get("language"));
     }
@@ -154,7 +153,7 @@ class EmailTemplateIntegrationTest {
             .template(EmailTemplateConstants.TEMPLATE_PASSWORD_RESET)
             .language(EmailTemplateConstants.LANGUAGE_ENGLISH)
             .user("testuser", "test@example.com")
-            .website("AutoTrader", "http://localhost:3000")
+            .website("Caryo Marketplace", "http://localhost:3000")
             .passwordReset("http://localhost:3000/reset?token=abc123", 24)
             .withLanguage()
             .build();
@@ -175,7 +174,7 @@ class EmailTemplateIntegrationTest {
             .template(EmailTemplateConstants.TEMPLATE_WELCOME)
             .language(EmailTemplateConstants.LANGUAGE_ARABIC)
             .user("testuser", "test@example.com")
-            .website("AutoTrader", "http://localhost:3000")
+            .website("Caryo Marketplace", "http://localhost:3000")
             .withLanguage()
             .build();
 
@@ -269,7 +268,7 @@ class EmailTemplateIntegrationTest {
             .template(EmailTemplateConstants.TEMPLATE_LISTING_APPROVED)
             .language(EmailTemplateConstants.LANGUAGE_ENGLISH)
             .user("testuser", "test@example.com")
-            .website("AutoTrader", "http://localhost:3000")
+            .website("Caryo Marketplace", "http://localhost:3000")
             .listing("2020 Toyota Camry", "http://localhost:3000/listings/123")
             .withLanguage()
             .build();

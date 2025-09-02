@@ -595,7 +595,7 @@ public class EmailServiceImpl implements EmailService {
         String name = language.equals("ar") ? websiteNameAr : websiteName;
         
         if (name == null) {
-            return language.equals("ar") ? "أوتو تريدر" : "AutoTrader";
+            return language.equals("ar") ? "كاريو" : "Caryo Marketplace";
         }
         
         // Use centralized Arabic text normalization
