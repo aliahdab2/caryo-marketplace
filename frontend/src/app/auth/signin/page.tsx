@@ -32,6 +32,11 @@ const SignInPage: React.FC = () => {
   const [isVerified, setIsVerified] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [credentialsCorrect, setCredentialsCorrect] = useState(false);
+  const [showResendForm, setShowResendForm] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
 
   const { user } = useOptimizedSession();
 
@@ -152,6 +157,44 @@ const SignInPage: React.FC = () => {
       setLoading(false);
     } 
     // No finally block needed for setLoading if all paths handle it.
+  };
+
+  const handleResendVerification = async (event: FormEvent) => {
+    event.preventDefault();
+    setResendLoading(true);
+    setResendError(null);
+    setResendSuccess(false);
+
+    if (!resendEmail) {
+      setResendError(t('fieldRequired'));
+      setResendLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: resendEmail }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setResendSuccess(true);
+        setResendEmail("");
+        setShowResendForm(false);
+      } else {
+        setResendError(data.error || t('error.resendFailed'));
+      }
+    } catch (error) {
+      console.error('Error resending verification email:', error);
+      setResendError(t('error.resendFailed'));
+    } finally {
+      setResendLoading(false);
+    }
   };
 
   // Safe redirect when user already has an active session
@@ -361,6 +404,70 @@ const SignInPage: React.FC = () => {
                 </button>
               </div>
             </form>
+
+            {/* Resend Verification Email Section */}
+            <div className="mt-4 mb-6">
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowResendForm(!showResendForm)}
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+                >
+                  {showResendForm ? t('cancel') : t('resendVerificationEmail')}
+                </button>
+              </div>
+
+              {showResendForm && (
+                <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <form onSubmit={handleResendVerification}>
+                    <div className="mb-3">
+                      <label htmlFor="resendEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        {t('email')}
+                      </label>
+                      <input
+                        id="resendEmail"
+                        type="email"
+                        value={resendEmail}
+                        onChange={(e) => setResendEmail(e.target.value)}
+                        required
+                        className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder={t('emailPlaceholder')}
+                      />
+                    </div>
+
+                    {resendError && (
+                      <div className="mb-3 p-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded text-red-700 dark:text-red-200 text-xs">
+                        {resendError}
+                      </div>
+                    )}
+
+                    {resendSuccess && (
+                      <div className="mb-3 p-2 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded text-green-700 dark:text-green-200 text-xs">
+                        {t('verificationEmailSent')}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={resendLoading}
+                      className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {resendLoading ? (
+                        <div className="flex items-center">
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          {t('sending')}
+                        </div>
+                      ) : (
+                        t('resendEmail')
+                      )}
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
           
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
