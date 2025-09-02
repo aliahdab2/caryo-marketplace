@@ -13,7 +13,7 @@ fi
 # Check if our uploaded images exist
 echo "Checking uploaded sample images..."
 for i in {1..3}; do
-    status=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:9000/autotrader-assets/listings/$i/main.jpg")
+    status=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:9000/caryo-assets/listings/$i/main.jpg")
     if [ "$status" != "200" ]; then
         echo "Error: Sample image listings/$i/main.jpg not found (HTTP $status)"
         exit 1

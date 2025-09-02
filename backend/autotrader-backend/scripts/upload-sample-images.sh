@@ -8,7 +8,7 @@ MINIO_ALIAS="devminio"
 MINIO_ENDPOINT="http://localhost:9000"
 MINIO_ACCESS_KEY="minioadmin"
 MINIO_SECRET_KEY="minioadmin"
-MINIO_BUCKET="autotrader-assets"
+MINIO_BUCKET="caryo-assets"
 TEMP_DIR="/tmp/sample_car_images"
 
 # Create temp directory for sample images
