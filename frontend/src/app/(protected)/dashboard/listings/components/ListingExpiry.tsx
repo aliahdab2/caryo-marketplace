@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { formatDate } from "../../../../utils/localization";
+import { formatDate } from "@/utils/localization";
 
 type ListingStatus = 'active' | 'expired' | 'pending';
 
