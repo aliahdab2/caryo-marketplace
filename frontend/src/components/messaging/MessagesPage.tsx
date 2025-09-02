@@ -32,7 +32,6 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [showSidebar, setShowSidebar] = useState(true);
   
   // File attachment states
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -487,9 +486,6 @@ export default function MessagesPage() {
             conversations={filteredConversations}
             selectedConversation={selectedConversation}
             onConversationSelect={setSelectedConversation}
-            onToggleSidebar={() => setShowSidebar(!showSidebar)}
-            onShowDropdown={() => setShowDropdown(!showDropdown)}
-            showSidebar={showSidebar}
             loading={loading}
           />
         </div>

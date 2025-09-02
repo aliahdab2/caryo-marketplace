@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, MoreHorizontal, Check, CheckCheck } from 'lucide-react';
+import { Check, CheckCheck } from 'lucide-react';
 import { ConversationResponse } from '@/services/messaging';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
 import Image from 'next/image';
@@ -11,9 +11,6 @@ interface ConversationListProps {
   conversations: ConversationResponse[];
   selectedConversation: ConversationResponse | null;
   onConversationSelect: (conversation: ConversationResponse) => void;
-  onToggleSidebar: () => void;
-  onShowDropdown: () => void;
-  showSidebar: boolean;
   loading: boolean;
 }
 
@@ -21,9 +18,6 @@ export default function ConversationList({
   conversations,
   selectedConversation,
   onConversationSelect,
-  onToggleSidebar,
-  onShowDropdown,
-  showSidebar,
   loading
 }: ConversationListProps) {
   const { t, i18n } = useTranslation('messages');
