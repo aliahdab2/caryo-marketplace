@@ -30,7 +30,6 @@ class EmailRateLimitingTest {
     @Mock
     private TemplateEngine templateEngine;
 
-    @Mock
     private MessageService messageService;
 
     @Mock
@@ -46,7 +45,8 @@ class EmailRateLimitingTest {
 
     @BeforeEach
     void setUp() {
-        emailService = new EmailServiceImpl(mailSender, templateEngine, messageService, emailTemplateService, emailTemplateBuilder, contentValidationService);
+        messageService = new MessageService(); // Use real MessageService instance
+        emailService = new EmailServiceImpl(mailSender, templateEngine, messageService);
         
         // Set configuration values
         ReflectionTestUtils.setField(emailService, "fromEmail", "noreply@caryo.sy");

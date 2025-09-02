@@ -38,19 +38,8 @@ public class Utf8Config {
     }
 
     /**
-     * Configure MessageSource for proper UTF-8 handling of translation files.
-     * This ensures Arabic translations are properly loaded and displayed.
+     * Note: MessageSource configuration is handled by Spring Boot's auto-configuration
+     * with proper UTF-8 encoding set in application.properties files.
+     * The CharacterEncodingFilter above ensures UTF-8 handling at the servlet level.
      */
-    @Bean
-    public ReloadableResourceBundleMessageSource messageSource() {
-        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-        messageSource.setBasename("classpath:messages");
-        messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
-        messageSource.setDefaultLocale(java.util.Locale.ENGLISH);
-        messageSource.setFallbackToSystemLocale(false);
-        messageSource.setUseCodeAsDefaultMessage(true);
-        messageSource.setCacheSeconds(3600); // Cache for 1 hour in production
-        
-        return messageSource;
-    }
 }

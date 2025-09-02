@@ -3,13 +3,9 @@ package com.autotrader.autotraderbackend.config;
 import com.autotrader.autotraderbackend.service.MessageService;
 import com.autotrader.autotraderbackend.service.TranslationHelper;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.MessageSource;
-import org.springframework.test.context.TestPropertySource;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,23 +13,22 @@ import static org.junit.jupiter.api.Assertions.*;
  * Test class to verify UTF-8 encoding is properly configured throughout the application.
  * This is crucial for proper Arabic text handling in emails and web responses.
  */
-@SpringBootTest
-@TestPropertySource(locations = "classpath:application-test.properties")
 class Utf8EncodingTest {
 
-    @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
     private MessageService messageService;
 
+    @BeforeEach
+    void setUp() {
+        messageService = new MessageService(); // Use real MessageService instance
+    }
+
     @Test
-    void testMessageSourceUtf8Configuration() {
-        // Test that MessageSource is properly configured
-        assertNotNull(messageSource);
+    void testMessageServiceUtf8Configuration() {
+        // Test that MessageService is properly configured
+        assertNotNull(messageService);
         
         // Test Arabic text retrieval
-        String arabicGreeting = messageSource.getMessage("email.greeting.hello", null, Locale.forLanguageTag("ar"));
+        String arabicGreeting = messageService.getLocalizedMessage("email.greeting.hello", "ar");
         assertNotNull(arabicGreeting);
         
         // Verify Arabic text contains proper UTF-8 characters

@@ -2,8 +2,6 @@ package com.autotrader.autotraderbackend.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,19 +13,16 @@ import static org.junit.jupiter.api.Assertions.*;
  * Verifies that the MessageService and TranslationHelper work correctly
  * for both English and Arabic languages.
  */
-@SpringBootTest
-@TestPropertySource(locations = "classpath:application-test.properties")
 class TranslationSystemTest {
 
     private MessageService messageService;
+    
     private TranslationHelper englishHelper;
     private TranslationHelper arabicHelper;
 
     @BeforeEach
     void setUp() {
-        messageService = new MessageService();
-        messageService.initializeMessageSource();
-        
+        messageService = new MessageService(); // Use real MessageService instance
         englishHelper = new TranslationHelper(messageService, "en");
         arabicHelper = new TranslationHelper(messageService, "ar");
     }
