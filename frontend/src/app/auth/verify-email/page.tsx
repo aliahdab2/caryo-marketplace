@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import Link from 'next/link';
@@ -29,7 +29,7 @@ const VerifyEmailPage: React.FC = () => {
   const [message, setMessage] = useState("");
   const [email, setEmail] = useState("");
 
-  const handleAutoLogin = async (jwtData: { token: string; id: number; username: string; email: string; roles: string[] }) => {
+  const handleAutoLogin = useCallback(async (jwtData: { token: string; id: number; username: string; email: string; roles: string[] }) => {
       // Validate JWT token format (should have 3 parts separated by dots)
       const jwtParts = jwtData.token.split('.');
       if (jwtParts.length !== 3) {
@@ -92,7 +92,7 @@ const VerifyEmailPage: React.FC = () => {
               router.push('/');
           }
       }, AUTO_LOGIN_CONFIG.REDIRECT_DELAY_MS);
-  };
+  }, [t, setVerificationStatus, setMessage, setEmail, router]);
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -229,7 +229,7 @@ const VerifyEmailPage: React.FC = () => {
     };
 
     verifyEmail();
-  }, [searchParams, t, router]);
+  }, [searchParams, t, router, handleAutoLogin]);
 
   const getStatusIcon = () => {
     switch (verificationStatus) {
