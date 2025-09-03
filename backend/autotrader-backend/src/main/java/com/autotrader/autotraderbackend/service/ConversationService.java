@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.tika.Tika;
 
-import java.time.LocalDateTime;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -305,8 +305,6 @@ public class ConversationService {
 
     // Helper methods for mapping entities to DTOs
     private ConversationResponse mapToConversationResponse(Conversation conversation, User currentUser) {
-        User otherUser = conversation.getOtherParticipant(currentUser);
-        Message lastMessage = conversation.getLastMessage();
 
         return ConversationResponse.builder()
                 .id(conversation.getId())
@@ -526,7 +524,7 @@ public class ConversationService {
         String fileKey = "messages/" + message.getConversation().getId() + "/" + UUID.randomUUID().toString() + fileExtension;
 
         // Store file
-        String fileUrl = storageService.store(file, fileKey);
+        storageService.store(file, fileKey);
 
         // Create and save attachment
         MessageAttachment attachment = MessageAttachment.builder()
@@ -674,39 +672,7 @@ public class ConversationService {
         }
     }
 
-    /**
-     * Check if the file type is allowed for message attachments (String version)
-     */
-    private boolean isAllowedFileType(String contentType) {
-        if (contentType == null) {
-            return false;
-        }
-        
-        String normalizedType = contentType.toLowerCase().trim();
-        
-        // Image types
-        if (normalizedType.startsWith("image/")) {
-            return normalizedType.equals("image/jpeg") ||
-                   normalizedType.equals("image/jpg") ||
-                   normalizedType.equals("image/png") ||
-                   normalizedType.equals("image/webp") ||
-                   normalizedType.equals("image/gif");
-        }
-        
-        // Document types
-        switch (normalizedType) {
-            case "application/pdf":
-            case "application/msword":
-            case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-            case "application/vnd.ms-excel":
-            case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-            case "text/plain":
-            case "application/rtf":
-                return true;
-            default:
-                return false;
-        }
-    }
+
 
     /**
      * Get maximum file size based on file type
