@@ -121,6 +121,8 @@ const VerifyEmailPage: React.FC = () => {
               try {
                 const token = searchParams.get('token');
                 if (token) {
+                  console.log('🔄 Making fresh JWT request for token:', token.substring(0, 20) + '...');
+                  
                   const freshResponse = await fetch(`${getAuthUrl('VERIFY_EMAIL')}?token=${encodeURIComponent(token)}`, {
                     method: 'GET',
                     headers: {
@@ -128,12 +130,15 @@ const VerifyEmailPage: React.FC = () => {
                     },
                   });
 
+                  console.log('🔄 Fresh JWT response status:', freshResponse.status, freshResponse.ok);
+
                   if (freshResponse.ok) {
                     const freshData = await freshResponse.json();
+                    console.log('🔄 Fresh JWT response data:', freshData);
                     
                     // Check if we now get a JWT response
                     if (isJwtResponse(freshData)) {
-                      console.log('Got fresh JWT for already verified user, proceeding with auto-login...');
+                      console.log('✅ Got fresh JWT for already verified user, proceeding with auto-login...');
                       
                       // Store the JWT token temporarily in sessionStorage
                       if (typeof window !== 'undefined') {
@@ -151,16 +156,26 @@ const VerifyEmailPage: React.FC = () => {
                       // Redirect to auto-login
                       router.push('/?auto-login=true');
                       return;
+                    } else {
+                      console.log('❌ Fresh response is not a JWT response:', {
+                        isJwtResponse: isJwtResponse(freshData),
+                        isMessageResponse: isMessageResponse(freshData),
+                        data: freshData
+                      });
                     }
+                  } else {
+                    console.log('❌ Fresh JWT request failed with status:', freshResponse.status);
                   }
+                } else {
+                  console.log('❌ No token found in URL parameters');
                 }
                 
                 // If we can't get a fresh JWT, just redirect to home page
-                console.log('Could not get fresh JWT, redirecting to home page...');
+                console.log('❌ Could not get fresh JWT, redirecting to home page...');
                 router.push('/');
                 
               } catch (error) {
-                console.error('Error getting fresh JWT:', error);
+                console.error('❌ Error getting fresh JWT:', error);
                 router.push('/');
               }
             }, AUTO_LOGIN_CONFIG.REDIRECT_DELAY_MS);

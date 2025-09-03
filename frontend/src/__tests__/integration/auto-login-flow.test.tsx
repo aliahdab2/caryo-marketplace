@@ -117,7 +117,7 @@ describe('Auto-Login Integration Flow', () => {
   });
 
   describe('Complete Auto-Login Flow', () => {
-    const mockCurrentTime = 1000000000000; // Fixed timestamp
+    const _mockCurrentTime = 1000000000000; // Fixed timestamp (unused)
     const jwtResponse = {
       token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token',
       type: 'Bearer',
