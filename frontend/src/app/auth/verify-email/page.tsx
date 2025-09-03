@@ -7,6 +7,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import useLazyTranslation from "@/hooks/useLazyTranslation";
 import { getAuthUrl } from "@/utils/constants/api";
+import { 
+  EmailVerificationResponse, 
+  isJwtResponse, 
+  isMessageResponse,
+  TEMP_AUTH_KEYS,
+  AUTO_LOGIN_CONFIG 
+} from "@/types/auto-login";
 
 // Move namespaces outside component to prevent recreation on every render
 const AUTH_NAMESPACES = ['auth'];
@@ -42,32 +49,77 @@ const VerifyEmailPage: React.FC = () => {
           throw new Error("Received non-JSON response from server");
         }
         
-        const data = await response.json();
+        const data: EmailVerificationResponse = await response.json();
 
         if (response.ok) {
           setVerificationStatus('success');
-          setMessage(data.message || t('emailVerified'));
+          
+          // Check if response contains JWT token (auto-login) using type guard
+          if (isJwtResponse(data)) {
+            // Validate JWT token format (should have 3 parts separated by dots)
+            const jwtParts = data.token.split('.');
+            if (jwtParts.length !== 3) {
+              setVerificationStatus('error');
+              setMessage(t('verificationFailed'));
+              return;
+            }
+            
+            // This is a JWT response - auto-login the user
+            setMessage(t('emailVerified') + ' ' + t('redirecting'));
+            setEmail(data.email);
+            
+            // Clean up localStorage after successful verification
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('signup-email');
+              localStorage.removeItem('signup-username');
+            }
+            
+            // Store the JWT token temporarily in sessionStorage (more secure than localStorage)
+            if (typeof window !== 'undefined') {
+              // Use sessionStorage for temporary tokens (cleared when browser closes)
+              sessionStorage.setItem(TEMP_AUTH_KEYS.TOKEN, data.token);
+              sessionStorage.setItem(TEMP_AUTH_KEYS.USER, JSON.stringify({
+                id: data.id,
+                username: data.username,
+                email: data.email,
+                roles: data.roles || []
+              }));
+              
+              // Set expiration time using config
+              const expirationTime = Date.now() + (AUTO_LOGIN_CONFIG.TEMP_TOKEN_EXPIRY_MINUTES * 60 * 1000);
+              sessionStorage.setItem(TEMP_AUTH_KEYS.EXPIRES, expirationTime.toString());
+            }
+            
+            // Auto-redirect to homepage after configured delay
+            setTimeout(() => {
+              router.push('/?auto-login=true');
+            }, AUTO_LOGIN_CONFIG.REDIRECT_DELAY_MS);
+            
+          } else if (isMessageResponse(data)) {
+            // Regular message response (already verified case)
+            setMessage(data.message || t('emailVerified'));
+            
+            let userEmail = '';
+            if (data.email) {
+              userEmail = data.email;
+              setEmail(userEmail);
+            }
 
-          let userEmail = '';
-          if (data.email) {
-            userEmail = data.email;
-            setEmail(userEmail);
+            // Get username from localStorage (stored during signup)
+            const userUsername = typeof window !== 'undefined' ? localStorage.getItem('signup-username') : null;
+
+            // Clean up localStorage after successful verification
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('signup-email');
+              localStorage.removeItem('signup-username');
+            }
+
+            // Auto-redirect after a short delay to signin page
+            setTimeout(() => {
+              const redirectUrl = `/auth/signin?verified=true${userEmail ? `&email=${encodeURIComponent(userEmail)}` : ''}${userUsername ? `&username=${encodeURIComponent(userUsername)}` : ''}`;
+              router.push(redirectUrl);
+            }, 3000);
           }
-
-          // Get username from localStorage (stored during signup)
-          const userUsername = typeof window !== 'undefined' ? localStorage.getItem('signup-username') : null;
-
-          // Clean up localStorage after successful verification
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('signup-email');
-            localStorage.removeItem('signup-username');
-          }
-
-          // Auto-redirect after a short delay
-          setTimeout(() => {
-            const redirectUrl = `/?verified=true${userEmail ? `&email=${encodeURIComponent(userEmail)}` : ''}${userUsername ? `&username=${encodeURIComponent(userUsername)}` : ''}`;
-            router.push(redirectUrl);
-          }, 3000); // 3-second delay
 
         } else {
           setVerificationStatus('error');

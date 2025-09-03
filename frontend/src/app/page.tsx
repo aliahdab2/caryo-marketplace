@@ -1,10 +1,17 @@
 "use client";
 import Image from "next/image";
 import { useLazyTranslation } from "@/hooks/useLazyTranslation";
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import HomeSearchBar from "@/components/search/HomeSearchBar";
 import HomeCarListings from "@/components/home/HomeCarListings";
+import { 
+  TempAuthUser, 
+  AutoLoginRequest, 
+  AutoLoginResponse, 
+  isTempAuthUser,
+  TEMP_AUTH_KEYS 
+} from "@/types/auto-login";
 
 import { fetchLatestListingsPublic, subscribeToNewsletter } from "@/services/publicApi";
 import { CarListing } from "@/services/publicApi";
@@ -15,16 +22,96 @@ const HOME_NAMESPACES = ['home', 'common'];
 export default function Home() {
   const { t, i18n, ready } = useLazyTranslation(HOME_NAMESPACES);
   const searchParams = useSearchParams();
+  const _router = useRouter();
   const [latestCars, setLatestCars] = useState<CarListing[]>([]);
   const [isLoadingListings, setIsLoadingListings] = useState(true);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [newsletterMessage, setNewsletterMessage] = useState('');
   const [newsletterSuccess, setNewsletterSuccess] = useState(false);
-  // Clean up URL params if they exist (from email verification redirect)
+  // Helper function to clean up temporary authentication data
+  const cleanupTempAuth = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem(TEMP_AUTH_KEYS.TOKEN);
+      sessionStorage.removeItem(TEMP_AUTH_KEYS.USER);
+      sessionStorage.removeItem(TEMP_AUTH_KEYS.EXPIRES);
+    }
+  }, []);
+
+  // Handle auto-login and clean up URL params
   useEffect(() => {
     const verified = searchParams.get('verified');
     const _username = searchParams.get('username');
+    const autoLogin = searchParams.get('auto-login');
+    
+    // Handle auto-login after email verification
+    if (autoLogin === 'true' && typeof window !== 'undefined') {
+      const tempToken = sessionStorage.getItem(TEMP_AUTH_KEYS.TOKEN);
+      const tempUser = sessionStorage.getItem(TEMP_AUTH_KEYS.USER);
+      const tempExpires = sessionStorage.getItem(TEMP_AUTH_KEYS.EXPIRES);
+      
+      // Check if token exists and hasn't expired
+      if (tempToken && tempUser && tempExpires) {
+        const expirationTime = parseInt(tempExpires, 10);
+        const currentTime = Date.now();
+        
+        if (currentTime < expirationTime) {
+          try {
+            const userData: TempAuthUser = JSON.parse(tempUser);
+            
+            // Validate user data structure using type guard
+            if (isTempAuthUser(userData)) {
+              // Use our custom auto-login API endpoint
+              const requestBody: AutoLoginRequest = {
+                token: tempToken,
+                user: userData
+              };
+              
+              fetch('/api/auth/auto-login', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+              })
+              .then(response => response.json())
+              .then((result: AutoLoginResponse) => {
+                if (result.success) {
+                  // Clean up temporary storage
+                  sessionStorage.removeItem(TEMP_AUTH_KEYS.TOKEN);
+                  sessionStorage.removeItem(TEMP_AUTH_KEYS.USER);
+                  sessionStorage.removeItem(TEMP_AUTH_KEYS.EXPIRES);
+                  
+                  // Clean up URL
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete('auto-login');
+                  window.history.replaceState({}, '', url.toString());
+                  
+                  // Refresh the page to update session
+                  window.location.reload();
+                } else {
+                  console.error('Auto-login failed:', result.error);
+                  cleanupTempAuth();
+                }
+              })
+              .catch((error) => {
+                console.error('Auto-login error:', error);
+                cleanupTempAuth();
+              });
+            } else {
+              console.error('Invalid user data structure');
+              cleanupTempAuth();
+            }
+          } catch (error) {
+            console.error('Failed to parse user data:', error);
+            cleanupTempAuth();
+          }
+        } else {
+          console.log('Auto-login token expired');
+          cleanupTempAuth();
+        }
+      }
+    }
     
     if (verified === 'true') {
       // Clean up URL params without showing overlay
@@ -33,7 +120,7 @@ export default function Home() {
       url.searchParams.delete('username');
       window.history.replaceState({}, '', url.toString());
     }
-  }, [searchParams]);
+  }, [searchParams, cleanupTempAuth]);
 
   useEffect(() => {
     const loadLatestCars = async () => {

@@ -118,7 +118,7 @@ public class EmailVerificationService {
             userRepository.save(user);
             
             log.info("Email successfully verified for user: {} ({})", user.getUsername(), user.getEmail());
-            return new VerificationResult(true, "Perfect! Your email has been verified successfully. You can now sign in to your account.", user.getEmail());
+            return new VerificationResult(true, "Perfect! Your email has been verified successfully. You are now logged in!", user.getEmail(), user);
             
         } catch (Exception e) {
             log.error("Error during email verification with token: {}. Error: {}", token, e.getMessage());
@@ -147,16 +147,26 @@ public class EmailVerificationService {
         private final boolean success;
         private final String message;
         private final String email;
+        private final User user;
         
         public VerificationResult(boolean success, String message, String email) {
             this.success = success;
             this.message = message;
             this.email = email;
+            this.user = null;
+        }
+        
+        public VerificationResult(boolean success, String message, String email, User user) {
+            this.success = success;
+            this.message = message;
+            this.email = email;
+            this.user = user;
         }
         
         public boolean isSuccess() { return success; }
         public String getMessage() { return message; }
         public String getEmail() { return email; }
+        public User getUser() { return user; }
     }
 
     /**
