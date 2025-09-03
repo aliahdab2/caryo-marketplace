@@ -46,18 +46,28 @@ export default function Home() {
     const autoLogin = searchParams.get('auto-login');
     
     // Handle auto-login after email verification
-    if (autoLogin === 'true' && typeof window !== 'undefined' && !autoLoginAttempted) {
-      const tempToken = sessionStorage.getItem(TEMP_AUTH_KEYS.TOKEN);
-      const tempUser = sessionStorage.getItem(TEMP_AUTH_KEYS.USER);
-      const tempExpires = sessionStorage.getItem(TEMP_AUTH_KEYS.EXPIRES);
-      
-      console.log('🔐 Auto-login attempt started:', { 
-        hasToken: !!tempToken, 
-        hasUser: !!tempUser, 
-        hasExpires: !!tempExpires,
-        currentTime: new Date().toISOString(),
-        url: window.location.href
+    if (autoLogin === 'true' && typeof window !== 'undefined') {
+      console.log('🔍 Auto-login URL parameter detected, checking conditions...', {
+        autoLogin,
+        hasWindow: typeof window !== 'undefined',
+        autoLoginAttempted,
       });
+      
+      if (!autoLoginAttempted) {
+        const tempToken = sessionStorage.getItem(TEMP_AUTH_KEYS.TOKEN);
+        const tempUser = sessionStorage.getItem(TEMP_AUTH_KEYS.USER);
+        const tempExpires = sessionStorage.getItem(TEMP_AUTH_KEYS.EXPIRES);
+        
+        console.log('🔐 Auto-login attempt started:', { 
+          hasToken: !!tempToken, 
+          hasUser: !!tempUser, 
+          hasExpires: !!tempExpires,
+          tokenValue: tempToken ? `${tempToken.substring(0, 20)}...` : null,
+          userValue: tempUser ? 'Present' : null,
+          expiresValue: tempExpires,
+          currentTime: new Date().toISOString(),
+          url: window.location.href
+        });
       
       // Mark that we've attempted auto-login to prevent duplicates
       setAutoLoginAttempted(true);
@@ -147,6 +157,7 @@ export default function Home() {
           cleanupTempAuth();
         }
       }
+      } // Close the if (!autoLoginAttempted) block
     }
     
     if (verified === 'true') {

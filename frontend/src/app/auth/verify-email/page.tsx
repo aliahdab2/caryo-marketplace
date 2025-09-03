@@ -121,7 +121,7 @@ const VerifyEmailPage: React.FC = () => {
               try {
                 const token = searchParams.get('token');
                 if (token) {
-                  const freshResponse = await fetch(`${API_CONFIG.BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(token)}`, {
+                  const freshResponse = await fetch(`${getAuthUrl('VERIFY_EMAIL')}?token=${encodeURIComponent(token)}`, {
                     method: 'GET',
                     headers: {
                       'Content-Type': 'application/json',
@@ -167,11 +167,12 @@ const VerifyEmailPage: React.FC = () => {
           }
 
         } else {
+          console.error('❌ Email verification failed:', data);
           setVerificationStatus('error');
           setMessage(data.message || t('verificationFailed'));
         }
       } catch (error) {
-        console.error('Error verifying email:', error);
+        console.error('❌ Error during email verification request:', error);
         setVerificationStatus('error');
         setMessage(t('verificationError'));
       }
