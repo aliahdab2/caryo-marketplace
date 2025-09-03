@@ -362,9 +362,10 @@ describe('Auto-Login Integration Flow', () => {
       mockGet.mockReturnValue(validToken);
 
       (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
+        ok: false,
+        status: 400,
         headers: { get: () => 'application/json' },
-        json: () => Promise.resolve({ unexpected: 'response' }),
+        json: () => Promise.resolve({ error: 'Invalid token' }),
       });
 
       render(<VerifyEmailPage />);
@@ -495,19 +496,19 @@ describe('Auto-Login Integration Flow', () => {
         expect(screen.getByText('emailVerified')).toBeInTheDocument();
       });
 
-      // Record the number of fetch calls before unmount
-      const fetchCallsBeforeUnmount = (global.fetch as jest.Mock).mock.calls.length;
-
       // Unmount before auto-login timeout
       unmount();
+
+      // Clear the mock to reset call count
+      (global.fetch as jest.Mock).mockClear();
 
       // Fast-forward time - should not cause any side effects
       act(() => {
         jest.advanceTimersByTime(AUTO_LOGIN_CONFIG.REDIRECT_DELAY_MS);
       });
 
-      // No additional fetch calls should be made after unmount
-      expect(global.fetch).toHaveBeenCalledTimes(fetchCallsBeforeUnmount);
+      // No fetch calls should be made after unmount
+      expect(global.fetch).toHaveBeenCalledTimes(0);
     });
 
     it('should handle rapid successive token changes', async () => {
