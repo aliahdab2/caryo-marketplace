@@ -135,4 +135,5 @@ const nextConfig: NextConfig = {
   // Additional turbopack configuration can be added to the existing turbopack section above
 };
 
-export default analyzeBundles(nextConfig);
+// Only apply bundle analyzer when explicitly requested
+export default process.env.ANALYZE === 'true' ? analyzeBundles(nextConfig) : nextConfig;
