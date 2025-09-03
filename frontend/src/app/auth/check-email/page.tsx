@@ -8,13 +8,13 @@ import Image from 'next/image';
 import useLazyTranslation from "@/hooks/useLazyTranslation";
 
 // Move namespaces outside component to prevent recreation on every render
-const AUTH_NAMESPACES = ['auth', 'errors'];
+const AUTH_NAMESPACES = ['auth'];
 
 const CheckEmailPage: React.FC = () => {
-  // Lazy load the auth and errors namespaces
+  // Lazy load the auth namespace
   useLazyTranslation(AUTH_NAMESPACES);
 
-  const { t } = useTranslation(['auth', 'errors']);
+  const { t } = useTranslation('auth');
   const _router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");

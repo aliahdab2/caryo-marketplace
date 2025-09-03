@@ -9,13 +9,13 @@ import useLazyTranslation from "@/hooks/useLazyTranslation";
 import { getAuthUrl } from "@/utils/constants/api";
 
 // Move namespaces outside component to prevent recreation on every render
-const AUTH_NAMESPACES = ['auth', 'errors'];
+const AUTH_NAMESPACES = ['auth'];
 
 const VerifyEmailPage: React.FC = () => {
-  // Lazy load the auth and errors namespaces
+  // Lazy load the auth namespace
   useLazyTranslation(AUTH_NAMESPACES);
 
-  const { t } = useTranslation(['auth', 'errors']);
+  const { t } = useTranslation('auth');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'success' | 'error'>('loading');
