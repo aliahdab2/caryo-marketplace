@@ -144,20 +144,11 @@ export default function Home() {
                   url.searchParams.delete('auto-login');
                   window.history.replaceState({}, '', url.toString());
                   
-                  // Refresh the router to activate the session (seamless approach)
+                  // Navigate to re-run SSR and pick up the new session without a full reload
                   setTimeout(() => {
-                    console.log('Auto-login completed successfully! Refreshing to activate session...');
-                    
-                    // Debug: Check if the session cookie was set
-                    const cookieName = 'next-auth.session-token';
-                    const cookieExists = document.cookie.includes(cookieName);
-                    console.log('🍪 Session cookie check:', { cookieName, cookieExists, allCookies: document.cookie });
-                    
-                    // Use Next.js router refresh to trigger a fresh server-side render
-                    // This will pick up the new session without a full page reload
-                    _router.refresh();
-                    
-                  }, 1500); // Longer delay to ensure NextAuth processes the cookie
+                    console.log('Auto-login completed successfully! Navigating to activate session...');
+                    _router.replace('/');
+                  }, 800); // Short delay to ensure cookie is written
                 } else {
                   console.error('❌ Auto-login failed:', result.error);
                   console.log('🧹 Cleaning up temp auth data...');

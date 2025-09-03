@@ -73,21 +73,21 @@ export async function POST(request: NextRequest): Promise<NextResponse<AutoLogin
     // Create response with session cookie
     const response = NextResponse.json({ success: true });
     
-    // Set the NextAuth session cookie
-    const cookieName = process.env.NODE_ENV === 'production' 
-      ? '__Secure-next-auth.session-token' 
-      : 'next-auth.session-token';
-      
-    console.log('🍪 Setting cookie:', cookieName);
-      
-    response.cookies.set(cookieName, nextAuthToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60, // 24 hours
-      path: '/',
+    // Set the NextAuth/Auth.js session cookies (support both names for compatibility)
+    const cookieNames = process.env.NODE_ENV === 'production'
+      ? ['__Secure-next-auth.session-token']
+      : ['next-auth.session-token', 'authjs.session-token'];
 
-    });
+    for (const name of cookieNames) {
+      console.log('🍪 Setting cookie:', name);
+      response.cookies.set(name, nextAuthToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60, // 24 hours
+        path: '/',
+      });
+    }
     
     console.log('🎉 Auto-login API completed successfully');
     return response;
