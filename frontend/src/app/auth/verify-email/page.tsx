@@ -156,8 +156,27 @@ const VerifyEmailPage: React.FC = () => {
                       // Redirect to auto-login
                       router.push('/?auto-login=true');
                       return;
+                    } else if (isMessageResponse(freshData)) {
+                      console.log('📝 Got message response for already verified user:', freshData);
+                      
+                      // For already verified users, we can't get a JWT from verification endpoint
+                      // But we know the user is verified, so redirect with a special parameter
+                      // The user can then be prompted to sign in automatically
+                      console.log('🔄 Redirecting to signin with verified=true for auto-login...');
+                      
+                      // Get user email from the response or localStorage
+                      const userEmail = freshData.email || (typeof window !== 'undefined' ? localStorage.getItem('signup-email') : null);
+                      
+                      if (userEmail) {
+                        // Redirect to signin with pre-filled email and verified flag
+                        router.push(`/auth/signin?verified=true&email=${encodeURIComponent(userEmail)}&auto=true`);
+                      } else {
+                        // Fallback to home page
+                        router.push('/');
+                      }
+                      return;
                     } else {
-                      console.log('❌ Fresh response is not a JWT response:', {
+                      console.log('❌ Fresh response is neither JWT nor message response:', {
                         isJwtResponse: isJwtResponse(freshData),
                         isMessageResponse: isMessageResponse(freshData),
                         data: freshData
@@ -184,7 +203,12 @@ const VerifyEmailPage: React.FC = () => {
         } else {
           console.error('❌ Email verification failed:', data);
           setVerificationStatus('error');
-          setMessage(data.message || t('verificationFailed'));
+          // Check if it's a message response before accessing message property
+          if (isMessageResponse(data)) {
+            setMessage(data.message || t('verificationFailed'));
+          } else {
+            setMessage(t('verificationFailed'));
+          }
         }
       } catch (error) {
         console.error('❌ Error during email verification request:', error);

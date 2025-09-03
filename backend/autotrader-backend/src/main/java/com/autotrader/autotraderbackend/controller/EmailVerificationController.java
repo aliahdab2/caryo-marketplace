@@ -81,6 +81,37 @@ public class EmailVerificationController {
             }
         } else if (result.isSuccess()) {
             // Success but no user (already verified case)
+            // For best UX (like Blocket.se/Autotrader.co.uk), we should still provide auto-login
+            // Try to get the user by email from the verification token
+            try {
+                User user = emailVerificationService.getUserByVerificationToken(token);
+                if (user != null && user.isEmailVerified()) {
+                    // Generate JWT token for already verified user
+                    String jwt = jwtUtils.generateJwtTokenForUser(user);
+                    
+                    // Get user roles with null safety
+                    List<String> roles = user.getRoles() != null ? 
+                        user.getRoles().stream()
+                            .map(role -> role.getName())
+                            .collect(Collectors.toList()) : 
+                        List.of("ROLE_USER"); // Default role if none exist
+                    
+                    log.info("Auto-login provided for already verified user: {}", user.getUsername());
+                    
+                    // Return JWT response for auto-login (same as new verification)
+                    return ResponseEntity.ok(new JwtResponse(
+                        jwt,
+                        user.getId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        roles
+                    ));
+                }
+            } catch (Exception e) {
+                log.warn("Could not provide auto-login for already verified user. Error: {}", e.getMessage());
+            }
+            
+            // Fallback to message response if auto-login fails
             return ResponseEntity.ok(new MessageResponse(result.getMessage()));
         } else {
             return ResponseEntity.badRequest()

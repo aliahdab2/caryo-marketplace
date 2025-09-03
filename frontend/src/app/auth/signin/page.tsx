@@ -50,6 +50,7 @@ const SignInPage: React.FC = () => {
       const verified = searchParams.get('verified');
       const email = searchParams.get('email');
       const usernameParam = searchParams.get('username');
+      const autoLogin = searchParams.get('auto');
 
       // Check localStorage for redirect URL (from FavoriteButton or other sources) - fallback only
       const storedRedirect = localStorage.getItem('redirectAfterAuth');
@@ -115,6 +116,22 @@ const SignInPage: React.FC = () => {
         setUsername(decodeURIComponent(email));
       }
 
+      // Handle auto-login for verified users
+      if (autoLogin === 'true' && verified === 'true' && email) {
+        console.log('🔄 Auto-login requested for verified user:', email);
+        setVerificationSuccess(true);
+        setShowSuccess(true);
+        
+        // Show a message that they're verified and can sign in
+        setTimeout(() => {
+          // Focus on password field since email is pre-filled
+          const passwordField = document.getElementById('password');
+          if (passwordField) {
+            passwordField.focus();
+          }
+        }, 100);
+      }
+      
       // Mark that callback URL has been loaded
       setCallbackUrlLoaded(true);
     }

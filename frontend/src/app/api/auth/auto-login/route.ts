@@ -11,10 +11,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<AutoLogin
     const body: AutoLoginRequest = await request.json();
     const { token, user } = body;
     
+    console.log('🔐 Auto-login API called with:', { 
+      hasToken: !!token, 
+      tokenLength: token?.length,
+      user: user ? { id: user.id, username: user.username, email: user.email } : null 
+    });
+    
     // Validate required fields using type guard
     if (!token || !isTempAuthUser(user)) {
+      console.error('❌ Auto-login validation failed:', { hasToken: !!token, validUser: isTempAuthUser(user) });
       return NextResponse.json(
-        { error: 'Missing required authentication data' },
+        { success: false, error: 'Missing required authentication data' },
         { status: 400 }
       );
     }
@@ -22,7 +29,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<AutoLogin
     // Validate token format (basic JWT structure check)
     if (typeof token !== 'string' || !token.includes('.')) {
       return NextResponse.json(
-        { error: 'Invalid token format' },
+        { success: false, error: 'Invalid token format' },
         { status: 400 }
       );
     }
@@ -32,21 +39,27 @@ export async function POST(request: NextRequest): Promise<NextResponse<AutoLogin
     if (!secret) {
       console.error('NEXTAUTH_SECRET not configured');
       return NextResponse.json(
-        { error: 'Authentication configuration error' },
+        { success: false, error: 'Authentication configuration error' },
         { status: 500 }
       );
     }
     
-    // Create session data
+    // Create session data matching NextAuth's expected JWT structure
     const sessionData = {
+      // Standard JWT claims
       sub: user.id.toString(),
       name: user.username,
       email: user.email,
-      roles: user.roles || ['ROLE_USER'],
-      provider: 'credentials',
-      token: token,
+      picture: null,
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours
+      jti: crypto.randomUUID(),
+      
+      // Custom claims that match our auth config
+      id: user.id.toString(),
+      roles: user.roles || ['ROLE_USER'],
+      accessToken: token,
+      provider: 'credentials'
     };
     
     // Encode the JWT token for NextAuth
@@ -54,6 +67,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AutoLogin
       token: sessionData,
       secret: secret,
     });
+    
+    console.log('✅ NextAuth token created successfully, length:', nextAuthToken.length);
     
     // Create response with session cookie
     const response = NextResponse.json({ success: true });
@@ -63,20 +78,24 @@ export async function POST(request: NextRequest): Promise<NextResponse<AutoLogin
       ? '__Secure-next-auth.session-token' 
       : 'next-auth.session-token';
       
+    console.log('🍪 Setting cookie:', cookieName);
+      
     response.cookies.set(cookieName, nextAuthToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 24 * 60 * 60, // 24 hours
       path: '/',
+
     });
     
+    console.log('🎉 Auto-login API completed successfully');
     return response;
     
   } catch (error) {
     console.error('Auto-login error:', error);
     return NextResponse.json(
-      { error: 'Authentication failed' },
+      { success: false, error: 'Authentication failed' },
       { status: 500 }
     );
   }

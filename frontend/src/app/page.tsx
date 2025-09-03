@@ -73,21 +73,49 @@ export default function Home() {
       setAutoLoginAttempted(true);
       
       // Check if token exists and hasn't expired
+      console.log('🔍 Checking auto-login conditions:', {
+        hasTempToken: !!tempToken,
+        hasTempUser: !!tempUser,
+        hasTempExpires: !!tempExpires,
+        tempTokenLength: tempToken?.length,
+        tempUserLength: tempUser?.length,
+        tempExpires: tempExpires
+      });
+      
       if (tempToken && tempUser && tempExpires) {
         const expirationTime = parseInt(tempExpires, 10);
         const currentTime = Date.now();
+        
+        console.log('⏰ Time check:', {
+          currentTime,
+          expirationTime,
+          isValid: currentTime < expirationTime,
+          timeRemaining: expirationTime - currentTime
+        });
         
         if (currentTime < expirationTime) {
           try {
             const userData: TempAuthUser = JSON.parse(tempUser);
             
             // Validate user data structure using type guard
+            console.log('👤 Validating user data:', { userData, isValid: isTempAuthUser(userData) });
+            
             if (isTempAuthUser(userData)) {
               // Use our custom auto-login API endpoint
               const requestBody: AutoLoginRequest = {
                 token: tempToken,
                 user: userData
               };
+              
+              console.log('🚀 Calling auto-login API with:', requestBody);
+              console.log('🚀 Request details:', {
+                url: '/api/auth/auto-login',
+                method: 'POST',
+                hasToken: !!requestBody.token,
+                tokenLength: requestBody.token?.length,
+                tokenPreview: requestBody.token?.substring(0, 50) + '...',
+                user: requestBody.user
+              });
               
               fetch('/api/auth/auto-login', {
                 method: 'POST',
@@ -96,8 +124,13 @@ export default function Home() {
                 },
                 body: JSON.stringify(requestBody)
               })
-              .then(response => response.json())
+              .then(response => {
+                console.log('📡 Auto-login API response status:', response.status);
+                return response.json();
+              })
               .then((result: AutoLoginResponse) => {
+                console.log('📡 Auto-login API result:', result);
+                console.log('📡 Auto-login API result details:', JSON.stringify(result, null, 2));
                 if (result.success) {
                   console.log('Auto-login successful, setting up session...');
                   
@@ -111,44 +144,37 @@ export default function Home() {
                   url.searchParams.delete('auto-login');
                   window.history.replaceState({}, '', url.toString());
                   
-                  // Trigger NextAuth session refresh without page reload for seamless UX
-                  setTimeout(async () => {
-                    console.log('Activating session without page reload...');
+                  // Refresh the router to activate the session (seamless approach)
+                  setTimeout(() => {
+                    console.log('Auto-login completed successfully! Refreshing to activate session...');
                     
-                    try {
-                      // Import getSession dynamically to avoid SSR issues
-                      const { getSession } = await import('next-auth/react');
-                      const session = await getSession();
-                      
-                      if (session) {
-                        console.log('Auto-login completed successfully! User is now logged in.');
-                        // Session is now active, no need to reload the page
-                        // The UI will automatically update via NextAuth's session provider
-                      } else {
-                        console.log('Session not found after auto-login, reloading page...');
-                        window.location.reload();
-                      }
-                    } catch (error) {
-                      console.log('NextAuth session refresh failed, reloading page:', error);
-                      window.location.reload();
-                    }
-                  }, 800); // Slightly longer delay to ensure cookie is properly set
+                    // Debug: Check if the session cookie was set
+                    const cookieName = 'next-auth.session-token';
+                    const cookieExists = document.cookie.includes(cookieName);
+                    console.log('🍪 Session cookie check:', { cookieName, cookieExists, allCookies: document.cookie });
+                    
+                    // Use Next.js router refresh to trigger a fresh server-side render
+                    // This will pick up the new session without a full page reload
+                    _router.refresh();
+                    
+                  }, 1500); // Longer delay to ensure NextAuth processes the cookie
                 } else {
                   console.error('❌ Auto-login failed:', result.error);
                   console.log('🧹 Cleaning up temp auth data...');
                   cleanupTempAuth();
                 }
               })
-              .catch((error) => {
-                console.error('Auto-login error:', error);
+              .catch(error => {
+                console.error('❌ Auto-login API request failed:', error);
+                console.log('🧹 Cleaning up temp auth data...');
                 cleanupTempAuth();
               });
             } else {
-              console.error('Invalid user data structure');
+              console.error('❌ Invalid user data structure:', userData);
               cleanupTempAuth();
             }
           } catch (error) {
-            console.error('Failed to parse user data:', error);
+            console.error('❌ Error parsing user data:', error, 'Raw tempUser:', tempUser);
             cleanupTempAuth();
           }
         } else {
@@ -156,6 +182,13 @@ export default function Home() {
           console.log('🧹 Cleaning up expired temp auth data...');
           cleanupTempAuth();
         }
+      } else {
+        console.log('❌ Missing required auto-login data:', {
+          hasTempToken: !!tempToken,
+          hasTempUser: !!tempUser,
+          hasTempExpires: !!tempExpires
+        });
+        cleanupTempAuth();
       }
       } // Close the if (!autoLoginAttempted) block
     }
@@ -167,7 +200,7 @@ export default function Home() {
       url.searchParams.delete('username');
       window.history.replaceState({}, '', url.toString());
     }
-  }, [searchParams, cleanupTempAuth, autoLoginAttempted]);
+  }, [searchParams, cleanupTempAuth, autoLoginAttempted, _router]);
 
   useEffect(() => {
     const loadLatestCars = async () => {

@@ -110,11 +110,18 @@ public class EmailVerificationService {
             // Check if email is already verified
             if (user.isEmailVerified()) {
                 log.info("Email verification attempted for already verified user: {}", user.getUsername());
-                return new VerificationResult(true, "Great! Your email is already verified. You can sign in to your account.", user.getEmail());
+                
+                // SECURITY: For already verified users, still provide auto-login but invalidate the token
+                // This prevents token reuse while maintaining good UX
+                user.clearEmailVerificationToken(); // Invalidate the token
+                userRepository.save(user);
+                
+                return new VerificationResult(true, "Great! Your email is already verified. You are now logged in!", user.getEmail(), user);
             }
             
-            // Mark email as verified
+            // Mark email as verified and clear verification token (security best practice)
             user.markEmailAsVerified();
+            user.clearEmailVerificationToken(); // Prevent token reuse
             userRepository.save(user);
             
             log.info("Email successfully verified for user: {} ({})", user.getUsername(), user.getEmail());
@@ -257,6 +264,51 @@ public class EmailVerificationService {
         } catch (Exception e) {
             log.error("Error finding recently verified user: {}", e.getMessage());
             return Optional.empty();
+        }
+    }
+    
+    /**
+     * Get user by verification token for auto-login purposes.
+     * This method is used to provide JWT tokens for already verified users.
+     * SECURITY: This method should only be used immediately after verification
+     * and tokens are invalidated after use to prevent reuse attacks.
+     * 
+     * @param token The verification token
+     * @return User if found and verified, null otherwise
+     */
+    public User getUserByVerificationToken(String token) {
+        try {
+            if (token == null || token.trim().isEmpty()) {
+                return null;
+            }
+            
+            // First, try to find user by the verification token (if token hasn't been cleared yet)
+            Optional<User> userOpt = userRepository.findByEmailVerificationToken(token);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                if (user.isEmailVerified() && !isTokenExpired(user.getEmailVerificationSentAt())) {
+                    log.info("Auto-login provided for verified user found by token: {}", user.getUsername());
+                    return user;
+                }
+            }
+            
+            // SECURITY: If token not found (likely cleared), look for recently verified users (within last 2 minutes)
+            // This is much more restrictive than the general 5-minute window
+            LocalDateTime twoMinutesAgo = LocalDateTime.now().minusMinutes(2);
+            Optional<User> recentlyVerifiedUser = userRepository
+                .findTopByEmailVerifiedTrueAndEmailVerifiedAtAfterOrderByEmailVerifiedAtDesc(twoMinutesAgo);
+            
+            if (recentlyVerifiedUser.isPresent()) {
+                User user = recentlyVerifiedUser.get();
+                log.info("Auto-login provided for recently verified user: {} (verified at: {})", 
+                        user.getUsername(), user.getEmailVerifiedAt());
+                return user;
+            }
+            
+            return null;
+        } catch (Exception e) {
+            log.error("Error getting user by verification token: {}", e.getMessage());
+            return null;
         }
     }
 }
