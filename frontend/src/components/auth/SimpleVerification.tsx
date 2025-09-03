@@ -146,7 +146,7 @@ export default function SimpleVerification({
     <div className="text-center"> {/* Simplified container, primarily for centering */}
       {!ready ? (
         // Loading state when translations aren't ready
-        <div className="flex flex-col items-center justify-center p-4">
+        <div className="mt-4 flex justify-center items-center" style={{ minHeight: '32px' }}>
           <div data-testid="loading-spinner" className={`animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full`}></div>
           {/* Removed Loading... text */}
         </div>
@@ -154,16 +154,16 @@ export default function SimpleVerification({
         <>
           {/* Removed header with title and button */}
 
-          <div className="mt-4"> {/* Adjusted to remove text-center if the parent div handles it, but keeping mt-4 */}
+          <div className="mt-4 flex justify-center items-center" style={{ minHeight: '32px' }}> {/* Fixed container with consistent height */}
             {state === 'verifying' && (
               <>
-                <div data-testid="verifying-spinner" className={`${styles.spinner} animate-spin w-8 h-8 mx-auto border-4 border-blue-500 border-t-transparent rounded-full`}></div>
+                <div data-testid="verifying-spinner" className={`${styles.spinner} animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full`}></div>
                 {/* Removed Verifying... text */}
               </>
             )}
             {state === 'success' && (
               <>
-                <svg data-testid="success-icon" className="w-10 h-10 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg data-testid="success-icon" className="w-8 h-8 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                 </svg>
                 {/* Removed Verified Successfully! text */}

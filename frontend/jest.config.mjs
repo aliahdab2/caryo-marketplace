@@ -25,7 +25,7 @@ const config = {
     '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
   },
   transformIgnorePatterns: [
-    '/node_modules/',
+    '/node_modules/(?!(jose|@panva|uuid|@auth|next-auth)/).+\\.m?js$',
     '^.+\\.module\\.(css|sass|scss)$',
   ],
 };

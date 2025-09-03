@@ -11,15 +11,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AutoLogin
     const body: AutoLoginRequest = await request.json();
     const { token, user } = body;
     
-    console.log('🔐 Auto-login API called with:', { 
-      hasToken: !!token, 
-      tokenLength: token?.length,
-      user: user ? { id: user.id, username: user.username, email: user.email } : null 
-    });
-    
     // Validate required fields using type guard
     if (!token || !isTempAuthUser(user)) {
-      console.error('❌ Auto-login validation failed:', { hasToken: !!token, validUser: isTempAuthUser(user) });
       return NextResponse.json(
         { success: false, error: 'Missing required authentication data' },
         { status: 400 }
@@ -68,8 +61,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<AutoLogin
       secret: secret,
     });
     
-    console.log('✅ NextAuth token created successfully, length:', nextAuthToken.length);
-    
     // Create response with session cookie
     const response = NextResponse.json({ success: true });
     
@@ -79,7 +70,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<AutoLogin
       : ['next-auth.session-token', 'authjs.session-token'];
 
     for (const name of cookieNames) {
-      console.log('🍪 Setting cookie:', name);
       response.cookies.set(name, nextAuthToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -89,7 +79,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<AutoLogin
       });
     }
     
-    console.log('🎉 Auto-login API completed successfully');
     return response;
     
   } catch (error) {
