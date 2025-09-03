@@ -29,6 +29,71 @@ const VerifyEmailPage: React.FC = () => {
   const [message, setMessage] = useState("");
   const [email, setEmail] = useState("");
 
+  const handleAutoLogin = async (jwtData: { token: string; id: number; username: string; email: string; roles: string[] }) => {
+      // Validate JWT token format (should have 3 parts separated by dots)
+      const jwtParts = jwtData.token.split('.');
+      if (jwtParts.length !== 3) {
+          setVerificationStatus('error');
+          setMessage(t('verificationFailed'));
+          return;
+      }
+
+      setMessage(t('emailVerified') + ' ' + t('redirecting'));
+      setEmail(jwtData.email);
+
+      // Clean up localStorage after successful verification
+      if (typeof window !== 'undefined') {
+          localStorage.removeItem('signup-email');
+          localStorage.removeItem('signup-username');
+      }
+
+      // Store the JWT token temporarily in sessionStorage
+      if (typeof window !== 'undefined') {
+          const expirationTime = Date.now() + (AUTO_LOGIN_CONFIG.TEMP_TOKEN_EXPIRY_MINUTES * 60 * 1000);
+          sessionStorage.setItem(TEMP_AUTH_KEYS.TOKEN, jwtData.token);
+          sessionStorage.setItem(TEMP_AUTH_KEYS.USER, JSON.stringify({
+              id: jwtData.id,
+              username: jwtData.username,
+              email: jwtData.email,
+              roles: jwtData.roles || []
+          }));
+          sessionStorage.setItem(TEMP_AUTH_KEYS.EXPIRES, expirationTime.toString());
+      }
+
+      // After a brief UX delay, create the NextAuth session
+      setTimeout(async () => {
+          try {
+              const autoLoginBody = {
+                  token: jwtData.token,
+                  user: {
+                      id: jwtData.id,
+                      username: jwtData.username,
+                      email: jwtData.email,
+                      roles: jwtData.roles || []
+                  }
+              };
+              const resp = await fetch('/api/auth/auto-login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(autoLoginBody)
+              });
+              const result = await resp.json();
+              if (resp.ok && result && result.success) {
+                  if (typeof window !== 'undefined') {
+                      sessionStorage.removeItem(TEMP_AUTH_KEYS.TOKEN);
+                      sessionStorage.removeItem(TEMP_AUTH_KEYS.USER);
+                      sessionStorage.removeItem(TEMP_AUTH_KEYS.EXPIRES);
+                  }
+                  window.location.href = '/';
+              } else {
+                  router.push('/');
+              }
+          } catch (_err) {
+              router.push('/');
+          }
+      }, AUTO_LOGIN_CONFIG.REDIRECT_DELAY_MS);
+  };
+
   useEffect(() => {
     const token = searchParams.get('token');
     
@@ -54,78 +119,8 @@ const VerifyEmailPage: React.FC = () => {
         if (response.ok) {
           setVerificationStatus('success');
           
-          // Check if response contains JWT token (auto-login) using type guard
           if (isJwtResponse(data)) {
-            // Validate JWT token format (should have 3 parts separated by dots)
-            const jwtParts = data.token.split('.');
-            if (jwtParts.length !== 3) {
-              setVerificationStatus('error');
-              setMessage(t('verificationFailed'));
-              return;
-            }
-            
-            // This is a JWT response - auto-login the user
-            setMessage(t('emailVerified') + ' ' + t('redirecting'));
-            setEmail(data.email);
-            
-            // Clean up localStorage after successful verification
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('signup-email');
-              localStorage.removeItem('signup-username');
-            }
-            
-            // Store the JWT token temporarily in sessionStorage (more secure than localStorage)
-            if (typeof window !== 'undefined') {
-              // Use sessionStorage for temporary tokens (cleared when browser closes)
-              sessionStorage.setItem(TEMP_AUTH_KEYS.TOKEN, data.token);
-              sessionStorage.setItem(TEMP_AUTH_KEYS.USER, JSON.stringify({
-                id: data.id,
-                username: data.username,
-                email: data.email,
-                roles: data.roles || []
-              }));
-              
-              // Set expiration time using config
-              const expirationTime = Date.now() + (AUTO_LOGIN_CONFIG.TEMP_TOKEN_EXPIRY_MINUTES * 60 * 1000);
-              sessionStorage.setItem(TEMP_AUTH_KEYS.EXPIRES, expirationTime.toString());
-            }
-            
-            // After a brief UX delay, create the NextAuth session directly, wait until ready, then go home
-            setTimeout(async () => {
-              try {
-                const autoLoginBody = {
-                  token: data.token,
-                  user: {
-                    id: data.id,
-                    username: data.username,
-                    email: data.email,
-                    roles: data.roles || []
-                  }
-                };
-                const resp = await fetch('/api/auth/auto-login', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(autoLoginBody)
-                });
-                const result = await resp.json();
-                if (resp.ok && result && result.success) {
-                  // Optional: clean up temp storage now that session is active
-                  if (typeof window !== 'undefined') {
-                    sessionStorage.removeItem(TEMP_AUTH_KEYS.TOKEN);
-                    sessionStorage.removeItem(TEMP_AUTH_KEYS.USER);
-                    sessionStorage.removeItem(TEMP_AUTH_KEYS.EXPIRES);
-                  }
-                  // Navigate to home with full page load to ensure server-side session is recognized
-                  window.location.href = '/';
-                } else {
-                  // Fallback to home
-                  router.push('/');
-                }
-              } catch (_err) {
-                router.push('/');
-              }
-            }, AUTO_LOGIN_CONFIG.REDIRECT_DELAY_MS);
-            
+            handleAutoLogin(data);
           } else if (isMessageResponse(data)) {
             // Regular message response (already verified case)
             setMessage(data.message || t('emailVerified'));
@@ -170,22 +165,7 @@ const VerifyEmailPage: React.FC = () => {
                     // Check if we now get a JWT response
                     if (isJwtResponse(freshData)) {
                       console.log('✅ Got fresh JWT for already verified user, proceeding with auto-login...');
-                      
-                      // Store the JWT token temporarily in sessionStorage
-                      if (typeof window !== 'undefined') {
-                        const expirationTime = Date.now() + (AUTO_LOGIN_CONFIG.TEMP_TOKEN_EXPIRY_MINUTES * 60 * 1000);
-                        sessionStorage.setItem(TEMP_AUTH_KEYS.TOKEN, freshData.token);
-                        sessionStorage.setItem(TEMP_AUTH_KEYS.USER, JSON.stringify({
-                          id: freshData.id,
-                          username: freshData.username,
-                          email: freshData.email,
-                          roles: freshData.roles,
-                        }));
-                        sessionStorage.setItem(TEMP_AUTH_KEYS.EXPIRES, expirationTime.toString());
-                      }
-                      
-                      // Redirect to auto-login
-                      router.push('/?auto-login=true');
+                      handleAutoLogin(freshData);
                       return;
                     } else if (isMessageResponse(freshData)) {
                       console.log('📝 Got message response for already verified user:', freshData);
