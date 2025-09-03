@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import HomeSearchBar from "@/components/search/HomeSearchBar";
 import HomeCarListings from "@/components/home/HomeCarListings";
-import WelcomeOverlay from "@/components/auth/WelcomeOverlay";
+
 import { fetchLatestListingsPublic, subscribeToNewsletter } from "@/services/publicApi";
 import { CarListing } from "@/services/publicApi";
 
@@ -21,19 +21,13 @@ export default function Home() {
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [newsletterMessage, setNewsletterMessage] = useState('');
   const [newsletterSuccess, setNewsletterSuccess] = useState(false);
-  const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(false);
-  const [welcomeUsername, setWelcomeUsername] = useState<string | undefined>();
-
+  // Clean up URL params if they exist (from email verification redirect)
   useEffect(() => {
-    // Check if user just verified email and should see welcome overlay
     const verified = searchParams.get('verified');
-    const username = searchParams.get('username');
+    const _username = searchParams.get('username');
     
     if (verified === 'true') {
-      setWelcomeUsername(username ? decodeURIComponent(username) : undefined);
-      setShowWelcomeOverlay(true);
-      
-      // Clean up URL params
+      // Clean up URL params without showing overlay
       const url = new URL(window.location.href);
       url.searchParams.delete('verified');
       url.searchParams.delete('username');
@@ -103,13 +97,7 @@ export default function Home() {
 
   return (
     <div className="w-full">
-      {/* Welcome Overlay */}
-      {showWelcomeOverlay && (
-        <WelcomeOverlay 
-          username={welcomeUsername}
-          onClose={() => setShowWelcomeOverlay(false)}
-        />
-      )}
+
 
       {/* Hero Section with full-width banner image */}
       <div className="relative h-[450px] xs:h-[500px] sm:h-[550px] w-full overflow-hidden">
