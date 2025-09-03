@@ -174,59 +174,59 @@ export default function SignUpPage() {
         </div>
         
         {/* Content */}
-        <div className="z-10 p-6 md:p-8 lg:p-10 flex flex-col">
-          <div className="flex items-center mb-6">
-            <div className="h-10 w-10 relative flex-shrink-0">
+        <div className="z-10 p-4 md:p-6 flex flex-col">
+          <div className="flex items-center mb-4">
+            <div className="h-8 w-8 relative flex-shrink-0">
               <Image 
                 src="/images/logo.svg" 
                 alt={t('logo')} 
-                width={40} 
-                height={40} 
-                className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert" 
+                width={32} 
+                height={32} 
+                className="mr-2 w-8 h-8 object-contain filter invert" 
               />
             </div>
-            <h1 className="text-lg md:text-xl font-bold">{t('appName')}</h1>
+            <h1 className="text-base md:text-lg font-bold">{t('appName')}</h1>
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('joinUs')}</h2>
-          <p className="text-sm md:text-base opacity-80">{t('createAccountDescription')}</p>
+          <h2 className="text-xl md:text-2xl font-bold mb-2">{t('joinUs')}</h2>
+          <p className="text-xs md:text-sm opacity-80">{t('createAccountDescription')}</p>
           
-          <div className="mt-6 bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5">
-            <div className="flex items-start mb-3">
-              <div className="mr-2.5 mt-0.5 text-blue-200 flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="mt-4 bg-white/10 backdrop-blur-sm p-3 rounded-lg border border-white/5">
+            <div className="flex items-start mb-2">
+              <div className="mr-2 mt-0.5 text-blue-200 flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
               </div>
-              <p className="text-xs leading-relaxed">
+              <p className="text-xs leading-snug">
                 {t('benefitSafety')}
               </p>
             </div>
             <div className="flex items-start">
-              <div className="mr-2.5 mt-0.5 text-blue-200 flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="mr-2 mt-0.5 text-blue-200 flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
               </div>
-              <p className="text-xs leading-relaxed">
+              <p className="text-xs leading-snug">
                 {t('benefitExperience')}
               </p>
             </div>
           </div>
         </div>
         
-        <div className="z-10 p-6 md:p-8 lg:p-10 text-sm">
-          <p className="mb-2 opacity-80">&copy; {new Date().getFullYear()} {t('appName')}</p>
+        <div className="z-10 p-4 md:p-6 text-xs">
+          <p className="mb-1 opacity-80">&copy; {new Date().getFullYear()} {t('appName')}</p>
           <p className="opacity-60">{t('privacyPolicy')} • {t('termsOfService')}</p>
         </div>
       </div>
       
       {/* Right section - Sign up form */}
-      <div className="flex-1 flex justify-center items-center p-4 md:p-6 lg:p-8 xl:p-10 auth-container">
-        <div className="w-full max-w-md md:max-w-lg lg:max-w-xl mt-2 sm:mt-4 mb-auto">
+      <div className="flex-1 flex justify-center items-center p-3 md:p-4 lg:p-6 auth-container">
+        <div className="w-full max-w-md md:max-w-lg mt-1 sm:mt-2 mb-auto">
           {/* Mobile logo (shown only on mobile) */}
-          <div className="flex md:hidden items-center justify-center mb-6 sm:mb-8">
+          <div className="flex md:hidden items-center justify-center mb-4 sm:mb-5">
             <div className="flex items-center responsive-fade-in">
               <Image 
                 src="/images/logo.svg" 
@@ -239,10 +239,10 @@ export default function SignUpPage() {
             </div>
           </div>
           
-          <div className="bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 md:p-8 lg:p-10 auth-form">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-1 auth-heading">{t('signUp')}</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">{t('createAccountDescription')}</p>
+          <div className="bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6 auth-form">
+            <div className="text-center mb-4">
+              <h2 className="text-xl sm:text-2xl font-bold mb-1 auth-heading">{t('signUp')}</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm auth-description">{t('createAccountDescription')}</p>
             </div>
             
             <form onSubmit={handleSubmit} className={`responsive-fade-in ${loading ? 'opacity-70 transition-opacity' : ''}`} data-testid="signup-form">
@@ -257,7 +257,7 @@ export default function SignUpPage() {
                 />
               </div>
               {error && (
-                <div role="alert" className="mb-6 p-3 sm:p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md dark:bg-red-900/30 dark:text-red-200 dark:border-red-700 flex items-center text-xs sm:text-sm">
+                <div role="alert" className="mb-4 p-2 sm:p-3 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md dark:bg-red-900/30 dark:text-red-200 dark:border-red-700 flex items-center text-xs sm:text-sm">
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -267,8 +267,8 @@ export default function SignUpPage() {
                 </div>
               )}
               
-              <div className="mb-5">
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <div className="mb-3">
+                <label htmlFor="username" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {t('username')}
                 </label>
                 <div className="relative group">
@@ -285,14 +285,14 @@ export default function SignUpPage() {
                     onChange={(e) => setUsername(e.target.value)}
                     required
                     disabled={loading}
-                    className="block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
+                    className="block w-full ltr:pl-10 rtl:pr-10 px-3 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
                     placeholder={t('signupUsernamePlaceholder')}
                   />
                 </div>
               </div>
               
-              <div className="mb-5">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <div className="mb-3">
+                <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {t('email')}
                 </label>
                 <div className="relative group">
@@ -323,7 +323,7 @@ export default function SignUpPage() {
                     }}
                     required
                     disabled={loading}
-                    className={`block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${
+                    className={`block w-full ltr:pl-10 rtl:pr-10 px-3 py-2 sm:py-2.5 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${
                       emailError 
                         ? 'border-red-300 dark:border-red-600 focus:ring-red-500' 
                         : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
@@ -343,8 +343,8 @@ export default function SignUpPage() {
                 )}
               </div>
               
-              <div className="mb-5">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <div className="mb-3">
+                <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {t('password')}
                 </label>
                 <PasswordInput
@@ -360,8 +360,8 @@ export default function SignUpPage() {
                 <PasswordRequirementText className="mt-1" />
               </div>
               
-              <div className="mb-5">
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <div className="mb-3">
+                <label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {t('confirmPassword')}
                 </label>
                 <PasswordInput
@@ -376,53 +376,8 @@ export default function SignUpPage() {
                   autoComplete="new-password"
                 />
               </div>
-              
-              {/* User Type Selection */}
-              <div className="mb-5">
-                <label htmlFor="sellerType" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  {t('userType', 'User Type')} <span className="text-red-500">*</span>
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 ltr:left-0 rtl:right-0 flex items-center ltr:pl-3 rtl:pr-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                    <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                  </div>
-                  <select
-                    id="sellerType"
-                    value={sellerTypeId || ''}
-                    onChange={(e) => setSellerTypeId(e.target.value ? Number(e.target.value) : undefined)}
-                    required
-                    disabled={loading || isLoadingSellerTypes}
-                    className="block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 appearance-none"
-                  >
-                    <option value="">
-                      {isLoadingSellerTypes 
-                        ? t('loadingUserTypes', 'Loading user types...') 
-                        : t('selectUserType', 'Select user type')
-                      }
-                    </option>
-                    {sellerTypes.map((type) => (
-                      <option key={type.id} value={type.id}>
-                        {t(`userType.${type.name}`, type.displayNameEn)}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 ltr:right-0 rtl:left-0 flex items-center ltr:pr-3 rtl:pl-3 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="6,9 12,15 18,9"></polyline>
-                    </svg>
-                  </div>
-                </div>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {t('userTypeDescription', 'Choose whether you are an individual seller or a business/dealer')}
-                </p>
-              </div>
-              
-              <div className="mb-5">
+
+              <div className="mb-3">
                 <SimpleVerification
                   onVerified={(verified: boolean) => {
                     if (verified !== isVerified) {
@@ -438,12 +393,12 @@ export default function SignUpPage() {
                 />
               </div>
               
-              <div className="mb-6">
+              <div className="mb-4">
                 <button
                   type="submit"
-                  disabled={loading || !isVerified || isLoadingSellerTypes}
+                  disabled={loading || !isVerified}
                   className={`w-full flex justify-center py-2.5 sm:py-3 px-4 border border-transparent rounded-lg shadow-md text-sm sm:text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-all duration-200 ${
-                    loading || !isVerified || isLoadingSellerTypes ? 'opacity-70 cursor-not-allowed' : 'hover-lift'
+                    loading || !isVerified ? 'opacity-70 cursor-not-allowed' : 'hover-lift'
                   } transform active:translate-y-0`}
                   title={!isVerified ? t('verificationRequired') : ""}
                 >
@@ -460,22 +415,22 @@ export default function SignUpPage() {
               </div>
             </form>
             
-            <div className="relative my-6">
+            <div className="relative my-3">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
               </div>
-              <div className="relative flex justify-center text-sm">
+              <div className="relative flex justify-center text-xs sm:text-sm">
                 <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
                   {t('or')}
                 </span>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <GoogleSignInButton callbackUrl="/dashboard" className="w-full py-2 sm:py-2.5 text-sm sm:text-base" />
+            <div className="space-y-2">
+              <GoogleSignInButton callbackUrl="/dashboard" className="w-full py-2 text-sm" />
             </div>
 
-            <div className="text-center mt-6">
+            <div className="text-center mt-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {t('alreadyHaveAccount')}{" "}
                 <Link
