@@ -97,6 +97,7 @@ const VerifyEmailPage: React.FC = () => {
             
           } else if (isMessageResponse(data)) {
             // Regular message response (already verified case)
+            // For better UX, redirect to home page instead of signin page
             setMessage(data.message || t('emailVerified'));
             
             let userEmail = '';
@@ -105,20 +106,17 @@ const VerifyEmailPage: React.FC = () => {
               setEmail(userEmail);
             }
 
-            // Get username from localStorage (stored during signup)
-            const userUsername = typeof window !== 'undefined' ? localStorage.getItem('signup-username') : null;
-
             // Clean up localStorage after successful verification
             if (typeof window !== 'undefined') {
               localStorage.removeItem('signup-email');
               localStorage.removeItem('signup-username');
             }
 
-            // Auto-redirect after a short delay to signin page
+            // Auto-redirect to home page (like Blocket.se/Autotrader.co.uk)
+            // User can sign in from there if needed
             setTimeout(() => {
-              const redirectUrl = `/auth/signin?verified=true${userEmail ? `&email=${encodeURIComponent(userEmail)}` : ''}${userUsername ? `&username=${encodeURIComponent(userUsername)}` : ''}`;
-              router.push(redirectUrl);
-            }, 3000);
+              router.push('/');
+            }, AUTO_LOGIN_CONFIG.REDIRECT_DELAY_MS);
           }
 
         } else {

@@ -51,7 +51,13 @@ export default function Home() {
       const tempUser = sessionStorage.getItem(TEMP_AUTH_KEYS.USER);
       const tempExpires = sessionStorage.getItem(TEMP_AUTH_KEYS.EXPIRES);
       
-      console.log('Auto-login attempt:', { hasToken: !!tempToken, hasUser: !!tempUser, hasExpires: !!tempExpires });
+      console.log('🔐 Auto-login attempt started:', { 
+        hasToken: !!tempToken, 
+        hasUser: !!tempUser, 
+        hasExpires: !!tempExpires,
+        currentTime: new Date().toISOString(),
+        url: window.location.href
+      });
       
       // Mark that we've attempted auto-login to prevent duplicates
       setAutoLoginAttempted(true);
@@ -118,7 +124,8 @@ export default function Home() {
                     }
                   }, 800); // Slightly longer delay to ensure cookie is properly set
                 } else {
-                  console.error('Auto-login failed:', result.error);
+                  console.error('❌ Auto-login failed:', result.error);
+                  console.log('🧹 Cleaning up temp auth data...');
                   cleanupTempAuth();
                 }
               })
@@ -135,7 +142,8 @@ export default function Home() {
             cleanupTempAuth();
           }
         } else {
-          console.log('Auto-login token expired');
+          console.log('⏰ Auto-login token expired');
+          console.log('🧹 Cleaning up expired temp auth data...');
           cleanupTempAuth();
         }
       }
