@@ -2,8 +2,10 @@
 import Image from "next/image";
 import { useLazyTranslation } from "@/hooks/useLazyTranslation";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import HomeSearchBar from "@/components/search/HomeSearchBar";
 import HomeCarListings from "@/components/home/HomeCarListings";
+import WelcomeOverlay from "@/components/auth/WelcomeOverlay";
 import { fetchLatestListingsPublic, subscribeToNewsletter } from "@/services/publicApi";
 import { CarListing } from "@/services/publicApi";
 
@@ -12,12 +14,32 @@ const HOME_NAMESPACES = ['home', 'common'];
 
 export default function Home() {
   const { t, i18n, ready } = useLazyTranslation(HOME_NAMESPACES);
+  const searchParams = useSearchParams();
   const [latestCars, setLatestCars] = useState<CarListing[]>([]);
   const [isLoadingListings, setIsLoadingListings] = useState(true);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [newsletterMessage, setNewsletterMessage] = useState('');
   const [newsletterSuccess, setNewsletterSuccess] = useState(false);
+  const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(false);
+  const [welcomeUsername, setWelcomeUsername] = useState<string | undefined>();
+
+  useEffect(() => {
+    // Check if user just verified email and should see welcome overlay
+    const verified = searchParams.get('verified');
+    const username = searchParams.get('username');
+    
+    if (verified === 'true') {
+      setWelcomeUsername(username ? decodeURIComponent(username) : undefined);
+      setShowWelcomeOverlay(true);
+      
+      // Clean up URL params
+      const url = new URL(window.location.href);
+      url.searchParams.delete('verified');
+      url.searchParams.delete('username');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const loadLatestCars = async () => {
@@ -81,6 +103,14 @@ export default function Home() {
 
   return (
     <div className="w-full">
+      {/* Welcome Overlay */}
+      {showWelcomeOverlay && (
+        <WelcomeOverlay 
+          username={welcomeUsername}
+          onClose={() => setShowWelcomeOverlay(false)}
+        />
+      )}
+
       {/* Hero Section with full-width banner image */}
       <div className="relative h-[450px] xs:h-[500px] sm:h-[550px] w-full overflow-hidden">
         <Image

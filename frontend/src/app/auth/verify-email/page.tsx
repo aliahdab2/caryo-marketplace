@@ -65,7 +65,7 @@ const VerifyEmailPage: React.FC = () => {
 
           // Auto-redirect after a short delay
           setTimeout(() => {
-            const redirectUrl = `/auth/signin?verified=true${userEmail ? `&email=${encodeURIComponent(userEmail)}` : ''}${userUsername ? `&username=${encodeURIComponent(userUsername)}` : ''}`;
+            const redirectUrl = `/?verified=true${userEmail ? `&email=${encodeURIComponent(userEmail)}` : ''}${userUsername ? `&username=${encodeURIComponent(userUsername)}` : ''}`;
             router.push(redirectUrl);
           }, 3000); // 3-second delay
 
@@ -234,7 +234,7 @@ const VerifyEmailPage: React.FC = () => {
             <div className="space-y-3">
               {verificationStatus === 'success' && (
                 <Link
-                  href={`/auth/signin${email ? `?email=${encodeURIComponent(email)}&verified=true` : '?verified=true'}`}
+                  href={`/?verified=true${email ? `&username=${encodeURIComponent(email)}` : ''}`}
                   className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                 >
                   {t('signInNow')}

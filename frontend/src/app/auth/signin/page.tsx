@@ -64,9 +64,9 @@ const SignInPage: React.FC = () => {
         redirectTarget = storedRedirect;
       } else if (verified === 'true') {
         if (usernameParam) {
-          redirectTarget = `/welcome?username=${encodeURIComponent(usernameParam)}`;
+          redirectTarget = `/?verified=true&username=${encodeURIComponent(usernameParam)}`;
         } else {
-          redirectTarget = '/welcome';
+          redirectTarget = '/?verified=true';
         }
       } else {
         redirectTarget = '/dashboard';
