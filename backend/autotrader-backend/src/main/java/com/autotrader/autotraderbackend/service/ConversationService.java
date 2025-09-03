@@ -509,8 +509,11 @@ public class ConversationService {
             throw new BadRequestException("Unsupported file type: " + contentType);
         }
 
-        if (file.getSize() > 10 * 1024 * 1024) { // 10MB limit
-            throw new BadRequestException("File size cannot exceed 10MB");
+        // Check file size using the proper size limits (10MB for images, 25MB for documents)
+        long maxFileSize = getMaxFileSize(contentType);
+        if (file.getSize() > maxFileSize) {
+            String maxSizeMB = String.valueOf(maxFileSize / (1024 * 1024));
+            throw new BadRequestException("File size cannot exceed " + maxSizeMB + "MB for this file type");
         }
 
         // Generate file key
@@ -615,7 +618,7 @@ public class ConversationService {
             Tika tika = new Tika();
             String detectedType = tika.detect(file.getInputStream()).toLowerCase().trim();
             
-            log.debug("File type detection - Declared: {}, Detected: {} for file: {}", 
+            log.info("File type detection - Declared: {}, Detected: {} for file: {}", 
                      declaredContentType, detectedType, file.getOriginalFilename());
             
             // Reset input stream for later use
@@ -649,6 +652,8 @@ public class ConversationService {
                 // Microsoft Excel spreadsheets (for service records, etc.)
                 case "application/vnd.ms-excel": // .xls
                 case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": // .xlsx
+                case "application/x-tika-ooxml": // Sometimes detected by Tika for Office files
+                case "application/x-tika-msoffice": // Sometimes detected by Tika for older Office files
                     return true;
                 
                 // Plain text files

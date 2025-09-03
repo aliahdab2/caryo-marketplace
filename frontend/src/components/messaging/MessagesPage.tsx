@@ -45,12 +45,52 @@ export default function MessagesPage() {
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showUnsupportedFileModal, setShowUnsupportedFileModal] = useState(false);
+  const [unsupportedFileName, setUnsupportedFileName] = useState('');
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   // Debug: Log messages when they change
   useEffect(() => {
     console.log('🔍 Messages state updated:', messages.length, messages);
   }, [messages]);
+
+  // File validation utility
+  const validateFileType = (file: File, type: 'image' | 'document'): { isValid: boolean; error?: string } => {
+    if (type === 'image') {
+      if (!file.type.startsWith('image/')) {
+        return { isValid: false, error: 'not an image file' };
+      }
+      const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+      if (!allowedImageTypes.includes(file.type)) {
+        return { isValid: false, error: 'unsupported image format' };
+      }
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        return { isValid: false, error: 'file too large (max 10MB for images)' };
+      }
+    } else if (type === 'document') {
+      if (file.type.startsWith('image/')) {
+        return { isValid: false, error: 'image file (use image button instead)' };
+      }
+      const allowedDocTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain',
+        'application/rtf'
+      ];
+      if (!allowedDocTypes.includes(file.type)) {
+        return { isValid: false, error: 'unsupported file type' };
+      }
+      const maxSize = 25 * 1024 * 1024; // 25MB
+      if (file.size > maxSize) {
+        return { isValid: false, error: 'file too large (max 25MB for documents)' };
+      }
+    }
+    return { isValid: true };
+  };
 
   // File handling functions
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,45 +99,27 @@ export default function MessagesPage() {
 
     // Validate image files
     const validFiles: File[] = [];
-    const errors: {[key: string]: string} = {};
+    let firstInvalidFile: string | null = null;
 
-    files.forEach((file, index) => {
-      // Check if it's actually an image
-      if (!file.type.startsWith('image/')) {
-        errors[`file-${index}`] = `${file.name} is not an image file.`;
-        return;
+    files.forEach((file) => {
+      const validation = validateFileType(file, 'image');
+      if (validation.isValid) {
+        validFiles.push(file);
+      } else if (!firstInvalidFile) {
+        firstInvalidFile = file.name;
       }
-
-      // Check file size (10MB for images)
-      const maxSize = 10 * 1024 * 1024;
-      if (file.size > maxSize) {
-        errors[`file-${index}`] = `${file.name} is too large. Maximum size is 10MB for images.`;
-        return;
-      }
-
-      // Check image type
-      const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-      if (!allowedImageTypes.includes(file.type)) {
-        errors[`file-${index}`] = `${file.name} is not a supported image type.`;
-        return;
-      }
-
-      validFiles.push(file);
     });
 
-    // Update state
-    setSelectedFiles(prev => [...prev, ...validFiles]);
-    setUploadErrors(errors);
-
-    // Show success message for valid files
+    // Update state with valid files
     if (validFiles.length > 0) {
+      setSelectedFiles(prev => [...prev, ...validFiles]);
       console.log(`✅ Added ${validFiles.length} image(s) successfully`);
     }
 
-    // Show errors if any
-    if (Object.keys(errors).length > 0) {
-      const errorMessages = Object.values(errors).join('\n');
-      alert(`⚠️ Some files could not be added:\n\n${errorMessages}`);
+    // Show modal for first invalid file
+    if (firstInvalidFile) {
+      setUnsupportedFileName(firstInvalidFile);
+      setShowUnsupportedFileModal(true);
     }
 
     // Clear the input
@@ -112,54 +134,27 @@ export default function MessagesPage() {
 
     // Validate document files
     const validFiles: File[] = [];
-    const errors: {[key: string]: string} = {};
+    let firstInvalidFile: string | null = null;
 
-    files.forEach((file, index) => {
-      // Check if it's a document (not an image)
-      if (file.type.startsWith('image/')) {
-        errors[`file-${index}`] = `${file.name} is an image. Please use the image button for images.`;
-        return;
+    files.forEach((file) => {
+      const validation = validateFileType(file, 'document');
+      if (validation.isValid) {
+        validFiles.push(file);
+      } else if (!firstInvalidFile) {
+        firstInvalidFile = file.name;
       }
-
-      // Check file size (25MB for documents)
-      const maxSize = 25 * 1024 * 1024;
-      if (file.size > maxSize) {
-        errors[`file-${index}`] = `${file.name} is too large. Maximum size is 25MB for documents.`;
-        return;
-      }
-
-      // Check document type
-      const allowedDocTypes = [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'text/plain',
-        'application/rtf'
-      ];
-
-      if (!allowedDocTypes.includes(file.type)) {
-        errors[`file-${index}`] = `${file.name} is not a supported document type.`;
-        return;
-      }
-
-      validFiles.push(file);
     });
 
-    // Update state
-    setSelectedFiles(prev => [...prev, ...validFiles]);
-    setUploadErrors(errors);
-
-    // Show success message for valid files
+    // Update state with valid files
     if (validFiles.length > 0) {
+      setSelectedFiles(prev => [...prev, ...validFiles]);
       console.log(`✅ Added ${validFiles.length} document(s) successfully`);
     }
 
-    // Show errors if any
-    if (Object.keys(errors).length > 0) {
-      const errorMessages = Object.values(errors).join('\n');
-      alert(`⚠️ Some files could not be added:\n\n${errorMessages}`);
+    // Show modal for first invalid file
+    if (firstInvalidFile) {
+      setUnsupportedFileName(firstInvalidFile);
+      setShowUnsupportedFileModal(true);
     }
 
     // Clear the input
@@ -310,10 +305,35 @@ export default function MessagesPage() {
         // Send message with attachments
         const formData = new FormData();
         formData.append('content', newMessage.trim() || '');
-        formData.append('messageType', 'TEXT');
-        
-        selectedFiles.forEach(file => {
-          formData.append('files', file);
+        formData.append('messageType', 'text');
+
+        // Normalize/ensure allowed MIME types for documents
+        const inferMimeType = (name: string, fallback: string): string => {
+          const ext = (name || '').toLowerCase().split('.').pop() || '';
+          switch (ext) {
+            case 'pdf': return 'application/pdf';
+            case 'doc': return 'application/msword';
+            case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            case 'xls': return 'application/vnd.ms-excel';
+            case 'xlsx': return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            case 'rtf': return 'application/rtf';
+            case 'txt': return 'text/plain';
+            case 'jpg':
+            case 'jpeg': return 'image/jpeg';
+            case 'png': return 'image/png';
+            case 'webp': return 'image/webp';
+            case 'gif': return 'image/gif';
+            default: return fallback || 'application/octet-stream';
+          }
+        };
+
+        selectedFiles.forEach((file, idx) => {
+          const name = file.name || `attachment_${idx + 1}`;
+          const type = (!file.type || file.type === 'application/octet-stream')
+            ? inferMimeType(name, file.type)
+            : file.type;
+          const normalized = new File([file], name, { type });
+          formData.append('files', normalized);
         });
 
         messageResponse = await MessagingService.sendMessageWithAttachments(selectedConversation.id, formData);
@@ -324,7 +344,7 @@ export default function MessagesPage() {
         // Send text-only message
         messageResponse = await MessagingService.sendMessage(selectedConversation.id, {
           content: newMessage.trim(),
-          messageType: 'TEXT'
+          messageType: 'text'
         });
       }
 
@@ -581,6 +601,19 @@ export default function MessagesPage() {
         confirmText={t('deleteConversation')}
         cancelText={t('cancel')}
         type="danger"
+      />
+
+      {/* Unsupported File Modal */}
+      <DeleteConfirmationModal
+        isOpen={showUnsupportedFileModal}
+        onClose={() => setShowUnsupportedFileModal(false)}
+        onConfirm={() => setShowUnsupportedFileModal(false)}
+        title={t('unsupportedFileType', 'Unsupported File Type')}
+        message={t('unsupportedFileMessage', 'This file type is not supported. Please select an image (JPEG, PNG, WebP, GIF) or document (PDF, Word, Excel, TXT) file.')}
+        itemName={unsupportedFileName}
+        confirmText={t('common:ok', 'OK')}
+        cancelText=""
+        type="warning"
       />
     </div>
   );
