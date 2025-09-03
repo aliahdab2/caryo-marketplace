@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
+import { isValidEmail } from '@/utils/emailValidation';
 
 const ForgotPasswordPage: React.FC = () => {
   const { t } = useTranslation(['auth', 'errors']);
@@ -13,10 +14,9 @@ const ForgotPasswordPage: React.FC = () => {
   const [emailValid, setEmailValid] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Email validation
+  // Email validation using robust utility
   useEffect(() => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    setEmailValid(emailRegex.test(email.trim()));
+    setEmailValid(isValidEmail(email.trim()));
   }, [email]);
 
   const handleSubmit = async (e: React.FormEvent) => {

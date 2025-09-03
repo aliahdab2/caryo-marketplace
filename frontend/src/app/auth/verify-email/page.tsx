@@ -47,16 +47,25 @@ const VerifyEmailPage: React.FC = () => {
         if (response.ok) {
           setVerificationStatus('success');
           setMessage(data.message || t('emailVerified'));
-          
+
           let userEmail = '';
           if (data.email) {
             userEmail = data.email;
             setEmail(userEmail);
           }
 
+          // Get username from localStorage (stored during signup)
+          const userUsername = typeof window !== 'undefined' ? localStorage.getItem('signup-username') : null;
+
+          // Clean up localStorage after successful verification
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('signup-email');
+            localStorage.removeItem('signup-username');
+          }
+
           // Auto-redirect after a short delay
           setTimeout(() => {
-            const redirectUrl = `/auth/signin?verified=true${userEmail ? `&email=${encodeURIComponent(userEmail)}` : ''}`;
+            const redirectUrl = `/auth/signin?verified=true${userEmail ? `&email=${encodeURIComponent(userEmail)}` : ''}${userUsername ? `&username=${encodeURIComponent(userUsername)}` : ''}`;
             router.push(redirectUrl);
           }, 3000); // 3-second delay
 

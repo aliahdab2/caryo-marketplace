@@ -23,18 +23,17 @@ const CheckEmailPage: React.FC = () => {
   const [resendError, setResendError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Extract email from URL params or localStorage
+  // Extract email and username from URL params or localStorage
   useEffect(() => {
     const emailFromUrl = searchParams.get('email');
     const emailFromStorage = typeof window !== 'undefined' ? localStorage.getItem('signup-email') : null;
-    
+    const usernameFromStorage = typeof window !== 'undefined' ? localStorage.getItem('signup-username') : null;
+
     const userEmail = emailFromUrl || emailFromStorage || '';
     setEmail(userEmail);
-    
-    // Clean up localStorage after using it
-    if (emailFromStorage && typeof window !== 'undefined') {
-      localStorage.removeItem('signup-email');
-    }
+
+    // Clean up localStorage after using it (but keep for verify-email page)
+    // We'll clean up in verify-email page after successful verification
   }, [searchParams]);
 
   // Cooldown timer effect

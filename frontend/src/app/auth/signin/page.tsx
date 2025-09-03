@@ -2,6 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useOptimizedSession } from "@/hooks/useOptimizedSession";
+import { isValidEmail, looksLikeEmail } from '@/utils/emailValidation';
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useEffect, FormEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -35,11 +36,12 @@ const SignInPage: React.FC = () => {
   const [isVerified, setIsVerified] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [credentialsCorrect, setCredentialsCorrect] = useState(false);
+  const [usernameError, setUsernameError] = useState("");
 
 
   const { user } = useOptimizedSession();
 
-  // Extract callback URL from search params if present
+    // Extract callback URL from search params if present
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
@@ -47,12 +49,13 @@ const SignInPage: React.FC = () => {
       const callback = searchParams.get('callbackUrl');
       const verified = searchParams.get('verified');
       const email = searchParams.get('email');
+      const usernameParam = searchParams.get('username');
 
       // Check localStorage for redirect URL (from FavoriteButton or other sources) - fallback only
       const storedRedirect = localStorage.getItem('redirectAfterAuth');
 
-      // Prefer URL parameters over localStorage, then default to /dashboard
-      const redirectTarget = returnUrl || callback || storedRedirect || '/dashboard';
+      // Prefer URL parameters over localStorage, then default to welcome page for new users
+      const redirectTarget = returnUrl || callback || storedRedirect || (verified === 'true' ? `/welcome${usernameParam ? `?username=${encodeURIComponent(usernameParam)}` : ''}` : '/dashboard');
 
       // Clear the stored redirect URL if we found one (cleanup)
       if (storedRedirect) {
@@ -89,8 +92,11 @@ const SignInPage: React.FC = () => {
         }, 100);
       }
 
-      // Pre-fill username with email if provided from verification redirect
-      if (email) {
+      // Pre-fill username field - prefer username over email for better UX
+      if (usernameParam) {
+        setUsername(decodeURIComponent(usernameParam));
+      } else if (email) {
+        // Fallback to email if username not available
         setUsername(decodeURIComponent(email));
       }
 
@@ -115,11 +121,19 @@ const SignInPage: React.FC = () => {
     event.preventDefault();
     setLoading(true);
     setError(null);
+    setUsernameError("");
     setShowSuccess(false);
     setCredentialsCorrect(false);
 
     if (!username || !password) {
       setError(t('fieldRequired'));
+      setLoading(false);
+      return;
+    }
+
+    // If username looks like an email, validate it
+    if (looksLikeEmail(username) && !isValidEmail(username)) {
+      setUsernameError(t('invalidEmailFormat'));
       setLoading(false);
       return;
     }
@@ -259,10 +273,10 @@ const SignInPage: React.FC = () => {
           }`}>
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold mb-1 auth-heading">
-                {verificationSuccess ? t('auth:welcomeBack') : t('signIn')}
+                {t('signIn')}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">
-                {verificationSuccess ? t('auth:enterYourPassword') : t('signInDescription')}
+                {t('signInDescription')}
               </p>
             </div>
             
@@ -277,15 +291,8 @@ const SignInPage: React.FC = () => {
               </div>
             )}
             {verificationSuccess && (
-              <div role="alert" className="mb-6 p-3 sm:p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-md dark:bg-green-900/30 dark:text-green-200 dark:border-green-700 flex items-start text-xs sm:text-sm animate-fade-in">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                <div className="flex-1">
-                  <p className="font-medium">{t('auth:emailVerified')}</p>
-                  <p className="text-green-600 dark:text-green-300 mt-1">{t('auth:pleaseSignIn')}</p>
-                </div>
+              <div role="alert" className="mb-6 p-3 sm:p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-md dark:bg-green-900/30 dark:text-green-200 dark:border-green-700 text-xs sm:text-sm">
+                <p className="font-medium">{t('auth:emailVerified')} {t('auth:pleaseSignIn')}</p>
               </div>
             )}
             {showSuccess && (
@@ -314,10 +321,28 @@ const SignInPage: React.FC = () => {
                     id="username"
                     type="text"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={(e) => {
+                      const newUsername = e.target.value;
+                      setUsername(newUsername);
+                      // Clear username error when user starts typing
+                      if (usernameError) {
+                        setUsernameError("");
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Validate email format if it looks like an email
+                      const usernameValue = e.target.value.trim();
+                      if (usernameValue && looksLikeEmail(usernameValue) && !isValidEmail(usernameValue)) {
+                        setUsernameError(t('invalidEmailFormat'));
+                      }
+                    }}
                     required
                     data-error={t('fieldRequired')}
-                    className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
+                    className={`block w-full pl-10 px-4 py-2.5 sm:py-3 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${
+                      usernameError 
+                        ? 'border-red-300 dark:border-red-600 focus:ring-red-500' 
+                        : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+                    }`}
                     placeholder={t('usernamePlaceholder')}
                     onInvalid={(e) => {
                       e.preventDefault();
@@ -327,7 +352,18 @@ const SignInPage: React.FC = () => {
                     }}
                     onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                   />
+
                 </div>
+                {usernameError && (
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
+                    <svg className="w-4 h-4 mr-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    {usernameError}
+                  </p>
+                )}
               </div>
               
               <div className="mb-5">
@@ -343,7 +379,7 @@ const SignInPage: React.FC = () => {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={verificationSuccess ? t('auth:enterYourPassword') : t('passwordPlaceholder')}
+                  placeholder={t('passwordPlaceholder')}
                   required
                   disabled={loading || redirecting}
                   data-error={t('fieldRequired')}
@@ -356,6 +392,8 @@ const SignInPage: React.FC = () => {
                   onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                   autoComplete="current-password"
                 />
+
+
               </div>
               
               <div className="mb-5">
@@ -390,7 +428,7 @@ const SignInPage: React.FC = () => {
                       </svg>
                       {t('loading')}
                     </div>
-                  ) : verificationSuccess ? t('auth:completeSignIn') : t('signIn')}
+                  ) : t('signIn')}
                 </button>
               </div>
             </form>
