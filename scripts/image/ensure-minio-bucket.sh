@@ -6,7 +6,7 @@ MINIO_HOST="localhost"
 MINIO_PORT="9000"
 MINIO_USER="newuser"
 MINIO_PASSWORD="newpassword"
-BUCKET_NAME="autotrader-assets"
+BUCKET_NAME="caryo-assets"
 
 # Parse command line arguments
 while [[ "$#" -gt 0 ]]; do

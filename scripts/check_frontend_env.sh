@@ -169,7 +169,7 @@ check_minio_connection() {
                         CONNECTION_SUCCESS=true
                         
                         # Check if the bucket exists
-                        BUCKET_NAME="autotrader-assets"
+                        BUCKET_NAME="caryo-assets"
                         echo -e "${YELLOW}Checking for bucket: $BUCKET_NAME${NC}"
                         
                         # We can only check bucket existence with proper credentials
@@ -225,7 +225,7 @@ check_minio_buckets() {
                     echo -e "${GREEN}✓ Successfully configured MinIO client${NC}"
                     
                     # Check if buckets exist
-                    BUCKET_NAME="autotrader-assets"
+                    BUCKET_NAME="caryo-assets"
                     if mc ls caryo | grep -q "$BUCKET_NAME"; then
                         echo -e "${GREEN}✓ Bucket '$BUCKET_NAME' exists${NC}"
                     else
@@ -273,9 +273,9 @@ check_minio_buckets() {
                         else
                             echo -e "${YELLOW}  You may need to create it:${NC}"
                             echo -e "${YELLOW}  1. Using the ensure-minio-bucket.sh script:${NC}"
-                            echo -e "${YELLOW}     ./scripts/ensure-minio-bucket.sh --bucket $BUCKET_NAME${NC}"
+                            echo -e "${YELLOW}     ./scripts/ensure-minio-bucket.sh --bucket caryo-assets${NC}"
                             echo -e "${YELLOW}  2. Or using mc directly:${NC}"
-                            echo -e "${YELLOW}     mc mb caryo/$BUCKET_NAME${NC}"
+                            echo -e "${YELLOW}     mc mb caryo/caryo-assets${NC}"
                             echo -e "${YELLOW}  Or run this script with --fix to create it automatically${NC}"
                         fi
                     fi

@@ -67,5 +67,7 @@
   "deleteConversationSuccess": "تم حذف المحادثة بنجاح",
   "chatting_about": "محادثة حول",
   "view_listing": "عرض الإعلان",
-  "errorNotAuthenticated": "خطأ: يجب عرض هذا النموذج للمستخدمين المصادق عليهم فقط."
+  "errorNotAuthenticated": "خطأ: يجب عرض هذا النموذج للمستخدمين المصادق عليهم فقط.",
+  "unsupportedFileType": "نوع ملف غير مدعوم",
+  "unsupportedFileMessage": "نوع الملف هذا غير مدعوم. يرجى اختيار صورة (JPEG، PNG، WebP، GIF) أو مستند (PDF، Word، Excel، TXT)."
 }

@@ -88,7 +88,7 @@ export const useMessaging = () => {
       conversationId: selectedConversation.id,
       content: content || '',
       displayContent: content || '',
-      messageType: 'TEXT',
+      messageType: 'text',
       isRead: false,
       readAt: undefined,
       createdAt: new Date().toISOString(),
@@ -132,14 +132,14 @@ export const useMessaging = () => {
       if (files?.length) {
         const formData = new FormData();
         formData.append('content', content || '');
-        formData.append('messageType', 'TEXT');
+        formData.append('messageType', 'text');
         files.forEach(file => formData.append('files', file));
         
         response = await MessagingService.sendMessageWithAttachments(selectedConversation.id, formData);
       } else {
         response = await MessagingService.sendMessage(selectedConversation.id, {
           content,
-          messageType: 'TEXT'
+          messageType: 'text'
         });
       }
       

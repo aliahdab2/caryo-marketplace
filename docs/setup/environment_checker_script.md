@@ -55,7 +55,7 @@ If the script reports issues:
 
 The script checks for a running MinIO server and verifies the existence of the required bucket:
 
-- Default bucket name: `autotrader-assets`
+- Default bucket name: `caryo-assets`
 
 If the bucket doesn't exist, the script can create it automatically with the `--fix` flag.
 
@@ -65,12 +65,12 @@ If you need to create the bucket manually, you can use:
 
 ```bash
 # Using the provided script
-./scripts/ensure-minio-bucket.sh --bucket autotrader-assets
+./scripts/ensure-minio-bucket.sh --bucket caryo-assets
 
 # Or using MinIO client directly
 mc alias set caryo http://localhost:9000 minioadmin minioadmin
-mc mb caryo/autotrader-assets
-mc policy set download caryo/autotrader-assets
+mc mb caryo/caryo-assets
+mc policy set download caryo/caryo-assets
 ```
 
 ## Further Resources

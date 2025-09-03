@@ -109,8 +109,7 @@ const CheckEmailPage: React.FC = () => {
             />
             <h1 className="text-lg md:text-xl font-bold">{t('appName')}</h1>
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('checkYourEmail')}</h2>
-          <p className="text-sm md:text-base opacity-80">{t('verificationEmailSent')}</p>
+          {/* Left panel keeps branding only to avoid duplicating the main title */}
         </div>
         
         <div className="z-10 p-6 md:p-8 lg:p-10 text-sm">

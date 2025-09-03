@@ -28,7 +28,7 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
   placeholder,
   maxLength = 1000,
   allowAttachments = true,
-  acceptedFileTypes = "image/*,.pdf,.doc,.docx,.txt",
+  acceptedFileTypes = "image/*,.pdf,.doc,.docx,.xls,.xlsx,.rtf,.txt",
   maxFileSize = 10 * 1024 * 1024, // 10MB
   maxFiles = 5
 }) => {

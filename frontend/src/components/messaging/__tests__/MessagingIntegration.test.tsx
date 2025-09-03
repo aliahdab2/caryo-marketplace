@@ -96,7 +96,7 @@ describe('Messaging Integration Tests', () => {
     senderId: 1,
     senderName: 'John Doe',
     displayContent: 'Test message content',
-    messageType: 'TEXT',
+    messageType: 'text',
     createdAt: '2024-01-01T11:00:00Z',
     isRead: false,
     attachments: [],

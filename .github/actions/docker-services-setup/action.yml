@@ -267,8 +267,8 @@ runs:
           echo "Attempting to create required buckets manually..."
           
           # Try to create the buckets directly using the MinIO container
-          docker exec ${{ inputs.minio-container-name }} mc mb --ignore-existing myminio/autotrader-assets || echo "Failed to create autotrader-assets bucket"
-          docker exec ${{ inputs.minio-container-name }} mc policy set download myminio/autotrader-assets || echo "Failed to set policy on autotrader-assets bucket"
+          docker exec ${{ inputs.minio-container-name }} mc mb --ignore-existing myminio/caryo-assets || echo "Failed to create caryo-assets bucket"
+          docker exec ${{ inputs.minio-container-name }} mc policy set download myminio/caryo-assets || echo "Failed to set policy on caryo-assets bucket"
           
           # List buckets to verify
           echo "Manually created buckets:"
@@ -317,8 +317,8 @@ runs:
             docker logs ${{ inputs.createbuckets-container-name }}
             
             echo "Attempting to create buckets manually as a recovery step..."
-            docker exec ${{ inputs.minio-container-name }} mc mb --ignore-existing myminio/autotrader-assets || echo "Failed to create bucket"
-            docker exec ${{ inputs.minio-container-name }} mc policy set download myminio/autotrader-assets || echo "Failed to set policy"
+            docker exec ${{ inputs.minio-container-name }} mc mb --ignore-existing myminio/caryo-assets || echo "Failed to create bucket"
+            docker exec ${{ inputs.minio-container-name }} mc policy set download myminio/caryo-assets || echo "Failed to set policy"
         else
             echo "✅ createbuckets container completed successfully. Exit code: 0"
         fi
@@ -326,20 +326,20 @@ runs:
         # Verify that buckets were actually created successfully
         echo "=== Verifying MinIO buckets ==="
         echo "Listing buckets to verify successful creation:"
-        if docker exec ${{ inputs.minio-container-name }} mc ls myminio | grep -q "autotrader-assets"; then
-          echo "✅ autotrader-assets bucket exists!"
+        if docker exec ${{ inputs.minio-container-name }} mc ls myminio | grep -q "caryo-assets"; then
+          echo "✅ caryo-assets bucket exists!"
           
           # Verify bucket permissions
           echo "Checking bucket policy:"
-          docker exec ${{ inputs.minio-container-name }} mc policy get myminio/autotrader-assets || echo "⚠️ Could not verify bucket policy"
+          docker exec ${{ inputs.minio-container-name }} mc policy get myminio/caryo-assets || echo "⚠️ Could not verify bucket policy"
         else
-          echo "❌ autotrader-assets bucket not found! Creating it now..."
-          docker exec ${{ inputs.minio-container-name }} mc mb --ignore-existing myminio/autotrader-assets
-          docker exec ${{ inputs.minio-container-name }} mc policy set download myminio/autotrader-assets
+          echo "❌ caryo-assets bucket not found! Creating it now..."
+          docker exec ${{ inputs.minio-container-name }} mc mb --ignore-existing myminio/caryo-assets
+          docker exec ${{ inputs.minio-container-name }} mc policy set download myminio/caryo-assets
           
           # Verify again after manual creation
-          if docker exec ${{ inputs.minio-container-name }} mc ls myminio | grep -q "autotrader-assets"; then
-            echo "✅ Successfully created autotrader-assets bucket manually."
+          if docker exec ${{ inputs.minio-container-name }} mc ls myminio | grep -q "caryo-assets"; then
+            echo "✅ Successfully created caryo-assets bucket manually."
           else
             echo "❌ Failed to create required bucket. Applications may not function correctly."
           fi

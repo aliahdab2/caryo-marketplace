@@ -77,13 +77,13 @@ jobs:
           ./mc alias set myminio http://localhost:9000 minioadmin minioadmin
           
           # List buckets to check if our bucket exists
-          if ./mc ls myminio | grep -q "autotrader-assets"; then
-            echo "✅ autotrader-assets bucket exists!"
+          if ./mc ls myminio | grep -q "caryo-assets"; then
+            echo "✅ caryo-assets bucket exists!"
           else
-            echo "⚠️ autotrader-assets bucket not found, creating it..."
-            ./mc mb --ignore-existing myminio/autotrader-assets
-            ./mc policy set download myminio/autotrader-assets
-            echo "✅ Created autotrader-assets bucket with download policy"
+            echo "⚠️ caryo-assets bucket not found, creating it..."
+            ./mc mb --ignore-existing myminio/caryo-assets
+            ./mc policy set download myminio/caryo-assets
+            echo "✅ Created caryo-assets bucket with download policy"
           fi
           
           # Double-check creation
@@ -120,7 +120,7 @@ jobs:
             endpoint: http://localhost:9000
             accessKey: minioadmin
             secretKey: minioadmin
-            bucket: autotrader-assets
+            bucket: caryo-assets
           logging:
             level:
               root: INFO

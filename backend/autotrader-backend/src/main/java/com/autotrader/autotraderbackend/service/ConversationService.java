@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.tika.Tika;
 
-import java.time.LocalDateTime;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -108,7 +108,7 @@ public class ConversationService {
                 .conversation(conversation)
                 .sender(buyer)
                 .content(request.getTrimmedMessage())
-                .messageType(MessageType.valueOf(request.getMessageType().toUpperCase()))
+                .messageType(MessageType.fromValue(request.getMessageType().toLowerCase()))
                 .build();
 
         conversation.addMessage(initialMessage);
@@ -178,7 +178,7 @@ public class ConversationService {
                 .conversation(conversation)
                 .sender(sender)
                 .content(request.getContent() != null ? request.getContent().trim() : "")
-                .messageType(MessageType.valueOf(request.getMessageType().toUpperCase()))
+                .messageType(MessageType.fromValue(request.getMessageType().toLowerCase()))
                 .build();
 
         message = messageRepository.save(message);
@@ -305,8 +305,6 @@ public class ConversationService {
 
     // Helper methods for mapping entities to DTOs
     private ConversationResponse mapToConversationResponse(Conversation conversation, User currentUser) {
-        User otherUser = conversation.getOtherParticipant(currentUser);
-        Message lastMessage = conversation.getLastMessage();
 
         return ConversationResponse.builder()
                 .id(conversation.getId())
@@ -509,8 +507,11 @@ public class ConversationService {
             throw new BadRequestException("Unsupported file type: " + contentType);
         }
 
-        if (file.getSize() > 10 * 1024 * 1024) { // 10MB limit
-            throw new BadRequestException("File size cannot exceed 10MB");
+        // Check file size using the proper size limits (10MB for images, 25MB for documents)
+        long maxFileSize = getMaxFileSize(contentType);
+        if (file.getSize() > maxFileSize) {
+            String maxSizeMB = String.valueOf(maxFileSize / (1024 * 1024));
+            throw new BadRequestException("File size cannot exceed " + maxSizeMB + "MB for this file type");
         }
 
         // Generate file key
@@ -523,7 +524,7 @@ public class ConversationService {
         String fileKey = "messages/" + message.getConversation().getId() + "/" + UUID.randomUUID().toString() + fileExtension;
 
         // Store file
-        String fileUrl = storageService.store(file, fileKey);
+        storageService.store(file, fileKey);
 
         // Create and save attachment
         MessageAttachment attachment = MessageAttachment.builder()
@@ -615,7 +616,7 @@ public class ConversationService {
             Tika tika = new Tika();
             String detectedType = tika.detect(file.getInputStream()).toLowerCase().trim();
             
-            log.debug("File type detection - Declared: {}, Detected: {} for file: {}", 
+            log.info("File type detection - Declared: {}, Detected: {} for file: {}", 
                      declaredContentType, detectedType, file.getOriginalFilename());
             
             // Reset input stream for later use
@@ -649,6 +650,8 @@ public class ConversationService {
                 // Microsoft Excel spreadsheets (for service records, etc.)
                 case "application/vnd.ms-excel": // .xls
                 case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": // .xlsx
+                case "application/x-tika-ooxml": // Sometimes detected by Tika for Office files
+                case "application/x-tika-msoffice": // Sometimes detected by Tika for older Office files
                     return true;
                 
                 // Plain text files
@@ -669,39 +672,7 @@ public class ConversationService {
         }
     }
 
-    /**
-     * Check if the file type is allowed for message attachments (String version)
-     */
-    private boolean isAllowedFileType(String contentType) {
-        if (contentType == null) {
-            return false;
-        }
-        
-        String normalizedType = contentType.toLowerCase().trim();
-        
-        // Image types
-        if (normalizedType.startsWith("image/")) {
-            return normalizedType.equals("image/jpeg") ||
-                   normalizedType.equals("image/jpg") ||
-                   normalizedType.equals("image/png") ||
-                   normalizedType.equals("image/webp") ||
-                   normalizedType.equals("image/gif");
-        }
-        
-        // Document types
-        switch (normalizedType) {
-            case "application/pdf":
-            case "application/msword":
-            case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-            case "application/vnd.ms-excel":
-            case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-            case "text/plain":
-            case "application/rtf":
-                return true;
-            default:
-                return false;
-        }
-    }
+
 
     /**
      * Get maximum file size based on file type
