@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @jest-environment jsdom
  */
 import { NextRequest } from 'next/server';
 import { POST } from '../route';

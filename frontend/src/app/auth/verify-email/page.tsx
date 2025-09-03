@@ -90,9 +90,40 @@ const VerifyEmailPage: React.FC = () => {
               sessionStorage.setItem(TEMP_AUTH_KEYS.EXPIRES, expirationTime.toString());
             }
             
-            // Auto-redirect to homepage after configured delay
-            setTimeout(() => {
-              router.push('/?auto-login=true');
+            // After a brief UX delay, create the NextAuth session directly, wait until ready, then go home
+            setTimeout(async () => {
+              try {
+                const autoLoginBody = {
+                  token: data.token,
+                  user: {
+                    id: data.id,
+                    username: data.username,
+                    email: data.email,
+                    roles: data.roles || []
+                  }
+                };
+                const resp = await fetch('/api/auth/auto-login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(autoLoginBody)
+                });
+                const result = await resp.json();
+                if (resp.ok && result && result.success) {
+                  // Optional: clean up temp storage now that session is active
+                  if (typeof window !== 'undefined') {
+                    sessionStorage.removeItem(TEMP_AUTH_KEYS.TOKEN);
+                    sessionStorage.removeItem(TEMP_AUTH_KEYS.USER);
+                    sessionStorage.removeItem(TEMP_AUTH_KEYS.EXPIRES);
+                  }
+                  // Navigate to home with full page load to ensure server-side session is recognized
+                  window.location.href = '/';
+                } else {
+                  // Fallback to home
+                  router.push('/');
+                }
+              } catch (_err) {
+                router.push('/');
+              }
             }, AUTO_LOGIN_CONFIG.REDIRECT_DELAY_MS);
             
           } else if (isMessageResponse(data)) {

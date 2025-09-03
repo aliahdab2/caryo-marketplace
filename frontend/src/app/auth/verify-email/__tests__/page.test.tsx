@@ -160,15 +160,25 @@ describe('VerifyEmailPage', () => {
       );
     });
 
-    it('should redirect to homepage with auto-login parameter after delay', async () => {
+    it('should call auto-login API and redirect to homepage after delay', async () => {
       mockGet.mockReturnValue('valid-token');
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        headers: {
-          get: () => 'application/json',
-        },
-        json: () => Promise.resolve(jwtResponse),
-      });
+      (fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          headers: {
+            get: () => 'application/json',
+          },
+          json: () => Promise.resolve(jwtResponse),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ success: true }),
+        });
+
+      // Mock window.location
+      const mockLocation = { href: '' };
+      delete (window as any).location;
+      (window as any).location = mockLocation;
 
       render(<VerifyEmailPage />);
 
@@ -181,7 +191,27 @@ describe('VerifyEmailPage', () => {
         jest.advanceTimersByTime(AUTO_LOGIN_CONFIG.REDIRECT_DELAY_MS);
       });
 
-      expect(mockPush).toHaveBeenCalledWith('/?auto-login=true');
+      await waitFor(() => {
+        // Should call auto-login API
+        expect(fetch).toHaveBeenCalledWith('/api/auth/auto-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: 'mock-jwt-token',
+            user: {
+              id: 1,
+              username: 'testuser',
+              email: 'test@example.com',
+              roles: ['ROLE_USER']
+            }
+          })
+        });
+      });
+
+      await waitFor(() => {
+        // Should redirect via window.location.href
+        expect(mockLocation.href).toBe('/');
+      }, { timeout: 3000 });
     });
 
     it('should clean up localStorage after JWT response', async () => {
@@ -226,15 +256,29 @@ describe('VerifyEmailPage', () => {
       email: 'test@example.com',
     };
 
-    it('should handle message response and redirect to signin', async () => {
+    it('should handle message response and attempt fresh JWT request', async () => {
       mockGet.mockReturnValue('valid-token');
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        headers: {
-          get: () => 'application/json',
-        },
-        json: () => Promise.resolve(messageResponse),
-      });
+      (fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          headers: {
+            get: () => 'application/json',
+          },
+          json: () => Promise.resolve(messageResponse),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(jwtResponse),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ success: true }),
+        });
+
+      // Mock window.location
+      const mockLocation = { href: '' };
+      delete (window as any).location;
+      (window as any).location = mockLocation;
 
       render(<VerifyEmailPage />);
 
@@ -247,9 +291,18 @@ describe('VerifyEmailPage', () => {
         jest.advanceTimersByTime(3000);
       });
 
-      expect(mockPush).toHaveBeenCalledWith(
-        '/auth/signin?verified=true&email=test%40example.com'
-      );
+      await waitFor(() => {
+        // Should attempt to get fresh JWT
+        expect(fetch).toHaveBeenCalledWith(
+          expect.stringContaining('/api/auth/verify-email?token='),
+          expect.objectContaining({ method: 'GET' })
+        );
+      });
+
+      await waitFor(() => {
+        // Should redirect via window.location.href after successful auto-login
+        expect(window.location.href).toBe('/');
+      }, { timeout: 3000 });
     });
 
     it('should not store temporary auth data for message response', async () => {

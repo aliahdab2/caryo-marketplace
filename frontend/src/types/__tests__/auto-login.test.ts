@@ -207,7 +207,8 @@ describe('Auto-Login Types', () => {
 
     it('should have correct AUTO_LOGIN_CONFIG', () => {
       expect(AUTO_LOGIN_CONFIG.TEMP_TOKEN_EXPIRY_MINUTES).toBe(5);
-      expect(AUTO_LOGIN_CONFIG.REDIRECT_DELAY_MS).toBe(2000);
+      // Updated to reflect current config for smoother UX
+      expect(AUTO_LOGIN_CONFIG.REDIRECT_DELAY_MS).toBe(1500);
       expect(AUTO_LOGIN_CONFIG.SESSION_EXPIRY_HOURS).toBe(24);
     });
   });
