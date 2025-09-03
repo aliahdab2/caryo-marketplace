@@ -117,6 +117,7 @@ describe('Auto-Login Integration Flow', () => {
   });
 
   describe('Complete Auto-Login Flow', () => {
+    const mockCurrentTime = 1000000000000; // Fixed timestamp
     const jwtResponse = {
       token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token',
       type: 'Bearer',
@@ -209,7 +210,7 @@ describe('Auto-Login Integration Flow', () => {
               roles: jwtResponse.roles,
             });
           case TEMP_AUTH_KEYS.EXPIRES:
-            return (Date.now() + 300000).toString(); // 5 minutes from now
+            return (Date.now() + 3600000).toString(); // 1 hour from now (very safe)
           default:
             return null;
         }

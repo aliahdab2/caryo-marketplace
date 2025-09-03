@@ -53,7 +53,7 @@ export const TEMP_AUTH_KEYS = {
 // Auto-login configuration
 export const AUTO_LOGIN_CONFIG = {
   TEMP_TOKEN_EXPIRY_MINUTES: 5,
-  REDIRECT_DELAY_MS: 2000,
+  REDIRECT_DELAY_MS: 1500, // Reduced from 2000ms to 1500ms for smoother UX
   SESSION_EXPIRY_HOURS: 24,
 } as const;
 

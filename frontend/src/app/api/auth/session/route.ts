@@ -32,6 +32,7 @@ export async function GET(_request: Request) {
     return NextResponse.json(sessionData);
   } catch (error) {
     console.error("Session API: Error occurred:", error);
-    return NextResponse.json({ user: null, accessToken: null, expires: null }, { status: 500 });
+    // Return 200 with null data instead of 500 to avoid NextAuth treating it as a fetch error
+    return NextResponse.json({ user: null, accessToken: null, expires: null });
   }
 }

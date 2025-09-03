@@ -28,6 +28,7 @@ export default function Home() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [newsletterMessage, setNewsletterMessage] = useState('');
+  const [autoLoginAttempted, setAutoLoginAttempted] = useState(false);
   const [newsletterSuccess, setNewsletterSuccess] = useState(false);
   // Helper function to clean up temporary authentication data
   const cleanupTempAuth = useCallback(() => {
@@ -45,10 +46,15 @@ export default function Home() {
     const autoLogin = searchParams.get('auto-login');
     
     // Handle auto-login after email verification
-    if (autoLogin === 'true' && typeof window !== 'undefined') {
+    if (autoLogin === 'true' && typeof window !== 'undefined' && !autoLoginAttempted) {
       const tempToken = sessionStorage.getItem(TEMP_AUTH_KEYS.TOKEN);
       const tempUser = sessionStorage.getItem(TEMP_AUTH_KEYS.USER);
       const tempExpires = sessionStorage.getItem(TEMP_AUTH_KEYS.EXPIRES);
+      
+      console.log('Auto-login attempt:', { hasToken: !!tempToken, hasUser: !!tempUser, hasExpires: !!tempExpires });
+      
+      // Mark that we've attempted auto-login to prevent duplicates
+      setAutoLoginAttempted(true);
       
       // Check if token exists and hasn't expired
       if (tempToken && tempUser && tempExpires) {
@@ -77,6 +83,8 @@ export default function Home() {
               .then(response => response.json())
               .then((result: AutoLoginResponse) => {
                 if (result.success) {
+                  console.log('Auto-login successful, setting up session...');
+                  
                   // Clean up temporary storage
                   sessionStorage.removeItem(TEMP_AUTH_KEYS.TOKEN);
                   sessionStorage.removeItem(TEMP_AUTH_KEYS.USER);
@@ -87,8 +95,28 @@ export default function Home() {
                   url.searchParams.delete('auto-login');
                   window.history.replaceState({}, '', url.toString());
                   
-                  // Refresh the page to update session
-                  window.location.reload();
+                  // Trigger NextAuth session refresh without page reload for seamless UX
+                  setTimeout(async () => {
+                    console.log('Activating session without page reload...');
+                    
+                    try {
+                      // Import getSession dynamically to avoid SSR issues
+                      const { getSession } = await import('next-auth/react');
+                      const session = await getSession();
+                      
+                      if (session) {
+                        console.log('Auto-login completed successfully! User is now logged in.');
+                        // Session is now active, no need to reload the page
+                        // The UI will automatically update via NextAuth's session provider
+                      } else {
+                        console.log('Session not found after auto-login, reloading page...');
+                        window.location.reload();
+                      }
+                    } catch (error) {
+                      console.log('NextAuth session refresh failed, reloading page:', error);
+                      window.location.reload();
+                    }
+                  }, 800); // Slightly longer delay to ensure cookie is properly set
                 } else {
                   console.error('Auto-login failed:', result.error);
                   cleanupTempAuth();
@@ -120,7 +148,7 @@ export default function Home() {
       url.searchParams.delete('username');
       window.history.replaceState({}, '', url.toString());
     }
-  }, [searchParams, cleanupTempAuth]);
+  }, [searchParams, cleanupTempAuth, autoLoginAttempted]);
 
   useEffect(() => {
     const loadLatestCars = async () => {

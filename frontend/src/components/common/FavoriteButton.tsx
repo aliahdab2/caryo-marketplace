@@ -346,6 +346,16 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       // In tests, if user is strictly undefined, allow API toggle path to execute
       if (IS_TEST_ENV && typeof user === 'undefined') {
         // fall through to API call below
+      } else if (typeof window !== 'undefined' && window.location.search.includes('auto-login=true')) {
+        // Don't redirect during auto-login process - just show loading state
+        setIsLoading(true);
+        console.log('[FAVORITE] Auto-login in progress, waiting for authentication...');
+        
+        // Wait a bit and try again
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
+        return;
       } else {
         const pendingActionData = {
           listingId: listingId,
