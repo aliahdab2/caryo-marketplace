@@ -1,153 +1,258 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import Link from 'next/link';
+import Image from 'next/image';
+import useLazyTranslation from "@/hooks/useLazyTranslation";
 
-export default function VerifyEmailPage() {
+// Move namespaces outside component to prevent recreation on every render
+const AUTH_NAMESPACES = ['auth', 'errors'];
+
+const VerifyEmailPage: React.FC = () => {
+  // Lazy load the auth and errors namespaces
+  useLazyTranslation(AUTH_NAMESPACES);
+
+  const { t } = useTranslation(['auth', 'errors']);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'invalid'>('loading');
-  const [message, setMessage] = useState('');
-  const [hasAttempted, setHasAttempted] = useState(false);
-  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
+  const [verificationStatus, setVerificationStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [message, setMessage] = useState("");
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
     const token = searchParams.get('token');
     
     if (!token) {
-      setStatus('invalid');
-      setMessage('Verification token is missing.');
+      setVerificationStatus('error');
+      setMessage(t('invalidVerificationToken'));
       return;
     }
 
-    // Prevent multiple attempts
-    if (hasAttempted) {
-      return;
-    }
-    setHasAttempted(true);
-
-    // Call the backend verification endpoint
+    // Verify the email with the backend
     const verifyEmail = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/api/auth/verify-email?token=${encodeURIComponent(token)}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+        const response = await fetch(`${backendUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}`);
+        
+        // Check if the response is JSON, otherwise show a generic error
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Received non-JSON response from server");
+        }
+        
         const data = await response.json();
 
         if (response.ok) {
-          setStatus('success');
-          setMessage(data.message || 'Perfect! Your email has been verified successfully. You can now sign in to your account.');
+          setVerificationStatus('success');
+          setMessage(data.message || t('emailVerified'));
           
-          // Store the verified email for use in JSX
-          const email = data.email || searchParams.get('email') || '';
-          setVerifiedEmail(email);
-          
-          // Redirect to sign-in page after 4 seconds (give users time to read)
-          setTimeout(() => {
-            const redirectUrl = `/auth/signin?verified=true${email ? `&email=${encodeURIComponent(email)}` : ''}`;
-            router.push(redirectUrl);
-          }, 4000);
-        } else {
-          setStatus('error');
-          
-          // Handle different error scenarios with appropriate messaging
-          if (data.message && data.message.includes('expired')) {
-            setMessage('Your verification link has expired. Please request a new verification email from the sign-in page.');
-          } else if (data.message && data.message.includes('Invalid')) {
-            setMessage('This verification link is not valid. Please check your email for the correct link or request a new one.');
-          } else {
-            setMessage(data.message || 'Unable to verify your email. Please try again or request a new verification email.');
+          let userEmail = '';
+          if (data.email) {
+            userEmail = data.email;
+            setEmail(userEmail);
           }
+
+          // Auto-redirect after a short delay
+          setTimeout(() => {
+            const redirectUrl = `/auth/signin?verified=true${userEmail ? `&email=${encodeURIComponent(userEmail)}` : ''}`;
+            router.push(redirectUrl);
+          }, 3000); // 3-second delay
+
+        } else {
+          setVerificationStatus('error');
+          setMessage(data.message || t('verificationFailed'));
         }
       } catch (error) {
-        console.error('Email verification error:', error);
-        setStatus('error');
-        setMessage('An error occurred while verifying your email. Please try again.');
+        console.error('Error verifying email:', error);
+        setVerificationStatus('error');
+        setMessage(t('verificationError'));
       }
     };
 
     verifyEmail();
-  }, [searchParams, router, hasAttempted]);
+  }, [searchParams, t, router]);
+
+  const getStatusIcon = () => {
+    switch (verificationStatus) {
+      case 'loading':
+        return (
+          <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+        );
+      case 'success':
+        return (
+          <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-green-600 dark:text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        );
+      case 'error':
+        return (
+          <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+        );
+    }
+  };
+
+  const getStatusTitle = () => {
+    switch (verificationStatus) {
+      case 'loading':
+        return t('verifying');
+      case 'success':
+        return t('emailVerified');
+      case 'error':
+        return t('verificationFailed');
+    }
+  };
+
+  const getStatusColor = () => {
+    switch (verificationStatus) {
+      case 'loading':
+        return 'from-blue-600 to-blue-800';
+      case 'success':
+        return 'from-green-600 to-green-800';
+      case 'error':
+        return 'from-red-600 to-red-800';
+    }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center">
-            {status === 'loading' && (
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            )}
-            {status === 'success' && (
-              <div className="rounded-full bg-green-100 p-2">
-                <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-              </div>
-            )}
-            {(status === 'error' || status === 'invalid') && (
-              <div className="rounded-full bg-red-100 p-2">
-                <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </div>
-            )}
+    <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      {/* Left section - Brand/imagery */}
+      <div className={`hidden md:flex md:w-2/5 lg:w-1/3 xl:w-1/4 bg-gradient-to-r ${getStatusColor()} text-white flex-col justify-between relative overflow-hidden`}>
+        <div className="absolute inset-0 overflow-hidden">
+          <svg className="absolute w-full h-full opacity-5" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="verifyEmailGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.2" />
+                <stop offset="100%" stopColor="#ffffff" stopOpacity="0.1" />
+              </linearGradient>
+            </defs>
+            <path d="M0,800 C150,700 350,750 500,800 C650,850 850,800 1000,900 L1000,1000 L0,1000 Z" fill="url(#verifyEmailGradient)" />
+            <path d="M0,900 C150,800 350,850 500,900 C650,950 850,900 1000,950 L1000,1000 L0,1000 Z" fill="url(#verifyEmailGradient)" opacity="0.5" />
+          </svg>
+        </div>
+        
+        <div className="z-10 p-6 md:p-8 lg:p-10 flex flex-col">
+          <div className="flex items-center mb-6">
+            <Image 
+              src="/images/logo.svg" 
+              alt={t('logo')}
+              width={40} 
+              height={40} 
+              className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert" 
+            />
+            <h1 className="text-lg md:text-xl font-bold">{t('appName')}</h1>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {status === 'loading' && 'Verifying your email...'}
-            {status === 'success' && 'Email Verified!'}
-            {(status === 'error' || status === 'invalid') && 'Verification Failed'}
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {message}
+          <h2 className="text-2xl md:text-3xl font-bold mb-3">{getStatusTitle()}</h2>
+          <p className="text-sm md:text-base opacity-80">
+            {verificationStatus === 'success' 
+              ? t('emailVerificationSuccess') 
+              : verificationStatus === 'error'
+              ? t('emailVerificationError')
+              : t('verifyingEmail')
+            }
           </p>
         </div>
+        
+        <div className="z-10 p-6 md:p-8 lg:p-10 text-sm">
+          <p className="mb-2 opacity-80">&copy; {new Date().getFullYear()} {t('appName')}</p>
+          <p className="opacity-60">{t('privacy_policy')} • {t('terms_of_service')}</p>
+        </div>
+      </div>
+      
+      {/* Right section - Verification result */}
+      <div className="flex-1 flex justify-center items-center p-4 md:p-6 lg:p-8 xl:p-10">
+        <div className="w-full max-w-md md:max-w-lg lg:max-w-xl">
+          {/* Mobile logo */}
+          <div className="flex md:hidden items-center justify-center mb-6 sm:mb-8">
+            <div className="flex items-center">
+              <Image src="/images/logo.svg" alt={t('logo')} width={40} height={40} className="mr-2.5 sm:mr-3 w-8 h-8 sm:w-10 sm:h-10" />
+              <h1 className="text-lg sm:text-xl font-bold">{t('appName')}</h1>
+            </div>
+          </div>
 
-        <div className="mt-8 space-y-4">
-          {status === 'success' && (
-            <div className="text-center">
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
-                <p className="text-sm text-green-700 font-medium">
-                  🎉 Welcome to Caryo Marketplace!
-                </p>
-                <p className="text-xs text-green-600 mt-1">
-                  You can now create listings, save favorites, and contact sellers.
-                </p>
-              </div>
-              <p className="text-sm text-gray-600 mb-4">
-                Redirecting to sign in page in a few seconds...
+          <div className="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-4 sm:p-6 md:p-8 lg:p-10 border border-gray-200 dark:border-gray-700">
+            {/* Status Icon */}
+            <div className="text-center mb-6">
+              {getStatusIcon()}
+              <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{getStatusTitle()}</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                {message}
               </p>
-              <Link
-                href={`/auth/signin?verified=true${verifiedEmail ? `&email=${encodeURIComponent(verifiedEmail)}` : ''}`}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-              >
-                Sign In Now
-              </Link>
+              {email && verificationStatus === 'success' && (
+                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
+                  {t('verificationEmailSentTo')} <span className="font-medium text-gray-900 dark:text-white">{email}</span>
+                </p>
+              )}
             </div>
-          )}
-          
-          {(status === 'error' || status === 'invalid') && (
+
+            {/* Success Instructions */}
+            {verificationStatus === 'success' && (
+              <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <h3 className="font-medium text-green-900 dark:text-green-100 mb-2">{t('nextSteps')}</h3>
+                <ul className="text-sm text-green-800 dark:text-green-200 space-y-1">
+                  <li>• {t('emailVerificationComplete')}</li>
+                  <li>• {t('canNowSignIn')}</li>
+                  <li>• {t('accessAllFeatures')}</li>
+                </ul>
+              </div>
+            )}
+
+            {/* Error Instructions */}
+            {verificationStatus === 'error' && (
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                <h3 className="font-medium text-red-900 dark:text-red-100 mb-2">{t('troubleshooting')}</h3>
+                <ul className="text-sm text-red-800 dark:text-red-200 space-y-1">
+                  <li>• {t('checkLinkExpiry')}</li>
+                  <li>• {t('requestNewVerification')}</li>
+                  <li>• {t('contactSupportIfNeeded')}</li>
+                </ul>
+              </div>
+            )}
+
+            {/* Actions */}
             <div className="space-y-3">
+              {verificationStatus === 'success' && (
+                <Link
+                  href={`/auth/signin${email ? `?email=${encodeURIComponent(email)}&verified=true` : '?verified=true'}`}
+                  className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                >
+                  {t('signInNow')}
+                </Link>
+              )}
+              
+              {verificationStatus === 'error' && (
+                <Link
+                  href="/auth/check-email"
+                  className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  {t('requestNewVerification')}
+                </Link>
+              )}
+              
               <Link
-                href="/auth/signin"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                href="/"
+                className="w-full flex justify-center py-2.5 px-4 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
               >
-                Go to Sign In
-              </Link>
-              <Link
-                href="/auth/signup"
-                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Sign Up Again
+                {t('backToHome')}
               </Link>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default VerifyEmailPage;
