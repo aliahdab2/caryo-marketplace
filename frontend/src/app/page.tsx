@@ -144,11 +144,33 @@ export default function Home() {
                   url.searchParams.delete('auto-login');
                   window.history.replaceState({}, '', url.toString());
                   
-                  // Navigate to re-run SSR and pick up the new session without a full reload
-                  setTimeout(() => {
-                    console.log('Auto-login completed successfully! Navigating to activate session...');
-                    _router.replace('/');
-                  }, 800); // Short delay to ensure cookie is written
+                  // Wait for NextAuth to expose the session, then navigate once ready
+                  (async () => {
+                    console.log('Auto-login completed! Waiting for session to become available...');
+                    // small initial delay to ensure cookie write
+                    await new Promise((r) => setTimeout(r, 250));
+                    try {
+                      const { getSession } = await import('next-auth/react');
+                      let attempts = 0;
+                      let sessionReady = false;
+                      while (attempts < 10) { // up to ~2s total
+                        const s = await getSession();
+                        if (s && s.user) {
+                          sessionReady = true;
+                          break;
+                        }
+                        await new Promise((r) => setTimeout(r, 200));
+                        attempts += 1;
+                      }
+                      if (!sessionReady) {
+                        console.warn('Session not visible yet; proceeding with navigation.');
+                      }
+                      _router.replace('/');
+                    } catch (err) {
+                      console.warn('Session polling failed; navigating anyway:', err);
+                      _router.replace('/');
+                    }
+                  })();
                 } else {
                   console.error('❌ Auto-login failed:', result.error);
                   console.log('🧹 Cleaning up temp auth data...');
