@@ -76,6 +76,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
         type="button"
         onClick={togglePasswordVisibility}
         disabled={disabled}
+        tabIndex={-1}
         className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 focus:outline-none focus:text-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label={showPassword ? t('hidePassword', 'Hide password') : t('showPassword', 'Show password')}
         title={showPassword ? t('hidePassword', 'Hide password') : t('showPassword', 'Show password')}

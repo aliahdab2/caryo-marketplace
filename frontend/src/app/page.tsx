@@ -2,8 +2,11 @@
 import Image from "next/image";
 import { useLazyTranslation } from "@/hooks/useLazyTranslation";
 import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import HomeSearchBar from "@/components/search/HomeSearchBar";
 import HomeCarListings from "@/components/home/HomeCarListings";
+
+
 import { fetchLatestListingsPublic, subscribeToNewsletter } from "@/services/publicApi";
 import { CarListing } from "@/services/publicApi";
 
@@ -12,12 +15,30 @@ const HOME_NAMESPACES = ['home', 'common'];
 
 export default function Home() {
   const { t, i18n, ready } = useLazyTranslation(HOME_NAMESPACES);
+  const searchParams = useSearchParams();
+  const _router = useRouter();
   const [latestCars, setLatestCars] = useState<CarListing[]>([]);
   const [isLoadingListings, setIsLoadingListings] = useState(true);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [newsletterMessage, setNewsletterMessage] = useState('');
+
   const [newsletterSuccess, setNewsletterSuccess] = useState(false);
+
+
+  // Handle URL cleanup
+  useEffect(() => {
+    const verified = searchParams.get('verified');
+    const _username = searchParams.get('username');
+    
+    if (verified === 'true') {
+      // Clean up URL params without showing overlay
+      const url = new URL(window.location.href);
+      url.searchParams.delete('verified');
+      url.searchParams.delete('username');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const loadLatestCars = async () => {
@@ -81,6 +102,8 @@ export default function Home() {
 
   return (
     <div className="w-full">
+
+
       {/* Hero Section with full-width banner image */}
       <div className="relative h-[450px] xs:h-[500px] sm:h-[550px] w-full overflow-hidden">
         <Image

@@ -2,6 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useOptimizedSession } from "@/hooks/useOptimizedSession";
+import { isValidEmail, looksLikeEmail } from '@/utils/emailValidation';
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useEffect, FormEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -35,15 +36,12 @@ const SignInPage: React.FC = () => {
   const [isVerified, setIsVerified] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [credentialsCorrect, setCredentialsCorrect] = useState(false);
-  const [showResendForm, setShowResendForm] = useState(false);
-  const [resendEmail, setResendEmail] = useState("");
-  const [resendLoading, setResendLoading] = useState(false);
-  const [resendSuccess, setResendSuccess] = useState(false);
-  const [resendError, setResendError] = useState<string | null>(null);
+  const [usernameError, setUsernameError] = useState("");
+
 
   const { user } = useOptimizedSession();
 
-  // Extract callback URL from search params if present
+    // Extract callback URL from search params if present
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
@@ -51,18 +49,35 @@ const SignInPage: React.FC = () => {
       const callback = searchParams.get('callbackUrl');
       const verified = searchParams.get('verified');
       const email = searchParams.get('email');
-      
+      const usernameParam = searchParams.get('username');
+      const autoLogin = searchParams.get('auto');
+
       // Check localStorage for redirect URL (from FavoriteButton or other sources) - fallback only
       const storedRedirect = localStorage.getItem('redirectAfterAuth');
-      
-      // Prefer URL parameters over localStorage, then default to /dashboard
-      const redirectTarget = returnUrl || callback || storedRedirect || '/dashboard';
-      
+
+      // Determine redirect target with clear priority order
+      let redirectTarget = null;
+      if (returnUrl) {
+        redirectTarget = returnUrl;
+      } else if (callback) {
+        redirectTarget = callback;
+      } else if (storedRedirect) {
+        redirectTarget = storedRedirect;
+      } else if (verified === 'true') {
+        if (usernameParam) {
+          redirectTarget = `/?verified=true&username=${encodeURIComponent(usernameParam)}`;
+        } else {
+          redirectTarget = '/?verified=true';
+        }
+      } else {
+        redirectTarget = '/dashboard';
+      }
+
       // Clear the stored redirect URL if we found one (cleanup)
       if (storedRedirect) {
         localStorage.removeItem('redirectAfterAuth');
       }
-      
+
       try {
         if (redirectTarget.startsWith('/')) {
           setCallbackUrl(redirectTarget);
@@ -80,15 +95,41 @@ const SignInPage: React.FC = () => {
           setCallbackUrl('/dashboard');
         }
       }
-      
+
       // Handle email verification success
       if (verified === 'true') {
         setVerificationSuccess(true);
+        // Focus password field for better UX after email verification
+        setTimeout(() => {
+          const passwordInput = document.getElementById('password');
+          if (passwordInput) {
+            passwordInput.focus();
+          }
+        }, 100);
+      }
+
+      // Pre-fill username field - prefer username over email for better UX
+      if (usernameParam) {
+        setUsername(decodeURIComponent(usernameParam));
+      } else if (email) {
+        // Fallback to email if username not available
+        setUsername(decodeURIComponent(email));
+      }
+
+      // Handle auto-login for verified users
+      if (autoLogin === 'true' && verified === 'true' && email) {
+        console.log('🔄 Auto-login requested for verified user:', email);
+        setVerificationSuccess(true);
+        setShowSuccess(true);
         
-        // Pre-fill username with email if provided
-        if (email) {
-          setUsername(decodeURIComponent(email));
-        }
+        // Show a message that they're verified and can sign in
+        setTimeout(() => {
+          // Focus on password field since email is pre-filled
+          const passwordField = document.getElementById('password');
+          if (passwordField) {
+            passwordField.focus();
+          }
+        }, 100);
       }
       
       // Mark that callback URL has been loaded
@@ -112,11 +153,19 @@ const SignInPage: React.FC = () => {
     event.preventDefault();
     setLoading(true);
     setError(null);
+    setUsernameError("");
     setShowSuccess(false);
     setCredentialsCorrect(false);
 
     if (!username || !password) {
       setError(t('fieldRequired'));
+      setLoading(false);
+      return;
+    }
+
+    // If username looks like an email, validate it
+    if (looksLikeEmail(username) && !isValidEmail(username)) {
+      setUsernameError(t('invalidEmailFormat'));
       setLoading(false);
       return;
     }
@@ -174,43 +223,7 @@ const SignInPage: React.FC = () => {
     // No finally block needed for setLoading if all paths handle it.
   };
 
-  const handleResendVerification = async (event: FormEvent) => {
-    event.preventDefault();
-    setResendLoading(true);
-    setResendError(null);
-    setResendSuccess(false);
 
-    if (!resendEmail) {
-      setResendError(t('fieldRequired'));
-      setResendLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: resendEmail }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setResendSuccess(true);
-        setResendEmail("");
-        setShowResendForm(false);
-      } else {
-        setResendError(data.error || t('error.resendFailed'));
-      }
-    } catch (error) {
-      console.error('Error resending verification email:', error);
-      setResendError(t('error.resendFailed'));
-    } finally {
-      setResendLoading(false);
-    }
-  };
 
   // Safe redirect when user already has an active session
   // Only redirect after callbackUrl has been properly loaded from localStorage
@@ -291,8 +304,12 @@ const SignInPage: React.FC = () => {
               : 'border border-gray-200 dark:border-gray-700'
           }`}>
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-1 auth-heading">{t('signIn')}</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">{t('signInDescription')}</p>
+              <h2 className="text-2xl font-bold mb-1 auth-heading">
+                {t('signIn')}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">
+                {t('signInDescription')}
+              </p>
             </div>
             
             {error && (
@@ -306,12 +323,8 @@ const SignInPage: React.FC = () => {
               </div>
             )}
             {verificationSuccess && (
-              <div role="alert" className="mb-6 p-3 sm:p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-md dark:bg-green-900/30 dark:text-green-200 dark:border-green-700 flex items-center text-xs sm:text-sm">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                {t('auth:emailVerified')} {t('auth:pleaseSignIn')}
+              <div role="alert" className="mb-6 p-3 sm:p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-md dark:bg-green-900/30 dark:text-green-200 dark:border-green-700 text-xs sm:text-sm">
+                <p className="font-medium">{t('auth:emailVerified')} {t('auth:pleaseSignIn')}</p>
               </div>
             )}
             {showSuccess && (
@@ -340,10 +353,28 @@ const SignInPage: React.FC = () => {
                     id="username"
                     type="text"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={(e) => {
+                      const newUsername = e.target.value;
+                      setUsername(newUsername);
+                      // Clear username error when user starts typing
+                      if (usernameError) {
+                        setUsernameError("");
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Validate email format if it looks like an email
+                      const usernameValue = e.target.value.trim();
+                      if (usernameValue && looksLikeEmail(usernameValue) && !isValidEmail(usernameValue)) {
+                        setUsernameError(t('invalidEmailFormat'));
+                      }
+                    }}
                     required
                     data-error={t('fieldRequired')}
-                    className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
+                    className={`block w-full pl-10 px-4 py-2.5 sm:py-3 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${
+                      usernameError 
+                        ? 'border-red-300 dark:border-red-600 focus:ring-red-500' 
+                        : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+                    }`}
                     placeholder={t('usernamePlaceholder')}
                     onInvalid={(e) => {
                       e.preventDefault();
@@ -353,7 +384,18 @@ const SignInPage: React.FC = () => {
                     }}
                     onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                   />
+
                 </div>
+                {usernameError && (
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
+                    <svg className="w-4 h-4 mr-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    {usernameError}
+                  </p>
+                )}
               </div>
               
               <div className="mb-5">
@@ -382,6 +424,8 @@ const SignInPage: React.FC = () => {
                   onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                   autoComplete="current-password"
                 />
+
+
               </div>
               
               <div className="mb-5">
@@ -421,69 +465,7 @@ const SignInPage: React.FC = () => {
               </div>
             </form>
 
-            {/* Resend Verification Email Section */}
-            <div className="mt-4 mb-6">
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => setShowResendForm(!showResendForm)}
-                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
-                >
-                  {showResendForm ? t('cancel') : t('resendVerificationEmail')}
-                </button>
-              </div>
 
-              {showResendForm && (
-                <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <form onSubmit={handleResendVerification}>
-                    <div className="mb-3">
-                      <label htmlFor="resendEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        {t('email')}
-                      </label>
-                      <input
-                        id="resendEmail"
-                        type="email"
-                        value={resendEmail}
-                        onChange={(e) => setResendEmail(e.target.value)}
-                        required
-                        className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        placeholder={t('emailPlaceholder')}
-                      />
-                    </div>
-
-                    {resendError && (
-                      <div className="mb-3 p-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded text-red-700 dark:text-red-200 text-xs">
-                        {resendError}
-                      </div>
-                    )}
-
-                    {resendSuccess && (
-                      <div className="mb-3 p-2 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded text-green-700 dark:text-green-200 text-xs">
-                        {t('verificationEmailSent')}
-                      </div>
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={resendLoading}
-                      className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {resendLoading ? (
-                        <div className="flex items-center">
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          {t('sending')}
-                        </div>
-                      ) : (
-                        t('resendEmail')
-                      )}
-                    </button>
-                  </form>
-                </div>
-              )}
-            </div>
           
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">

@@ -39,6 +39,7 @@ interface AugmentedSession extends NextAuthSession {
 }
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -202,4 +203,25 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   debug: false, // Disable debug logging for security
+  logger: {
+    error(code, metadata) {
+      // Suppress CLIENT_FETCH_ERROR during auto-login process
+      if (code === 'CLIENT_FETCH_ERROR' && typeof window !== 'undefined') {
+        const isAutoLogin = window.location.search.includes('auto-login=true');
+        if (isAutoLogin) {
+          console.log('NextAuth fetch error during auto-login (expected):', code);
+          return;
+        }
+      }
+      console.error('NextAuth Error:', code, metadata);
+    },
+    warn(code) {
+      console.warn('NextAuth Warning:', code);
+    },
+    debug(code, metadata) {
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('NextAuth Debug:', code, metadata);
+      }
+    }
+  }
 };

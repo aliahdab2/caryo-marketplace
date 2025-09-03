@@ -157,7 +157,7 @@ class EmailVerificationServiceTest {
         assertTrue(result.isSuccess()); // Should return true since email is already verified
         assertNotNull(result.getMessage());
         assertTrue(result.getMessage().contains("already verified"));
-        verify(userRepository, never()).save(any(User.class)); // No need to save
+        verify(userRepository, times(1)).save(any(User.class)); // Should save to clear verification token for security
     }
 
     @Test

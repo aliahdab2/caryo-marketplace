@@ -14,6 +14,8 @@ export default function ClientProviders({ children }: ClientProvidersProps) {
       <SessionProvider
         refetchInterval={5 * 60} // 5 minutes
         refetchOnWindowFocus={false}
+        refetchWhenOffline={false}
+        basePath="/api/auth"
       >
         {children}
       </SessionProvider>

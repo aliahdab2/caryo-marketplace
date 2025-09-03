@@ -115,4 +115,13 @@ public class User {
             this.accountStatus = AccountStatus.VERIFIED;
         }
     }
+    
+    /**
+     * Clear email verification token for security purposes.
+     * This prevents token reuse attacks.
+     */
+    public void clearEmailVerificationToken() {
+        this.emailVerificationToken = null;
+        this.emailVerificationSentAt = null;
+    }
 }

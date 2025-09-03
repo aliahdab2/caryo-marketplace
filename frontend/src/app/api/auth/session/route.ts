@@ -4,9 +4,12 @@ import { authOptions } from "@/lib/auth-config";
 
 export async function GET(_request: Request) {
   try {
+    console.log('🔍 Session API: Getting server session...');
     const session = await getServerSession(authOptions);
+    console.log('🔍 Session API: Session result:', session ? 'Found' : 'Not found');
 
     if (!session) {
+      console.log('❌ Session API: No session found');
       // Return 200 with null data instead of 401 to avoid NextAuth treating it as an error
       return NextResponse.json({ user: null, accessToken: null, expires: null });
     }
@@ -29,9 +32,18 @@ export async function GET(_request: Request) {
       expires: session.expires,
     };
 
+    console.log('✅ Session API: Returning session data:', {
+      hasUser: !!sessionData.user,
+      userId: sessionData.user?.id,
+      userEmail: sessionData.user?.email,
+      hasAccessToken: !!sessionData.accessToken,
+      accessTokenLength: sessionData.accessToken?.length
+    });
+
     return NextResponse.json(sessionData);
   } catch (error) {
     console.error("Session API: Error occurred:", error);
-    return NextResponse.json({ user: null, accessToken: null, expires: null }, { status: 500 });
+    // Return 200 with null data instead of 500 to avoid NextAuth treating it as a fetch error
+    return NextResponse.json({ user: null, accessToken: null, expires: null });
   }
 }

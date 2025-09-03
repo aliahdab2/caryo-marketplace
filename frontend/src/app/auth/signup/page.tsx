@@ -12,6 +12,7 @@ import PasswordInput from '@/components/ui/PasswordInput';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePasswordValidation, PasswordRequirementText } from '@/components/auth/PasswordValidation';
+import { isValidEmail } from '@/utils/emailValidation';
 
 export default function SignUpPage() {
   const [username, setUsername] = useState("");
@@ -23,6 +24,7 @@ export default function SignUpPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [isVerified, setIsVerified] = useState(false);
   const [_callbackUrl, setCallbackUrl] = useState("/dashboard");
+  const [emailError, setEmailError] = useState("");
   const router = useRouter();
   const { t } = useTranslation('auth');
   const { isValid: isPasswordValid, firstError: passwordError } = usePasswordValidation(password);
@@ -60,9 +62,16 @@ export default function SignUpPage() {
     e.preventDefault();
     setError("");
     setSuccessMessage("");
+    setEmailError("");
     
     if (!username || !email || !password || !confirmPassword) {
       setError(t('fieldRequired'));
+      return;
+    }
+
+    // Validate email format
+    if (!isValidEmail(email)) {
+      setEmailError(t('invalidEmailFormat'));
       return;
     }
 
@@ -97,9 +106,10 @@ export default function SignUpPage() {
       const message = 'message' in result ? result.message : t('signupSuccess');
       setSuccessMessage(message);
       
-      // Store email for the check-email page
+      // Store email and username for the check-email and sign-in pages
       if (typeof window !== 'undefined') {
         localStorage.setItem('signup-email', email);
+        localStorage.setItem('signup-username', username);
       }
       
       // Short delay to show success message, then redirect to check-email
@@ -278,13 +288,41 @@ export default function SignUpPage() {
                     id="email"
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      const newEmail = e.target.value;
+                      setEmail(newEmail);
+                      // Clear email error when user starts typing
+                      if (emailError) {
+                        setEmailError("");
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Validate email on blur (when user leaves the field)
+                      const emailValue = e.target.value.trim();
+                      if (emailValue && !isValidEmail(emailValue)) {
+                        setEmailError(t('invalidEmailFormat'));
+                      }
+                    }}
                     required
                     disabled={loading}
-                    className="block w-full pl-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
+                    className={`block w-full pl-10 px-4 py-2.5 sm:py-3 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${
+                      emailError 
+                        ? 'border-red-300 dark:border-red-600 focus:ring-red-500' 
+                        : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+                    }`}
                     placeholder={t('emailPlaceholder')}
                   />
                 </div>
+                {emailError && (
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
+                    <svg className="w-4 h-4 mr-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    {emailError}
+                  </p>
+                )}
               </div>
               
               <div className="mb-5">
