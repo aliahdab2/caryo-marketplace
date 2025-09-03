@@ -139,7 +139,7 @@ const VerifyEmailPage: React.FC = () => {
 
             // For already verified users, we need to get a fresh JWT token for auto-login
             // This ensures they get logged in automatically like new verifications
-            console.log('Email already verified, attempting to get fresh JWT for auto-login...');
+
             
             // Try to get a fresh JWT token by making another verification request
             // This should return a JWT response for already verified users
@@ -147,7 +147,7 @@ const VerifyEmailPage: React.FC = () => {
               try {
                 const token = searchParams.get('token');
                 if (token) {
-                  console.log('🔄 Making fresh JWT request for token:', token.substring(0, 20) + '...');
+
                   
                   const freshResponse = await fetch(`${getAuthUrl('VERIFY_EMAIL')}?token=${encodeURIComponent(token)}`, {
                     method: 'GET',
@@ -156,24 +156,24 @@ const VerifyEmailPage: React.FC = () => {
                     },
                   });
 
-                  console.log('🔄 Fresh JWT response status:', freshResponse.status, freshResponse.ok);
+
 
                   if (freshResponse.ok) {
                     const freshData = await freshResponse.json();
-                    console.log('🔄 Fresh JWT response data:', freshData);
+
                     
                     // Check if we now get a JWT response
                     if (isJwtResponse(freshData)) {
-                      console.log('✅ Got fresh JWT for already verified user, proceeding with auto-login...');
+
                       handleAutoLogin(freshData);
                       return;
                     } else if (isMessageResponse(freshData)) {
-                      console.log('📝 Got message response for already verified user:', freshData);
+
                       
                       // For already verified users, we can't get a JWT from verification endpoint
                       // But we know the user is verified, so redirect with a special parameter
                       // The user can then be prompted to sign in automatically
-                      console.log('🔄 Redirecting to signin with verified=true for auto-login...');
+
                       
                       // Get user email from the response or localStorage
                       const userEmail = freshData.email || (typeof window !== 'undefined' ? localStorage.getItem('signup-email') : null);
@@ -187,21 +187,17 @@ const VerifyEmailPage: React.FC = () => {
                       }
                       return;
                     } else {
-                      console.log('❌ Fresh response is neither JWT nor message response:', {
-                        isJwtResponse: isJwtResponse(freshData),
-                        isMessageResponse: isMessageResponse(freshData),
-                        data: freshData
-                      });
+
                     }
                   } else {
-                    console.log('❌ Fresh JWT request failed with status:', freshResponse.status);
+
                   }
                 } else {
-                  console.log('❌ No token found in URL parameters');
+
                 }
                 
                 // If we can't get a fresh JWT, just redirect to home page
-                console.log('❌ Could not get fresh JWT, redirecting to home page...');
+
                 router.push('/');
                 
               } catch (error) {
@@ -311,14 +307,9 @@ const VerifyEmailPage: React.FC = () => {
             />
             <h1 className="text-lg md:text-xl font-bold">{t('appName')}</h1>
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">{getStatusTitle()}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('emailVerification')}</h2>
           <p className="text-sm md:text-base opacity-80">
-            {verificationStatus === 'success' 
-              ? t('emailVerificationSuccess') 
-              : verificationStatus === 'error'
-              ? t('emailVerificationError')
-              : t('verifyingEmail')
-            }
+            {t('secureAccountVerification')}
           </p>
         </div>
         
