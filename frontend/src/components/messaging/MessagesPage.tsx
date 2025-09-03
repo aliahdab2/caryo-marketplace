@@ -469,7 +469,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)] bg-gray-50 dark:bg-gray-900 flex">
+    <div className="h-[calc(100vh-9rem)] md:h-[calc(100vh-10rem)] bg-gray-50 dark:bg-gray-900 flex">
       {/* Conversations Sidebar */}
       <div className="w-full md:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
         {/* Header */}
