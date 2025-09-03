@@ -132,7 +132,7 @@ const ForgotPasswordPage: React.FC = () => {
                       required
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className={`w-full h-12 pl-12 pr-4 rounded-lg border-2 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      className={`w-full h-12 ltr:pl-12 ltr:pr-4 rtl:pr-12 rtl:pl-4 rounded-lg border-2 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         email && !emailValid 
                           ? 'border-red-300 dark:border-red-600 focus:border-red-500' 
                           : email && emailValid 
@@ -142,13 +142,13 @@ const ForgotPasswordPage: React.FC = () => {
                       placeholder={t('auth:emailPlaceholder', 'Enter your email address')}
                       aria-describedby="email-help"
                     />
-                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                    <div className="absolute ltr:left-4 rtl:right-4 top-1/2 transform -translate-y-1/2">
                       <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                       </svg>
                     </div>
                     {email && (
-                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                      <div className="absolute ltr:right-4 rtl:left-4 top-1/2 transform -translate-y-1/2">
                         {emailValid ? (
                           <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

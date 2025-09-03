@@ -27,7 +27,7 @@ const VerifyEmailPage: React.FC = () => {
   const searchParams = useSearchParams();
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState("");
-  const [email, setEmail] = useState("");
+
 
   const handleAutoLogin = useCallback(async (jwtData: { token: string; id: number; username: string; email: string; roles: string[] }) => {
       // Validate JWT token format (should have 3 parts separated by dots)
@@ -39,7 +39,6 @@ const VerifyEmailPage: React.FC = () => {
       }
 
       setMessage(t('emailVerified') + ' ' + t('redirecting'));
-      setEmail(jwtData.email);
 
       // Clean up localStorage after successful verification
       if (typeof window !== 'undefined') {
@@ -103,6 +102,9 @@ const VerifyEmailPage: React.FC = () => {
       return;
     }
 
+    // Set initial loading message
+    setMessage(t('verifyingEmail'));
+
     // Verify the email with the backend
     const verifyEmail = async () => {
       try {
@@ -128,7 +130,6 @@ const VerifyEmailPage: React.FC = () => {
             let userEmail = '';
             if (data.email) {
               userEmail = data.email;
-              setEmail(userEmail);
             }
 
             // Clean up localStorage after successful verification
@@ -338,24 +339,7 @@ const VerifyEmailPage: React.FC = () => {
               <p className="text-gray-600 dark:text-gray-400 text-sm">
                 {message}
               </p>
-              {email && verificationStatus === 'success' && (
-                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
-                  {t('verificationEmailSentTo')} <span className="font-medium text-gray-900 dark:text-white">{email}</span>
-                </p>
-              )}
             </div>
-
-            {/* Success Instructions */}
-            {verificationStatus === 'success' && (
-              <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                <h3 className="font-medium text-green-900 dark:text-green-100 mb-2">{t('nextSteps')}</h3>
-                <ul className="text-sm text-green-800 dark:text-green-200 space-y-1">
-                  <li>• {t('emailVerificationComplete')}</li>
-                  <li>• {t('canNowSignIn')}</li>
-                  <li>• {t('accessAllFeatures')}</li>
-                </ul>
-              </div>
-            )}
 
             {/* Error Instructions */}
             {verificationStatus === 'error' && (
@@ -371,14 +355,6 @@ const VerifyEmailPage: React.FC = () => {
 
             {/* Actions */}
             <div className="space-y-3">
-              {verificationStatus === 'success' && (
-                <Link
-                  href={`/?verified=true${email ? `&username=${encodeURIComponent(email)}` : ''}`}
-                  className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-                >
-                  {t('signInNow')}
-                </Link>
-              )}
               
               {verificationStatus === 'error' && (
                 <Link
