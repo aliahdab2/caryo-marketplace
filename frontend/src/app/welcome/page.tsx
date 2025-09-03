@@ -15,7 +15,7 @@ const WelcomePage: React.FC = () => {
   useLazyTranslation(WELCOME_NAMESPACES);
 
   const { t } = useTranslation(['auth', 'common']);
-  const router = useRouter();
+  const _router = useRouter();
   const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
 

@@ -12,7 +12,7 @@ import PasswordInput from '@/components/ui/PasswordInput';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePasswordValidation, PasswordRequirementText } from '@/components/auth/PasswordValidation';
-import { isValidEmail, validateEmailRealTime } from '@/utils/emailValidation';
+import { isValidEmail } from '@/utils/emailValidation';
 
 export default function SignUpPage() {
   const [username, setUsername] = useState("");

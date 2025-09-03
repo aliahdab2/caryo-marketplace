@@ -15,7 +15,7 @@ const CheckEmailPage: React.FC = () => {
   useLazyTranslation(AUTH_NAMESPACES);
 
   const { t } = useTranslation(['auth', 'errors']);
-  const router = useRouter();
+  const _router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [resendLoading, setResendLoading] = useState(false);
@@ -27,7 +27,7 @@ const CheckEmailPage: React.FC = () => {
   useEffect(() => {
     const emailFromUrl = searchParams.get('email');
     const emailFromStorage = typeof window !== 'undefined' ? localStorage.getItem('signup-email') : null;
-    const usernameFromStorage = typeof window !== 'undefined' ? localStorage.getItem('signup-username') : null;
+    const _usernameFromStorage = typeof window !== 'undefined' ? localStorage.getItem('signup-username') : null;
 
     const userEmail = emailFromUrl || emailFromStorage || '';
     setEmail(userEmail);
