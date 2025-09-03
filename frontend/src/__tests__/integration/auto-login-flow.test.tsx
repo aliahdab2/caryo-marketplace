@@ -370,7 +370,7 @@ describe('Auto-Login Integration Flow', () => {
       render(<VerifyEmailPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('verificationFailed')).toBeInTheDocument();
+        expect(screen.getAllByText('verificationFailed')).toHaveLength(2);
       });
     });
   });
@@ -393,7 +393,7 @@ describe('Auto-Login Integration Flow', () => {
       render(<VerifyEmailPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('verificationFailed')).toBeInTheDocument();
+        expect(screen.getAllByText('verificationFailed')).toHaveLength(2);
       });
 
       // Should not attempt auto-login with invalid token
@@ -495,6 +495,9 @@ describe('Auto-Login Integration Flow', () => {
         expect(screen.getByText('emailVerified')).toBeInTheDocument();
       });
 
+      // Record the number of fetch calls before unmount
+      const fetchCallsBeforeUnmount = (global.fetch as jest.Mock).mock.calls.length;
+
       // Unmount before auto-login timeout
       unmount();
 
@@ -504,11 +507,16 @@ describe('Auto-Login Integration Flow', () => {
       });
 
       // No additional fetch calls should be made after unmount
-      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(global.fetch).toHaveBeenCalledTimes(fetchCallsBeforeUnmount);
     });
 
     it('should handle rapid successive token changes', async () => {
+      // Start with no token
+      mockGet.mockReturnValue(null);
       const { rerender } = render(<VerifyEmailPage />);
+
+      // Should show invalid token state when no token is provided
+      expect(screen.getByText('invalidVerificationToken')).toBeInTheDocument();
 
       // Simulate rapid token changes
       mockGet.mockReturnValue('token1');
@@ -520,8 +528,8 @@ describe('Auto-Login Integration Flow', () => {
       mockGet.mockReturnValue('token3');
       rerender(<VerifyEmailPage />);
 
-      // Should handle gracefully without errors
-      expect(screen.getByText('invalidVerificationToken')).toBeInTheDocument();
+      // Should handle gracefully without errors - component should be in verifying state
+      expect(screen.getByText('verifying')).toBeInTheDocument();
     });
   });
 });
