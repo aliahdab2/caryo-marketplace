@@ -18,7 +18,7 @@ services:
       STORAGE_S3_ENDPOINTURL: http://minio:${MINIO_API_PORT:-9000}
       STORAGE_S3_ACCESSKEYID: ${MINIO_ROOT_USER:-minioadmin}
       STORAGE_S3_SECRETACCESSKEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      STORAGE_S3_BUCKETNAME: ${S3_BUCKET_NAME:-autotrader-assets}
+      STORAGE_S3_BUCKETNAME: ${S3_BUCKET_NAME:-caryo-assets}
       STORAGE_S3_REGION: us-east-1
       STORAGE_S3_PATHSTYLEACCESSENABLED: "true"
       # File upload settings
@@ -127,10 +127,10 @@ services:
       echo 'Configuring MinIO client...';
       /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin} || exit 1;
       echo 'Creating bucket if it does not exist...';
-      /usr/bin/mc mb --ignore-existing myminio/${S3_BUCKET_NAME:-autotrader-assets} || exit 1;
+      /usr/bin/mc mb --ignore-existing myminio/${S3_BUCKET_NAME:-caryo-assets} || exit 1;
       echo 'Setting bucket policy to public...';
-      /usr/bin/mc anonymous set public myminio/${S3_BUCKET_NAME:-autotrader-assets} || exit 1;
-      echo 'Bucket ${S3_BUCKET_NAME:-autotrader-assets} created and configured successfully';
+      /usr/bin/mc anonymous set public myminio/${S3_BUCKET_NAME:-caryo-assets} || exit 1;
+      echo 'Bucket ${S3_BUCKET_NAME:-caryo-assets} created and configured successfully';
       exit 0;
       "
     networks:

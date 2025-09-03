@@ -47,8 +47,8 @@ A utility script to ensure the MinIO bucket exists and has the correct permissio
 
 Car images are stored in MinIO at the following paths:
 
-- Primary image: `/autotrader-assets/sample/car-{listingId}-1.jpg`
-- Additional images: `/autotrader-assets/sample/car-{listingId}-2.jpg`, `/autotrader-assets/sample/car-{listingId}-3.jpg`, etc.
+- Primary image: `/caryo-assets/sample/car-{listingId}-1.jpg`
+- Additional images: `/caryo-assets/sample/car-{listingId}-2.jpg`, `/caryo-assets/sample/car-{listingId}-3.jpg`, etc.
 
 ## After a Rebuild
 
