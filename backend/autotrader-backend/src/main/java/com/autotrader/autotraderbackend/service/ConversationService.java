@@ -108,7 +108,7 @@ public class ConversationService {
                 .conversation(conversation)
                 .sender(buyer)
                 .content(request.getTrimmedMessage())
-                .messageType(MessageType.valueOf(request.getMessageType().toUpperCase()))
+                .messageType(MessageType.fromValue(request.getMessageType().toLowerCase()))
                 .build();
 
         conversation.addMessage(initialMessage);
@@ -178,7 +178,7 @@ public class ConversationService {
                 .conversation(conversation)
                 .sender(sender)
                 .content(request.getContent() != null ? request.getContent().trim() : "")
-                .messageType(MessageType.valueOf(request.getMessageType().toUpperCase()))
+                .messageType(MessageType.fromValue(request.getMessageType().toLowerCase()))
                 .build();
 
         message = messageRepository.save(message);

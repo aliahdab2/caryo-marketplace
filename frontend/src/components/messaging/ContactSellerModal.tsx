@@ -127,7 +127,7 @@ export default function ContactSellerModal({
         listingId,
         initialMessage: message.trim(),
         subject: subject.trim() || undefined,
-        messageType: 'TEXT',
+        messageType: 'text',
       });
 
       // Close modal and redirect to messages
