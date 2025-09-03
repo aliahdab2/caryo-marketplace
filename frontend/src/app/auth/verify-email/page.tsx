@@ -97,7 +97,6 @@ const VerifyEmailPage: React.FC = () => {
             
           } else if (isMessageResponse(data)) {
             // Regular message response (already verified case)
-            // For better UX, redirect to home page instead of signin page
             setMessage(data.message || t('emailVerified'));
             
             let userEmail = '';
@@ -112,10 +111,58 @@ const VerifyEmailPage: React.FC = () => {
               localStorage.removeItem('signup-username');
             }
 
-            // Auto-redirect to home page (like Blocket.se/Autotrader.co.uk)
-            // User can sign in from there if needed
-            setTimeout(() => {
-              router.push('/');
+            // For already verified users, we need to get a fresh JWT token for auto-login
+            // This ensures they get logged in automatically like new verifications
+            console.log('Email already verified, attempting to get fresh JWT for auto-login...');
+            
+            // Try to get a fresh JWT token by making another verification request
+            // This should return a JWT response for already verified users
+            setTimeout(async () => {
+              try {
+                const token = searchParams.get('token');
+                if (token) {
+                  const freshResponse = await fetch(`${API_CONFIG.BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(token)}`, {
+                    method: 'GET',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                  });
+
+                  if (freshResponse.ok) {
+                    const freshData = await freshResponse.json();
+                    
+                    // Check if we now get a JWT response
+                    if (isJwtResponse(freshData)) {
+                      console.log('Got fresh JWT for already verified user, proceeding with auto-login...');
+                      
+                      // Store the JWT token temporarily in sessionStorage
+                      if (typeof window !== 'undefined') {
+                        const expirationTime = Date.now() + (AUTO_LOGIN_CONFIG.TEMP_TOKEN_EXPIRY_MINUTES * 60 * 1000);
+                        sessionStorage.setItem(TEMP_AUTH_KEYS.TOKEN, freshData.token);
+                        sessionStorage.setItem(TEMP_AUTH_KEYS.USER, JSON.stringify({
+                          id: freshData.id,
+                          username: freshData.username,
+                          email: freshData.email,
+                          roles: freshData.roles,
+                        }));
+                        sessionStorage.setItem(TEMP_AUTH_KEYS.EXPIRES, expirationTime.toString());
+                      }
+                      
+                      // Redirect to auto-login
+                      router.push('/?auto-login=true');
+                      return;
+                    }
+                  }
+                }
+                
+                // If we can't get a fresh JWT, just redirect to home page
+                console.log('Could not get fresh JWT, redirecting to home page...');
+                router.push('/');
+                
+              } catch (error) {
+                console.error('Error getting fresh JWT:', error);
+                router.push('/');
+              }
             }, AUTO_LOGIN_CONFIG.REDIRECT_DELAY_MS);
           }
 
