@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import Link from 'next/link';
 import Image from 'next/image';
 import useLazyTranslation from "@/hooks/useLazyTranslation";
+import { getAuthUrl } from "@/utils/constants/api";
 
 // Move namespaces outside component to prevent recreation on every render
 const AUTH_NAMESPACES = ['auth', 'errors'];
@@ -33,8 +34,7 @@ const VerifyEmailPage: React.FC = () => {
     // Verify the email with the backend
     const verifyEmail = async () => {
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-        const response = await fetch(`${backendUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}`);
+        const response = await fetch(`${getAuthUrl('VERIFY_EMAIL')}?token=${encodeURIComponent(token)}`);
         
         // Check if the response is JSON, otherwise show a generic error
         const contentType = response.headers.get("content-type");

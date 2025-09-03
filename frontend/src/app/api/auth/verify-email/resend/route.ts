@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthUrl } from '@/utils/constants/api';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,8 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Call backend API to resend verification email
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-    const response = await fetch(`${backendUrl}/api/auth/verify-email/resend?email=${encodeURIComponent(email)}`, {
+    const response = await fetch(`${getAuthUrl('RESEND_VERIFICATION')}?email=${encodeURIComponent(email)}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -54,8 +54,23 @@ const SignInPage: React.FC = () => {
       // Check localStorage for redirect URL (from FavoriteButton or other sources) - fallback only
       const storedRedirect = localStorage.getItem('redirectAfterAuth');
 
-      // Prefer URL parameters over localStorage, then default to welcome page for new users
-      const redirectTarget = returnUrl || callback || storedRedirect || (verified === 'true' ? `/welcome${usernameParam ? `?username=${encodeURIComponent(usernameParam)}` : ''}` : '/dashboard');
+      // Determine redirect target with clear priority order
+      let redirectTarget = null;
+      if (returnUrl) {
+        redirectTarget = returnUrl;
+      } else if (callback) {
+        redirectTarget = callback;
+      } else if (storedRedirect) {
+        redirectTarget = storedRedirect;
+      } else if (verified === 'true') {
+        if (usernameParam) {
+          redirectTarget = `/welcome?username=${encodeURIComponent(usernameParam)}`;
+        } else {
+          redirectTarget = '/welcome';
+        }
+      } else {
+        redirectTarget = '/dashboard';
+      }
 
       // Clear the stored redirect URL if we found one (cleanup)
       if (storedRedirect) {
