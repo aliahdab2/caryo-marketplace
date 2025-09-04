@@ -25,7 +25,7 @@ export default function MessageList({
   otherPersonTyping,
   onDownloadDocument
 }: MessageListProps) {
-  const { t, i18n } = useTranslation('messages');
+  const { t, i18n: _i18n } = useTranslation('messages');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when messages change (only within the messages container)
@@ -103,7 +103,7 @@ interface ChatHeaderProps {
 }
 
 function ChatHeader({ conversation }: ChatHeaderProps) {
-  const { t, i18n } = useTranslation('messages');
+  const { t, i18n: _i18n } = useTranslation('messages');
 
   return (
     <div className="flex items-center gap-3">
@@ -146,7 +146,7 @@ function ChatHeader({ conversation }: ChatHeaderProps) {
                 {conversation.buyer.username} • {conversation.seller.username}
               </p>
               <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                {formatNumber(parseFloat(conversation.listingPrice), i18n.language, { 
+                {formatNumber(parseFloat(conversation.listingPrice), _i18n.language, { 
                   style: 'currency', 
                   currency: conversation.listingCurrency || 'USD',
                   minimumFractionDigits: 0,

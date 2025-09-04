@@ -208,7 +208,7 @@ export default function MessageInput({
       )}
 
       <div className="p-4">
-        <div className="flex items-end bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all duration-200">
+        <div className={`flex items-end bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all duration-200 ${isRTL ? 'flex-row-reverse' : ''}`}>
           {/* File Upload Buttons */}
           <div className="flex items-end p-2">
             <FileUpload
