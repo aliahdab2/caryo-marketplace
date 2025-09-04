@@ -46,7 +46,7 @@ export default function ConversationList({
   }
 
   return (
-    <div className="h-full">
+    <div className="h-full min-w-0">
       {/* Conversations List */}
       <div className="h-full overflow-hidden">
         {conversations.length === 0 ? (
