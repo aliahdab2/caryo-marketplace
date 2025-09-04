@@ -272,7 +272,7 @@ export async function getListingById(id: string | number): Promise<Listing> {
         id: response.sellerId.toString(),
         name: response.sellerUsername,
         type: 'private' as const,
-        phone: '+966 50 123 4567' // Placeholder - this should come from API in the future
+        phone: response.contactPhone || undefined
       },
       currency: 'SAR', // Default currency
       // V3: Include contact fields from backend enhancement

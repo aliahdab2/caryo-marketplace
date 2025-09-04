@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Check, CheckCheck } from 'lucide-react';
 import { ConversationResponse } from '@/services/messaging';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
+import { formatNumber } from '@/utils/localization';
 import Image from 'next/image';
 
 interface ConversationListProps {
@@ -47,7 +48,7 @@ export default function ConversationList({
   return (
     <div className="h-full">
       {/* Conversations List */}
-      <div className="h-full overflow-y-auto">
+      <div className="h-full overflow-hidden">
         {conversations.length === 0 ? (
           <div className="p-6 text-center text-gray-500 dark:text-gray-400">
             <p className="text-sm">{t('noConversations')}</p>
@@ -78,6 +79,8 @@ interface ConversationItemProps {
 }
 
 function ConversationItem({ conversation, isSelected, onClick, isRTL: _isRTL }: ConversationItemProps) {
+  const { i18n } = useTranslation('messages');
+  
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -95,9 +98,9 @@ function ConversationItem({ conversation, isSelected, onClick, isRTL: _isRTL }: 
   return (
     <button
       onClick={onClick}
-      className={`w-full p-3 rounded-lg text-left transition-all duration-200 ${
+      className={`w-full p-3 rounded-lg transition-all duration-200 ${
         isSelected
-          ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500'
+          ? 'bg-blue-50 dark:bg-blue-900/20 border-s-4 border-blue-500'
           : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
       }`}
     >
@@ -133,10 +136,22 @@ function ConversationItem({ conversation, isSelected, onClick, isRTL: _isRTL }: 
               {conversation.listingBrand} {conversation.listingModel} {conversation.listingYear}
             </h3>
             {conversation.lastMessageAt && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-2">
+              <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ms-2">
                 {formatTime(conversation.lastMessageAt)}
               </span>
             )}
+          </div>
+          
+          {/* Price Display */}
+          <div className="mb-1">
+            <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+              {formatNumber(parseFloat(conversation.listingPrice), i18n.language, { 
+                style: 'currency', 
+                currency: conversation.listingCurrency || 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+              })}
+            </p>
           </div>
           
           <p className="text-xs text-gray-600 dark:text-gray-300 mb-1">
@@ -150,7 +165,7 @@ function ConversationItem({ conversation, isSelected, onClick, isRTL: _isRTL }: 
               </p>
               {/* Read status for the last message */}
               {conversation.recentMessages[0].sender && (
-                <div className="flex items-center gap-1 ml-2">
+                <div className="flex items-center gap-1 ms-2">
                   {conversation.recentMessages[0].isRead ? (
                     <CheckCheck className="h-3 w-3 text-blue-500" />
                   ) : (

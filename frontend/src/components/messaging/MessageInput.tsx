@@ -208,9 +208,9 @@ export default function MessageInput({
       )}
 
       <div className="p-4">
-        <div className={`flex items-end bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all duration-200 ${isRTL ? 'flex-row-reverse' : ''}`}>
-          {/* File Upload Buttons - positioned like Blocket */}
-          <div className={`flex items-end p-2 ${isRTL ? 'order-3' : 'order-1'}`}>
+        <div className="flex items-end bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all duration-200">
+          {/* File Upload Buttons */}
+          <div className="flex items-end p-2">
             <FileUpload
               uploading={uploading}
               isRTL={isRTL}
@@ -219,19 +219,29 @@ export default function MessageInput({
             />
           </div>
           
+          {/* Text Input */}
           <textarea
             placeholder={t('writeMessage')}
             value={newMessage}
             onChange={(e) => onMessageChange(e.target.value)}
             onKeyDown={onKeyPress}
             rows={1}
-            className={`flex-1 p-3 bg-transparent border-0 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-0 focus:outline-none resize-none text-sm max-h-32 ${isRTL ? 'text-right order-2' : 'text-left order-2'}`}
-            style={{ minHeight: '44px' }}
+            className="flex-1 p-3 bg-transparent border-0 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-0 focus:outline-none resize-none text-sm max-h-20 overflow-y-auto overflow-x-hidden w-full"
+            style={{ 
+              minHeight: '44px', 
+              wordWrap: 'break-word', 
+              whiteSpace: 'pre-wrap',
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
+              maxWidth: '100%',
+              width: '100%'
+            }}
             dir={isRTL ? 'rtl' : 'ltr'}
           />
           
+          {/* Send Button */}
           {shouldShowSendButton && (
-            <div className={`flex items-end p-2 ${isRTL ? 'order-1' : 'order-3'}`}>
+            <div className="flex items-end p-2">
               <button
                 onClick={onSendMessage}
                 disabled={canSend}
@@ -241,7 +251,7 @@ export default function MessageInput({
                 {sending || uploading ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
                 ) : (
-                  <Send className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''} group-hover:scale-110 transition-transform`} />
+                  <Send className={`h-4 w-4 group-hover:scale-110 transition-transform ${isRTL ? 'scale-x-[-1]' : ''}`} />
                 )}
               </button>
             </div>

@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MessageResponse, ConversationResponse } from '@/services/messaging';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
+import { formatNumber } from '@/utils/localization';
 import MessageBubble from './MessageBubble';
 import Image from 'next/image';
 
@@ -24,7 +25,7 @@ export default function MessageList({
   otherPersonTyping,
   onDownloadDocument
 }: MessageListProps) {
-  const { t } = useTranslation('messages');
+  const { t, i18n } = useTranslation('messages');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when messages change (only within the messages container)
@@ -45,12 +46,12 @@ export default function MessageList({
   return (
     <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Chat Header */}
-      <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3">
+      <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-2">
         <ChatHeader conversation={selectedConversation} />
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-2 space-y-2">
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center">
             <div className="text-center text-gray-500 dark:text-gray-400">
@@ -102,7 +103,7 @@ interface ChatHeaderProps {
 }
 
 function ChatHeader({ conversation }: ChatHeaderProps) {
-  const { t } = useTranslation('messages');
+  const { t, i18n } = useTranslation('messages');
 
   return (
     <div className="flex items-center gap-3">
@@ -140,14 +141,19 @@ function ChatHeader({ conversation }: ChatHeaderProps) {
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
             {conversation.listingBrand} {conversation.listingModel} {conversation.listingYear}
           </h3>
-          <div className="flex items-center gap-2 mt-1">
-            <p className="text-xs text-gray-600 dark:text-gray-300">
-              {conversation.buyer.username} • {conversation.seller.username}
-            </p>
-            <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-              ${conversation.listingPrice}
-            </span>
-          </div>
+                      <div className="flex items-center gap-2 mt-1">
+              <p className="text-xs text-gray-600 dark:text-gray-300">
+                {conversation.buyer.username} • {conversation.seller.username}
+              </p>
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                {formatNumber(parseFloat(conversation.listingPrice), i18n.language, { 
+                  style: 'currency', 
+                  currency: conversation.listingCurrency || 'USD',
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0
+                })}
+              </span>
+            </div>
         </button>
       </div>
     </div>

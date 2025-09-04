@@ -469,18 +469,18 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-9rem)] md:h-[calc(100vh-10rem)] bg-gray-50 dark:bg-gray-900 flex">
+    <div className="h-[calc(100vh-9rem)] md:h-[calc(100vh-10rem)] bg-gray-50 dark:bg-gray-900 flex overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Conversations Sidebar */}
-      <div className="w-full md:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+      <div className="w-full md:w-80 bg-white dark:bg-gray-800 border-e border-gray-200 dark:border-gray-700 flex flex-col min-w-0">
         {/* Header */}
         <div className="flex-shrink-0 p-4 border-b border-gray-200 dark:border-gray-700">
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-            {t('messages')}
+            {t('title')}
           </h1>
         </div>
         
-        {/* Conversations List - scrollable */}
-        <div className="flex-1 min-h-0 overflow-y-auto">
+        {/* Conversations List */}
+        <div className="flex-1 min-h-0 overflow-hidden">
           <ConversationList
             conversations={conversations}
             selectedConversation={selectedConversation}
@@ -492,7 +492,7 @@ export default function MessagesPage() {
 
       {/* Main Chat Area */}
       {selectedConversation ? (
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-0 min-w-0">
           <div className="flex-1 min-h-0 overflow-y-auto">
             <MessageList
               selectedConversation={selectedConversation}
