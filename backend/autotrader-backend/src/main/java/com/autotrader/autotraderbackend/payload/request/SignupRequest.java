@@ -26,15 +26,19 @@ public class SignupRequest {
     @Size(min = 6, max = 40)
     private String password;
 
+    private Long sellerTypeId;
+
     // Explicit Getters
     public String getUsername() { return username; }
     public String getEmail() { return email; }
     public Set<String> getRole() { return role; } // Getter matches field name 'role'
     public String getPassword() { return password; }
+    public Long getSellerTypeId() { return sellerTypeId; }
 
     // Explicit Setters
     public void setUsername(String username) { this.username = username; }
     public void setEmail(String email) { this.email = email; }
     public void setRole(Set<String> role) { this.role = role; }
     public void setPassword(String password) { this.password = password; }
+    public void setSellerTypeId(Long sellerTypeId) { this.sellerTypeId = sellerTypeId; }
 }
