@@ -13,12 +13,17 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePasswordValidation, PasswordRequirementText } from '@/components/auth/PasswordValidation';
 import { isValidEmail } from '@/utils/emailValidation';
+import { getSellerTypes } from '@/services/sellerTypes';
+import { SellerType } from '@/types/sellerTypes';
+import { filterPublicSellerTypes, getDefaultSellerTypeId } from '@/utils/sellerTypeUtils';
 
 export default function SignUpPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [sellerTypeId, setSellerTypeId] = useState<number | undefined>(undefined);
+  const [sellerTypes, setSellerTypes] = useState<SellerType[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -58,13 +63,35 @@ export default function SignUpPage() {
     }
   }, []);
 
+  // Fetch seller types on component mount
+  useEffect(() => {
+    const fetchSellerTypes = async () => {
+      try {
+        const types = await getSellerTypes();
+        // Filter out certified dealer from signup options
+        const filteredTypes = filterPublicSellerTypes(types);
+        setSellerTypes(filteredTypes);
+        // Set default to "private" seller type if available
+        const defaultId = getDefaultSellerTypeId(filteredTypes);
+        if (defaultId) {
+          setSellerTypeId(defaultId);
+        }
+      } catch (error) {
+        console.error('Failed to fetch seller types:', error);
+        // Don't show error to user, just log it
+      }
+    };
+
+    fetchSellerTypes();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccessMessage("");
     setEmailError("");
     
-    if (!username || !email || !password || !confirmPassword) {
+    if (!username || !email || !password || !confirmPassword || !sellerTypeId) {
       setError(t('fieldRequired'));
       return;
     }
@@ -100,6 +127,7 @@ export default function SignUpPage() {
         email,
         password,
         confirmPassword,
+        sellerTypeId,
       });
 
       // With email verification system, redirect to check-email page
@@ -357,6 +385,46 @@ export default function SignUpPage() {
                   disabled={loading}
                   autoComplete="new-password"
                 />
+              </div>
+              
+              {/* User Type Selection */}
+              <div className="mb-5">
+                <label htmlFor="sellerType" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  {t('userType', 'User Type')} <span className="text-red-500">*</span>
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 ltr:left-0 rtl:right-0 flex items-center ltr:pl-3 rtl:pr-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                    <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                  </div>
+                  <select
+                    id="sellerType"
+                    value={sellerTypeId || ''}
+                    onChange={(e) => setSellerTypeId(e.target.value ? Number(e.target.value) : undefined)}
+                    required
+                    disabled={loading}
+                    className="block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 appearance-none"
+                  >
+                    <option value="">{t('selectUserType', 'Select user type')}</option>
+                    {sellerTypes.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {t(`userType.${type.name}`, type.displayNameEn)}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 ltr:right-0 rtl:left-0 flex items-center ltr:pr-3 rtl:pl-3 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="6,9 12,15 18,9"></polyline>
+                    </svg>
+                  </div>
+                </div>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {t('userTypeDescription', 'Choose whether you are an individual seller or a business/dealer')}
+                </p>
               </div>
               
               <div className="mb-5">

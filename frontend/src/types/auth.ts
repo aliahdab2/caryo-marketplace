@@ -16,6 +16,7 @@ export interface SignupCredentials {
   password: string;
   confirmPassword: string;
   role?: string[];
+  sellerTypeId?: number;
 }
 
 /**

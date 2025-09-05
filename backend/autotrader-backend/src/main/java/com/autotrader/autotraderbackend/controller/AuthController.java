@@ -14,8 +14,8 @@ import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
 import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 import com.autotrader.autotraderbackend.service.PasswordResetService;
-
 import com.autotrader.autotraderbackend.service.EmailVerificationService;
+import com.autotrader.autotraderbackend.service.SellerTypeService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
@@ -60,6 +60,9 @@ public class AuthController {
 
     @Autowired
     private EmailVerificationService emailVerificationService;
+
+    @Autowired
+    private SellerTypeService sellerTypeService;
 
     @Operation(
         summary = "Login",
@@ -168,6 +171,18 @@ public class AuthController {
         }
 
         user.setRoles(roles);
+        
+        // Set seller type if provided
+        if (signUpRequest.getSellerTypeId() != null) {
+            try {
+                user.setSellerType(sellerTypeService.getSellerTypeEntityById(signUpRequest.getSellerTypeId()));
+            } catch (Exception e) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(new MessageResponse("Error: Invalid seller type selected!"));
+            }
+        }
+        
         userRepository.save(user);
 
         // Send email verification instead of welcome email
@@ -235,6 +250,20 @@ public class AuthController {
                 });
             roles.add(userRole);
             user.setRoles(roles);
+            
+            // Set default seller type to "private" for social login users
+            try {
+                user.setSellerType(sellerTypeService.getSellerTypeEntityById(1L)); // Assuming private has ID 1
+            } catch (Exception e) {
+                // If private seller type not found, try to find by name
+                try {
+                    var privateSellerType = sellerTypeService.getSellerTypeByName("private");
+                    user.setSellerType(sellerTypeService.getSellerTypeEntityById(privateSellerType.getId()));
+                } catch (Exception ex) {
+                    // Log error but don't fail the registration
+                    System.err.println("Failed to set default seller type for social login user: " + ex.getMessage());
+                }
+            }
             
             userRepository.save(user);
         }
