@@ -64,7 +64,7 @@ const SellerTypeFilter: React.FC<SellerTypeFilterProps> = ({
           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
           <option value="">{t('selectSellerType', 'Select seller type')}</option>
-          {filterPublicSellerTypes(referenceData.sellerTypes as SellerType[]).map(sellerType => {
+          {filterPublicSellerTypes(referenceData.sellerTypes as unknown as SellerType[]).map(sellerType => {
             const typedSellerType = sellerType as { id: number; name: string; displayNameEn: string; displayNameAr: string };
             const displayName = currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn;
             const count = sellerTypeCounts[typedSellerType.name] || 0;
@@ -83,7 +83,7 @@ const SellerTypeFilter: React.FC<SellerTypeFilterProps> = ({
   return (
     <div className="space-y-4">
       <div className={`grid gap-3 ${disableScroll ? '' : 'max-h-96 overflow-y-auto pr-2 rtl:pr-0 rtl:pl-2'}`}>
-        {filterPublicSellerTypes(referenceData.sellerTypes as SellerType[]).map(sellerType => {
+        {filterPublicSellerTypes(referenceData.sellerTypes as unknown as SellerType[]).map(sellerType => {
           const typedSellerType = sellerType as { id: number; name: string; displayNameEn: string; displayNameAr: string };
           const isSelected = selectedSellerTypeIds.includes(typedSellerType.id);
           const displayName = currentLanguage === 'ar' ? typedSellerType.displayNameAr : typedSellerType.displayNameEn;

@@ -13,9 +13,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePasswordValidation, PasswordRequirementText } from '@/components/auth/PasswordValidation';
 import { isValidEmail } from '@/utils/emailValidation';
-import { getSellerTypes } from '@/services/sellerTypes';
-import { SellerType } from '@/types/sellerTypes';
-import { filterPublicSellerTypes, getDefaultSellerTypeId } from '@/utils/sellerTypeUtils';
+import { useSellerTypesForSignup } from '@/hooks/useSellerTypes';
 
 export default function SignUpPage() {
   const [username, setUsername] = useState("");
@@ -23,7 +21,6 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [sellerTypeId, setSellerTypeId] = useState<number | undefined>(undefined);
-  const [sellerTypes, setSellerTypes] = useState<SellerType[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -33,6 +30,9 @@ export default function SignUpPage() {
   const router = useRouter();
   const { t } = useTranslation('auth');
   const { isValid: isPasswordValid, firstError: passwordError } = usePasswordValidation(password);
+  
+  // Fetch seller types using React Query
+  const { sellerTypes, defaultSellerTypeId, isLoading: isLoadingSellerTypes } = useSellerTypesForSignup();
 
   // Extract callback URL from search params if present
   useEffect(() => {
@@ -63,27 +63,12 @@ export default function SignUpPage() {
     }
   }, []);
 
-  // Fetch seller types on component mount
+  // Set default seller type when data is loaded
   useEffect(() => {
-    const fetchSellerTypes = async () => {
-      try {
-        const types = await getSellerTypes();
-        // Filter out certified dealer from signup options
-        const filteredTypes = filterPublicSellerTypes(types);
-        setSellerTypes(filteredTypes);
-        // Set default to "private" seller type if available
-        const defaultId = getDefaultSellerTypeId(filteredTypes);
-        if (defaultId) {
-          setSellerTypeId(defaultId);
-        }
-      } catch (error) {
-        console.error('Failed to fetch seller types:', error);
-        // Don't show error to user, just log it
-      }
-    };
-
-    fetchSellerTypes();
-  }, []);
+    if (defaultSellerTypeId && !sellerTypeId) {
+      setSellerTypeId(defaultSellerTypeId);
+    }
+  }, [defaultSellerTypeId, sellerTypeId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,8 +76,13 @@ export default function SignUpPage() {
     setSuccessMessage("");
     setEmailError("");
     
-    if (!username || !email || !password || !confirmPassword || !sellerTypeId) {
+    if (!username || !email || !password || !confirmPassword) {
       setError(t('fieldRequired'));
+      return;
+    }
+
+    if (!sellerTypeId) {
+      setError(t('userTypeRequired', 'Please select a user type'));
       return;
     }
 
@@ -406,10 +396,15 @@ export default function SignUpPage() {
                     value={sellerTypeId || ''}
                     onChange={(e) => setSellerTypeId(e.target.value ? Number(e.target.value) : undefined)}
                     required
-                    disabled={loading}
+                    disabled={loading || isLoadingSellerTypes}
                     className="block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 appearance-none"
                   >
-                    <option value="">{t('selectUserType', 'Select user type')}</option>
+                    <option value="">
+                      {isLoadingSellerTypes 
+                        ? t('loadingUserTypes', 'Loading user types...') 
+                        : t('selectUserType', 'Select user type')
+                      }
+                    </option>
                     {sellerTypes.map((type) => (
                       <option key={type.id} value={type.id}>
                         {t(`userType.${type.name}`, type.displayNameEn)}
@@ -446,9 +441,9 @@ export default function SignUpPage() {
               <div className="mb-6">
                 <button
                   type="submit"
-                  disabled={loading || !isVerified}
+                  disabled={loading || !isVerified || isLoadingSellerTypes}
                   className={`w-full flex justify-center py-2.5 sm:py-3 px-4 border border-transparent rounded-lg shadow-md text-sm sm:text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-all duration-200 ${
-                    loading || !isVerified ? 'opacity-70 cursor-not-allowed' : 'hover-lift'
+                    loading || !isVerified || isLoadingSellerTypes ? 'opacity-70 cursor-not-allowed' : 'hover-lift'
                   } transform active:translate-y-0`}
                   title={!isVerified ? t('verificationRequired') : ""}
                 >
