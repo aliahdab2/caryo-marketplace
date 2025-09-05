@@ -11,6 +11,7 @@ The project is currently in active development with these key features implement
 - Location-based filtering system
 - Multiple media uploads with S3-compatible storage
 - Development environment with Docker Compose
+- **AutoTrader CLI** - Unified script for development and deployment
 - CI/CD workflows with GitHub Actions
 - Secrets management with HashiCorp Vault
 
@@ -19,7 +20,8 @@ The project is currently in active development with these key features implement
 **Complete project documentation is organized by category in the [docs/](docs/) directory:**
 
 ### 🚀 Quick Start
-- **New Developers**: [Setup Guide](docs/README.md#for-new-developers) - Environment setup and system overview
+- **New Developers**: [Setup Guide](#development-setup) - Environment setup using AutoTrader CLI
+- **AutoTrader CLI**: [CLI Commands](#autotrader-cli-script) - Unified script for all development tasks
 - **API Integration**: [API Documentation](backend/autotrader-backend/API.md) - Complete API reference with examples
 - **Current Status**: [Development Plan](DEVELOPMENT_PLAN.md) - Project roadmap and priorities
 
@@ -40,7 +42,7 @@ The project is currently in active development with these key features implement
 
 ### Prerequisites
 - Docker and Docker Compose
-- Java 17
+- Java 21
 - Node.js 18+
 - Git LFS
 
@@ -52,13 +54,15 @@ The project is currently in active development with these key features implement
    cd caryo-marketplace
    ```
 
-2. **Start the backend services**:
+2. **Start all services using the AutoTrader CLI**:
    ```bash
    cd backend/autotrader-backend
-   docker-compose -f docker-compose.dev.yml up -d
    
-   # Optional: Start and initialize HashiCorp Vault for secrets management
-   ./start-vault.sh
+   # Start development environment (includes backend, database, and all services)
+   ./autotrader.sh dev start
+   
+   # Or rebuild and start (recommended for first time setup)
+   ./autotrader.sh dev rebuild
    ```
 
 3. **Start the frontend development server**:
@@ -140,6 +144,80 @@ This project uses GitHub Actions for CI/CD with three main workflows:
 
 For details on the CI/CD setup, see the [CI/CD Documentation](.github/workflows/README.md).
 
+## AutoTrader CLI Script
+
+The project includes a powerful CLI script (`autotrader.sh`) that simplifies development and deployment tasks:
+
+### Development Commands
+
+```bash
+cd backend/autotrader-backend
+
+# Start development environment
+./autotrader.sh dev start                      # Start all services
+./autotrader.sh dev start --rebuild            # Rebuild and start
+./autotrader.sh dev start --rebuild --skip-tests # Rebuild without tests and start
+
+# Manage development environment
+./autotrader.sh dev rebuild                    # Rebuild environment
+./autotrader.sh dev rebuild-notest             # Rebuild without tests
+./autotrader.sh dev stop                       # Stop all services
+./autotrader.sh dev restart                    # Restart services
+./autotrader.sh dev status                     # Check service status
+./autotrader.sh dev logs                       # View service logs
+./autotrader.sh dev health                     # Health check
+```
+
+### Production Commands
+
+```bash
+# Production deployment
+./autotrader.sh prod deploy                    # Build and deploy production
+./autotrader.sh prod rebuild                   # Rebuild production (no data seeding)
+./autotrader.sh prod clean-rebuild             # Wipe DB/volumes and rebuild from scratch
+./autotrader.sh prod backup                    # Create DB/uploads/logs backups
+./autotrader.sh prod health                    # Check production health
+```
+
+### API Server Commands
+
+```bash
+# API server management
+./autotrader.sh api start                      # Start API server only
+./autotrader.sh api start --rebuild            # Rebuild and start API server
+```
+
+### Testing Commands
+
+```bash
+# Run tests
+./autotrader.sh test all                       # Run all tests
+./autotrader.sh test auth                      # Run authentication tests
+./autotrader.sh test endpoints                 # Test API endpoints
+```
+
+### Documentation Commands
+
+```bash
+# Generate documentation
+./autotrader.sh docs generate                  # Generate API documentation
+```
+
+### Help
+
+```bash
+./autotrader.sh help                           # Show all available commands
+```
+
+### Benefits of Using AutoTrader CLI
+
+- **Unified Interface**: Single script for all development tasks
+- **Environment Management**: Handles Docker containers, databases, and services
+- **Simplified Workflow**: No need to remember complex Docker Compose commands
+- **Built-in Health Checks**: Automatic service health monitoring
+- **Flexible Options**: Support for rebuilding, skipping tests, and custom configurations
+- **Production Ready**: Includes production deployment and backup commands
+
 ## Backend
 
 The backend is built with Spring Boot and provides RESTful APIs for authentication and car listings.
@@ -153,7 +231,20 @@ See [backend/autotrader-backend/README.md](backend/autotrader-backend/README.md)
 
 ## API Testing
 
-### Quick API Tests
+### Using AutoTrader CLI (Recommended)
+
+```bash
+cd backend/autotrader-backend
+
+# Run all tests
+./autotrader.sh test all
+
+# Run specific test suites
+./autotrader.sh test auth        # Authentication tests
+./autotrader.sh test endpoints   # API endpoint tests
+```
+
+### Quick API Tests (Alternative)
 Run all API tests locally with a single command:
 
 ```bash
@@ -192,29 +283,43 @@ Detailed API documentation is available in [backend/autotrader-backend/API.md](b
 - Examples using cURL
 - Postman collection usage
 
-## Getting Started
+## Quick Start Guide
 
 ### Prerequisites
 
-- Java 21
-- Gradle
-- Node.js (for frontend)
-- PostgreSQL (for production)
+- Docker and Docker Compose
+- Java 21+
+- Node.js 18+
+- Git LFS
 
 ### Running the Application
 
-#### Backend
+#### Using AutoTrader CLI (Recommended)
 
 ```bash
+# 1. Start all backend services (database, API, storage, etc.)
 cd backend/autotrader-backend
-./gradlew bootRun
+./autotrader.sh dev rebuild  # First time setup
+# or
+./autotrader.sh dev start    # Subsequent runs
+
+# 2. Start frontend development server
+cd ../../frontend
+npm install
+npm run dev
 ```
 
-#### Frontend 
+#### Manual Setup (Alternative)
 
 ```bash
+# Backend
+cd backend/autotrader-backend
+./gradlew bootRun
+
+# Frontend (in another terminal)
 cd frontend
-npm start
+npm install
+npm run dev
 ```
 
 ## Contributing

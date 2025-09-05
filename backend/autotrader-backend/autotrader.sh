@@ -1,5 +1,6 @@
-#!/bin/bash
-#
+
+
+
 # AutoTrader CLI - Simplified command-line interface for AutoTrader Backend
 # 
 # This script provides a simplified interface for common development tasks

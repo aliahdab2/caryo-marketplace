@@ -75,5 +75,5 @@ jobs:
       uses: ./.github/actions/gradle-setup
       with:
         working-directory: "./backend/autotrader-backend"
-        java-version: "17"
+        java-version: "21"
 ```

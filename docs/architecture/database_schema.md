@@ -12,7 +12,7 @@ The Car Marketplace is a full-stack application designed to allow users to buy a
 - **Media Service**: Manages car images and file uploads
 
 ### Technology Stack
-- **Backend**: Spring Boot with Java 17
+- **Backend**: Spring Boot with Java 21
 - **Database**: PostgreSQL for production, H2 for testing
 - **Frontend**: Next.js with React and TypeScript
 - **Authentication**: JWT with OAuth2 integration (Google)
