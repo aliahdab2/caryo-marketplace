@@ -234,7 +234,7 @@ describe('Listings Service - Data Conversion Integration', () => {
         make: 'toyota',
         model: 'camry',
         makeId: 1,
-        // modelId: undefined, // Missing model ID
+        modelId: 0, // Invalid model ID
         transmission: 'manual',
         fuelType: 'gasoline',
         transmissionId: 1,
@@ -290,7 +290,7 @@ describe('Listings Service - Data Conversion Integration', () => {
         currency: 'USD',
         mileage: '50000',
         locationSlug: '', // No location
-        // locationId: undefined, // Missing location ID
+        locationId: 0, // Invalid location ID
         images: [],
         videos: [],
         videoUrls: []
