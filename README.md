@@ -5,6 +5,7 @@ A modern full-stack application for buying and selling cars, featuring authentic
 ## Project Status
 
 The project is currently in active development with these key features implemented:
+
 - User authentication with JWT and social login
 - Car listing management (create, read, update, delete)
 - Admin approval workflow for listings
@@ -19,18 +20,21 @@ The project is currently in active development with these key features implement
 **Complete project documentation is organized by category in the [docs/](docs/) directory:**
 
 ### 🚀 Quick Start
+
 - **New Developers**: [Setup Guide](docs/README.md#for-new-developers) - Environment setup and system overview
 - **API Integration**: [API Documentation](backend/autotrader-backend/API.md) - Complete API reference with examples
 - **Current Status**: [Development Plan](DEVELOPMENT_PLAN.md) - Project roadmap and priorities
 
 ### 📖 Documentation Categories
+
 - **🏗️ [Architecture](docs/README.md#️-architecture--design)** - System design, database schema, project structure
-- **⚙️ [Setup & Configuration](docs/README.md#️-setup--configuration)** - Environment setup, database, OAuth, secrets management  
+- **⚙️ [Setup & Configuration](docs/README.md#️-setup--configuration)** - Environment setup, database, OAuth, secrets management
 - **💻 [Development Guides](docs/README.md#-development-guides)** - Frontend development, translations, features
 - **🧪 [Testing & Troubleshooting](docs/README.md#-testing--troubleshooting)** - Testing strategies, debugging guides
 - **📋 [Implementation Summaries](docs/README.md#-implementation-summaries)** - Completed features and improvements
 
 ### 🔗 External Documentation
+
 - [CI/CD Workflows](.github/workflows/README.md) - GitHub Actions setup and usage
 - [Backend API](backend/autotrader-backend/API.md) - Complete REST API documentation
 - [Redis Integration](backend/autotrader-backend/docs/redis-integration-guide.md) - Caching implementation
@@ -39,6 +43,7 @@ The project is currently in active development with these key features implement
 ## Getting Started
 
 ### Prerequisites
+
 - Docker and Docker Compose
 - Java 17
 - Node.js 18+
@@ -47,21 +52,24 @@ The project is currently in active development with these key features implement
 ### Development Setup
 
 1. **Clone the repository**:
+
    ```bash
    git clone https://github.com/yourusername/caryo-marketplace.git
    cd caryo-marketplace
    ```
 
 2. **Start the backend services**:
+
    ```bash
    cd backend/autotrader-backend
    docker-compose -f docker-compose.dev.yml up -d
-   
+
    # Optional: Start and initialize HashiCorp Vault for secrets management
    ./start-vault.sh
    ```
 
 3. **Start the frontend development server**:
+
    ```bash
    cd frontend
    npm install
@@ -81,6 +89,7 @@ The project is currently in active development with these key features implement
 This repository uses Git LFS (Large File Storage) to handle large files. To work with this repository:
 
 1. **Install Git LFS**:
+
    ```bash
    # macOS
    brew install git-lfs
@@ -90,11 +99,13 @@ This repository uses Git LFS (Large File Storage) to handle large files. To work
    ```
 
 2. **Initialize Git LFS**:
+
    ```bash
    git lfs install
    ```
 
 3. **Large file types that are automatically tracked by Git LFS**:
+
    - Binary files: `.jar`, `.war`, `.zip`, `.tar.gz`
    - Node.js binaries: `.node`
    - Minified JavaScript: `.min.js`
@@ -154,6 +165,7 @@ See [backend/autotrader-backend/README.md](backend/autotrader-backend/README.md)
 ## API Testing
 
 ### Quick API Tests
+
 Run all API tests locally with a single command:
 
 ```bash
@@ -162,12 +174,14 @@ Run all API tests locally with a single command:
 ```
 
 This script will:
+
 - Check if Newman (Postman CLI) is installed and install it if needed
 - Verify the Spring Boot backend is running
 - Execute all API tests with authentication
 - Generate an HTML report at `results/html-report.html`
 
 ### Manual API Testing
+
 You can also run tests manually:
 
 ```bash
@@ -186,7 +200,7 @@ newman run "./backend/autotrader-backend/src/test/resources/postman/autotrader-a
 Detailed API documentation is available in [backend/autotrader-backend/API.md](backend/autotrader-backend/API.md), which includes:
 
 - Authentication endpoints
-- Car listing endpoints  
+- Car listing endpoints
 - Reference data endpoints (governorates, brands, models)
 - Request/response formats
 - Examples using cURL
@@ -207,10 +221,10 @@ Detailed API documentation is available in [backend/autotrader-backend/API.md](b
 
 ```bash
 cd backend/autotrader-backend
-./gradlew bootRun
+./autotrader.sh dev rebuild
 ```
 
-#### Frontend 
+#### Frontend
 
 ```bash
 cd frontend
