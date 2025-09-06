@@ -87,6 +87,58 @@ The application implements a standardized approach to API error handling with:
 
 For more details, see [API Error Handling Documentation](docs/api_error_handling.md).
 
+## Internationalization (i18n)
+
+The frontend provides comprehensive internationalization support with:
+
+- **React i18next Integration**: Full internationalization framework
+- **Arabic/English Support**: Complete translation coverage
+- **RTL Layout Support**: Proper right-to-left layout for Arabic
+- **Dynamic Language Switching**: Runtime language changes
+- **Translation Namespaces**: Organized translation files by feature
+- **Fallback Support**: Graceful fallback for missing translations
+
+**Supported Languages:**
+- English (en) - Default
+- Arabic (ar) - Full RTL support
+
+**Translation Namespaces:**
+- `common` - Common UI elements and messages
+- `auth` - Authentication related translations
+- `listings` - Car listing translations
+- `messages` - Messaging system translations
+- `search` - Search and filtering translations
+- `dashboard` - Dashboard translations
+- `favorites` - Favorites system translations
+- `errors` - Error messages and validation
+- `home` - Homepage translations
+
+## Recent Features
+
+### Hover Image Navigation
+AutoTrader.co.uk style hover navigation for car listing cards with:
+- Hover-activated navigation arrows
+- Dot indicators for current position
+- RTL support for Arabic interface
+- Smooth image transitions
+- Video thumbnail support
+
+### Advanced Messaging System
+Enhanced messaging with file uploads and validation:
+- Multi-file upload support
+- File type and size validation
+- Translated error messages
+- Progress indicators
+- Drag and drop support
+
+### CarMediaGallery Enhancements
+Responsive media gallery with:
+- RTL layout support
+- Proper Arabic translations
+- Improved dot navigation spacing
+- Dynamic thumbnail grid layout
+- Modal view with keyboard navigation
+
 ### Recent Changes
 
 - **Removed backend connectivity checking**: We've eliminated the automatic server health checking system to reduce unnecessary backend requests. API requests now fail gracefully with appropriate error messages when the backend is unavailable.

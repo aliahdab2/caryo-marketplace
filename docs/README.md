@@ -56,6 +56,9 @@ This directory contains comprehensive documentation for the Caryo Marketplace pr
 
 **Documentation of completed features and improvements**
 
+- [Hover Image Navigation Implementation](implementation/hover_image_navigation_implementation.md) - AutoTrader.co.uk style hover navigation
+- [Messaging System Improvements](implementation/messaging_system_improvements.md) - Translation and validation fixes
+- [CarMediaGallery RTL Improvements](implementation/carmediagallery_rtl_improvements.md) - RTL support and spacing fixes
 - [Email Service Implementation Plan](implementation/EMAIL_SERVICE_IMPLEMENTATION_PLAN.md) - Email system architecture
 - [Email Service File Organization](implementation/EMAIL_SERVICE_FILE_ORGANIZATION.md) - Email service structure
 - [Email Service Testing Summary](implementation/EMAIL_SERVICE_TESTING_SUMMARY.md) - Email testing implementation

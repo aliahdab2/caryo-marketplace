@@ -10,6 +10,10 @@ The project is currently in active development with these key features implement
 - Admin approval workflow for listings
 - Location-based filtering system
 - Multiple media uploads with S3-compatible storage
+- **Hover Image Navigation** - AutoTrader.co.uk style image browsing
+- **Internationalization (i18n)** - Full Arabic/English support with RTL
+- **Advanced Messaging System** - File uploads with validation and translations
+- **CarMediaGallery** - Responsive gallery with RTL support
 - Development environment with Docker Compose
 - **AutoTrader CLI** - Unified script for development and deployment
 - CI/CD workflows with GitHub Actions

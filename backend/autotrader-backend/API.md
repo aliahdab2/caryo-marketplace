@@ -169,7 +169,7 @@ Start a new conversation about a car listing.
 - `CreateConversation` - Basic conversation creation
 - `CreateConversationWithAttachments` - Conversation with file attachments
 
-**Response:**
+**Success Response (201):**
 ```json
 {
   "id": "number",
@@ -198,6 +198,13 @@ Start a new conversation about a car listing.
   "deletedAt": "string (null if active)"
 }
 ```
+
+**Error Responses:**
+- **400 Bad Request**: Invalid request data or validation errors
+- **401 Unauthorized**: User not authenticated
+- **403 Forbidden**: User cannot access this listing
+- **404 Not Found**: Listing not found
+- **409 Conflict**: Conversation already exists between these users for this listing
 
 ### **GET /api/conversations/my-conversations**
 Get user's conversations with pagination.
@@ -342,7 +349,7 @@ Send a message in a conversation.
 - `SendMessageWithAttachments` - Message with file attachments
 - `ReplyToMessage` - Reply to a specific message
 
-**Response:**
+**Success Response (201):**
 ```json
 {
   "id": "number",
@@ -374,6 +381,13 @@ Send a message in a conversation.
   ]
 }
 ```
+
+**Error Responses:**
+- **400 Bad Request**: Invalid message content or validation errors
+- **401 Unauthorized**: User not authenticated
+- **403 Forbidden**: User not participant in conversation
+- **404 Not Found**: Conversation not found
+- **413 Payload Too Large**: Message content exceeds maximum length
 
 ### **PATCH /api/messages/{id}/read**
 Mark a message as read.
@@ -441,6 +455,96 @@ Mute/unmute a conversation participant.
 ```json
 {
   "message": "Participant muted/unmuted successfully"
+}
+```
+
+### **PATCH /api/conversations/{id}/archive**
+Archive a conversation for the current user.
+
+**Response:**
+```json
+{
+  "message": "Conversation archived successfully"
+}
+```
+
+### **PATCH /api/conversations/{id}/status**
+Update conversation status.
+
+**Query Parameters:**
+- `status` (required): New status value
+
+**Response:**
+```json
+{
+  "message": "Conversation status updated successfully"
+}
+```
+
+### **POST /api/conversations/{id}/messages/attachments**
+Upload file attachment for a message.
+
+**Content-Type:** `multipart/form-data`
+
+**Form Data:**
+- `file` (required): File to upload
+
+**Supported File Types:**
+- Images: JPEG, PNG, GIF, WebP (max 5MB)
+- Documents: PDF, DOC, DOCX (max 10MB)
+
+**Response:**
+```json
+{
+  "fileUrl": "string",
+  "fileName": "string",
+  "contentType": "string",
+  "size": "number",
+  "attachmentId": "number",
+  "message": "Attachment uploaded successfully"
+}
+```
+
+### **POST /api/conversations/{id}/messages/with-attachments**
+Send a message with file attachments.
+
+**Content-Type:** `multipart/form-data`
+
+**Form Data:**
+- `content` (optional): Message content
+- `messageType` (required): Type of message ('text', 'image', 'document')
+- `files` (optional): Array of files to attach
+
+**Validation Rules:**
+- Either `content` or `files` must be provided
+- Maximum content length: 1000 characters
+- Maximum 10 files per message
+
+**Response:**
+```json
+{
+  "id": "number",
+  "conversationId": "number",
+  "content": "string",
+  "messageType": "string",
+  "isRead": "boolean",
+  "createdAt": "string",
+  "sender": {
+    "id": "number",
+    "username": "string"
+  },
+  "attachments": [
+    {
+      "id": "number",
+      "fileName": "string",
+      "contentType": "string",
+      "size": "number",
+      "fileUrl": "string",
+      "uploadStatus": "string",
+      "createdAt": "string"
+    }
+  ],
+  "message": "Message sent successfully"
 }
 ```
 
