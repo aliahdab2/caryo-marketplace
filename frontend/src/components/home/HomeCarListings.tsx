@@ -143,16 +143,17 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
             const displayMedia = getDisplayMedia(car.media);
             
             return (
-              <div
+              <Link
                 key={car.id}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                href={`/listings/${car.id}`}
+                className="block bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 ease-in-out group cursor-pointer"
               >
                 <div className="relative h-48">
                   <Image
                     src={displayMedia ? transformMinioUrl(displayMedia.url) || displayMedia.url : "/images/logo.png"}
                     alt={car.title}
                     fill
-                    className="object-cover"
+                    className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-105"
                     unoptimized
                   />
                   {/* Video Play Icon Overlay */}
@@ -163,9 +164,12 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                       </div>
                     </div>
                   )}
+                  
+                  {/* Hover overlay for better UX feedback */}
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300" />
                 </div>
                 <div className="p-5">
-                  <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
+                  <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
                     {car.title}
                   </h3>
                   <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4">
@@ -175,7 +179,7 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                     <div className="flex items-center">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 mr-1"
+                        className="h-4 w-4 mr-1 flex-shrink-0"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -193,12 +197,12 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                           d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                         />
                       </svg>
-                      {car.locationDetails?.displayNameEn || car.governorateDetails?.displayNameEn || "Unknown"}
+                      <span className="truncate">{car.locationDetails?.displayNameEn || car.governorateDetails?.displayNameEn || "Unknown"}</span>
                     </div>
                     <div className="flex items-center">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 mr-1"
+                        className="h-4 w-4 mr-1 flex-shrink-0"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -207,15 +211,15 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                       </svg>
-                      {car.mileage.toLocaleString()} km
+                      <span>{car.mileage ? car.mileage.toLocaleString() : 0} km</span>
                     </div>
                     <div className="flex items-center">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 mr-1"
+                        className="h-4 w-4 mr-1 flex-shrink-0"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -224,15 +228,15 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M5 13l4 4L19 7"
+                          d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"
                         />
                       </svg>
-                      {typeof car.fuelType === 'object' ? (car.fuelType as { displayNameEn?: string })?.displayNameEn : car.fuelType || "N/A"}
+                      <span className="truncate">{typeof car.fuelType === 'object' ? (car.fuelType as { displayNameEn?: string })?.displayNameEn : car.fuelType || "N/A"}</span>
                     </div>
                     <div className="flex items-center">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 mr-1"
+                        className="h-4 w-4 mr-1 flex-shrink-0"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -244,19 +248,11 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                           d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                         />
                       </svg>
-                      {typeof car.transmission === 'object' ? (car.transmission as { displayNameEn?: string })?.displayNameEn : car.transmission || "N/A"}
+                      <span className="truncate">{typeof car.transmission === 'object' ? (car.transmission as { displayNameEn?: string })?.displayNameEn : car.transmission || "N/A"}</span>
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <Link
-                      href={`/listings/${car.id}`}
-                      className="w-full block text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-300"
-                    >
-                      {t('viewDetails', 'View Details')}
-                    </Link>
-                  </div>
                 </div>
-              </div>
+              </Link>
             );
           })
         ) : (

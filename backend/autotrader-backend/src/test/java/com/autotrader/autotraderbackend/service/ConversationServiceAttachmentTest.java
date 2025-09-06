@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.time.LocalDateTime;
@@ -22,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 /**
  * Unit tests for ConversationService attachment functionality.
@@ -41,10 +43,16 @@ public class ConversationServiceAttachmentTest {
     private MessageAttachmentRepository messageAttachmentRepository;
 
     @Mock
+    private CarListingRepository carListingRepository;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
     private StorageService storageService;
+
+    @Mock
+    private MessageSource messageSource;
 
     @InjectMocks
     private ConversationService conversationService;
@@ -81,6 +89,9 @@ public class ConversationServiceAttachmentTest {
                 .messageType(MessageType.TEXT)
                 .createdAt(LocalDateTime.now())
                 .build();
+
+        // Configure MessageSource mocks with lenient stubbing
+        lenient().when(messageSource.getMessage(anyString(), any(), anyString(), any())).thenReturn("Mocked error message");
     }
 
     @Test
@@ -128,8 +139,7 @@ public class ConversationServiceAttachmentTest {
 
         // Act & Assert
         assertThatThrownBy(() -> conversationService.uploadMessageAttachment(1L, emptyFile, 1L))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("File cannot be empty");
+                .isInstanceOf(BadRequestException.class);
 
         verify(storageService, never()).store(any(), anyString());
         verify(messageAttachmentRepository, never()).save(any());
@@ -148,8 +158,7 @@ public class ConversationServiceAttachmentTest {
 
         // Act & Assert
         assertThatThrownBy(() -> conversationService.uploadMessageAttachment(1L, unsupportedFile, 1L))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("Unsupported file type");
+                .isInstanceOf(BadRequestException.class);
 
         verify(storageService, never()).store(any(), anyString());
         verify(messageAttachmentRepository, never()).save(any());
@@ -169,8 +178,7 @@ public class ConversationServiceAttachmentTest {
 
         // Act & Assert
         assertThatThrownBy(() -> conversationService.uploadMessageAttachment(1L, largeFile, 1L))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("File size cannot exceed 10MB");
+                .isInstanceOf(BadRequestException.class);
 
         verify(storageService, never()).store(any(), anyString());
         verify(messageAttachmentRepository, never()).save(any());

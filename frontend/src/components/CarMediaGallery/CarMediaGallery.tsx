@@ -351,20 +351,20 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
             {/* Media position indicator with type icons */}
             {mediaStats.hasMultiple && (
               <div className={`absolute top-3 z-20 ${isRTL ? 'right-3' : 'left-3'}`}>
-                <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'} bg-gray-900 bg-opacity-90 backdrop-blur-sm rounded-md px-2.5 py-1.5 text-white text-sm font-medium`}>
+                <div className={`flex items-center gap-2 bg-gray-900 bg-opacity-90 backdrop-blur-sm rounded-md px-2.5 py-1.5 text-white text-sm font-medium ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <span className="text-xs font-medium">
-                    {currentMediaIndex + 1} / {mediaStats.totalCount}
+                    {t('mediaCount', { current: currentMediaIndex + 1, total: mediaStats.totalCount })}
                   </span>
                   {mediaStats.videoCount > 0 && (
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-1">
                       <Video className="w-4 h-4" />
-                      {mediaStats.videoCount > 1 && <span className="ml-1 text-xs">{mediaStats.videoCount}</span>}
+                      {mediaStats.videoCount > 1 && <span className="text-xs">{mediaStats.videoCount}</span>}
                     </div>
                   )}
                   {mediaStats.imageCount > 0 && (
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-1">
                       <Camera className="w-4 h-4" />
-                      {mediaStats.imageCount > 1 && <span className="ml-1 text-xs">{mediaStats.imageCount}</span>}
+                      {mediaStats.imageCount > 1 && <span className="text-xs">{mediaStats.imageCount}</span>}
                     </div>
                   )}
                 </div>
@@ -374,7 +374,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
             {/* Dot navigation - Bottom center (AutoTrader/Blocket style) */}
             {mediaStats.hasMultiple && (
               <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 z-20">
-                <div className="flex items-center space-x-2 bg-gray-900 bg-opacity-75 backdrop-blur-sm rounded-full px-3 py-2">
+                <div className="flex items-center justify-center gap-2 bg-gray-900 bg-opacity-75 backdrop-blur-sm rounded-full px-3 py-2">
                   {media.map((_, index) => (
                     <button
                       key={index}
@@ -382,9 +382,9 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                         e.stopPropagation();
                         setCurrentMediaIndex(index);
                       }}
-                      className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                      className={`w-2.5 h-2.5 rounded-full transition-all duration-200 flex-shrink-0 ${
                         index === currentMediaIndex
-                          ? 'bg-white scale-125'
+                          ? 'bg-white scale-110'
                           : 'bg-white bg-opacity-50 hover:bg-opacity-75'
                       }`}
                       aria-label={`Go to media ${index + 1}`}
@@ -433,7 +433,12 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
       {/* Thumbnail navigation for all media (images and videos) */}
       {mediaStats.hasMultiple && (
         <div className="mt-4">
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+          <div className={`grid gap-2 justify-center ${
+            mediaStats.totalCount <= 3 ? 'grid-cols-3' :
+            mediaStats.totalCount <= 4 ? 'grid-cols-4' :
+            mediaStats.totalCount <= 6 ? 'grid-cols-6' :
+            'grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10'
+          }`}>
             {media.map((item, idx) => (
               <div 
                 key={`thumb-${idx}`}
@@ -522,14 +527,14 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
               {/* Digital counter for tests and accessibility */}
               {mediaStats.hasMultiple && (
                 <div className={`absolute top-6 left-1/2 transform -translate-x-1/2 z-30 px-3 py-1 bg-black bg-opacity-40 rounded-md text-white text-sm font-medium`}>
-                  {`${currentMediaIndex + 1} of ${mediaStats.totalCount}`}
+                  {t('mediaCount', { current: currentMediaIndex + 1, total: mediaStats.totalCount })}
                 </div>
               )}
 
               {/* Modal dot navigation */}
               {mediaStats.hasMultiple && (
                 <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30">
-                  <div className="flex items-center space-x-3 bg-black bg-opacity-40 backdrop-blur-sm rounded-full px-4 py-2">
+                  <div className="flex items-center justify-center gap-3 bg-black bg-opacity-40 backdrop-blur-sm rounded-full px-4 py-2">
                     {media.map((_, index) => (
                       <button
                         key={index}
@@ -537,9 +542,9 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                           e.stopPropagation();
                           setCurrentMediaIndex(index);
                         }}
-                        className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                        className={`w-3 h-3 rounded-full transition-all duration-200 flex-shrink-0 ${
                           index === currentMediaIndex
-                            ? 'bg-white scale-125'
+                            ? 'bg-white scale-110'
                             : 'bg-white bg-opacity-50 hover:bg-opacity-75'
                         }`}
                         aria-label={`Go to media ${index + 1}`}

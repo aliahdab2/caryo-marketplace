@@ -16,6 +16,7 @@ import com.autotrader.autotraderbackend.exception.BadRequestException;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,9 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.tika.Tika;
 
-
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Locale;
 
 /**
  * Service for managing conversations between buyers and sellers.
@@ -44,6 +45,7 @@ public class ConversationService {
     private final UserRepository userRepository;
     private final MessageAttachmentRepository messageAttachmentRepository;
     private final StorageService storageService;
+    private final MessageSource messageSource;
 
     /**
      * Create a new conversation or return existing one
@@ -405,10 +407,10 @@ public class ConversationService {
 
         // Validate file
         if (file == null) {
-            throw new BadRequestException("File cannot be null");
+            throw new BadRequestException(getMessage("error.file.null", Locale.ENGLISH));
         }
         if (file.isEmpty()) {
-            throw new BadRequestException("File cannot be empty");
+            throw new BadRequestException(getMessage("error.file.empty", Locale.ENGLISH));
         }
 
         String contentType = file.getContentType();
@@ -416,13 +418,16 @@ public class ConversationService {
         // Check file size first (before expensive Tika validation)
         long maxFileSize = getMaxFileSize(contentType);
         if (file.getSize() > maxFileSize) {
-            String maxSizeMB = String.valueOf(maxFileSize / (1024 * 1024));
-            throw new BadRequestException("File size cannot exceed " + maxSizeMB + "MB for this file type");
+            if (contentType != null && contentType.startsWith("image/")) {
+                throw new BadRequestException(getMessage("error.file.size.image.too.large", Locale.ENGLISH));
+            } else {
+                throw new BadRequestException(getMessage("error.file.size.document.too.large", Locale.ENGLISH));
+            }
         }
 
         // Check file type using Apache Tika for security
         if (!isAllowedFileType(file)) {
-            throw new BadRequestException("Unsupported file type: " + contentType);
+            throw new BadRequestException(getMessage("error.file.type.unsupported", Locale.ENGLISH));
         }
 
         // Generate file key
@@ -504,14 +509,17 @@ public class ConversationService {
         // Validate file
         String contentType = file.getContentType();
         if (contentType == null || !isAllowedFileType(file)) {
-            throw new BadRequestException("Unsupported file type: " + contentType);
+            throw new BadRequestException(getMessage("error.file.type.unsupported", Locale.ENGLISH));
         }
 
         // Check file size using the proper size limits (10MB for images, 25MB for documents)
         long maxFileSize = getMaxFileSize(contentType);
         if (file.getSize() > maxFileSize) {
-            String maxSizeMB = String.valueOf(maxFileSize / (1024 * 1024));
-            throw new BadRequestException("File size cannot exceed " + maxSizeMB + "MB for this file type");
+            if (contentType.startsWith("image/")) {
+                throw new BadRequestException(getMessage("error.file.size.image.too.large", Locale.ENGLISH));
+            } else {
+                throw new BadRequestException(getMessage("error.file.size.document.too.large", Locale.ENGLISH));
+            }
         }
 
         // Generate file key
@@ -691,5 +699,21 @@ public class ConversationService {
         
         // Documents: 25MB limit (larger for comprehensive documents)
         return 25 * 1024 * 1024;
+    }
+
+    /**
+     * Helper method to retrieve localized messages from the message source.
+     * 
+     * This method provides a centralized way to access translated error messages
+     * and other user-facing strings based on the user's locale preferences.
+     * 
+     * @param key The message key to look up in the message properties files
+     * @param locale The locale to use for message translation (e.g., en, ar)
+     * @return The translated message string, or the key itself if no translation is found
+     * 
+     * @see MessageSource#getMessage(String, Object[], String, Locale)
+     */
+    private String getMessage(String key, Locale locale) {
+        return messageSource.getMessage(key, null, key, locale);
     }
 }

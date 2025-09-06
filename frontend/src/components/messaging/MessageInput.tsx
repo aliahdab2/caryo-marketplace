@@ -142,6 +142,11 @@ export default function MessageInput({
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                 <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
                   {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''} ready to send
+                  {selectedFiles.length > 6 && (
+                    <span className="text-xs text-blue-600 dark:text-blue-400 ml-2">
+                      • {t('scrollToSeeAll')}
+                    </span>
+                  )}
                 </span>
               </div>
               <button
@@ -153,8 +158,8 @@ export default function MessageInput({
               </button>
             </div>
             
-            {/* Separate images and documents for better visibility */}
-            <div className="space-y-3">
+            {/* Separate images and documents for better visibility - with max height and scroll */}
+            <div className="space-y-3 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-blue-100 dark:scrollbar-thumb-blue-600 dark:scrollbar-track-blue-800">
               {/* Images Section */}
               {selectedFiles.filter(file => file.type.startsWith('image/')).length > 0 && (
                 <div>

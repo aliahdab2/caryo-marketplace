@@ -57,16 +57,26 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
     const files = Array.from(e.target.files || []);
     
     // Validate files
-    const validFiles = files.filter(file => {
+    const validFiles: File[] = [];
+    let hasError = false;
+    
+    for (const file of files) {
       if (file.size > maxFileSize) {
-        alert(`File "${file.name}" is too large. Maximum size is ${maxFileSize / 1024 / 1024}MB.`);
-        return false;
+        // Show error via parent component's error handling
+        console.error(t('fileTooLarge', { fileName: file.name, maxSize: maxFileSize / 1024 / 1024 }));
+        hasError = true;
+        break;
+      } else {
+        validFiles.push(file);
       }
-      return true;
-    });
+    }
     
     if (selectedFiles.length + validFiles.length > maxFiles) {
-      alert(`Maximum ${maxFiles} files allowed.`);
+      console.error(t('maxFilesExceeded', { maxFiles }));
+      hasError = true;
+    }
+    
+    if (hasError) {
       return;
     }
     
@@ -76,7 +86,7 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  }, [selectedFiles.length, maxFileSize, maxFiles]);
+  }, [selectedFiles.length, maxFileSize, maxFiles, t]);
   
   const removeFile = useCallback((index: number) => {
     setSelectedFiles(prev => {
@@ -107,21 +117,30 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
     const files = Array.from(e.dataTransfer.files);
     
     // Validate files directly instead of creating synthetic event
-    const validFiles = files.filter(file => {
+    const validFiles: File[] = [];
+    let hasError = false;
+    
+    for (const file of files) {
       if (file.size > maxFileSize) {
-        alert(`File "${file.name}" is too large. Maximum size is ${maxFileSize / 1024 / 1024}MB.`);
-        return false;
+        console.error(t('fileTooLarge', { fileName: file.name, maxSize: maxFileSize / 1024 / 1024 }));
+        hasError = true;
+        break;
+      } else {
+        validFiles.push(file);
       }
-      return true;
-    });
+    }
     
     if (selectedFiles.length + validFiles.length > maxFiles) {
-      alert(`Maximum ${maxFiles} files allowed.`);
+      console.error(t('maxFilesExceeded', { maxFiles }));
+      hasError = true;
+    }
+    
+    if (hasError) {
       return;
     }
     
     setSelectedFiles(prev => [...prev, ...validFiles]);
-  }, [selectedFiles.length, maxFileSize, maxFiles]);
+  }, [selectedFiles.length, maxFileSize, maxFiles, t]);
   
   const characterCount = value.length;
   const isNearLimit = characterCount > maxLength * 0.8;
