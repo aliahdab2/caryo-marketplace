@@ -21,6 +21,7 @@ Located in the `collections/` directory:
 - `transmissions-tests.json`: Tests for Transmission endpoints
 - `seller-types-tests.json`: Tests for Seller Type endpoints
 - `listings-media-tests.json`: Tests for Listings and Media endpoints
+- `messaging-tests.json`: **NEW** - Comprehensive tests for messaging system including conversations, messages, and file attachments
 - `contact-email-tests.json`: **DISABLED** - Email functionality thoroughly tested by unit and integration tests
 
 ## Running the Tests
@@ -95,6 +96,21 @@ Email testing has been moved to comprehensive unit and integration tests:
 - **CI Compatible**: No external SMTP dependencies required
 
 This approach ensures reliable, fast, and consistent email testing across all environments.
+
+### Messaging System Testing
+
+The messaging system is thoroughly tested with dedicated test scenarios:
+
+- **Conversation Management**: Create, retrieve, and manage conversations
+- **Message Operations**: Send, retrieve, and mark messages as read
+- **File Attachments**: Upload and manage message attachments
+- **Bulk Operations**: Mark all messages as read, archive conversations
+- **Error Handling**: Invalid inputs, authentication failures, and edge cases
+
+**Test Data Requirements:**
+- Sample users and listings are created automatically
+- Test files are located in the `assets/` directory
+- Environment variables are managed automatically during test execution
 
 ## Environment Variables
 

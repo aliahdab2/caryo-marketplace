@@ -1,0 +1,710 @@
+{
+  "info": {
+    "name": "Messaging System Tests",
+    "description": "Comprehensive Postman tests for the messaging system including conversations, messages, and file attachments",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Conversation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Response has required fields\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData).to.have.property('listingId');",
+              "    pm.expect(jsonData).to.have.property('buyer');",
+              "    pm.expect(jsonData).to.have.property('seller');",
+              "    pm.expect(jsonData).to.have.property('status');",
+              "});",
+              "",
+              "pm.test(\"Conversation created successfully message\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('successfully');",
+              "});",
+              "",
+              "// Store conversation ID for subsequent tests",
+              "var jsonData = pm.response.json();",
+              "if (jsonData.id) {",
+              "    pm.environment.set('conversation_id', jsonData.id);",
+              "    console.log('Created conversation with ID:', jsonData.id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"listingId\": 1,\n  \"initialMessage\": \"I'm interested in this car\",\n  \"subject\": \"Car Inquiry\",\n  \"messageType\": \"text\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/conversations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "conversations"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get User Conversations",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response is paginated\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('content');",
+              "    pm.expect(jsonData).to.have.property('totalElements');",
+              "    pm.expect(jsonData).to.have.property('totalPages');",
+              "    pm.expect(jsonData).to.have.property('currentPage');",
+              "});",
+              "",
+              "pm.test(\"Conversations have required fields\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.content && jsonData.content.length > 0) {",
+              "        var conversation = jsonData.content[0];",
+              "        pm.expect(conversation).to.have.property('id');",
+              "        pm.expect(conversation).to.have.property('listingTitle');",
+              "        pm.expect(conversation).to.have.property('buyer');",
+              "        pm.expect(conversation).to.have.property('seller');",
+              "        pm.expect(conversation).to.have.property('lastMessageAt');",
+              "        pm.expect(conversation).to.have.property('unreadCount');",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/conversations/my-conversations?page=0&size=10&sort=lastMessageAt&direction=desc",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "conversations",
+            "my-conversations"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            },
+            {
+              "key": "sort",
+              "value": "lastMessageAt"
+            },
+            {
+              "key": "direction",
+              "value": "desc"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Specific Conversation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Conversation has required fields\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData).to.have.property('listingId');",
+              "    pm.expect(jsonData).to.have.property('listingTitle');",
+              "    pm.expect(jsonData).to.have.property('buyer');",
+              "    pm.expect(jsonData).to.have.property('seller');",
+              "    pm.expect(jsonData).to.have.property('status');",
+              "    pm.expect(jsonData).to.have.property('lastMessageAt');",
+              "    pm.expect(jsonData).to.have.property('unreadCount');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/conversations/{{conversation_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "conversations",
+            "{{conversation_id}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Send Message",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Message has required fields\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData).to.have.property('conversationId');",
+              "    pm.expect(jsonData).to.have.property('content');",
+              "    pm.expect(jsonData).to.have.property('messageType');",
+              "    pm.expect(jsonData).to.have.property('isRead');",
+              "    pm.expect(jsonData).to.have.property('createdAt');",
+              "    pm.expect(jsonData).to.have.property('sender');",
+              "});",
+              "",
+              "pm.test(\"Message sent successfully\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('successfully');",
+              "});",
+              "",
+              "// Store message ID for subsequent tests",
+              "var jsonData = pm.response.json();",
+              "if (jsonData.id) {",
+              "    pm.environment.set('message_id', jsonData.id);",
+              "    console.log('Created message with ID:', jsonData.id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"content\": \"Thank you for your interest! The car is available.\",\n  \"messageType\": \"text\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/conversations/{{conversation_id}}/messages",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "conversations",
+            "{{conversation_id}}",
+            "messages"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Conversation Messages",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response is paginated\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('content');",
+              "    pm.expect(jsonData).to.have.property('totalElements');",
+              "    pm.expect(jsonData).to.have.property('totalPages');",
+              "});",
+              "",
+              "pm.test(\"Messages have required fields\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.content && jsonData.content.length > 0) {",
+              "        var message = jsonData.content[0];",
+              "        pm.expect(message).to.have.property('id');",
+              "        pm.expect(message).to.have.property('conversationId');",
+              "        pm.expect(message).to.have.property('content');",
+              "        pm.expect(message).to.have.property('messageType');",
+              "        pm.expect(message).to.have.property('isRead');",
+              "        pm.expect(message).to.have.property('createdAt');",
+              "        pm.expect(message).to.have.property('sender');",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/conversations/{{conversation_id}}/messages?page=0&size=20&sort=createdAt&direction=asc",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "conversations",
+            "{{conversation_id}}",
+            "messages"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "20"
+            },
+            {
+              "key": "sort",
+              "value": "createdAt"
+            },
+            {
+              "key": "direction",
+              "value": "asc"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Mark Message as Read",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Message marked as read successfully\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('successfully');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/conversations/messages/{{message_id}}/read",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "conversations",
+            "messages",
+            "{{message_id}}",
+            "read"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Mark All Messages as Read",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"All messages marked as read successfully\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('successfully');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/conversations/{{conversation_id}}/messages/read-all",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "conversations",
+            "{{conversation_id}}",
+            "messages",
+            "read-all"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Upload Message Attachment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Attachment uploaded successfully\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('fileUrl');",
+              "    pm.expect(jsonData).to.have.property('fileName');",
+              "    pm.expect(jsonData).to.have.property('contentType');",
+              "    pm.expect(jsonData).to.have.property('size');",
+              "    pm.expect(jsonData).to.have.property('attachmentId');",
+              "    pm.expect(jsonData.message).to.include('successfully');",
+              "});",
+              "",
+              "// Store attachment info for subsequent tests",
+              "var jsonData = pm.response.json();",
+              "if (jsonData.attachmentId) {",
+              "    pm.environment.set('attachment_id', jsonData.attachmentId);",
+              "    console.log('Uploaded attachment with ID:', jsonData.attachmentId);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "test-car.jpg"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/conversations/{{conversation_id}}/messages/attachments",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "conversations",
+            "{{conversation_id}}",
+            "messages",
+            "attachments"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Send Message with Attachments",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Message with attachments created successfully\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData).to.have.property('conversationId');",
+              "    pm.expect(jsonData).to.have.property('content');",
+              "    pm.expect(jsonData).to.have.property('messageType');",
+              "    pm.expect(jsonData).to.have.property('attachments');",
+              "    pm.expect(jsonData.message).to.include('successfully');",
+              "});",
+              "",
+              "pm.test(\"Attachments are properly included\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.attachments && jsonData.attachments.length > 0) {",
+              "        var attachment = jsonData.attachments[0];",
+              "        pm.expect(attachment).to.have.property('id');",
+              "        pm.expect(attachment).to.have.property('fileName');",
+              "        pm.expect(attachment).to.have.property('contentType');",
+              "        pm.expect(attachment).to.have.property('fileUrl');",
+              "        pm.expect(attachment).to.have.property('uploadStatus');",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "content",
+              "value": "Please find the car documents attached.",
+              "type": "text"
+            },
+            {
+              "key": "messageType",
+              "value": "document",
+              "type": "text"
+            },
+            {
+              "key": "files",
+              "type": "file",
+              "src": "test-file.pdf"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/conversations/{{conversation_id}}/messages/with-attachments",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "conversations",
+            "{{conversation_id}}",
+            "messages",
+            "with-attachments"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Archive Conversation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Conversation archived successfully\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('successfully');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/conversations/{{conversation_id}}/archive",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "conversations",
+            "{{conversation_id}}",
+            "archive"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Conversation Status",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Conversation status updated successfully\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('successfully');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/conversations/{{conversation_id}}/status?status=active",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "conversations",
+            "{{conversation_id}}",
+            "status"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "active"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

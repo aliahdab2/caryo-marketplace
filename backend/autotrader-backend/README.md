@@ -200,6 +200,22 @@ The application uses JWT (JSON Web Token) for authentication. All requests to pr
 Authorization: Bearer <your_jwt_token>
 ```
 
+### Internationalization (i18n)
+
+The backend provides comprehensive internationalization support with:
+- **Translated Error Messages**: All validation errors and user-facing messages are properly translated
+- **Locale Detection**: Automatic locale detection from request headers
+- **Message Source Integration**: Spring's MessageSource for centralized translation management
+- **Fallback Support**: Graceful fallback to English for missing translations
+
+**Supported Languages:**
+- English (en) - Default
+- Arabic (ar) - Full RTL support
+
+**Translation Files:**
+- `src/main/resources/messages.properties` - English translations
+- `src/main/resources/messages_ar.properties` - Arabic translations
+
 ## Development Notes
 
 ### H2 Console
