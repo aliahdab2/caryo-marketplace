@@ -109,7 +109,7 @@ export default function ContactSellerModal({
   const handleSendMessage = async () => {
     // This modal should only be shown to authenticated users
     if (!session?.user) {
-      console.error('ContactSellerModal: User not authenticated');
+      console.warn('ContactSellerModal opened without authenticated user');
       onClose();
       return;
     }
