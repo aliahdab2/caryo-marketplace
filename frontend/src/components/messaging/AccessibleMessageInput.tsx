@@ -66,8 +66,9 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
         console.error(t('fileTooLarge', { fileName: file.name, maxSize: maxFileSize / 1024 / 1024 }));
         hasError = true;
         break;
+      } else {
+        validFiles.push(file);
       }
-      validFiles.push(file);
     }
     
     if (selectedFiles.length + validFiles.length > maxFiles) {
@@ -85,7 +86,7 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  }, [selectedFiles.length, maxFileSize, maxFiles]);
+  }, [selectedFiles.length, maxFileSize, maxFiles, t]);
   
   const removeFile = useCallback((index: number) => {
     setSelectedFiles(prev => {
@@ -124,8 +125,9 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
         console.error(t('fileTooLarge', { fileName: file.name, maxSize: maxFileSize / 1024 / 1024 }));
         hasError = true;
         break;
+      } else {
+        validFiles.push(file);
       }
-      validFiles.push(file);
     }
     
     if (selectedFiles.length + validFiles.length > maxFiles) {
@@ -138,7 +140,7 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
     }
     
     setSelectedFiles(prev => [...prev, ...validFiles]);
-  }, [selectedFiles.length, maxFileSize, maxFiles]);
+  }, [selectedFiles.length, maxFileSize, maxFiles, t]);
   
   const characterCount = value.length;
   const isNearLimit = characterCount > maxLength * 0.8;
