@@ -361,7 +361,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                       {mediaStats.videoCount > 1 && <span className="text-xs">{mediaStats.videoCount}</span>}
                     </div>
                   )}
-                  {mediaStats.imageCount > 0 && (
+                  {mediaStats.imageCount > 0 && (mediaStats.videoCount > 0 || mediaStats.videoCount === 1) && (
                     <div className="flex items-center gap-1">
                       <Camera className="w-4 h-4" />
                       {mediaStats.imageCount > 1 && <span className="text-xs">{mediaStats.imageCount}</span>}
