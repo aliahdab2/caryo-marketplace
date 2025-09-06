@@ -17,7 +17,7 @@ MINIO_ALIAS="autotrader-local"
 BUCKET_NAME="caryo-assets"
 TEMP_DIR="temp_car_images"
 DEFAULT_LISTINGS=(6 7 8 9 10)  # Default listings to add primary images
-DEFAULT_MULTI_LISTINGS=(8)     # Default listings to add multiple images (Honda Civic is 8)
+DEFAULT_MULTI_LISTINGS=(6 8)   # Default listings to add multiple images (Yellow sports car is 6, Honda Civic is 8)
 
 # Parse command line arguments
 SPECIFIC_LISTINGS=()
