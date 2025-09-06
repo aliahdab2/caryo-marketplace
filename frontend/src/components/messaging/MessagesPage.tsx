@@ -143,11 +143,6 @@ export default function MessagesPage() {
     if (validFiles.length > 0) {
       setSelectedFiles(prev => [...prev, ...validFiles]);
       console.log(`✅ Added ${validFiles.length} image(s) successfully`);
-      
-      // Show success toast if files were added
-      if (validFiles.length === files.length) {
-        showToast(t('success.imagesAdded', `Added ${validFiles.length} image(s) successfully`), 'success');
-      }
     }
 
     // Show error toast for first invalid file
@@ -182,11 +177,6 @@ export default function MessagesPage() {
     if (validFiles.length > 0) {
       setSelectedFiles(prev => [...prev, ...validFiles]);
       console.log(`✅ Added ${validFiles.length} document(s) successfully`);
-      
-      // Show success toast if files were added
-      if (validFiles.length === files.length) {
-        showToast(t('success.documentsAdded', `Added ${validFiles.length} document(s) successfully`), 'success');
-      }
     }
 
     // Show error toast for first invalid file
