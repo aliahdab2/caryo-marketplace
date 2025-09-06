@@ -1,5 +1,14 @@
 import { api } from './api';
 
+// API Response wrapper interface
+interface ApiResponse<T> {
+  data: T;
+  message?: string;
+  status?: string;
+  timestamp?: string;
+  metadata?: Record<string, unknown>;
+}
+
 export interface CreateConversationRequest {
   listingId: number;
   initialMessage: string;
@@ -166,8 +175,8 @@ export class MessagingService {
    * Create a new conversation
    */
   static async createConversation(request: CreateConversationRequest): Promise<ConversationResponse> {
-    const response = await api.post<ConversationResponse>('/api/conversations', request as unknown as Record<string, unknown>);
-    return response;
+    const response = await api.post<ApiResponse<ConversationResponse>>('/api/conversations', request as unknown as Record<string, unknown>);
+    return response.data;
   }
 
   /**
@@ -297,14 +306,14 @@ export class MessagingService {
    * Upload message attachment
    */
   static async uploadMessageAttachment(
-    conversationId: number, 
+    conversationId: number,
     file: File
   ): Promise<{ id: number; fileName: string; fileUrl: string; contentType: string; size: number; isImage: boolean }> {
     const formData = new FormData();
     formData.append('file', file);
-    
-    const response = await api.post<{ id: number; fileName: string; fileUrl: string; contentType: string; size: number; isImage: boolean }>(`/api/conversations/${conversationId}/messages/attachments`, formData);
-    return response;
+
+    const response = await api.post<ApiResponse<{ id: number; fileName: string; fileUrl: string; contentType: string; size: number; isImage: boolean }>>(`/api/conversations/${conversationId}/messages/attachments`, formData);
+    return response.data;
   }
 
   /**

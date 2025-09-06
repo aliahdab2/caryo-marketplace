@@ -130,6 +130,12 @@ export default function ContactSellerModal({
         messageType: 'text',
       });
 
+      // Validate that we have a valid conversation ID
+      if (!conversation || !conversation.id) {
+        setError(t('errorInvalidConversation', 'Failed to create conversation. Please try again.'));
+        return;
+      }
+
       // Close modal and redirect to messages
       onClose();
       router.push(`/dashboard/messages?conversation=${conversation.id}`);
