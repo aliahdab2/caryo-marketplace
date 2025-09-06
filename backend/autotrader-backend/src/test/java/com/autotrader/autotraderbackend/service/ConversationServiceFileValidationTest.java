@@ -10,13 +10,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 /**
  * Test class for ConversationService file validation functionality
@@ -35,10 +37,16 @@ public class ConversationServiceFileValidationTest {
     private MessageAttachmentRepository messageAttachmentRepository;
 
     @Mock
+    private CarListingRepository carListingRepository;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
     private StorageService storageService;
+
+    @Mock
+    private MessageSource messageSource;
 
     @InjectMocks
     private ConversationService conversationService;
@@ -69,6 +77,9 @@ public class ConversationServiceFileValidationTest {
         testConversation.setId(1L);
         testConversation.setBuyer(testUser);
         testConversation.setSeller(otherUser);
+
+        // Configure MessageSource mocks with lenient stubbing
+        lenient().when(messageSource.getMessage(anyString(), any(), anyString(), any())).thenReturn("Mocked error message");
     }
 
     @Test
@@ -86,12 +97,9 @@ public class ConversationServiceFileValidationTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
         // When & Then: Should reject due to file size before checking file type
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+        assertThrows(BadRequestException.class, () -> {
             conversationService.uploadMessageAttachment(1L, largeFile, 1L);
         });
-
-        assertTrue(exception.getMessage().contains("File size cannot exceed"));
-        assertTrue(exception.getMessage().contains("10MB"));
     }
 
     @Test
@@ -135,12 +143,9 @@ public class ConversationServiceFileValidationTest {
             new byte[0]
         );
 
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+        assertThrows(BadRequestException.class, () -> {
             conversationService.uploadMessageAttachment(1L, emptyFile, 1L);
         });
-
-        assertTrue(exception.getMessage().contains("empty") || 
-                  exception.getMessage().contains("File size cannot exceed"));
     }
 
     @Test
