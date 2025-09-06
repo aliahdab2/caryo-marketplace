@@ -57,16 +57,25 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
     const files = Array.from(e.target.files || []);
     
     // Validate files
-    const validFiles = files.filter(file => {
+    const validFiles: File[] = [];
+    let hasError = false;
+    
+    for (const file of files) {
       if (file.size > maxFileSize) {
-        alert(`File "${file.name}" is too large. Maximum size is ${maxFileSize / 1024 / 1024}MB.`);
-        return false;
+        // Show error via parent component's error handling
+        console.error(`File "${file.name}" is too large. Maximum size is ${maxFileSize / 1024 / 1024}MB.`);
+        hasError = true;
+        break;
       }
-      return true;
-    });
+      validFiles.push(file);
+    }
     
     if (selectedFiles.length + validFiles.length > maxFiles) {
-      alert(`Maximum ${maxFiles} files allowed.`);
+      console.error(`Maximum ${maxFiles} files allowed.`);
+      hasError = true;
+    }
+    
+    if (hasError) {
       return;
     }
     
@@ -107,16 +116,24 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
     const files = Array.from(e.dataTransfer.files);
     
     // Validate files directly instead of creating synthetic event
-    const validFiles = files.filter(file => {
+    const validFiles: File[] = [];
+    let hasError = false;
+    
+    for (const file of files) {
       if (file.size > maxFileSize) {
-        alert(`File "${file.name}" is too large. Maximum size is ${maxFileSize / 1024 / 1024}MB.`);
-        return false;
+        console.error(`File "${file.name}" is too large. Maximum size is ${maxFileSize / 1024 / 1024}MB.`);
+        hasError = true;
+        break;
       }
-      return true;
-    });
+      validFiles.push(file);
+    }
     
     if (selectedFiles.length + validFiles.length > maxFiles) {
-      alert(`Maximum ${maxFiles} files allowed.`);
+      console.error(`Maximum ${maxFiles} files allowed.`);
+      hasError = true;
+    }
+    
+    if (hasError) {
       return;
     }
     

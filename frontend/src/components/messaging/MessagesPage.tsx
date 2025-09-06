@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'next/navigation';
 import { MessagingService, ConversationResponse, MessageResponse } from '@/services/messaging';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
+import Toast from '@/components/ui/Toast';
 import { MessageCircle } from 'lucide-react';
 import { transformMinioUrl } from '@/utils/mediaUtils';
 import ConversationList from './ConversationList';
@@ -45,32 +46,60 @@ export default function MessagesPage() {
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showUnsupportedFileModal, setShowUnsupportedFileModal] = useState(false);
-  const [unsupportedFileName, setUnsupportedFileName] = useState('');
   const [isActionLoading, setIsActionLoading] = useState(false);
+  
+  // Toast states
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
 
   // Debug: Log messages when they change
   useEffect(() => {
     console.log('🔍 Messages state updated:', messages.length, messages);
   }, [messages]);
 
+  // Helper function to show toast messages
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  }, []);
+
+  // Helper function to extract error message from backend response
+  const extractErrorMessage = useCallback((error: unknown): string => {
+    // Try to get translated error message from backend
+    const apiError = error as { response?: { data?: { message?: string; error?: string } }; message?: string };
+    
+    if (apiError?.response?.data?.message) {
+      return apiError.response.data.message;
+    }
+    if (apiError?.response?.data?.error) {
+      return apiError.response.data.error;
+    }
+    if (apiError?.message) {
+      return apiError.message;
+    }
+    // Fallback to generic error message
+    return t('errors.uploadFailed', 'Upload failed. Please try again.');
+  }, [t]);
+
   // File validation utility
   const validateFileType = (file: File, type: 'image' | 'document'): { isValid: boolean; error?: string } => {
     if (type === 'image') {
       if (!file.type.startsWith('image/')) {
-        return { isValid: false, error: 'not an image file' };
+        return { isValid: false, error: t('errors.notImageFile', 'File is not an image') };
       }
       const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
       if (!allowedImageTypes.includes(file.type)) {
-        return { isValid: false, error: 'unsupported image format' };
+        return { isValid: false, error: t('errors.unsupportedImageFormat', 'Unsupported image format. Please use JPEG, PNG, WebP, or GIF.') };
       }
       const maxSize = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSize) {
-        return { isValid: false, error: 'file too large (max 10MB for images)' };
+        return { isValid: false, error: t('errors.imageTooLarge', 'Image file is too large. Maximum size is 10MB.') };
       }
     } else if (type === 'document') {
       if (file.type.startsWith('image/')) {
-        return { isValid: false, error: 'image file (use image button instead)' };
+        return { isValid: false, error: t('errors.useImageButton', 'This is an image file. Please use the image button instead.') };
       }
       const allowedDocTypes = [
         'application/pdf',
@@ -82,11 +111,11 @@ export default function MessagesPage() {
         'application/rtf'
       ];
       if (!allowedDocTypes.includes(file.type)) {
-        return { isValid: false, error: 'unsupported file type' };
+        return { isValid: false, error: t('errors.unsupportedDocumentType', 'Unsupported document type. Please use PDF, Word, Excel, or text files.') };
       }
       const maxSize = 25 * 1024 * 1024; // 25MB
       if (file.size > maxSize) {
-        return { isValid: false, error: 'file too large (max 25MB for documents)' };
+        return { isValid: false, error: t('errors.documentTooLarge', 'Document file is too large. Maximum size is 25MB.') };
       }
     }
     return { isValid: true };
@@ -99,14 +128,14 @@ export default function MessagesPage() {
 
     // Validate image files
     const validFiles: File[] = [];
-    let firstInvalidFile: string | null = null;
+    let firstError: string | null = null;
 
     files.forEach((file) => {
       const validation = validateFileType(file, 'image');
       if (validation.isValid) {
         validFiles.push(file);
-      } else if (!firstInvalidFile) {
-        firstInvalidFile = file.name;
+      } else if (!firstError && validation.error) {
+        firstError = validation.error;
       }
     });
 
@@ -114,12 +143,16 @@ export default function MessagesPage() {
     if (validFiles.length > 0) {
       setSelectedFiles(prev => [...prev, ...validFiles]);
       console.log(`✅ Added ${validFiles.length} image(s) successfully`);
+      
+      // Show success toast if files were added
+      if (validFiles.length === files.length) {
+        showToast(t('success.imagesAdded', `Added ${validFiles.length} image(s) successfully`), 'success');
+      }
     }
 
-    // Show modal for first invalid file
-    if (firstInvalidFile) {
-      setUnsupportedFileName(firstInvalidFile);
-      setShowUnsupportedFileModal(true);
+    // Show error toast for first invalid file
+    if (firstError) {
+      showToast(firstError, 'error');
     }
 
     // Clear the input
@@ -134,14 +167,14 @@ export default function MessagesPage() {
 
     // Validate document files
     const validFiles: File[] = [];
-    let firstInvalidFile: string | null = null;
+    let firstError: string | null = null;
 
     files.forEach((file) => {
       const validation = validateFileType(file, 'document');
       if (validation.isValid) {
         validFiles.push(file);
-      } else if (!firstInvalidFile) {
-        firstInvalidFile = file.name;
+      } else if (!firstError && validation.error) {
+        firstError = validation.error;
       }
     });
 
@@ -149,12 +182,16 @@ export default function MessagesPage() {
     if (validFiles.length > 0) {
       setSelectedFiles(prev => [...prev, ...validFiles]);
       console.log(`✅ Added ${validFiles.length} document(s) successfully`);
+      
+      // Show success toast if files were added
+      if (validFiles.length === files.length) {
+        showToast(t('success.documentsAdded', `Added ${validFiles.length} document(s) successfully`), 'success');
+      }
     }
 
-    // Show modal for first invalid file
-    if (firstInvalidFile) {
-      setUnsupportedFileName(firstInvalidFile);
-      setShowUnsupportedFileModal(true);
+    // Show error toast for first invalid file
+    if (firstError) {
+      showToast(firstError, 'error');
     }
 
     // Clear the input
@@ -388,10 +425,8 @@ export default function MessagesPage() {
 
     } catch (error: unknown) {
       console.error('Error sending message:', error);
-      const errorMessage = (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || 
-                           (error as { message?: string })?.message || 
-                           'An error occurred while sending the message';
-      alert(`Failed to send message: ${errorMessage}`);
+      const errorMessage = extractErrorMessage(error);
+      showToast(errorMessage, 'error');
     } finally {
       setSending(false);
       setUploading(false);
@@ -582,17 +617,14 @@ export default function MessagesPage() {
         type="danger"
       />
 
-      {/* Unsupported File Modal */}
-      <DeleteConfirmationModal
-        isOpen={showUnsupportedFileModal}
-        onClose={() => setShowUnsupportedFileModal(false)}
-        onConfirm={() => setShowUnsupportedFileModal(false)}
-        title={t('unsupportedFileType', 'Unsupported File Type')}
-        message={t('unsupportedFileMessage', 'This file type is not supported. Please select an image (JPEG, PNG, WebP, GIF) or document (PDF, Word, Excel, TXT) file.')}
-        itemName={unsupportedFileName}
-        confirmText={t('common:ok', 'OK')}
-        cancelText=""
-        type="warning"
+      {/* Toast Notification */}
+      <Toast
+        type={toastType}
+        message={toastMessage}
+        visible={toastVisible}
+        onClose={() => setToastVisible(false)}
+        autoHideDuration={5000}
+        dismissible={true}
       />
     </div>
   );

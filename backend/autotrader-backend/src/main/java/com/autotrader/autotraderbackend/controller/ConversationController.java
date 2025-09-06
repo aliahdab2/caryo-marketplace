@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.controller;
 
+import com.autotrader.autotraderbackend.exception.BadRequestException;
 import com.autotrader.autotraderbackend.payload.request.CreateConversationRequest;
 import com.autotrader.autotraderbackend.payload.request.SendMessageRequest;
 import com.autotrader.autotraderbackend.payload.response.ApiResponse;
@@ -274,10 +275,24 @@ public class ConversationController {
 
         log.info("Sending message with attachments in conversation {} by user {}", id, userDetails.getId());
 
+        // Get user locale for error messages
+        Locale locale = getUserLocale(acceptLanguage);
+        
+        // Validate that either content or files are provided
+        if ((content == null || content.trim().isEmpty()) && (files == null || files.length == 0)) {
+            String errorMessage = getMessage("error.message.content.required", locale);
+            throw new BadRequestException(errorMessage);
+        }
+        
+        // Validate content length if provided
+        if (content != null && content.length() > 1000) {
+            String errorMessage = getMessage("error.message.content.too.long", locale);
+            throw new BadRequestException(errorMessage);
+        }
+
         MessageResponse response = conversationService.sendMessageWithAttachments(
             id, content, messageType, files, userDetails.getId());
         
-        Locale locale = getUserLocale(acceptLanguage);
         String message = getMessage("message.sent.success", locale);
         
         return ResponseEntity.status(HttpStatus.CREATED)
