@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { MessagingService } from '@/services/messaging';
+import { sanitizeInput } from '@/utils/sanitization';
 // Using native HTML elements with Tailwind styling
 import { MessageCircle, Send, X } from 'lucide-react';
 
@@ -122,11 +123,15 @@ export default function ContactSellerModal({
     setError(null);
 
     try {
+      // Sanitize user input to prevent XSS
+      const sanitizedMessage = sanitizeInput(message.trim());
+      const sanitizedSubject = subject.trim() ? sanitizeInput(subject.trim()) : undefined;
+
       // Create conversation and send initial message
       const conversation = await MessagingService.createConversation({
         listingId,
-        initialMessage: message.trim(),
-        subject: subject.trim() || undefined,
+        initialMessage: sanitizedMessage,
+        subject: sanitizedSubject,
         messageType: 'text',
       });
 

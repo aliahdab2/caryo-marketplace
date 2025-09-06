@@ -5,6 +5,7 @@ import { useSession, signIn } from 'next-auth/react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'next/navigation';
 import { MessagingService, ConversationResponse, MessageResponse } from '@/services/messaging';
+import { sanitizeInput } from '@/utils/sanitization';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import Toast from '@/components/ui/Toast';
 import { MessageCircle } from 'lucide-react';
@@ -326,7 +327,8 @@ export default function MessagesPage() {
       if (selectedFiles.length > 0) {
         // Send message with attachments
         const formData = new FormData();
-        formData.append('content', newMessage.trim() || '');
+        const sanitizedContent = newMessage.trim() ? sanitizeInput(newMessage.trim()) : '';
+        formData.append('content', sanitizedContent);
         formData.append('messageType', 'text');
 
         // Normalize/ensure allowed MIME types for documents
@@ -364,8 +366,9 @@ export default function MessagesPage() {
         console.log('📨 Current messages before:', messages.length);
       } else {
         // Send text-only message
+        const sanitizedContent = sanitizeInput(newMessage.trim());
         messageResponse = await MessagingService.sendMessage(selectedConversation.id, {
-          content: newMessage.trim(),
+          content: sanitizedContent,
           messageType: 'text'
         });
       }
