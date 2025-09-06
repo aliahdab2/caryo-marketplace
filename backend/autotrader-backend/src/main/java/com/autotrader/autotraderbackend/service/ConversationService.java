@@ -702,7 +702,16 @@ public class ConversationService {
     }
 
     /**
-     * Helper method to get translated messages
+     * Helper method to retrieve localized messages from the message source.
+     * 
+     * This method provides a centralized way to access translated error messages
+     * and other user-facing strings based on the user's locale preferences.
+     * 
+     * @param key The message key to look up in the message properties files
+     * @param locale The locale to use for message translation (e.g., en, ar)
+     * @return The translated message string, or the key itself if no translation is found
+     * 
+     * @see MessageSource#getMessage(String, Object[], String, Locale)
      */
     private String getMessage(String key, Locale locale) {
         return messageSource.getMessage(key, null, key, locale);

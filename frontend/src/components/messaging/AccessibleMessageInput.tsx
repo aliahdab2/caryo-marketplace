@@ -63,7 +63,7 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
     for (const file of files) {
       if (file.size > maxFileSize) {
         // Show error via parent component's error handling
-        console.error(`File "${file.name}" is too large. Maximum size is ${maxFileSize / 1024 / 1024}MB.`);
+        console.error(t('fileTooLarge', { fileName: file.name, maxSize: maxFileSize / 1024 / 1024 }));
         hasError = true;
         break;
       }
@@ -71,7 +71,7 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
     }
     
     if (selectedFiles.length + validFiles.length > maxFiles) {
-      console.error(`Maximum ${maxFiles} files allowed.`);
+      console.error(t('maxFilesExceeded', { maxFiles }));
       hasError = true;
     }
     
@@ -121,7 +121,7 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
     
     for (const file of files) {
       if (file.size > maxFileSize) {
-        console.error(`File "${file.name}" is too large. Maximum size is ${maxFileSize / 1024 / 1024}MB.`);
+        console.error(t('fileTooLarge', { fileName: file.name, maxSize: maxFileSize / 1024 / 1024 }));
         hasError = true;
         break;
       }
@@ -129,7 +129,7 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
     }
     
     if (selectedFiles.length + validFiles.length > maxFiles) {
-      console.error(`Maximum ${maxFiles} files allowed.`);
+      console.error(t('maxFilesExceeded', { maxFiles }));
       hasError = true;
     }
     

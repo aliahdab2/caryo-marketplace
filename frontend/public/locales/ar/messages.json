@@ -69,5 +69,8 @@
   "view_listing": "عرض الإعلان",
   "errorNotAuthenticated": "خطأ: يجب عرض هذا النموذج للمستخدمين المصادق عليهم فقط.",
   "unsupportedFileType": "نوع ملف غير مدعوم",
-  "unsupportedFileMessage": "نوع الملف هذا غير مدعوم. يرجى اختيار صورة (JPEG، PNG، WebP، GIF) أو مستند (PDF، Word، Excel، TXT)."
+  "unsupportedFileMessage": "نوع الملف هذا غير مدعوم. يرجى اختيار صورة (JPEG، PNG، WebP، GIF) أو مستند (PDF، Word، Excel، TXT).",
+  "scrollToSeeAll": "مرر لرؤية الكل",
+  "fileTooLarge": "الملف \"{{fileName}}\" كبير جداً. الحد الأقصى للحجم هو {{maxSize}} ميجابايت.",
+  "maxFilesExceeded": "الحد الأقصى {{maxFiles}} ملفات مسموح."
 }

@@ -144,7 +144,7 @@ export default function MessageInput({
                   {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''} ready to send
                   {selectedFiles.length > 6 && (
                     <span className="text-xs text-blue-600 dark:text-blue-400 ml-2">
-                      • {t('scrollToSeeAll', 'Scroll to see all')}
+                      • {t('scrollToSeeAll')}
                     </span>
                   )}
                 </span>
