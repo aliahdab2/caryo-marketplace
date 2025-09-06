@@ -5,6 +5,7 @@ import { useSession, signIn } from 'next-auth/react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'next/navigation';
 import { MessagingService, ConversationResponse, MessageResponse } from '@/services/messaging';
+import { sanitizeInput } from '@/utils/sanitization';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import Toast from '@/components/ui/Toast';
 import { MessageCircle } from 'lucide-react';
@@ -53,10 +54,6 @@ export default function MessagesPage() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
 
-  // Debug: Log messages when they change
-  useEffect(() => {
-    console.log('🔍 Messages state updated:', messages.length, messages);
-  }, [messages]);
 
   // Helper function to show toast messages
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
@@ -142,7 +139,6 @@ export default function MessagesPage() {
     // Update state with valid files
     if (validFiles.length > 0) {
       setSelectedFiles(prev => [...prev, ...validFiles]);
-      console.log(`✅ Added ${validFiles.length} image(s) successfully`);
     }
 
     // Show error toast for first invalid file
@@ -176,7 +172,6 @@ export default function MessagesPage() {
     // Update state with valid files
     if (validFiles.length > 0) {
       setSelectedFiles(prev => [...prev, ...validFiles]);
-      console.log(`✅ Added ${validFiles.length} document(s) successfully`);
     }
 
     // Show error toast for first invalid file
@@ -326,7 +321,8 @@ export default function MessagesPage() {
       if (selectedFiles.length > 0) {
         // Send message with attachments
         const formData = new FormData();
-        formData.append('content', newMessage.trim() || '');
+        const sanitizedContent = newMessage.trim() ? sanitizeInput(newMessage.trim()) : '';
+        formData.append('content', sanitizedContent);
         formData.append('messageType', 'text');
 
         // Normalize/ensure allowed MIME types for documents
@@ -359,23 +355,17 @@ export default function MessagesPage() {
         });
 
         messageResponse = await MessagingService.sendMessageWithAttachments(selectedConversation.id, formData);
-        
-        console.log('📨 Adding new message to state:', messageResponse);
-        console.log('📨 Current messages before:', messages.length);
       } else {
         // Send text-only message
+        const sanitizedContent = sanitizeInput(newMessage.trim());
         messageResponse = await MessagingService.sendMessage(selectedConversation.id, {
-          content: newMessage.trim(),
+          content: sanitizedContent,
           messageType: 'text'
         });
       }
 
       // Add the new message to the list
-      setMessages(prev => {
-        const newMessages = [...prev, messageResponse];
-        console.log('📨 New messages after:', newMessages.length);
-        return newMessages;
-      });
+      setMessages(prev => [...prev, messageResponse]);
 
       // Clear the input and files
       setNewMessage('');
@@ -430,7 +420,7 @@ export default function MessagesPage() {
     try {
       setIsActionLoading(true);
       // TODO: Implement block user API call
-      console.log('Blocking user for conversation:', selectedConversation.id);
+      console.warn('Block user feature not yet implemented for conversation:', selectedConversation.id);
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -451,7 +441,7 @@ export default function MessagesPage() {
     try {
       setIsActionLoading(true);
       // TODO: Implement report user API call
-      console.log('Reporting user for conversation:', selectedConversation.id);
+      console.warn('Report user feature not yet implemented for conversation:', selectedConversation.id);
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
