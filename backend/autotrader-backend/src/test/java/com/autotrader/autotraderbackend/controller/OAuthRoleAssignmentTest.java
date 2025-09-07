@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.controller;
 import com.autotrader.autotraderbackend.model.AccountStatus;
 import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.model.VerificationMethod;
 import com.autotrader.autotraderbackend.model.dto.SocialLoginRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
@@ -212,7 +213,7 @@ public class OAuthRoleAssignmentTest {
             existingUser.setId(1L);
             existingUser.setEmailVerified(true); // Already verified
             existingUser.setAccountStatus(AccountStatus.VERIFIED); // Already verified
-            existingUser.setVerificationMethod("manual"); // Already has verification method
+            existingUser.setVerificationMethod(VerificationMethod.MANUAL); // Already has verification method
             Set<Role> existingRoles = new HashSet<>();
             existingRoles.add(userRole);
             existingUser.setRoles(existingRoles);
@@ -244,7 +245,7 @@ public class OAuthRoleAssignmentTest {
             existingUser.setId(1L);
             existingUser.setEmailVerified(true); // Already verified
             existingUser.setAccountStatus(AccountStatus.VERIFIED); // Already verified
-            existingUser.setVerificationMethod("manual"); // Already has verification method
+            existingUser.setVerificationMethod(VerificationMethod.MANUAL); // Already has verification method
 
             Role adminRole = new Role("ROLE_ADMIN");
             adminRole.setId(2);
@@ -399,8 +400,8 @@ public class OAuthRoleAssignmentTest {
                     "OAuth provider should be set");
                 assertEquals("google123", user.getOauthProviderId(),
                     "OAuth provider ID should be set");
-                assertEquals("oauth", user.getVerificationMethod(),
-                    "Verification method should be 'oauth'");
+                assertEquals(VerificationMethod.OAUTH, user.getVerificationMethod(),
+                    "Verification method should be OAUTH");
                 return true;
             }));
         }
@@ -472,8 +473,8 @@ public class OAuthRoleAssignmentTest {
                     "New OAuth user should have VERIFIED status");
                 assertEquals("google", user.getOauthProvider(),
                     "OAuth provider should be set for new user");
-                assertEquals("oauth", user.getVerificationMethod(),
-                    "Verification method should be 'oauth' for new user");
+                assertEquals(VerificationMethod.OAUTH, user.getVerificationMethod(),
+                    "Verification method should be OAUTH for new user");
                 return true;
             }));
         }
@@ -486,7 +487,7 @@ public class OAuthRoleAssignmentTest {
             existingUser.setId(1L);
             existingUser.setEmailVerified(true); // Already verified
             existingUser.setAccountStatus(AccountStatus.VERIFIED); // Already verified
-            existingUser.setVerificationMethod("manual"); // Already has verification method
+            existingUser.setVerificationMethod(VerificationMethod.MANUAL); // Already has verification method
             existingUser.setRoles(new HashSet<>(Set.of(userRole)));
 
             when(userRepository.existsByEmail("test@example.com")).thenReturn(true);

@@ -64,6 +64,9 @@ public class DataInitializer implements CommandLineRunner {
                 
                 // Create the user
                 user = new User(USER_USERNAME, USER_EMAIL, passwordEncoder.encode(USER_PASSWORD));
+
+                // For development, mark regular user as fully verified and active
+                user.markEmailVerifiedByOAuth("development", "user-setup");
                 
                 // Set role (only USER role)
                 Set<Role> roles = new HashSet<>();
@@ -99,6 +102,14 @@ public class DataInitializer implements CommandLineRunner {
                     user = userRepository.findByUsername(USER_USERNAME).orElse(null);
                     if (user == null) {
                         log.error("User exists but couldn't be retrieved: {}", USER_USERNAME);
+                    } else {
+                        // For development, ensure existing regular user is fully verified and active
+                        if (!user.isEmailVerified() ||
+                            user.getAccountStatus() != com.autotrader.autotraderbackend.model.AccountStatus.VERIFIED) {
+                            user.markEmailVerifiedByOAuth("development", "user-setup");
+                            user = userRepository.save(user);
+                            log.info("Updated existing regular user to verified status");
+                        }
                     }
                 } catch (Exception e) {
                     log.error("Error retrieving existing user {}: {}", USER_USERNAME, e.getMessage());
@@ -121,6 +132,9 @@ public class DataInitializer implements CommandLineRunner {
                 
                 // Create the user
                 adminUser = new User(ADMIN_USERNAME, ADMIN_EMAIL, passwordEncoder.encode(ADMIN_PASSWORD));
+
+                // For development, mark admin user as fully verified and active
+                adminUser.markEmailVerifiedByOAuth("development", "admin-setup");
                 
                 // Set roles (ADMIN and USER roles)
                 Set<Role> roles = new HashSet<>();
@@ -177,6 +191,14 @@ public class DataInitializer implements CommandLineRunner {
                     adminUser = userRepository.findByUsername(ADMIN_USERNAME).orElse(null);
                     if (adminUser == null) {
                         log.error("Admin user exists but couldn't be retrieved: {}", ADMIN_USERNAME);
+                    } else {
+                        // For development, ensure existing admin user is fully verified and active
+                        if (!adminUser.isEmailVerified() ||
+                            adminUser.getAccountStatus() != com.autotrader.autotraderbackend.model.AccountStatus.VERIFIED) {
+                            adminUser.markEmailVerifiedByOAuth("development", "admin-setup");
+                            adminUser = userRepository.save(adminUser);
+                            log.info("Updated existing admin user to verified status");
+                        }
                     }
                 } catch (Exception e) {
                     log.error("Error retrieving existing admin user {}: {}", ADMIN_USERNAME, e.getMessage());

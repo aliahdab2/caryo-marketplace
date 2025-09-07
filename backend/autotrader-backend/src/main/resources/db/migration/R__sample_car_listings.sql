@@ -8,9 +8,9 @@ DELETE FROM car_listings WHERE title LIKE '%Test Listing%' OR title LIKE '%Sampl
 -- Delete existing sample data first
 DELETE FROM car_listings WHERE title LIKE '% - Test Listing %';
 
--- Create a test user first if it doesn't exist
-INSERT INTO users (id, username, email, password, created_at, updated_at)
-SELECT 1, 'testuser', 'test@example.com', '$2a$10$dummy.hash.for.test.purposes', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+-- Create a test user first if it doesn't exist (with proper verification_method)
+INSERT INTO users (id, username, email, password, created_at, updated_at, verification_method, email_verified, account_status)
+SELECT 1, 'testuser', 'test@example.com', '$2a$10$dummy.hash.for.test.purposes', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'MANUAL', true, 'VERIFIED'
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE id = 1);
 
 -- Insert simple sample car listings with proper model_id references and Arabic translations

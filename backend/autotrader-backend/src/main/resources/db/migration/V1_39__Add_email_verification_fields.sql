@@ -12,7 +12,7 @@ ADD COLUMN account_status VARCHAR(50) NOT NULL DEFAULT 'PENDING_VERIFICATION',
 ADD COLUMN oauth_provider VARCHAR(50),
 ADD COLUMN oauth_provider_id VARCHAR(255),
 ADD COLUMN oauth_verified_at TIMESTAMP,
-ADD COLUMN verification_method VARCHAR(50) DEFAULT 'manual';
+ADD COLUMN verification_method VARCHAR(50) DEFAULT 'MANUAL';
 
 -- Create index on verification token for faster lookups
 CREATE INDEX idx_users_email_verification_token ON users(email_verification_token);
@@ -32,7 +32,8 @@ CREATE INDEX idx_users_verification_method ON users(verification_method);
 UPDATE users 
 SET email_verified = TRUE, 
     account_status = 'VERIFIED',
-    email_verified_at = created_at
+    email_verified_at = created_at,
+    verification_method = 'MANUAL'
 WHERE email_verified = FALSE;
 
 -- Add comments for documentation

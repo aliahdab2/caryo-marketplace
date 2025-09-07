@@ -1,7 +1,9 @@
 package com.autotrader.autotraderbackend.config;
 
+import com.autotrader.autotraderbackend.model.AccountStatus;
 import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.model.VerificationMethod;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
@@ -78,14 +80,14 @@ class DataInitializerTest {
         // Given
         when(userRepository.existsByUsername("user")).thenReturn(false);
         when(userRepository.existsByUsername("admin")).thenReturn(true);
-        
+
         // When
         dataInitializer.run();
-        
+
         // Then
         verify(userRepository).existsByUsername("user");
         verify(passwordEncoder).encode("Password123!");
-        verify(userRepository).save(any(User.class));
+        verify(userRepository, times(2)).save(any(User.class)); // Regular user created, admin user updated
     }
 
     @Test
@@ -93,14 +95,14 @@ class DataInitializerTest {
         // Given
         when(userRepository.existsByUsername("user")).thenReturn(true);
         when(userRepository.existsByUsername("admin")).thenReturn(false);
-        
+
         // When
         dataInitializer.run();
-        
+
         // Then
         verify(userRepository).existsByUsername("admin");
         verify(passwordEncoder).encode("Admin123!");
-        verify(userRepository).save(any(User.class));
+        verify(userRepository, times(2)).save(any(User.class)); // Admin user created, regular user updated
     }
 
     @Test
@@ -109,22 +111,32 @@ class DataInitializerTest {
         when(userRepository.existsByUsername("user")).thenReturn(false);
         when(userRepository.existsByUsername("admin")).thenReturn(true);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        
+
         // When
         dataInitializer.run();
-        
+
         // Then
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userRepository).save(userCaptor.capture());
-        
-        User savedUser = userCaptor.getValue();
+        verify(userRepository, times(2)).save(userCaptor.capture()); // Both users are processed
+
+        // Find the regular user (not admin)
+        User savedUser = userCaptor.getAllValues().stream()
+            .filter(user -> "user".equals(user.getUsername()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Regular user not found"));
+
         assertEquals("user", savedUser.getUsername());
-        
+
         // Check for ROLE_USER
         boolean hasUserRole = savedUser.getRoles().stream()
             .anyMatch(role -> role.getName().equals("ROLE_USER"));
         assertTrue(hasUserRole);
         assertEquals(1, savedUser.getRoles().size());
+
+        // Check that user is verified (development mode)
+        assertTrue(savedUser.isEmailVerified());
+        assertEquals(AccountStatus.VERIFIED, savedUser.getAccountStatus());
+        assertEquals(VerificationMethod.OAUTH, savedUser.getVerificationMethod());
     }
     
     @Test
@@ -133,26 +145,36 @@ class DataInitializerTest {
         when(userRepository.existsByUsername("user")).thenReturn(true);
         when(userRepository.existsByUsername("admin")).thenReturn(false);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        
+
         // When
         dataInitializer.run();
-        
+
         // Then
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userRepository).save(userCaptor.capture());
-        
-        User savedUser = userCaptor.getValue();
+        verify(userRepository, times(2)).save(userCaptor.capture()); // Both users are processed
+
+        // Find the admin user
+        User savedUser = userCaptor.getAllValues().stream()
+            .filter(user -> "admin".equals(user.getUsername()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Admin user not found"));
+
         assertEquals("admin", savedUser.getUsername());
-        
+
         // Check for both roles
         boolean hasUserRole = savedUser.getRoles().stream()
             .anyMatch(role -> role.getName().equals("ROLE_USER"));
         boolean hasAdminRole = savedUser.getRoles().stream()
             .anyMatch(role -> role.getName().equals("ROLE_ADMIN"));
-            
+
         assertTrue(hasUserRole);
         assertTrue(hasAdminRole);
         assertEquals(2, savedUser.getRoles().size());
+
+        // Check that admin is verified (development mode)
+        assertTrue(savedUser.isEmailVerified());
+        assertEquals(AccountStatus.VERIFIED, savedUser.getAccountStatus());
+        assertEquals(VerificationMethod.OAUTH, savedUser.getVerificationMethod());
     }
     
     @Test
@@ -170,17 +192,28 @@ class DataInitializerTest {
     
     @Test
     void shouldNotCreateUsersWhenTheyAlreadyExist() {
-        // Given
+        // Given - users exist but are not verified
         when(userRepository.existsByUsername("user")).thenReturn(true);
         when(userRepository.existsByUsername("admin")).thenReturn(true);
-        
+
+        // Mock existing users that need to be updated (not verified)
+        User existingUser = new User("user", "user@caryo.sy", "old_password");
+        existingUser.setEmailVerified(false); // Not verified
+        existingUser.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
+
+        User existingAdmin = new User("admin", "admin@caryo.sy", "old_password");
+        existingAdmin.setEmailVerified(false); // Not verified
+        existingAdmin.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
+
+        when(userRepository.findByUsername("user")).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(existingAdmin));
+
         // When
         dataInitializer.run();
-        
-        // Then
+
+        // Then - existing users should be updated (not created), so save should be called twice
         verify(userRepository).existsByUsername("user");
         verify(userRepository).existsByUsername("admin");
-        verify(passwordEncoder, never()).encode(anyString());
-        verify(userRepository, never()).save(any(User.class));
+        verify(userRepository, times(2)).save(any(User.class)); // Both users will be saved to update verification
     }
 }
