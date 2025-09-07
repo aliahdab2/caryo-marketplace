@@ -140,11 +140,6 @@ export function isVideoMedia(item: MediaItem): boolean {
     if (contentType.includes('video')) return true;
   }
 
-  // Additional type detection (covers edge cases not handled by contentType)
-  if (item.type && item.type !== 'image') {
-    const itemType = item.type.toString().toLowerCase();
-    if (itemType === 'video' || itemType.includes('video')) return true;
-  }
 
   // URL-based detection for YouTube
   if (item.url && typeof item.url === 'string') {

@@ -193,9 +193,9 @@ const HoverImageNavigation: React.FC<HoverImageNavigationProps> = ({
         {/* Click outside video controls area to close */}
         <button
           onClick={handleVideoClose}
-          className="absolute top-0 left-0 right-0 bottom-12 cursor-pointer bg-transparent border-none p-0 m-0"
+          className="absolute top-0 left-0 right-0 bottom-12 cursor-pointer bg-black/10 hover:bg-black/20 border border-transparent hover:border-white/30 transition-all duration-200 p-0 m-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
           title="Click outside video controls to close"
-          aria-label="Close video (click outside controls)"
+          aria-label="Close video player - click anywhere outside the video controls"
           type="button"
           tabIndex={0}
         />
