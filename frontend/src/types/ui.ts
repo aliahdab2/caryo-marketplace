@@ -116,7 +116,8 @@ export interface UseDeleteConfirmationOptions {
  * @property {string} [loadingText] - Text to show during loading state
  * @property {string} [confirmText] - Text for the confirm button
  * @property {string} [cancelText] - Text for the cancel button
- * @property {'danger' | 'warning'} [type] - Visual style of the modal (danger=red, warning=yellow)
+ * @property {'danger' | 'warning' | 'info'} [type] - Visual style of the modal (danger=red, warning=yellow, info=blue)
+ * @property {'confirmation' | 'information'} [mode] - Modal mode: confirmation shows Cancel/Confirm buttons, information shows OK button
  * @property {string} [className] - Additional CSS classes for the modal
  */
 export interface DeleteConfirmationModalProps {
@@ -130,7 +131,8 @@ export interface DeleteConfirmationModalProps {
   loadingText?: string;
   confirmText?: string;
   cancelText?: string;
-  type?: 'danger' | 'warning';
+  type?: 'danger' | 'warning' | 'info';
+  mode?: 'confirmation' | 'information';
   className?: string;
 }
 

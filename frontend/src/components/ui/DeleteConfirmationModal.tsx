@@ -25,6 +25,11 @@ const STYLE_CONFIG = {
     iconBg: 'bg-gradient-to-br from-red-100 to-pink-100 dark:from-red-900/30 dark:to-pink-900/30 border-2 border-red-200 dark:border-red-700',
     buttonBase: 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:ring-red-500',
     buttonDisabled: 'disabled:from-red-400 disabled:to-red-500'
+  },
+  info: {
+    iconBg: 'bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 border-2 border-blue-200 dark:border-blue-700',
+    buttonBase: 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:ring-blue-500',
+    buttonDisabled: 'disabled:from-blue-400 disabled:to-indigo-400'
   }
 } as const;
 
@@ -85,15 +90,17 @@ interface ModalContentProps {
 
 const ModalContent: React.FC<ModalContentProps> = React.memo(({ message, itemName }) => (
   <div className="text-center mb-8 animate-modal-slide-up">
-    {/* Handle both string and string[] types for message */}
     {Array.isArray(message) ? (
-      <div className="space-y-3 mb-4">
+      <div className="space-y-3 max-h-60 overflow-y-auto">
         {message.map((msg, index) => (
           <div
             key={index}
-            className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-lg"
+            className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-lg"
           >
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+            <p
+              id={index === 0 ? "modal-description" : undefined}
+              className="text-gray-700 dark:text-gray-300 leading-relaxed break-words"
+            >
               {msg}
             </p>
           </div>
@@ -102,7 +109,7 @@ const ModalContent: React.FC<ModalContentProps> = React.memo(({ message, itemNam
     ) : (
       <p
         id="modal-description"
-        className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed"
+        className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed break-words whitespace-pre-line"
       >
         {message}
       </p>
