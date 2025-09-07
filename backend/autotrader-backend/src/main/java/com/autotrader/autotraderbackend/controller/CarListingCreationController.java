@@ -74,7 +74,7 @@ public class CarListingCreationController {
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Create a new car listing with image",
-        description = "Creates a new car listing with the provided details and an initial image. Authentication required. The response includes the uploaded image in the 'media' array.",
+        description = "Creates a new car listing with the provided details and an initial image. Authentication and email verification required. The response includes the uploaded image in the 'media' array.",
         security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
         responses = {
             @ApiResponse(responseCode = "201", description = "Listing created successfully, includes initial media item", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
