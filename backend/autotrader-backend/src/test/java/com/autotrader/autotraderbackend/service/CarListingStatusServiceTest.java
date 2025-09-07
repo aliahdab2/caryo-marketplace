@@ -11,6 +11,7 @@ import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.service.I18nService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -41,6 +43,9 @@ class CarListingStatusServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private I18nService i18nService;
 
     @InjectMocks
     private CarListingStatusService carListingStatusService;
@@ -67,6 +72,16 @@ class CarListingStatusServiceTest {
         testListingResponse.setId(1L);
         testListingResponse.setIsSold(false);
         testListingResponse.setIsArchived(false);
+
+        // Set up I18nService mocks for error messages
+        lenient().when(i18nService.getMessage("error.listing.already.approved", Locale.ENGLISH))
+                .thenReturn("Listing with ID 1 is already approved.");
+        lenient().when(i18nService.getMessage("error.listing.already.archived.admin", Locale.ENGLISH))
+                .thenReturn("Listing with ID 1 is already archived.");
+        lenient().when(i18nService.getMessage("error.listing.already.sold", Locale.ENGLISH))
+                .thenReturn("Listing with ID 1 is already marked as sold.");
+        lenient().when(i18nService.getMessage("error.access.denied", Locale.ENGLISH))
+                .thenReturn("User does not have permission to modify this listing.");
     }
 
     @Test
