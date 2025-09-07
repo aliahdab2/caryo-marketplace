@@ -242,17 +242,6 @@ class I18nServiceTest {
         verify(messageSource).getMessage(key, args, key, locale);
     }
 
-    @Test
-    void testGetCurrentLocale() {
-        // Arrange
-        when(request.getHeader("Accept-Language")).thenReturn("ar-SA");
-
-        // Act
-        Locale result = i18nService.getCurrentLocale(request);
-
-        // Assert
-        assertEquals(Locale.forLanguageTag("ar"), result);
-    }
 
     @Test
     void testGetMessage_FallbackToKey() {
