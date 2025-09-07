@@ -110,37 +110,6 @@ public class CarListingControllerTest {
         lenient().when(userDetails.getUsername()).thenReturn("testuser");
     }
 
-    @Test
-    void createListing_ShouldReturnCreatedResponse() {
-        // Arrange
-        when(carListingService.canUserCreateListings(anyString())).thenReturn(true);
-        when(carListingService.createListing(any(CreateListingRequest.class), isNull(), anyString()))
-                .thenReturn(carListingResponse);
-
-        // Act
-        ResponseEntity<?> response = carListingController.createListing(createRequest, userDetails);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(carListingResponse, response.getBody());
-    }
-
-    @Test
-    void createListingWithImage_ShouldReturnCreatedResponse() {
-        // Arrange
-        when(carListingService.canUserCreateListings(anyString())).thenReturn(true);
-        when(carListingService.createListing(any(CreateListingRequest.class), any(MultipartFile.class), anyString()))
-                .thenReturn(carListingResponse);
-
-        // Act
-        ResponseEntity<?> response = carListingController.createListingWithImage(createRequest, mockImage, userDetails);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(carListingResponse, response.getBody());
-    }
 
     @Test
     void getAllListings_ShouldReturnListingsPage() {

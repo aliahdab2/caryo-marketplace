@@ -5,15 +5,12 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
-import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
-import com.autotrader.autotraderbackend.service.BodyStyleService;
 import com.autotrader.autotraderbackend.service.CarListingService;
 import com.autotrader.autotraderbackend.service.CarListingStatusService;
-import com.autotrader.autotraderbackend.service.FuelTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,7 +30,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -48,85 +44,10 @@ public class CarListingController {
 
     private final CarListingService carListingService;
     private final CarListingStatusService carListingStatusService;
-    private final BodyStyleService bodyStyleService;
-    private final FuelTypeService fuelTypeService;
 
 
     // Endpoint for approving listings moved to end of class
 
-    @PostMapping(consumes = "application/json")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(
-        summary = "Create a new car listing (no image)",
-        description = "Creates a new car listing with the provided details. Authentication and email verification required. The response will include an empty 'media' array initially.",
-        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
-        responses = {
-            @ApiResponse(responseCode = "201", description = "Listing created successfully, includes empty media array", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid input"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - Email verification required")
-        }
-    )
-    public ResponseEntity<?> createListing(
-            @Valid @RequestBody CreateListingRequest createRequest,
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        log.info("Received request to create listing from user: {}", userDetails.getUsername());
-        
-        // Check if user can create listings (email verified)
-        if (!carListingService.canUserCreateListings(userDetails.getUsername())) {
-            log.warn("User {} attempted to create listing without email verification", userDetails.getUsername());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("message", "Email verification required to create listings. Please check your email and verify your account."));
-        }
-        
-        CarListingResponse response = carListingService.createListing(createRequest, null, userDetails.getUsername());
-        log.info("Successfully created listing with ID: {}", response.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @PostMapping(value = "/with-image", consumes = "multipart/form-data")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(
-        summary = "Create a new car listing with image",
-        description = "Creates a new car listing with the provided details and an initial image. Authentication required. The response includes the uploaded image in the 'media' array.",
-        security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
-        responses = {
-            @ApiResponse(responseCode = "201", description = "Listing created successfully, includes initial media item", content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid input or image"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
-        }
-    )
-    public ResponseEntity<?> createListingWithImage(
-            @Parameter(description = "Car listing details", required = true)
-            @Valid @RequestPart("listing") CreateListingRequest createRequest,
-            @Parameter(description = "Image file (JPEG, PNG, GIF, or WebP)", required = true, schema = @Schema(type = "string", format = "binary"))
-            @RequestPart("image") MultipartFile image,
-            @Parameter(hidden = true)
-            @AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            log.warn("Unauthorized attempt to create listing with image (UserDetails is null)");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "User must be logged in to create listings."));
-        }
-        
-        log.debug("Received request to create listing with image from user: {}", userDetails.getUsername());
-        
-        // Check if user can create listings (email verified)
-        if (!carListingService.canUserCreateListings(userDetails.getUsername())) {
-            log.warn("User {} attempted to create listing with image without email verification", userDetails.getUsername());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("message", "Email verification required to create listings. Please check your email and verify your account."));
-        }
-        
-        if (image == null || image.isEmpty()) {
-            log.warn("Create listing with image request received empty file.");
-            return ResponseEntity.badRequest().body(Map.of("message", "Image file is required and cannot be empty."));
-        }
-        CarListingResponse response = carListingService.createListing(createRequest, image, userDetails.getUsername());
-        log.info("Successfully created listing with ID: {} and image", response.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
 
 
     // Renamed back from /approved for clarity, filtering happens in service
