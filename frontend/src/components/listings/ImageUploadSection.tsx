@@ -55,6 +55,25 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
     return [...existingImages, ...newPreviewUrls];
   }, [existingImages, newPreviewUrls]);
 
+  // Helper function to compute SHA-256 hash of a file
+  const getFileHash = useCallback(async (file: File): Promise<string> => {
+    const buffer = await file.arrayBuffer();
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', buffer);
+    // Convert hash buffer to hex string
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+  }, []);
+
+  // Helper function to compare file contents using SHA-256 hash
+  const areFilesEqual = useCallback(async (file1: File, file2: File): Promise<boolean> => {
+    // Quick size check
+    if (file1.size !== file2.size) return false;
+
+    const [hash1, hash2] = await Promise.all([getFileHash(file1), getFileHash(file2)]);
+    return hash1 === hash2;
+  }, [getFileHash]);
+
   // Function to check if an image is a duplicate
   // PERFORMANCE CONSIDERATIONS:
   // - For large file lists (>10 images), consider implementing early termination after finding first duplicate
@@ -83,26 +102,7 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
     }
 
     return false;
-  }, []);
-
-  // Helper function to compare file contents
-  const areFilesEqual = async (file1: File, file2: File): Promise<boolean> => {
-    // Quick size check
-    if (file1.size !== file2.size) return false;
-
-    // Compare first 1024 bytes for performance
-    const buffer1 = await file1.slice(0, 1024).arrayBuffer();
-    const buffer2 = await file2.slice(0, 1024).arrayBuffer();
-
-    const view1 = new Uint8Array(buffer1);
-    const view2 = new Uint8Array(buffer2);
-
-    for (let i = 0; i < Math.min(view1.length, view2.length); i++) {
-      if (view1[i] !== view2[i]) return false;
-    }
-
-    return true;
-  };
+  }, [areFilesEqual]);
 
   // Function to filter out duplicate images
   const filterDuplicateImages = useCallback(async (newFiles: File[]): Promise<{
