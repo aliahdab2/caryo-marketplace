@@ -50,6 +50,7 @@ export function getDefaultImageUrl(): string {
 
 /** Media helpers (validation and providers) */
 import type { VideoUrlInput } from '@/types/listings';
+import type { MediaItem } from '@/types/media';
 
 // Compiled regex for better performance
 const YOUTUBE_URL_REGEX = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
@@ -116,17 +117,6 @@ export function normalizeVideoUrls(urls: Array<VideoUrlInput | string>): VideoUr
 }
 
 /**
- * Media item interface for type safety
- */
-interface MediaItem {
-  url?: string;
-  type?: string;
-  contentType?: string;
-  mediaType?: string;
-  isVideo?: boolean;
-}
-
-/**
  * Comprehensive utility function to detect if a media item is a video
  * Handles multiple media item formats and detection patterns
  * @param item - Media item to check
@@ -150,10 +140,10 @@ export function isVideoMedia(item: MediaItem): boolean {
     if (contentType.includes('video')) return true;
   }
 
-  // Media type detection
-  if (item.mediaType) {
-    const mediaType = item.mediaType.toString().toLowerCase();
-    if (mediaType === 'video' || mediaType.includes('video')) return true;
+  // Additional type detection (covers edge cases not handled by contentType)
+  if (item.type && item.type !== 'image') {
+    const itemType = item.type.toString().toLowerCase();
+    if (itemType === 'video' || itemType.includes('video')) return true;
   }
 
   // URL-based detection for YouTube

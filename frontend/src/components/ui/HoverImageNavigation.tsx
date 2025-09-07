@@ -54,8 +54,8 @@ const HoverImageNavigation: React.FC<HoverImageNavigationProps> = ({
             thumbnailUrl = videoResult.thumbnailUrl;
           } else {
             // Fallback to placeholder for videos without thumbnails
-            displayUrl = '/images/vehicles/placeholder.png';
-            thumbnailUrl = '/images/vehicles/placeholder.png';
+            displayUrl = getDefaultImageUrl();
+            thumbnailUrl = getDefaultImageUrl();
           }
         }
 
@@ -190,12 +190,12 @@ const HoverImageNavigation: React.FC<HoverImageNavigationProps> = ({
           </video>
         )}
 
-        {/* Click anywhere except close button area to close */}
+        {/* Click outside video controls area to close */}
         <button
           onClick={handleVideoClose}
-          className="absolute top-0 left-0 right-10 bottom-0 cursor-pointer bg-transparent border-none p-0 m-0"
-          title="Click to close video"
-          aria-label="Close video"
+          className="absolute top-0 left-0 right-0 bottom-12 cursor-pointer bg-transparent border-none p-0 m-0"
+          title="Click outside video controls to close"
+          aria-label="Close video (click outside controls)"
           type="button"
           tabIndex={0}
         />
