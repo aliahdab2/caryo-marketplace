@@ -53,6 +53,7 @@ class CarListingStatusControllerTest {
 
         lenient().when(userDetails.getUsername()).thenReturn("testuser");
         lenient().when(i18nService.getMessage("error.unauthorized.access", request)).thenReturn("You are not authorized to access this resource");
+        lenient().when(i18nService.getMessage(eq("error.resource.not.found"), eq(request), any(), any(), any())).thenReturn("Listing not found with id : '999'");
     }
 
     @Test

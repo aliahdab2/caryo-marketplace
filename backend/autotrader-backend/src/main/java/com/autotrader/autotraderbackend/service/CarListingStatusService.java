@@ -11,11 +11,14 @@ import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.service.I18nService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +28,7 @@ public class CarListingStatusService {
     private final UserRepository userRepository;
     private final CarListingMapper carListingMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final I18nService i18nService;
 
     /**
      * Marks a car listing as sold.
@@ -36,7 +40,7 @@ public class CarListingStatusService {
 
         if (Boolean.TRUE.equals(listing.getArchived())) {
             log.warn("Attempt to mark archived listing ID {} as sold by user {}", listingId, username);
-            throw new IllegalStateException("Cannot mark an archived listing as sold. Please unarchive first.");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.archived.cannot.mark.sold", Locale.ENGLISH));
         }
         if (Boolean.TRUE.equals(listing.getSold())) {
             log.warn("Listing ID {} is already marked as sold. No action taken by user {}.", listingId, username);
@@ -61,12 +65,12 @@ public class CarListingStatusService {
 
         if (Boolean.TRUE.equals(listing.getArchived())) {
             log.warn("Admin attempt to mark archived listing ID {} as sold", listingId);
-            throw new IllegalStateException("Cannot mark an archived listing as sold. Please unarchive first.");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.archived.cannot.mark.sold.admin", Locale.ENGLISH));
         }
 
         if (Boolean.TRUE.equals(listing.getSold())) {
             log.warn("Listing ID {} is already marked as sold. Throwing IllegalStateException.", listingId);
-            throw new IllegalStateException("Listing with ID " + listingId + " is already marked as sold.");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.already.sold", Locale.ENGLISH));
         }
 
         listing.setSold(true);
@@ -114,7 +118,7 @@ public class CarListingStatusService {
 
         if (Boolean.TRUE.equals(listing.getArchived())) {
             log.warn("Listing ID {} is already archived. Admin operation aborted.", listingId);
-            throw new IllegalStateException("Listing with ID " + listingId + " is already archived.");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.already.archived.admin", Locale.ENGLISH));
         }
 
         listing.setArchived(true);
@@ -135,7 +139,7 @@ public class CarListingStatusService {
 
         if (!Boolean.TRUE.equals(listing.getArchived())) {
             log.warn("Listing ID {} is not archived. No action taken for unarchive by user {}.", listingId, username);
-            throw new IllegalStateException("Listing with ID " + listingId + " is not currently archived.");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.not.archived", Locale.ENGLISH));
         }
 
         listing.setArchived(false);
@@ -158,7 +162,7 @@ public class CarListingStatusService {
 
         if (!Boolean.TRUE.equals(listing.getArchived())) {
             log.warn("Listing ID {} is not archived. No action taken for unarchive by admin.", listingId);
-            throw new IllegalStateException("Listing with ID " + listingId + " is not currently archived.");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.not.archived.admin", Locale.ENGLISH));
         }
 
         listing.setArchived(false);
@@ -177,15 +181,15 @@ public class CarListingStatusService {
 
         if (!listing.getApproved()) {
             log.warn("User {} attempted to pause unapproved listing ID {}", username, listingId);
-            throw new IllegalStateException("Cannot pause a listing that is not yet approved.");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.unapproved.cannot.pause", Locale.ENGLISH));
         }
         if (listing.getSold()) {
             log.warn("User {} attempted to pause sold listing ID {}", username, listingId);
-            throw new IllegalStateException("Cannot pause a listing that has been marked as sold.");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.sold.cannot.pause", Locale.ENGLISH));
         }
         if (listing.getArchived()) {
             log.warn("User {} attempted to pause archived listing ID {}", username, listingId);
-            throw new IllegalStateException("Cannot pause a listing that has been archived.");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.archived.cannot.pause", Locale.ENGLISH));
         }
         if (!listing.getIsUserActive()) {
             log.info("Listing ID {} is already paused by user {}. No action needed.", listingId, username);
@@ -208,11 +212,11 @@ public class CarListingStatusService {
 
         if (listing.getSold()) {
             log.warn("User {} attempted to resume sold listing ID {}", username, listingId);
-            throw new IllegalStateException("Cannot resume a listing that has been marked as sold.");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.sold.cannot.resume", Locale.ENGLISH));
         }
         if (listing.getArchived()) {
             log.warn("User {} attempted to resume archived listing ID {}", username, listingId);
-            throw new IllegalStateException("Cannot resume a listing that has been archived. Please contact support or renew if applicable.");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.archived.cannot.resume", Locale.ENGLISH));
         }
         if (listing.getIsUserActive()) {
             log.info("Listing ID {} is already active for user {}. No action needed.", listingId, username);
@@ -235,7 +239,7 @@ public class CarListingStatusService {
 
         if (Boolean.TRUE.equals(carListing.getApproved())) {
             log.warn("Listing ID {} is already approved. Admin operation aborted.", id);
-            throw new IllegalStateException("Listing with ID " + id + " is already approved.");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.already.approved", Locale.ENGLISH));
         }
 
         carListing.setApproved(true);
@@ -259,19 +263,19 @@ public class CarListingStatusService {
         // Check if already expired
         if (Boolean.TRUE.equals(listing.getExpired())) {
             log.warn("Listing ID {} is already expired. No action taken.", listingId);
-            throw new IllegalStateException("Listing is already expired");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.already.expired", Locale.ENGLISH));
         }
 
         // Check if archived
         if (Boolean.TRUE.equals(listing.getArchived())) {
             log.warn("Cannot expire archived listing ID {}", listingId);
-            throw new IllegalStateException("Cannot expire an archived listing");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.archived.cannot.expire", Locale.ENGLISH));
         }
 
         // Check if sold
         if (Boolean.TRUE.equals(listing.getSold())) {
             log.warn("Cannot expire sold listing ID {}", listingId);
-            throw new IllegalStateException("Cannot expire a sold listing");
+            throw new IllegalStateException(i18nService.getMessage("error.listing.sold.cannot.expire", Locale.ENGLISH));
         }
 
         listing.setExpired(true);
@@ -309,7 +313,7 @@ public class CarListingStatusService {
                      user.getUsername(), user.getId(), action, listing.getId(),
                      listing.getSeller() != null ? listing.getSeller().getUsername() : "unknown",
                      listing.getSeller() != null ? listing.getSeller().getId() : "unknown");
-            throw new SecurityException("User does not have permission to modify this listing.");
+            throw new SecurityException(i18nService.getMessage("error.access.denied", Locale.ENGLISH));
         }
     }
 

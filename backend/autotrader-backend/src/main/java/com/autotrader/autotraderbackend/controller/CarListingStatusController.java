@@ -87,7 +87,9 @@ public class CarListingStatusController {
             return ResponseEntity.ok(response);
         } catch (ResourceNotFoundException e) {
             log.warn("Pause listing failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+            String errorMessage = i18nService.getMessage("error.resource.not.found", request,
+                    e.getResourceName(), e.getFieldName(), e.getFieldValue().toString());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", errorMessage));
         } catch (SecurityException | AccessDeniedException e) {
             log.warn("User {} not authorized to pause listing ID {}: {}", username, id, e.getMessage());
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
@@ -126,7 +128,9 @@ public class CarListingStatusController {
             return ResponseEntity.ok(response);
         } catch (ResourceNotFoundException e) {
             log.warn("Resume listing failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+            String errorMessage = i18nService.getMessage("error.resource.not.found", request,
+                    e.getResourceName(), e.getFieldName(), e.getFieldValue().toString());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", errorMessage));
         } catch (SecurityException | AccessDeniedException e) {
             log.warn("User {} not authorized to resume listing ID {}: {}", username, id, e.getMessage());
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
