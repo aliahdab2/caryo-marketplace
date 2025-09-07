@@ -28,7 +28,7 @@ import java.util.Map;
 @RequestMapping("/api/listings")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Listings", description = "Manage car listings (create, view, filter, etc.)")
+@Tag(name = "Listing Admin", description = "Admin operations for car listings (approve, reject, delete, view all)")
 public class CarListingController {
 
     private final CarListingService carListingService;
