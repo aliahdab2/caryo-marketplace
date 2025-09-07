@@ -23,7 +23,10 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for CarListingStatusController.
- * Tests the pause and resume functionality.
+ * Tests the pause and resume functionality that was extracted from CarListingController.
+ *
+ * This test class ensures the refactored pause/resume endpoints work correctly
+ * with proper error handling, i18n support, and backward compatibility.
  */
 @ExtendWith(MockitoExtension.class)
 class CarListingStatusControllerTest {

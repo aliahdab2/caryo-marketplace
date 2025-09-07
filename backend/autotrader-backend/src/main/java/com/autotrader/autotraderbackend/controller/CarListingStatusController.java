@@ -26,7 +26,11 @@ import java.util.Map;
 
 /**
  * REST controller for car listing status management.
- * Provides endpoints for pausing and resuming listings.
+ * Provides endpoints for pausing and resuming car listings.
+ *
+ * This controller was extracted from CarListingController during refactoring
+ * to improve code organization and maintainability while maintaining
+ * backward compatibility with existing API endpoints.
  */
 @RestController
 @RequestMapping("/api/listings")
