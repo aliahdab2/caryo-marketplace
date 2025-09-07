@@ -81,7 +81,7 @@ public class CarListingImageController {
             String imageKey = carListingService.uploadListingImage(listingId, file, userDetails.getUsername());
             log.info("Successfully processed image upload for listing ID: {}. Image Key: {}", listingId, imageKey);
             // Return the key or a message. Generating signed URL here might be premature.
-            String successMessage = i18nService.getMessage("error.image.upload.success", request);
+            String successMessage = i18nService.getMessage("image.upload.success", request);
             return ResponseEntity.ok(Map.of("message", successMessage, "imageKey", imageKey));
         } catch (StorageException e) {
             log.error("Storage exception during image upload for listing ID: {}", listingId, e);

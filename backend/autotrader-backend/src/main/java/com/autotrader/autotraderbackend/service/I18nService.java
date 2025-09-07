@@ -2,7 +2,9 @@ package com.autotrader.autotraderbackend.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.stereotype.Service;
 
 import java.util.Locale;
@@ -16,6 +18,7 @@ import java.util.Locale;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class I18nService {
 
     private final MessageSource messageSource;
@@ -58,9 +61,11 @@ public class I18nService {
     public String getMessage(String key, Locale locale, Object... args) {
         try {
             return messageSource.getMessage(key, args, key, locale);
+        } catch (NoSuchMessageException e) {
+            log.debug("i18n: Message key '{}' not found for locale '{}', using key as fallback", key, locale);
+            return key;
         } catch (Exception e) {
-            // Log warning and return key as fallback
-            System.err.println("Failed to load message for key: " + key + ", locale: " + locale + ", error: " + e.getMessage());
+            log.error("i18n: Unexpected error loading message key='{}', locale='{}', error='{}'", key, locale, e.getMessage());
             return key;
         }
     }
@@ -91,13 +96,4 @@ public class I18nService {
         return getMessage(key, locale, args);
     }
 
-    /**
-     * Convenience method to get current locale from request.
-     *
-     * @param request the HTTP servlet request
-     * @return the detected locale
-     */
-    public Locale getCurrentLocale(HttpServletRequest request) {
-        return getUserLocale(request);
-    }
 }
