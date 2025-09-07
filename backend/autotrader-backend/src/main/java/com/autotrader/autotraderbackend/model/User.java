@@ -78,8 +78,9 @@ public class User {
     @Column(name = "oauth_verified_at")
     private LocalDateTime oauthVerifiedAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "verification_method", nullable = false)
-    private String verificationMethod = "manual";
+    private VerificationMethod verificationMethod = VerificationMethod.MANUAL;
 
     // Account status
     @Enumerated(EnumType.STRING)
@@ -101,7 +102,7 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.verificationMethod = "manual"; // Default for manually created users
+        this.verificationMethod = VerificationMethod.MANUAL; // Default for manually created users
     }
 
     // Helper methods for account status and verification
@@ -145,7 +146,7 @@ public class User {
         // Set OAuth-specific tracking fields
         this.oauthProvider = provider;
         this.oauthVerifiedAt = LocalDateTime.now();
-        this.verificationMethod = "oauth";
+        this.verificationMethod = VerificationMethod.OAUTH;
 
         // OAuth-verified users get VERIFIED status immediately
         if (this.accountStatus == AccountStatus.PENDING_VERIFICATION ||
@@ -170,7 +171,7 @@ public class User {
         this.oauthProvider = provider;
         this.oauthProviderId = providerId;
         this.oauthVerifiedAt = LocalDateTime.now();
-        this.verificationMethod = "oauth";
+        this.verificationMethod = VerificationMethod.OAUTH;
 
         // OAuth-verified users get VERIFIED status immediately
         if (this.accountStatus == AccountStatus.PENDING_VERIFICATION ||

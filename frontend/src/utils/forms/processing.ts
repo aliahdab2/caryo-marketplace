@@ -21,10 +21,10 @@ export const FORM_FIELD_CATEGORIES = {
   DROPDOWN: ['make', 'model', 'currency', 'governorateSlug', 'locationSlug', 'transmission', 'fuelType'] as const,
   
   // Numeric fields that accept Arabic numerals and need conversion
-  NUMERIC: ['price', 'year', 'mileage'] as const,
-  
+  NUMERIC: ['price', 'year', 'mileage', 'contactPhone'] as const,
+
   // Free text fields that need sanitization
-  TEXT: ['title', 'description', 'contactName', 'contactPhone', 'state'] as const
+  TEXT: ['title', 'description', 'contactName', 'state'] as const
 } as const;
 
 // TypeScript types for field categories

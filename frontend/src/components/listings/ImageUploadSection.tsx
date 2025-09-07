@@ -56,6 +56,11 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   }, [existingImages, newPreviewUrls]);
 
   // Function to check if an image is a duplicate
+  // PERFORMANCE CONSIDERATIONS:
+  // - For large file lists (>10 images), consider implementing early termination after finding first duplicate
+  // - Could limit content comparison to recent files only (e.g., last 5-10 uploaded)
+  // - For very large images, the 1024-byte content check could be expensive with many files
+  // - Consider using web workers for parallel content comparison to avoid blocking UI
   const isDuplicateImage = useCallback(async (newFile: File, existingFiles: File[]): Promise<boolean> => {
     // Check by name and size first (fast check)
     const isDuplicateByNameAndSize = existingFiles.some(existingFile =>
@@ -67,6 +72,10 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
     }
 
     // Check by content (more thorough but slower)
+    // TODO: Optimize for performance with large image lists:
+    // - Implement early termination on first duplicate found
+    // - Limit comparison to recent uploads only
+    // - Consider batch processing or web workers for content comparison
     for (const existingFile of existingFiles) {
       if (await areFilesEqual(newFile, existingFile)) {
         return true;
