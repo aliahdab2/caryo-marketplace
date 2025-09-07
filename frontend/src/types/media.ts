@@ -18,6 +18,7 @@ export interface HoverImageNavigationProps {
   sizes?: string;
   priority?: boolean;
   onImageError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
+  onVideoPlayingChange?: (playing: boolean) => void;
 }
 
 export interface CarMediaItem {

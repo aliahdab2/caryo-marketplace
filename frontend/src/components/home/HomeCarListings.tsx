@@ -2,14 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { MdDirectionsCar } from 'react-icons/md';
-import { Play } from 'lucide-react';
 import { CarListing } from '@/services/publicApi';
-import { transformMinioUrl } from '@/utils/mediaUtils';
 import ViewModeToggle, { ViewMode } from '@/components/search/ViewModeToggle';
 import CarListingListItem from '@/components/search/CarListingListItem';
 import { CarListingCardData } from '@/components/listings/CarListingCard';
+import HoverImageNavigation from '@/components/ui/HoverImageNavigation';
+import YearBadge from '@/components/ui/YearBadge';
 
 interface HomeCarListingsProps {
   latestCars: CarListing[];
@@ -39,25 +38,6 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
     }
   };
 
-  // Helper function to get display media (prioritize images, show video if no images)
-  const getDisplayMedia = (media: CarListing['media']) => {
-    if (!media || media.length === 0) return null;
-    
-    // First try to find an image
-    const imageMedia = media.find(item => !isVideoMedia(item));
-    if (imageMedia) {
-      return { ...imageMedia, isVideo: false };
-    }
-    
-    // If no images, use the first video
-    const videoMedia = media.find(item => isVideoMedia(item));
-    if (videoMedia) {
-      return { ...videoMedia, isVideo: true };
-    }
-    
-    // Fallback to first media item
-    return { ...media[0], isVideo: isVideoMedia(media[0]) };
-  };
 
   const containerClassName = viewMode === 'grid'
     ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
@@ -140,8 +120,6 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
             }
 
             // Grid view (original cards)
-            const displayMedia = getDisplayMedia(car.media);
-            
             return (
               <Link
                 key={car.id}
@@ -149,24 +127,28 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                 className="block bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 ease-in-out group cursor-pointer"
               >
                 <div className="relative h-48">
-                  <Image
-                    src={displayMedia ? transformMinioUrl(displayMedia.url) || displayMedia.url : "/images/logo.png"}
+                  <HoverImageNavigation
+                    media={car.media?.map(m => ({
+                      url: m.url,
+                      isPrimary: m.type === 'primary' || false,
+                      contentType: m.type,
+                      isVideo: isVideoMedia(m)
+                    }))}
                     alt={car.title}
-                    fill
-                    className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-105"
-                    unoptimized
+                    className="w-full h-full"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    onImageError={(e) => {
+                      e.currentTarget.src = "/images/logo.png";
+                    }}
                   />
-                  {/* Video Play Icon Overlay */}
-                  {displayMedia?.isVideo && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
-                      <div className="bg-white bg-opacity-90 rounded-full p-3 shadow-lg">
-                        <Play className="w-6 h-6 text-gray-800" fill="currentColor" />
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Hover overlay for better UX feedback */}
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300" />
+
+                  {/* Year Badge */}
+                  <YearBadge
+                    year={car.modelYear}
+                    size="md"
+                    position="bottom-left"
+                    zIndex={30}
+                  />
                 </div>
                 <div className="p-5">
                   <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
