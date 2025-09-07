@@ -139,7 +139,7 @@ const HoverImageNavigation: React.FC<HoverImageNavigationProps> = ({
     const { embedUrl, isYouTube } = processVideoForGallery(videoUrl);
 
     return (
-      <div className="relative w-full h-full min-h-[200px] max-h-[400px] bg-black">
+      <div className="relative w-full h-full bg-black">
         {/* Close button positioned over video */}
         <button
           onClick={handleVideoClose}
@@ -179,7 +179,7 @@ const HoverImageNavigation: React.FC<HoverImageNavigationProps> = ({
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'contain', // Show entire video, add black bars if needed
+              objectFit: 'cover', // Fill entire container, crop if needed
               position: 'absolute',
               top: 0,
               left: 0,
