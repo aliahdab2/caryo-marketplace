@@ -4,6 +4,39 @@ import '@testing-library/jest-dom';
 import 'whatwg-fetch';
 import './src/tests/mocks/i18n-mock.ts'; // Ensure this is loaded early
 
+// Note: Individual tests should use auth mock factories from @/tests/mocks/auth-mocks
+// This provides consistent, reusable mocks while maintaining test isolation
+
+// Mock Next.js components that cause issues in tests
+jest.mock('next/router', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    prefetch: jest.fn(),
+    pathname: '/',
+    query: {},
+    asPath: '/',
+    route: '/',
+    locales: ['en'],
+    locale: 'en',
+    defaultLocale: 'en',
+  }),
+}));
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+    back: jest.fn(),
+    pathname: '/',
+    query: {},
+    asPath: '/',
+  }),
+  usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 // Mock matchMedia
 window.matchMedia = window.matchMedia || function() {
   return {

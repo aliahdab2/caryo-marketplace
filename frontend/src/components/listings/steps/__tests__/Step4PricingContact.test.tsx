@@ -41,7 +41,6 @@ describe('Step4PricingContact', () => {
     expect(screen.getByTestId('locationSlug')).toBeInTheDocument();
     expect(screen.getByTestId('contactName')).toBeInTheDocument();
     expect(screen.getByTestId('contactPhone')).toBeInTheDocument();
-    expect(screen.getByTestId('contactEmail')).toBeInTheDocument();
   });
 
   it('calls handlers on change', () => {
@@ -66,8 +65,6 @@ describe('Step4PricingContact', () => {
     fireEvent.change(screen.getByTestId('contactPhone'), { target: { value: '+123' } });
     expect(props.onContactPhoneChange).toHaveBeenCalled();
 
-    fireEvent.change(screen.getByTestId('contactEmail'), { target: { value: 'a@b.com' } });
-    expect(props.onContactEmailChange).toHaveBeenCalled();
   });
 });
 

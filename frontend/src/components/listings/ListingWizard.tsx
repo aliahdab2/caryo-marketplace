@@ -67,6 +67,7 @@ function shallowEqual(a: Record<string, unknown>, b: Record<string, unknown>): b
 }
 // import ErrorMessage from './shared/ErrorMessage';
 import { useListingSubmission } from '@/hooks/useListingSubmission';
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 
 // Constants
 const TOTAL_STEPS = 4;
@@ -159,6 +160,16 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
   const isVideoUrlEnabled = true;
   const isAnyVideoFeatureEnabled = isVideoUploadEnabled || isVideoUrlEnabled;
   const [_error, setError] = useState<string | null>(null);
+
+  // Helper function to show API error modal
+  const showApiError = useCallback((title: string, message: string, _type: 'error' | 'warning' | 'info' = 'error') => {
+    setApiErrorTitle(title);
+    setApiErrorMessage(message);
+    setApiErrorModalOpen(true);
+  }, []);
+  const [apiErrorModalOpen, setApiErrorModalOpen] = useState(false);
+  const [apiErrorTitle, setApiErrorTitle] = useState('');
+  const [apiErrorMessage, setApiErrorMessage] = useState('');
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
 
@@ -192,7 +203,6 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
     zipCode: initialData.zipCode || "",
     contactName: initialData.contactName || "",
     contactPhone: initialData.contactPhone || "",
-    contactEmail: initialData.contactEmail || "",
     contactPreference: initialData.contactPreference || "phone",
     images: initialData.images || [],
     videos: initialData.videos || [],
@@ -268,12 +278,41 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
     });
   }, [currentStep, debouncedFormData, t]);
 
+  // Real-time field validation and error clearing
+  const validateField = useCallback((fieldName: string, value: string | number | undefined) => {
+    try {
+      // Create a temporary form data object with the new value
+      const tempFormData = { ...formData, [fieldName]: value };
+
+      // Validate using 'final' mode to get comprehensive validation
+      const stepErrors = validateStep(currentStep, tempFormData, t, { mode: 'final' });
+
+      // Clear the error if validation passes for this specific field
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        if (!stepErrors[fieldName]) {
+          delete newErrors[fieldName];
+        }
+        return newErrors;
+      });
+
+      return !stepErrors[fieldName];
+    } catch (error) {
+      wizardLogger.debug(`Field validation error for ${fieldName}:`, error);
+      return false;
+    }
+  }, [formData, currentStep, t]);
+
   // Simple unified handler for text fields
   const handleFieldChange = useCallback((field: keyof ListingFormData) => {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-      setFormData(prev => ({ ...prev, [field]: e.target.value }));
+      const value = e.target.value;
+      setFormData(prev => ({ ...prev, [field]: value }));
+
+      // Real-time validation and error clearing
+      validateField(field as string, value);
     };
-  }, []);
+  }, [validateField]);
 
   // Reusable dropdown factory for slug+ID pattern
   const createDropdownHandler = useCallback((
@@ -284,27 +323,41 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
     return (e: React.ChangeEvent<HTMLSelectElement>) => {
       const value = e.target.value;
       const selectedItem = value ? dataArray.find(item => item.slug === value) : null;
-      
+
       setFormData(prev => ({
         ...prev,
         [slugField]: value,
         [idField]: selectedItem?.id
       }));
+
+      // Real-time validation and error clearing
+      validateField(slugField as string, value);
     };
-  }, []);
+  }, [validateField]);
 
   // Special handlers for fields that need additional logic
   const handleMakeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     const selectedMake = value ? carMakes.find(make => make.slug === value) : null;
-    
-    setFormData(prev => ({ 
-      ...prev, 
+
+    setFormData(prev => ({
+      ...prev,
       make: value,
       makeId: selectedMake?.id,
       // Clear model when make changes
       ...(value !== prev.make ? { model: '', modelId: undefined } : {})
     }));
+
+    // Real-time validation and error clearing
+    validateField('make', value);
+
+    // Clear model-related errors when make changes
+    setFormErrors(prev => {
+      const newErrors = { ...prev };
+      if (newErrors.model) delete newErrors.model;
+      if (newErrors.modelId) delete newErrors.modelId;
+      return newErrors;
+    });
     
     // Load models when make changes - use prev value instead of formData to avoid stale closure
     if (selectedMake && loadCarModels) {
@@ -314,20 +367,31 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
         setFormErrors(prev => ({ ...prev, model: 'Failed to load car models. Please try again.' }));
       });
     }
-  }, [carMakes, loadCarModels]); // Remove formData.make dependency
+  }, [carMakes, loadCarModels, validateField]); // Remove formData.make dependency
 
   const handleGovernorateChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     const selectedGovernorate = value ? governorates.find(gov => gov.slug === value) : null;
-    
-    setFormData(prev => ({ 
-      ...prev, 
+
+    setFormData(prev => ({
+      ...prev,
       governorateSlug: value,
       governorateId: selectedGovernorate?.id,
       // Clear location when governorate changes
       ...(value !== prev.governorateSlug ? { locationSlug: '', locationId: undefined } : {})
     }));
-    
+
+    // Real-time validation and error clearing
+    validateField('governorateSlug', value);
+
+    // Clear location-related errors when governorate changes
+    setFormErrors(prev => {
+      const newErrors = { ...prev };
+      if (newErrors.locationSlug) delete newErrors.locationSlug;
+      if (newErrors.locationId) delete newErrors.locationId;
+      return newErrors;
+    });
+
     // Load locations when governorate changes - use value directly to avoid stale closure
     if (value && loadLocations) {
       loadLocations(value).catch(error => {
@@ -336,7 +400,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
         setFormErrors(prev => ({ ...prev, locationSlug: 'Failed to load locations. Please try again.' }));
       });
     }
-  }, [governorates, loadLocations]); // Remove formData.governorateSlug dependency
+  }, [governorates, loadLocations, validateField]); // Remove formData.governorateSlug dependency
 
   // Handler functions
   const { handleSubmit } = useListingSubmission({
@@ -349,7 +413,26 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
     validateStep,
     setFormErrors,
     setCurrentStep,
-    setError,
+    setError: (errorMessage: string | null) => {
+      if (errorMessage) {
+        // Check if it's an email verification error
+        if (errorMessage.includes(t('common:emailVerificationRequired', 'Email verification required'))) {
+          showApiError(
+            t('common:emailVerificationRequired', 'Email verification required'),
+            errorMessage,
+            'warning'
+          );
+        } else {
+          // Generic error
+          showApiError(
+            t('common:unexpectedError', 'An unexpected error occurred'),
+            errorMessage,
+            'error'
+          );
+        }
+      }
+      setError(errorMessage);
+    },
     setIsSubmitting,
     setShowSuccessAlert,
     onSuccess,
@@ -780,7 +863,12 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
                 transmissions={transmissions}
                 fuelTypes={fuelTypes}
                 isLoadingReferenceData={isLoadingReferenceData}
-                onMileageChange={(value) => setFormData(prev => ({ ...prev, mileage: value }))}
+                onMileageChange={(value) => {
+                  setFormData(prev => ({ ...prev, mileage: value }));
+
+                  // Real-time validation and error clearing
+                  validateField('mileage', value);
+                }}
                 onEngineChange={handleFieldChange('engine') as unknown as (e: React.ChangeEvent<HTMLInputElement>) => void}
                 onTransmissionChange={createDropdownHandler('transmission', 'transmissionId', transmissions) as unknown as (e: React.ChangeEvent<HTMLSelectElement>) => void}
                 onColorChange={handleFieldChange('color') as unknown as (e: React.ChangeEvent<HTMLInputElement>) => void}
@@ -819,7 +907,6 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
                 onLocationChange={createDropdownHandler('locationSlug', 'locationId', locations) as unknown as (e: React.ChangeEvent<HTMLSelectElement>) => void}
                 onContactNameChange={handleFieldChange('contactName') as unknown as (e: React.ChangeEvent<HTMLInputElement>) => void}
                 onContactPhoneChange={handleFieldChange('contactPhone') as unknown as (e: React.ChangeEvent<HTMLInputElement>) => void}
-                onContactEmailChange={handleFieldChange('contactEmail') as unknown as (e: React.ChangeEvent<HTMLInputElement>) => void}
               />
             )}
 
@@ -840,6 +927,16 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
             />
           </form>
         </div>
+
+        {/* API Error Modal */}
+        <DeleteConfirmationModal
+          isOpen={apiErrorModalOpen}
+          onClose={() => setApiErrorModalOpen(false)}
+          title={apiErrorTitle}
+          message={apiErrorMessage}
+          type={apiErrorTitle.includes(t('common:emailVerificationRequired', 'Email verification')) ? 'warning' : 'info'}
+          mode="information"
+        />
       </div>
     </div>
   );

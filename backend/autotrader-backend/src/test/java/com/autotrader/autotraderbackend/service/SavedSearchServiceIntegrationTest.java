@@ -69,10 +69,7 @@ class SavedSearchServiceIntegrationTest {
     @BeforeEach
     void setUp() {
         // Create test user
-        testUser = new User();
-        testUser.setUsername("testuser");
-        testUser.setEmail("test@example.com");
-        testUser.setPassword("password");
+        testUser = new User("testuser", "test@example.com", "password");
         testUser = userRepository.save(testUser);
 
         // Create test brand and model

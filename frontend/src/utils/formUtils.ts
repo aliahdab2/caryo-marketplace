@@ -392,9 +392,6 @@ export const validateStep = (
       }
       
       // Contact validation
-      if (formData.contactEmail && formData.contactEmail.trim().length > 0 && !_isValidEmail(formData.contactEmail)) {
-        errors.contactEmail = t('listings:newListingValidationEmailInvalid', 'Please enter a valid email address');
-      }
       // Phone must be 6-15 digits
       if (formData.contactPhone && formData.contactPhone.trim().length > 0) {
         const phoneDigitsOnly = formData.contactPhone.replace(/\D/g, '');

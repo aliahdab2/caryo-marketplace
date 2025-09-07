@@ -68,6 +68,20 @@ public class User {
     @Column(name = "email_verified_at")
     private LocalDateTime emailVerifiedAt;
 
+    // OAuth tracking fields for better security and audit trails
+    @Column(name = "oauth_provider")
+    private String oauthProvider;
+
+    @Column(name = "oauth_provider_id")
+    private String oauthProviderId;
+
+    @Column(name = "oauth_verified_at")
+    private LocalDateTime oauthVerifiedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "verification_method", nullable = false)
+    private VerificationMethod verificationMethod = VerificationMethod.MANUAL;
+
     // Account status
     @Enumerated(EnumType.STRING)
     @Column(name = "account_status", nullable = false)
@@ -88,6 +102,7 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
+        this.verificationMethod = VerificationMethod.MANUAL; // Default for manually created users
     }
 
     // Helper methods for account status and verification
@@ -111,7 +126,56 @@ public class User {
         this.emailVerified = true;
         this.emailVerifiedAt = LocalDateTime.now();
         this.emailVerificationToken = null; // Clear the token
-        if (this.accountStatus == AccountStatus.PENDING_VERIFICATION) {
+        if (this.accountStatus == AccountStatus.PENDING_VERIFICATION ||
+            this.accountStatus == AccountStatus.PENDING_APPROVAL) {
+            this.accountStatus = AccountStatus.VERIFIED;
+        }
+    }
+
+    /**
+     * Mark email as verified by OAuth provider (Google, etc.)
+     * This is more secure than manual verification as OAuth providers perform strong verification
+     *
+     * @param provider The OAuth provider (e.g., "google", "github")
+     */
+    public void markEmailVerifiedByOAuth(String provider) {
+        this.emailVerified = true;
+        this.emailVerifiedAt = LocalDateTime.now();
+        this.emailVerificationToken = null; // Clear the token
+
+        // Set OAuth-specific tracking fields
+        this.oauthProvider = provider;
+        this.oauthVerifiedAt = LocalDateTime.now();
+        this.verificationMethod = VerificationMethod.OAUTH;
+
+        // OAuth-verified users get VERIFIED status immediately
+        if (this.accountStatus == AccountStatus.PENDING_VERIFICATION ||
+            this.accountStatus == AccountStatus.PENDING_APPROVAL) {
+            this.accountStatus = AccountStatus.VERIFIED;
+        }
+    }
+
+    /**
+     * Mark email as verified by OAuth provider with provider ID
+     * This provides the most complete audit trail
+     *
+     * @param provider The OAuth provider (e.g., "google", "github")
+     * @param providerId The unique ID from the OAuth provider
+     */
+    public void markEmailVerifiedByOAuth(String provider, String providerId) {
+        this.emailVerified = true;
+        this.emailVerifiedAt = LocalDateTime.now();
+        this.emailVerificationToken = null; // Clear the token
+
+        // Set OAuth-specific tracking fields
+        this.oauthProvider = provider;
+        this.oauthProviderId = providerId;
+        this.oauthVerifiedAt = LocalDateTime.now();
+        this.verificationMethod = VerificationMethod.OAUTH;
+
+        // OAuth-verified users get VERIFIED status immediately
+        if (this.accountStatus == AccountStatus.PENDING_VERIFICATION ||
+            this.accountStatus == AccountStatus.PENDING_APPROVAL) {
             this.accountStatus = AccountStatus.VERIFIED;
         }
     }

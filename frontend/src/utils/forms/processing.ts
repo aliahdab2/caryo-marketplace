@@ -22,9 +22,9 @@ export const FORM_FIELD_CATEGORIES = {
   
   // Numeric fields that accept Arabic numerals and need conversion
   NUMERIC: ['price', 'year', 'mileage'] as const,
-  
-  // Free text fields that need sanitization
-  TEXT: ['title', 'description', 'contactName', 'contactEmail', 'contactPhone', 'state'] as const
+
+  // Free text fields that need sanitization (including phone numbers with formatting)
+  TEXT: ['title', 'description', 'contactName', 'contactPhone', 'state'] as const
 } as const;
 
 // TypeScript types for field categories

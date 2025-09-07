@@ -538,5 +538,8 @@
   "goToPage": "الانتقال إلى الصفحة {{page}}",
   "showing": "عرض",
   "of": "من أصل",
-  "backToHome": "العودة للرئيسية"
+  "backToHome": "العودة للرئيسية",
+  "unexpectedError": "حدث خطأ غير متوقع",
+  "emailVerificationRequired": "مطلوب التحقق من البريد الإلكتروني",
+  "emailVerificationMessage": "يرجى التحقق من بريدك الإلكتروني وتفعيل حسابك قبل إنشاء إعلانات."
 }

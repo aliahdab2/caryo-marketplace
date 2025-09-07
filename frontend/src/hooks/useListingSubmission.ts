@@ -3,6 +3,7 @@ import { ListingFormData, UpdateListingData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
 import { createListing, updateListing, uploadListingImage } from '@/services/listings';
 import { addExternalVideoToListing } from '@/services/videoService';
+import { useOptimizedUser } from '@/hooks/useOptimizedSession';
 
 type ValidationMode = 'final' | 'navigation' | 'accessibility';
 
@@ -37,6 +38,7 @@ export function useListingSubmission({
   setShowSuccessAlert,
   onSuccess
 }: UseListingSubmissionOptions) {
+  const user = useOptimizedUser();
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -61,7 +63,12 @@ export function useListingSubmission({
     try {
       setIsSubmitting(true);
       if (mode === 'create') {
-        const result = await createListing(formData);
+        // Use user's email from session instead of form data
+        const formDataWithEmail = {
+          ...formData,
+          contactEmail: user?.email || ''
+        };
+        const result = await createListing(formDataWithEmail);
         
         // Images are already uploaded by createListing() - no need to upload again
         console.log(`[Create Mode] Images already handled by createListing() - skipping duplicate upload of ${formData.images?.length || 0} images`);
@@ -108,7 +115,7 @@ export function useListingSubmission({
           modelYear: formData.year ? parseInt(formData.year) : undefined,
           locationId,
           contactName: formData.contactName,
-          contactEmail: formData.contactEmail,
+          contactEmail: user?.email || '',
           contactPhone: formData.contactPhone,
           contactPreference: formData.contactPreference,
         };
@@ -162,12 +169,19 @@ export function useListingSubmission({
         onSuccess?.(result.id);
       }
     } catch (error) {
-      const translated = t('common:unexpectedError', 'Unexpected error');
-      setError(error instanceof Error ? error.message : translated);
+      // Handle specific email verification error
+      if (error instanceof Error && error.message.includes('Email verification required')) {
+        const emailErrorMessage = `${t('common:emailVerificationRequired', 'Email verification required')}\n\n${t('common:emailVerificationMessage', 'Please check your email and verify your account before creating listings.')}`;
+        setError(emailErrorMessage);
+      } else {
+        // Handle other errors with generic message
+        const translated = t('common:unexpectedError', 'An unexpected error occurred');
+        setError(error instanceof Error ? error.message : translated);
+      }
     } finally {
       setIsSubmitting(false);
     }
-  }, [currentStep, totalSteps, mode, listingId, formData, t, validateStep, setFormErrors, setError, setIsSubmitting, setShowSuccessAlert, onSuccess]);
+  }, [currentStep, totalSteps, mode, listingId, formData, t, validateStep, setFormErrors, setError, setIsSubmitting, setShowSuccessAlert, onSuccess, user]);
 
   return { handleSubmit };
 }

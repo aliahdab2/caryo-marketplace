@@ -7,7 +7,7 @@ import SignInPage from '@/app/auth/signin/page';
 import Navbar from '@/components/layout/Navbar';
 import '../mocks/i18n-mock';
 
-// Mock NextAuth properly
+// Mock NextAuth properly - we'll override useSession per test
 jest.mock('next-auth/react', () => ({
   ...jest.requireActual('next-auth/react'),
   useSession: jest.fn(),

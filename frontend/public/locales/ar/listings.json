@@ -505,5 +505,9 @@
   "newListingContactInfo": "معلومات الاتصال",
   "newListingValidationImagesRequired": "مطلوب صورة واحدة على الأقل",
   "creatingListing": "جاري الإنشاء...",
-  "updatingListing": "جاري التحديث..."
+  "updatingListing": "جاري التحديث...",
+  "duplicateImagesSkipped": "الصور المكررة (تم تجاهلها)",
+  "duplicateImageDetected": "تمت إضافة هذه الصورة بالفعل",
+  "imageUploadIssues": "مشاكل رفع الصور",
+  "validationErrors": "أخطاء التحقق"
 }

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { FaTimes } from 'react-icons/fa';
-import { MdWarning, MdDelete } from 'react-icons/md';
+import { MdWarning, MdDelete, MdInfo } from 'react-icons/md';
 import { useLanguageDirection } from '@/utils/languageDirection';
 import type { DeleteConfirmationModalProps } from '@/types/ui';
 
@@ -138,6 +138,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   confirmText = 'Delete',
   cancelText = 'Cancel',
   type = 'danger',
+  mode = 'confirmation',
   className = ''
 }) => {
   const { isRTL } = useLanguageDirection();
@@ -157,9 +158,14 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   // Memoized icon component
   const IconComponent = useMemo(() => {
     const iconProps = { className: "h-8 w-8" };
-    return type === 'warning' 
-      ? <MdWarning {...iconProps} className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
-      : <MdDelete {...iconProps} className="h-8 w-8 text-red-600 dark:text-red-400" />;
+    switch (type) {
+      case 'warning':
+        return <MdWarning {...iconProps} className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />;
+      case 'info':
+        return <MdInfo {...iconProps} className="h-8 w-8 text-blue-600 dark:text-blue-400" />;
+      default: // danger
+        return <MdDelete {...iconProps} className="h-8 w-8 text-red-600 dark:text-red-400" />;
+    }
   }, [type]);
 
   // Focus management for accessibility
@@ -242,37 +248,52 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
           
           <ModalContent message={message} itemName={itemName} />
 
-          {/* Enhanced Action Buttons */}
-          <div className={`flex gap-4 ${isRTL ? 'flex-row-reverse' : ''} animate-modal-slide-up`}>
-            <button
-              onClick={onClose}
-              disabled={isLoading}
-              className="modal-button flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed modal-focus-ring"
-              type="button"
-            >
-              {cancelText}
-            </button>
-            <button
-              ref={confirmButtonRef}
-              onClick={onConfirm}
-              disabled={isLoading}
-              className={`modal-button flex-1 px-6 py-3 ${styles.buttonBase} ${styles.buttonDisabled} text-white font-semibold rounded-xl disabled:cursor-not-allowed modal-focus-ring shadow-lg hover:shadow-xl`}
-              type="button"
-              aria-describedby={isLoading ? 'loading-description' : undefined}
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center gap-3">
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                  <span id="loading-description">{loadingText}</span>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center gap-2">
-                  <MdDelete className="h-5 w-5" />
-                  {confirmText}
-                </div>
-              )}
-            </button>
-          </div>
+          {/* Action Buttons */}
+          {mode === 'information' ? (
+            // Information mode - single OK button
+            <div className="flex justify-center animate-modal-slide-up">
+              <button
+                ref={confirmButtonRef}
+                onClick={onClose}
+                className={`px-8 py-3 ${styles.buttonBase} ${styles.buttonDisabled} text-white font-semibold rounded-xl modal-focus-ring shadow-lg hover:shadow-xl`}
+                type="button"
+              >
+                OK
+              </button>
+            </div>
+          ) : (
+            // Confirmation mode - Cancel/Confirm buttons
+            <div className={`flex gap-4 ${isRTL ? 'flex-row-reverse' : ''} animate-modal-slide-up`}>
+              <button
+                onClick={onClose}
+                disabled={isLoading}
+                className="modal-button flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed modal-focus-ring"
+                type="button"
+              >
+                {cancelText}
+              </button>
+              <button
+                ref={confirmButtonRef}
+                onClick={onConfirm}
+                disabled={isLoading || !onConfirm}
+                className={`modal-button flex-1 px-6 py-3 ${styles.buttonBase} ${styles.buttonDisabled} text-white font-semibold rounded-xl disabled:cursor-not-allowed modal-focus-ring shadow-lg hover:shadow-xl`}
+                type="button"
+                aria-describedby={isLoading ? 'loading-description' : undefined}
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                    <span id="loading-description">{loadingText}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2">
+                    <MdDelete className="h-5 w-5" />
+                    {confirmText}
+                  </div>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
