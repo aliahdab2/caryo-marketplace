@@ -28,7 +28,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/images")
-@CrossOrigin(origins = "*", maxAge = 3600)
+
 @Tag(name = "Images", description = "Upload and retrieve images")
 public class ImageController {
 

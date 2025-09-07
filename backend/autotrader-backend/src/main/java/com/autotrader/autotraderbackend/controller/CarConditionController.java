@@ -19,7 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/car-conditions")
-@CrossOrigin(origins = "*", maxAge = 3600)
+
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Car Conditions", description = "Manage car condition reference data")

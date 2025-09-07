@@ -22,7 +22,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/listings-status")
-@CrossOrigin(origins = "*", maxAge = 3600)
+
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Listing Status", description = "Manage car listing status changes (pause/resume, archive/unarchive, mark as sold)")

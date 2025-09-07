@@ -27,7 +27,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/locations")
-@CrossOrigin(origins = "*", maxAge = 3600)
+
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Locations", description = "Manage geographical locations")

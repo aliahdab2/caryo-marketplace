@@ -28,7 +28,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/saved-searches")
-@CrossOrigin(origins = "*", maxAge = 3600)
+
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Saved Searches", description = "Manage user saved searches and notifications")

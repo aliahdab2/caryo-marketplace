@@ -19,7 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/fuel-types")
-@CrossOrigin(origins = "*", maxAge = 3600)
+
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Fuel Types", description = "Manage fuel type reference data")
