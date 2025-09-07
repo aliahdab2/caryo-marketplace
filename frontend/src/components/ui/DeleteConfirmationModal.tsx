@@ -70,19 +70,44 @@ const ModalHeader: React.FC<ModalHeaderProps> = React.memo(({ title, iconCompone
 ));
 ModalHeader.displayName = 'ModalHeader';
 
+/**
+ * Props for ModalContent.
+ *
+ * @property {string | string[]} message - The message(s) to display in the modal.
+ *   - Use a string for a single message.
+ *   - Use an array of strings to display multiple messages, each in its own styled block.
+ * @property {string} [itemName] - Optional name of the item being deleted, shown in a highlighted block.
+ */
 interface ModalContentProps {
-  message: string;
+  message: string | string[];
   itemName?: string;
 }
 
 const ModalContent: React.FC<ModalContentProps> = React.memo(({ message, itemName }) => (
   <div className="text-center mb-8 animate-modal-slide-up">
-    <p 
-      id="modal-description"
-      className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed"
-    >
-      {message}
-    </p>
+    {/* Handle both string and string[] types for message */}
+    {Array.isArray(message) ? (
+      <div className="space-y-3 mb-4">
+        {message.map((msg, index) => (
+          <div
+            key={index}
+            className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-lg"
+          >
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+              {msg}
+            </p>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p
+        id="modal-description"
+        className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed"
+      >
+        {message}
+      </p>
+    )}
+
     {itemName && (
       <div className="mt-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-xl border border-gray-200 dark:border-gray-600">
         <p className="font-semibold text-gray-900 dark:text-gray-100 break-words">

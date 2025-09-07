@@ -101,12 +101,30 @@ export interface UseDeleteConfirmationOptions {
   onError?: (error: Error) => void;
 }
 
+/**
+ * Props for the DeleteConfirmationModal component.
+ *
+ * @property {boolean} isOpen - Controls whether the modal is visible
+ * @property {() => void} onClose - Callback when modal is closed without confirmation
+ * @property {() => void} onConfirm - Callback when user confirms the action
+ * @property {string} title - The title displayed in the modal header
+ * @property {string | string[]} message - The message(s) to display in the modal.
+ *   - Use a string for a single message
+ *   - Use an array of strings to display multiple messages, each in its own styled block
+ * @property {string} [itemName] - Optional name of the item being deleted, shown in a highlighted block
+ * @property {boolean} [isLoading] - Shows loading state during confirmation
+ * @property {string} [loadingText] - Text to show during loading state
+ * @property {string} [confirmText] - Text for the confirm button
+ * @property {string} [cancelText] - Text for the cancel button
+ * @property {'danger' | 'warning'} [type] - Visual style of the modal (danger=red, warning=yellow)
+ * @property {string} [className] - Additional CSS classes for the modal
+ */
 export interface DeleteConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   title: string;
-  message: string;
+  message: string | string[];
   itemName?: string;
   isLoading?: boolean;
   loadingText?: string;
