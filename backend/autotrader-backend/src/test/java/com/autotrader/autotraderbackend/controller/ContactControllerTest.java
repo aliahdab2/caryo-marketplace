@@ -1,6 +1,6 @@
 package com.autotrader.autotraderbackend.controller;
 
-import com.autotrader.autotraderbackend.payload.ContactFormRequest;
+import com.autotrader.autotraderbackend.payload.request.ContactFormRequest;
 import com.autotrader.autotraderbackend.service.EmailService;
 import com.autotrader.autotraderbackend.service.MessageService;
 import com.fasterxml.jackson.databind.ObjectMapper;

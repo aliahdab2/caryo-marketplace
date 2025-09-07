@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.controller;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.service.CarListingStatusService;
+import com.autotrader.autotraderbackend.service.I18nService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +13,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Map;
 
@@ -31,6 +34,12 @@ class CarListingStatusControllerTest {
     @Mock
     private UserDetails userDetails;
 
+    @Mock
+    private HttpServletRequest request;
+
+    @Mock
+    private I18nService i18nService;
+
     @InjectMocks
     private CarListingStatusController statusController;
 
@@ -43,6 +52,7 @@ class CarListingStatusControllerTest {
         mockResponse.setTitle("Test Car");
 
         lenient().when(userDetails.getUsername()).thenReturn("testuser");
+        lenient().when(i18nService.getMessage("error.unauthorized.access", request)).thenReturn("You are not authorized to access this resource");
     }
 
     @Test
@@ -52,7 +62,7 @@ class CarListingStatusControllerTest {
         when(carListingStatusService.pauseListing(listingId, "testuser")).thenReturn(mockResponse);
 
         // Act
-        ResponseEntity<?> response = statusController.pauseListing(listingId, userDetails);
+        ResponseEntity<?> response = statusController.pauseListing(listingId, userDetails, request);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -69,7 +79,7 @@ class CarListingStatusControllerTest {
             .thenThrow(new ResourceNotFoundException("Listing", "id", listingId));
 
         // Act
-        ResponseEntity<?> response = statusController.pauseListing(listingId, userDetails);
+        ResponseEntity<?> response = statusController.pauseListing(listingId, userDetails, request);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -85,7 +95,7 @@ class CarListingStatusControllerTest {
             .thenThrow(new SecurityException("Access denied"));
 
         // Act
-        ResponseEntity<?> response = statusController.pauseListing(listingId, userDetails);
+        ResponseEntity<?> response = statusController.pauseListing(listingId, userDetails, request);
 
         // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -101,7 +111,7 @@ class CarListingStatusControllerTest {
             .thenThrow(new org.springframework.security.access.AccessDeniedException("Access denied"));
 
         // Act
-        ResponseEntity<?> response = statusController.pauseListing(listingId, userDetails);
+        ResponseEntity<?> response = statusController.pauseListing(listingId, userDetails, request);
 
         // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -117,7 +127,7 @@ class CarListingStatusControllerTest {
             .thenThrow(new IllegalStateException("Listing cannot be paused"));
 
         // Act
-        ResponseEntity<?> response = statusController.pauseListing(listingId, userDetails);
+        ResponseEntity<?> response = statusController.pauseListing(listingId, userDetails, request);
 
         // Assert
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
@@ -132,7 +142,7 @@ class CarListingStatusControllerTest {
         when(carListingStatusService.resumeListing(listingId, "testuser")).thenReturn(mockResponse);
 
         // Act
-        ResponseEntity<?> response = statusController.resumeListing(listingId, userDetails);
+        ResponseEntity<?> response = statusController.resumeListing(listingId, userDetails, request);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -149,7 +159,7 @@ class CarListingStatusControllerTest {
             .thenThrow(new ResourceNotFoundException("Listing", "id", listingId));
 
         // Act
-        ResponseEntity<?> response = statusController.resumeListing(listingId, userDetails);
+        ResponseEntity<?> response = statusController.resumeListing(listingId, userDetails, request);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -165,7 +175,7 @@ class CarListingStatusControllerTest {
             .thenThrow(new SecurityException("Access denied"));
 
         // Act
-        ResponseEntity<?> response = statusController.resumeListing(listingId, userDetails);
+        ResponseEntity<?> response = statusController.resumeListing(listingId, userDetails, request);
 
         // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -181,7 +191,7 @@ class CarListingStatusControllerTest {
             .thenThrow(new org.springframework.security.access.AccessDeniedException("Access denied"));
 
         // Act
-        ResponseEntity<?> response = statusController.resumeListing(listingId, userDetails);
+        ResponseEntity<?> response = statusController.resumeListing(listingId, userDetails, request);
 
         // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -197,7 +207,7 @@ class CarListingStatusControllerTest {
             .thenThrow(new IllegalStateException("Listing cannot be resumed"));
 
         // Act
-        ResponseEntity<?> response = statusController.resumeListing(listingId, userDetails);
+        ResponseEntity<?> response = statusController.resumeListing(listingId, userDetails, request);
 
         // Assert
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
@@ -212,11 +222,11 @@ class CarListingStatusControllerTest {
         UserDetails nullUserDetails = null;
 
         // Act
-        ResponseEntity<?> response = statusController.pauseListing(listingId, nullUserDetails);
+        ResponseEntity<?> response = statusController.pauseListing(listingId, nullUserDetails, request);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("User must be authenticated", ((Map<?, ?>) response.getBody()).get("message"));
+        assertEquals("You are not authorized to access this resource", ((Map<?, ?>) response.getBody()).get("message"));
     }
 }
