@@ -24,7 +24,7 @@ export const FORM_FIELD_CATEGORIES = {
   NUMERIC: ['price', 'year', 'mileage'] as const,
   
   // Free text fields that need sanitization
-  TEXT: ['title', 'description', 'contactName', 'contactEmail', 'contactPhone', 'state'] as const
+  TEXT: ['title', 'description', 'contactName', 'contactPhone', 'state'] as const
 } as const;
 
 // TypeScript types for field categories

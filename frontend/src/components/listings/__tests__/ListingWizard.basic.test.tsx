@@ -10,6 +10,64 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import ListingWizard from '../ListingWizard';
 
+// Mock NextAuth and session hooks with consistent data
+jest.mock('next-auth/react', () => ({
+  SessionProvider: ({ children }: { children: React.ReactNode }) => ({ 
+    type: 'div', 
+    props: { children } 
+  }),
+  useSession: () => ({
+    data: {
+      user: {
+        id: 'test-user-id',
+        name: 'Test User',
+        email: 'test@example.com',
+        image: 'https://example.com/avatar.jpg',
+        roles: ['ROLE_USER']
+      },
+      accessToken: 'test-token',
+      expires: '2030-01-01T00:00:00.000Z'
+    },
+    status: 'authenticated'
+  }),
+  signIn: jest.fn(),
+  signOut: jest.fn()
+}));
+
+jest.mock('@/hooks/useOptimizedSession', () => ({
+  useOptimizedSession: () => ({
+    user: {
+      id: 'test-user-id',
+      name: 'Test User',
+      email: 'test@example.com',
+      image: 'https://example.com/avatar.jpg',
+      roles: ['ROLE_USER']
+    },
+    isAuthenticated: true,
+    isLoading: false,
+    status: 'authenticated',
+    session: {
+      user: {
+        id: 'test-user-id',
+        name: 'Test User',
+        email: 'test@example.com',
+        image: 'https://example.com/avatar.jpg',
+        roles: ['ROLE_USER']
+      },
+      accessToken: 'test-token',
+      expires: '2030-01-01T00:00:00.000Z'
+    },
+    refreshSession: jest.fn()
+  }),
+  useOptimizedUser: () => ({
+    id: 'test-user-id',
+    name: 'Test User',
+    email: 'test@example.com',
+    image: 'https://example.com/avatar.jpg',
+    roles: ['ROLE_USER']
+  })
+}));
+
 // Create a comprehensive mock setup
 const createMocks = () => {
   const mockRouter = {

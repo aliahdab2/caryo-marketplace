@@ -64,7 +64,11 @@ public class SocialLoginControllerUnitTest {
         existingUser.setUsername("test.user");
         existingUser.setEmail("test.user@gmail.com");
         existingUser.setPassword("encodedPassword");
-        
+
+        // Set user as already verified to avoid OAuth verification save
+        existingUser.setEmailVerified(true);
+        existingUser.setAccountStatus(com.autotrader.autotraderbackend.model.AccountStatus.VERIFIED);
+
         Set<Role> roles = new HashSet<>();
         Role userRole = new Role("ROLE_USER");
         roles.add(userRole);

@@ -16,6 +16,8 @@ import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 import com.autotrader.autotraderbackend.service.PasswordResetService;
 import com.autotrader.autotraderbackend.service.EmailVerificationService;
 import com.autotrader.autotraderbackend.service.SellerTypeService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,6 +41,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     @Autowired
     private AuthenticationManager authenticationManager;
 
@@ -209,7 +213,9 @@ public class AuthController {
             // User exists, use existing account
             user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Error: User not found."));
-            
+
+            boolean needsSave = false;
+
             // Ensure existing OAuth users have at least the default role
             if (user.getRoles() == null || user.getRoles().isEmpty()) {
                 Set<Role> roles = new HashSet<>();
@@ -220,6 +226,30 @@ public class AuthController {
                     });
                 roles.add(userRole);
                 user.setRoles(roles);
+                needsSave = true;
+            }
+
+            // For existing OAuth users, ensure they're fully verified since Google has verified their email
+            if (!user.isEmailVerified() ||
+                user.getAccountStatus() == com.autotrader.autotraderbackend.model.AccountStatus.PENDING_VERIFICATION ||
+                user.getAccountStatus() == com.autotrader.autotraderbackend.model.AccountStatus.PENDING_APPROVAL) {
+
+                // Log OAuth verification for security audit trail
+                log.info("OAuth verification: Existing user {} email verified via {} OAuth provider (ID: {})",
+                        user.getUsername(),
+                        request.getProvider() != null ? request.getProvider() : "Google",
+                        request.getProviderAccountId());
+
+                // Mark as OAuth-verified with provider ID for complete audit trail
+                user.markEmailVerifiedByOAuth(
+                    request.getProvider() != null ? request.getProvider() : "google",
+                    request.getProviderAccountId()
+                );
+                needsSave = true;
+            }
+
+            // Save only if something changed
+            if (needsSave) {
                 userRepository.save(user);
             }
         } else {
@@ -263,10 +293,24 @@ public class AuthController {
                     System.err.println("Failed to set default seller type for social login user: " + ex.getMessage());
                 }
             }
-            
+
+            // For OAuth users, mark as verified but log the OAuth verification for audit purposes
+            // New OAuth users are always verified since Google has verified their email
+            log.info("OAuth verification: User {} email verified via {} OAuth provider (ID: {})",
+                    user.getUsername(),
+                    request.getProvider() != null ? request.getProvider() : "Google",
+                    request.getProviderAccountId());
+
+            // Mark as OAuth-verified with provider ID for complete audit trail
+            user.markEmailVerifiedByOAuth(
+                request.getProvider() != null ? request.getProvider() : "google",
+                request.getProviderAccountId()
+            );
+
+            // Save the new user once
             userRepository.save(user);
         }
-        
+
         // Generate token
         String jwt = jwtUtils.generateJwtTokenForUser(user);
         

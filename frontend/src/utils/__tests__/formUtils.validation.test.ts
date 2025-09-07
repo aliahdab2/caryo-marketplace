@@ -55,7 +55,6 @@ const createFormData = (overrides: Partial<ListingFormData> = {}): ListingFormDa
   currency: 'USD',
   contactName: '',
   contactPhone: '',
-  contactEmail: '',
   contactPreference: 'email',
   governorateSlug: '',
   governorateId: undefined,
@@ -255,29 +254,19 @@ describe('Form Validation Tests', () => {
       expect(mockT).toHaveBeenCalledWith('listings:newListingValidationPriceInvalid', 'Price must be a valid number');
     });
 
-    it('should validate email format when provided', () => {
-      const formData = createFormData({ 
-        contactEmail: 'invalid-email'
-      });
-      
-      const errors = validateStep(4, formData, mockT);
-      expect(errors.contactEmail).toBeDefined();
-      expect(mockT).toHaveBeenCalledWith('listings:newListingValidationEmailInvalid', 'Please enter a valid email address');
-    });
 
-    it('should accept valid email', () => {
+    it('should accept valid contact data', () => {
       const formData = createFormData({
         price: '25000',
         contactName: 'John Doe',
         contactPhone: '+963123456789',
-        contactEmail: 'john@example.com',
         governorateSlug: 'damascus',
         locationSlug: 'old-damascus',
         images: [new File([''], 'test.jpg')]
       });
       
       const errors = validateStep(4, formData, mockT);
-      expect(errors.contactEmail).toBeUndefined();
+      expect(Object.keys(errors)).toHaveLength(0);
     });
 
     it('should require at least one image', () => {

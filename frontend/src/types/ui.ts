@@ -123,7 +123,7 @@ export interface UseDeleteConfirmationOptions {
 export interface DeleteConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm?: () => void;
   title: string;
   message: string | string[];
   itemName?: string;

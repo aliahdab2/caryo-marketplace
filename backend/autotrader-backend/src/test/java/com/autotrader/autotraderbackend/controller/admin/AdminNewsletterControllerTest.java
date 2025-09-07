@@ -84,6 +84,6 @@ class AdminNewsletterControllerTest {
     @DisplayName("Should deny access to stats endpoint without authentication")
     void getStats_ShouldDenyAccessWithoutAuthentication() throws Exception {
         mockMvc.perform(get("/api/admin/newsletter/stats"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized()); // No authentication at all returns 401
     }
 }

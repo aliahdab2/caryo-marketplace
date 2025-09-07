@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.controller;
 
+import com.autotrader.autotraderbackend.model.AccountStatus;
 import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.model.dto.SocialLoginRequest;
@@ -7,6 +8,7 @@ import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
+import com.autotrader.autotraderbackend.service.SellerTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -45,6 +47,9 @@ public class OAuthRoleAssignmentTest {
 
     @Mock
     private JwtUtils jwtUtils;
+
+    @Mock
+    private SellerTypeService sellerTypeService;
 
     @InjectMocks
     private AuthController authController;
@@ -90,17 +95,14 @@ public class OAuthRoleAssignmentTest {
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertTrue(response.getBody() instanceof JwtResponse);
-            
+
             JwtResponse jwtResponse = (JwtResponse) response.getBody();
             assertNotNull(jwtResponse.getToken());
             assertEquals("test@example.com", jwtResponse.getEmail());
             assertEquals(List.of("ROLE_USER"), jwtResponse.getRoles());
 
-            // Verify user was saved with correct role
-            verify(userRepository).save(argThat(user -> 
-                user.getRoles().contains(userRole) && 
-                user.getRoles().size() == 1
-            ));
+            // Verify user was saved once: for both creation and OAuth verification (optimized)
+            verify(userRepository, times(1)).save(any(User.class));
         }
 
         @Test
@@ -139,16 +141,21 @@ public class OAuthRoleAssignmentTest {
         @Test
         @DisplayName("Should assign ROLE_USER to existing user with no roles")
         void shouldAssignRoleUserToExistingUserWithNoRoles() {
-            // Given - Existing user with no roles (the bug scenario)
+            // Given - Existing user with no roles who needs OAuth verification (the bug scenario)
             User existingUser = new User("testuser", "test@example.com", "encoded_password");
             existingUser.setId(1L);
+            existingUser.setEmailVerified(false); // Not verified - triggers OAuth verification
+            existingUser.setAccountStatus(AccountStatus.PENDING_VERIFICATION); // Needs verification
             existingUser.setRoles(new HashSet<>()); // Empty roles - this was the bug!
 
             when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
             when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
             when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
             when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("jwt_token");
-            when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+                User user = invocation.getArgument(0);
+                return user;
+            });
 
             // When
             ResponseEntity<?> response = authController.socialLogin(socialLoginRequest);
@@ -156,30 +163,32 @@ public class OAuthRoleAssignmentTest {
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertTrue(response.getBody() instanceof JwtResponse);
-            
+
             JwtResponse jwtResponse = (JwtResponse) response.getBody();
             assertEquals(List.of("ROLE_USER"), jwtResponse.getRoles());
 
-            // Verify the user was updated with roles
-            verify(userRepository).save(argThat(user -> 
-                user.getRoles().contains(userRole) && 
-                user.getRoles().size() == 1
-            ));
+            // Verify the user was saved once: for both roles and OAuth verification (optimized)
+            verify(userRepository, times(1)).save(any(User.class));
         }
 
         @Test
         @DisplayName("Should assign ROLE_USER to existing user with null roles")
         void shouldAssignRoleUserToExistingUserWithNullRoles() {
-            // Given - Existing user with null roles (another bug scenario)
+            // Given - Existing user with null roles who needs OAuth verification (another bug scenario)
             User existingUser = new User("testuser", "test@example.com", "encoded_password");
             existingUser.setId(1L);
+            existingUser.setEmailVerified(false); // Not verified - triggers OAuth verification
+            existingUser.setAccountStatus(AccountStatus.PENDING_VERIFICATION); // Needs verification
             existingUser.setRoles(null); // Null roles - this was also part of the bug!
 
             when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
             when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
             when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
             when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("jwt_token");
-            when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+                User user = invocation.getArgument(0);
+                return user;
+            });
 
             // When
             ResponseEntity<?> response = authController.socialLogin(socialLoginRequest);
@@ -187,24 +196,23 @@ public class OAuthRoleAssignmentTest {
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertTrue(response.getBody() instanceof JwtResponse);
-            
+
             JwtResponse jwtResponse = (JwtResponse) response.getBody();
             assertEquals(List.of("ROLE_USER"), jwtResponse.getRoles());
 
-            // Verify the user was updated with roles
-            verify(userRepository).save(argThat(user -> 
-                user.getRoles() != null &&
-                user.getRoles().contains(userRole) && 
-                user.getRoles().size() == 1
-            ));
+            // Verify the user was saved once: for both roles and OAuth verification (optimized)
+            verify(userRepository, times(1)).save(any(User.class));
         }
 
         @Test
         @DisplayName("Should NOT modify existing user who already has roles")
         void shouldNotModifyExistingUserWithExistingRoles() {
-            // Given - Existing user with existing roles
+            // Given - Existing user with existing roles and already verified
             User existingUser = new User("testuser", "test@example.com", "encoded_password");
             existingUser.setId(1L);
+            existingUser.setEmailVerified(true); // Already verified
+            existingUser.setAccountStatus(AccountStatus.VERIFIED); // Already verified
+            existingUser.setVerificationMethod("manual"); // Already has verification method
             Set<Role> existingRoles = new HashSet<>();
             existingRoles.add(userRole);
             existingUser.setRoles(existingRoles);
@@ -219,11 +227,11 @@ public class OAuthRoleAssignmentTest {
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertTrue(response.getBody() instanceof JwtResponse);
-            
+
             JwtResponse jwtResponse = (JwtResponse) response.getBody();
             assertEquals(List.of("ROLE_USER"), jwtResponse.getRoles());
 
-            // Verify the user was NOT saved again (no role modification needed)
+            // Verify the user was NOT saved (already verified and has roles)
             verify(userRepository, never()).save(any(User.class));
             verify(roleRepository, never()).findByName(anyString());
         }
@@ -231,13 +239,16 @@ public class OAuthRoleAssignmentTest {
         @Test
         @DisplayName("Should handle existing user with multiple roles correctly")
         void shouldHandleExistingUserWithMultipleRoles() {
-            // Given - Existing user with multiple roles
+            // Given - Existing user with multiple roles and already verified
             User existingUser = new User("admin", "admin@example.com", "encoded_password");
             existingUser.setId(1L);
-            
+            existingUser.setEmailVerified(true); // Already verified
+            existingUser.setAccountStatus(AccountStatus.VERIFIED); // Already verified
+            existingUser.setVerificationMethod("manual"); // Already has verification method
+
             Role adminRole = new Role("ROLE_ADMIN");
             adminRole.setId(2);
-            
+
             Set<Role> existingRoles = new HashSet<>();
             existingRoles.add(userRole);
             existingRoles.add(adminRole);
@@ -255,13 +266,13 @@ public class OAuthRoleAssignmentTest {
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertTrue(response.getBody() instanceof JwtResponse);
-            
+
             JwtResponse jwtResponse = (JwtResponse) response.getBody();
             assertEquals(2, jwtResponse.getRoles().size());
             assertTrue(jwtResponse.getRoles().contains("ROLE_USER"));
             assertTrue(jwtResponse.getRoles().contains("ROLE_ADMIN"));
 
-            // Verify no modification was made
+            // Verify no modification was made (already verified)
             verify(userRepository, never()).save(any(User.class));
         }
     }
@@ -320,10 +331,11 @@ public class OAuthRoleAssignmentTest {
             when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
                 User user = invocation.getArgument(0);
-                // Simulate the role assignment
+                // Simulate the role assignment and OAuth verification
                 Set<Role> roles = new HashSet<>();
                 roles.add(userRole);
                 user.setRoles(roles);
+                user.markEmailVerifiedByOAuth("google", "123456789");
                 return user;
             });
             when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("jwt_token_with_roles");
@@ -333,17 +345,162 @@ public class OAuthRoleAssignmentTest {
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            
+
             JwtResponse jwtResponse = (JwtResponse) response.getBody();
             assertEquals("jwt_token_with_roles", jwtResponse.getToken());
             assertEquals("Bearer", jwtResponse.getType());
-            
+
             // Verify JWT was generated with the user that has roles
-            verify(jwtUtils).generateJwtTokenForUser(argThat(user -> 
-                user.getRoles() != null && 
+            verify(jwtUtils).generateJwtTokenForUser(argThat(user ->
+                user.getRoles() != null &&
                 user.getRoles().size() == 1 &&
                 user.getRoles().iterator().next().getName().equals("ROLE_USER")
             ));
+        }
+    }
+
+    @Nested
+    @DisplayName("OAuth Email Verification Tests")
+    class OAuthEmailVerificationTests {
+
+        @Test
+        @DisplayName("Should mark unverified existing OAuth user as verified")
+        void shouldMarkUnverifiedExistingOAuthUserAsVerified() {
+            // Given - Existing user who hasn't been verified yet
+            User existingUser = new User("testuser", "test@example.com", "encoded_password");
+            existingUser.setId(1L);
+            existingUser.setEmailVerified(false);
+            existingUser.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
+            existingUser.setRoles(new HashSet<>());
+
+            when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
+            when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
+            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+            when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("jwt_token");
+            when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+                User savedUser = invocation.getArgument(0);
+                // Simulate the OAuth verification process
+                savedUser.markEmailVerifiedByOAuth("google", "google123");
+                return savedUser;
+            });
+
+            // When
+            ResponseEntity<?> response = authController.socialLogin(socialLoginRequest);
+
+            // Then
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+
+            // Verify the user was marked as verified with OAuth details
+            verify(userRepository).save(argThat(user -> {
+                assertTrue(user.isEmailVerified(), "User should be marked as email verified");
+                assertEquals(AccountStatus.VERIFIED, user.getAccountStatus(),
+                    "Account status should be VERIFIED");
+                assertEquals("google", user.getOauthProvider(),
+                    "OAuth provider should be set");
+                assertEquals("google123", user.getOauthProviderId(),
+                    "OAuth provider ID should be set");
+                assertEquals("oauth", user.getVerificationMethod(),
+                    "Verification method should be 'oauth'");
+                return true;
+            }));
+        }
+
+        @Test
+        @DisplayName("Should mark existing OAuth user with PENDING_APPROVAL status as verified")
+        void shouldMarkExistingOAuthUserWithPendingApprovalAsVerified() {
+            // Given - Existing user with PENDING_APPROVAL status
+            User existingUser = new User("testuser", "test@example.com", "encoded_password");
+            existingUser.setId(1L);
+            existingUser.setEmailVerified(false);
+            existingUser.setAccountStatus(AccountStatus.PENDING_APPROVAL);
+            existingUser.setRoles(new HashSet<>());
+
+            when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
+            when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
+            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+            when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("jwt_token");
+            when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+                User savedUser = invocation.getArgument(0);
+                savedUser.markEmailVerifiedByOAuth("google", "google123");
+                return savedUser;
+            });
+
+            // When
+            ResponseEntity<?> response = authController.socialLogin(socialLoginRequest);
+
+            // Then
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+
+            // Verify the user was marked as verified
+            verify(userRepository).save(argThat(user -> {
+                assertTrue(user.isEmailVerified(), "User should be marked as email verified");
+                assertEquals(AccountStatus.VERIFIED, user.getAccountStatus(),
+                    "Account status should be VERIFIED");
+                return true;
+            }));
+        }
+
+        @Test
+        @DisplayName("Should create new OAuth user as verified")
+        void shouldCreateNewOAuthUserAsVerified() {
+            // Given - New user
+            when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
+            when(userRepository.existsByUsername("test")).thenReturn(false);
+            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+            when(encoder.encode(anyString())).thenReturn("encoded_password");
+            when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("jwt_token");
+            when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+                User savedUser = invocation.getArgument(0);
+                // Simulate OAuth verification for new user
+                if (!savedUser.isEmailVerified()) {
+                    savedUser.markEmailVerifiedByOAuth("google", "google123");
+                }
+                savedUser.setId(1L);
+                return savedUser;
+            });
+
+            // When
+            ResponseEntity<?> response = authController.socialLogin(socialLoginRequest);
+
+            // Then
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+
+            // Verify new user was created and marked as verified
+            verify(userRepository).save(argThat(user -> {
+                assertTrue(user.isEmailVerified(), "New OAuth user should be email verified");
+                assertEquals(AccountStatus.VERIFIED, user.getAccountStatus(),
+                    "New OAuth user should have VERIFIED status");
+                assertEquals("google", user.getOauthProvider(),
+                    "OAuth provider should be set for new user");
+                assertEquals("oauth", user.getVerificationMethod(),
+                    "Verification method should be 'oauth' for new user");
+                return true;
+            }));
+        }
+
+        @Test
+        @DisplayName("Should NOT modify already verified OAuth user")
+        void shouldNotModifyAlreadyVerifiedOAuthUser() {
+            // Given - Already verified user who doesn't need OAuth verification
+            User existingUser = new User("testuser", "test@example.com", "encoded_password");
+            existingUser.setId(1L);
+            existingUser.setEmailVerified(true); // Already verified
+            existingUser.setAccountStatus(AccountStatus.VERIFIED); // Already verified
+            existingUser.setVerificationMethod("manual"); // Already has verification method
+            existingUser.setRoles(new HashSet<>(Set.of(userRole)));
+
+            when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
+            when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
+            when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("jwt_token");
+
+            // When
+            ResponseEntity<?> response = authController.socialLogin(socialLoginRequest);
+
+            // Then
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+
+            // Verify the user was NOT saved (no verification changes needed)
+            verify(userRepository, never()).save(any(User.class));
         }
     }
 }

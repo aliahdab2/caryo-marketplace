@@ -162,5 +162,8 @@
   "goToPage": "Go to page {{page}}",
   "showing": "Showing",
   "of": "of",
-  "backToHome": "Back to Home"
+  "backToHome": "Back to Home",
+  "unexpectedError": "An unexpected error occurred",
+  "emailVerificationRequired": "Email verification required",
+  "emailVerificationMessage": "Please check your email and verify your account before creating listings."
 }

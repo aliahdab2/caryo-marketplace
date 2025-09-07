@@ -241,5 +241,9 @@
   "newListingContactInfo": "Contact Information",
   "newListingValidationImagesRequired": "At least one image is required",
   "creatingListing": "Creating...",
-  "updatingListing": "Updating..."
+  "updatingListing": "Updating...",
+  "duplicateImagesSkipped": "Duplicate images (skipped)",
+  "duplicateImageDetected": "This image has already been added",
+  "imageUploadIssues": "Image upload issues",
+  "validationErrors": "Validation errors"
 }

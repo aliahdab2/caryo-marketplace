@@ -8,6 +8,7 @@ import ErrorMessage from './shared/ErrorMessage';
 import { useCallback as useCallbackPerf, useRef } from 'react';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { validateCarListingImages } from '@/utils/imageValidation';
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 
 // Optimized throttle hook for frequent operations
 function useThrottle<T extends (...args: any[]) => any>(func: T, delay: number): T { // eslint-disable-line @typescript-eslint/no-explicit-any -- Necessary for generic function throttling
@@ -42,11 +43,78 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [newPreviewUrls, setNewPreviewUrls] = useState<string[]>([]);
 
+  // Image upload error modal state
+  const [errorModalMessages, setErrorModalMessages] = useState<string[]>([]);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorModalTitle, setErrorModalTitle] = useState('');
+  const [errorModalType, setErrorModalType] = useState<'warning' | 'info'>('warning');
+
   const existingImages = useMemo(() => formData.existingImageUrls || [], [formData.existingImageUrls]);
   const existingMediaItems = useMemo(() => formData.existingMediaItems || [], [formData.existingMediaItems]);
   const imagePreviewUrls = useMemo(() => {
     return [...existingImages, ...newPreviewUrls];
   }, [existingImages, newPreviewUrls]);
+
+  // Function to check if an image is a duplicate
+  const isDuplicateImage = useCallback(async (newFile: File, existingFiles: File[]): Promise<boolean> => {
+    // Check by name and size first (fast check)
+    const isDuplicateByNameAndSize = existingFiles.some(existingFile =>
+      existingFile.name === newFile.name && existingFile.size === newFile.size
+    );
+
+    if (isDuplicateByNameAndSize) {
+      return true;
+    }
+
+    // Check by content (more thorough but slower)
+    for (const existingFile of existingFiles) {
+      if (await areFilesEqual(newFile, existingFile)) {
+        return true;
+      }
+    }
+
+    return false;
+  }, []);
+
+  // Helper function to compare file contents
+  const areFilesEqual = async (file1: File, file2: File): Promise<boolean> => {
+    // Quick size check
+    if (file1.size !== file2.size) return false;
+
+    // Compare first 1024 bytes for performance
+    const buffer1 = await file1.slice(0, 1024).arrayBuffer();
+    const buffer2 = await file2.slice(0, 1024).arrayBuffer();
+
+    const view1 = new Uint8Array(buffer1);
+    const view2 = new Uint8Array(buffer2);
+
+    for (let i = 0; i < Math.min(view1.length, view2.length); i++) {
+      if (view1[i] !== view2[i]) return false;
+    }
+
+    return true;
+  };
+
+  // Function to filter out duplicate images
+  const filterDuplicateImages = useCallback(async (newFiles: File[]): Promise<{
+    validFiles: File[];
+    duplicateFiles: File[];
+  }> => {
+    const existingFiles = formData.images || [];
+    const validFiles: File[] = [];
+    const duplicateFiles: File[] = [];
+
+    for (const newFile of newFiles) {
+      if (await isDuplicateImage(newFile, existingFiles)) {
+        duplicateFiles.push(newFile);
+      } else {
+        validFiles.push(newFile);
+      }
+    }
+
+    return { validFiles, duplicateFiles };
+  }, [formData.images, isDuplicateImage]);
+
 
   useEffect(() => {
     const files = formData.images || [];
@@ -77,7 +145,7 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
 
     const files = Array.from(e.dataTransfer.files);
     const imageFiles = files.filter(file => file.type.startsWith('image/'));
-    
+
     if (imageFiles.length === 0) return;
 
     // In test environment, skip validation for faster tests
@@ -86,34 +154,52 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
       return;
     }
 
-    // Validate images using shared utility
-    const validation = await validateCarListingImages(imageFiles);
-    
-    const validFiles: File[] = [];
+    // Check for duplicates first
+    const { validFiles: nonDuplicateFiles, duplicateFiles } = await filterDuplicateImages(imageFiles);
+
+    // Validate images using shared utility (only non-duplicates)
+    const validation = await validateCarListingImages(nonDuplicateFiles);
+
+    const finalValidFiles: File[] = [];
     const errors: string[] = [];
-    
+    const duplicateNames = duplicateFiles.map(f => f.name);
+
     validation.results.forEach((result, index) => {
       if (result.isValid) {
-        validFiles.push(imageFiles[index]);
+        finalValidFiles.push(nonDuplicateFiles[index]);
         // Show warnings if any
         if (result.warnings.length > 0) {
-          console.warn(`${imageFiles[index].name}: ${result.warnings.join(', ')}`);
+          console.warn(`${nonDuplicateFiles[index].name}: ${result.warnings.join(', ')}`);
         }
       } else {
-        errors.push(`${imageFiles[index].name}: ${result.errors.join(', ')}`);
+        errors.push(`${nonDuplicateFiles[index].name}: ${result.errors.join(', ')}`);
       }
     });
-    
-    // Show errors if any
+
+    // Collect all messages
+    const allMessages: string[] = [];
+
+    if (duplicateNames.length > 0) {
+      allMessages.push(`${t('listings:duplicateImagesSkipped', 'Duplicate images (skipped)')}: ${duplicateNames.join(', ')}`);
+    }
+
     if (errors.length > 0) {
-      alert(`Some images could not be added:\n\n${errors.join('\n')}`);
+      allMessages.push(`${t('listings:validationErrors', 'Validation errors')}: ${errors.join('; ')}`);
     }
-    
+
+    // Show messages if any
+    if (allMessages.length > 0) {
+      setErrorModalTitle(t('listings:imageUploadIssues', 'Image upload issues'));
+      setErrorModalMessages(allMessages);
+      setErrorModalType('warning');
+      setIsErrorModalOpen(true);
+    }
+
     // Add valid images
-    if (validFiles.length > 0) {
-      onFormDataChange({ images: [...(formData.images || []), ...validFiles] });
+    if (finalValidFiles.length > 0) {
+      onFormDataChange({ images: [...(formData.images || []), ...finalValidFiles] });
     }
-  }, [formData.images, onFormDataChange]);
+  }, [formData.images, onFormDataChange, filterDuplicateImages, t]);
 
   // Image drag and drop reordering handlers
   const handleImageDragStart = useCallback((e: React.DragEvent, index: number) => {
@@ -279,45 +365,63 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
               onChange={async (e) => {
                 const files = e.target.files;
                 if (!files) return;
-                
+
                 const selected = Array.from(files).filter(f => f.type.startsWith('image/'));
                 if (selected.length === 0) return;
-                
+
                 // In test environment, skip validation for faster tests
                 if (process.env.NODE_ENV === 'test') {
                   onFormDataChange({ images: [...(formData.images || []), ...selected] });
                   e.target.value = '';
                   return;
                 }
-                
-                // Validate images using shared utility
-                const validation = await validateCarListingImages(selected);
-                
-                const validFiles: File[] = [];
+
+                // Check for duplicates first
+                const { validFiles: nonDuplicateFiles, duplicateFiles } = await filterDuplicateImages(selected);
+
+                // Validate images using shared utility (only non-duplicates)
+                const validation = await validateCarListingImages(nonDuplicateFiles);
+
+                const finalValidFiles: File[] = [];
                 const errors: string[] = [];
-                
+                const duplicateNames = duplicateFiles.map(f => f.name);
+
                 validation.results.forEach((result, index) => {
                   if (result.isValid) {
-                    validFiles.push(selected[index]);
+                    finalValidFiles.push(nonDuplicateFiles[index]);
                     // Show warnings if any
                     if (result.warnings.length > 0) {
-                      console.warn(`${selected[index].name}: ${result.warnings.join(', ')}`);
+                      console.warn(`${nonDuplicateFiles[index].name}: ${result.warnings.join(', ')}`);
                     }
                   } else {
-                    errors.push(`${selected[index].name}: ${result.errors.join(', ')}`);
+                    errors.push(`${nonDuplicateFiles[index].name}: ${result.errors.join(', ')}`);
                   }
                 });
-                
-                // Show errors if any
+
+                // Collect all messages
+                const allMessages: string[] = [];
+
+                if (duplicateNames.length > 0) {
+                  allMessages.push(`${t('listings:duplicateImagesSkipped', 'Duplicate images (skipped)')}: ${duplicateNames.join(', ')}`);
+                }
+
                 if (errors.length > 0) {
-                  alert(`Some images could not be added:\n\n${errors.join('\n')}`);
+                  allMessages.push(`${t('listings:validationErrors', 'Validation errors')}: ${errors.join('; ')}`);
                 }
-                
+
+                // Show messages if any
+                if (allMessages.length > 0) {
+                  setErrorModalTitle(t('listings:imageUploadIssues', 'Image upload issues'));
+                  setErrorModalMessages(allMessages);
+                  setErrorModalType('warning');
+                  setIsErrorModalOpen(true);
+                }
+
                 // Add valid images
-                if (validFiles.length > 0) {
-                  onFormDataChange({ images: [...(formData.images || []), ...validFiles] });
+                if (finalValidFiles.length > 0) {
+                  onFormDataChange({ images: [...(formData.images || []), ...finalValidFiles] });
                 }
-                
+
                 // Clear the input
                 e.target.value = '';
               }}
@@ -409,14 +513,14 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                       const mediaItemToDelete = existingMediaItems.find(item => item.url === existingImages[index]);
                       const updatedExisting = existingImages.filter((_, i) => i !== index);
                       const updatedMediaItems = existingMediaItems.filter(item => item.url !== existingImages[index]);
-                      
+
                       // Add to deletion list if we have the media ID
                       const updatedMediaToDelete = [...(formData.mediaToDelete || [])];
                       if (mediaItemToDelete?.id) {
                         updatedMediaToDelete.push(mediaItemToDelete.id);
                       }
-                      
-                      onFormDataChange({ 
+
+                      onFormDataChange({
                         existingImageUrls: updatedExisting,
                         existingMediaItems: updatedMediaItems,
                         mediaToDelete: updatedMediaToDelete
@@ -433,7 +537,7 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                       setNewPreviewUrls(prev => prev.filter((_, i) => i !== newIdx));
                     }
                   }}
-                  className={`absolute -top-2 ${isRTL ? '-left-2' : '-right-2'} bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110`}
+                  className={`absolute -top-1 ${isRTL ? 'start-1' : 'end-1'} bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg hover:scale-110 z-10`}
                   aria-label={`Remove image ${index + 1}`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -452,13 +556,13 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                 )}
 
                 {/* Image Number Badge */}
-                <div className={`absolute top-2 ${isRTL ? 'end-2' : 'start-2'} bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm`}>
+                <div className={`absolute top-1 ${isRTL ? 'end-1' : 'start-1'} bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm z-5`}>
                   {index + 1}
                 </div>
 
                 {/* File Info on Hover */}
                 {index >= existingImages.length && (
-                  <div className={`absolute bottom-2 ${isRTL ? 'left-2' : 'right-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
+                  <div className={`absolute bottom-2 ${isRTL ? 'start-2' : 'end-2'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
                     <div className="bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
                       {(((formData.images || [])[index - existingImages.length]?.size || 0) / 1024 / 1024).toFixed(1)}MB
                     </div>
@@ -488,6 +592,16 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
           </div>
         </div>
       )}
+
+      {/* Image Upload Error Modal */}
+      <DeleteConfirmationModal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        title={errorModalTitle}
+        message={errorModalMessages}
+        type={errorModalType}
+        mode="information"
+      />
     </div>
   );
 };

@@ -54,7 +54,6 @@ const createFormDataForStep = (completedSteps: number[]): ListingFormData => {
     currency: 'USD',
     contactName: '',
     contactPhone: '',
-    contactEmail: '',
     contactPreference: 'email',
     governorateSlug: '',
     governorateId: undefined,
@@ -92,7 +91,6 @@ const createFormDataForStep = (completedSteps: number[]): ListingFormData => {
   if (completedSteps.includes(4)) {
     baseData.contactName = 'John Doe';
     baseData.contactPhone = '+963123456789';
-    baseData.contactEmail = 'john@example.com';
     baseData.governorateSlug = 'damascus';
     baseData.governorateId = 1;
     baseData.locationSlug = 'old-damascus';
