@@ -62,10 +62,10 @@ public class I18nService {
         try {
             return messageSource.getMessage(key, args, key, locale);
         } catch (NoSuchMessageException e) {
-            log.warn("Message key '{}' not found for locale '{}', returning key as fallback", key, locale);
+            log.debug("i18n: Message key '{}' not found for locale '{}', using key as fallback", key, locale);
             return key;
         } catch (Exception e) {
-            log.error("Unexpected error loading message for key '{}' and locale '{}': {}", key, locale, e.getMessage());
+            log.error("i18n: Unexpected error loading message key='{}', locale='{}', error='{}'", key, locale, e.getMessage());
             return key;
         }
     }
