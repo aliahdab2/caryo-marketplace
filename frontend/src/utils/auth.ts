@@ -187,3 +187,52 @@ export function logout(): void {
   localStorage.removeItem('userRoles');
   localStorage.removeItem('username');
 }
+
+/**
+ * Enhanced logout utility that handles errors gracefully and prevents race conditions
+ */
+export const handleLogout = async (redirectTo: string = '/'): Promise<void> => {
+  try {
+    console.log('🚪 Starting logout process...');
+
+    // Import signOut dynamically to avoid circular dependencies
+    const { signOut } = await import('next-auth/react');
+
+    // Clear local storage and session cache before logout
+    if (typeof window !== 'undefined') {
+      // Clear custom session data
+      sessionStorage.removeItem('user-preferences');
+      localStorage.removeItem('auth-redirect');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userRoles');
+      localStorage.removeItem('username');
+
+      // Clear session cache
+      clearSessionCache();
+    }
+
+    // Sign out from NextAuth
+    await signOut({
+      redirect: false, // Don't redirect automatically to prevent race conditions
+      callbackUrl: redirectTo
+    });
+
+    console.log('✅ NextAuth signout completed');
+
+    // Add a small delay to ensure NextAuth cleanup is complete
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Manually redirect after cleanup
+    if (typeof window !== 'undefined') {
+      window.location.href = redirectTo;
+    }
+
+  } catch (error) {
+    console.error('❌ Logout error:', error);
+
+    // Fallback: force redirect even if logout failed
+    if (typeof window !== 'undefined') {
+      window.location.href = redirectTo;
+    }
+  }
+};

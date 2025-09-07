@@ -234,18 +234,20 @@ async function apiRequest<T>(
       // Import getSession dynamically to avoid SSR issues
       const { getSession } = await import('@/utils/auth');
       const session = await getSession();
-      
+
       console.log('🔍 [API Debug] Session:', session);
       console.log('🔍 [API Debug] AccessToken:', session?.accessToken);
-      
+
       if (session?.accessToken) {
         authHeaders.Authorization = `Bearer ${session.accessToken}`;
         console.log('🔍 [API Debug] Authorization header set:', authHeaders.Authorization.substring(0, 20) + '...');
       } else {
         console.warn('🔍 [API Debug] No access token found in session');
+        // Don't add Authorization header if no token is available
       }
     } catch (error) {
       console.warn('Failed to get session for API request:', error);
+      // Continue without auth headers if session retrieval fails (e.g., after logout)
     }
   }
   
