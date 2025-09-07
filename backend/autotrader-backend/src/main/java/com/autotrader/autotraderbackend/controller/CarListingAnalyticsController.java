@@ -1,7 +1,11 @@
 package com.autotrader.autotraderbackend.controller;
 
+import com.autotrader.autotraderbackend.model.BodyStyle;
+import com.autotrader.autotraderbackend.model.FuelType;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
+import com.autotrader.autotraderbackend.service.BodyStyleService;
 import com.autotrader.autotraderbackend.service.CarListingService;
+import com.autotrader.autotraderbackend.service.FuelTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,6 +23,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * REST controller for car listing analytics and counting endpoints.
@@ -32,6 +37,8 @@ import java.util.Map;
 public class CarListingAnalyticsController {
 
     private final CarListingService carListingService;
+    private final BodyStyleService bodyStyleService;
+    private final FuelTypeService fuelTypeService;
 
     @GetMapping("/count")
     @Operation(
@@ -143,7 +150,7 @@ public class CarListingAnalyticsController {
         if (bodyType != null && !bodyType.isEmpty()) {
             List<String> normalizedBodyTypes = bodyType.stream()
                 .map(String::toLowerCase)
-                .toList();
+                .collect(Collectors.toList());
             validateBodyTypeSlugs(normalizedBodyTypes);
             filterRequest.setBodyStyleSlugs(normalizedBodyTypes);
         }
@@ -439,32 +446,50 @@ public class CarListingAnalyticsController {
     }
 
     /**
-     * Validates body type slugs to ensure they match valid body types.
+     * Validates body type slugs to ensure they match valid body types from the database.
      */
     private void validateBodyTypeSlugs(List<String> bodyTypeSlugs) {
-        List<String> validBodyTypes = Arrays.asList("sedan", "suv", "hatchback", "coupe", "convertible",
-                                                    "wagon", "pickup", "van", "truck", "crossover", "roadster");
+        if (bodyTypeSlugs.size() > 10) {
+            throw new IllegalArgumentException("Too many body type filters (max 10)");
+        }
 
-        for (String slug : bodyTypeSlugs) {
-            if (!validBodyTypes.contains(slug.toLowerCase())) {
-                throw new IllegalArgumentException("Invalid body type slug: " + slug + ". Valid options are: " +
-                        String.join(", ", validBodyTypes));
-            }
+        // Get all valid body type slugs from the database
+        List<String> validSlugs = bodyStyleService.getAllBodyStyles().stream()
+            .map(BodyStyle::getName)
+            .collect(Collectors.toList());
+
+        // Find invalid slugs
+        List<String> invalidSlugs = bodyTypeSlugs.stream()
+            .filter(slug -> !validSlugs.contains(slug))
+            .collect(Collectors.toList());
+
+        if (!invalidSlugs.isEmpty()) {
+            throw new IllegalArgumentException("Invalid body type(s): " + String.join(", ", invalidSlugs) +
+                ". Valid options are: " + String.join(", ", validSlugs));
         }
     }
 
     /**
-     * Validates fuel type slugs to ensure they match valid fuel types.
+     * Validates fuel type slugs to ensure they match valid fuel types from the database.
      */
     private void validateFuelTypeSlugs(List<String> fuelTypeSlugs) {
-        List<String> validFuelTypes = Arrays.asList("gasoline", "diesel", "electric", "hybrid", "plug-in hybrid",
-                                                    "cng", "lpg", "hydrogen", "other");
+        if (fuelTypeSlugs.size() > 10) {
+            throw new IllegalArgumentException("Too many fuel type filters (max 10)");
+        }
 
-        for (String slug : fuelTypeSlugs) {
-            if (!validFuelTypes.contains(slug.toLowerCase())) {
-                throw new IllegalArgumentException("Invalid fuel type slug: " + slug + ". Valid options are: " +
-                        String.join(", ", validFuelTypes));
-            }
+        // Get all valid fuel type slugs from the database
+        List<String> validSlugs = fuelTypeService.getAllFuelTypes().stream()
+            .map(FuelType::getSlug)
+            .collect(Collectors.toList());
+
+        // Find invalid slugs
+        List<String> invalidSlugs = fuelTypeSlugs.stream()
+            .filter(slug -> !validSlugs.contains(slug))
+            .collect(Collectors.toList());
+
+        if (!invalidSlugs.isEmpty()) {
+            throw new IllegalArgumentException("Invalid fuel type(s): " + String.join(", ", invalidSlugs) +
+                ". Valid options are: " + String.join(", ", validSlugs));
         }
     }
 }

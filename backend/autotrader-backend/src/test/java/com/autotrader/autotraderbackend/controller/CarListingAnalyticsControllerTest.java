@@ -1,7 +1,11 @@
 package com.autotrader.autotraderbackend.controller;
 
+import com.autotrader.autotraderbackend.model.BodyStyle;
+import com.autotrader.autotraderbackend.model.FuelType;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
+import com.autotrader.autotraderbackend.service.BodyStyleService;
 import com.autotrader.autotraderbackend.service.CarListingService;
+import com.autotrader.autotraderbackend.service.FuelTypeService;
 import com.autotrader.autotraderbackend.service.I18nService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +37,12 @@ class CarListingAnalyticsControllerTest {
     private CarListingService carListingService;
 
     @Mock
+    private BodyStyleService bodyStyleService;
+
+    @Mock
+    private FuelTypeService fuelTypeService;
+
+    @Mock
     private I18nService i18nService;
 
     @InjectMocks
@@ -46,9 +56,29 @@ class CarListingAnalyticsControllerTest {
         filterRequest.setBrandSlugs(Arrays.asList("toyota", "honda"));
         filterRequest.setModelSlugs(Arrays.asList("camry", "civic"));
 
+        // Setup default service mocks
+        lenient().when(bodyStyleService.getAllBodyStyles()).thenReturn(Arrays.asList(
+            createBodyStyle("sedan"), createBodyStyle("suv"), createBodyStyle("hatchback")
+        ));
+        lenient().when(fuelTypeService.getAllFuelTypes()).thenReturn(Arrays.asList(
+            createFuelType("gasoline"), createFuelType("diesel"), createFuelType("electric")
+        ));
+
         // Setup default i18n mock behavior - make stubbings lenient to avoid unnecessary stubbing warnings
         lenient().when(i18nService.getMessage(anyString(), anyString())).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(i18nService.getMessage(anyString(), any(HttpServletRequest.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    }
+
+    private BodyStyle createBodyStyle(String name) {
+        BodyStyle bodyStyle = new BodyStyle();
+        bodyStyle.setName(name);
+        return bodyStyle;
+    }
+
+    private FuelType createFuelType(String slug) {
+        FuelType fuelType = new FuelType();
+        fuelType.setSlug(slug);
+        return fuelType;
     }
 
     @Test
