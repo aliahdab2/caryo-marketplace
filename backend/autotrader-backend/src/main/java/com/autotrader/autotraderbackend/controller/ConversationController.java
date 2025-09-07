@@ -7,7 +7,7 @@ import com.autotrader.autotraderbackend.payload.response.ApiResponse;
 import com.autotrader.autotraderbackend.payload.response.ConversationResponse;
 import com.autotrader.autotraderbackend.payload.response.MessageResponse;
 import com.autotrader.autotraderbackend.service.ConversationService;
-import org.springframework.context.MessageSource;
+import com.autotrader.autotraderbackend.service.I18nService;
 
 import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 import jakarta.validation.Valid;
@@ -23,7 +23,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Locale;
 import java.util.Map;
 
 
@@ -39,26 +38,7 @@ import java.util.Map;
 public class ConversationController {
 
     private final ConversationService conversationService;
-    private final MessageSource messageSource;
-
-    /**
-     * Get user's preferred locale from Accept-Language header or default to English
-     */
-    private Locale getUserLocale(String acceptLanguage) {
-        // Simple language detection - take first language code
-        String language = acceptLanguage.toLowerCase();
-        if (language.startsWith("ar")) {
-            return Locale.forLanguageTag("ar");
-        }
-        return Locale.ENGLISH; // Default to English
-    }
-    
-    /**
-     * Get localized message using Spring's MessageSource
-     */
-    private String getMessage(String key, Locale locale, Object... args) {
-        return messageSource.getMessage(key, args, key, locale);
-    }
+    private final I18nService i18nService;
 
     /**
      * Create a new conversation
@@ -73,10 +53,9 @@ public class ConversationController {
                 request.getListingId(), userDetails.getId());
 
         ConversationResponse response = conversationService.createConversation(request, userDetails.getId());
-        
-        Locale locale = getUserLocale(acceptLanguage);
-        String message = getMessage("conversation.created.success", locale);
-        
+
+        String message = i18nService.getMessage("conversation.created.success", acceptLanguage);
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, message));
     }
@@ -155,10 +134,9 @@ public class ConversationController {
         log.info("Sending message in conversation {} by user {}", id, userDetails.getId());
 
         MessageResponse response = conversationService.sendMessage(id, request, userDetails.getId());
-        
-        Locale locale = getUserLocale(acceptLanguage);
-        String message = getMessage("message.sent.success", locale);
-        
+
+        String message = i18nService.getMessage("message.sent.success", acceptLanguage);
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, message));
     }
@@ -176,8 +154,7 @@ public class ConversationController {
 
         conversationService.markMessageAsRead(messageId, userDetails.getId());
 
-        Locale locale = getUserLocale(acceptLanguage);
-        String message = getMessage("message.marked.read.success", locale);
+        String message = i18nService.getMessage("message.marked.read.success", acceptLanguage);
 
         return ResponseEntity.ok(ApiResponse.success(message));
     }
@@ -194,10 +171,9 @@ public class ConversationController {
         log.info("Marking all messages as read in conversation {} by user {}", id, userDetails.getId());
 
         conversationService.markAllMessagesAsRead(id, userDetails.getId());
-        
-        Locale locale = getUserLocale(acceptLanguage);
-        String message = getMessage("messages.marked.read.all.success", locale);
-        
+
+        String message = i18nService.getMessage("messages.marked.read.all.success", acceptLanguage);
+
         return ResponseEntity.ok(ApiResponse.success(message));
     }
 
@@ -213,10 +189,9 @@ public class ConversationController {
         log.info("Archiving conversation {} by user {}", id, userDetails.getId());
 
         conversationService.archiveConversation(id, userDetails.getId());
-        
-        Locale locale = getUserLocale(acceptLanguage);
-        String message = getMessage("conversation.archived.success", locale);
-        
+
+        String message = i18nService.getMessage("conversation.archived.success", acceptLanguage);
+
         return ResponseEntity.ok(ApiResponse.success(message));
     }
 
@@ -233,10 +208,9 @@ public class ConversationController {
         log.info("Updating conversation {} status to {} by user {}", id, status, userDetails.getId());
 
         conversationService.updateConversationStatus(id, status, userDetails.getId());
-        
-        Locale locale = getUserLocale(acceptLanguage);
-        String message = getMessage("conversation.status.updated.success", locale);
-        
+
+        String message = i18nService.getMessage("conversation.status.updated.success", acceptLanguage);
+
         return ResponseEntity.ok(ApiResponse.success(message));
     }
 
@@ -253,10 +227,9 @@ public class ConversationController {
         log.info("Uploading attachment for conversation {} by user {}", id, userDetails.getId());
 
         Map<String, Object> result = conversationService.uploadMessageAttachment(id, file, userDetails.getId());
-        
-        Locale locale = getUserLocale(acceptLanguage);
-        String message = getMessage("message.attachment.uploaded.success", locale);
-        
+
+        String message = i18nService.getMessage("message.attachment.uploaded.success", acceptLanguage);
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(result, message));
     }
@@ -275,26 +248,23 @@ public class ConversationController {
 
         log.info("Sending message with attachments in conversation {} by user {}", id, userDetails.getId());
 
-        // Get user locale for error messages
-        Locale locale = getUserLocale(acceptLanguage);
-        
         // Validate that either content or files are provided
         if ((content == null || content.trim().isEmpty()) && (files == null || files.length == 0)) {
-            String errorMessage = getMessage("error.message.content.required", locale);
+            String errorMessage = i18nService.getMessage("error.message.content.required", acceptLanguage);
             throw new BadRequestException(errorMessage);
         }
-        
+
         // Validate content length if provided
         if (content != null && content.length() > 1000) {
-            String errorMessage = getMessage("error.message.content.too.long", locale);
+            String errorMessage = i18nService.getMessage("error.message.content.too.long", acceptLanguage);
             throw new BadRequestException(errorMessage);
         }
 
         MessageResponse response = conversationService.sendMessageWithAttachments(
             id, content, messageType, files, userDetails.getId());
-        
-        String message = getMessage("message.sent.success", locale);
-        
+
+        String message = i18nService.getMessage("message.sent.success", acceptLanguage);
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, message));
     }

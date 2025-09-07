@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.controller;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.service.CarListingService;
+import com.autotrader.autotraderbackend.service.I18nService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -20,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 @RestController
@@ -30,6 +32,7 @@ import java.util.Map;
 public class CarListingImageController {
 
     private final CarListingService carListingService;
+    private final I18nService i18nService;
 
     @PostMapping("/{listingId}/upload-image")
     @PreAuthorize("isAuthenticated()")
@@ -58,35 +61,44 @@ public class CarListingImageController {
                 schema = @Schema(type = "string", format = "binary")
             )
             @RequestParam("file") MultipartFile file,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletRequest request) {
         log.info("Received request to upload image for listing ID: {}", listingId);
+
         // UserDetails null check might be redundant due to @PreAuthorize, but good practice
         if (userDetails == null) {
             log.warn("Unauthorized attempt to upload image for listing ID: {} (UserDetails is null)", listingId);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "User must be logged in to upload images."));
+            String errorMessage = i18nService.getMessage("error.image.upload.unauthorized", request);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", errorMessage));
         }
         if (file.isEmpty()) {
             log.warn("Upload request for listing ID {} received empty file.", listingId);
-            return ResponseEntity.badRequest().body(Map.of("message", "Error: File cannot be empty!"));
+            String errorMessage = i18nService.getMessage("error.image.upload.empty", request);
+            return ResponseEntity.badRequest().body(Map.of("message", errorMessage));
         }
         try {
             // Corrected argument order: listingId, file, username
             String imageKey = carListingService.uploadListingImage(listingId, file, userDetails.getUsername());
             log.info("Successfully processed image upload for listing ID: {}. Image Key: {}", listingId, imageKey);
             // Return the key or a message. Generating signed URL here might be premature.
-            return ResponseEntity.ok(Map.of("message", "File uploaded successfully", "imageKey", imageKey));
+            String successMessage = i18nService.getMessage("error.image.upload.success", request);
+            return ResponseEntity.ok(Map.of("message", successMessage, "imageKey", imageKey));
         } catch (StorageException e) {
             log.error("Storage exception during image upload for listing ID: {}", listingId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Failed to upload file: " + e.getMessage()));
+            String errorMessage = i18nService.getMessage("error.image.upload.failed", request, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", errorMessage));
         } catch (ResourceNotFoundException e) {
             log.warn("Resource not found during image upload attempt for listing ID: {}", listingId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+            String errorMessage = i18nService.getMessage("error.listing.not.found", request);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", errorMessage));
         } catch (AccessDeniedException | SecurityException e) { // Catch SecurityException from service too
              log.warn("Access denied during image upload attempt for listing ID: {} by user: {}", listingId, userDetails.getUsername());
-             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
+             String errorMessage = i18nService.getMessage("error.unauthorized.access", request);
+             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", errorMessage));
         } catch (Exception e) { // Catch any other unexpected errors
             log.error("Error uploading image for listing ID {}: {}", listingId, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Error: Could not upload the file: " + e.getMessage()));
+            String errorMessage = i18nService.getMessage("error.image.upload.generic", request, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", errorMessage));
         }
     }
 }
