@@ -1,6 +1,6 @@
 package com.autotrader.autotraderbackend.controller;
 
-import com.autotrader.autotraderbackend.payload.ContactFormRequest;
+import com.autotrader.autotraderbackend.payload.request.ContactFormRequest;
 import com.autotrader.autotraderbackend.service.EmailService;
 import com.autotrader.autotraderbackend.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

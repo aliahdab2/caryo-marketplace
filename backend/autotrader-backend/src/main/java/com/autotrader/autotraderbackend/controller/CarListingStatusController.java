@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.controller;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.service.CarListingStatusService;
+import com.autotrader.autotraderbackend.service.I18nService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,6 +20,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.Map;
 
 /**
@@ -33,6 +36,27 @@ import java.util.Map;
 public class CarListingStatusController {
 
     private final CarListingStatusService carListingStatusService;
+    private final I18nService i18nService;
+
+    /**
+     * Validates that the user is authenticated and returns username.
+     * Returns null if user is not authenticated (caller should return 401).
+     */
+    private String validateAndGetUsername(UserDetails userDetails) {
+        if (userDetails == null) {
+            return null;
+        }
+        return userDetails.getUsername();
+    }
+
+    /**
+     * Creates an unauthorized response for unauthenticated users.
+     */
+    private ResponseEntity<Map<String, String>> createUnauthorizedResponse(HttpServletRequest request) {
+        String errorMessage = i18nService.getMessage("error.unauthorized.access", request);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", errorMessage));
+    }
 
     @PutMapping("/{id}/pause")
     @PreAuthorize("isAuthenticated()")
@@ -50,11 +74,12 @@ public class CarListingStatusController {
     )
     public ResponseEntity<?> pauseListing(
             @Parameter(description = "ID of the listing to pause", required = true) @PathVariable("id") Long id,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "User must be authenticated"));
+            @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletRequest request) {
+        String username = validateAndGetUsername(userDetails);
+        if (username == null) {
+            return createUnauthorizedResponse(request);
         }
-        String username = userDetails.getUsername();
         try {
             log.info("User {} attempting to pause listing ID {}", username, id);
             CarListingResponse response = carListingStatusService.pauseListing(id, username);
@@ -88,11 +113,12 @@ public class CarListingStatusController {
     )
     public ResponseEntity<?> resumeListing(
             @Parameter(description = "ID of the listing to resume", required = true) @PathVariable("id") Long id,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "User must be authenticated"));
+            @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletRequest request) {
+        String username = validateAndGetUsername(userDetails);
+        if (username == null) {
+            return createUnauthorizedResponse(request);
         }
-        String username = userDetails.getUsername();
         try {
             log.info("User {} attempting to resume listing ID {}", username, id);
             CarListingResponse response = carListingStatusService.resumeListing(id, username);
