@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { ChevronRight, ChevronLeft, Play } from 'lucide-react';
-import { transformMinioUrl, getDefaultImageUrl, processVideoForGallery } from '@/utils/mediaUtils';
+import { transformMinioUrl, getDefaultImageUrl, processVideoForGallery, isVideoMedia } from '@/utils/mediaUtils';
 import { useLanguageDirection } from '@/utils/languageDirection';
 import type { HoverImageNavigationProps } from '@/types/media';
 
@@ -41,9 +41,7 @@ const HoverImageNavigation: React.FC<HoverImageNavigationProps> = ({
     return media
       .filter(item => item && item.url && typeof item.url === 'string')
       .map(item => {
-        const isVideo = item.isVideo ||
-                       item.type === 'video' ||
-                       item.contentType?.toLowerCase().includes('video');
+        const isVideo = isVideoMedia(item);
 
         // Generate thumbnail URL for videos
         let displayUrl = item.url;
@@ -193,10 +191,13 @@ const HoverImageNavigation: React.FC<HoverImageNavigationProps> = ({
         )}
 
         {/* Click anywhere except close button area to close */}
-        <div
+        <button
           onClick={handleVideoClose}
-          className="absolute top-0 left-0 right-10 bottom-0 cursor-pointer"
+          className="absolute top-0 left-0 right-10 bottom-0 cursor-pointer bg-transparent border-none p-0 m-0"
           title="Click to close video"
+          aria-label="Close video"
+          type="button"
+          tabIndex={0}
         />
       </div>
     );

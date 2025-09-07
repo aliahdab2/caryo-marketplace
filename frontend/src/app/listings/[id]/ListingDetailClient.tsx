@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDate, formatNumber } from '../../../utils/localization';
 import { CarListing } from '@/services/publicApi';
-import { transformMinioUrl, processVideoForGallery } from '@/utils/mediaUtils';
+import { transformMinioUrl, processVideoForGallery, isVideoMedia } from '@/utils/mediaUtils';
 import FavoriteButton from '@/components/common/FavoriteButton';
 import { useOptimizedUser } from '@/hooks/useOptimizedSession';
 
@@ -33,9 +33,8 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
   // Convert listing media to CarMedia format using useMemo for performance
   const convertedMedia = useMemo(() => {
     const media: CarMedia[] = listing.media?.map(item => {
-      // Determine if this is a video based on type or URL
-              const isVideo = item.type?.toLowerCase().includes('video') || 
-                       processVideoForGallery(item.url).isYouTube;
+      // Determine if this is a video using shared utility
+      const isVideo = isVideoMedia(item);
 
       // For videos, process with enhanced utility
       let thumbnailUrl: string | undefined = undefined;

@@ -9,6 +9,7 @@ import CarListingListItem from '@/components/search/CarListingListItem';
 import { CarListingCardData } from '@/components/listings/CarListingCard';
 import HoverImageNavigation from '@/components/ui/HoverImageNavigation';
 import YearBadge from '@/components/ui/YearBadge';
+import { isVideoMedia } from '@/utils/mediaUtils';
 
 interface HomeCarListingsProps {
   latestCars: CarListing[];
@@ -26,18 +27,7 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [playingVideoIndex, setPlayingVideoIndex] = useState<number | null>(null);
 
-  // Helper function to check if media item is a video
-  const isVideoMedia = (mediaItem: { url: string; type: string }): boolean => {
-    if (mediaItem.type?.toLowerCase().includes('video')) return true;
-    
-    // Check if it's a YouTube URL
-    try {
-      const urlObj = new URL(mediaItem.url);
-      return urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be');
-    } catch {
-      return false;
-    }
-  };
+  // Video detection handled by shared utility function
 
 
   const containerClassName = viewMode === 'grid'

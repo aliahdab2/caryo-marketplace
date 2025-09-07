@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import { MdViewModule, MdViewList } from 'react-icons/md';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useLanguageDirection } from '@/utils/languageDirection';
+import { getMediaType } from '@/utils/mediaUtils';
 import { useAnnouncements } from '@/hooks/useAccessibility';
 import SmoothTransition from '@/components/ui/SmoothTransition';
 import CarListingCard from '@/components/listings/CarListingCard';
@@ -217,7 +218,7 @@ const SearchResults = React.memo<SearchResultsProps>(({
                     url: m.url,
                     isPrimary: m.isPrimary,
                     contentType: m.contentType,
-                    type: m.mediaType || (m.contentType?.toLowerCase().includes('video') ? 'video' : 'image')
+                    type: getMediaType(m)
                   }))
                 }}
                 onFavoriteToggle={(isFavorite) => {

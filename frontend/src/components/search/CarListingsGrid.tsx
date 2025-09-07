@@ -8,6 +8,7 @@ import CarListingListItem from '@/components/search/CarListingListItem';
 import CarListingSkeleton from '@/components/ui/CarListingSkeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import { PageResponse, CarListing } from '@/services/api';
+import { getMediaType } from '@/utils/mediaUtils';
 
 export type ViewMode = 'grid' | 'list';
 
@@ -109,7 +110,7 @@ const CarListingsGrid: React.FC<CarListingsGridProps> = ({
               url: m.url,
               isPrimary: m.isPrimary,
               contentType: m.contentType,
-              type: m.mediaType || (m.contentType?.toLowerCase().includes('video') ? 'video' : 'image')
+              type: getMediaType(m)
             }))
           };
 

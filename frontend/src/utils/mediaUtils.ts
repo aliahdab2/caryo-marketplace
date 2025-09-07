@@ -114,3 +114,61 @@ export function normalizeVideoUrls(urls: Array<VideoUrlInput | string>): VideoUr
   };
   return url ? [normalized] : [];
 }
+
+/**
+ * Media item interface for type safety
+ */
+interface MediaItem {
+  url?: string;
+  type?: string;
+  contentType?: string;
+  mediaType?: string;
+  isVideo?: boolean;
+}
+
+/**
+ * Comprehensive utility function to detect if a media item is a video
+ * Handles multiple media item formats and detection patterns
+ * @param item - Media item to check
+ * @returns boolean indicating if the item is a video
+ */
+export function isVideoMedia(item: MediaItem): boolean {
+  if (!item) return false;
+
+  // Direct isVideo flag (highest priority)
+  if (item.isVideo === true) return true;
+
+  // Type-based detection
+  if (item.type) {
+    const type = item.type.toString().toLowerCase();
+    if (type === 'video' || type.includes('video')) return true;
+  }
+
+  // Content type detection
+  if (item.contentType) {
+    const contentType = item.contentType.toString().toLowerCase();
+    if (contentType.includes('video')) return true;
+  }
+
+  // Media type detection
+  if (item.mediaType) {
+    const mediaType = item.mediaType.toString().toLowerCase();
+    if (mediaType === 'video' || mediaType.includes('video')) return true;
+  }
+
+  // URL-based detection for YouTube
+  if (item.url && typeof item.url === 'string') {
+    if (isYouTubeUrl(item.url)) return true;
+  }
+
+  return false;
+}
+
+/**
+ * Determines the media type ('image' or 'video') for a media item
+ * @param item - Media item to check
+ * @returns 'image' or 'video'
+ */
+export function getMediaType(item: MediaItem): 'image' | 'video' {
+  return isVideoMedia(item) ? 'video' : 'image';
+}
