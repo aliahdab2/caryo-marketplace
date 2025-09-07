@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/reference-data")
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Car Reference Data", description = "Combined endpoint for all car-related reference data")
