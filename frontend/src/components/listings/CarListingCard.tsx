@@ -156,12 +156,13 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
 
       <Link href={`/listings/${listing.id}`} className="flex flex-col h-full group">
         {/* Image with Hover Navigation */}
-        <div className="relative h-48 w-full overflow-hidden">
+        <div className="relative h-52 w-full overflow-hidden">
           <HoverImageNavigation
             media={listing.media}
             alt={listing.title}
             className="w-full h-full"
-            sizes="(max-width: 768px) 100vw, 33vw"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            priority={false}
             onImageError={(e) => {
               e.currentTarget.src = getDefaultImageUrl();
             }}

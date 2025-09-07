@@ -24,6 +24,7 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
   isRTL = false
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [playingVideoIndex, setPlayingVideoIndex] = useState<number | null>(null);
 
   // Helper function to check if media item is a video
   const isVideoMedia = (mediaItem: { url: string; type: string }): boolean => {
@@ -68,7 +69,7 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
               key={index}
               className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden animate-pulse"
             >
-              <div className="h-48 bg-gray-300 dark:bg-gray-600"></div>
+              <div className="h-52 bg-gray-300 dark:bg-gray-600"></div>
               <div className="p-5">
                 <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded mb-2"></div>
                 <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded mb-4"></div>
@@ -82,7 +83,7 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
             </div>
           ))
         ) : latestCars.length > 0 ? (
-          latestCars.map((car) => {
+          latestCars.map((car, index) => {
             if (viewMode === 'list') {
               // Transform to CarListingCardData for list view
               const cardData: CarListingCardData = {
@@ -126,7 +127,7 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                 href={`/listings/${car.id}`}
                 className="block bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 ease-in-out group cursor-pointer"
               >
-                <div className="relative h-48">
+                <div className="relative h-52">
                   <HoverImageNavigation
                     media={car.media?.map(m => ({
                       url: m.url,
@@ -136,19 +137,25 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                     }))}
                     alt={car.title}
                     className="w-full h-full"
-                    sizes="(max-width: 768px) 100vw, 33vw"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    priority={index < 3} // Prioritize loading for first 3 cars
                     onImageError={(e) => {
                       e.currentTarget.src = "/images/logo.png";
                     }}
+                    onVideoPlayingChange={(isPlaying) => {
+                      setPlayingVideoIndex(isPlaying ? index : null);
+                    }}
                   />
 
-                  {/* Year Badge */}
-                  <YearBadge
-                    year={car.modelYear}
-                    size="md"
-                    position="bottom-left"
-                    zIndex={30}
-                  />
+                  {/* Year Badge - Hidden when video is playing */}
+                  {playingVideoIndex !== index && (
+                    <YearBadge
+                      year={car.modelYear}
+                      size="md"
+                      position="bottom-left"
+                      zIndex={30}
+                    />
+                  )}
                 </div>
                 <div className="p-5">
                   <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
