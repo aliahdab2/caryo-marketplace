@@ -1,25 +1,33 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import HoverImageNavigation from '../HoverImageNavigation';
 
-// Mock the mediaUtils functions
-jest.mock('../../../utils/mediaUtils', () => ({
-  isVideoMedia: jest.fn(),
-  transformMinioUrl: jest.fn((url) => url),
-  getDefaultImageUrl: jest.fn(() => '/default-image.svg'),
-  processVideoForGallery: jest.fn(() => ({
-    embedUrl: 'https://www.youtube.com/embed/test',
-    thumbnailUrl: 'https://img.youtube.com/vi/test/maxresdefault.jpg',
-    isYouTube: true,
-    videoId: 'test'
-  }))
-}));
+import { isVideoMedia, transformMinioUrl, getDefaultImageUrl, processVideoForGallery } from '../../../utils/mediaUtils';
+import { useSession } from 'next-auth/react';
+import { ChevronRight as _ChevronRight, ChevronLeft as _ChevronLeft, Play as _Play, Pause as _Pause } from 'lucide-react';
 
-// Mock next-auth
-jest.mock('next-auth/react', () => ({
-  useSession: jest.fn(() => ({ data: null, status: 'unauthenticated' }))
-}));
+// Mock the mediaUtils functions
+jest.mock('../../../utils/mediaUtils');
+jest.mock('next-auth/react');
+jest.mock('lucide-react');
+
+const mockIsVideoMedia = jest.mocked(isVideoMedia);
+const mockTransformMinioUrl = jest.mocked(transformMinioUrl);
+const mockGetDefaultImageUrl = jest.mocked(getDefaultImageUrl);
+const mockProcessVideoForGallery = jest.mocked(processVideoForGallery);
+const mockUseSession = jest.mocked(useSession);
+
+// Set up default mock implementations
+mockTransformMinioUrl.mockImplementation((url) => url);
+mockGetDefaultImageUrl.mockReturnValue('/default-image.svg');
+mockProcessVideoForGallery.mockReturnValue({
+  embedUrl: 'https://www.youtube.com/embed/test',
+  thumbnailUrl: 'https://img.youtube.com/vi/test/maxresdefault.jpg',
+  isYouTube: true,
+  videoId: 'test'
+});
+mockUseSession.mockReturnValue({ data: null, status: 'unauthenticated' });
 
 // Mock lucide-react icons
 jest.mock('lucide-react', () => ({
@@ -61,8 +69,7 @@ describe('HoverImageNavigation Accessibility', () => {
 
   describe('Video Close Button Accessibility', () => {
     it('should have proper ARIA attributes', () => {
-      const { isVideoMedia } = require('../../../utils/mediaUtils');
-      isVideoMedia.mockReturnValue(true);
+      mockIsVideoMedia.mockReturnValue(true);
 
       render(<HoverImageNavigation {...defaultProps} />);
 
@@ -81,8 +88,7 @@ describe('HoverImageNavigation Accessibility', () => {
     });
 
     it('should be keyboard accessible', () => {
-      const { isVideoMedia } = require('../../../utils/mediaUtils');
-      isVideoMedia.mockReturnValue(true);
+      mockIsVideoMedia.mockReturnValue(true);
 
       render(<HoverImageNavigation {...defaultProps} />);
 
@@ -99,8 +105,7 @@ describe('HoverImageNavigation Accessibility', () => {
     });
 
     it('should provide visual feedback on focus', () => {
-      const { isVideoMedia } = require('../../../utils/mediaUtils');
-      isVideoMedia.mockReturnValue(true);
+      mockIsVideoMedia.mockReturnValue(true);
 
       render(<HoverImageNavigation {...defaultProps} />);
 
@@ -119,8 +124,7 @@ describe('HoverImageNavigation Accessibility', () => {
     });
 
     it('should be visually distinguishable', () => {
-      const { isVideoMedia } = require('../../../utils/mediaUtils');
-      isVideoMedia.mockReturnValue(true);
+      mockIsVideoMedia.mockReturnValue(true);
 
       render(<HoverImageNavigation {...defaultProps} />);
 
@@ -142,8 +146,7 @@ describe('HoverImageNavigation Accessibility', () => {
 
   describe('Video Play Button Accessibility', () => {
     it('should have descriptive aria-label', () => {
-      const { isVideoMedia } = require('../../../utils/mediaUtils');
-      isVideoMedia.mockReturnValue(true);
+      mockIsVideoMedia.mockReturnValue(true);
 
       render(<HoverImageNavigation {...defaultProps} />);
 
@@ -152,8 +155,7 @@ describe('HoverImageNavigation Accessibility', () => {
     });
 
     it('should provide visual feedback', () => {
-      const { isVideoMedia } = require('../../../utils/mediaUtils');
-      isVideoMedia.mockReturnValue(true);
+      mockIsVideoMedia.mockReturnValue(true);
 
       render(<HoverImageNavigation {...defaultProps} />);
 
@@ -178,8 +180,7 @@ describe('HoverImageNavigation Accessibility', () => {
 
   describe('Screen Reader Support', () => {
     it('should provide clear instructions', () => {
-      const { isVideoMedia } = require('../../../utils/mediaUtils');
-      isVideoMedia.mockReturnValue(true);
+      mockIsVideoMedia.mockReturnValue(true);
 
       render(<HoverImageNavigation {...defaultProps} />);
 
@@ -193,8 +194,7 @@ describe('HoverImageNavigation Accessibility', () => {
     });
 
     it('should have descriptive titles', () => {
-      const { isVideoMedia } = require('../../../utils/mediaUtils');
-      isVideoMedia.mockReturnValue(true);
+      mockIsVideoMedia.mockReturnValue(true);
 
       render(<HoverImageNavigation {...defaultProps} />);
 
@@ -215,8 +215,7 @@ describe('HoverImageNavigation Accessibility', () => {
   describe('Video State Management', () => {
     it('should call onVideoPlayingChange when video state changes', () => {
       const mockOnVideoPlayingChange = jest.fn();
-      const { isVideoMedia } = require('../../../utils/mediaUtils');
-      isVideoMedia.mockReturnValue(true);
+      mockIsVideoMedia.mockReturnValue(true);
 
       render(
         <HoverImageNavigation
@@ -234,8 +233,7 @@ describe('HoverImageNavigation Accessibility', () => {
 
     it('should handle video close properly', () => {
       const mockOnVideoPlayingChange = jest.fn();
-      const { isVideoMedia } = require('../../../utils/mediaUtils');
-      isVideoMedia.mockReturnValue(true);
+      mockIsVideoMedia.mockReturnValue(true);
 
       render(
         <HoverImageNavigation

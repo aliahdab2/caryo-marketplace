@@ -4,20 +4,21 @@ jest.mock('next-auth/react', () => ({
 }));
 
 import { handleLogout, clearSessionCache } from '../auth';
+import { signOut } from 'next-auth/react';
 
 describe('handleLogout', () => {
-  let mockSignOut: jest.MockedFunction<any>;
-  let mockClearSessionCache: jest.MockedFunction<any>;
+  let mockSignOut: jest.MockedFunction<() => Promise<void>>;
+  let mockClearSessionCache: jest.MockedFunction<() => void>;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     // Spy on the actual clearSessionCache function
-    mockClearSessionCache = jest.fn(clearSessionCache);
-    jest.spyOn(require('../auth'), 'clearSessionCache').mockImplementation(mockClearSessionCache);
+    mockClearSessionCache = jest.fn();
+    jest.spyOn({ clearSessionCache }, 'clearSessionCache').mockImplementation(mockClearSessionCache);
 
     // Set up mocks
-    mockSignOut = require('next-auth/react').signOut;
+    mockSignOut = jest.mocked(signOut);
 
     // Mock window.location.href
     const mockLocation = {
