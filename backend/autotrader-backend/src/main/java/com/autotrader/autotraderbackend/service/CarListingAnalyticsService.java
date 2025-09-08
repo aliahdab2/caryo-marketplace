@@ -610,20 +610,23 @@ public class CarListingAnalyticsService {
     }
 
     /**
-     * Build base specification for filtering listings.
-     * This is a simplified version - you may need to expand this based on your filtering requirements.
+     * Build base specification for filtering listings using the comprehensive filtering logic
+     * from CarListingSpecification. This ensures consistency with the main query service.
      */
     private Specification<CarListing> buildBaseSpecification(ListingFilterRequest filterRequest, boolean includeDefaults) {
-        Specification<CarListing> spec = Specification.where(CarListingSpecification.isApproved());
+        // Use the comprehensive filtering logic from CarListingSpecification
+        Specification<CarListing> spec = CarListingSpecification.fromFilter(
+                filterRequest != null ? filterRequest : new ListingFilterRequest(),
+                Collections.emptyList()); // No location filtering for analytics
+
+        // Always include approved status for analytics
+        spec = spec.and(CarListingSpecification.isApproved());
 
         if (includeDefaults) {
             spec = spec.and(CarListingSpecification.isNotSold())
                       .and(CarListingSpecification.isNotArchived())
                       .and(CarListingSpecification.isUserActive());
         }
-
-        // Add other filters as needed based on your ListingFilterRequest
-        // This is a basic implementation - you may need to expand this
 
         return spec;
     }

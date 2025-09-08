@@ -19,7 +19,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import com.autotrader.autotraderbackend.model.CarListing;
 
 import java.math.BigDecimal;
 import java.util.Collections;
