@@ -75,6 +75,12 @@ class CarListingContactFieldsServiceTest {
     @Mock
     private SavedSearchService savedSearchService;
 
+    @Mock
+    private CarListingCrudService crudService;
+
+    @Mock
+    private CarListingMediaService carListingMediaService;
+
     @InjectMocks
     private CarListingService carListingService;
 
@@ -167,14 +173,10 @@ class CarListingContactFieldsServiceTest {
             expectedResponse.setContactPreference("both");
 
             // Mock dependencies
-            when(userRepository.findByUsername("dealeruser")).thenReturn(Optional.of(testUser));
-            when(carModelService.getModelById(1L)).thenReturn(testModel);
-            when(locationRepository.findById(1L)).thenReturn(Optional.of(testLocation));
-            when(carListingRepository.save(any(CarListing.class))).thenReturn(expectedListing);
-            when(carListingMapper.toCarListingResponse(any(CarListing.class))).thenReturn(expectedResponse);
+            when(crudService.createListingInternal(request, "dealeruser")).thenReturn(expectedResponse);
 
             // Act
-            CarListingResponse result = carListingService.createListing(request, null, "dealeruser");
+            CarListingResponse result = carListingService.createListing(request, "dealeruser");
 
             // Assert
             assertNotNull(result);
@@ -183,8 +185,8 @@ class CarListingContactFieldsServiceTest {
             assertEquals("+966501111111", result.getContactPhone());
             assertEquals("both", result.getContactPreference());
 
-            // Verify that the listing was saved with contact fields
-            verify(carListingRepository).save(any(CarListing.class));
+            // Verify that the crudService was called
+            verify(crudService).createListingInternal(request, "dealeruser");
         }
 
         @Test
@@ -214,14 +216,10 @@ class CarListingContactFieldsServiceTest {
             expectedResponse.setContactPreference("email"); // Default preference
 
             // Mock dependencies
-            when(userRepository.findByUsername("dealeruser")).thenReturn(Optional.of(testUser));
-            when(carModelService.getModelById(1L)).thenReturn(testModel);
-            when(locationRepository.findById(1L)).thenReturn(Optional.of(testLocation));
-            when(carListingRepository.save(any(CarListing.class))).thenReturn(expectedListing);
-            when(carListingMapper.toCarListingResponse(any(CarListing.class))).thenReturn(expectedResponse);
+            when(crudService.createListingInternal(request, "dealeruser")).thenReturn(expectedResponse);
 
             // Act
-            CarListingResponse result = carListingService.createListing(request, null, "dealeruser");
+            CarListingResponse result = carListingService.createListing(request, "dealeruser");
 
             // Assert
             assertNotNull(result);
@@ -230,8 +228,8 @@ class CarListingContactFieldsServiceTest {
             assertNull(result.getContactPhone()); // No fallback
             assertEquals("email", result.getContactPreference()); // Default
 
-            // Verify that the listing was saved
-            verify(carListingRepository).save(any(CarListing.class));
+            // Verify that the crudService was called
+            verify(crudService).createListingInternal(request, "dealeruser");
         }
     }
 
@@ -269,10 +267,7 @@ class CarListingContactFieldsServiceTest {
             expectedResponse.setContactPreference("phone");
 
             // Mock dependencies
-            when(carListingRepository.findById(1L)).thenReturn(Optional.of(testListing));
-            when(userRepository.findByUsername("dealeruser")).thenReturn(Optional.of(testUser));
-            when(carListingRepository.save(any(CarListing.class))).thenReturn(updatedListing);
-            when(carListingMapper.toCarListingResponse(any(CarListing.class))).thenReturn(expectedResponse);
+            when(crudService.updateListing(1L, request, "dealeruser")).thenReturn(expectedResponse);
 
             // Act
             CarListingResponse result = carListingService.updateListing(1L, request, "dealeruser");
@@ -284,8 +279,8 @@ class CarListingContactFieldsServiceTest {
             assertEquals("+966502222222", result.getContactPhone());
             assertEquals("phone", result.getContactPreference());
 
-            // Verify the update was called
-            verify(carListingRepository).save(any(CarListing.class));
+            // Verify the crudService was called
+            verify(crudService).updateListing(1L, request, "dealeruser");
         }
 
         @Test
@@ -316,10 +311,7 @@ class CarListingContactFieldsServiceTest {
             expectedResponse.setContactPreference("email"); // Fallback
 
             // Mock dependencies
-            when(carListingRepository.findById(1L)).thenReturn(Optional.of(testListing));
-            when(userRepository.findByUsername("dealeruser")).thenReturn(Optional.of(testUser));
-            when(carListingRepository.save(any(CarListing.class))).thenReturn(updatedListing);
-            when(carListingMapper.toCarListingResponse(any(CarListing.class))).thenReturn(expectedResponse);
+            when(crudService.updateListing(1L, request, "dealeruser")).thenReturn(expectedResponse);
 
             // Act
             CarListingResponse result = carListingService.updateListing(1L, request, "dealeruser");
@@ -331,8 +323,8 @@ class CarListingContactFieldsServiceTest {
             assertNull(result.getContactPhone()); // No fallback
             assertEquals("email", result.getContactPreference()); // Fallback
 
-            // Verify the fields were cleared
-            verify(carListingRepository).save(any(CarListing.class));
+            // Verify the crudService was called
+            verify(crudService).updateListing(1L, request, "dealeruser");
         }
     }
 
@@ -370,10 +362,7 @@ class CarListingContactFieldsServiceTest {
             expectedResponse.setContactPreference("phone");
 
             // Mock dependencies
-            when(carListingRepository.findById(1L)).thenReturn(Optional.of(testListing));
-            when(userRepository.findByUsername("dealeruser")).thenReturn(Optional.of(testUser));
-            when(carListingRepository.save(any(CarListing.class))).thenReturn(updatedListing);
-            when(carListingMapper.toCarListingResponse(any(CarListing.class))).thenReturn(expectedResponse);
+            when(crudService.updateListing(1L, request, "dealeruser")).thenReturn(expectedResponse);
 
             // Act
             CarListingResponse result = carListingService.updateListing(1L, request, "dealeruser");

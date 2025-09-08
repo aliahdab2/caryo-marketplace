@@ -65,7 +65,7 @@ public class CarListingCreationController {
                     .body(Map.of("message", "Email verification required to create listings. Please check your email and verify your account."));
         }
 
-        CarListingResponse response = carListingService.createListing(createRequest, null, userDetails.getUsername());
+        CarListingResponse response = carListingService.createListing(createRequest, userDetails.getUsername());
         log.info("Successfully created listing with ID: {}", response.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -108,7 +108,7 @@ public class CarListingCreationController {
             log.warn("Create listing with image request received empty file.");
             return ResponseEntity.badRequest().body(Map.of("message", "Image file is required and cannot be empty."));
         }
-        CarListingResponse response = carListingService.createListing(createRequest, image, userDetails.getUsername());
+        CarListingResponse response = carListingService.createListingWithMedia(createRequest, image, userDetails.getUsername());
         log.info("Successfully created listing with ID: {} and image", response.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

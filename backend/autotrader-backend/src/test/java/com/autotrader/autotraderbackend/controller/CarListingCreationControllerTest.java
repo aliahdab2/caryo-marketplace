@@ -63,7 +63,7 @@ class CarListingCreationControllerTest {
         UserDetails userDetails = createMockUserDetails();
 
         when(carListingService.canUserCreateListings("testuser")).thenReturn(true);
-        when(carListingService.createListing(any(CreateListingRequest.class), isNull(), eq("testuser")))
+        when(carListingService.createListing(any(CreateListingRequest.class), eq("testuser")))
                 .thenReturn(expectedResponse);
 
         // When
@@ -75,10 +75,11 @@ class CarListingCreationControllerTest {
         assertEquals(expectedResponse, response.getBody());
 
         verify(carListingService).canUserCreateListings("testuser");
-        verify(carListingService).createListing(any(CreateListingRequest.class), isNull(), eq("testuser"));
+        verify(carListingService).createListing(any(CreateListingRequest.class), eq("testuser"));
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     void createListing_ShouldReturnForbidden_WhenUserNotVerified() {
         // Given
         CreateListingRequest request = createValidCreateListingRequest();
@@ -107,7 +108,7 @@ class CarListingCreationControllerTest {
         MockMultipartFile imageFile = new MockMultipartFile("image", "test.jpg", "image/jpeg", "test image content".getBytes());
 
         when(carListingService.canUserCreateListings("testuser")).thenReturn(true);
-        when(carListingService.createListing(any(CreateListingRequest.class), any(), eq("testuser")))
+        when(carListingService.createListingWithMedia(any(CreateListingRequest.class), any(), eq("testuser")))
                 .thenReturn(expectedResponse);
 
         // When
@@ -119,7 +120,7 @@ class CarListingCreationControllerTest {
         assertEquals(expectedResponse, response.getBody());
 
         verify(carListingService).canUserCreateListings("testuser");
-        verify(carListingService).createListing(any(CreateListingRequest.class), any(), eq("testuser"));
+        verify(carListingService).createListingWithMedia(any(CreateListingRequest.class), any(), eq("testuser"));
     }
 
     // Helper methods

@@ -65,90 +65,103 @@ public class CarListingService {
     private final BodyStyleService bodyStyleService;
     private final SavedSearchService savedSearchService;
     private final CarListingMediaService carListingMediaService;
+    private final CarListingCrudService crudService;
 
     /**
      * Check if user can create listings (email verified and account active).
      */
     public boolean canUserCreateListings(String username) {
-        try {
-            User user = findUserByUsername(username);
-            return user.canCreateListings();
-        } catch (Exception e) {
-            log.warn("Error checking listing permissions for user {}: {}", username, e.getMessage());
-            return false;
-        }
+        return crudService.canUserCreateListings(username);
     }
 
     /**
-     * Create a new car listing.
+     * Create a new car listing without media.
      */
     @Transactional
-    public CarListingResponse createListing(CreateListingRequest request, MultipartFile image, String username) {
+    public CarListingResponse createListing(CreateListingRequest request, String username) {
         Objects.requireNonNull(request, "CreateListingRequest cannot be null");
         if (StringUtils.isBlank(username)) {
             throw new IllegalArgumentException("Username cannot be blank");
         }
         log.info("Attempting to create new listing for user: {}", username);
-        User user = findUserByUsername(username);
 
-        // Enforce verified email and active account status at service layer (defense in depth)
-        if (!user.isEmailVerified() || !user.isActive()) {
-            log.warn("User {} attempted to create listing without verified/active account (verified={}, active={})",
-                    username, user.isEmailVerified(), user.isActive());
-            throw new SecurityException("Email verification required to create listings. Please verify your account.");
+        return crudService.createListingInternal(request, username);
+    }
+
+    /**
+     * Create a new car listing with optional media upload.
+     */
+    @Transactional
+    public CarListingResponse createListingWithMedia(CreateListingRequest request, MultipartFile image, String username) {
+        Objects.requireNonNull(request, "CreateListingRequest cannot be null");
+        if (StringUtils.isBlank(username)) {
+            throw new IllegalArgumentException("Username cannot be blank");
+        }
+        log.info("Attempting to create new listing with media for user: {}", username);
+
+        // Create the listing first
+        CarListingResponse listingResponse = crudService.createListingInternal(request, username);
+
+        // Get the actual entity for notifications and media handling
+        CarListing savedListing = carListingRepository.findById(listingResponse.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", listingResponse.getId()));
+
+        // Handle media upload if provided
+        if (Objects.nonNull(image) && !image.isEmpty()) {
+            uploadInitialMediaForListing(listingResponse.getId(), image, username);
         }
 
-        CarListing carListing = buildCarListingFromRequest(request, user);
-        // isSold and isArchived are set within buildCarListingFromRequest
-
-        CarListing savedListing = carListingRepository.save(carListing);
-
-        // Handle image upload if provided
-        if (Objects.nonNull(image) && !image.isEmpty()) { // Changed from image != null
-            try {
-                String originalFilename = image.getOriginalFilename();
-                if (StringUtils.isBlank(originalFilename)) {
-                    log.warn("Image for listing ID {} has a blank original filename. Skipping image processing.", savedListing.getId());
-                } else {
-                    String imageKey = storageKeyGenerator.generateListingMediaKey(savedListing.getId(), originalFilename);
-                    storageService.store(image, imageKey);
-                    
-                    // Create and add ListingMedia for this image
-                    ListingMedia media = new ListingMedia();
-                    media.setCarListing(savedListing);
-                    media.setFileKey(imageKey);
-                    media.setFileName(originalFilename);
-                    media.setContentType(image.getContentType());
-                    media.setSize(image.getSize());
-                    media.setSortOrder(0);
-                    media.setIsPrimary(true);
-                    media.setMediaType("image");
-                    savedListing.addMedia(media);
-                    
-                    savedListing = carListingRepository.save(savedListing); // Save again to update with media
-                    log.info("Successfully uploaded image for new listing ID: {}", savedListing.getId());
-                }
-            } catch (StorageException e) {
-                // If image upload/update fails, log it but proceed with listing creation response
-                log.error("Failed to upload image or update listing with image key for listing ID {}: {}. Error: {}", savedListing.getId(), e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "N/A", e);
-            } catch (Exception e) {
-                // Catch unexpected errors during image handling
-                log.error("Unexpected error during image handling for listing ID {}: {}", savedListing.getId(), e.getMessage(), e);
-            }
-        }
-
-        log.info("Successfully created new listing with ID: {} for user: {}", savedListing.getId(), username);
-        
         // Process the new listing for saved search notifications
+        processSavedSearchNotifications(savedListing);
+
+        return listingResponse;
+    }
+
+    /**
+     * Process saved search notifications for a new listing.
+     */
+    private void processSavedSearchNotifications(CarListing listing) {
         try {
-            savedSearchService.processNewListingForNotifications(savedListing);
+            savedSearchService.processNewListingForNotifications(listing);
+            log.debug("Successfully processed saved search notifications for listing ID: {}", listing.getId());
         } catch (Exception e) {
-            log.error("Failed to process saved search notifications for new listing {}: {}", 
-                     savedListing.getId(), e.getMessage(), e);
+            log.error("Failed to process saved search notifications for new listing {}: {}",
+                     listing.getId(), e.getMessage(), e);
             // Don't fail the listing creation if notification processing fails
         }
-        
-        return carListingMapper.toCarListingResponse(savedListing);
+    }
+
+    /**
+     * Upload initial media for a newly created listing.
+     */
+    private void uploadInitialMediaForListing(Long listingId, MultipartFile image, String username) {
+        try {
+            String originalFilename = image.getOriginalFilename();
+            if (StringUtils.isBlank(originalFilename)) {
+                log.warn("Image for listing ID {} has a blank original filename. Skipping image processing.", listingId);
+                return;
+            }
+
+            // Delegate media upload to media service
+            String imageKey = carListingMediaService.uploadListingImage(listingId, image, username);
+            log.info("Successfully uploaded initial image for new listing ID: {}", listingId);
+
+        } catch (StorageException e) {
+            log.error("Failed to upload image for listing ID {}: {}. Error: {}",
+                     listingId, e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "N/A", e);
+        } catch (Exception e) {
+            log.error("Unexpected error during image handling for listing ID {}: {}", listingId, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Legacy method for backward compatibility - now delegates to createListingWithMedia.
+     * @deprecated Use createListingWithMedia for new code
+     */
+    @Transactional
+    @Deprecated
+    public CarListingResponse createListing(CreateListingRequest request, MultipartFile image, String username) {
+        return createListingWithMedia(request, image, username);
     }
 
     /**
@@ -180,14 +193,7 @@ public class CarListingService {
      */
     @Transactional(readOnly = true)
     public CarListingResponse getListingById(Long id) {
-        log.debug("Fetching approved listing details for ID: {}", id);
-        // Use findByIdAndApprovedTrueWithMedia to ensure media is loaded
-        CarListing carListing = carListingRepository.findByIdAndApprovedTrueWithMedia(id)
-                .orElseThrow(() -> {
-                    log.warn("Approved CarListing lookup failed for ID: {}", id);
-                    return new ResourceNotFoundException("CarListing", "id", id);
-                });
-        return carListingMapper.toCarListingResponse(carListing);
+        return crudService.getListingById(id);
     }
 
     /**
@@ -1003,13 +1009,7 @@ public class CarListingService {
      */
     @Transactional(readOnly = true)
     public List<CarListingResponse> getMyListings(String username) {
-        log.debug("Fetching all listings for user: {}", username);
-        User user = findUserByUsername(username);
-        List<CarListing> listings = carListingRepository.findBySeller(user);
-        log.info("Found {} listings for user: {}", listings.size(), username);
-        return listings.stream()
-                .map(carListingMapper::toCarListingResponse)
-                .collect(Collectors.toList());
+        return crudService.getMyListings(username);
     }
 
     /**
@@ -1024,127 +1024,7 @@ public class CarListingService {
      */
     @Transactional
     public CarListingResponse updateListing(Long id, UpdateListingRequest request, String username) {
-        log.info("Attempting to update listing with ID: {} by user: {}", id, username);
-        
-        CarListing existingListing = carListingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", id));
-        
-        // Check if the user owns this listing or is an admin
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
-        
-        boolean isOwner = existingListing.getSeller().getUsername().equals(username);
-        boolean isAdmin = user.getRoles().stream()
-                .anyMatch(role -> "ROLE_ADMIN".equals(role.getName()));
-        
-        if (!isOwner && !isAdmin) {
-            log.warn("User {} attempted to update listing {} owned by {} (user is not owner or admin)", 
-                    username, id, existingListing.getSeller().getUsername());
-            throw new SecurityException("You are not authorized to update this listing");
-        }
-        
-        if (isAdmin && !isOwner) {
-            log.info("Admin {} updating listing {} owned by {}", 
-                    username, id, existingListing.getSeller().getUsername());
-        }
-
-        // Update only non-null fields
-        if (request.getTitle() != null) {
-            existingListing.setTitle(request.getTitle());
-        }
-        if (request.getModelId() != null) {
-            // Get the model from the repository
-            CarModel carModel = carModelService.getModelById(request.getModelId());
-            existingListing.setModel(carModel); // Set the CarModel entity
-            
-            // Update denormalized fields from the CarModel and CarBrand entities
-            existingListing.setBrandNameEn(carModel.getBrand().getDisplayNameEn());
-            existingListing.setBrandNameAr(carModel.getBrand().getDisplayNameAr());
-            existingListing.setModelNameEn(carModel.getDisplayNameEn());
-            existingListing.setModelNameAr(carModel.getDisplayNameAr());
-        }
-        if (request.getModelYear() != null) {
-            existingListing.setModelYear(request.getModelYear());
-        }
-        if (request.getPrice() != null) {
-            existingListing.setPrice(request.getPrice());
-        }
-        if (request.getCurrency() != null) {
-            existingListing.setCurrency(request.getCurrency());
-        }
-        if (request.getMileage() != null) {
-            existingListing.setMileage(request.getMileage());
-        }
-        
-        // Handle location updates - only use locationId
-        if (request.getLocationId() != null) {
-            Location location = locationRepository.findById(request.getLocationId())
-                .orElseThrow(() -> {
-                    log.warn("Location lookup failed for ID: {}", request.getLocationId());
-                    return new ResourceNotFoundException("Location", "id", request.getLocationId());
-                });
-            existingListing.setLocation(location);
-
-            Governorate governorate = location.getGovernorate();
-            if (governorate != null) {
-                existingListing.setGovernorate(governorate);
-                existingListing.setGovernorateNameEn(governorate.getDisplayNameEn());
-                existingListing.setGovernorateNameAr(governorate.getDisplayNameAr());
-                // Country information is now derived via governorate.getCountry()
-            } else {
-                log.error("Location {} has no associated governorate during update.", location.getId());
-                 throw new IllegalStateException("Location must have an associated governorate for listing update.");
-            }
-        }
-        
-        if (request.getDescription() != null) {
-            existingListing.setDescription(request.getDescription());
-        }
-        if (request.getTransmission() != null) {
-            existingListing.setTransmission(request.getTransmission());
-        }
-
-        // Update isSold and isArchived if provided in the request
-        if (request.getIsSold() != null) {
-            existingListing.setSold(request.getIsSold());
-        }
-        if (request.getIsArchived() != null) {
-            existingListing.setArchived(request.getIsArchived());
-        }
-        
-        // Handle contact field updates with fallback logic
-        // Check if all contact fields are explicitly set to null (indicating clear request)
-        boolean allContactFieldsNull = request.getContactName() == null && 
-                                     request.getContactEmail() == null && 
-                                     request.getContactPhone() == null && 
-                                     request.getContactPreference() == null;
-        
-        if (allContactFieldsNull) {
-            // Clear all contact fields to use seller fallbacks
-            existingListing.setContactName(null);
-            existingListing.setContactEmail(null);
-            existingListing.setContactPhone(null);
-            existingListing.setContactPreference(null);
-        } else {
-            // Update individual contact fields if provided
-            if (request.getContactName() != null) {
-                existingListing.setContactName(request.getContactName());
-            }
-            if (request.getContactEmail() != null) {
-                existingListing.setContactEmail(request.getContactEmail());
-            }
-            if (request.getContactPhone() != null) {
-                existingListing.setContactPhone(request.getContactPhone());
-            }
-            if (request.getContactPreference() != null) {
-                existingListing.setContactPreference(request.getContactPreference());
-            }
-        }
-        
-        CarListing updatedListing = carListingRepository.save(existingListing);
-        log.info("Successfully updated listing ID: {} by user: {}", id, username);
-        
-        return carListingMapper.toCarListingResponse(updatedListing);
+        return crudService.updateListing(id, request, username);
     }
 
     /**
@@ -1157,24 +1037,11 @@ public class CarListingService {
      */
     @Transactional
     public void deleteListing(Long id, String username) {
-        log.info("Attempting to delete listing with ID: {} by user: {}", id, username);
-        
-        CarListing existingListing = carListingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", id));
-        
-        // Check if the user owns this listing
-        if (!existingListing.getSeller().getUsername().equals(username)) {
-            log.warn("User {} attempted to delete listing {} owned by {}", 
-                    username, id, existingListing.getSeller().getUsername());
-            throw new SecurityException("You are not authorized to delete this listing");
-        }
-        
-        // If listing has media, delete all media files from storage
+        // If listing has media, delete all media files from storage first
         carListingMediaService.deleteListingMedia(id);
-        
-        // Delete the listing
-        carListingRepository.delete(existingListing);
-        log.info("Successfully deleted listing with ID: {}", id);
+
+        // Then delete the listing itself
+        crudService.deleteListing(id, username);
     }
     
     /**
@@ -1185,17 +1052,11 @@ public class CarListingService {
      */
     @Transactional
     public void deleteListingAsAdmin(Long id) {
-        log.info("Admin attempting to delete listing with ID: {}", id);
-        
-        CarListing existingListing = carListingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", id));
-        
-        // If listing has media, delete all media files from storage
+        // If listing has media, delete all media files from storage first
         carListingMediaService.deleteListingMedia(id);
-        
-        // Delete the listing
-        carListingRepository.delete(existingListing);
-        log.info("Admin successfully deleted listing with ID: {}", id);
+
+        // Then delete the listing itself
+        crudService.deleteListingAsAdmin(id);
     }
 
     /**
@@ -1205,23 +1066,7 @@ public class CarListingService {
      * @throws ResourceNotFoundException if the listing is not found
      */
     public CarListingResponse approveListingAsAdmin(Long id) {
-        log.info("Admin attempting to approve listing with ID: {}", id);
-        
-        CarListing existingListing = carListingRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Admin approval failed - listing not found with ID: {}", id);
-                    return new ResourceNotFoundException("CarListing", "id", id);
-                });
-        
-        // Set the listing as approved
-        existingListing.setApproved(true);
-        
-        // Save the updated listing
-        CarListing approvedListing = carListingRepository.save(existingListing);
-        log.info("Admin successfully approved listing with ID: {}", id);
-        
-        // Return the updated listing response
-        return carListingMapper.toCarListingResponse(approvedListing);
+        return crudService.approveListingAsAdmin(id);
     }
 
     /**
@@ -1230,140 +1075,9 @@ public class CarListingService {
      * @return paginated list of all car listings
      */
     public Page<CarListingResponse> getAllListingsAsAdmin(Pageable pageable) {
-        log.info("Admin retrieving all listings with pagination: {}", pageable);
-        
-        // Get all listings regardless of approval status
-        Page<CarListing> listings = carListingRepository.findAll(pageable);
-        
-        log.info("Found {} total listings for admin", listings.getTotalElements());
-        
-        // Convert to response DTOs
-        return listings.map(carListingMapper::toCarListingResponse);
+        return crudService.getAllListingsAsAdmin(pageable);
     }
     
-    // --- Helper Methods ---
-    
-    private User findUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> {
-                    log.warn("User lookup failed for username: {}", username);
-                    return new ResourceNotFoundException("User", "username", username);
-                });
-    }
-
-    private CarListing findListingById(Long listingId) {
-        return carListingRepository.findById(listingId)
-                .orElseThrow(() -> {
-                    log.warn("CarListing lookup failed for ID: {}", listingId);
-                    return new ResourceNotFoundException("CarListing", "id", listingId);
-                });
-    }
-
-
-    private void authorizeListingModification(CarListing listing, User user, String action) {
-        if (listing.getSeller() == null || !listing.getSeller().getId().equals(user.getId())) {
-            log.warn("Authorization failed: User '{}' (ID: {}) attempted to {} listing ID {} owned by '{}' (ID: {})",
-                     user.getUsername(), user.getId(), action, listing.getId(),
-                     listing.getSeller() != null ? listing.getSeller().getUsername() : "unknown",
-                     listing.getSeller() != null ? listing.getSeller().getId() : "unknown");
-            throw new SecurityException("User does not have permission to modify this listing.");
-        }
-    }
-
-
-    private CarListing buildCarListingFromRequest(CreateListingRequest request, User user) {
-        CarListing carListing = new CarListing();
-        carListing.setTitle(request.getTitle());
-        
-        // Get the model from the repository
-        CarModel carModel = carModelService.getModelById(request.getModelId());
-        carListing.setModel(carModel); // Set the CarModel entity
-        
-        carListing.setModelYear(request.getModelYear());
-        carListing.setPrice(request.getPrice());
-        carListing.setCurrency(request.getCurrency() != null ? request.getCurrency() : "USD");
-        carListing.setMileage(request.getMileage());
-        carListing.setDescription(request.getDescription());
-        
-        // Set transmission, fuel type, and body style if provided
-        if (request.getTransmissionId() != null) {
-            Transmission transmission = transmissionService.getTransmissionById(request.getTransmissionId());
-            carListing.setTransmissionType(transmission);
-        }
-        if (request.getFuelTypeId() != null) {
-            FuelType fuelType = fuelTypeService.getFuelTypeById(request.getFuelTypeId());
-            carListing.setFuelType(fuelType);
-        }
-        if (request.getBodyStyleId() != null) {
-            BodyStyle bodyStyle = bodyStyleService.getBodyStyleById(request.getBodyStyleId());
-            carListing.setBodyStyle(bodyStyle);
-        }
-        
-        // Set denormalized fields from the CarModel and CarBrand entities
-        carListing.setBrandNameEn(carModel.getBrand().getDisplayNameEn());
-        carListing.setBrandNameAr(carModel.getBrand().getDisplayNameAr());
-        carListing.setModelNameEn(carModel.getDisplayNameEn());
-        carListing.setModelNameAr(carModel.getDisplayNameAr());
-        
-        // Handle location and governorate
-        if (request.getLocationId() != null) {
-            Location location = locationRepository.findById(request.getLocationId())
-                .orElseThrow(() -> {
-                    log.warn("Location lookup failed for ID: {}", request.getLocationId());
-                    return new ResourceNotFoundException("Location", "id", request.getLocationId());
-                });
-            carListing.setLocation(location);
-            
-            Governorate governorate = location.getGovernorate();
-            if (governorate != null) {
-                carListing.setGovernorate(governorate);
-                carListing.setGovernorateNameEn(governorate.getDisplayNameEn());
-                carListing.setGovernorateNameAr(governorate.getDisplayNameAr());
-                // Country information is now derived via governorate.getCountry()
-            } else {
-                log.error("Location {} has no associated governorate", location.getId());
-                throw new IllegalStateException("Location must have an associated governorate");
-            }
-        } else {
-            log.error("LocationId is required to create a car listing");
-            throw new IllegalArgumentException("LocationId is required");
-        }
-        
-        carListing.setSeller(user);
-        carListing.setApproved(false); // Default to not approved
-        // Set isSold and isArchived from request, defaulting to false if null
-        carListing.setSold(request.getIsSold() != null ? request.getIsSold() : false);
-        carListing.setArchived(request.getIsArchived() != null ? request.getIsArchived() : false);
-        
-        // Handle contact fields with fallbacks (AutoTrader pattern)
-        // Contact name: use request value or fallback to username
-        if (StringUtils.isNotBlank(request.getContactName())) {
-            carListing.setContactName(request.getContactName());
-        } else {
-            carListing.setContactName(user.getUsername());
-        }
-        
-        // Contact email: use request value or fallback to user email
-        if (StringUtils.isNotBlank(request.getContactEmail())) {
-            carListing.setContactEmail(request.getContactEmail());
-        } else {
-            carListing.setContactEmail(user.getEmail());
-        }
-        
-        // Contact phone: use request value (no fallback)
-        if (StringUtils.isNotBlank(request.getContactPhone())) {
-            carListing.setContactPhone(request.getContactPhone());
-        }
-        
-        // Contact preference: use request value or default to 'email'
-        if (StringUtils.isNotBlank(request.getContactPreference())) {
-            carListing.setContactPreference(request.getContactPreference());
-        } else {
-            carListing.setContactPreference("email");
-        }
-        
-        return carListing;
-    }
 
     // --- Helper Methods for Optimized Count Queries ---
 

@@ -13,6 +13,7 @@ import com.autotrader.autotraderbackend.model.Country;
 import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
+import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
@@ -78,6 +79,9 @@ class CarListingServiceTest {
 
     @Mock
     private CarListingMediaService carListingMediaService;
+
+    @Mock
+    private CarListingCrudService crudService;
 
     @InjectMocks
     private CarListingService carListingService;
@@ -169,19 +173,13 @@ class CarListingServiceTest {
         request.setLocationId(1L);
         request.setModelId(1L); // Use modelId
 
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(testUser));
-        when(locationRepository.findById(any())).thenReturn(Optional.of(testLocation));
-        when(carModelService.getModelById(anyLong())).thenReturn(testCarModel); // Mock CarModelService
-        when(carListingRepository.save(any(CarListing.class))).thenReturn(testListing);
-        when(carListingMapper.toCarListingResponse(any())).thenReturn(testListingResponse);
+        when(crudService.createListingInternal(request, "testuser")).thenReturn(testListingResponse);
 
-        CarListingResponse response = carListingService.createListing(request, null, "testuser");
+        CarListingResponse response = carListingService.createListing(request, "testuser");
 
         assertNotNull(response);
-        assertEquals(testListing.getId(), response.getId());
-        verify(carListingRepository).save(any());
-        verify(locationRepository).findById(eq(1L));
-        verify(carModelService).getModelById(eq(1L)); // Verify CarModelService interaction
+        assertEquals(testListingResponse.getId(), response.getId());
+        verify(crudService).createListingInternal(request, "testuser");
     }
 
     @Test
@@ -189,15 +187,14 @@ class CarListingServiceTest {
         // Arrange
         CreateListingRequest request = new CreateListingRequest(); // Populate as needed
         String username = "nonexistentuser";
-        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+        when(crudService.createListingInternal(request, username))
+                .thenThrow(new ResourceNotFoundException("User", "username", username));
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            carListingService.createListing(request, null, username);
+            carListingService.createListing(request, username);
         });
         assertEquals("User not found with username : 'nonexistentuser'", exception.getMessage());
-        verify(carListingRepository, never()).save(any());
-        verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
     }
 
     @Test
@@ -235,20 +232,15 @@ class CarListingServiceTest {
         mockLocation.setSlug("test-location");
         mockLocation.setGovernorate(mockGovernorate);
         
-        when(locationRepository.findById(1L)).thenReturn(Optional.of(mockLocation));
-        when(carModelService.getModelById(1L)).thenReturn(testCarModel); // Mock CarModelService
-
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        when(carListingRepository.save(any(CarListing.class))).thenThrow(dbException);
+        when(crudService.createListingInternal(request, username)).thenThrow(dbException);
 
         // Act & Assert
         RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
-            carListingService.createListing(request, null, username);
+            carListingService.createListing(request, username);
         });
 
         assertEquals("Database connection failed", thrown.getMessage());
         assertSame(dbException, thrown);
-        verify(carModelService).getModelById(eq(1L)); // Verify CarModelService interaction
     }
 
     // --- Tests for getListingById ---
@@ -260,10 +252,7 @@ class CarListingServiceTest {
         testListing.setApproved(true); // Explicitly set for clarity
         testListingResponse.setApproved(true); // Match expected response
 
-        // Mock the repository call for an approved listing with media
-        when(carListingRepository.findByIdAndApprovedTrueWithMedia(listingId)).thenReturn(Optional.of(testListing));
-        // Mock the mapper call
-        when(carListingMapper.toCarListingResponse(testListing)).thenReturn(testListingResponse);
+        when(crudService.getListingById(listingId)).thenReturn(testListingResponse);
 
         // Act
         CarListingResponse response = carListingService.getListingById(listingId);
@@ -271,26 +260,22 @@ class CarListingServiceTest {
         // Assert
         assertNotNull(response);
         assertEquals(testListingResponse, response);
-        // Verify the correct repository method was called
-        verify(carListingRepository).findByIdAndApprovedTrueWithMedia(listingId);
-        verify(carListingMapper).toCarListingResponse(testListing);
+        verify(crudService).getListingById(listingId);
     }
 
     @Test
     void getListingById_NotFound_ThrowsResourceNotFoundException() {
         // Arrange
         Long nonExistentId = 999L;
-        // Mock the repository call for an approved listing - returns empty
-        when(carListingRepository.findByIdAndApprovedTrueWithMedia(nonExistentId)).thenReturn(Optional.empty());
+        when(crudService.getListingById(nonExistentId))
+                .thenThrow(new ResourceNotFoundException("CarListing", "id", nonExistentId));
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             carListingService.getListingById(nonExistentId);
         });
         assertEquals("CarListing not found with id : '999'", exception.getMessage());
-        // Verify the correct repository method was called
-        verify(carListingRepository).findByIdAndApprovedTrueWithMedia(nonExistentId);
-        verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
+        verify(crudService).getListingById(nonExistentId);
     }
 
     @Test
@@ -299,8 +284,8 @@ class CarListingServiceTest {
         Long listingId = 1L;
         testListing.setApproved(false); // Ensure the listing exists but is not approved
 
-        // Mock findByIdAndApprovedTrueWithMedia to return empty, simulating it wasn't found because it's not approved
-        when(carListingRepository.findByIdAndApprovedTrueWithMedia(listingId)).thenReturn(Optional.empty());
+        when(crudService.getListingById(listingId))
+                .thenThrow(new ResourceNotFoundException("CarListing", "id", listingId));
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -309,11 +294,7 @@ class CarListingServiceTest {
 
         // Assert that the correct exception is thrown
         assertEquals("CarListing not found with id : '1'", exception.getMessage());
-
-        // Verify the correct repository method was called
-        verify(carListingRepository).findByIdAndApprovedTrueWithMedia(listingId);
-        // Ensure the mapper is never called
-        verify(carListingMapper, never()).toCarListingResponse(any());
+        verify(crudService).getListingById(listingId);
     }
 
     // --- Tests for getAllApprovedListings & getFilteredListings ---
@@ -500,10 +481,8 @@ class CarListingServiceTest {
         CarListingResponse response2 = new CarListingResponse(); // Setup response 2
         response2.setId(2L);
 
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        when(carListingRepository.findBySeller(testUser)).thenReturn(userListings);
-        when(carListingMapper.toCarListingResponse(listing1)).thenReturn(response1);
-        when(carListingMapper.toCarListingResponse(listing2)).thenReturn(response2);
+        List<CarListingResponse> expectedResponses = Arrays.asList(response1, response2);
+        when(crudService.getMyListings(username)).thenReturn(expectedResponses);
 
         // Act
         List<CarListingResponse> result = carListingService.getMyListings(username);
@@ -513,10 +492,7 @@ class CarListingServiceTest {
         assertEquals(2, result.size());
         assertEquals(1L, result.get(0).getId());
         assertEquals(2L, result.get(1).getId());
-
-        verify(userRepository).findByUsername(username);
-        verify(carListingRepository).findBySeller(testUser);
-        verify(carListingMapper, times(2)).toCarListingResponse(any());
+        verify(crudService).getMyListings(username);
     }
 
     // --- Tests for seller type count functionality ---
@@ -918,5 +894,122 @@ class CarListingServiceTest {
             listing.setFuelType(fuelType);
         }
         return listing;
+    }
+
+    // --- CRUD Delegation Tests ---
+
+    @Test
+    void canUserCreateListings_ShouldDelegateToCrudService() {
+        // Arrange
+        when(crudService.canUserCreateListings("testuser")).thenReturn(true);
+
+        // Act
+        boolean result = carListingService.canUserCreateListings("testuser");
+
+        // Assert
+        assertTrue(result);
+        verify(crudService).canUserCreateListings("testuser");
+    }
+
+    @Test
+    void getListingById_ShouldDelegateToCrudService() {
+        // Arrange
+        Long listingId = 1L;
+        when(crudService.getListingById(listingId)).thenReturn(testListingResponse);
+
+        // Act
+        CarListingResponse result = carListingService.getListingById(listingId);
+
+        // Assert
+        assertEquals(testListingResponse, result);
+        verify(crudService).getListingById(listingId);
+    }
+
+    @Test
+    void getMyListings_ShouldDelegateToCrudService() {
+        // Arrange
+        String username = "testuser";
+        List<CarListingResponse> expectedListings = Arrays.asList(testListingResponse);
+        when(crudService.getMyListings(username)).thenReturn(expectedListings);
+
+        // Act
+        List<CarListingResponse> result = carListingService.getMyListings(username);
+
+        // Assert
+        assertEquals(expectedListings, result);
+        verify(crudService).getMyListings(username);
+    }
+
+    @Test
+    void updateListing_ShouldDelegateToCrudService() {
+        // Arrange
+        Long listingId = 1L;
+        UpdateListingRequest request = new UpdateListingRequest();
+        String username = "testuser";
+
+        when(crudService.updateListing(listingId, request, username)).thenReturn(testListingResponse);
+
+        // Act
+        CarListingResponse result = carListingService.updateListing(listingId, request, username);
+
+        // Assert
+        assertEquals(testListingResponse, result);
+        verify(crudService).updateListing(listingId, request, username);
+    }
+
+    @Test
+    void deleteListing_ShouldDelegateToMediaServiceThenCrudService() {
+        // Arrange
+        Long listingId = 1L;
+        String username = "testuser";
+
+        // Act
+        carListingService.deleteListing(listingId, username);
+
+        // Assert
+        verify(carListingMediaService).deleteListingMedia(listingId);
+        verify(crudService).deleteListing(listingId, username);
+    }
+
+    @Test
+    void deleteListingAsAdmin_ShouldDelegateToMediaServiceThenCrudService() {
+        // Arrange
+        Long listingId = 1L;
+
+        // Act
+        carListingService.deleteListingAsAdmin(listingId);
+
+        // Assert
+        verify(carListingMediaService).deleteListingMedia(listingId);
+        verify(crudService).deleteListingAsAdmin(listingId);
+    }
+
+    @Test
+    void approveListingAsAdmin_ShouldDelegateToCrudService() {
+        // Arrange
+        Long listingId = 1L;
+        when(crudService.approveListingAsAdmin(listingId)).thenReturn(testListingResponse);
+
+        // Act
+        CarListingResponse result = carListingService.approveListingAsAdmin(listingId);
+
+        // Assert
+        assertEquals(testListingResponse, result);
+        verify(crudService).approveListingAsAdmin(listingId);
+    }
+
+    @Test
+    void getAllListingsAsAdmin_ShouldDelegateToCrudService() {
+        // Arrange
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<CarListingResponse> expectedPage = new PageImpl<>(Arrays.asList(testListingResponse));
+        when(crudService.getAllListingsAsAdmin(pageable)).thenReturn(expectedPage);
+
+        // Act
+        Page<CarListingResponse> result = carListingService.getAllListingsAsAdmin(pageable);
+
+        // Assert
+        assertEquals(expectedPage, result);
+        verify(crudService).getAllListingsAsAdmin(pageable);
     }
 }
