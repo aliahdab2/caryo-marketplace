@@ -29,13 +29,6 @@ public class ListingArchivedListener {
 
     @PersistenceContext
     private EntityManager entityManager;
-
-    // Constructor for testing purposes
-    ListingArchivedListener(AsyncTransactionService txService, EmailService emailService, EntityManager entityManager) {
-        this.txService = txService;
-        this.emailService = emailService;
-        this.entityManager = entityManager;
-    }
     
     /**
      * Handle the listing archived event.

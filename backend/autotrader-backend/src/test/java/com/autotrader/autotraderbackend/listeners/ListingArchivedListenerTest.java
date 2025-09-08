@@ -8,35 +8,33 @@ import com.autotrader.autotraderbackend.service.EmailService;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
 class ListingArchivedListenerTest {
 
-    @Mock
-    private ListingEventUtils eventUtils;
-
-    @Mock
+    @Autowired
     private AsyncTransactionService txService;
 
-    @Mock
+    @MockBean
     private EmailService emailService;
 
-    @Mock
+    @Autowired
     private EntityManager entityManager;
 
+    @Autowired
     private ListingArchivedListener listener;
 
     @Captor
@@ -62,8 +60,8 @@ class ListingArchivedListenerTest {
         eventAdminAction = new ListingArchivedEvent(this, carListing, true);
         eventSellerAction = new ListingArchivedEvent(this, carListing, false);
 
-        // Create listener with mocked dependencies
-        listener = new ListingArchivedListener(txService, emailService, entityManager);
+        // Mock the email service to avoid actual email sending
+        doNothing().when(emailService).sendListingArchivedByAdminEmail(any(), any(), any());
     }
 
     @Test
