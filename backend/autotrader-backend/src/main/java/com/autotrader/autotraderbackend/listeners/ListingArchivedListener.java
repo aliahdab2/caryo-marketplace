@@ -5,6 +5,8 @@ import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.service.AsyncTransactionService;
 import com.autotrader.autotraderbackend.service.EmailService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -27,6 +29,9 @@ public class ListingArchivedListener {
     private final ListingEventUtils eventUtils;
     private final AsyncTransactionService txService;
     private final EmailService emailService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
     
     /**
      * Handle the listing archived event.
@@ -43,33 +48,38 @@ public class ListingArchivedListener {
         
         txService.executeInTransaction(() -> {
             CarListing listing = event.getListing();
-            User seller = listing.getSeller();
             boolean isAdminAction = event.isAdminAction();
             String actionBy = isAdminAction ? "admin" : "seller";
-                    
-            log.info("Listing archived event received for {} by {}", 
-                    eventUtils.getListingInfo(listing), actionBy);
+
+            // Use the seller information from the event to avoid lazy loading issues
+            String sellerInfo = String.format("'%s' (ID: %s)",
+                    event.getSellerUsername(),
+                    Objects.toString(event.getSellerId(), "unknown"));
+
+            log.info("Listing archived event received for listing ID {} by {} by {}",
+                    listing.getId(), sellerInfo, actionBy);
 
             // Log archival details with more context
             if (isAdminAction) {
-                log.info("Admin archived {}", eventUtils.getListingInfo(listing));
-                
+                log.info("Admin archived listing ID {} by {}", listing.getId(), sellerInfo);
+
                 // Additional admin-specific logic could go here
             } else {
-                String sellerName = Optional.ofNullable(seller)
-                    .map(User::getUsername)
-                    .orElse("unknown seller");
-                log.info("Seller '{}' archived their own listing ID: {}", sellerName, listing.getId());
+                log.info("Seller '{}' archived their own listing ID: {}", event.getSellerUsername(), listing.getId());
             }
 
             // If archived by admin, send notification email to the seller
-            if (isAdminAction && seller != null && seller.getEmail() != null) {
+            if (isAdminAction && event.getSellerId() != null) {
                 try {
-                    // No specific reason available from event, will use default message
-                    emailService.sendListingArchivedByAdminEmail(seller, listing, null);
-                    log.info("Listing archived by admin notification email sent to seller: {}", seller.getEmail());
+                    // We need to fetch the seller entity in this transaction to send the email
+                    var seller = entityManager.find(com.autotrader.autotraderbackend.model.User.class, event.getSellerId());
+                    if (seller != null && seller.getEmail() != null) {
+                        // No specific reason available from event, will use default message
+                        emailService.sendListingArchivedByAdminEmail(seller, listing, null);
+                        log.info("Listing archived by admin notification email sent to seller: {}", seller.getEmail());
+                    }
                 } catch (Exception e) {
-                    log.error("Failed to send listing archived by admin email to seller: {}", seller.getEmail(), e);
+                    log.error("Failed to send listing archived by admin email to seller ID: {}", event.getSellerId(), e);
                 }
             }
         });

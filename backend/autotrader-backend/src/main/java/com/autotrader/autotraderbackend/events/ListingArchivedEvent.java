@@ -16,6 +16,8 @@ import java.util.Optional;
 public class ListingArchivedEvent extends ApplicationEvent {
     private final CarListing listing; // Renamed from carListing
     private final boolean isAdminAction;
+    private final String sellerUsername;
+    private final Long sellerId;
 
     public ListingArchivedEvent(Object source, CarListing listing, boolean isAdminAction) { // Renamed parameter
         super(source);
@@ -25,6 +27,15 @@ public class ListingArchivedEvent extends ApplicationEvent {
         // Removed redundant source null check, ApplicationEvent handles this
         this.listing = listing; // Renamed from carListing
         this.isAdminAction = isAdminAction;
+
+        // Extract seller information to avoid lazy loading issues
+        if (listing.getSeller() != null) {
+            this.sellerUsername = listing.getSeller().getUsername();
+            this.sellerId = listing.getSeller().getId();
+        } else {
+            this.sellerUsername = "unknown";
+            this.sellerId = null;
+        }
     }
 
     @Override
@@ -32,8 +43,6 @@ public class ListingArchivedEvent extends ApplicationEvent {
         return String.format("ListingArchivedEvent[listingId=%s, isAdminAction=%s, seller=%s]", // Renamed carListingId to listingId
                 Objects.toString(listing.getId(), "null"), // Updated for null safety
                 isAdminAction,
-                Optional.ofNullable(listing.getSeller()) // Updated for null safety
-                        .map(User::getUsername)
-                        .orElse("unknown"));
+                sellerUsername);
     }
 }
