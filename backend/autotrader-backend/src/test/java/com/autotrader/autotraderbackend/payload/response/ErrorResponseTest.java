@@ -87,7 +87,7 @@ class ErrorResponseTest {
         @DisplayName("Should create ErrorResponse with partial constructor arguments")
         void partialConstructor_ShouldHandleNullValues() {
             // When
-            ErrorResponse response = new ErrorResponse(500, "Internal error", null, null);
+            ErrorResponse response = new ErrorResponse(TEST_STATUS_500, "Internal error", null, null);
 
             // Then
             assertNotNull(response);

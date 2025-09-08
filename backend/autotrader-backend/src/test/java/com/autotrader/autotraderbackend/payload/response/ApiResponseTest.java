@@ -306,14 +306,31 @@ class ApiResponseTest {
         @Test
         @DisplayName("Should support generic type declarations")
         void genericTypes_ShouldSupportDeclarations() {
-            // Test that the class can be declared with different generic types
-            // This verifies type safety at compile time
-            ApiResponse<String> stringResponse;
-            ApiResponse<Integer> intResponse;
-            ApiResponse<TestObject> objectResponse;
+            // Test using the builder pattern directly to avoid method overloading issues
+            ApiResponse<String> stringResponse = ApiResponse.<String>builder()
+                    .data("test")
+                    .status("success")
+                    .build();
 
-            // These declarations should compile without issues
-            assertTrue(true); // If we reach this point, generic types work
+            ApiResponse<Integer> intResponse = ApiResponse.<Integer>builder()
+                    .data(42)
+                    .status("success")
+                    .build();
+
+            ApiResponse<TestObject> objectResponse = ApiResponse.<TestObject>builder()
+                    .data(new TestObject("name", 123))
+                    .status("success")
+                    .build();
+
+            // Verify the generic types work and data is accessible
+            assertNotNull(stringResponse.getData(), "String data should not be null");
+            assertNotNull(intResponse.getData(), "Integer data should not be null");
+            assertNotNull(objectResponse.getData(), "Object data should not be null");
+
+            assertEquals("test", stringResponse.getData());
+            assertEquals(42, intResponse.getData());
+            assertEquals("name", objectResponse.getData().getName());
+            assertEquals(123, objectResponse.getData().getValue());
         }
 
         @Test

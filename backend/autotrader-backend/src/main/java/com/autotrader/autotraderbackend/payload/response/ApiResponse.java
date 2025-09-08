@@ -21,7 +21,9 @@ public class ApiResponse<T> {
     
     /**
      * The actual response data (null for error responses or operations without return data)
+     * Always include this field in JSON even when null, as null data has semantic meaning
      */
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     private T data;
     
     /**
