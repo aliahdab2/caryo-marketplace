@@ -76,6 +76,9 @@ class CarListingServiceTest {
     @Mock
     private SavedSearchService savedSearchService;
 
+    @Mock
+    private CarListingMediaService carListingMediaService;
+
     @InjectMocks
     private CarListingService carListingService;
 
@@ -440,179 +443,43 @@ class CarListingServiceTest {
         verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any(), eq(pageable));
         verify(carListingMapper, never()).toCarListingResponse(any());
     }
-    // --- Tests for uploadListingImage ---
+    // --- Media tests moved to CarListingMediaServiceTest ---
+
+    // --- Tests for media delegation ---
     @Test
-    void uploadListingImage_Success() throws IOException {
+    void uploadListingImage_ShouldDelegateToMediaService() throws IOException {
         // Arrange
         Long listingId = testListing.getId();
         String username = testUser.getUsername();
-        MockMultipartFile file = new MockMultipartFile(
-                "file", "hello.jpg", "image/jpeg", "Hello, World!".getBytes()
-        );
-        
-        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-        
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(testListing));
-        when(storageService.store(eq(file), keyCaptor.capture())).thenAnswer(invocation -> keyCaptor.getValue());
-        when(carListingRepository.save(any(CarListing.class))).thenAnswer(invocation -> {
-            CarListing listingToSave = invocation.getArgument(0);
-            assertNotNull(listingToSave.getMedia());
-            assertFalse(listingToSave.getMedia().isEmpty());
-            assertEquals(keyCaptor.getValue(), listingToSave.getMedia().get(0).getFileKey());
-            return listingToSave;
-        });
-        // Act
-        String returnedKey = carListingService.uploadListingImage(listingId, file, username);
+        MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "content".getBytes());
+        String expectedKey = "test-key";
 
-        // Assert
-        assertNotNull(returnedKey);
-        assertEquals(returnedKey, keyCaptor.getValue());
-        // Verify interactions
-        verify(userRepository).findByUsername(username);
-        verify(carListingRepository).findById(listingId);
-        verify(storageService).store(eq(file), keyCaptor.capture());
-        verify(carListingRepository).save(argThat(l -> {
-            if (l.getId().equals(listingId) && !l.getMedia().isEmpty()) {
-                ListingMedia media = l.getMedia().get(0);
-                return returnedKey.equals(media.getFileKey());
-            }
-            return false;
-        }));
-    }
-    @Test
-    void uploadListingImage_ListingNotFound_ThrowsResourceNotFoundException() throws IOException {
-        // Arrange
-        Long nonExistentId = 999L;
-        String username = testUser.getUsername();
-        MockMultipartFile file = new MockMultipartFile("file", "hello.jpg", "image/jpeg", "content".getBytes());
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        when(carListingRepository.findById(nonExistentId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            carListingService.uploadListingImage(nonExistentId, file, username);
-        });
-        assertEquals("CarListing not found with id : '999'", exception.getMessage());
-
-        // Verify interactions
-        verify(userRepository).findByUsername(username);
-        verify(carListingRepository).findById(nonExistentId);
-        verify(storageService, never()).store(any(MultipartFile.class), anyString());
-        verify(carListingRepository, never()).save(any());
-    }
-
-    @Test
-    void uploadListingImage_UnauthorizedUser_ThrowsSecurityException() throws IOException {
-        // Arrange
-        Long listingId = testListing.getId();
-        String wrongUsername = "wronguser";
-        User wrongUser = new User();
-        wrongUser.setId(99L);
-        wrongUser.setUsername(wrongUsername);
-        
-        MockMultipartFile file = new MockMultipartFile("file", "hello.jpg", "image/jpeg", "content".getBytes());
-        when(userRepository.findByUsername(wrongUsername)).thenReturn(Optional.of(wrongUser));
-        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(testListing));
-
-        // Act & Assert
-        SecurityException exception = assertThrows(SecurityException.class, () -> {
-            carListingService.uploadListingImage(listingId, file, wrongUsername);
-        });
-        assertEquals("User does not have permission to modify this listing.", exception.getMessage());
-
-        // Verify interactions
-        verify(userRepository).findByUsername(wrongUsername);
-        verify(carListingRepository).findById(listingId);
-        verify(storageService, never()).store(any(MultipartFile.class), anyString());
-        verify(carListingRepository, never()).save(any());
-    }
-    @Test
-    void uploadListingImage_EmptyFile_ThrowsStorageException() throws IOException {
-        // Arrange
-        Long listingId = testListing.getId();
-        String username = testUser.getUsername();
-        MockMultipartFile emptyFile = new MockMultipartFile("file", "", "image/jpeg", new byte[0]); // Empty file
-        
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        
-        // Act & Assert
-        StorageException exception = assertThrows(StorageException.class, () -> {
-            carListingService.uploadListingImage(listingId, emptyFile, username);
-        });
-        
-        assertEquals("File provided for upload is null or empty.", exception.getMessage());
-        
-        // Verify interactions
-        verify(userRepository).findByUsername(username);
-        verify(carListingRepository, never()).findById(anyLong());
-        verify(storageService, never()).store(any(MultipartFile.class), anyString());
-        verify(carListingRepository, never()).save(any());
-    }
-
-    @Test
-    void uploadListingImage_StorageFailure_ThrowsStorageException() throws IOException { // Renamed from uploadListingImage_StorageFailure_ThrowsRuntimeException
-        // Arrange
-        Long listingId = testListing.getId();
-        String username = testUser.getUsername();
-        MockMultipartFile file = new MockMultipartFile("file", "hello.jpg", "image/jpeg", "content".getBytes());
-        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-        
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(testListing));
-        doThrow(new StorageException("Disk full")).when(storageService).store(eq(file), keyCaptor.capture());
-        
-        // Act & Assert
-        StorageException exception = assertThrows(StorageException.class, () -> {
-            carListingService.uploadListingImage(listingId, file, username);
-        });
-        
-        assertEquals("Disk full", exception.getMessage()); // Corrected expected message
-        
-        // Verify interactions
-        verify(userRepository).findByUsername(username);
-        verify(carListingRepository).findById(listingId);
-        verify(storageService).store(eq(file), anyString());
-        verify(carListingRepository, never()).save(any());
-    }
-
-    @Test
-    void uploadListingImage_WithNullOriginalFilename_ShouldGenerateSafeKey() throws IOException {
-        // Arrange
-        Long listingId = testListing.getId();
-        String username = testUser.getUsername();
-        // File with null original filename
-        MockMultipartFile file = new MockMultipartFile("file", null, "image/png", "content".getBytes());
-        String expectedKey = "listings/" + listingId + "/123456_";
-
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(testListing));
-        when(storageService.store(eq(file), anyString())).thenReturn(expectedKey);
-        when(carListingRepository.save(any(CarListing.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(carListingMediaService.uploadListingImage(listingId, file, username)).thenReturn(expectedKey);
 
         // Act
-        String returnedKey = carListingService.uploadListingImage(listingId, file, username);
+        String result = carListingService.uploadListingImage(listingId, file, username);
 
         // Assert
-        assertNotNull(returnedKey);
-        assertEquals(expectedKey, returnedKey);
+        assertEquals(expectedKey, result);
+        verify(carListingMediaService).uploadListingImage(listingId, file, username);
+    }
 
-        // Verify store was called with the expected key
-        verify(storageService).store(eq(file), eq(expectedKey));
+    @Test
+    void uploadListingVideo_ShouldDelegateToMediaService() throws IOException {
+        // Arrange
+        Long listingId = testListing.getId();
+        String username = testUser.getUsername();
+        MockMultipartFile file = new MockMultipartFile("file", "test.mp4", "video/mp4", "content".getBytes());
+        String expectedKey = "video-key";
 
-        // Assert the format of the returned key
-        assertTrue(returnedKey.startsWith("listings/" + listingId + "/"));
-        assertTrue(returnedKey.matches("listings/" + listingId + "/\\d+_"),
-                   "Generated key '" + returnedKey + "' did not match expected pattern.");
+        when(carListingMediaService.uploadListingVideo(listingId, file, username)).thenReturn(expectedKey);
 
-        // Verify save was called with the correct key
-        verify(carListingRepository).save(argThat(l -> {
-            if (!l.getMedia().isEmpty()) {
-                ListingMedia media = l.getMedia().get(0);
-                return expectedKey.equals(media.getFileKey());
-            }
-            return false;
-        }));
+        // Act
+        String result = carListingService.uploadListingVideo(listingId, file, username);
+
+        // Assert
+        assertEquals(expectedKey, result);
+        verify(carListingMediaService).uploadListingVideo(listingId, file, username);
     }
 
     // --- Test for getMyListings ---

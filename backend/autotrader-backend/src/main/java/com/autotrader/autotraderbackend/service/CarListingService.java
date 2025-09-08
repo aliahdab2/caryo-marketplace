@@ -64,6 +64,7 @@ public class CarListingService {
     private final FuelTypeService fuelTypeService;
     private final BodyStyleService bodyStyleService;
     private final SavedSearchService savedSearchService;
+    private final CarListingMediaService carListingMediaService;
 
     /**
      * Check if user can create listings (email verified and account active).
@@ -109,7 +110,7 @@ public class CarListingService {
                 if (StringUtils.isBlank(originalFilename)) {
                     log.warn("Image for listing ID {} has a blank original filename. Skipping image processing.", savedListing.getId());
                 } else {
-                    String imageKey = generateImageKey(savedListing.getId(), originalFilename);
+                    String imageKey = storageKeyGenerator.generateListingMediaKey(savedListing.getId(), originalFilename);
                     storageService.store(image, imageKey);
                     
                     // Create and add ListingMedia for this image
@@ -155,7 +156,7 @@ public class CarListingService {
      */
     @Transactional
     public String uploadListingImage(Long listingId, MultipartFile file, String username) {
-        return uploadListingMedia(listingId, file, username, "image");
+        return carListingMediaService.uploadListingImage(listingId, file, username);
     }
 
     /**
@@ -163,7 +164,7 @@ public class CarListingService {
      */
     @Transactional
     public String uploadListingVideo(Long listingId, MultipartFile file, String username) {
-        return uploadListingMedia(listingId, file, username, "video");
+        return carListingMediaService.uploadListingVideo(listingId, file, username);
     }
 
     /**
@@ -171,74 +172,7 @@ public class CarListingService {
      */
     @Transactional
     public String uploadListingMedia(Long listingId, MultipartFile file, String username, String mediaType) {
-        Objects.requireNonNull(listingId, "Listing ID cannot be null");
-        Objects.requireNonNull(file, "File cannot be null");
-        if (StringUtils.isBlank(username)) {
-            throw new IllegalArgumentException("Username cannot be blank");
-        }
-        if (StringUtils.isBlank(mediaType) || (!mediaType.equals("image") && !mediaType.equals("video"))) {
-            throw new IllegalArgumentException("Media type must be 'image' or 'video'");
-        }
-        
-        log.info("Attempting to upload {} for listing ID: {} by user: {}", mediaType, listingId, username);
-        User user = findUserByUsername(username);
-
-        validateFile(file, listingId);
-
-        CarListing listing = findListingById(listingId);
-
-        authorizeListingModification(listing, user, "upload " + mediaType + " for");
-
-        // Validate video limits if uploading video
-        if ("video".equals(mediaType)) {
-            validateVideoUploadLimits(listing);
-        }
-
-        String mediaKey = generateMediaKey(listingId, file.getOriginalFilename(), mediaType);
-
-        try {
-            storageService.store(file, mediaKey);
-            
-            // Create a new ListingMedia entity and link it to the car listing
-            ListingMedia media = new ListingMedia();
-            media.setCarListing(listing);
-            media.setFileKey(mediaKey);
-            media.setFileName(file.getOriginalFilename());
-            media.setContentType(file.getContentType());
-            media.setSize(file.getSize());
-            
-            // Calculate proper sort order
-            int nextSortOrder = listing.getMedia().size();
-            media.setSortOrder(nextSortOrder);
-            media.setIsPrimary(listing.getMedia().isEmpty()); // First media is primary
-            media.setMediaType(mediaType);
-            
-            // Set video-specific fields
-            if ("video".equals(mediaType)) {
-                media.setVideoSource("upload");
-                // Duration will be set by frontend or external tools
-            }
-            
-            // Add the media to the listing using helper method
-            listing.addMedia(media);
-            
-            carListingRepository.save(listing); // Save the updated listing
-            log.info("Successfully uploaded {} with key '{}' and updated listing ID: {}", mediaType, mediaKey, listingId);
-            return mediaKey;
-        } catch (StorageException e) {
-            log.error("Storage service failed to store image for listing ID {}: {}. Error: {}", listingId, e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "N/A", e);
-            // Re-throw the original StorageException to be handled by the controller or a global exception handler.
-            // This preserves the specific details of the storage failure.
-            throw e; 
-        } catch (Exception e) {
-            log.error("Unexpected error saving listing {} after image upload: {}", listingId, e.getMessage(), e);
-            // Wrap other exceptions in a RuntimeException if they are not already.
-            // Consider a more specific custom exception if appropriate for your error handling strategy.
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            }
-            throw new RuntimeException("Failed to update listing after image upload.", e);
-        }
+        return carListingMediaService.uploadListingMedia(listingId, file, username, mediaType);
     }
 
     /**
@@ -1236,17 +1170,7 @@ public class CarListingService {
         }
         
         // If listing has media, delete all media files from storage
-        if (existingListing.getMedia() != null && !existingListing.getMedia().isEmpty()) {
-            for (ListingMedia media : existingListing.getMedia()) {
-                try {
-                    storageService.delete(media.getFileKey());
-                    log.info("Deleted media with key: {} for listing ID: {}", media.getFileKey(), id);
-                } catch (StorageException e) {
-                    // Log but continue with listing deletion
-                    log.error("Failed to delete media with key: {} for listing ID: {}", media.getFileKey(), id, e);
-                }
-            }
-        }
+        carListingMediaService.deleteListingMedia(id);
         
         // Delete the listing
         carListingRepository.delete(existingListing);
@@ -1267,17 +1191,7 @@ public class CarListingService {
                 .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", id));
         
         // If listing has media, delete all media files from storage
-        if (existingListing.getMedia() != null && !existingListing.getMedia().isEmpty()) {
-            for (ListingMedia media : existingListing.getMedia()) {
-                try {
-                    storageService.delete(media.getFileKey());
-                    log.info("Admin deleted media with key: {} for listing ID: {}", media.getFileKey(), id);
-                } catch (StorageException e) {
-                    // Log but continue with listing deletion
-                    log.error("Admin failed to delete media with key: {} for listing ID: {}", media.getFileKey(), id, e);
-                }
-            }
-        }
+        carListingMediaService.deleteListingMedia(id);
         
         // Delete the listing
         carListingRepository.delete(existingListing);
@@ -1345,13 +1259,6 @@ public class CarListingService {
                 });
     }
 
-    private void validateFile(MultipartFile file, Long listingId) {
-        if (file == null || file.isEmpty()) {
-            log.warn("Attempt to upload null or empty file for listing ID: {}", listingId);
-            throw new StorageException("File provided for upload is null or empty.");
-        }
-        // Add other validations if needed (e.g., file type, size)
-    }
 
     private void authorizeListingModification(CarListing listing, User user, String action) {
         if (listing.getSeller() == null || !listing.getSeller().getId().equals(user.getId())) {
@@ -1363,30 +1270,6 @@ public class CarListingService {
         }
     }
 
-    private String generateImageKey(Long listingId, String originalFilename) {
-        return storageKeyGenerator.generateListingMediaKey(listingId, originalFilename);
-    }
-
-    /**
-     * Generate media key for both images and videos
-     */
-    private String generateMediaKey(Long listingId, String originalFilename, String mediaType) {
-        return storageKeyGenerator.generateListingMediaKey(listingId, originalFilename);
-    }
-
-    /**
-     * Validates video upload limits following AutoTrader patterns:
-     * - Maximum 1 uploaded video per listing
-     */
-    private void validateVideoUploadLimits(CarListing listing) {
-        long uploadedVideos = listing.getMedia().stream()
-            .filter(media -> "video".equals(media.getMediaType()) && "upload".equals(media.getVideoSource()))
-            .count();
-
-        if (uploadedVideos >= 1) {
-            throw new IllegalArgumentException("Maximum 1 uploaded video per listing allowed. Following AutoTrader best practices.");
-        }
-    }
 
     private CarListing buildCarListingFromRequest(CreateListingRequest request, User user) {
         CarListing carListing = new CarListing();
