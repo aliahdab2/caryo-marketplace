@@ -13,6 +13,7 @@ import com.autotrader.autotraderbackend.model.Country;
 import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
+import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
@@ -41,13 +42,13 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-
-import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
 class CarListingServiceTest {
@@ -75,6 +76,18 @@ class CarListingServiceTest {
 
     @Mock
     private SavedSearchService savedSearchService;
+
+    @Mock
+    private CarListingMediaService carListingMediaService;
+
+    @Mock
+    private CarListingCrudService crudService;
+
+    @Mock
+    private CarListingAnalyticsService analyticsService;
+
+    @Mock
+    private CarListingQueryService queryService;
 
     @InjectMocks
     private CarListingService carListingService;
@@ -166,19 +179,13 @@ class CarListingServiceTest {
         request.setLocationId(1L);
         request.setModelId(1L); // Use modelId
 
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(testUser));
-        when(locationRepository.findById(any())).thenReturn(Optional.of(testLocation));
-        when(carModelService.getModelById(anyLong())).thenReturn(testCarModel); // Mock CarModelService
-        when(carListingRepository.save(any(CarListing.class))).thenReturn(testListing);
-        when(carListingMapper.toCarListingResponse(any())).thenReturn(testListingResponse);
+        when(crudService.createListingInternal(request, "testuser")).thenReturn(testListingResponse);
 
-        CarListingResponse response = carListingService.createListing(request, null, "testuser");
+        CarListingResponse response = carListingService.createListing(request, "testuser");
 
         assertNotNull(response);
-        assertEquals(testListing.getId(), response.getId());
-        verify(carListingRepository).save(any());
-        verify(locationRepository).findById(eq(1L));
-        verify(carModelService).getModelById(eq(1L)); // Verify CarModelService interaction
+        assertEquals(testListingResponse.getId(), response.getId());
+        verify(crudService).createListingInternal(request, "testuser");
     }
 
     @Test
@@ -186,15 +193,14 @@ class CarListingServiceTest {
         // Arrange
         CreateListingRequest request = new CreateListingRequest(); // Populate as needed
         String username = "nonexistentuser";
-        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+        when(crudService.createListingInternal(request, username))
+                .thenThrow(new ResourceNotFoundException("User", "username", username));
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            carListingService.createListing(request, null, username);
+            carListingService.createListing(request, username);
         });
         assertEquals("User not found with username : 'nonexistentuser'", exception.getMessage());
-        verify(carListingRepository, never()).save(any());
-        verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
     }
 
     @Test
@@ -232,20 +238,15 @@ class CarListingServiceTest {
         mockLocation.setSlug("test-location");
         mockLocation.setGovernorate(mockGovernorate);
         
-        when(locationRepository.findById(1L)).thenReturn(Optional.of(mockLocation));
-        when(carModelService.getModelById(1L)).thenReturn(testCarModel); // Mock CarModelService
-
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        when(carListingRepository.save(any(CarListing.class))).thenThrow(dbException);
+        when(crudService.createListingInternal(request, username)).thenThrow(dbException);
 
         // Act & Assert
         RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
-            carListingService.createListing(request, null, username);
+            carListingService.createListing(request, username);
         });
 
         assertEquals("Database connection failed", thrown.getMessage());
         assertSame(dbException, thrown);
-        verify(carModelService).getModelById(eq(1L)); // Verify CarModelService interaction
     }
 
     // --- Tests for getListingById ---
@@ -257,10 +258,7 @@ class CarListingServiceTest {
         testListing.setApproved(true); // Explicitly set for clarity
         testListingResponse.setApproved(true); // Match expected response
 
-        // Mock the repository call for an approved listing with media
-        when(carListingRepository.findByIdAndApprovedTrueWithMedia(listingId)).thenReturn(Optional.of(testListing));
-        // Mock the mapper call
-        when(carListingMapper.toCarListingResponse(testListing)).thenReturn(testListingResponse);
+        when(crudService.getListingById(listingId)).thenReturn(testListingResponse);
 
         // Act
         CarListingResponse response = carListingService.getListingById(listingId);
@@ -268,26 +266,22 @@ class CarListingServiceTest {
         // Assert
         assertNotNull(response);
         assertEquals(testListingResponse, response);
-        // Verify the correct repository method was called
-        verify(carListingRepository).findByIdAndApprovedTrueWithMedia(listingId);
-        verify(carListingMapper).toCarListingResponse(testListing);
+        verify(crudService).getListingById(listingId);
     }
 
     @Test
     void getListingById_NotFound_ThrowsResourceNotFoundException() {
         // Arrange
         Long nonExistentId = 999L;
-        // Mock the repository call for an approved listing - returns empty
-        when(carListingRepository.findByIdAndApprovedTrueWithMedia(nonExistentId)).thenReturn(Optional.empty());
+        when(crudService.getListingById(nonExistentId))
+                .thenThrow(new ResourceNotFoundException("CarListing", "id", nonExistentId));
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             carListingService.getListingById(nonExistentId);
         });
         assertEquals("CarListing not found with id : '999'", exception.getMessage());
-        // Verify the correct repository method was called
-        verify(carListingRepository).findByIdAndApprovedTrueWithMedia(nonExistentId);
-        verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
+        verify(crudService).getListingById(nonExistentId);
     }
 
     @Test
@@ -296,8 +290,8 @@ class CarListingServiceTest {
         Long listingId = 1L;
         testListing.setApproved(false); // Ensure the listing exists but is not approved
 
-        // Mock findByIdAndApprovedTrueWithMedia to return empty, simulating it wasn't found because it's not approved
-        when(carListingRepository.findByIdAndApprovedTrueWithMedia(listingId)).thenReturn(Optional.empty());
+        when(crudService.getListingById(listingId))
+                .thenThrow(new ResourceNotFoundException("CarListing", "id", listingId));
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -306,11 +300,7 @@ class CarListingServiceTest {
 
         // Assert that the correct exception is thrown
         assertEquals("CarListing not found with id : '1'", exception.getMessage());
-
-        // Verify the correct repository method was called
-        verify(carListingRepository).findByIdAndApprovedTrueWithMedia(listingId);
-        // Ensure the mapper is never called
-        verify(carListingMapper, never()).toCarListingResponse(any());
+        verify(crudService).getListingById(listingId);
     }
 
     // --- Tests for getAllApprovedListings & getFilteredListings ---
@@ -318,55 +308,36 @@ class CarListingServiceTest {
     void getAllApprovedListings_ShouldReturnPageOfApprovedListings() {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
-        CarListing approvedListing1 = new CarListing(); // Setup listing 1
-        approvedListing1.setId(1L);
-        approvedListing1.setApproved(true);
-        approvedListing1.setSold(false);
-        approvedListing1.setArchived(false);
-        CarListing approvedListing2 = new CarListing(); // Setup listing 2
-        approvedListing2.setId(2L);
-        approvedListing2.setApproved(true);
-        approvedListing2.setSold(false);
-        approvedListing2.setArchived(false);
-        List<CarListing> listings = Arrays.asList(approvedListing1, approvedListing2);
-        Page<CarListing> listingPage = new PageImpl<>(listings, pageable, listings.size());
-
         CarListingResponse response1 = new CarListingResponse(); // Setup response 1
         response1.setId(1L);
         response1.setApproved(true);
         CarListingResponse response2 = new CarListingResponse(); // Setup response 2
         response2.setId(2L);
         response2.setApproved(true);
+        List<CarListingResponse> responses = Arrays.asList(response1, response2);
+        Page<CarListingResponse> responsePage = new PageImpl<>(responses, pageable, responses.size());
 
-        // Old: when(carListingRepository.findByApprovedTrue(pageable)).thenReturn(listingPage);
-        when(carListingRepository.findAll(ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<CarListing>>any(), eq(pageable))).thenReturn(listingPage);
-        // Mock mapper for each listing in the page
-        when(carListingMapper.toCarListingResponse(approvedListing1)).thenReturn(response1);
-        when(carListingMapper.toCarListingResponse(approvedListing2)).thenReturn(response2);
+        when(queryService.getAllApprovedListings(pageable)).thenReturn(responsePage);
 
         // Act
-        Page<CarListingResponse> responsePage = carListingService.getAllApprovedListings(pageable);
+        Page<CarListingResponse> result = carListingService.getAllApprovedListings(pageable);
 
         // Assert
-        assertNotNull(responsePage);
-        assertEquals(2, responsePage.getTotalElements());
-        assertEquals(2, responsePage.getContent().size());
-        assertEquals(response1, responsePage.getContent().get(0));
-        assertEquals(response2, responsePage.getContent().get(1));
-        // verify(carListingRepository).findByApprovedTrue(pageable);
-        verify(carListingRepository).findAll(ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<CarListing>>any(), eq(pageable));
-        verify(carListingMapper, times(2)).toCarListingResponse(any(CarListing.class)); // Verify mapper called twice
+        assertNotNull(result);
+        assertEquals(2, result.getTotalElements());
+        assertEquals(2, result.getContent().size());
+        assertEquals(response1, result.getContent().get(0));
+        assertEquals(response2, result.getContent().get(1));
+        verify(queryService).getAllApprovedListings(pageable);
     }
 
      @Test
     void getAllApprovedListings_WhenNoneFound_ShouldReturnEmptyPage() {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
-        Page<CarListing> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Page<CarListingResponse> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        // Old: when(carListingRepository.findByApprovedTrue(pageable)).thenReturn(emptyPage);
-        when(carListingRepository.findAll(ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<CarListing>>any(), eq(pageable))).thenReturn(emptyPage);
-        // No need to mock mapper as it won't be called for an empty page's map operation
+        when(queryService.getAllApprovedListings(pageable)).thenReturn(emptyPage);
 
         // Act
         Page<CarListingResponse> responsePage = carListingService.getAllApprovedListings(pageable);
@@ -375,9 +346,7 @@ class CarListingServiceTest {
         assertNotNull(responsePage);
         assertTrue(responsePage.isEmpty());
         assertEquals(0, responsePage.getTotalElements());
-        // verify(carListingRepository).findByApprovedTrue(pageable);
-        verify(carListingRepository).findAll(ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<CarListing>>any(), eq(pageable));
-        verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
+        verify(queryService).getAllApprovedListings(pageable);
     }
 
     @Test
@@ -387,37 +356,26 @@ class CarListingServiceTest {
         ListingFilterRequest filter = new ListingFilterRequest(); // Populate filter
         filter.setBrandSlugs(Arrays.asList("honda")); // Use new slug-based filtering
 
-        CarListing filteredListing = new CarListing(); // Setup listing
-        filteredListing.setId(1L);
-        // Set denormalized brand name for the listing itself
-        filteredListing.setBrandNameEn("Honda"); 
-        filteredListing.setBrandNameAr("هوندا");
-        filteredListing.setApproved(true);
-        List<CarListing> listings = Collections.singletonList(filteredListing);
-        Page<CarListing> listingPage = new PageImpl<>(listings, pageable, 1);
-
         CarListingResponse filteredResponse = new CarListingResponse(); // Setup response
         filteredResponse.setId(1L);
         // Set denormalized brand name for the response
-        filteredResponse.setBrandNameEn("Honda"); 
+        filteredResponse.setBrandNameEn("Honda");
         filteredResponse.setBrandNameAr("هوندا");
         filteredResponse.setApproved(true);
+        List<CarListingResponse> responses = Collections.singletonList(filteredResponse);
+        Page<CarListingResponse> responsePage = new PageImpl<>(responses, pageable, 1);
 
-        // FIX: Use ArgumentMatchers.<Specification<CarListing>>any() for type safety
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any(), eq(pageable))).thenReturn(listingPage);
-        when(carListingMapper.toCarListingResponse(filteredListing)).thenReturn(filteredResponse);
+        when(queryService.getFilteredListings(filter, pageable)).thenReturn(responsePage);
 
         // Act
-        Page<CarListingResponse> responsePage = carListingService.getFilteredListings(filter, pageable);
+        Page<CarListingResponse> result = carListingService.getFilteredListings(filter, pageable);
 
         // Assert
-        assertNotNull(responsePage);
-        assertEquals(1, responsePage.getTotalElements());
-        assertEquals(1, responsePage.getContent().size());
-        assertEquals(filteredResponse, responsePage.getContent().get(0));
-        // FIX: Use ArgumentMatchers.<Specification<CarListing>>any() for type safety
-        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any(), eq(pageable));
-        verify(carListingMapper).toCarListingResponse(filteredListing);
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(1, result.getContent().size());
+        assertEquals(filteredResponse, result.getContent().get(0));
+        verify(queryService).getFilteredListings(filter, pageable);
     }
 
     @Test
@@ -426,9 +384,9 @@ class CarListingServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         ListingFilterRequest filter = new ListingFilterRequest(); // Populate filter
         filter.setBrandSlugs(Arrays.asList("nonexistent"));
-        Page<CarListing> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Page<CarListingResponse> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any(), eq(pageable))).thenReturn(emptyPage);
+        when(queryService.getFilteredListings(filter, pageable)).thenReturn(emptyPage);
 
         // Act
         Page<CarListingResponse> responsePage = carListingService.getFilteredListings(filter, pageable);
@@ -437,182 +395,45 @@ class CarListingServiceTest {
         assertNotNull(responsePage);
         assertTrue(responsePage.isEmpty());
         assertEquals(0, responsePage.getTotalElements());
-        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any(), eq(pageable));
-        verify(carListingMapper, never()).toCarListingResponse(any());
+        verify(queryService).getFilteredListings(filter, pageable);
     }
-    // --- Tests for uploadListingImage ---
+    // --- Media tests moved to CarListingMediaServiceTest ---
+
+    // --- Tests for media delegation ---
     @Test
-    void uploadListingImage_Success() throws IOException {
+    void uploadListingImage_ShouldDelegateToMediaService() throws IOException {
         // Arrange
         Long listingId = testListing.getId();
         String username = testUser.getUsername();
-        MockMultipartFile file = new MockMultipartFile(
-                "file", "hello.jpg", "image/jpeg", "Hello, World!".getBytes()
-        );
-        
-        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-        
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(testListing));
-        when(storageService.store(eq(file), keyCaptor.capture())).thenAnswer(invocation -> keyCaptor.getValue());
-        when(carListingRepository.save(any(CarListing.class))).thenAnswer(invocation -> {
-            CarListing listingToSave = invocation.getArgument(0);
-            assertNotNull(listingToSave.getMedia());
-            assertFalse(listingToSave.getMedia().isEmpty());
-            assertEquals(keyCaptor.getValue(), listingToSave.getMedia().get(0).getFileKey());
-            return listingToSave;
-        });
-        // Act
-        String returnedKey = carListingService.uploadListingImage(listingId, file, username);
+        MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "content".getBytes());
+        String expectedKey = "test-key";
 
-        // Assert
-        assertNotNull(returnedKey);
-        assertEquals(returnedKey, keyCaptor.getValue());
-        // Verify interactions
-        verify(userRepository).findByUsername(username);
-        verify(carListingRepository).findById(listingId);
-        verify(storageService).store(eq(file), keyCaptor.capture());
-        verify(carListingRepository).save(argThat(l -> {
-            if (l.getId().equals(listingId) && !l.getMedia().isEmpty()) {
-                ListingMedia media = l.getMedia().get(0);
-                return returnedKey.equals(media.getFileKey());
-            }
-            return false;
-        }));
-    }
-    @Test
-    void uploadListingImage_ListingNotFound_ThrowsResourceNotFoundException() throws IOException {
-        // Arrange
-        Long nonExistentId = 999L;
-        String username = testUser.getUsername();
-        MockMultipartFile file = new MockMultipartFile("file", "hello.jpg", "image/jpeg", "content".getBytes());
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        when(carListingRepository.findById(nonExistentId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            carListingService.uploadListingImage(nonExistentId, file, username);
-        });
-        assertEquals("CarListing not found with id : '999'", exception.getMessage());
-
-        // Verify interactions
-        verify(userRepository).findByUsername(username);
-        verify(carListingRepository).findById(nonExistentId);
-        verify(storageService, never()).store(any(MultipartFile.class), anyString());
-        verify(carListingRepository, never()).save(any());
-    }
-
-    @Test
-    void uploadListingImage_UnauthorizedUser_ThrowsSecurityException() throws IOException {
-        // Arrange
-        Long listingId = testListing.getId();
-        String wrongUsername = "wronguser";
-        User wrongUser = new User();
-        wrongUser.setId(99L);
-        wrongUser.setUsername(wrongUsername);
-        
-        MockMultipartFile file = new MockMultipartFile("file", "hello.jpg", "image/jpeg", "content".getBytes());
-        when(userRepository.findByUsername(wrongUsername)).thenReturn(Optional.of(wrongUser));
-        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(testListing));
-
-        // Act & Assert
-        SecurityException exception = assertThrows(SecurityException.class, () -> {
-            carListingService.uploadListingImage(listingId, file, wrongUsername);
-        });
-        assertEquals("User does not have permission to modify this listing.", exception.getMessage());
-
-        // Verify interactions
-        verify(userRepository).findByUsername(wrongUsername);
-        verify(carListingRepository).findById(listingId);
-        verify(storageService, never()).store(any(MultipartFile.class), anyString());
-        verify(carListingRepository, never()).save(any());
-    }
-    @Test
-    void uploadListingImage_EmptyFile_ThrowsStorageException() throws IOException {
-        // Arrange
-        Long listingId = testListing.getId();
-        String username = testUser.getUsername();
-        MockMultipartFile emptyFile = new MockMultipartFile("file", "", "image/jpeg", new byte[0]); // Empty file
-        
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        
-        // Act & Assert
-        StorageException exception = assertThrows(StorageException.class, () -> {
-            carListingService.uploadListingImage(listingId, emptyFile, username);
-        });
-        
-        assertEquals("File provided for upload is null or empty.", exception.getMessage());
-        
-        // Verify interactions
-        verify(userRepository).findByUsername(username);
-        verify(carListingRepository, never()).findById(anyLong());
-        verify(storageService, never()).store(any(MultipartFile.class), anyString());
-        verify(carListingRepository, never()).save(any());
-    }
-
-    @Test
-    void uploadListingImage_StorageFailure_ThrowsStorageException() throws IOException { // Renamed from uploadListingImage_StorageFailure_ThrowsRuntimeException
-        // Arrange
-        Long listingId = testListing.getId();
-        String username = testUser.getUsername();
-        MockMultipartFile file = new MockMultipartFile("file", "hello.jpg", "image/jpeg", "content".getBytes());
-        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-        
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(testListing));
-        doThrow(new StorageException("Disk full")).when(storageService).store(eq(file), keyCaptor.capture());
-        
-        // Act & Assert
-        StorageException exception = assertThrows(StorageException.class, () -> {
-            carListingService.uploadListingImage(listingId, file, username);
-        });
-        
-        assertEquals("Disk full", exception.getMessage()); // Corrected expected message
-        
-        // Verify interactions
-        verify(userRepository).findByUsername(username);
-        verify(carListingRepository).findById(listingId);
-        verify(storageService).store(eq(file), anyString());
-        verify(carListingRepository, never()).save(any());
-    }
-
-    @Test
-    void uploadListingImage_WithNullOriginalFilename_ShouldGenerateSafeKey() throws IOException {
-        // Arrange
-        Long listingId = testListing.getId();
-        String username = testUser.getUsername();
-        // File with null original filename
-        MockMultipartFile file = new MockMultipartFile("file", null, "image/png", "content".getBytes());
-        String expectedKey = "listings/" + listingId + "/123456_";
-
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        when(carListingRepository.findById(listingId)).thenReturn(Optional.of(testListing));
-        when(storageService.store(eq(file), anyString())).thenReturn(expectedKey);
-        when(carListingRepository.save(any(CarListing.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(carListingMediaService.uploadListingImage(listingId, file, username)).thenReturn(expectedKey);
 
         // Act
-        String returnedKey = carListingService.uploadListingImage(listingId, file, username);
+        String result = carListingService.uploadListingImage(listingId, file, username);
 
         // Assert
-        assertNotNull(returnedKey);
-        assertEquals(expectedKey, returnedKey);
+        assertEquals(expectedKey, result);
+        verify(carListingMediaService).uploadListingImage(listingId, file, username);
+    }
 
-        // Verify store was called with the expected key
-        verify(storageService).store(eq(file), eq(expectedKey));
+    @Test
+    void uploadListingVideo_ShouldDelegateToMediaService() throws IOException {
+        // Arrange
+        Long listingId = testListing.getId();
+        String username = testUser.getUsername();
+        MockMultipartFile file = new MockMultipartFile("file", "test.mp4", "video/mp4", "content".getBytes());
+        String expectedKey = "video-key";
 
-        // Assert the format of the returned key
-        assertTrue(returnedKey.startsWith("listings/" + listingId + "/"));
-        assertTrue(returnedKey.matches("listings/" + listingId + "/\\d+_"),
-                   "Generated key '" + returnedKey + "' did not match expected pattern.");
+        when(carListingMediaService.uploadListingVideo(listingId, file, username)).thenReturn(expectedKey);
 
-        // Verify save was called with the correct key
-        verify(carListingRepository).save(argThat(l -> {
-            if (!l.getMedia().isEmpty()) {
-                ListingMedia media = l.getMedia().get(0);
-                return expectedKey.equals(media.getFileKey());
-            }
-            return false;
-        }));
+        // Act
+        String result = carListingService.uploadListingVideo(listingId, file, username);
+
+        // Assert
+        assertEquals(expectedKey, result);
+        verify(carListingMediaService).uploadListingVideo(listingId, file, username);
     }
 
     // --- Test for getMyListings ---
@@ -633,10 +454,8 @@ class CarListingServiceTest {
         CarListingResponse response2 = new CarListingResponse(); // Setup response 2
         response2.setId(2L);
 
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
-        when(carListingRepository.findBySeller(testUser)).thenReturn(userListings);
-        when(carListingMapper.toCarListingResponse(listing1)).thenReturn(response1);
-        when(carListingMapper.toCarListingResponse(listing2)).thenReturn(response2);
+        List<CarListingResponse> expectedResponses = Arrays.asList(response1, response2);
+        when(crudService.getMyListings(username)).thenReturn(expectedResponses);
 
         // Act
         List<CarListingResponse> result = carListingService.getMyListings(username);
@@ -646,10 +465,7 @@ class CarListingServiceTest {
         assertEquals(2, result.size());
         assertEquals(1L, result.get(0).getId());
         assertEquals(2L, result.get(1).getId());
-
-        verify(userRepository).findByUsername(username);
-        verify(carListingRepository).findBySeller(testUser);
-        verify(carListingMapper, times(2)).toCarListingResponse(any());
+        verify(crudService).getMyListings(username);
     }
 
     // --- Tests for seller type count functionality ---
@@ -658,11 +474,9 @@ class CarListingServiceTest {
     void getCountsBySellerType_WithNoFilters_ShouldUseDirectDatabaseQuery() {
         // Arrange
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        Object[] businessResult = {"BUSINESS", 100L};
-        Object[] privateResult = {"PRIVATE", 50L};
-        List<Object[]> mockResults = Arrays.asList(businessResult, privateResult);
+        Map<String, Long> expectedResult = Map.of("BUSINESS", 100L, "PRIVATE", 50L);
 
-        when(carListingRepository.findDistinctSellerTypesWithCounts()).thenReturn(mockResults);
+        when(analyticsService.getCountsBySellerType(filterRequest)).thenReturn(expectedResult);
 
         // Act
         var result = carListingService.getCountsBySellerType(filterRequest);
@@ -672,8 +486,8 @@ class CarListingServiceTest {
         assertEquals(2, result.size());
         assertEquals(100L, result.get("BUSINESS"));
         assertEquals(50L, result.get("PRIVATE"));
-        
-        verify(carListingRepository).findDistinctSellerTypesWithCounts();
+
+        verify(analyticsService).getCountsBySellerType(filterRequest);
     }
 
     @Test
@@ -682,22 +496,9 @@ class CarListingServiceTest {
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         filterRequest.setBrandSlugs(Arrays.asList("toyota"));
 
-        // Mock filtered listings with different seller types
-        CarListing businessListing = createTestListing();
-        CarListing privateListing = createTestListing();
-        
-        // Create mock users with different seller types
-        User businessUser = createTestUser();
-        User privateUser = createTestUser();
-        businessUser.setSellerType(createSellerType("BUSINESS"));
-        privateUser.setSellerType(createSellerType("PRIVATE"));
-        
-        businessListing.setSeller(businessUser);
-        privateListing.setSeller(privateUser);
-        
-        List<CarListing> filteredListings = Arrays.asList(businessListing, privateListing);
+        Map<String, Long> expectedResult = Map.of("BUSINESS", 1L, "PRIVATE", 1L);
 
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(filteredListings);
+        when(analyticsService.getCountsBySellerType(filterRequest)).thenReturn(expectedResult);
 
         // Act
         var result = carListingService.getCountsBySellerType(filterRequest);
@@ -707,9 +508,8 @@ class CarListingServiceTest {
         assertEquals(2, result.size());
         assertEquals(1L, result.get("BUSINESS"));
         assertEquals(1L, result.get("PRIVATE"));
-        
-        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any());
-        verify(carListingRepository, never()).findDistinctSellerTypesWithCounts();
+
+        verify(analyticsService).getCountsBySellerType(filterRequest);
     }
 
     @Test
@@ -720,23 +520,9 @@ class CarListingServiceTest {
         filterRequest.setMinYear(2020);
         filterRequest.setMaxPrice(BigDecimal.valueOf(50000));
 
-        // Create multiple listings with same seller type
-        CarListing businessListing1 = createTestListing();
-        CarListing businessListing2 = createTestListing();
-        CarListing privateListing = createTestListing();
-        
-        User businessUser = createTestUser();
-        User privateUser = createTestUser();
-        businessUser.setSellerType(createSellerType("BUSINESS"));
-        privateUser.setSellerType(createSellerType("PRIVATE"));
-        
-        businessListing1.setSeller(businessUser);
-        businessListing2.setSeller(businessUser);
-        privateListing.setSeller(privateUser);
-        
-        List<CarListing> filteredListings = Arrays.asList(businessListing1, businessListing2, privateListing);
+        Map<String, Long> expectedResult = Map.of("BUSINESS", 2L, "PRIVATE", 1L);
 
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(filteredListings);
+        when(analyticsService.getCountsBySellerType(filterRequest)).thenReturn(expectedResult);
 
         // Act
         var result = carListingService.getCountsBySellerType(filterRequest);
@@ -747,7 +533,7 @@ class CarListingServiceTest {
         assertEquals(2L, result.get("BUSINESS")); // Two business listings
         assertEquals(1L, result.get("PRIVATE"));  // One private listing
         
-        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any());
+        verify(analyticsService).getCountsBySellerType(filterRequest);
     }
 
     @Test
@@ -757,20 +543,9 @@ class CarListingServiceTest {
         filterRequest.setSellerTypeIds(Arrays.asList(1L)); // This should be ignored
         filterRequest.setBrandSlugs(Arrays.asList("toyota")); // This should be applied
 
-        CarListing businessListing = createTestListing();
-        CarListing privateListing = createTestListing();
-        
-        User businessUser = createTestUser();
-        User privateUser = createTestUser();
-        businessUser.setSellerType(createSellerType("BUSINESS"));
-        privateUser.setSellerType(createSellerType("PRIVATE"));
-        
-        businessListing.setSeller(businessUser);
-        privateListing.setSeller(privateUser);
-        
-        List<CarListing> filteredListings = Arrays.asList(businessListing, privateListing);
+        Map<String, Long> expectedResult = Map.of("BUSINESS", 1L, "PRIVATE", 1L);
 
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(filteredListings);
+        when(analyticsService.getCountsBySellerType(filterRequest)).thenReturn(expectedResult);
 
         // Act
         var result = carListingService.getCountsBySellerType(filterRequest);
@@ -781,8 +556,8 @@ class CarListingServiceTest {
         assertEquals(1L, result.get("BUSINESS"));
         assertEquals(1L, result.get("PRIVATE"));
         
-        // Verify that both seller types are returned despite sellerTypeId filter
-        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any());
+        // Verify that analytics service is called
+        verify(analyticsService).getCountsBySellerType(filterRequest);
     }
 
     @Test
@@ -791,20 +566,9 @@ class CarListingServiceTest {
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         filterRequest.setBrandSlugs(Arrays.asList("toyota"));
 
-        CarListing validListing = createTestListing();
-        CarListing invalidListing = createTestListing();
-        
-        User validUser = createTestUser();
-        User invalidUser = createTestUser();
-        validUser.setSellerType(createSellerType("BUSINESS"));
-        invalidUser.setSellerType(null); // Null seller type
-        
-        validListing.setSeller(validUser);
-        invalidListing.setSeller(invalidUser);
-        
-        List<CarListing> filteredListings = Arrays.asList(validListing, invalidListing);
+        Map<String, Long> expectedResult = Map.of("BUSINESS", 1L);
 
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(filteredListings);
+        when(analyticsService.getCountsBySellerType(filterRequest)).thenReturn(expectedResult);
 
         // Act
         var result = carListingService.getCountsBySellerType(filterRequest);
@@ -814,8 +578,8 @@ class CarListingServiceTest {
         assertEquals(1, result.size()); // Only valid seller type should be counted
         assertEquals(1L, result.get("BUSINESS"));
         assertNull(result.get("null"));
-        
-        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any());
+
+        verify(analyticsService).getCountsBySellerType(filterRequest);
     }
 
     @Test
@@ -823,7 +587,7 @@ class CarListingServiceTest {
         // Arrange
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         
-        when(carListingRepository.findDistinctSellerTypesWithCounts())
+        when(analyticsService.getCountsBySellerType(filterRequest))
             .thenThrow(new RuntimeException("Database error"));
 
         // Act
@@ -832,8 +596,8 @@ class CarListingServiceTest {
         // Assert
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        
-        verify(carListingRepository).findDistinctSellerTypesWithCounts();
+
+        verify(analyticsService).getCountsBySellerType(filterRequest);
     }
 
     // Helper method to create seller type for testing
@@ -878,7 +642,14 @@ class CarListingServiceTest {
             new Object[]{"hybrid", 30L}
         );
         
-        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenReturn(mockResults);
+        Map<String, Long> expectedResult = Map.of(
+            "gasoline", 150L,
+            "diesel", 80L,
+            "electric", 20L,
+            "hybrid", 30L
+        );
+
+        when(analyticsService.getCountsByFuelType(filterRequest)).thenReturn(expectedResult);
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -890,8 +661,8 @@ class CarListingServiceTest {
         assertEquals(80L, result.get("diesel"));
         assertEquals(20L, result.get("electric"));
         assertEquals(30L, result.get("hybrid"));
-        
-        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+
+        verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
     @Test
@@ -900,16 +671,9 @@ class CarListingServiceTest {
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         filterRequest.setBrandSlugs(Arrays.asList("toyota", "honda"));
         
-        List<Object[]> mockResults = Arrays.asList(
-            new Object[]{"gasoline", 50L},
-            new Object[]{"diesel", 25L}
-        );
-        
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(Arrays.asList(
-            createTestListingWithFuelType("gasoline"),
-            createTestListingWithFuelType("gasoline"),
-            createTestListingWithFuelType("diesel")
-        ));
+        Map<String, Long> expectedResult = Map.of("gasoline", 2L, "diesel", 1L);
+
+        when(analyticsService.getCountsByFuelType(filterRequest)).thenReturn(expectedResult);
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -919,9 +683,8 @@ class CarListingServiceTest {
         assertEquals(2, result.size());
         assertEquals(2L, result.get("gasoline"));
         assertEquals(1L, result.get("diesel"));
-        
-        verify(carListingRepository, times(1)).findAll(ArgumentMatchers.<Specification<CarListing>>any());
-        verify(carListingRepository, never()).findDistinctFuelTypesWithCounts();
+
+        verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
     @Test
@@ -934,14 +697,13 @@ class CarListingServiceTest {
         filterRequest.setMinPrice(new BigDecimal("10000"));
         filterRequest.setMaxPrice(new BigDecimal("50000"));
         
-        List<CarListing> mockListings = Arrays.asList(
-            createTestListingWithFuelType("gasoline"),
-            createTestListingWithFuelType("gasoline"),
-            createTestListingWithFuelType("hybrid"),
-            createTestListingWithFuelType("electric")
+        Map<String, Long> expectedResult = Map.of(
+            "gasoline", 2L,
+            "hybrid", 1L,
+            "electric", 1L
         );
-        
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(mockListings);
+
+        when(analyticsService.getCountsByFuelType(filterRequest)).thenReturn(expectedResult);
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -952,8 +714,8 @@ class CarListingServiceTest {
         assertEquals(2L, result.get("gasoline"));
         assertEquals(1L, result.get("hybrid"));
         assertEquals(1L, result.get("electric"));
-        
-        verify(carListingRepository, times(1)).findAll(ArgumentMatchers.<Specification<CarListing>>any());
+
+        verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
     @Test
@@ -961,13 +723,11 @@ class CarListingServiceTest {
         // Given
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         
-        List<Object[]> mockResults = Arrays.asList(
-            new Object[]{"gasoline", 150L},
-            new Object[]{null, 10L}, // This should be filtered out
-            new Object[]{"diesel", 80L}
-        );
-        
-        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenReturn(mockResults);
+        Map<String, Long> expectedResult = new HashMap<>();
+        expectedResult.put("gasoline", 150L);
+        expectedResult.put("diesel", 80L);
+
+        when(analyticsService.getCountsByFuelType(filterRequest)).thenReturn(expectedResult);
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -977,16 +737,17 @@ class CarListingServiceTest {
         assertEquals(2, result.size());
         assertEquals(150L, result.get("gasoline"));
         assertEquals(80L, result.get("diesel"));
-        assertFalse(result.containsKey(null));
-        
-        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+        // Verify that null keys are not present (different approach for immutable maps)
+        assertFalse(result.keySet().contains(null));
+
+        verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
     @Test
     void getCountsByFuelType_WithException_ShouldReturnEmptyMap() {
         // Given
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenThrow(new RuntimeException("Database error"));
+        when(analyticsService.getCountsByFuelType(filterRequest)).thenThrow(new RuntimeException("Database error"));
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -994,15 +755,15 @@ class CarListingServiceTest {
         // Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        
-        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+
+        verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
     @Test
     void getCountsByFuelType_WithEmptyResults_ShouldReturnEmptyMap() {
         // Given
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenReturn(Collections.emptyList());
+        when(analyticsService.getCountsByFuelType(filterRequest)).thenReturn(Collections.emptyMap());
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -1010,8 +771,8 @@ class CarListingServiceTest {
         // Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        
-        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+
+        verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
     @Test
@@ -1019,13 +780,12 @@ class CarListingServiceTest {
         // Given
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         
-        List<Object[]> mockResults = Arrays.asList(
-            new Object[]{"gasoline", 150L},
-            new Object[]{"diesel", 0L}, // This should be filtered out
-            new Object[]{"electric", 20L}
+        Map<String, Long> expectedResult = Map.of(
+            "gasoline", 150L,
+            "electric", 20L
         );
-        
-        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenReturn(mockResults);
+
+        when(analyticsService.getCountsByFuelType(filterRequest)).thenReturn(expectedResult);
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -1036,8 +796,8 @@ class CarListingServiceTest {
         assertEquals(150L, result.get("gasoline"));
         assertEquals(20L, result.get("electric"));
         assertFalse(result.containsKey("diesel"));
-        
-        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+
+        verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
     private CarListing createTestListingWithFuelType(String fuelTypeName) {
@@ -1051,5 +811,122 @@ class CarListingServiceTest {
             listing.setFuelType(fuelType);
         }
         return listing;
+    }
+
+    // --- CRUD Delegation Tests ---
+
+    @Test
+    void canUserCreateListings_ShouldDelegateToCrudService() {
+        // Arrange
+        when(crudService.canUserCreateListings("testuser")).thenReturn(true);
+
+        // Act
+        boolean result = carListingService.canUserCreateListings("testuser");
+
+        // Assert
+        assertTrue(result);
+        verify(crudService).canUserCreateListings("testuser");
+    }
+
+    @Test
+    void getListingById_ShouldDelegateToCrudService() {
+        // Arrange
+        Long listingId = 1L;
+        when(crudService.getListingById(listingId)).thenReturn(testListingResponse);
+
+        // Act
+        CarListingResponse result = carListingService.getListingById(listingId);
+
+        // Assert
+        assertEquals(testListingResponse, result);
+        verify(crudService).getListingById(listingId);
+    }
+
+    @Test
+    void getMyListings_ShouldDelegateToCrudService() {
+        // Arrange
+        String username = "testuser";
+        List<CarListingResponse> expectedListings = Arrays.asList(testListingResponse);
+        when(crudService.getMyListings(username)).thenReturn(expectedListings);
+
+        // Act
+        List<CarListingResponse> result = carListingService.getMyListings(username);
+
+        // Assert
+        assertEquals(expectedListings, result);
+        verify(crudService).getMyListings(username);
+    }
+
+    @Test
+    void updateListing_ShouldDelegateToCrudService() {
+        // Arrange
+        Long listingId = 1L;
+        UpdateListingRequest request = new UpdateListingRequest();
+        String username = "testuser";
+
+        when(crudService.updateListing(listingId, request, username)).thenReturn(testListingResponse);
+
+        // Act
+        CarListingResponse result = carListingService.updateListing(listingId, request, username);
+
+        // Assert
+        assertEquals(testListingResponse, result);
+        verify(crudService).updateListing(listingId, request, username);
+    }
+
+    @Test
+    void deleteListing_ShouldDelegateToMediaServiceThenCrudService() {
+        // Arrange
+        Long listingId = 1L;
+        String username = "testuser";
+
+        // Act
+        carListingService.deleteListing(listingId, username);
+
+        // Assert
+        verify(carListingMediaService).deleteListingMedia(listingId);
+        verify(crudService).deleteListing(listingId, username);
+    }
+
+    @Test
+    void deleteListingAsAdmin_ShouldDelegateToMediaServiceThenCrudService() {
+        // Arrange
+        Long listingId = 1L;
+
+        // Act
+        carListingService.deleteListingAsAdmin(listingId);
+
+        // Assert
+        verify(carListingMediaService).deleteListingMedia(listingId);
+        verify(crudService).deleteListingAsAdmin(listingId);
+    }
+
+    @Test
+    void approveListingAsAdmin_ShouldDelegateToCrudService() {
+        // Arrange
+        Long listingId = 1L;
+        when(crudService.approveListingAsAdmin(listingId)).thenReturn(testListingResponse);
+
+        // Act
+        CarListingResponse result = carListingService.approveListingAsAdmin(listingId);
+
+        // Assert
+        assertEquals(testListingResponse, result);
+        verify(crudService).approveListingAsAdmin(listingId);
+    }
+
+    @Test
+    void getAllListingsAsAdmin_ShouldDelegateToCrudService() {
+        // Arrange
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<CarListingResponse> expectedPage = new PageImpl<>(Arrays.asList(testListingResponse));
+        when(crudService.getAllListingsAsAdmin(pageable)).thenReturn(expectedPage);
+
+        // Act
+        Page<CarListingResponse> result = carListingService.getAllListingsAsAdmin(pageable);
+
+        // Assert
+        assertEquals(expectedPage, result);
+        verify(crudService).getAllListingsAsAdmin(pageable);
     }
 }

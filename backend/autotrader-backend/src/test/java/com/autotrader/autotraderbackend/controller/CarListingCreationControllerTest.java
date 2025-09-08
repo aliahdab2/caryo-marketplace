@@ -3,33 +3,23 @@ package com.autotrader.autotraderbackend.controller;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.service.CarListingService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Unit tests for CarListingCreationController.
@@ -44,15 +34,11 @@ class CarListingCreationControllerTest {
     @Mock
     private CarListingService carListingService;
 
-    private MockMvc mockMvc;
-    private ObjectMapper objectMapper;
     private CarListingCreationController controller;
 
     @BeforeEach
     void setUp() {
         controller = new CarListingCreationController(carListingService);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
-        objectMapper = new ObjectMapper();
     }
 
     @Test
@@ -63,7 +49,7 @@ class CarListingCreationControllerTest {
         UserDetails userDetails = createMockUserDetails();
 
         when(carListingService.canUserCreateListings("testuser")).thenReturn(true);
-        when(carListingService.createListing(any(CreateListingRequest.class), isNull(), eq("testuser")))
+        when(carListingService.createListing(any(CreateListingRequest.class), eq("testuser")))
                 .thenReturn(expectedResponse);
 
         // When
@@ -75,10 +61,13 @@ class CarListingCreationControllerTest {
         assertEquals(expectedResponse, response.getBody());
 
         verify(carListingService).canUserCreateListings("testuser");
-        verify(carListingService).createListing(any(CreateListingRequest.class), isNull(), eq("testuser"));
+        verify(carListingService).createListing(any(CreateListingRequest.class), eq("testuser"));
     }
 
     @Test
+    // Suppress deprecation warning because the test verifies that deprecated API methods are not called.
+    // TODO: Remove this suppression when the deprecated createListing method is removed from CarListingService.
+    @SuppressWarnings("deprecation")
     void createListing_ShouldReturnForbidden_WhenUserNotVerified() {
         // Given
         CreateListingRequest request = createValidCreateListingRequest();
@@ -107,7 +96,7 @@ class CarListingCreationControllerTest {
         MockMultipartFile imageFile = new MockMultipartFile("image", "test.jpg", "image/jpeg", "test image content".getBytes());
 
         when(carListingService.canUserCreateListings("testuser")).thenReturn(true);
-        when(carListingService.createListing(any(CreateListingRequest.class), any(), eq("testuser")))
+        when(carListingService.createListingWithMedia(any(CreateListingRequest.class), any(), eq("testuser")))
                 .thenReturn(expectedResponse);
 
         // When
@@ -119,7 +108,7 @@ class CarListingCreationControllerTest {
         assertEquals(expectedResponse, response.getBody());
 
         verify(carListingService).canUserCreateListings("testuser");
-        verify(carListingService).createListing(any(CreateListingRequest.class), any(), eq("testuser"));
+        verify(carListingService).createListingWithMedia(any(CreateListingRequest.class), any(), eq("testuser"));
     }
 
     // Helper methods

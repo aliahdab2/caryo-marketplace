@@ -11,7 +11,6 @@ import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
-import com.autotrader.autotraderbackend.service.I18nService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -76,8 +75,9 @@ public class CarListingStatusService {
         listing.setSold(true);
         CarListing updatedListing = carListingRepository.save(listing);
         log.info("Admin successfully marked listing ID {} as sold", listingId);
+
         eventPublisher.publishEvent(new ListingMarkedAsSoldEvent(this, updatedListing, true));
-        
+
         return carListingMapper.toCarListingResponseForAdmin(updatedListing);
     }
 
@@ -96,10 +96,10 @@ public class CarListingStatusService {
 
         listing.setArchived(true);
         CarListing updatedListing = carListingRepository.save(listing);
-        
+
         eventPublisher.publishEvent(new ListingArchivedEvent(this, updatedListing, false));
         log.info("Published ListingArchivedEvent for listing ID: {}", updatedListing.getId());
-        
+
         log.info("Successfully archived listing ID {} by user {}", listingId, username);
         return carListingMapper.toCarListingResponse(updatedListing);
     }
@@ -124,7 +124,8 @@ public class CarListingStatusService {
         listing.setArchived(true);
         CarListing updatedListing = carListingRepository.save(listing);
         log.info("Admin successfully archived listing ID {}", listingId);
-        eventPublisher.publishEvent(new ListingArchivedEvent(this, updatedListing, true)); 
+
+        eventPublisher.publishEvent(new ListingArchivedEvent(this, updatedListing, true));
         log.info("Published ListingArchivedEvent for listing ID: {} (admin)", updatedListing.getId());
         return carListingMapper.toCarListingResponse(updatedListing);
     }
@@ -246,7 +247,7 @@ public class CarListingStatusService {
         CarListing approvedListing = carListingRepository.save(carListing);
         log.info("Successfully approved listing ID: {}", approvedListing.getId());
 
-        eventPublisher.publishEvent(new ListingApprovedEvent(this, approvedListing)); 
+        eventPublisher.publishEvent(new ListingApprovedEvent(this, approvedListing));
         log.info("Published ListingApprovedEvent for listing ID: {}", approvedListing.getId());
 
         return carListingMapper.toCarListingResponse(approvedListing);
@@ -282,10 +283,10 @@ public class CarListingStatusService {
         listing.setIsUserActive(false); // Deactivate the listing
 
         CarListing updatedListing = carListingRepository.save(listing);
-        
+
         eventPublisher.publishEvent(new ListingExpiredEvent(this, updatedListing, true));
         log.info("Successfully expired listing ID {}", listingId);
-        
+
         return carListingMapper.toCarListingResponse(updatedListing);
     }
 
