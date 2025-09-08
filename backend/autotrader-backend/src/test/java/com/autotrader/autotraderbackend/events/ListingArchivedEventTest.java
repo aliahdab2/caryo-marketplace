@@ -56,9 +56,9 @@ class ListingArchivedEventTest {
     }
 
     @Test
-    void constructor_ShouldThrowIllegalArgumentException_WhenListingIsNull() {
+    void constructor_ShouldThrowNullPointerException_WhenListingIsNull() {
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
+        NullPointerException exception = assertThrows(NullPointerException.class,
             () -> new ListingArchivedEvent(source, null, false));
         assertEquals("CarListing cannot be null", exception.getMessage());
     }
@@ -77,20 +77,20 @@ class ListingArchivedEventTest {
         when(mockListing.getId()).thenReturn(LISTING_ID);
         when(mockListing.getSeller()).thenReturn(mockSeller);
         when(mockSeller.getUsername()).thenReturn(SELLER_USERNAME);
+        when(mockSeller.getId()).thenReturn(0L);
 
         // Act
         ListingArchivedEvent event = new ListingArchivedEvent(source, mockListing, false);
 
         // Assert
-        assertEquals(
-            String.format("ListingArchivedEvent[listingId=%d, isAdminAction=%s, seller=%s]", // Changed to listingId
-                LISTING_ID, false, SELLER_USERNAME),
-            event.toString()
-        );
+        String expectedStart = String.format("ListingArchivedEvent[listingId=%d, action=Seller archived their own listing, seller='%s'(ID:0), source='unknown', timestamp=",
+                LISTING_ID, SELLER_USERNAME);
+        assertTrue(event.toString().startsWith(expectedStart),
+                "toString should start with expected format: " + expectedStart);
     }
 
     @Test
-    void toString_ShouldHandleNullSeller() { // Renamed for clarity
+    void toString_ShouldHandleNullSeller() {
         // Arrange
         when(mockListing.getId()).thenReturn(LISTING_ID);
         when(mockListing.getSeller()).thenReturn(null);
@@ -99,11 +99,10 @@ class ListingArchivedEventTest {
         ListingArchivedEvent event = new ListingArchivedEvent(source, mockListing, true);
 
         // Assert
-        assertEquals(
-            String.format("ListingArchivedEvent[listingId=%d, isAdminAction=%s, seller=%s]", // Changed to listingId
-                LISTING_ID, true, "unknown"),
-            event.toString()
-        );
+        String expectedStart = String.format("ListingArchivedEvent[listingId=%d, action=Admin archived listing, seller='unknown'(ID:null), source='unknown', timestamp=",
+                LISTING_ID);
+        assertTrue(event.toString().startsWith(expectedStart),
+                "toString should start with expected format: " + expectedStart);
     }
 
     @Test
@@ -112,16 +111,15 @@ class ListingArchivedEventTest {
         when(mockListing.getId()).thenReturn(null);
         when(mockListing.getSeller()).thenReturn(mockSeller);
         when(mockSeller.getUsername()).thenReturn(SELLER_USERNAME);
+        when(mockSeller.getId()).thenReturn(0L);
 
         // Act
         ListingArchivedEvent event = new ListingArchivedEvent(source, mockListing, false);
 
         // Assert
-        assertEquals(
-            String.format("ListingArchivedEvent[listingId=%s, isAdminAction=%s, seller=%s]",
-                "null", false, SELLER_USERNAME),
-            event.toString()
-        );
+        String expectedStart = "ListingArchivedEvent[listingId=null, action=Seller archived their own listing, seller='testSeller'(ID:0), source='unknown', timestamp=";
+        assertTrue(event.toString().startsWith(expectedStart),
+                "toString should start with expected format: " + expectedStart);
     }
 
     @Test
@@ -134,10 +132,8 @@ class ListingArchivedEventTest {
         ListingArchivedEvent event = new ListingArchivedEvent(source, mockListing, true);
 
         // Assert
-        assertEquals(
-            String.format("ListingArchivedEvent[listingId=%s, isAdminAction=%s, seller=%s]",
-                "null", true, "unknown"),
-            event.toString()
-        );
+        String expectedStart = "ListingArchivedEvent[listingId=null, action=Admin archived listing, seller='unknown'(ID:null), source='unknown', timestamp=";
+        assertTrue(event.toString().startsWith(expectedStart),
+                "toString should start with expected format: " + expectedStart);
     }
 }

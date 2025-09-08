@@ -95,8 +95,19 @@ public class CarListingQueryService {
         // Validate sort fields first
         validateSortFields(pageable);
 
+        // Handle location filtering separately for listings operations
+        LocationFilterResult locationResult = processLocationFilters(filterRequest);
+
+        // If location filters were specified but no valid governorates found, return empty page
+        if (locationResult.wasAttempted && locationResult.governorates.isEmpty()) {
+            log.info("Location filter ({}) resulted in no valid governorates. Returning empty page.",
+                    locationResult.filterType);
+            Page<CarListing> emptyPage = new PageImpl<>(Collections.<CarListing>emptyList(), pageable, 0);
+            return emptyPage.map(carListingMapper::toCarListingResponse);
+        }
+
         // Build the complete specification
-        Specification<CarListing> spec = buildFilteredListingsSpec(filterRequest);
+        Specification<CarListing> spec = buildFilteredListingsSpec(filterRequest, locationResult);
 
         // Execute query and return mapped results
         Page<CarListing> listingPage = carListingRepository.findAll(spec, pageable);
@@ -109,17 +120,7 @@ public class CarListingQueryService {
     /**
      * Build the complete specification for filtered listings including location filtering.
      */
-    private Specification<CarListing> buildFilteredListingsSpec(ListingFilterRequest filterRequest) {
-        // Handle location filtering
-        LocationFilterResult locationResult = processLocationFilters(filterRequest);
-
-        // If location filters were specified but no valid governorates found, return impossible spec
-        if (locationResult.wasAttempted && locationResult.governorates.isEmpty()) {
-            log.info("Location filter ({}) resulted in no valid governorates. Returning empty results.",
-                    locationResult.filterType);
-            return (root, query, cb) -> cb.disjunction(); // Always false condition
-        }
-
+    private Specification<CarListing> buildFilteredListingsSpec(ListingFilterRequest filterRequest, LocationFilterResult locationResult) {
         // Build base specification from filter request
         Specification<CarListing> spec = CarListingSpecification.fromFilter(
                 filterRequest != null ? filterRequest : new ListingFilterRequest(),
@@ -215,6 +216,17 @@ public class CarListingQueryService {
     }
 
     /**
+     * Check if a specification represents an impossible condition (always false).
+     * This is used to detect when location filters were specified but no valid locations were found.
+     */
+    private boolean isImpossibleSpecification(Specification<CarListing> spec) {
+        // This is a simple heuristic - in a real implementation, you might want to
+        // implement a more sophisticated check or modify the specification building
+        // to return a known impossible specification
+        return false; // For now, assume all specifications are possible
+    }
+
+    /**
      * Get the count of filtered and approved listings based on criteria.
      * If isSold is not specified in filterRequest, defaults to false (not sold).
      * If isArchived is not specified in filterRequest, defaults to false (not archived).
@@ -223,73 +235,23 @@ public class CarListingQueryService {
     public long getFilteredListingsCount(ListingFilterRequest filterRequest) {
         log.debug("Counting filtered listings with filter: {}", filterRequest);
 
-        Specification<CarListing> spec;
-        boolean locationFilterAttempted = false;
-        String locationFilterType = "none"; // For logging
-        List<Governorate> governoratesToFilterBy = new ArrayList<>();
+        // Handle location filtering separately for count operations
+        // This ensures we return 0 immediately when location filters are invalid
+        LocationFilterResult locationResult = processLocationFilters(filterRequest);
 
-        if (filterRequest != null && filterRequest.getLocationId() != null) {
-            locationFilterAttempted = true;
-            locationFilterType = "ID: " + filterRequest.getLocationId();
-            Optional<Governorate> governorateOpt = governorateRepository.findById(filterRequest.getLocationId());
-            if (governorateOpt.isPresent()) {
-                governoratesToFilterBy.add(governorateOpt.get());
-                log.info("Governorate found by ID: {}. Applying filter.", filterRequest.getLocationId());
-            } else {
-                log.warn("Governorate ID {} provided in filter but not found. No listings will match this location criterion.", filterRequest.getLocationId());
-            }
-        } else if (filterRequest != null && filterRequest.getLocations() != null && !filterRequest.getLocations().isEmpty()) {
-            locationFilterAttempted = true;
-            locationFilterType = "slugs: " + filterRequest.getLocations();
-
-            for (String locationSlug : filterRequest.getLocations()) {
-                if (StringUtils.isNotBlank(locationSlug)) {
-                    Optional<Governorate> governorateOpt = governorateRepository.findBySlug(locationSlug.trim());
-                    if (governorateOpt.isPresent()) {
-                        governoratesToFilterBy.add(governorateOpt.get());
-                        log.info("Governorate found by slug: '{}'. Adding to filter.", locationSlug);
-                    } else {
-                        log.warn("Governorate slug '{}' provided in filter but not found. Ignoring this location.", locationSlug);
-                    }
-                }
-            }
+        // If location filters were specified but no valid governorates found, return 0
+        if (locationResult.wasAttempted && locationResult.governorates.isEmpty()) {
+            log.info("Location filter ({}) resulted in no valid governorates. Returning count of 0.",
+                    locationResult.filterType);
+            return 0L;
         }
 
-        if (locationFilterAttempted && governoratesToFilterBy.isEmpty()) {
-            // Location filters were specified but no valid governorates were found.
-            // Return 0 count directly
-            log.info("Location filter ({}) resulted in no valid governorates. Returning count of 0.", locationFilterType);
-            return 0;
-        } else {
-            // Either no location filter was specified, or valid governorates were found.
-            spec = CarListingSpecification.fromFilter(filterRequest != null ? filterRequest : new ListingFilterRequest(), governoratesToFilterBy);
-            if (governoratesToFilterBy != null && !governoratesToFilterBy.isEmpty()) {
-                log.info("Applying governorate filter for {} locations.", governoratesToFilterBy.size());
-            } else if (!locationFilterAttempted) {
-                log.info("No location IDs or slugs provided in filter. Proceeding without specific governorate filter.");
-            }
-        }
+        // Use the same optimized specification building logic
+        Specification<CarListing> countSpec = buildFilteredListingsSpec(filterRequest, locationResult);
 
-        // Always combine with the 'approved' status filter
-        spec = spec.and(CarListingSpecification.isApproved());
-        // Also filter by user active status
-        spec = spec.and(CarListingSpecification.isUserActive());
+        long count = carListingRepository.count(countSpec);
+        log.info("Found {} filtered listings matching criteria", count);
 
-        // Apply isSold and isArchived filters
-        // If not specified in the request, default to showing NOT sold and NOT archived listings.
-        if (filterRequest == null || filterRequest.getIsSold() == null) {
-            spec = spec.and(CarListingSpecification.isNotSold());
-            log.debug("Defaulting filter to isSold=false as it was not specified.");
-        }
-
-        if (filterRequest == null || filterRequest.getIsArchived() == null) {
-            spec = spec.and(CarListingSpecification.isNotArchived());
-            log.debug("Defaulting filter to isArchived=false as it was not specified.");
-        }
-
-        long count = carListingRepository.count(spec);
-        log.info("Found {} filtered listings matching criteria (Location filter used: {})",
-                 count, locationFilterType);
         return count;
     }
 
@@ -311,3 +273,4 @@ public class CarListingQueryService {
         }
     }
 }
+

@@ -2,7 +2,6 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.exception.StorageException;
-import com.autotrader.autotraderbackend.mapper.CarListingMapper;
 import com.autotrader.autotraderbackend.model.CarListing;
 
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
@@ -10,11 +9,6 @@ import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
-import com.autotrader.autotraderbackend.repository.GovernorateRepository;
-import com.autotrader.autotraderbackend.repository.LocationRepository;
-import com.autotrader.autotraderbackend.repository.UserRepository;
-import com.autotrader.autotraderbackend.service.storage.StorageKeyGenerator;
-import com.autotrader.autotraderbackend.service.storage.StorageService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -119,7 +113,7 @@ public class CarListingService {
             }
 
             // Delegate media upload to media service
-            String imageKey = carListingMediaService.uploadListingImage(listingId, image, username);
+            carListingMediaService.uploadListingImage(listingId, image, username);
             log.info("Successfully uploaded initial image for new listing ID: {}", listingId);
 
         } catch (StorageException e) {

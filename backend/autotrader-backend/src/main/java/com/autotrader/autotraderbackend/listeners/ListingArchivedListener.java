@@ -28,6 +28,7 @@ import java.util.Objects;
  * - Transactional email notifications for admin actions
  * - Comprehensive logging for audit trails
  * - Error handling with graceful degradation
+ * - Configurable behavior via application properties
  *
  * @author AutoTrader Team
  * @version 1.1
@@ -37,6 +38,27 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ListingArchivedListener {
 
+    // Constants for configuration property keys
+    private static final String CONFIG_ADMIN_NOTIFICATIONS_ENABLED = "app.notifications.listing-archived.admin.enabled";
+    private static final String CONFIG_MAX_RETRIES = "app.notifications.listing-archived.max-retries";
+    private static final String CONFIG_DETAILED_LOGGING = "app.notifications.listing-archived.detailed-logging";
+    private static final String CONFIG_EMAIL_TIMEOUT = "app.notifications.listing-archived.email-timeout-seconds";
+    private static final String CONFIG_EMAIL_NOTIFICATIONS_ENABLED = "app.notifications.email.enabled";
+
+    // Default values
+    private static final int DEFAULT_MAX_RETRIES = 3;
+    private static final int DEFAULT_EMAIL_TIMEOUT_SECONDS = 30;
+    private static final boolean DEFAULT_ADMIN_NOTIFICATIONS_ENABLED = true;
+    private static final boolean DEFAULT_DETAILED_LOGGING_ENABLED = true;
+    private static final boolean DEFAULT_EMAIL_NOTIFICATIONS_ENABLED = true;
+
+    // Logging constants
+    private static final String LOG_PROCESSING_START = "Processing listing archived event - Listing ID: {}, Action: {}";
+    private static final String LOG_PROCESSING_SUCCESS = "Successfully processed listing archived event - Listing ID: {}";
+    private static final String LOG_PROCESSING_ERROR = "Critical error processing listing archived event - Listing ID: {}, Error: {}";
+    private static final String LOG_ADMIN_ARCHIVAL = "ADMIN ARCHIVAL - Listing ID: {}, Title: '{}', Seller: {}, Timestamp: {}";
+    private static final String LOG_SELLER_ARCHIVAL = "SELLER ARCHIVAL - Listing ID: {}, Title: '{}', Seller: {}, Timestamp: {}";
+
     private final AsyncTransactionService txService;
     private final EmailService emailService;
 
@@ -45,17 +67,34 @@ public class ListingArchivedListener {
 
     /**
      * Configuration flag to enable/disable admin notification emails.
-     * Can be overridden via application properties: app.notifications.listing-archived.admin.enabled
+     * Can be overridden via application properties.
      */
-    @Value("${app.notifications.listing-archived.admin.enabled:true}")
+    @Value("${" + CONFIG_ADMIN_NOTIFICATIONS_ENABLED + ":" + DEFAULT_ADMIN_NOTIFICATIONS_ENABLED + "}")
     private boolean adminNotificationEnabled;
 
     /**
      * Maximum retry attempts for email notifications.
-     * Can be overridden via application properties: app.notifications.listing-archived.max-retries
      */
-    @Value("${app.notifications.listing-archived.max-retries:3}")
+    @Value("${" + CONFIG_MAX_RETRIES + ":" + DEFAULT_MAX_RETRIES + "}")
     private int maxRetryAttempts;
+
+    /**
+     * Enable/disable detailed logging for archival events.
+     */
+    @Value("${" + CONFIG_DETAILED_LOGGING + ":" + DEFAULT_DETAILED_LOGGING_ENABLED + "}")
+    private boolean detailedLoggingEnabled;
+
+    /**
+     * Timeout for email sending operations in seconds.
+     */
+    @Value("${" + CONFIG_EMAIL_TIMEOUT + ":" + DEFAULT_EMAIL_TIMEOUT_SECONDS + "}")
+    private int emailTimeoutSeconds;
+
+    /**
+     * Enable/disable all email notifications.
+     */
+    @Value("${" + CONFIG_EMAIL_NOTIFICATIONS_ENABLED + ":" + DEFAULT_EMAIL_NOTIFICATIONS_ENABLED + "}")
+    private boolean emailNotificationsEnabled;
     
     /**
      * Handle the listing archived event.
@@ -79,20 +118,34 @@ public class ListingArchivedListener {
         final CarListing listing = event.getListing();
         final boolean isAdminAction = event.isAdminAction();
 
-        log.info("Processing listing archived event - Listing ID: {}, Action: {}, Timestamp: {}",
-                listing.getId(), isAdminAction ? "ADMIN" : "SELLER", processingStart);
+        if (detailedLoggingEnabled) {
+            log.info(LOG_PROCESSING_START + ", Timestamp: {}, Source: {}",
+                    listing.getId(), isAdminAction ? "ADMIN" : "SELLER", processingStart, event.getArchivalSource());
+        } else {
+            log.info(LOG_PROCESSING_START,
+                    listing.getId(), isAdminAction ? "ADMIN" : "SELLER");
+        }
 
         try {
             txService.executeInTransaction(() -> {
                 processListingArchival(event, listing, isAdminAction);
             });
 
-            log.info("Successfully processed listing archived event - Listing ID: {}, Duration: {}ms",
-                    listing.getId(), System.currentTimeMillis() - processingStart.toInstant(java.time.ZoneOffset.UTC).toEpochMilli());
+            long processingDuration = System.currentTimeMillis() - processingStart.toInstant(java.time.ZoneOffset.UTC).toEpochMilli();
+            if (detailedLoggingEnabled) {
+                log.info(LOG_PROCESSING_SUCCESS + ", Duration: {}ms, Source: {}",
+                        listing.getId(), processingDuration, event.getArchivalSource());
+            } else {
+                log.info(LOG_PROCESSING_SUCCESS, listing.getId());
+            }
 
         } catch (Exception e) {
-            log.error("Critical error processing listing archived event - Listing ID: {}, Error: {}",
-                    listing.getId(), e.getMessage(), e);
+            if (detailedLoggingEnabled) {
+                log.error(LOG_PROCESSING_ERROR + ", Source: {}",
+                        listing.getId(), e.getMessage(), event.getArchivalSource(), e);
+            } else {
+                log.error(LOG_PROCESSING_ERROR, listing.getId(), e.getMessage(), e);
+            }
             // Don't rethrow - we don't want to break the main archival process
         }
     }
@@ -134,13 +187,17 @@ public class ListingArchivedListener {
      */
     private void logArchivalDetails(CarListing listing, boolean isAdminAction, String sellerInfo) {
         if (isAdminAction) {
-            log.info("ADMIN ARCHIVAL - Listing ID: {}, Title: '{}', Seller: {}, Timestamp: {}",
+            log.info(LOG_ADMIN_ARCHIVAL,
                     listing.getId(), listing.getTitle(), sellerInfo, LocalDateTime.now());
-            log.debug("Admin archival details - Listing: {}, Seller: {}", listing, sellerInfo);
+            if (detailedLoggingEnabled) {
+                log.debug("Admin archival details - Listing: {}, Seller: {}", listing, sellerInfo);
+            }
         } else {
-            log.info("SELLER ARCHIVAL - Listing ID: {}, Title: '{}', Seller: {}, Timestamp: {}",
+            log.info(LOG_SELLER_ARCHIVAL,
                     listing.getId(), listing.getTitle(), sellerInfo, LocalDateTime.now());
-            log.debug("Seller archival details - Listing: {}, Seller: {}", listing, sellerInfo);
+            if (detailedLoggingEnabled) {
+                log.debug("Seller archival details - Listing: {}, Seller: {}", listing, sellerInfo);
+            }
         }
     }
 
@@ -151,10 +208,16 @@ public class ListingArchivedListener {
         log.debug("Processing admin archival for listing ID: {}", listing.getId());
 
         // Send email notification if enabled
-        if (adminNotificationEnabled && event.getSellerId() != null) {
+        if (emailNotificationsEnabled && adminNotificationEnabled && event.getSellerId() != null) {
             sendAdminNotificationEmail(event, listing);
-        } else if (!adminNotificationEnabled) {
-            log.debug("Admin notification emails are disabled, skipping email for listing ID: {}", listing.getId());
+        } else {
+            if (!emailNotificationsEnabled) {
+                log.debug("Email notifications are globally disabled, skipping email for listing ID: {}", listing.getId());
+            } else if (!adminNotificationEnabled) {
+                log.debug("Admin notification emails are disabled, skipping email for listing ID: {}", listing.getId());
+            } else if (event.getSellerId() == null) {
+                log.debug("No seller ID available for listing ID: {}, skipping email notification", listing.getId());
+            }
         }
 
         // Additional admin-specific business logic can be added here
