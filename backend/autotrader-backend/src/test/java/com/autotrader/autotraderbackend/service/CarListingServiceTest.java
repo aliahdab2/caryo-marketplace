@@ -42,13 +42,13 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-
-import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
 class CarListingServiceTest {
@@ -82,6 +82,9 @@ class CarListingServiceTest {
 
     @Mock
     private CarListingCrudService crudService;
+
+    @Mock
+    private CarListingAnalyticsService analyticsService;
 
     @InjectMocks
     private CarListingService carListingService;
@@ -501,11 +504,9 @@ class CarListingServiceTest {
     void getCountsBySellerType_WithNoFilters_ShouldUseDirectDatabaseQuery() {
         // Arrange
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        Object[] businessResult = {"BUSINESS", 100L};
-        Object[] privateResult = {"PRIVATE", 50L};
-        List<Object[]> mockResults = Arrays.asList(businessResult, privateResult);
+        Map<String, Long> expectedResult = Map.of("BUSINESS", 100L, "PRIVATE", 50L);
 
-        when(carListingRepository.findDistinctSellerTypesWithCounts()).thenReturn(mockResults);
+        when(analyticsService.getCountsBySellerType(filterRequest)).thenReturn(expectedResult);
 
         // Act
         var result = carListingService.getCountsBySellerType(filterRequest);
@@ -515,8 +516,8 @@ class CarListingServiceTest {
         assertEquals(2, result.size());
         assertEquals(100L, result.get("BUSINESS"));
         assertEquals(50L, result.get("PRIVATE"));
-        
-        verify(carListingRepository).findDistinctSellerTypesWithCounts();
+
+        verify(analyticsService).getCountsBySellerType(filterRequest);
     }
 
     @Test
@@ -525,22 +526,9 @@ class CarListingServiceTest {
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         filterRequest.setBrandSlugs(Arrays.asList("toyota"));
 
-        // Mock filtered listings with different seller types
-        CarListing businessListing = createTestListing();
-        CarListing privateListing = createTestListing();
-        
-        // Create mock users with different seller types
-        User businessUser = createTestUser();
-        User privateUser = createTestUser();
-        businessUser.setSellerType(createSellerType("BUSINESS"));
-        privateUser.setSellerType(createSellerType("PRIVATE"));
-        
-        businessListing.setSeller(businessUser);
-        privateListing.setSeller(privateUser);
-        
-        List<CarListing> filteredListings = Arrays.asList(businessListing, privateListing);
+        Map<String, Long> expectedResult = Map.of("BUSINESS", 1L, "PRIVATE", 1L);
 
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(filteredListings);
+        when(analyticsService.getCountsBySellerType(filterRequest)).thenReturn(expectedResult);
 
         // Act
         var result = carListingService.getCountsBySellerType(filterRequest);
@@ -550,9 +538,8 @@ class CarListingServiceTest {
         assertEquals(2, result.size());
         assertEquals(1L, result.get("BUSINESS"));
         assertEquals(1L, result.get("PRIVATE"));
-        
-        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any());
-        verify(carListingRepository, never()).findDistinctSellerTypesWithCounts();
+
+        verify(analyticsService).getCountsBySellerType(filterRequest);
     }
 
     @Test
@@ -563,23 +550,9 @@ class CarListingServiceTest {
         filterRequest.setMinYear(2020);
         filterRequest.setMaxPrice(BigDecimal.valueOf(50000));
 
-        // Create multiple listings with same seller type
-        CarListing businessListing1 = createTestListing();
-        CarListing businessListing2 = createTestListing();
-        CarListing privateListing = createTestListing();
-        
-        User businessUser = createTestUser();
-        User privateUser = createTestUser();
-        businessUser.setSellerType(createSellerType("BUSINESS"));
-        privateUser.setSellerType(createSellerType("PRIVATE"));
-        
-        businessListing1.setSeller(businessUser);
-        businessListing2.setSeller(businessUser);
-        privateListing.setSeller(privateUser);
-        
-        List<CarListing> filteredListings = Arrays.asList(businessListing1, businessListing2, privateListing);
+        Map<String, Long> expectedResult = Map.of("BUSINESS", 2L, "PRIVATE", 1L);
 
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(filteredListings);
+        when(analyticsService.getCountsBySellerType(filterRequest)).thenReturn(expectedResult);
 
         // Act
         var result = carListingService.getCountsBySellerType(filterRequest);
@@ -590,7 +563,7 @@ class CarListingServiceTest {
         assertEquals(2L, result.get("BUSINESS")); // Two business listings
         assertEquals(1L, result.get("PRIVATE"));  // One private listing
         
-        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any());
+        verify(analyticsService).getCountsBySellerType(filterRequest);
     }
 
     @Test
@@ -600,20 +573,9 @@ class CarListingServiceTest {
         filterRequest.setSellerTypeIds(Arrays.asList(1L)); // This should be ignored
         filterRequest.setBrandSlugs(Arrays.asList("toyota")); // This should be applied
 
-        CarListing businessListing = createTestListing();
-        CarListing privateListing = createTestListing();
-        
-        User businessUser = createTestUser();
-        User privateUser = createTestUser();
-        businessUser.setSellerType(createSellerType("BUSINESS"));
-        privateUser.setSellerType(createSellerType("PRIVATE"));
-        
-        businessListing.setSeller(businessUser);
-        privateListing.setSeller(privateUser);
-        
-        List<CarListing> filteredListings = Arrays.asList(businessListing, privateListing);
+        Map<String, Long> expectedResult = Map.of("BUSINESS", 1L, "PRIVATE", 1L);
 
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(filteredListings);
+        when(analyticsService.getCountsBySellerType(filterRequest)).thenReturn(expectedResult);
 
         // Act
         var result = carListingService.getCountsBySellerType(filterRequest);
@@ -624,8 +586,8 @@ class CarListingServiceTest {
         assertEquals(1L, result.get("BUSINESS"));
         assertEquals(1L, result.get("PRIVATE"));
         
-        // Verify that both seller types are returned despite sellerTypeId filter
-        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any());
+        // Verify that analytics service is called
+        verify(analyticsService).getCountsBySellerType(filterRequest);
     }
 
     @Test
@@ -634,20 +596,9 @@ class CarListingServiceTest {
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         filterRequest.setBrandSlugs(Arrays.asList("toyota"));
 
-        CarListing validListing = createTestListing();
-        CarListing invalidListing = createTestListing();
-        
-        User validUser = createTestUser();
-        User invalidUser = createTestUser();
-        validUser.setSellerType(createSellerType("BUSINESS"));
-        invalidUser.setSellerType(null); // Null seller type
-        
-        validListing.setSeller(validUser);
-        invalidListing.setSeller(invalidUser);
-        
-        List<CarListing> filteredListings = Arrays.asList(validListing, invalidListing);
+        Map<String, Long> expectedResult = Map.of("BUSINESS", 1L);
 
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(filteredListings);
+        when(analyticsService.getCountsBySellerType(filterRequest)).thenReturn(expectedResult);
 
         // Act
         var result = carListingService.getCountsBySellerType(filterRequest);
@@ -657,8 +608,8 @@ class CarListingServiceTest {
         assertEquals(1, result.size()); // Only valid seller type should be counted
         assertEquals(1L, result.get("BUSINESS"));
         assertNull(result.get("null"));
-        
-        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any());
+
+        verify(analyticsService).getCountsBySellerType(filterRequest);
     }
 
     @Test
@@ -666,7 +617,7 @@ class CarListingServiceTest {
         // Arrange
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         
-        when(carListingRepository.findDistinctSellerTypesWithCounts())
+        when(analyticsService.getCountsBySellerType(filterRequest))
             .thenThrow(new RuntimeException("Database error"));
 
         // Act
@@ -675,8 +626,8 @@ class CarListingServiceTest {
         // Assert
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        
-        verify(carListingRepository).findDistinctSellerTypesWithCounts();
+
+        verify(analyticsService).getCountsBySellerType(filterRequest);
     }
 
     // Helper method to create seller type for testing
@@ -721,7 +672,14 @@ class CarListingServiceTest {
             new Object[]{"hybrid", 30L}
         );
         
-        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenReturn(mockResults);
+        Map<String, Long> expectedResult = Map.of(
+            "gasoline", 150L,
+            "diesel", 80L,
+            "electric", 20L,
+            "hybrid", 30L
+        );
+
+        when(analyticsService.getCountsByFuelType(filterRequest)).thenReturn(expectedResult);
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -733,8 +691,8 @@ class CarListingServiceTest {
         assertEquals(80L, result.get("diesel"));
         assertEquals(20L, result.get("electric"));
         assertEquals(30L, result.get("hybrid"));
-        
-        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+
+        verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
     @Test
@@ -743,16 +701,9 @@ class CarListingServiceTest {
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         filterRequest.setBrandSlugs(Arrays.asList("toyota", "honda"));
         
-        List<Object[]> mockResults = Arrays.asList(
-            new Object[]{"gasoline", 50L},
-            new Object[]{"diesel", 25L}
-        );
-        
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(Arrays.asList(
-            createTestListingWithFuelType("gasoline"),
-            createTestListingWithFuelType("gasoline"),
-            createTestListingWithFuelType("diesel")
-        ));
+        Map<String, Long> expectedResult = Map.of("gasoline", 2L, "diesel", 1L);
+
+        when(analyticsService.getCountsByFuelType(filterRequest)).thenReturn(expectedResult);
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -762,9 +713,8 @@ class CarListingServiceTest {
         assertEquals(2, result.size());
         assertEquals(2L, result.get("gasoline"));
         assertEquals(1L, result.get("diesel"));
-        
-        verify(carListingRepository, times(1)).findAll(ArgumentMatchers.<Specification<CarListing>>any());
-        verify(carListingRepository, never()).findDistinctFuelTypesWithCounts();
+
+        verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
     @Test
@@ -777,14 +727,13 @@ class CarListingServiceTest {
         filterRequest.setMinPrice(new BigDecimal("10000"));
         filterRequest.setMaxPrice(new BigDecimal("50000"));
         
-        List<CarListing> mockListings = Arrays.asList(
-            createTestListingWithFuelType("gasoline"),
-            createTestListingWithFuelType("gasoline"),
-            createTestListingWithFuelType("hybrid"),
-            createTestListingWithFuelType("electric")
+        Map<String, Long> expectedResult = Map.of(
+            "gasoline", 2L,
+            "hybrid", 1L,
+            "electric", 1L
         );
-        
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any())).thenReturn(mockListings);
+
+        when(analyticsService.getCountsByFuelType(filterRequest)).thenReturn(expectedResult);
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -795,8 +744,8 @@ class CarListingServiceTest {
         assertEquals(2L, result.get("gasoline"));
         assertEquals(1L, result.get("hybrid"));
         assertEquals(1L, result.get("electric"));
-        
-        verify(carListingRepository, times(1)).findAll(ArgumentMatchers.<Specification<CarListing>>any());
+
+        verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
     @Test
@@ -804,13 +753,11 @@ class CarListingServiceTest {
         // Given
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         
-        List<Object[]> mockResults = Arrays.asList(
-            new Object[]{"gasoline", 150L},
-            new Object[]{null, 10L}, // This should be filtered out
-            new Object[]{"diesel", 80L}
-        );
-        
-        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenReturn(mockResults);
+        Map<String, Long> expectedResult = new HashMap<>();
+        expectedResult.put("gasoline", 150L);
+        expectedResult.put("diesel", 80L);
+
+        when(analyticsService.getCountsByFuelType(filterRequest)).thenReturn(expectedResult);
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -820,16 +767,17 @@ class CarListingServiceTest {
         assertEquals(2, result.size());
         assertEquals(150L, result.get("gasoline"));
         assertEquals(80L, result.get("diesel"));
-        assertFalse(result.containsKey(null));
-        
-        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+        // Verify that null keys are not present (different approach for immutable maps)
+        assertFalse(result.keySet().contains(null));
+
+        verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
     @Test
     void getCountsByFuelType_WithException_ShouldReturnEmptyMap() {
         // Given
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenThrow(new RuntimeException("Database error"));
+        when(analyticsService.getCountsByFuelType(filterRequest)).thenThrow(new RuntimeException("Database error"));
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -837,15 +785,15 @@ class CarListingServiceTest {
         // Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        
-        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+
+        verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
     @Test
     void getCountsByFuelType_WithEmptyResults_ShouldReturnEmptyMap() {
         // Given
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenReturn(Collections.emptyList());
+        when(analyticsService.getCountsByFuelType(filterRequest)).thenReturn(Collections.emptyMap());
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -853,8 +801,8 @@ class CarListingServiceTest {
         // Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        
-        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+
+        verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
     @Test
@@ -862,13 +810,12 @@ class CarListingServiceTest {
         // Given
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         
-        List<Object[]> mockResults = Arrays.asList(
-            new Object[]{"gasoline", 150L},
-            new Object[]{"diesel", 0L}, // This should be filtered out
-            new Object[]{"electric", 20L}
+        Map<String, Long> expectedResult = Map.of(
+            "gasoline", 150L,
+            "electric", 20L
         );
-        
-        when(carListingRepository.findDistinctFuelTypesWithCounts()).thenReturn(mockResults);
+
+        when(analyticsService.getCountsByFuelType(filterRequest)).thenReturn(expectedResult);
 
         // When
         Map<String, Long> result = carListingService.getCountsByFuelType(filterRequest);
@@ -879,8 +826,8 @@ class CarListingServiceTest {
         assertEquals(150L, result.get("gasoline"));
         assertEquals(20L, result.get("electric"));
         assertFalse(result.containsKey("diesel"));
-        
-        verify(carListingRepository, times(1)).findDistinctFuelTypesWithCounts();
+
+        verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
     private CarListing createTestListingWithFuelType(String fuelTypeName) {
