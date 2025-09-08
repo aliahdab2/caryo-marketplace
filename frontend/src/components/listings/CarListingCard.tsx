@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import React from 'react';
+import React, { useState } from 'react';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { formatNumber } from '@/utils/localization';
 import { timeAgo } from '@/utils/dateUtils';
@@ -81,6 +81,14 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
   // Use year or modelYear - prioritize modelYear as it's more specific
   const displayYear = listing.modelYear || listing.year;
 
+  // State to track if video is currently playing
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+
+  // Callback to handle video playing state changes
+  const handleVideoPlayingChange = (playing: boolean) => {
+    setIsVideoPlaying(playing);
+  };
+
   // Helper function to get translated transmission text
   const getTransmissionText = (transmission?: string) => {
     if (!transmission) return '';
@@ -131,39 +139,45 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
 
   return (
     <div className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out h-full flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Favorite Button */}
-      <div className={`absolute top-2 ${isRTL ? 'left-2' : 'right-2'} z-10`} onClick={(e) => e.stopPropagation()}>
-        <FavoriteButton
-          listingId={listing.id.toString()}
-          variant="filled"
-          size="sm"
-          className="shadow-md hover:shadow-lg"
-          initialFavorite={initialFavorite}
-          onToggle={onFavoriteToggle}
-          user={user}
-        />
-      </div>
+      {/* Favorite Button - Hidden when video is playing */}
+      {!isVideoPlaying && (
+        <div className={`absolute top-2 ${isRTL ? 'left-2' : 'right-2'} z-10`} onClick={(e) => e.stopPropagation()}>
+          <FavoriteButton
+            listingId={listing.id.toString()}
+            variant="filled"
+            size="sm"
+            className="shadow-md hover:shadow-lg"
+            initialFavorite={initialFavorite}
+            onToggle={onFavoriteToggle}
+            user={user}
+          />
+        </div>
+      )}
 
       <Link href={`/listings/${listing.id}`} className="flex flex-col h-full group">
         {/* Image with Hover Navigation */}
-        <div className="relative h-48 w-full overflow-hidden">
+        <div className="relative h-52 w-full overflow-hidden">
           <HoverImageNavigation
             media={listing.media}
             alt={listing.title}
             className="w-full h-full"
-            sizes="(max-width: 768px) 100vw, 33vw"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            priority={false}
             onImageError={(e) => {
               e.currentTarget.src = getDefaultImageUrl();
             }}
+            onVideoPlayingChange={handleVideoPlayingChange}
           />
           
-          {/* Year Badge */}
-          <YearBadge 
-            year={displayYear} 
-            size="md" 
-            position="bottom-left" 
-            zIndex={30}
-          />
+          {/* Year Badge - Hidden when video is playing */}
+          {!isVideoPlaying && (
+            <YearBadge
+              year={displayYear}
+              size="md"
+              position="bottom-left"
+              zIndex={30}
+            />
+          )}
         </div>
 
         {/* Content */}

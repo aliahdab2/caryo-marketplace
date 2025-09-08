@@ -2,14 +2,14 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { MdDirectionsCar } from 'react-icons/md';
-import { Play } from 'lucide-react';
 import { CarListing } from '@/services/publicApi';
-import { transformMinioUrl } from '@/utils/mediaUtils';
 import ViewModeToggle, { ViewMode } from '@/components/search/ViewModeToggle';
 import CarListingListItem from '@/components/search/CarListingListItem';
 import { CarListingCardData } from '@/components/listings/CarListingCard';
+import HoverImageNavigation from '@/components/ui/HoverImageNavigation';
+import YearBadge from '@/components/ui/YearBadge';
+import { isVideoMedia } from '@/utils/mediaUtils';
 
 interface HomeCarListingsProps {
   latestCars: CarListing[];
@@ -25,39 +25,10 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
   isRTL = false
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [playingVideoIndex, setPlayingVideoIndex] = useState<number | null>(null);
 
-  // Helper function to check if media item is a video
-  const isVideoMedia = (mediaItem: { url: string; type: string }): boolean => {
-    if (mediaItem.type?.toLowerCase().includes('video')) return true;
-    
-    // Check if it's a YouTube URL
-    try {
-      const urlObj = new URL(mediaItem.url);
-      return urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be');
-    } catch {
-      return false;
-    }
-  };
+  // Video detection handled by shared utility function
 
-  // Helper function to get display media (prioritize images, show video if no images)
-  const getDisplayMedia = (media: CarListing['media']) => {
-    if (!media || media.length === 0) return null;
-    
-    // First try to find an image
-    const imageMedia = media.find(item => !isVideoMedia(item));
-    if (imageMedia) {
-      return { ...imageMedia, isVideo: false };
-    }
-    
-    // If no images, use the first video
-    const videoMedia = media.find(item => isVideoMedia(item));
-    if (videoMedia) {
-      return { ...videoMedia, isVideo: true };
-    }
-    
-    // Fallback to first media item
-    return { ...media[0], isVideo: isVideoMedia(media[0]) };
-  };
 
   const containerClassName = viewMode === 'grid'
     ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
@@ -88,7 +59,7 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
               key={index}
               className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden animate-pulse"
             >
-              <div className="h-48 bg-gray-300 dark:bg-gray-600"></div>
+              <div className="h-52 bg-gray-300 dark:bg-gray-600"></div>
               <div className="p-5">
                 <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded mb-2"></div>
                 <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded mb-4"></div>
@@ -102,7 +73,7 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
             </div>
           ))
         ) : latestCars.length > 0 ? (
-          latestCars.map((car) => {
+          latestCars.map((car, index) => {
             if (viewMode === 'list') {
               // Transform to CarListingCardData for list view
               const cardData: CarListingCardData = {
@@ -140,33 +111,41 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
             }
 
             // Grid view (original cards)
-            const displayMedia = getDisplayMedia(car.media);
-            
             return (
               <Link
                 key={car.id}
                 href={`/listings/${car.id}`}
                 className="block bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 ease-in-out group cursor-pointer"
               >
-                <div className="relative h-48">
-                  <Image
-                    src={displayMedia ? transformMinioUrl(displayMedia.url) || displayMedia.url : "/images/logo.png"}
+                <div className="relative h-52">
+                  <HoverImageNavigation
+                    media={car.media?.map(m => ({
+                      url: m.url,
+                      isPrimary: m.type === 'primary' || false,
+                      contentType: m.type,
+                      isVideo: isVideoMedia(m)
+                    }))}
                     alt={car.title}
-                    fill
-                    className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-105"
-                    unoptimized
+                    className="w-full h-full"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    priority={index < 3} // Prioritize loading for first 3 cars
+                    onImageError={(e) => {
+                      e.currentTarget.src = "/images/logo.png";
+                    }}
+                    onVideoPlayingChange={(isPlaying) => {
+                      setPlayingVideoIndex(isPlaying ? index : null);
+                    }}
                   />
-                  {/* Video Play Icon Overlay */}
-                  {displayMedia?.isVideo && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
-                      <div className="bg-white bg-opacity-90 rounded-full p-3 shadow-lg">
-                        <Play className="w-6 h-6 text-gray-800" fill="currentColor" />
-                      </div>
-                    </div>
+
+                  {/* Year Badge - Hidden when video is playing */}
+                  {playingVideoIndex !== index && (
+                    <YearBadge
+                      year={car.modelYear}
+                      size="md"
+                      position="bottom-left"
+                      zIndex={30}
+                    />
                   )}
-                  
-                  {/* Hover overlay for better UX feedback */}
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300" />
                 </div>
                 <div className="p-5">
                   <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
