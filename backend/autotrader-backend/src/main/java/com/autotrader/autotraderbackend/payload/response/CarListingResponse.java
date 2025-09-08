@@ -12,8 +12,6 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import com.autotrader.autotraderbackend.payload.response.SellerTypeResponse;
-
 // Keep Lombok annotations for potential future use/consistency, but add explicit methods
 @Getter
 @Setter
