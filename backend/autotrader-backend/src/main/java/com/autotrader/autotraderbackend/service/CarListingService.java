@@ -4,15 +4,7 @@ import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.mapper.CarListingMapper;
 import com.autotrader.autotraderbackend.model.CarListing;
-import com.autotrader.autotraderbackend.model.CarModel;
-import com.autotrader.autotraderbackend.model.Governorate; // Added
-import com.autotrader.autotraderbackend.model.ListingMedia;
-import com.autotrader.autotraderbackend.model.Location;
-import com.autotrader.autotraderbackend.model.Transmission;
-import com.autotrader.autotraderbackend.model.FuelType;
-import com.autotrader.autotraderbackend.model.BodyStyle;
-import java.util.ArrayList;
-import com.autotrader.autotraderbackend.model.User;
+
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
@@ -21,12 +13,9 @@ import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.GovernorateRepository;
 import com.autotrader.autotraderbackend.repository.LocationRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
-import com.autotrader.autotraderbackend.repository.specification.CarListingSpecification;
 import com.autotrader.autotraderbackend.service.storage.StorageKeyGenerator;
 import com.autotrader.autotraderbackend.service.storage.StorageService;
-import com.autotrader.autotraderbackend.service.TransmissionService;
-import com.autotrader.autotraderbackend.service.FuelTypeService;
-import com.autotrader.autotraderbackend.service.BodyStyleService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -40,7 +29,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -48,16 +36,7 @@ import java.util.Optional;
 public class CarListingService {
 
     private final CarListingRepository carListingRepository;
-    private final UserRepository userRepository;
-    private final LocationRepository locationRepository;
-    private final GovernorateRepository governorateRepository;
-    private final StorageService storageService;
-    private final StorageKeyGenerator storageKeyGenerator;
-    private final CarListingMapper carListingMapper;
-    private final CarModelService carModelService;
-    private final TransmissionService transmissionService;
-    private final FuelTypeService fuelTypeService;
-    private final BodyStyleService bodyStyleService;
+
     private final SavedSearchService savedSearchService;
     private final CarListingMediaService carListingMediaService;
     private final CarListingCrudService crudService;

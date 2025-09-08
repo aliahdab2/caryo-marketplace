@@ -31,7 +31,7 @@ public class ListingArchivedListener {
     private EntityManager entityManager;
 
     // Constructor for testing purposes
-    public ListingArchivedListener(AsyncTransactionService txService, EmailService emailService, EntityManager entityManager) {
+    ListingArchivedListener(AsyncTransactionService txService, EmailService emailService, EntityManager entityManager) {
         this.txService = txService;
         this.emailService = emailService;
         this.entityManager = entityManager;

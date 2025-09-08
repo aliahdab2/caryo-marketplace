@@ -37,7 +37,6 @@ class ListingArchivedListenerTest {
     @Mock
     private EntityManager entityManager;
 
-    @InjectMocks
     private ListingArchivedListener listener;
 
     @Captor
@@ -62,6 +61,9 @@ class ListingArchivedListenerTest {
 
         eventAdminAction = new ListingArchivedEvent(this, carListing, true);
         eventSellerAction = new ListingArchivedEvent(this, carListing, false);
+
+        // Create listener with mocked dependencies
+        listener = new ListingArchivedListener(txService, emailService, entityManager);
     }
 
     @Test
