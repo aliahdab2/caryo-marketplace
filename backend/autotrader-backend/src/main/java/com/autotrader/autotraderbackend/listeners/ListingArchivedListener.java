@@ -2,7 +2,6 @@ package com.autotrader.autotraderbackend.listeners;
 
 import com.autotrader.autotraderbackend.events.ListingArchivedEvent;
 import com.autotrader.autotraderbackend.model.CarListing;
-import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.service.AsyncTransactionService;
 import com.autotrader.autotraderbackend.service.EmailService;
 import jakarta.persistence.EntityManager;
@@ -31,7 +30,7 @@ public class ListingArchivedListener {
     private final EmailService emailService;
 
     @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
     
     /**
      * Handle the listing archived event.
