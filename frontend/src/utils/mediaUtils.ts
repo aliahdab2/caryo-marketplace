@@ -53,7 +53,7 @@ import type { VideoUrlInput } from '@/types/listings';
 import type { MediaItem } from '@/types/media';
 
 // Compiled regex for better performance
-const YOUTUBE_URL_REGEX = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
+const YOUTUBE_URL_REGEX = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&\n?#]+)/;
 
 export function isYouTubeUrl(url: string): boolean {
   if (!url || typeof url !== 'string') return false;
