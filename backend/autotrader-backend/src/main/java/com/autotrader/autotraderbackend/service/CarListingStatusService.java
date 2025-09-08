@@ -17,8 +17,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.util.Locale;
 
 @Service
@@ -29,9 +27,6 @@ public class CarListingStatusService {
     private final UserRepository userRepository;
     private final CarListingMapper carListingMapper;
     private final ApplicationEventPublisher eventPublisher;
-
-    @PersistenceContext
-    private EntityManager entityManager;
     private final I18nService i18nService;
 
     /**
