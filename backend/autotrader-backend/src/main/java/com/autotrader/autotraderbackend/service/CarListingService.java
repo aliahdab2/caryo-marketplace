@@ -131,11 +131,11 @@ public class CarListingService {
     }
 
     /**
-     * Legacy method for backward compatibility - now delegates to createListingWithMedia.
-     * @deprecated Use createListingWithMedia for new code
+     * Legacy method for backward compatibility - now delegates to {@link #createListingWithMedia(CreateListingRequest, MultipartFile, String)}.
+     * @deprecated Since 1.0. Use {@link #createListingWithMedia(CreateListingRequest, MultipartFile, String)} for new code. This method will be removed in a future release.
      */
     @Transactional
-    @Deprecated
+    @Deprecated(since = "1.0", forRemoval = true)
     public CarListingResponse createListing(CreateListingRequest request, MultipartFile image, String username) {
         return createListingWithMedia(request, image, username);
     }

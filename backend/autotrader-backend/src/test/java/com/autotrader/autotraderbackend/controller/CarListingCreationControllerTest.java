@@ -79,6 +79,8 @@ class CarListingCreationControllerTest {
     }
 
     @Test
+    // Suppress deprecation warning because the test verifies that deprecated API methods are not called.
+    // TODO: Remove suppression when the deprecated createListing method is removed from CarListingService.
     @SuppressWarnings("deprecation")
     void createListing_ShouldReturnForbidden_WhenUserNotVerified() {
         // Given

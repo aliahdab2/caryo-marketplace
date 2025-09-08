@@ -67,9 +67,11 @@ class ListingArchivedListenerTest {
     @Test
     void handleListingArchived_adminAction_shouldExecuteInTransaction() {
         // Arrange
-        // Since we're using the real EntityManager, we need to persist the seller first
-        entityManager.persist(seller);
-        entityManager.flush();
+        // Since we're using the real EntityManager, we need to persist the seller first if not already persisted
+        if (!entityManager.contains(seller)) {
+            entityManager.persist(seller);
+            entityManager.flush();
+        }
 
         // Act
         listener.handleListingArchived(eventAdminAction);
@@ -95,6 +97,6 @@ class ListingArchivedListenerTest {
     @Test
     void handleListingArchived_withNullEvent_shouldThrowException() {
         // Act & Assert
-        assertThrows(NullPointerException.class, () -> listener.handleListingArchived(null));
+        assertThrows(IllegalArgumentException.class, () -> listener.handleListingArchived(null));
     }
 }
