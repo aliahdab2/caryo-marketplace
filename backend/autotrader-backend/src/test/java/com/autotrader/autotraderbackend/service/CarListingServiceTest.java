@@ -86,6 +86,9 @@ class CarListingServiceTest {
     @Mock
     private CarListingAnalyticsService analyticsService;
 
+    @Mock
+    private CarListingQueryService queryService;
+
     @InjectMocks
     private CarListingService carListingService;
 
@@ -305,55 +308,36 @@ class CarListingServiceTest {
     void getAllApprovedListings_ShouldReturnPageOfApprovedListings() {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
-        CarListing approvedListing1 = new CarListing(); // Setup listing 1
-        approvedListing1.setId(1L);
-        approvedListing1.setApproved(true);
-        approvedListing1.setSold(false);
-        approvedListing1.setArchived(false);
-        CarListing approvedListing2 = new CarListing(); // Setup listing 2
-        approvedListing2.setId(2L);
-        approvedListing2.setApproved(true);
-        approvedListing2.setSold(false);
-        approvedListing2.setArchived(false);
-        List<CarListing> listings = Arrays.asList(approvedListing1, approvedListing2);
-        Page<CarListing> listingPage = new PageImpl<>(listings, pageable, listings.size());
-
         CarListingResponse response1 = new CarListingResponse(); // Setup response 1
         response1.setId(1L);
         response1.setApproved(true);
         CarListingResponse response2 = new CarListingResponse(); // Setup response 2
         response2.setId(2L);
         response2.setApproved(true);
+        List<CarListingResponse> responses = Arrays.asList(response1, response2);
+        Page<CarListingResponse> responsePage = new PageImpl<>(responses, pageable, responses.size());
 
-        // Old: when(carListingRepository.findByApprovedTrue(pageable)).thenReturn(listingPage);
-        when(carListingRepository.findAll(ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<CarListing>>any(), eq(pageable))).thenReturn(listingPage);
-        // Mock mapper for each listing in the page
-        when(carListingMapper.toCarListingResponse(approvedListing1)).thenReturn(response1);
-        when(carListingMapper.toCarListingResponse(approvedListing2)).thenReturn(response2);
+        when(queryService.getAllApprovedListings(pageable)).thenReturn(responsePage);
 
         // Act
-        Page<CarListingResponse> responsePage = carListingService.getAllApprovedListings(pageable);
+        Page<CarListingResponse> result = carListingService.getAllApprovedListings(pageable);
 
         // Assert
-        assertNotNull(responsePage);
-        assertEquals(2, responsePage.getTotalElements());
-        assertEquals(2, responsePage.getContent().size());
-        assertEquals(response1, responsePage.getContent().get(0));
-        assertEquals(response2, responsePage.getContent().get(1));
-        // verify(carListingRepository).findByApprovedTrue(pageable);
-        verify(carListingRepository).findAll(ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<CarListing>>any(), eq(pageable));
-        verify(carListingMapper, times(2)).toCarListingResponse(any(CarListing.class)); // Verify mapper called twice
+        assertNotNull(result);
+        assertEquals(2, result.getTotalElements());
+        assertEquals(2, result.getContent().size());
+        assertEquals(response1, result.getContent().get(0));
+        assertEquals(response2, result.getContent().get(1));
+        verify(queryService).getAllApprovedListings(pageable);
     }
 
      @Test
     void getAllApprovedListings_WhenNoneFound_ShouldReturnEmptyPage() {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
-        Page<CarListing> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Page<CarListingResponse> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        // Old: when(carListingRepository.findByApprovedTrue(pageable)).thenReturn(emptyPage);
-        when(carListingRepository.findAll(ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<CarListing>>any(), eq(pageable))).thenReturn(emptyPage);
-        // No need to mock mapper as it won't be called for an empty page's map operation
+        when(queryService.getAllApprovedListings(pageable)).thenReturn(emptyPage);
 
         // Act
         Page<CarListingResponse> responsePage = carListingService.getAllApprovedListings(pageable);
@@ -362,9 +346,7 @@ class CarListingServiceTest {
         assertNotNull(responsePage);
         assertTrue(responsePage.isEmpty());
         assertEquals(0, responsePage.getTotalElements());
-        // verify(carListingRepository).findByApprovedTrue(pageable);
-        verify(carListingRepository).findAll(ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<CarListing>>any(), eq(pageable));
-        verify(carListingMapper, never()).toCarListingResponse(any()); // Mapper should not be called
+        verify(queryService).getAllApprovedListings(pageable);
     }
 
     @Test
@@ -374,37 +356,26 @@ class CarListingServiceTest {
         ListingFilterRequest filter = new ListingFilterRequest(); // Populate filter
         filter.setBrandSlugs(Arrays.asList("honda")); // Use new slug-based filtering
 
-        CarListing filteredListing = new CarListing(); // Setup listing
-        filteredListing.setId(1L);
-        // Set denormalized brand name for the listing itself
-        filteredListing.setBrandNameEn("Honda"); 
-        filteredListing.setBrandNameAr("هوندا");
-        filteredListing.setApproved(true);
-        List<CarListing> listings = Collections.singletonList(filteredListing);
-        Page<CarListing> listingPage = new PageImpl<>(listings, pageable, 1);
-
         CarListingResponse filteredResponse = new CarListingResponse(); // Setup response
         filteredResponse.setId(1L);
         // Set denormalized brand name for the response
-        filteredResponse.setBrandNameEn("Honda"); 
+        filteredResponse.setBrandNameEn("Honda");
         filteredResponse.setBrandNameAr("هوندا");
         filteredResponse.setApproved(true);
+        List<CarListingResponse> responses = Collections.singletonList(filteredResponse);
+        Page<CarListingResponse> responsePage = new PageImpl<>(responses, pageable, 1);
 
-        // FIX: Use ArgumentMatchers.<Specification<CarListing>>any() for type safety
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any(), eq(pageable))).thenReturn(listingPage);
-        when(carListingMapper.toCarListingResponse(filteredListing)).thenReturn(filteredResponse);
+        when(queryService.getFilteredListings(filter, pageable)).thenReturn(responsePage);
 
         // Act
-        Page<CarListingResponse> responsePage = carListingService.getFilteredListings(filter, pageable);
+        Page<CarListingResponse> result = carListingService.getFilteredListings(filter, pageable);
 
         // Assert
-        assertNotNull(responsePage);
-        assertEquals(1, responsePage.getTotalElements());
-        assertEquals(1, responsePage.getContent().size());
-        assertEquals(filteredResponse, responsePage.getContent().get(0));
-        // FIX: Use ArgumentMatchers.<Specification<CarListing>>any() for type safety
-        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any(), eq(pageable));
-        verify(carListingMapper).toCarListingResponse(filteredListing);
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(1, result.getContent().size());
+        assertEquals(filteredResponse, result.getContent().get(0));
+        verify(queryService).getFilteredListings(filter, pageable);
     }
 
     @Test
@@ -413,9 +384,9 @@ class CarListingServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         ListingFilterRequest filter = new ListingFilterRequest(); // Populate filter
         filter.setBrandSlugs(Arrays.asList("nonexistent"));
-        Page<CarListing> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Page<CarListingResponse> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        when(carListingRepository.findAll(ArgumentMatchers.<Specification<CarListing>>any(), eq(pageable))).thenReturn(emptyPage);
+        when(queryService.getFilteredListings(filter, pageable)).thenReturn(emptyPage);
 
         // Act
         Page<CarListingResponse> responsePage = carListingService.getFilteredListings(filter, pageable);
@@ -424,8 +395,7 @@ class CarListingServiceTest {
         assertNotNull(responsePage);
         assertTrue(responsePage.isEmpty());
         assertEquals(0, responsePage.getTotalElements());
-        verify(carListingRepository).findAll(ArgumentMatchers.<Specification<CarListing>>any(), eq(pageable));
-        verify(carListingMapper, never()).toCarListingResponse(any());
+        verify(queryService).getFilteredListings(filter, pageable);
     }
     // --- Media tests moved to CarListingMediaServiceTest ---
 

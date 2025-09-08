@@ -14,7 +14,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Listener for listing archived events.
@@ -25,12 +24,18 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ListingArchivedListener {
 
-    private final ListingEventUtils eventUtils;
     private final AsyncTransactionService txService;
     private final EmailService emailService;
 
     @PersistenceContext
-    private final EntityManager entityManager;
+    private EntityManager entityManager;
+
+    // Constructor for testing purposes
+    public ListingArchivedListener(AsyncTransactionService txService, EmailService emailService, EntityManager entityManager) {
+        this.txService = txService;
+        this.emailService = emailService;
+        this.entityManager = entityManager;
+    }
     
     /**
      * Handle the listing archived event.
