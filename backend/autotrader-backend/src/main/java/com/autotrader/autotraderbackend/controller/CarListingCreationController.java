@@ -65,7 +65,7 @@ public class CarListingCreationController {
                     .body(Map.of("message", "Email verification required to create listings. Please check your email and verify your account."));
         }
 
-        CarListingResponse response = carListingService.createListing(createRequest, userDetails.getUsername());
+        CarListingResponse response = carListingService.createListingWithMedia(createRequest, null, userDetails.getUsername());
         log.info("Successfully created listing with ID: {}", response.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
