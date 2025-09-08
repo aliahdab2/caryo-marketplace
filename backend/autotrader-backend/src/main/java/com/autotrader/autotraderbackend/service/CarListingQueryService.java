@@ -37,20 +37,33 @@ public class CarListingQueryService {
     private final CarListingMapper carListingMapper;
 
     /**
+     * Get the base specification for approved, active listings.
+     * This is the common specification used across multiple query methods.
+     *
+     * @return Specification for approved, not sold, not archived, and user active listings
+     */
+    private Specification<CarListing> getBaseApprovedListingsSpec() {
+        return Specification.where(CarListingSpecification.isApproved())
+                           .and(CarListingSpecification.isNotSold())
+                           .and(CarListingSpecification.isNotArchived())
+                           .and(CarListingSpecification.isUserActive());
+    }
+
+    /**
      * Get all approved listings with pagination.
      * By default, this excludes listings that are sold or archived.
      */
     @Transactional(readOnly = true)
     public Page<CarListingResponse> getAllApprovedListings(Pageable pageable) {
-        log.debug("Fetching approved, not sold, and not archived listings page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
+        log.debug("Fetching approved, not sold, and not archived listings page: {}, size: {}",
+                pageable.getPageNumber(), pageable.getPageSize());
 
-        Specification<CarListing> spec = Specification.where(CarListingSpecification.isApproved())
-                                                     .and(CarListingSpecification.isNotSold())
-                                                     .and(CarListingSpecification.isNotArchived())
-                                                     .and(CarListingSpecification.isUserActive());
-
+        Specification<CarListing> spec = getBaseApprovedListingsSpec();
         Page<CarListing> listingPage = carListingRepository.findAll(spec, pageable);
-        log.info("Found {} approved, not sold, not archived listings on page {}", listingPage.getNumberOfElements(), pageable.getPageNumber());
+
+        log.info("Found {} approved, not sold, not archived listings on page {}",
+                listingPage.getNumberOfElements(), pageable.getPageNumber());
+
         return listingPage.map(carListingMapper::toCarListingResponse);
     }
 
@@ -62,12 +75,9 @@ public class CarListingQueryService {
     public long getApprovedListingsCount() {
         log.debug("Counting approved, not sold, and not archived listings");
 
-        Specification<CarListing> spec = Specification.where(CarListingSpecification.isApproved())
-                                                     .and(CarListingSpecification.isNotSold())
-                                                     .and(CarListingSpecification.isNotArchived())
-                                                     .and(CarListingSpecification.isUserActive());
-
+        Specification<CarListing> spec = getBaseApprovedListingsSpec();
         long count = carListingRepository.count(spec);
+
         log.info("Found {} approved, not sold, not archived listings", count);
         return count;
     }
