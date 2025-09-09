@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { usePathname } from "next/navigation";
 import ToggleLanguageSwitcher from "@/components/ToggleLanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
+import NavbarLanguageSwitcher from "@/components/layout/NavbarLanguageSwitcher";
 import { useOptimizedUser } from "@/hooks/useOptimizedSession";
 import { MdLogout, MdPerson, MdSettings, MdDashboard, MdAdd, MdMail, MdMailOutline, MdBookmark, MdSearch, MdNotificationsNone, MdNotifications } from "react-icons/md";
 import { FiSearch } from "react-icons/fi";
@@ -76,9 +77,9 @@ export default function Navbar({ className }: ComponentProps) {
           </div>
 
           {/* Right Side - Navigation + Login/User Menu (Language Auto-Detected) */}
-          <div className="hidden sm:flex sm:items-center sm:space-x-2 md:space-x-3 rtl:space-x-reverse flex-shrink-0">
+          <div className="hidden sm:flex sm:items-center sm:space-x-1 md:space-x-2 rtl:space-x-reverse flex-shrink-0">
             {/* Navigation Items - Larger like Blocket */}
-            <div className="flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse" role="navigation" aria-label="Main navigation">
+            <div className="flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse" role="navigation" aria-label="Main navigation">
               {/* Post Ad Button - Horizontal layout like Blocket */}
               <Link
                 href={user ? "/dashboard/listings/new" : "/auth/signin"}
@@ -140,7 +141,12 @@ export default function Navbar({ className }: ComponentProps) {
                 <span className="text-xs leading-tight font-medium text-center w-full px-1">{t('search:search')}</span>
               </Link>
             </div>
-            
+
+            {/* Language Switcher - Next to Sign In */}
+            <div className="flex items-center">
+              <NavbarLanguageSwitcher />
+            </div>
+
             {/* User Menu / Login Button - Closer to navigation */}
             {user ? (
               <div className="relative" ref={userMenuRef}>
@@ -408,6 +414,11 @@ export default function Navbar({ className }: ComponentProps) {
           
           {/* User Section */}
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+            {/* Language Switcher for Mobile */}
+            <div className="px-3 py-2 mb-2">
+              <NavbarLanguageSwitcher />
+            </div>
+
             {user ? (
               <div className="space-y-1">
                 {/* User Info */}
