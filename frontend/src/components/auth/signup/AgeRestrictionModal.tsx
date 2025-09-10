@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface AgeRestrictionModalProps {
   isOpen: boolean;
@@ -11,6 +12,8 @@ export default function AgeRestrictionModal({
   onClose,
   userAge
 }: AgeRestrictionModalProps) {
+  const { t } = useTranslation('common');
+
   if (!isOpen) return null;
 
   return (
@@ -31,7 +34,7 @@ export default function AgeRestrictionModal({
               </div>
               <div className="ml-3">
                 <h3 className="text-lg font-semibold text-white">
-                  Age Restriction
+                  {t('ageRestriction.title')}
                 </h3>
               </div>
             </div>
@@ -48,14 +51,14 @@ export default function AgeRestrictionModal({
               </div>
 
               <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Account Creation Restricted
+                {t('ageRestriction.accountCreationRestricted')}
               </h4>
 
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 {userAge ? (
-                  <>You are currently <strong>{userAge} years old</strong>. Our platform requires users to be at least 18 years old to create an account.</>
+                  <>{t('ageRestriction.youAreYearsOld', { age: userAge })}</>
                 ) : (
-                  <>Our platform requires users to be at least 18 years old to create an account.</>
+                  <>{t('ageRestriction.platformRequires18')}</>
                 )}
               </p>
 
@@ -68,10 +71,10 @@ export default function AgeRestrictionModal({
                   </div>
                   <div className="ml-3">
                     <p className="text-sm text-blue-800 dark:text-blue-200">
-                      <strong>What can you do?</strong><br />
-                      • Check back when you&apos;re 18 or older<br />
-                      • Consider our teen-friendly features (coming soon)<br />
-                      • Contact support if you have questions
+                      <strong>{t('ageRestriction.whatCanYouDo')}</strong><br />
+                      • {t('ageRestriction.checkBackAt18')}<br />
+                      • {t('ageRestriction.teenFeatures')}<br />
+                      • {t('ageRestriction.contactSupport')}
                     </p>
                   </div>
                 </div>
@@ -85,7 +88,7 @@ export default function AgeRestrictionModal({
               onClick={onClose}
               className="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
             >
-              Go Back
+              {t('ageRestriction.goBack')}
             </button>
           </div>
         </div>

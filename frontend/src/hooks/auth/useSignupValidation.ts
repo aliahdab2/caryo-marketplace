@@ -1,7 +1,11 @@
 import { useMemo } from 'react';
 import { SignupFormData, SignupUIState } from './useSignupForm';
 
-export function useSignupValidation(formData: SignupFormData, uiState: SignupUIState) {
+export function useSignupValidation(
+  formData: SignupFormData,
+  uiState: SignupUIState,
+  t?: (key: string) => string
+) {
   const isValidPhoneNumber = useMemo(() => (phone: string) => {
     const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
     return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
@@ -57,45 +61,45 @@ export function useSignupValidation(formData: SignupFormData, uiState: SignupUIS
 
     // Email validation
     if (!formData.email.trim()) {
-      errors.email = 'validation.emailRequired';
+      errors.email = t ? t('validation.emailRequired') : 'validation.emailRequired';
     } else if (!isValidEmail(formData.email)) {
-      errors.email = 'validation.invalidEmailFormat';
+      errors.email = t ? t('validation.invalidEmailFormat') : 'validation.invalidEmailFormat';
     }
 
     // Phone validation
     if (!formData.phone.trim()) {
-      errors.phone = 'validation.phoneRequired';
+      errors.phone = t ? t('validation.phoneRequired') : 'validation.phoneRequired';
     } else if (!isValidPhoneNumber(formData.phone)) {
-      errors.phone = 'validation.invalidPhoneFormat';
+      errors.phone = t ? t('validation.invalidPhoneFormat') : 'validation.invalidPhoneFormat';
     }
 
     // City validation
     if (!formData.city.trim()) {
-      errors.city = 'validation.cityRequired';
+      errors.city = t ? t('validation.cityRequired') : 'validation.cityRequired';
     }
 
     // Password validation
     if (!formData.password) {
-      errors.password = 'validation.passwordRequired';
+      errors.password = t ? t('validation.passwordRequired') : 'validation.passwordRequired';
     } else if (!isValidPassword(formData.password)) {
-      errors.password = 'validation.passwordTooShort';
+      errors.password = t ? t('validation.passwordTooShort') : 'validation.passwordTooShort';
     }
 
     // Confirm password validation
     if (!formData.confirmPassword) {
-      errors.confirmPassword = 'validation.confirmPasswordRequired';
+      errors.confirmPassword = t ? t('validation.confirmPasswordRequired') : 'validation.confirmPasswordRequired';
     } else if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'validation.passwordsDoNotMatch';
+      errors.confirmPassword = t ? t('validation.passwordsDoNotMatch') : 'validation.passwordsDoNotMatch';
     }
 
     // Date of birth validation
     if (!formData.dateOfBirth.trim()) {
-      errors.dateOfBirth = 'validation.dateOfBirthRequired';
+      errors.dateOfBirth = t ? t('validation.dateOfBirthRequired') : 'validation.dateOfBirthRequired';
     } else {
       // Validate age (must be 18+)
       const birthDate = new Date(formData.dateOfBirth);
       if (isNaN(birthDate.getTime())) {
-        errors.dateOfBirth = 'validation.invalidDateOfBirth';
+        errors.dateOfBirth = t ? t('validation.invalidDateOfBirth') : 'validation.invalidDateOfBirth';
       } else {
         const today = new Date();
         let age = today.getFullYear() - birthDate.getFullYear();
@@ -104,7 +108,7 @@ export function useSignupValidation(formData: SignupFormData, uiState: SignupUIS
           age--;
         }
         if (age < 18) {
-          errors.dateOfBirth = 'validation.ageRestriction';
+          errors.dateOfBirth = t ? t('validation.ageRestriction') : 'validation.ageRestriction';
         }
       }
     }
@@ -113,7 +117,7 @@ export function useSignupValidation(formData: SignupFormData, uiState: SignupUIS
       isValid: Object.keys(errors).length === 0,
       errors
     };
-  }, [formData, uiState.hasAttemptedValidation, isValidEmail, isValidPhoneNumber, isValidPassword]);
+  }, [formData, uiState.hasAttemptedValidation, isValidEmail, isValidPhoneNumber, isValidPassword, t]);
 
   const validateStep3Dealer = useMemo(() => {
     const errors: Record<string, string> = {};
@@ -128,19 +132,19 @@ export function useSignupValidation(formData: SignupFormData, uiState: SignupUIS
 
     // Business name validation
     if (!formData.businessName.trim()) {
-      errors.businessName = 'validation.businessNameRequired';
+      errors.businessName = t ? t('validation.businessNameRequired') : 'validation.businessNameRequired';
     }
 
     // VAT validation (optional but if provided, must be valid)
     if (formData.vatNumber && !validateVatNumber(formData.vatNumber)) {
-      errors.vatNumber = 'validation.invalidVatFormat';
+      errors.vatNumber = t ? t('validation.invalidVatFormat') : 'validation.invalidVatFormat';
     }
 
     return {
       isValid: Object.keys(errors).length === 0,
       errors
     };
-  }, [formData, uiState.hasAttemptedValidation]);
+  }, [formData, uiState.hasAttemptedValidation, t]);
 
   const validateStep4Dealer = useMemo(() => {
     const errors: Record<string, string> = {};
@@ -155,19 +159,19 @@ export function useSignupValidation(formData: SignupFormData, uiState: SignupUIS
 
     // Business email validation (optional but if provided, must be valid)
     if (formData.businessEmail && !isValidEmail(formData.businessEmail)) {
-      errors.businessEmail = 'validation.invalidEmailFormat';
+      errors.businessEmail = t ? t('validation.invalidEmailFormat') : 'validation.invalidEmailFormat';
     }
 
     // Business phone validation (optional but if provided, must be valid)
     if (formData.businessPhone && !isValidPhoneNumber(formData.businessPhone)) {
-      errors.businessPhone = 'validation.invalidPhoneFormat';
+      errors.businessPhone = t ? t('validation.invalidPhoneFormat') : 'validation.invalidPhoneFormat';
     }
 
     return {
       isValid: Object.keys(errors).length === 0,
       errors
     };
-  }, [formData, uiState.hasAttemptedValidation, isValidEmail, isValidPhoneNumber]);
+  }, [formData, uiState.hasAttemptedValidation, isValidEmail, isValidPhoneNumber, t]);
 
   const validateDealerConsolidated = useMemo(() => {
     // Combine all dealer validations

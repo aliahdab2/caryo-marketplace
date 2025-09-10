@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import SignUpPage from '@/app/auth/signup/page';
 // Import our i18n mock
@@ -56,22 +55,6 @@ jest.mock('@/services/sellerTypes', () => ({
   ])),
 }));
 
-// Test wrapper with QueryClient
-const TestWrapper = ({ children }: { children: React.ReactNode }) => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  });
-  
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
-};
 
 describe('SignUpPage Component', () => {
   beforeEach(() => {

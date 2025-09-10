@@ -12,6 +12,21 @@
 import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
 import { createLogger } from '@/utils/logger';
+
+/**
+ * Form validation constants for multi-step forms
+ *
+ * These constants define which fields are required at each step of the listing form:
+ * - REQUIRED_FIELDS_BY_STEP: Fields required for final submission
+ * - BLOCKING_REQUIRED_FIELDS_BY_STEP: Fields required for navigation (subset of required fields)
+ *
+ * Field validation messages use the flat key structure: validation.${fieldName}Required
+ * Example: validation.makeRequired, validation.modelRequired, validation.yearRequired
+ * Fallback: validation.fieldRequired (generic message)
+ *
+ * This follows the project's translation guidelines to avoid hardcoded mappings
+ * and ensure consistent i18n key structure across the application.
+ */
 import {
   REQUIRED_FIELDS_BY_STEP,
   BLOCKING_REQUIRED_FIELDS_BY_STEP

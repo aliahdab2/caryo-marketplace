@@ -188,5 +188,17 @@
     "contactPhoneRequired": "Contact phone number is required",
     "imagesRequired": "At least one image is required",
     "invalidEmailFormat": "Please enter a valid email address (e.g., user@example.com)"
+  },
+
+  "ageRestriction": {
+    "title": "Age Restriction",
+    "accountCreationRestricted": "Account Creation Restricted",
+    "youAreYearsOld": "You are currently {{age}} years old. Our platform requires users to be at least 18 years old to create an account.",
+    "platformRequires18": "Our platform requires users to be at least 18 years old to create an account.",
+    "whatCanYouDo": "What can you do?",
+    "checkBackAt18": "Check back when you're 18 or older",
+    "teenFeatures": "Consider our teen-friendly features (coming soon)",
+    "contactSupport": "Contact support if you have questions",
+    "goBack": "Go Back"
   }
 }
