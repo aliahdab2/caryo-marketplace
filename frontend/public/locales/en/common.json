@@ -162,5 +162,31 @@
   "goToPage": "Go to page {{page}}",
   "showing": "Showing",
   "of": "of",
-  "backToHome": "Back to Home"
+  "backToHome": "Back to Home",
+
+  "validation": {
+    "fieldRequired": "This field is required",
+    "usernameRequired": "Username is required",
+    "emailRequired": "Email address is required",
+    "phoneRequired": "Phone number is required",
+    "passwordRequired": "Password is required",
+    "confirmPasswordRequired": "Please confirm your password",
+    "dateOfBirthRequired": "Date of birth is required",
+    "businessNameRequired": "Business name is required",
+    "vatNumberRequired": "VAT number is required",
+    "tradingAddressRequired": "Trading address is required",
+    "businessEmailRequired": "Business email is required",
+    "businessPhoneRequired": "Business phone number is required",
+    "makeRequired": "Vehicle make is required",
+    "modelRequired": "Vehicle model is required",
+    "yearRequired": "Year is required",
+    "priceRequired": "Price is required",
+    "titleRequired": "Title is required",
+    "mileageRequired": "Mileage is required",
+    "cityRequired": "City is required",
+    "contactEmailRequired": "Contact email is required",
+    "contactPhoneRequired": "Contact phone number is required",
+    "imagesRequired": "At least one image is required",
+    "invalidEmailFormat": "Please enter a valid email address (e.g., user@example.com)"
+  }
 }

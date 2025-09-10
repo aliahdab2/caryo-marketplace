@@ -91,7 +91,7 @@ const VerifyEmailPage: React.FC = () => {
               router.push('/');
           }
       }, AUTO_LOGIN_CONFIG.REDIRECT_DELAY_MS);
-  }, [t, setVerificationStatus, setMessage, setEmail, router]);
+  }, [t, setVerificationStatus, setMessage, router]);
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -127,9 +127,8 @@ const VerifyEmailPage: React.FC = () => {
             // Regular message response (already verified case)
             setMessage(data.message || t('emailVerified'));
             
-            let userEmail = '';
             if (data.email) {
-              userEmail = data.email;
+              // userEmail is extracted but not used in this context
             }
 
             // Clean up localStorage after successful verification
