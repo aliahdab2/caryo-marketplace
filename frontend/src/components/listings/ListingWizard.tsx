@@ -115,7 +115,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
   onCancel: _onCancel 
 }, ref) {
   const _router = useRouter();
-  const { t, i18n, ready } = useLazyTranslation(['listings', 'common']);
+  const { t, i18n, ready } = useLazyTranslation(['listings', 'common', 'validation']);
   const { isRTL } = useDirection();
   const rtl = createRTLHelpers(isRTL);
   

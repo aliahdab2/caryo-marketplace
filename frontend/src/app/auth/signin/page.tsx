@@ -21,7 +21,7 @@ const SignInPage: React.FC = () => {
   // Lazy load the auth and errors namespaces
   useLazyTranslation(AUTH_NAMESPACES);
 
-  const { t } = useTranslation(['auth', 'errors']);
+  const { t } = useTranslation(['auth', 'errors', 'validation']);
   const router = useRouter();
   const _searchParams = useSearchParams();
   const { getErrorMessage } = useApiErrorHandler();
@@ -379,7 +379,7 @@ const SignInPage: React.FC = () => {
                     onInvalid={(e) => {
                       e.preventDefault();
                       const target = e.target as HTMLInputElement;
-                      const errorMsg = target.getAttribute('data-error') || t('validation.fieldRequired');
+                      const errorMsg = target.getAttribute('data-error') || t('fieldRequired');
                       target.setCustomValidity(errorMsg);
                     }}
                     onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
@@ -414,11 +414,11 @@ const SignInPage: React.FC = () => {
                   placeholder={t('passwordPlaceholder')}
                   required
                   disabled={loading || redirecting}
-                  data-error={t('validation.fieldRequired')}
+                  data-error={t('fieldRequired')}
                   onInvalid={(e) => {
                     e.preventDefault();
                     const target = e.target as HTMLInputElement;
-                    const errorMsg = target.getAttribute('data-error') || t('validation.fieldRequired');
+                    const errorMsg = target.getAttribute('data-error') || t('fieldRequired');
                     target.setCustomValidity(errorMsg);
                   }}
                   onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}

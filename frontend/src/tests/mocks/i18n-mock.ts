@@ -94,27 +94,32 @@ const mockTranslations: Record<string, string> = {
   
   // Contact information
   'memberSince': 'Member since',
-  'phone': 'Phone',
-  'location': 'Location',
+
   'notProvided': 'Not provided',
   'enterPhone': 'Enter your phone number',
   'enterLocation': 'Enter your location',
-  'manageProfile': 'Manage Profile',
-  'contactInfo': 'Contact Information',
-  'accountSecurity': 'Account Security',
-  'manageSecuritySettings': 'Manage your security settings and authentication methods',
+
   'googleAuth': 'Google Authentication',
   'googleAuthSignedIn': 'You\'re signed in with your Google account',
   'googleAuthSecurity': 'Security is managed by your Google account',
   'userId': 'User ID',
-  'edit': 'Edit',
-  'cancel': 'Cancel',
   'save': 'Save',
   'notAvailable': 'Not available',
-  'twoFactorAuth': 'Two-Factor Authentication',
-  'improveAccountSecurity': 'Improve your account security with two-factor authentication',
+  'filters.sellerType': 'Seller Type',
+  'filters.noSellerTypes': 'No seller types available',
   'twoFactorAuthRecommended': 'Recommended for enhanced security',
-  'setupTwoFactor': 'Setup Two-Factor Authentication',
+
+  // Validation related
+  'fieldRequired': 'This field is required',
+  'ageRestrictionTitle': 'Age Restriction',
+  'ageRestrictionAccountCreationRestricted': 'Account Creation Restricted',
+  'ageRestrictionYouAreYearsOld': 'You are currently {{age}} years old. Our platform requires users to be at least 18 years old to create an account.',
+  'ageRestrictionPlatformRequires18': 'Our platform requires users to be at least 18 years old to create an account.',
+  'ageRestrictionWhatCanYouDo': 'What can you do?',
+  'ageRestrictionCheckBackAt18': 'Check back when you\'re 18 or older',
+  'ageRestrictionTeenFeatures': 'Consider our teen-friendly features (coming soon)',
+  'ageRestrictionContactSupport': 'Contact support if you have questions',
+  'ageRestrictionGoBack': 'Go Back',
 
   // Auth related
   'auth.passwordsDoNotMatch': 'New passwords do not match',
@@ -143,9 +148,6 @@ const mockTranslations: Record<string, string> = {
   'passwordsDoNotMatch': 'Passwords do not match',
   'passwordTooShort': 'Password must be at least 6 characters',
   'createAccount': 'Create Account',
-
-  // General
-  'notAvailable': 'Not available',
 };
 
 const mockI18nInstance = {
