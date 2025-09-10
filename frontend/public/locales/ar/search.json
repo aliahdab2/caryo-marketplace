@@ -17,6 +17,7 @@
   "mileageRange": "نطاق المسافة المقطوعة",
   "miles": "ميل",
   "km": "كم",
+  "kilometerAbbrev": "كم",
   "lowestMileage": "أقل مسافة مقطوعة",
   "highestMileage": "أعلى مسافة مقطوعة",
   "minimumMileage": "الحد الأدنى للمسافة المقطوعة",
