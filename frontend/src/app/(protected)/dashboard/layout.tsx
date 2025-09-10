@@ -153,7 +153,7 @@ export default function DashboardLayout({
   const sidebarItems = [
     // Main navigation
     {
-      i18next::translator: missingKey en common accountSettings accountSettings      name: t('overview'),
+      name: t('overview'),
       href: "/dashboard",
       icon: <MdDashboard className="text-xl" />,
       tooltip: t('overviewTooltip') || 'Dashboard overview'
