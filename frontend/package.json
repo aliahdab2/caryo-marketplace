@@ -20,6 +20,16 @@
     "restart": "sh ./scripts/restart-dev.sh",
     "diagnose": "node ./scripts/diagnostics/simple-diagnostics.js",
     "find-unused-translations": "node ./scripts/diagnostics/find-unused-translations.js",
+    "translation:validate": "node ./scripts/translation-validator/validator.js",
+    "translation:summary": "node ./scripts/translation-validator/validator.js summary",
+    "translation:detailed": "node ./scripts/translation-validator/validator.js detailed",
+    "translation:missing": "node ./scripts/translation-validator/validator.js missing",
+    "translation:duplicates": "node ./scripts/translation-validator/validator.js duplicates",
+    "translation:fix": "node ./scripts/translation-validator/validator.js fix",
+    "translation:export": "node ./scripts/translation-validator/validator.js export",
+    "test:translation": "jest --config ./scripts/translation-validator/jest.config.js",
+    "test:translation:watch": "jest --config ./scripts/translation-validator/jest.config.js --watch",
+    "test:translation:coverage": "jest --config ./scripts/translation-validator/jest.config.js --coverage",
     "sitemap": "next-sitemap"
   },
   "dependencies": {

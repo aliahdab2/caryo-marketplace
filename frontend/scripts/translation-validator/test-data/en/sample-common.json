@@ -1,0 +1,18 @@
+{
+  "appName": "Test App",
+  "welcome": "Welcome",
+  "login": "Login",
+  "logout": "Logout",
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit",
+  "view": "View",
+  "search": "Search",
+  "filter": "Filter",
+  "sort": "Sort",
+  "loading": "Loading...",
+  "error": "Error",
+  "success": "Success",
+  "required": "Required"
+}

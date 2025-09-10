@@ -1,0 +1,7 @@
+{
+  "duplicateKey": "First occurrence",
+  "duplicateKey": "Second occurrence",
+  "normalKey": "Normal value",
+  "anotherDuplicate": "First",
+  "anotherDuplicate": "Second"
+}

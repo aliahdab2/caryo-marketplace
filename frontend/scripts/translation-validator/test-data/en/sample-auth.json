@@ -1,0 +1,15 @@
+{
+  "username": "Username",
+  "password": "Password",
+  "email": "Email",
+  "login": "Sign In",
+  "register": "Register",
+  "forgotPassword": "Forgot Password",
+  "resetPassword": "Reset Password",
+  "confirmPassword": "Confirm Password",
+  "rememberMe": "Remember Me",
+  "terms": "Terms & Conditions",
+  "privacy": "Privacy Policy",
+  "agree": "I agree",
+  "submit": "Submit"
+}

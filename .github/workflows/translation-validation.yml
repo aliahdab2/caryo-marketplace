@@ -1,0 +1,187 @@
+name: Translation Validation
+
+on:
+  # Run on pull requests to main/develop branches
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'frontend/public/locales/**'
+      - 'frontend/src/**'
+      - 'frontend/package*.json'
+      - '.github/workflows/translation-validation.yml'
+    types: [opened, synchronize, reopened]
+
+  # Run on pushes to main/develop for validation
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'frontend/public/locales/**'
+      - 'frontend/src/**'
+      - 'frontend/package*.json'
+      - '.github/workflows/translation-validation.yml'
+
+  # Manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      validation_level:
+        description: 'Validation level (basic, comprehensive)'
+        required: false
+        default: 'comprehensive'
+        type: choice
+        options:
+        - basic
+        - comprehensive
+
+jobs:
+  translation-validation:
+    name: Translation Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install frontend dependencies
+      working-directory: ./frontend
+      run: |
+        npm ci --prefer-offline --no-audit --silent
+      env:
+        HUSKY: 0
+
+    - name: Run basic translation validation
+      working-directory: ./frontend
+      run: |
+        echo "🔍 Running basic translation validation..."
+        npm run translation:summary
+
+    - name: Run comprehensive translation validation
+      working-directory: ./frontend
+      if: github.event.inputs.validation_level == 'comprehensive' || github.event_name != 'workflow_dispatch'
+      run: |
+        echo "📊 Running comprehensive translation validation..."
+        npm run translation:detailed
+
+    - name: Check translation completeness thresholds
+      working-directory: ./frontend
+      run: |
+        echo "⚖️ Checking translation completeness thresholds..."
+
+        # Run the validator and capture output
+        OUTPUT=$(npm run translation:summary 2>&1)
+
+        # Extract percentages using grep and sed
+        EN_PERCENT=$(echo "$OUTPUT" | grep "en:" | sed -E 's/.*en: [0-9]+\/[0-9]+ keys \(([0-9]+)%\).*/\1/')
+        AR_PERCENT=$(echo "$OUTPUT" | grep "ar:" | sed -E 's/.*ar: [0-9]+\/[0-9]+ keys \(([0-9]+)%\).*/\1/')
+
+        echo "English completion: ${EN_PERCENT}%"
+        echo "Arabic completion: ${AR_PERCENT}%"
+
+        # Set minimum thresholds
+        MIN_ENGLISH=50
+        MIN_ARABIC=95
+
+        # Check thresholds
+        if [ "$EN_PERCENT" -lt "$MIN_ENGLISH" ]; then
+          echo "❌ English translations below minimum threshold (${MIN_ENGLISH}%)"
+          echo "Current: ${EN_PERCENT}%"
+          exit 1
+        fi
+
+        if [ "$AR_PERCENT" -lt "$MIN_ARABIC" ]; then
+          echo "❌ Arabic translations below minimum threshold (${MIN_ARABIC}%)"
+          echo "Current: ${AR_PERCENT}%"
+          exit 1
+        fi
+
+        echo "✅ All translation thresholds met"
+        echo "English: ${EN_PERCENT}% (min: ${MIN_ENGLISH}%)"
+        echo "Arabic: ${AR_PERCENT}% (min: ${MIN_ARABIC}%)"
+
+    - name: Generate translation report
+      working-directory: ./frontend
+      run: |
+        echo "📄 Generating translation validation report..."
+        npm run translation:export translation-report.json
+
+    - name: Upload translation report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: translation-validation-report
+        path: frontend/translation-report.json
+        retention-days: 30
+
+    - name: Comment PR with translation status
+      uses: actions/github-script@v7
+      if: github.event_name == 'pull_request'
+      continue-on-error: true
+      with:
+        script: |
+          const fs = require('fs');
+
+          try {
+            // Read the translation report
+            const reportPath = './frontend/translation-report.json';
+            if (fs.existsSync(reportPath)) {
+              const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+
+              const enPercent = report.summary.completeness.en.percentage;
+              const arPercent = report.summary.completeness.ar.percentage;
+              const missingCount = report.summary.missing;
+
+              let status = '✅';
+              let message = 'Translation validation passed';
+
+              if (missingCount > 0) {
+                status = '⚠️';
+                message = `${missingCount} missing translations found`;
+              }
+
+              const body = `## 🌐 Translation Validation ${status}
+
+**Summary:**
+- **English:** ${enPercent}% complete
+- **Arabic:** ${arPercent}% complete
+- **Missing translations:** ${missingCount}
+
+**Details:**
+- English has ${report.summary.completeness.en.translated}/${report.summary.completeness.en.total} keys
+- Arabic has ${report.summary.completeness.ar.translated}/${report.summary.completeness.ar.total} keys
+
+${missingCount > 0 ? '*Review the workflow artifacts for detailed missing translations*' : '*All translation thresholds met* 🎉'}`;
+
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+
+              console.log('✅ Successfully posted PR comment with translation status');
+            } else {
+              console.log('⚠️ Translation report not found');
+            }
+          } catch (error) {
+            console.log('⚠️ Could not post PR comment:', error.message);
+          }
+
+    - name: Fail on critical translation gaps
+      if: failure()
+      run: |
+        echo "❌ Translation validation failed!"
+        echo "Please check the workflow logs for details."
+        echo "You may need to:"
+        echo "1. Add missing translations to the appropriate JSON files"
+        echo "2. Run 'npm run translation:fix' to auto-fill missing keys"
+        echo "3. Update translation files in frontend/public/locales/"
+        exit 1

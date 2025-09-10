@@ -46,6 +46,14 @@ inputs:
     description: 'Whether to run tests.'
     required: false
     default: 'true'
+  run-translation-validation:
+    description: 'Whether to run translation validation.'
+    required: false
+    default: 'false'
+  translation-validation-command:
+    description: 'Command to run translation validation.'
+    required: false
+    default: 'npm run translation:summary'
 
 runs:
   using: 'composite'
@@ -90,6 +98,17 @@ runs:
       run: |
         echo "Running Jest tests..."
         ${{ inputs.test-command }} --watchAll=false --coverage=false --passWithNoTests
+
+    - name: Run Translation Validation
+      if: ${{ inputs.run-translation-validation == 'true' }}
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      env:
+        CI: true
+        NODE_ENV: test
+      run: |
+        echo "Running Translation Validation..."
+        ${{ inputs.translation-validation-command }}
 
     - name: Upload ESLint report
       if: always()
