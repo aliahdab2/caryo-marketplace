@@ -1,4 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Caryo Marketplace - Syrian Car Marketplace Platform
+
+A modern, bilingual car marketplace platform for Syria built with Next.js 15, featuring comprehensive internationalization, advanced search capabilities, and a robust user management system.
+
+## 🚗 **About Caryo.sy**
+
+Caryo Marketplace is a comprehensive car trading platform designed for the Syrian market with:
+- **Bilingual Support**: Full Arabic and English localization with RTL support
+- **Age-Appropriate Access**: 16+ browsing, 18+ selling policy
+- **Advanced Search**: Multi-criteria car search with filters
+- **Dealer Management**: Separate dealer and private seller flows
+- **Real-time Messaging**: Integrated communication system
+- **SEO Optimized**: Dynamic sitemap and meta tag generation
+- **Responsive Design**: Mobile-first approach with responsive components
+
+## 🏗️ **Architecture Overview**
+
+### **Technology Stack**
+- **Framework**: Next.js 15 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS with custom RTL support
+- **Testing**: Jest + React Testing Library
+- **Internationalization**: React i18next
+- **State Management**: React Context + SWR
+- **Forms**: React Hook Form with validation
+
+### **Core Features**
+- **Authentication System**: JWT-based auth with session management
+- **Car Listings**: Advanced listing creation with media upload
+- **Search & Filters**: Multi-criteria search with real-time filtering
+- **User Dashboard**: Comprehensive dashboard for buyers, sellers, and dealers
+- **Messaging System**: Real-time communication between users
+- **Favorites System**: Save and manage favorite listings
+- **Responsive Design**: Mobile-first with RTL support
+
+## 📋 **Age Policy (Caryo.sy)**
+
+Following industry standards and Syrian market needs:
+
+| Activity | Age Requirement | DOB Required | Notes |
+|----------|-----------------|--------------|-------|
+| **Browse & Search** | 16+ | ❌ Optional | Low barrier for user acquisition |
+| **Create Account** | 16+ | ❌ Optional | No DOB required during signup |
+| **Sell Cars** | 18+ | ✅ Required | DOB must be provided to list cars |
+| **Dealer Registration** | 18+ | ✅ Required | Business verification required |
+
+**Implementation**: Context-based validation system that adapts requirements based on user actions.
 
 ## Getting Started
 
@@ -87,58 +133,118 @@ The application implements a standardized approach to API error handling with:
 
 For more details, see [API Error Handling Documentation](docs/api_error_handling.md).
 
-## Internationalization (i18n)
+## 🌍 **Internationalization (i18n) System**
 
-The frontend provides comprehensive internationalization support with:
+Comprehensive bilingual support with advanced translation management:
 
+### **Core Features**
 - **React i18next Integration**: Full internationalization framework
-- **Arabic/English Support**: Complete translation coverage
-- **RTL Layout Support**: Proper right-to-left layout for Arabic
-- **Dynamic Language Switching**: Runtime language changes
-- **Translation Namespaces**: Organized translation files by feature
-- **Fallback Support**: Graceful fallback for missing translations
+- **Arabic/English Support**: Complete translation coverage with RTL support
+- **Translation Namespaces**: Organized translation files by feature area
+- **Automated Translation**: AI-powered translation tools for consistency
+- **Translation Validation**: Automated checks for completeness and consistency
+- **Translation Integrity**: Key synchronization and duplicate detection
+- **Fallback Support**: Graceful handling of missing translations
 
-**Supported Languages:**
-- English (en) - Default
-- Arabic (ar) - Full RTL support
+### **Supported Languages**
+- **English (en)** - Default language
+- **Arabic (ar)** - Full RTL support with proper text direction
 
-**Translation Namespaces:**
-- `common` - Common UI elements and messages
-- `auth` - Authentication related translations
-- `listings` - Car listing translations
-- `messages` - Messaging system translations
-- `search` - Search and filtering translations
-- `dashboard` - Dashboard translations
-- `favorites` - Favorites system translations
-- `errors` - Error messages and validation
-- `home` - Homepage translations
+### **Translation Namespaces**
 
-## Recent Features
+| Namespace | Purpose | File Location |
+|-----------|---------|---------------|
+| `common` | Common UI elements, buttons, navigation | `public/locales/{lang}/common.json` |
+| `auth` | Authentication, login, signup, validation | `public/locales/{lang}/auth.json` |
+| `admin` | Admin panel translations | `public/locales/{lang}/admin.json` |
+| `dashboard` | Dashboard UI and navigation | `public/locales/{lang}/dashboard.json` |
+| `profile` | User profile management | `public/locales/{lang}/profile.json` |
+| `listings` | Car listings, details, management | `public/locales/{lang}/listings.json` |
+| `search` | Search filters, results, sorting | `public/locales/{lang}/search.json` |
+| `favorites` | Favorites system, saved listings | `public/locales/{lang}/favorites.json` |
+| `validation` | Form validation messages | `public/locales/{lang}/validation.json` |
+| `errors` | Error messages and API responses | `public/locales/{lang}/errors.json` |
+| `messages` | Messaging system translations | `public/locales/{lang}/messages.json` |
+| `home` | Homepage content and features | `public/locales/{lang}/home.json` |
 
-### Hover Image Navigation
-AutoTrader.co.uk style hover navigation for car listing cards with:
-- Hover-activated navigation arrows
-- Dot indicators for current position
-- RTL support for Arabic interface
-- Smooth image transitions
-- Video thumbnail support
+### **Translation Management Tools**
 
-### Advanced Messaging System
-Enhanced messaging with file uploads and validation:
-- Multi-file upload support
-- File type and size validation
-- Translated error messages
-- Progress indicators
-- Drag and drop support
+The project includes a comprehensive translation management suite:
 
-### CarMediaGallery Enhancements
-Responsive media gallery with:
-- RTL layout support
-- Proper Arabic translations
-- Improved dot navigation spacing
-- Dynamic thumbnail grid layout
-- Modal view with keyboard navigation
+```bash
+# Validate all translations
+npm run translation validate
 
-### Recent Changes
+# Check translation integrity (key sync, duplicates)
+npm run translation integrity-check
 
-- **Removed backend connectivity checking**: We've eliminated the automatic server health checking system to reduce unnecessary backend requests. API requests now fail gracefully with appropriate error messages when the backend is unavailable.
+# Fix translation guide violations
+npm run translation fix-guide
+
+# Analyze translation usage in components
+npm run translation usage-analysis
+
+# Sync keys between languages
+npm run translation sync-check
+```
+
+### **Translation Guidelines**
+- **Flat Keys**: All keys use camelCase without dots (except for pluralization)
+- **No Prefixes**: Namespace prefixes are handled by i18next, not in keys
+- **Consistent Naming**: Keys follow consistent camelCase patterns
+- **Complete Coverage**: All user-facing text must be translatable
+
+## 🚀 **Key Features & Recent Improvements**
+
+### **Age Policy Implementation (Caryo.sy)**
+Smart age validation system adapted for Syrian market:
+- **16+ Browsing**: Low barrier for user acquisition
+- **18+ Selling**: Legal protection for transactions
+- **Context-Based Validation**: Different requirements for different actions
+- **Optional DOB**: No date of birth required during signup
+- **Dealer Verification**: Business document validation for dealers
+
+### **Advanced Translation System**
+Comprehensive internationalization management:
+- **13 Translation Namespaces**: Organized by feature area
+- **Automated Translation Tools**: AI-powered consistency
+- **Translation Integrity Checks**: Key synchronization and duplicate detection
+- **Guide Compliance**: Automated fixing of translation violations
+- **Usage Analysis**: Identify unused translation keys
+
+### **Translation Management Tools**
+Complete suite for translation maintenance:
+```bash
+# Core validation and analysis
+npm run translation validate          # Validate all translations
+npm run translation integrity-check   # Check key sync and duplicates
+npm run translation usage-analysis    # Find unused keys
+
+# Automated fixes
+npm run translation fix-guide         # Fix guide violations
+npm run translation sync-check        # Sync missing keys
+
+# Maintenance workflows
+npm run translation maintenance       # Complete translation workflow
+```
+
+### **Enhanced User Experience**
+- **Hover Image Navigation**: AutoTrader.co.uk style image navigation
+- **Advanced Messaging**: File uploads with validation and progress indicators
+- **Responsive Media Gallery**: RTL-aware gallery with keyboard navigation
+- **Smart Search Filters**: Real-time filtering with translation support
+- **SEO Optimization**: Dynamic sitemap generation and meta tags
+
+### **Technical Improvements**
+- **TypeScript Coverage**: Comprehensive type safety
+- **Testing Suite**: Jest + React Testing Library with RTL support
+- **Error Boundaries**: Graceful error handling with user feedback
+- **Performance Optimization**: Lazy loading and code splitting
+- **Accessibility**: WCAG compliant with screen reader support
+
+### **Recent Architectural Changes**
+- **Namespace Organization**: Separated admin, profile, and validation namespaces
+- **Translation Consolidation**: Unified translation management tools
+- **Age Validation Refactor**: Context-based validation system
+- **Removed Dependencies**: Cleaned up unused packages and scripts
+- **Code Quality**: Enhanced linting and testing coverage

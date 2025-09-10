@@ -56,7 +56,13 @@ export default function AgeRestrictionModal({
 
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 {userAge ? (
-                  <>{t('ageRestrictionYouAreYearsOld', { age: userAge })}</>
+                  <>
+                    {userAge < 18 ? (
+                      <>{t('under18CannotSell')}</>
+                    ) : (
+                      <>{t('ageRestrictionYouAreYearsOld', { age: userAge })}</>
+                    )}
+                  </>
                 ) : (
                   <>{t('ageRestrictionPlatformRequires18')}</>
                 )}

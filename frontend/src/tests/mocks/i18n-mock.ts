@@ -23,6 +23,7 @@ const mockTranslations: Record<string, string> = {
   'forgotPassword': 'Forgot Password?',
   'loading': 'Loading...',
   'or': 'Or',
+  'orConnector': 'or',
   'continueWithGoogle': 'Continue with Google',
   'dontHaveAccount': "Don't have an account?",
   'signUp': 'Sign Up',
@@ -169,6 +170,14 @@ const mockTranslations: Record<string, string> = {
   'passwordTooShort': 'Password must be at least 8 characters long',
   'passwordsDoNotMatch': 'Passwords do not match',
   'sellerTypeRequired': 'Please select a seller type',
+  'under16NotAllowed': 'Users must be at least 16 years old to use Caryo.sy',
+  'under18CannotSell': 'You must be at least 18 years old to sell cars on Caryo.sy',
+  'dealerRequires18': 'You must be at least 18 years old to register as a dealer',
+  'dealerVerificationRequired': 'Dealer accounts require business document verification',
+  'dobRequiredForSelling': 'Date of birth is required to list cars for sale',
+  'active': 'Active',
+  'fieldRequired': 'This field is required',
+  'validationFieldRequired': 'Required fields are missing',
   'createAccount': 'Create Account',
 };
 
