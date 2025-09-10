@@ -473,7 +473,7 @@ const SignInPage: React.FC = () => {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
-                  {t('or')}
+                  {t('orConnector')}
                 </span>
               </div>
             </div>

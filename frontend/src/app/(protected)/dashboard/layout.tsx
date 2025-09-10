@@ -357,7 +357,7 @@ export default function DashboardLayout({
           {/* Quick Actions */}
           <div className="mt-8">
             <h2 className="px-3 mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              {t('dashboardquickActions')}
+              {t('quickActions')}
             </h2>
             <ul className="space-y-1">
               {quickActionItems.map(item => {

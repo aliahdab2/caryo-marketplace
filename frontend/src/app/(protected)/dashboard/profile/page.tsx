@@ -48,7 +48,7 @@ const formatRole = (role: string) => {
 export default function ProfilePage() {
   // Use optimized auth hook instead of direct useSession
   const { user } = useOptimizedSession();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['profile', 'common']);
   const [isEditing, setIsEditing] = useState(false);
   const [userRoles, setUserRoles] = useState<string>('');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -249,7 +249,7 @@ export default function ProfilePage() {
       <Breadcrumb items={createDashboardBreadcrumb({
         label: t('profile'),
         translationKey: 'profile',
-        translationNamespace: 'dashboard'
+        translationNamespace: 'profile'
       })} />
       {/* Enhanced Header Section */}
       <div className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-3xl p-8 lg:p-12 text-white shadow-2xl overflow-hidden">
@@ -372,7 +372,7 @@ export default function ProfilePage() {
                     value={formData.phone}
                     onChange={handleChange}
                     className="w-full px-4 py-4 pl-12 border-2 border-gray-200 dark:border-gray-600 rounded-2xl bg-white dark:bg-gray-800 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900 transition-all duration-300 text-lg font-medium"
-                    placeholder={t('contactInformation.enterPhone')}
+                    placeholder={t('enterPhone')}
                   />
                   <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -397,7 +397,7 @@ export default function ProfilePage() {
                     value={formData.location}
                     onChange={handleChange}
                     className="w-full px-4 py-4 pl-12 border-2 border-gray-200 dark:border-gray-600 rounded-2xl bg-white dark:bg-gray-800 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900 transition-all duration-300 text-lg font-medium"
-                    placeholder={t('contactInformation.enterLocation')}
+                    placeholder={t('enterLocation')}
                   />
                   <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -496,11 +496,11 @@ export default function ProfilePage() {
                 </div>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center py-2">
-                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('auth.userId')}</span>
+                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('userId')}</span>
                     <span className="text-gray-900 dark:text-white font-semibold">{user?.id || t('notAvailable')}</span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-t border-gray-200 dark:border-gray-600">
-                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('contactInformation.memberSince')}</span>
+                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('memberSince')}</span>
                     <span className="text-gray-900 dark:text-white font-semibold">May 2023</span>
                   </div>
                 </div>
@@ -516,18 +516,18 @@ export default function ProfilePage() {
                 </div>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center py-2">
-                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('contactInformation.phone')}</span>
+                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('phone')}</span>
                     <span className="text-gray-900 dark:text-white font-semibold">
                       {formData.phone || (
-                        <span className="text-gray-400 italic">{t('contactInformation.notProvided')}</span>
+                        <span className="text-gray-400 italic">{t('notProvided')}</span>
                       )}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-t border-gray-200 dark:border-gray-600">
-                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('contactInformation.location')}</span>
+                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('location')}</span>
                     <span className="text-gray-900 dark:text-white font-semibold">
                       {formData.location || (
-                        <span className="text-gray-400 italic">{t('contactInformation.notProvided')}</span>
+                        <span className="text-gray-400 italic">{t('notProvided')}</span>
                       )}
                     </span>
                   </div>
