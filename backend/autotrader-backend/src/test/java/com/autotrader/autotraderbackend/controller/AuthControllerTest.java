@@ -1,14 +1,17 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.model.Role;
+import com.autotrader.autotraderbackend.model.SellerType;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.payload.response.MessageResponse;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
+import com.autotrader.autotraderbackend.repository.SellerTypeRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
+import com.autotrader.autotraderbackend.service.DealerService;
 import com.autotrader.autotraderbackend.service.EmailVerificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,6 +63,12 @@ public class AuthControllerTest {
     @Mock
     private EmailVerificationService emailVerificationService;
 
+    @Mock
+    private SellerTypeRepository sellerTypeRepository;
+
+    @Mock
+    private DealerService dealerService;
+
     @InjectMocks
     private AuthController authController;
 
@@ -79,7 +88,18 @@ public class AuthControllerTest {
         signupRequest.setUsername("newuser");
         signupRequest.setEmail("newuser@example.com");
         signupRequest.setPassword("password");
+        signupRequest.setConfirmPassword("password");
+        signupRequest.setSellerTypeId(1); // 1 = private seller
         // Note: The role is intentionally left null here to test the default role assignment
+
+        // Setup seller type repository mock
+        SellerType privateSellerType = new SellerType();
+        privateSellerType.setId(1L);
+        privateSellerType.setName("PRIVATE");
+        lenient().when(sellerTypeRepository.findById(1L)).thenReturn(Optional.of(privateSellerType));
+
+        // Setup dealer service mock (should not be called for private sellers)
+        lenient().doNothing().when(dealerService).validateDealerData(any(SignupRequest.class));
 
         // Setup mocked authentication
         authentication = mock(Authentication.class);
@@ -246,6 +266,8 @@ public class AuthControllerTest {
         adminSignupRequest.setUsername("newadmin");
         adminSignupRequest.setEmail("newadmin@example.com");
         adminSignupRequest.setPassword("password");
+        adminSignupRequest.setConfirmPassword("password");
+        adminSignupRequest.setSellerTypeId(1); // 1 = private seller
         Set<String> roles = new HashSet<>();
         roles.add("admin");
         adminSignupRequest.setRole(roles);

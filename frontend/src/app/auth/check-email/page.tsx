@@ -48,7 +48,7 @@ const CheckEmailPage: React.FC = () => {
 
   const handleResendVerification = async () => {
     if (!email) {
-      setResendError(t('emailRequired'));
+      setResendError(t('validation.emailRequired'));
       return;
     }
 

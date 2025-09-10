@@ -126,8 +126,10 @@ const VerifyEmailPage: React.FC = () => {
           } else if (isMessageResponse(data)) {
             // Regular message response (already verified case)
             setMessage(data.message || t('emailVerified'));
-            
 
+            if (data.email) {
+              // userEmail is extracted but not used in this context
+            }
 
             // Clean up localStorage after successful verification
             if (typeof window !== 'undefined') {

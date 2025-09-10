@@ -1,6 +1,9 @@
 "use client";
 
 import { signOut } from "next-auth/react";
+
+// Force dynamic rendering for protected pages
+export const dynamic = 'force-dynamic';
 import { useOptimizedUser } from "@/hooks/useOptimizedSession";
 import Link from "next/link";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
