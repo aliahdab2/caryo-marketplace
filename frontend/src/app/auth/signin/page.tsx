@@ -158,14 +158,14 @@ const SignInPage: React.FC = () => {
     setCredentialsCorrect(false);
 
     if (!username || !password) {
-      setError(t('validation.fieldRequired'));
+      setError(t('validationFieldRequired'));
       setLoading(false);
       return;
     }
 
     // If username looks like an email, validate it
     if (looksLikeEmail(username) && !isValidEmail(username)) {
-      setUsernameError(t('validation.invalidEmailFormat'));
+      setUsernameError(t('validationInvalidEmailFormat'));
       setLoading(false);
       return;
     }
@@ -365,11 +365,11 @@ const SignInPage: React.FC = () => {
                       // Validate email format if it looks like an email
                       const usernameValue = e.target.value.trim();
                       if (usernameValue && looksLikeEmail(usernameValue) && !isValidEmail(usernameValue)) {
-                        setUsernameError(t('validation.invalidEmailFormat'));
+                        setUsernameError(t('validationInvalidEmailFormat'));
                       }
                     }}
                     required
-                    data-error={t('validation.fieldRequired')}
+                    data-error={t('validationFieldRequired')}
                     className={`block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${
                       usernameError 
                         ? 'border-red-300 dark:border-red-600 focus:ring-red-500' 

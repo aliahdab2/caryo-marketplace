@@ -60,28 +60,28 @@ export function useSignupSubmission({
 
       // Basic required fields validation
       if (!formData.email || !formData.password || !formData.confirmPassword) {
-        throw new Error(t('validation.fieldRequired', 'Required fields are missing'));
+        throw new Error(t('validationFieldRequired', 'Required fields are missing'));
       }
 
       // Private seller specific validation
       if (sellerType === 'private') {
         if (!formData.username?.trim()) {
-          throw new Error(t('validation.usernameRequired', 'Full name is required'));
+          throw new Error(t('validationUsernameRequired', 'Full name is required'));
         }
         if (!formData.phone?.trim()) {
-          throw new Error(t('validation.phoneRequired', 'Phone number is required'));
+          throw new Error(t('validationPhoneRequired', 'Phone number is required'));
         }
         if (!formData.city?.trim()) {
-          throw new Error(t('validation.cityRequired', 'City is required'));
+          throw new Error(t('validationCityRequired', 'City is required'));
         }
         if (!formData.dateOfBirth?.trim()) {
-          throw new Error(t('validation.dateOfBirthRequired', 'Date of birth is required'));
+          throw new Error(t('validationDateOfBirthRequired', 'Date of birth is required'));
         }
       }
 
       // Dealer specific validation
       if (sellerType === 'dealer' && !formData.businessName?.trim()) {
-        throw new Error(t('validation.businessNameRequired', 'Business name is required for dealers'));
+        throw new Error(t('validationBusinessNameRequired', 'Business name is required for dealers'));
       }
 
       // Password validation

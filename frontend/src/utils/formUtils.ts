@@ -20,9 +20,9 @@ import { createLogger } from '@/utils/logger';
  * - REQUIRED_FIELDS_BY_STEP: Fields required for final submission
  * - BLOCKING_REQUIRED_FIELDS_BY_STEP: Fields required for navigation (subset of required fields)
  *
- * Field validation messages use the flat key structure: validation.${fieldName}Required
- * Example: validation.makeRequired, validation.modelRequired, validation.yearRequired
- * Fallback: validation.fieldRequired (generic message)
+ * Field validation messages use the flat key structure: validation${fieldName}Required
+ * Example: validationMakeRequired, validationModelRequired, validationYearRequired
+ * Fallback: validationFieldRequired (generic message)
  *
  * This follows the project's translation guidelines to avoid hardcoded mappings
  * and ensure consistent i18n key structure across the application.
@@ -214,8 +214,8 @@ export function validateFormField(
     // Use translation if available, otherwise provide contextual message
     if (t) {
       // Try to get field-specific required message
-      const fieldKey = `validation.${fieldName}Required`;
-      const genericKey = 'validation.fieldRequired';
+      const fieldKey = `validation${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Required`;
+      const genericKey = 'validationFieldRequired';
       return {
         isValid: false,
         error: t(fieldKey, t(genericKey, `${fieldName} is required`))
@@ -373,7 +373,7 @@ export const validateStep = (
           const value = formData[field];
           const validation = validateFormField(field as string, value as string, true, t);
           if (!validation.isValid) {
-            tmp[field] = validation.error || t('validation.fieldRequired', 'This field is required');
+            tmp[field] = validation.error || t('validationFieldRequired', 'This field is required');
           }
         }
         Object.assign(errors, tmp);
@@ -390,7 +390,7 @@ export const validateStep = (
           const value = formData[field];
           const validation = validateFormField(field as string, value as string, true, t);
           if (!validation.isValid) {
-            errors[field] = validation.error || t('validation.fieldRequired', 'This field is required');
+            errors[field] = validation.error || t('validationFieldRequired', 'This field is required');
           }
         }
       }
@@ -407,7 +407,7 @@ export const validateStep = (
           const value = formData[field];
           const validation = validateFormField(field as string, value as string, true, t);
           if (!validation.isValid) {
-            errors[field] = validation.error || t('validation.fieldRequired', 'This field is required');
+            errors[field] = validation.error || t('validationFieldRequired', 'This field is required');
           }
         }
       }
@@ -420,7 +420,7 @@ export const validateStep = (
           const value = formData[field];
           const validation = validateFormField(field as string, value as string, true, t);
           if (!validation.isValid) {
-            errors[field] = validation.error || t('validation.fieldRequired', 'This field is required');
+            errors[field] = validation.error || t('validationFieldRequired', 'This field is required');
           }
         }
       }

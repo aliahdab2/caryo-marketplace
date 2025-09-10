@@ -41,18 +41,10 @@
   "maximumPrice": "Maximum price",
   "lowestPricePlaceholder": "Lowest price",
   "highestPricePlaceholder": "Highest price",
-  "@minPrice": {
-    "description": "Label for minimum price input field in price slider"
-  },
-  "@maxPrice": {
-    "description": "Label for maximum price input field in price slider"
-  },
-  "@minimumPrice": {
-    "description": "ARIA label for minimum price slider thumb for screen readers"
-  },
-  "@maximumPrice": {
-    "description": "ARIA label for maximum price slider thumb for screen readers"
-  },
+  "minPriceDescription": "Label for minimum price input field in price slider",
+  "maxPriceDescription": "Label for maximum price input field in price slider",
+  "minimumPriceLabel": "ARIA label for minimum price slider thumb for screen readers",
+  "maximumPriceLabel": "ARIA label for maximum price slider thumb for screen readers",
   "saveSearch": "Save search",
   "searchCars": "Search cars",
   "apply": "Apply",
@@ -172,8 +164,6 @@
   "list": "List",
   "gridView": "Grid view",
   "listView": "List view",
-  "gridViewSelected": "Grid view selected",
-  "listViewSelected": "List view selected",
   "fuelTypesGasoline": "Gasoline",
   "fuelTypesDiesel": "Diesel",
   "fuelTypesElectric": "Electric",
@@ -182,5 +172,13 @@
   "transmissionsAutomatic": "Automatic",
   "transmissionsManual": "Manual",
   "transmissionsCvt": "CVT",
-  "transmissionsSemiAutomatic": "Semi-Automatic"
+  "transmissionsSemiAutomatic": "Semi-Automatic",
+
+  "resultsAnnouncement": "Found {{totalCount}} cars for \"{{searchQuery}}\", showing {{resultCount}}",
+  "resultsAnnouncementNoQuery": "Found {{totalCount}} cars, showing {{resultCount}}",
+  "noResultsAnnouncement": "No cars found for \"{{searchQuery}}\"",
+  "gridViewSelected": "Grid view selected",
+  "listViewSelected": "List view selected",
+  "retrySuccess": "Retry successful, results reloaded",
+  "retryFailed": "Retry failed, please try again"
 }

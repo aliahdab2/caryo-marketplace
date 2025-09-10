@@ -84,7 +84,7 @@ export default function Step3DealerBusinessInfo({
             onBlur={(_e) => {
               // Only validate on blur if user has attempted validation (clicked Next/Submit)
               if (hasAttemptedValidation && !businessName.trim()) {
-                setBusinessNameError(t('validation.businessNameRequired', 'Business name is required'));
+                setBusinessNameError(t('validationBusinessNameRequired', 'Business name is required'));
               }
             }}
             required={false} // Disable HTML5 validation, use custom validation

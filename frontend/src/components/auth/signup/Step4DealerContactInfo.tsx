@@ -133,7 +133,7 @@ export default function Step4DealerContactInfo({
 
               const emailValue = e.target.value.trim();
               if (emailValue && !isValidEmail(emailValue)) {
-                setBusinessEmailError(t('validation.invalidEmailFormat'));
+                setBusinessEmailError(t('validationInvalidEmailFormat'));
               }
             }}
             disabled={loading}

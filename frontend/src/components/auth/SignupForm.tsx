@@ -87,23 +87,23 @@ export default function SignupForm() {
   // Helper function to provide user-friendly fallback messages
   const getUserFriendlyFallback = (validationKey: string): string => {
     const fallbacks: Record<string, string> = {
-      'validation.usernameRequired': 'Please enter your full name',
-      'validation.usernameTooShort': 'Full name must be at least 2 characters',
-      'validation.emailRequired': 'Email address is required',
-      'validation.invalidEmailFormat': 'Please enter a valid email address',
-      'validation.phoneRequired': 'Phone number is required',
-      'validation.invalidPhoneFormat': 'Please enter a valid phone number',
-      'validation.cityRequired': 'Please enter your city',
-      'validation.passwordRequired': 'Password is required',
-      'validation.passwordTooShort': 'Password must be at least 6 characters',
-      'validation.confirmPasswordRequired': 'Please confirm your password',
-      'validation.passwordsDoNotMatch': 'Passwords do not match',
-      'validation.dateOfBirthRequired': 'Please enter your date of birth',
-      'validation.invalidDateOfBirth': 'Please enter a valid date of birth',
-      'validation.ageRestriction': 'You must be at least 18 years old',
-      'validation.businessNameRequired': 'Business name is required',
-      'validation.invalidVatFormat': 'Please enter a valid VAT number',
-      'validation.sellerTypeRequired': 'Please select a seller type'
+      'validationUsernameRequired': 'Please enter your full name',
+      'validationUsernameTooShort': 'Full name must be at least 2 characters',
+      'validationEmailRequired': 'Email address is required',
+      'validationInvalidEmailFormat': 'Please enter a valid email address',
+      'validationPhoneRequired': 'Phone number is required',
+      'validationInvalidPhoneFormat': 'Please enter a valid phone number',
+      'validationCityRequired': 'Please enter your city',
+      'validationPasswordRequired': 'Password is required',
+      'validationPasswordTooShort': 'Password must be at least 6 characters',
+      'validationConfirmPasswordRequired': 'Please confirm your password',
+      'validationPasswordsDoNotMatch': 'Passwords do not match',
+      'validationDateOfBirthRequired': 'Please enter your date of birth',
+      'validationInvalidDateOfBirth': 'Please enter a valid date of birth',
+      'validationAgeRestriction': 'You must be at least 18 years old',
+      'validationBusinessNameRequired': 'Business name is required',
+      'validationInvalidVatFormat': 'Please enter a valid VAT number',
+      'validationSellerTypeRequired': 'Please select a seller type'
     };
 
     return fallbacks[validationKey] || 'This field is required';
