@@ -42,3 +42,4 @@ scripts/translation-tools/
 - Better error handling, comprehensive logging, and improved maintainability
 
 For detailed documentation, see: `scripts/translation-tools/README.md`
+ 
