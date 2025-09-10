@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import FavoriteButton from '@/components/common/FavoriteButton';
 import * as sessionManager from '@/services/auth/session-manager';

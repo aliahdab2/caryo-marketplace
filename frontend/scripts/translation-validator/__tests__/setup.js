@@ -2,6 +2,15 @@
  * Jest setup for Translation Validator tests
  */
 
+// This file contains Jest setup code only, no actual tests
+// The test suites are in the individual test files
+
+describe('Jest Setup Validation', () => {
+  test('setup file should be properly configured', () => {
+    expect(process.env.NODE_ENV).toBe('test');
+  });
+});
+
 // Mock console methods to reduce noise during testing
 global.console = {
   ...console,

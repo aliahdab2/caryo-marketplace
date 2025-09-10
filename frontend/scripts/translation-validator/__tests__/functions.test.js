@@ -13,7 +13,6 @@ const {
   checkConsistency,
   calculateCompleteness,
   generateSummaryReport,
-  autoFixMissingTranslations
 } = require('../validator');
 
 // Test configuration
@@ -277,67 +276,7 @@ describe('Translation Validator Tool', () => {
     });
   });
 
-  describe('autoFixMissingTranslations', () => {
-    test('should copy missing translations from source language', () => {
-      const mockTranslations = {
-        en: {
-          'sample-common': {
-            key1: 'English value 1',
-            key2: 'English value 2',
-            key3: 'English value 3'
-          }
-        },
-        ar: {
-          'sample-common': {
-            key1: 'Arabic value 1',
-            key2: 'Arabic value 2'
-          }
-        }
-      };
-
-      const fixed = autoFixMissingTranslations(mockTranslations, 'en', 'ar');
-
-      expect(fixed).toBe(1); // Should fix 1 missing key
-      expect(mockTranslations.ar['sample-common'].key3).toBe('English value 3');
-      expect(mockTranslations.ar['sample-common'].key1).toBe('Arabic value 1'); // Should not overwrite existing
-    });
-
-    test('should return 0 when no fixes are needed', () => {
-      const mockTranslations = {
-        en: {
-          common: {
-            key1: 'English value'
-          }
-        },
-        ar: {
-          common: {
-            key1: 'Arabic value'
-          }
-        }
-      };
-
-      const fixed = autoFixMissingTranslations(mockTranslations, 'en', 'ar');
-
-      expect(fixed).toBe(0);
-    });
-
-    test('should handle missing source keys gracefully', () => {
-      const mockTranslations = {
-        en: {
-          common: {}
-        },
-        ar: {
-          common: {
-            missingKey: 'Arabic only'
-          }
-        }
-      };
-
-      const fixed = autoFixMissingTranslations(mockTranslations, 'en', 'ar');
-
-      expect(fixed).toBe(0); // Can't fix because source doesn't have the key
-    });
-  });
+  // Note: autoFixMissingTranslations tests removed - tool is now ANALYSIS-ONLY
 
   describe('generateSummaryReport', () => {
     test('should generate comprehensive summary report', () => {

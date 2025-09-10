@@ -71,6 +71,24 @@ jobs:
         echo "📊 Running comprehensive translation validation..."
         npm run translation:detailed
 
+    - name: Validate translation guide compliance
+      working-directory: ./frontend
+      run: |
+        echo "📋 Validating translation guide compliance..."
+        npm run translation:validate
+
+    - name: Check for unused translations
+      working-directory: ./frontend
+      run: |
+        echo "🔍 Checking for unused translation keys..."
+        npm run translation:unused
+
+    - name: Check for orphaned translations
+      working-directory: ./frontend
+      run: |
+        echo "👻 Checking for orphaned translation keys..."
+        npm run translation:orphaned
+
     - name: Check translation completeness thresholds
       working-directory: ./frontend
       run: |
@@ -107,19 +125,47 @@ jobs:
         echo "English: ${EN_PERCENT}% (min: ${MIN_ENGLISH}%)"
         echo "Arabic: ${AR_PERCENT}% (min: ${MIN_ARABIC}%)"
 
-    - name: Generate translation report
+    - name: Generate comprehensive reports
       working-directory: ./frontend
       run: |
-        echo "📄 Generating translation validation report..."
+        echo "📄 Generating comprehensive validation reports..."
+
+        # Generate main validation report
         npm run translation:export translation-report.json
 
-    - name: Upload translation report
+        # Generate missing translations export for English
+        npm run translation:export-missing en
+
+        # Generate missing translations export for Arabic
+        npm run translation:export-missing ar
+
+        # Generate source analysis report
+        npm run translation:scan > source-analysis-report.txt
+
+        # Generate validation compliance report
+        npm run translation:validate > validation-report.txt
+
+    - name: Upload translation reports
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: translation-validation-report
-        path: frontend/translation-report.json
+        name: translation-validation-reports
+        path: |
+          frontend/translation-report.json
+          frontend/missing-translations-en.json
+          frontend/missing-translations-ar.json
+          frontend/source-analysis-report.txt
+          frontend/validation-report.txt
         retention-days: 30
+
+    - name: Upload validation summary
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: translation-summary
+        path: |
+          frontend/status.json
+        retention-days: 7
 
     - name: Comment PR with translation status
       uses: actions/github-script@v7
@@ -138,27 +184,34 @@ jobs:
               const enPercent = report.summary.completeness.en.percentage;
               const arPercent = report.summary.completeness.ar.percentage;
               const missingCount = report.summary.missing;
+              const duplicateCount = report.summary.duplicates || 0;
+              const inconsistencyCount = report.summary.inconsistencies || 0;
 
               let status = '✅';
               let message = 'Translation validation passed';
 
-              if (missingCount > 0) {
+              if (missingCount > 0 || duplicateCount > 0 || inconsistencyCount > 0) {
                 status = '⚠️';
-                message = `${missingCount} missing translations found`;
+                message = `Issues found: ${missingCount} missing, ${duplicateCount} duplicates, ${inconsistencyCount} inconsistencies`;
               }
 
               const body = `## 🌐 Translation Validation ${status}
 
 **Summary:**
-- **English:** ${enPercent}% complete
-- **Arabic:** ${arPercent}% complete
+- **English:** ${enPercent}% complete (${report.summary.completeness.en.translated}/${report.summary.completeness.en.total} keys)
+- **Arabic:** ${arPercent}% complete (${report.summary.completeness.ar.translated}/${report.summary.completeness.ar.total} keys)
 - **Missing translations:** ${missingCount}
+- **Duplicate keys:** ${duplicateCount}
+- **Type inconsistencies:** ${inconsistencyCount}
 
-**Details:**
-- English has ${report.summary.completeness.en.translated}/${report.summary.completeness.en.total} keys
-- Arabic has ${report.summary.completeness.ar.translated}/${report.summary.completeness.ar.total} keys
+**Validation Results:**
+${missingCount > 0 ? '⚠️ **Missing Translations:** Review workflow artifacts for details\n' : '✅ **No missing translations**\n'}
+${duplicateCount > 0 ? '⚠️ **Duplicate Keys Found:** Check for key conflicts\n' : '✅ **No duplicate keys**\n'}
+${inconsistencyCount > 0 ? '⚠️ **Type Inconsistencies:** Fix data type mismatches\n' : '✅ **All types consistent**\n'}
 
-${missingCount > 0 ? '*Review the workflow artifacts for detailed missing translations*' : '*All translation thresholds met* 🎉'}`;
+${missingCount > 0 || duplicateCount > 0 || inconsistencyCount > 0
+  ? '**Next Steps:**\n- Run `npm run translation:export-missing en` for detailed export\n- Run `npm run translation:validate` for naming convention check\n- Review artifacts for complete validation report'
+  : '**All validations passed!** 🎉'}`;
 
               await github.rest.issues.createComment({
                 issue_number: context.issue.number,
@@ -182,6 +235,7 @@ ${missingCount > 0 ? '*Review the workflow artifacts for detailed missing transl
         echo "Please check the workflow logs for details."
         echo "You may need to:"
         echo "1. Add missing translations to the appropriate JSON files"
-        echo "2. Run 'npm run translation:fix' to auto-fill missing keys"
-        echo "3. Update translation files in frontend/public/locales/"
+        echo "2. Run 'npm run translation:export-missing en' to export missing translations"
+        echo "3. Use professional translation services or AI translation tools"
+        echo "4. Update translation files in frontend/public/locales/"
         exit 1

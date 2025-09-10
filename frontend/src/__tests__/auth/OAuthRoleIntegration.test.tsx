@@ -10,8 +10,26 @@ global.fetch = jest.fn();
 
 describe('OAuth Role Integration Tests', () => {
   beforeEach(() => {
+    // Enhanced cleanup to prevent state leakage
     jest.clearAllMocks();
-    (global.fetch as jest.Mock).mockClear();
+    jest.clearAllTimers();
+    jest.resetModules();
+
+    // Clear fetch mocks specifically
+    if (global.fetch && typeof global.fetch.mockClear === 'function') {
+      (global.fetch as jest.Mock).mockClear();
+    }
+
+    // Reset any stored state
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.clear();
+    }
+  });
+
+  afterEach(() => {
+    // Additional cleanup after each test
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
   describe('Backend Response Parsing - Critical Bug Fix', () => {

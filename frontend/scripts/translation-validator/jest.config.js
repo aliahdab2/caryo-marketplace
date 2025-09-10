@@ -18,13 +18,19 @@ module.exports = {
     'lcov',
     'html'
   ],
-  setupFilesAfterEnv: [],
   testTimeout: 10000,
   verbose: true,
   // Mock console methods to reduce noise during testing
-  setupFiles: [
+  setupFilesAfterEnv: [
     '<rootDir>/__tests__/setup.js'
   ],
-  // Disable Babel transformation
-  transform: {}
+  // Disable Babel transformation for Node.js environment
+  transform: {},
+  // Ensure CommonJS modules work properly
+  extensionsToTreatAsEsm: [],
+  globals: {
+    'ts-jest': {
+      useESM: false,
+    },
+  },
 };

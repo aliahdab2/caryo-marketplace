@@ -1,7 +1,17 @@
-import { render } from '@testing-library/react';
+import { render, cleanup } from '@testing-library/react';
 import CarListingSkeleton from '../CarListingSkeleton';
 
 describe('CarListingSkeleton', () => {
+  beforeEach(() => {
+    // Clean up DOM before each test
+    cleanup();
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    // Additional cleanup after each test
+    cleanup();
+  });
   it('renders without crashing', () => {
     render(<CarListingSkeleton />);
   });
