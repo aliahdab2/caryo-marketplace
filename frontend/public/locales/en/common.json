@@ -80,7 +80,7 @@
 
   "dev.utils": "Utility Testing",
   "searchLabel": "Search for cars by make, model, or location",
-  "placeholder": "Search for cars... (e.g. \"Toyota Camry\", \"BMW X3\", \"تويوتا كامري\")",
+  "placeholder": "Search for cars... (e.g. \"Toyota Camry\", \"BMW X3\", \"Honda Civic\")",
   "searchButton": "Search for cars",
   "searchHelp": "Enter car make, model, or location and press Enter or click Search button",
   "locationFilterLabel": "Filter by location",

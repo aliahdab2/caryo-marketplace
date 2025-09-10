@@ -20,8 +20,8 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuration
-const LOCALES_DIR = path.join(__dirname, '..', '..', 'public', 'locales');
-const SRC_DIR = path.join(__dirname, '..', '..', 'src');
+const LOCALES_DIR = path.resolve(__dirname, '..', '..', '..', 'public', 'locales');
+const SRC_DIR = path.resolve(__dirname, '..', '..', '..', 'src');
 const LANGUAGES = ['en', 'ar'];
 const NAMESPACES = [
   'auth', 'common', 'contact', 'dashboard', 'errors',

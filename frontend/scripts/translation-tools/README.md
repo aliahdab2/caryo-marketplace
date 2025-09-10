@@ -54,6 +54,7 @@ npm run translation export       # Export reports
 #### Analysis Tools
 ```bash
 npm run translation sync-check        # EN/AR synchronization
+npm run translation integrity-check   # Key consistency + language validation + DUPLICATE DETECTION
 npm run translation usage-analysis    # Component usage analysis (uses core validator)
 ```
 
@@ -76,6 +77,7 @@ npm run translation maintenance       # Complete maintenance workflow
 
 ### 📊 Analysis Tools
 - **Sync Check**: Validates EN/AR key synchronization (NEW)
+- **Integrity Check**: Complete validation + duplicate detection + language verification (NEW)
 - **Usage Analysis**: Component usage analysis (uses core validator)
 
 ### 🔧 Fix Tools
@@ -90,6 +92,7 @@ npm run translation maintenance       # Complete maintenance workflow
 - **No duplicates** - each tool has a unique purpose
 - **Backward compatible** - all existing commands still work
 - **Organized structure** - tools grouped by functionality
+- **Duplicate Detection** - integrity-check now detects duplicate translation values
 
 ## 📋 Workflow Examples
 

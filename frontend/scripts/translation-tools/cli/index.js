@@ -9,27 +9,28 @@ const path = require('path');
 
 const COMMANDS = {
   // Core validation (existing validator)
-  'validate': './core/validator.js validate',
-  'summary': './core/validator.js summary',
-  'detailed': './core/validator.js detailed',
-  'missing': './core/validator.js missing',
-  'duplicates': './core/validator.js duplicates',
-  'unused': './core/validator.js unused',
-  'orphaned': './core/validator.js orphaned',
-  'scan': './core/validator.js scan',
-  'source-analysis': './core/validator.js source-analysis',
-  'export': './core/validator.js export',
-  'export-missing': './core/validator.js export-missing',
+  'validate': '../core/validator.js validate',
+  'summary': '../core/validator.js summary',
+  'detailed': '../core/validator.js detailed',
+  'missing': '../core/validator.js missing',
+  'duplicates': '../core/validator.js duplicates',
+  'unused': '../core/validator.js unused',
+  'orphaned': '../core/validator.js orphaned',
+  'scan': '../core/validator.js scan',
+  'source-analysis': '../core/validator.js source-analysis',
+  'export': '../core/validator.js export',
+  'export-missing': '../core/validator.js export-missing',
 
   // Analysis tools
-  'sync-check': './analysis/sync-check.js',
-  'usage-analysis': './core/validator.js source-analysis', // Use original validator
+  'sync-check': '../analysis/sync-check.js',
+  'integrity-check': '../analysis/translation-integrity-checker.js',
+  'usage-analysis': '../core/validator.js source-analysis', // Use original validator
 
   // Fix tools
-  'fix-guide': './fixes/guide-fixer.js',
+  'fix-guide': '../fixes/guide-fixer.js',
 
   // Workflow tools
-  'maintenance': './workflow/maintenance.js'
+  'maintenance': '../workflow/maintenance.js'
 };
 
 function showHelp() {
@@ -55,6 +56,7 @@ CORE VALIDATION (existing):
 
 ANALYSIS TOOLS:
   sync-check         Check EN/AR key synchronization
+  integrity-check    Validate key consistency and language correctness
   usage-analysis     Analyze component usage vs translations
 
 FIX TOOLS:
@@ -66,6 +68,7 @@ WORKFLOW TOOLS:
 EXAMPLES:
   npm run translation validate
   npm run translation sync-check
+  npm run translation integrity-check
   npm run translation usage-analysis
   npm run translation fix-guide
   npm run translation maintenance

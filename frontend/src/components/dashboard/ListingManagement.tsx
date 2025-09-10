@@ -133,7 +133,7 @@ export default function ListingManagement({
   renderStats,
   renderCustomActions
 }: ListingManagementProps) {
-  const { t: _t } = useTranslation('dashboard');
+  const { t } = useTranslation('dashboard');
   
   // Local state
   const [selectedItems, setSelectedItems] = useState<(string | number)[]>([]);
@@ -357,7 +357,7 @@ export default function ListingManagement({
                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
                 <MdFilterList className="w-5 h-5" />
-                Filters
+                {t('filters')}
               </button>
               
               <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
@@ -389,7 +389,7 @@ export default function ListingManagement({
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm"
                 >
                   <MdRefresh className="w-5 h-5" />
-                  Refresh
+                  {t('refresh')}
                 </button>
               )}
             </div>
@@ -471,7 +471,7 @@ export default function ListingManagement({
                   <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     type="text"
-                    placeholder="Search listings, makes, models..."
+                    placeholder={t('searchPlaceholder')}
                     value={searchTerm}
                     onChange={(e) => handleSearch(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -486,11 +486,11 @@ export default function ListingManagement({
                   onChange={(e) => handleFilter({ status: e.target.value })}
                   className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="active">Active</option>
-                  <option value="expired">Expired</option>
+                  <option value="all">{t('allStatus')}</option>
+                  <option value="pending">{t('pendingStatus')}</option>
+                  <option value="approved">{t('approvedStatus')}</option>
+                  <option value="active">{t('activeStatus')}</option>
+                  <option value="expired">{t('expiredStatus')}</option>
                 </select>
                 
                 <select
@@ -498,9 +498,9 @@ export default function ListingManagement({
                   onChange={(e) => handleFilter({ sortBy: e.target.value })}
                   className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="createdAt">Date Created</option>
-                  <option value="title">Title</option>
-                  <option value="price">Price</option>
+                  <option value="createdAt">{t('dateCreated')}</option>
+                  <option value="title">{t('sortByTitle')}</option>
+                  <option value="price">{t('sortByPrice')}</option>
                 </select>
               </div>
             </div>
@@ -514,7 +514,7 @@ export default function ListingManagement({
             <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {filteredListings.length} listings
+                  {t('listingsCount', { count: filteredListings.length })}
                 </span>
                 
                 {allowSelection && filteredListings.length > 0 && (
@@ -522,7 +522,7 @@ export default function ListingManagement({
                     onClick={toggleSelectAll}
                     className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700"
                   >
-                    {selectedItems.length === filteredListings.length ? 'Deselect All' : 'Select All'}
+                    {selectedItems.length === filteredListings.length ? t('deselectAll') : t('selectAll')}
                   </button>
                 )}
               </div>
@@ -532,11 +532,11 @@ export default function ListingManagement({
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                     <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                      {selectedItems.length} selected
+                      {selectedItems.length} {t('selectedCount')}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-blue-600 dark:text-blue-300">Bulk actions:</span>
+                    <span className="text-xs text-blue-600 dark:text-blue-300">{t('bulkActions')}</span>
                     {bulkActions.map((action) => (
                       <button
                         key={action.id}
@@ -556,7 +556,7 @@ export default function ListingManagement({
                       onClick={() => setSelectedItems([])}
                       className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100 font-medium"
                     >
-                      Clear
+                      {t('clearSelection')}
                     </button>
                   </div>
                 </div>
@@ -582,12 +582,12 @@ export default function ListingManagement({
                   <MdDirectionsCar className="w-12 h-12 text-gray-400" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  No listings found
+                  {t('noListingsFound')}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  {searchTerm || statusFilter !== 'all' 
-                    ? 'Try adjusting your search or filters' 
-                    : 'No listings available at the moment'}
+                  {searchTerm || statusFilter !== 'all'
+                    ? t('tryAdjustingSearch')
+                    : t('noListingsAvailable')}
                 </p>
               </div>
             ) : (
