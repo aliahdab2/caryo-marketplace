@@ -116,9 +116,10 @@ export default function SignupForm() {
     // Mark that user has attempted validation
     updateUIState({ hasAttemptedValidation: true });
 
-    // Special age validation for step 2 (buyer flow)
-    if (uiState.currentStep === 2 && !isDealerType && formData.dateOfBirth) {
-      const ageValidation = validateAge(formData.dateOfBirth);
+    // Age validation based on context (signup vs selling vs dealer)
+    if (uiState.currentStep === 2 && !isDealerType) {
+      // For private sellers, validate for selling context
+      const ageValidation = validateAge(formData.dateOfBirth, 'selling');
       if (!ageValidation.isValid) {
         setUserAge(ageValidation.age);
         setShowAgeRestrictionModal(true);
@@ -126,9 +127,9 @@ export default function SignupForm() {
       }
     }
 
-    // Special age validation for dealer flow (step 1 when dealer intent is detected)
-    if (uiState.currentStep === 1 && uiState.dealerIntent && formData.dateOfBirth) {
-      const ageValidation = validateAge(formData.dateOfBirth);
+    if (uiState.currentStep === 1 && uiState.dealerIntent) {
+      // For dealers, validate for dealer context
+      const ageValidation = validateAge(formData.dateOfBirth, 'dealer');
       if (!ageValidation.isValid) {
         setUserAge(ageValidation.age);
         setShowAgeRestrictionModal(true);

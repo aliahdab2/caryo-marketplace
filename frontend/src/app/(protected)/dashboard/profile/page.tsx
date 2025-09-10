@@ -48,7 +48,7 @@ const formatRole = (role: string) => {
 export default function ProfilePage() {
   // Use optimized auth hook instead of direct useSession
   const { user } = useOptimizedSession();
-  const { t } = useTranslation(['profile', 'common']);
+  const { t } = useTranslation(['profile', 'common', 'listings']);
   const [isEditing, setIsEditing] = useState(false);
   const [userRoles, setUserRoles] = useState<string>('');
   const [showPasswordModal, setShowPasswordModal] = useState(false);

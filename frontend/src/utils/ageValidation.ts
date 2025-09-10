@@ -6,6 +6,7 @@ export interface AgeValidationResult {
   isValid: boolean;
   age?: number;
   error?: string;
+  requiresDealerVerification?: boolean;
 }
 
 /**
@@ -29,16 +30,24 @@ export function calculateAge(dateOfBirth: string): number {
 }
 
 /**
- * Validate date of birth and age requirements
- * @param dateOfBirth - Date string in YYYY-MM-DD format
- * @param requiredAge - Minimum age required (default: 18)
+ * Validate date of birth and age requirements for Caryo.sy
+ * @param dateOfBirth - Date string in YYYY-MM-DD format (optional)
+ * @param context - 'signup' | 'selling' | 'dealer' - what the user is trying to do
  * @returns Validation result
  */
-export function validateAge(dateOfBirth: string, requiredAge: number = 18): AgeValidationResult {
+export function validateAge(dateOfBirth: string | undefined, context: 'signup' | 'selling' | 'dealer' = 'signup'): AgeValidationResult {
+  // For signup, DOB is optional - allow 16+ to browse
   if (!dateOfBirth) {
+    if (context === 'signup') {
+      return {
+        isValid: true,
+        age: undefined
+      };
+    }
+    // For selling/dealer, DOB is required
     return {
       isValid: false,
-      error: 'Date of birth is required'
+      error: 'Date of birth is required to proceed'
     };
   }
 
@@ -74,11 +83,50 @@ export function validateAge(dateOfBirth: string, requiredAge: number = 18): AgeV
 
   const age = calculateAge(dateOfBirth);
 
-  if (age < requiredAge) {
+  // Age validation based on context
+  if (context === 'signup') {
+    // Allow 16+ to browse and create account
+    if (age < 16) {
+      return {
+        isValid: false,
+        age,
+        error: 'Users must be at least 16 years old'
+      };
+    }
     return {
-      isValid: false,
+      isValid: true,
+      age
+    };
+  }
+
+  if (context === 'selling') {
+    // Require 18+ for selling cars
+    if (age < 18) {
+      return {
+        isValid: false,
+        age,
+        error: 'You must be at least 18 years old to sell cars on Caryo.sy'
+      };
+    }
+    return {
+      isValid: true,
+      age
+    };
+  }
+
+  if (context === 'dealer') {
+    // Require 18+ for dealer accounts and business verification
+    if (age < 18) {
+      return {
+        isValid: false,
+        age,
+        error: 'You must be at least 18 years old to register as a dealer'
+      };
+    }
+    return {
+      isValid: true,
       age,
-      error: `You must be at least ${requiredAge} years old to create an account`
+      requiresDealerVerification: true
     };
   }
 
