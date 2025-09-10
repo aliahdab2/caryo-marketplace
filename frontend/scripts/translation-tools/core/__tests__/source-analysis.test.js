@@ -1,13 +1,3 @@
-// Mock google-translate-api to prevent configstore uid issues
-jest.mock('google-translate-api', () => ({
-  __esModule: true,
-  default: jest.fn(() => Promise.resolve({
-    text: 'Mocked translation',
-    from: { language: { iso: 'en' } },
-    to: { language: { iso: 'es' } }
-  }))
-}));
-
 // Mock fs for source file scanning
 jest.mock('fs', () => {
   const originalFs = jest.requireActual('fs');

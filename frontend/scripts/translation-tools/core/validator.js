@@ -18,7 +18,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const AITranslator = require('./ai-translator');
 
 // Configuration
 const LOCALES_DIR = path.join(__dirname, '..', '..', 'public', 'locales');
