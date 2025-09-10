@@ -201,7 +201,7 @@ describe('SignInPage', () => {
     await waitFor(() => {
       const errorAlert = screen.queryByRole('alert');
       expect(errorAlert).toBeTruthy();
-      expect(errorAlert).toHaveTextContent(/Required fields are missing/i);
+      expect(errorAlert).toHaveTextContent(/fieldRequired/i);
     });
     
     expect(signIn).not.toHaveBeenCalled();

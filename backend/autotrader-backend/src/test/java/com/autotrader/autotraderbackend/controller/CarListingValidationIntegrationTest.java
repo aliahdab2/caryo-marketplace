@@ -128,8 +128,6 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
         signupRequest.setUsername("validatoruser");
         signupRequest.setEmail("validator@example.com");
         signupRequest.setPassword("password123");
-        signupRequest.setConfirmPassword("password123");
-        signupRequest.setSellerTypeId(1);
         Set<String> roles = new HashSet<>();
         roles.add("user");
         signupRequest.setRole(roles);

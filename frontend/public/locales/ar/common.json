@@ -539,42 +539,7 @@
   "showing": "عرض",
   "of": "من أصل",
   "backToHome": "العودة للرئيسية",
-
-  "validation": {
-    "fieldRequired": "هذا الحقل مطلوب",
-    "usernameRequired": "اسم المستخدم مطلوب",
-    "emailRequired": "البريد الإلكتروني مطلوب",
-    "phoneRequired": "رقم الهاتف مطلوب",
-    "passwordRequired": "كلمة المرور مطلوبة",
-    "confirmPasswordRequired": "يرجى تأكيد كلمة المرور",
-    "dateOfBirthRequired": "تاريخ الميلاد مطلوب",
-    "businessNameRequired": "اسم الشركة مطلوب",
-    "vatNumberRequired": "رقم ضريبة القيمة المضافة مطلوب",
-    "tradingAddressRequired": "عنوان التجارة مطلوب",
-    "businessEmailRequired": "البريد الإلكتروني التجاري مطلوب",
-    "businessPhoneRequired": "رقم الهاتف التجاري مطلوب",
-    "makeRequired": "نوع السيارة مطلوب",
-    "modelRequired": "موديل السيارة مطلوب",
-    "yearRequired": "السنة مطلوبة",
-    "priceRequired": "السعر مطلوب",
-    "titleRequired": "العنوان مطلوب",
-    "mileageRequired": "المسافة المقطوعة مطلوبة",
-    "cityRequired": "المدينة مطلوبة",
-    "contactEmailRequired": "البريد الإلكتروني للتواصل مطلوب",
-    "contactPhoneRequired": "رقم الهاتف للتواصل مطلوب",
-    "imagesRequired": "صورة واحدة على الأقل مطلوبة",
-    "invalidEmailFormat": "يرجى إدخال بريد إلكتروني صحيح (مثل: user@example.com)"
-  },
-
-  "ageRestriction": {
-    "title": "قيود العمر",
-    "accountCreationRestricted": "إنشاء الحساب مقيد",
-    "youAreYearsOld": "أنت حالياً {{age}} سنوات. منصتنا تتطلب من المستخدمين أن يكونوا على الأقل 18 عاماً لإنشاء حساب.",
-    "platformRequires18": "منصتنا تتطلب من المستخدمين أن يكونوا على الأقل 18 عاماً لإنشاء حساب.",
-    "whatCanYouDo": "ماذا يمكنك أن تفعل؟",
-    "checkBackAt18": "تحقق مرة أخرى عندما تصبح 18 عاماً أو أكبر",
-    "teenFeatures": "فكر في ميزاتنا الصديقة للمراهقين (قريباً)",
-    "contactSupport": "اتصل بالدعم إذا كان لديك أسئلة",
-    "goBack": "العودة"
-  }
+  "unexpectedError": "حدث خطأ غير متوقع",
+  "emailVerificationRequired": "مطلوب التحقق من البريد الإلكتروني",
+  "emailVerificationMessage": "يرجى التحقق من بريدك الإلكتروني وتفعيل حسابك قبل إنشاء إعلانات."
 }

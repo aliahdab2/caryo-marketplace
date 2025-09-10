@@ -80,13 +80,11 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
         String username = "testuser_" + UUID.randomUUID().toString().substring(0, 8);
         String email = username + "@example.com";
         String password = "password123";
-
+        
         SignupRequest signupRequest = new SignupRequest();
         signupRequest.setUsername(username);
         signupRequest.setEmail(email);
         signupRequest.setPassword(password);
-        signupRequest.setConfirmPassword(password);
-        signupRequest.setSellerTypeId(1);
         
         // First registration should be successful
         ResponseEntity<String> response = restTemplate.postForEntity(
@@ -102,8 +100,6 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
         duplicateUserRequest.setUsername(username);
         duplicateUserRequest.setEmail("different_" + email);
         duplicateUserRequest.setPassword(password);
-        duplicateUserRequest.setConfirmPassword(password);
-        duplicateUserRequest.setSellerTypeId(1);
         
         ResponseEntity<String> duplicateResponse = restTemplate.postForEntity(
                 baseUrl + "/api/auth/signup",
@@ -121,13 +117,11 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
         String username = "testuser_" + UUID.randomUUID().toString().substring(0, 8);
         String email = username + "@example.com";
         String password = "password123";
-
+        
         SignupRequest signupRequest = new SignupRequest();
         signupRequest.setUsername(username);
         signupRequest.setEmail(email);
         signupRequest.setPassword(password);
-        signupRequest.setConfirmPassword(password);
-        signupRequest.setSellerTypeId(1);
         
         // First registration should be successful
         ResponseEntity<String> response = restTemplate.postForEntity(
@@ -143,8 +137,6 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
         duplicateEmailRequest.setUsername("different_" + username);
         duplicateEmailRequest.setEmail(email);
         duplicateEmailRequest.setPassword(password);
-        duplicateEmailRequest.setConfirmPassword(password);
-        duplicateEmailRequest.setSellerTypeId(1);
         
         ResponseEntity<String> duplicateResponse = restTemplate.postForEntity(
                 baseUrl + "/api/auth/signup",
@@ -212,8 +204,6 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
             // Register the user
             SignupRequest signupRequest = new SignupRequest();
             signupRequest.setUsername(username);
-            signupRequest.setConfirmPassword(password);
-            signupRequest.setSellerTypeId(1);
             signupRequest.setEmail(email);
             signupRequest.setPassword(password);
             
