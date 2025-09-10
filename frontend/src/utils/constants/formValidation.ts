@@ -26,7 +26,7 @@ export const REQUIRED_FIELD_I18N: Record<string, { key: string; fallback: string
   make: { key: 'listings:newListingValidationMakeRequired', fallback: 'Make is required' },
   model: { key: 'listings:newListingValidationModelRequired', fallback: 'Model is required' },
   year: { key: 'listings:newListingValidationYearRequired', fallback: 'Year is required' },
-  mileage: { key: 'validation.mileageRequired', fallback: 'Mileage is required' },
+  mileage: { key: 'listings:newListingValidationMileageRequired', fallback: 'Mileage is required' },
   images: { key: 'listings:newListingValidationImagesRequired', fallback: 'At least one image is required' },
   title: { key: 'listings:newListingValidationTitleRequired', fallback: 'Title is required' },
   description: { key: 'listings:newListingValidationDescriptionRequired', fallback: 'Description is required' },

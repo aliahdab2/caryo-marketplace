@@ -106,7 +106,7 @@ const mockTranslations: Record<string, string> = {
   'dashboard.googleAuthSecurity': 'Security is managed by your Google account',
   'dashboard.active': 'Active',
   'dashboard.twoFactorAuthRecommended': 'Recommended for enhanced security',
-
+  
   // Auth related
   'auth.userId': 'User ID',
   'auth.passwordsDoNotMatch': 'New passwords do not match',
@@ -114,28 +114,7 @@ const mockTranslations: Record<string, string> = {
   'auth.passwordChangeSuccess': 'Password changed successfully',
   'auth.passwordChangeFailed': 'Failed to change password',
   'auth.networkError': 'Network error. Please try again.',
-
-  // Signup related translations
-  'joinUs': 'Join Us',
-  'chooseAccountType': 'Choose Account Type',
-  'accountTypeDescription': 'Select the type of account that best fits your needs',
-  'privateSeller': 'Private Seller',
-  'dealer': 'Dealer',
-  'privateSellerDescription': 'Sell your personal items and vehicles',
-  'dealerDescription': 'Professional vehicle dealership',
-  'next': 'Next',
-  'personalInformation': 'Personal Information',
-  'businessInformation': 'Business Information',
-  'validation.fieldRequired': 'Required fields are missing',
-  'validation.usernameRequired': 'Full name is required',
-  'validation.phoneRequired': 'Phone number is required',
-  'validation.cityRequired': 'City is required',
-  'validation.dateOfBirthRequired': 'Date of birth is required',
-  'validation.businessNameRequired': 'Business name is required',
-  'passwordsDoNotMatch': 'Passwords do not match',
-  'passwordTooShort': 'Password must be at least 6 characters',
-  'createAccount': 'Create Account',
-
+  
   // General
   'notAvailable': 'Not available',
 };

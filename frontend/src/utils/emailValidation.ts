@@ -75,11 +75,11 @@ export const isValidEmail = (email: string): boolean => {
  */
 export const getEmailValidationError = (email: string, t: (key: string) => string): string => {
   if (!email || email.trim().length === 0) {
-    return t('validation.emailRequired');
+    return t('emailRequired');
   }
 
   if (!isValidEmail(email)) {
-    return t('validation.invalidEmailFormat');
+    return t('invalidEmailFormat');
   }
 
   return '';
@@ -98,7 +98,7 @@ export const validateEmailRealTime = (email: string, t: (key: string) => string)
   }
 
   const isValid = isValidEmail(trimmedEmail);
-  const error = isValid ? '' : t('validation.invalidEmailFormat');
+  const error = isValid ? '' : t('invalidEmailFormat');
 
   return { isValid, error };
 };
