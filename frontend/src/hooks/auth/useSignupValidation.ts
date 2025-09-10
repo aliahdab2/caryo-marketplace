@@ -37,7 +37,7 @@ export function useSignupValidation(
 
     return {
       isValid: !!uiState.selectedSellerType,
-      errors: uiState.selectedSellerType ? {} : { sellerType: 'validationSellerTypeRequired' }
+      errors: uiState.selectedSellerType ? {} : { sellerType: 'sellerTypeRequired' }
     };
   }, [uiState.selectedSellerType, uiState.hasAttemptedValidation]);
 
@@ -54,52 +54,52 @@ export function useSignupValidation(
 
     // Username validation
     if (!formData.username.trim()) {
-      errors.username = 'validationUsernameRequired';
+      errors.username = 'usernameRequired';
     } else if (formData.username.length < 2) {
-      errors.username = 'validationUsernameTooShort';
+      errors.username = 'usernameTooShort';
     }
 
     // Email validation
     if (!formData.email.trim()) {
-      errors.email = t ? t('validationEmailRequired') : 'validationEmailRequired';
+      errors.email = t ? t('emailRequired') : 'emailRequired';
     } else if (!isValidEmail(formData.email)) {
-      errors.email = t ? t('validationInvalidEmailFormat') : 'validationInvalidEmailFormat';
+      errors.email = t ? t('invalidEmailFormat') : 'invalidEmailFormat';
     }
 
     // Phone validation
     if (!formData.phone.trim()) {
-      errors.phone = t ? t('validationPhoneRequired') : 'validationPhoneRequired';
+      errors.phone = t ? t('phoneRequired') : 'phoneRequired';
     } else if (!isValidPhoneNumber(formData.phone)) {
-      errors.phone = t ? t('validationInvalidPhoneFormat') : 'validationInvalidPhoneFormat';
+      errors.phone = t ? t('invalidPhoneFormat') : 'invalidPhoneFormat';
     }
 
     // City validation
     if (!formData.city.trim()) {
-      errors.city = t ? t('validationCityRequired') : 'validationCityRequired';
+      errors.city = t ? t('cityRequired') : 'cityRequired';
     }
 
     // Password validation
     if (!formData.password) {
-      errors.password = t ? t('validationPasswordRequired') : 'validationPasswordRequired';
+      errors.password = t ? t('passwordRequired') : 'passwordRequired';
     } else if (!isValidPassword(formData.password)) {
-      errors.password = t ? t('validationPasswordTooShort') : 'validationPasswordTooShort';
+      errors.password = t ? t('passwordTooShort') : 'passwordTooShort';
     }
 
     // Confirm password validation
     if (!formData.confirmPassword) {
-      errors.confirmPassword = t ? t('validationConfirmPasswordRequired') : 'validationConfirmPasswordRequired';
+      errors.confirmPassword = t ? t('confirmPasswordRequired') : 'confirmPasswordRequired';
     } else if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = t ? t('validationPasswordsDoNotMatch') : 'validationPasswordsDoNotMatch';
+      errors.confirmPassword = t ? t('passwordsDoNotMatch') : 'passwordsDoNotMatch';
     }
 
     // Date of birth validation
     if (!formData.dateOfBirth.trim()) {
-      errors.dateOfBirth = t ? t('validationDateOfBirthRequired') : 'validationDateOfBirthRequired';
+      errors.dateOfBirth = t ? t('dateOfBirthRequired') : 'dateOfBirthRequired';
     } else {
       // Validate age (must be 18+)
       const birthDate = new Date(formData.dateOfBirth);
       if (isNaN(birthDate.getTime())) {
-        errors.dateOfBirth = t ? t('validationInvalidDateOfBirth') : 'validationInvalidDateOfBirth';
+        errors.dateOfBirth = t ? t('invalidDateOfBirth') : 'invalidDateOfBirth';
       } else {
         const today = new Date();
         let age = today.getFullYear() - birthDate.getFullYear();
@@ -108,7 +108,7 @@ export function useSignupValidation(
           age--;
         }
         if (age < 18) {
-          errors.dateOfBirth = t ? t('validationAgeRestriction') : 'validationAgeRestriction';
+          errors.dateOfBirth = t ? t('ageRestriction') : 'ageRestriction';
         }
       }
     }
@@ -132,12 +132,12 @@ export function useSignupValidation(
 
     // Business name validation
     if (!formData.businessName.trim()) {
-      errors.businessName = t ? t('validationBusinessNameRequired') : 'validationBusinessNameRequired';
+      errors.businessName = t ? t('businessNameRequired') : 'businessNameRequired';
     }
 
     // VAT validation (optional but if provided, must be valid)
     if (formData.vatNumber && !validateVatNumber(formData.vatNumber)) {
-      errors.vatNumber = t ? t('validationInvalidVatFormat') : 'validationInvalidVatFormat';
+      errors.vatNumber = t ? t('invalidVatFormat') : 'invalidVatFormat';
     }
 
     return {
@@ -159,12 +159,12 @@ export function useSignupValidation(
 
     // Business email validation (optional but if provided, must be valid)
     if (formData.businessEmail && !isValidEmail(formData.businessEmail)) {
-      errors.businessEmail = t ? t('validationInvalidEmailFormat') : 'validationInvalidEmailFormat';
+      errors.businessEmail = t ? t('invalidEmailFormat') : 'invalidEmailFormat';
     }
 
     // Business phone validation (optional but if provided, must be valid)
     if (formData.businessPhone && !isValidPhoneNumber(formData.businessPhone)) {
-      errors.businessPhone = t ? t('validationInvalidPhoneFormat') : 'validationInvalidPhoneFormat';
+      errors.businessPhone = t ? t('invalidPhoneFormat') : 'invalidPhoneFormat';
     }
 
     return {

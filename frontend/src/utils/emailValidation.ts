@@ -75,11 +75,11 @@ export const isValidEmail = (email: string): boolean => {
  */
 export const getEmailValidationError = (email: string, t: (key: string) => string): string => {
   if (!email || email.trim().length === 0) {
-    return t('validationEmailRequired');
+    return t('emailRequired');
   }
 
   if (!isValidEmail(email)) {
-    return t('validationInvalidEmailFormat');
+    return t('invalidEmailFormat');
   }
 
   return '';

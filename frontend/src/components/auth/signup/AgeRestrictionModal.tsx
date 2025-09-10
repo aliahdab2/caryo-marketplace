@@ -12,7 +12,7 @@ export default function AgeRestrictionModal({
   onClose,
   userAge
 }: AgeRestrictionModalProps) {
-  const { t } = useTranslation(['common', 'validation']);
+  const { t } = useTranslation(['validation', 'common']);
 
   if (!isOpen) return null;
 

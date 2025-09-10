@@ -18,7 +18,7 @@ import {
 } from './signup';
 
 export default function SignupForm() {
-  const { t } = useTranslation('auth');
+  const { t } = useTranslation(['auth', 'validation']);
   const [showAgeRestrictionModal, setShowAgeRestrictionModal] = React.useState(false);
   const [userAge, setUserAge] = React.useState<number | undefined>();
 

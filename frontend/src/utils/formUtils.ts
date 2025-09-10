@@ -373,7 +373,7 @@ export const validateStep = (
           const value = formData[field];
           const validation = validateFormField(field as string, value as string, true, t);
           if (!validation.isValid) {
-            tmp[field] = validation.error || t('validationFieldRequired', 'This field is required');
+            tmp[field] = validation.error || t('fieldRequired', 'This field is required');
           }
         }
         Object.assign(errors, tmp);
@@ -390,7 +390,7 @@ export const validateStep = (
           const value = formData[field];
           const validation = validateFormField(field as string, value as string, true, t);
           if (!validation.isValid) {
-            errors[field] = validation.error || t('validationFieldRequired', 'This field is required');
+            errors[field] = validation.error || t('fieldRequired', 'This field is required');
           }
         }
       }
@@ -407,7 +407,7 @@ export const validateStep = (
           const value = formData[field];
           const validation = validateFormField(field as string, value as string, true, t);
           if (!validation.isValid) {
-            errors[field] = validation.error || t('validationFieldRequired', 'This field is required');
+            errors[field] = validation.error || t('fieldRequired', 'This field is required');
           }
         }
       }
@@ -420,7 +420,7 @@ export const validateStep = (
           const value = formData[field];
           const validation = validateFormField(field as string, value as string, true, t);
           if (!validation.isValid) {
-            errors[field] = validation.error || t('validationFieldRequired', 'This field is required');
+            errors[field] = validation.error || t('fieldRequired', 'This field is required');
           }
         }
       }
