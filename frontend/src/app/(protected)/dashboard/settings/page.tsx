@@ -104,7 +104,7 @@ export default function SettingsPage() {
       <div className="mb-4">
         <Breadcrumb items={createDashboardBreadcrumb({
           label: t('settings'),
-          translationKey: 'dashboard.settings',
+          translationKey: 'settings',
           translationNamespace: 'dashboard'
         })} />
       </div>

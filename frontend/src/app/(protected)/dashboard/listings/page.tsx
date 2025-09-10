@@ -225,13 +225,13 @@ export default function ListingsPage() {
       <div className="max-w-7xl mx-auto">
         {/* Breadcrumbs */}
         <Breadcrumb items={createDashboardBreadcrumb({
-          label: t('dashboard:myListings'),
-          translationKey: 'dashboard.myListings',
+          label: t('myListings'),
+          translationKey: 'myListings',
           translationNamespace: 'dashboard'
         })} />
         {/* Header (clean, single title) */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{t("dashboard:myListings")}</h1>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{t("myListings")}</h1>
         </div>
 
         {/* Management summary cards (aligned with dashboard colors) */}
@@ -380,12 +380,12 @@ export default function ListingsPage() {
 			{/* Help box */}
 			<div className="mt-8 bg-blue-50 dark:bg-blue-900/30 rounded-lg p-6 border border-blue-100 dark:border-blue-800">
 				<h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-2">
-					{t("dashboard:listingsTips")}
+					{t("listingsTips")}
 				</h3>
 				<ul className="text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
-					<li>{t("dashboard:tip1")}</li>
-					<li>{t("dashboard:tip2")}</li>
-					<li>{t("dashboard:tip3")}</li>
+					<li>{t("tip1")}</li>
+					<li>{t("tip2")}</li>
+					<li>{t("tip3")}</li>
 				</ul>
 				{/* Learn more link temporarily removed per request */}
 			</div>
