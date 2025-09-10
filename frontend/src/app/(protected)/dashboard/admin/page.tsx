@@ -110,7 +110,7 @@ interface AdminPanelState {
 
 // Custom hook for admin panel logic
 const useAdminPanel = () => {
-  const { t } = useTranslation('dashboard');
+  const { t } = useTranslation('admin');
   const router = useRouter();
   const { showSuccess, showError } = useToastHelpers();
   const [state, setState] = useState<AdminPanelState>({

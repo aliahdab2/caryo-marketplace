@@ -25,7 +25,7 @@ export default function DateOfBirthInput({
   showAgeRestriction = true,
   hasAttemptedValidation = false
 }: DateOfBirthInputProps) {
-  const { t } = useTranslation('auth');
+  const { t } = useTranslation(['auth', 'validation']);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -43,14 +43,14 @@ export default function DateOfBirthInput({
 
     if (!value.trim()) {
       if (required && setError) {
-        setError(t('validation.dateOfBirthRequired', 'Date of birth is required'));
+        setError(t('validationDateOfBirthRequired', 'Date of birth is required'));
       }
       return;
     }
 
     const validation = validateAge(value);
     if (!validation.isValid && setError) {
-      setError(validation.error || t('validation.invalidDateOfBirth', 'Invalid date of birth'));
+      setError(validation.error || t('dateOfBirthRequired', 'Invalid date of birth'));
     }
   };
 

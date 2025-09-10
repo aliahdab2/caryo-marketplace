@@ -12,7 +12,7 @@ export default function AgeRestrictionModal({
   onClose,
   userAge
 }: AgeRestrictionModalProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['common', 'validation']);
 
   if (!isOpen) return null;
 
@@ -34,7 +34,7 @@ export default function AgeRestrictionModal({
               </div>
               <div className="ml-3">
                 <h3 className="text-lg font-semibold text-white">
-                  {t('ageRestriction.title')}
+                  {t('ageRestrictionTitle')}
                 </h3>
               </div>
             </div>
@@ -51,14 +51,14 @@ export default function AgeRestrictionModal({
               </div>
 
               <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                {t('ageRestriction.accountCreationRestricted')}
+                {t('ageRestrictionAccountCreationRestricted')}
               </h4>
 
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 {userAge ? (
-                  <>{t('ageRestriction.youAreYearsOld', { age: userAge })}</>
+                  <>{t('ageRestrictionYouAreYearsOld', { age: userAge })}</>
                 ) : (
-                  <>{t('ageRestriction.platformRequires18')}</>
+                  <>{t('ageRestrictionPlatformRequires18')}</>
                 )}
               </p>
 
@@ -71,10 +71,10 @@ export default function AgeRestrictionModal({
                   </div>
                   <div className="ml-3">
                     <p className="text-sm text-blue-800 dark:text-blue-200">
-                      <strong>{t('ageRestriction.whatCanYouDo')}</strong><br />
-                      • {t('ageRestriction.checkBackAt18')}<br />
-                      • {t('ageRestriction.teenFeatures')}<br />
-                      • {t('ageRestriction.contactSupport')}
+                      <strong>{t('ageRestrictionWhatCanYouDo')}</strong><br />
+                      • {t('ageRestrictionCheckBackAt18')}<br />
+                      • {t('ageRestrictionTeenFeatures')}<br />
+                      • {t('ageRestrictionContactSupport')}
                     </p>
                   </div>
                 </div>
@@ -88,7 +88,7 @@ export default function AgeRestrictionModal({
               onClick={onClose}
               className="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
             >
-              {t('ageRestriction.goBack')}
+              {t('ageRestrictionGoBack')}
             </button>
           </div>
         </div>

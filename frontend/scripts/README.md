@@ -1,29 +1,45 @@
 # Translation Management Scripts
 
-This directory contains utility scripts for managing translations in the Caryo Marketplace application.
+This directory contains consolidated translation management tools for the Caryo Marketplace application.
 
-## Available Scripts
+## Translation Tools Suite
 
-### Translation Flattening
+All translation management functionality has been consolidated into the `translation-tools/` directory for better organization and maintenance.
 
-These scripts help convert nested translation structures to flat key-value pairs, following the recommendations in the [Translation Guide for Developers](../../docs/translation_guide_for_developers.md).
-
-- **`flattenTranslations.js`**: Core utility function that converts nested objects to flat keys
-- **`flattenCommonJson.js`**: Flattens just the common.json files (English and Arabic)
-- **`flattenAllTranslations.js`**: Comprehensive script to flatten all translation files
-
-## Usage
+### Available Tools
 
 ```bash
-# To flatten just the common.json files (recommended first step)
-node scripts/flattenCommonJson.js
+# Unified CLI interface
+npm run translation <command>
 
-# To flatten all translation files (once common.json is verified)
-node scripts/flattenAllTranslations.js
+# Core validation and analysis
+npm run translation validate        # Check guide compliance
+npm run translation integrity-check # Complete integrity + duplicates
+npm run translation sync-check      # EN/AR key synchronization
+
+# Automated fixes
+npm run translation fix-guide       # Auto-fix translation violations
+
+# Workflow orchestration
+npm run translation maintenance     # Complete maintenance workflow
 ```
 
-## Documentation
+### Directory Structure
 
-For detailed information about the translation flattening process, see:
-- [Translation Flattening Guide](../docs/translation_flattening.md)
-- [Translation Guide for Developers](../../docs/translation_guide_for_developers.md)
+```
+scripts/translation-tools/
+├── cli/index.js              # Unified CLI interface
+├── core/                     # Core tools (validator, translator, etc.)
+├── analysis/                 # Analysis tools (sync-check, integrity-checker)
+├── fixes/                    # Auto-fix tools (guide-fixer)
+└── workflow/                 # Orchestration (maintenance)
+```
+
+## Migration Notes
+
+- Old individual scripts have been consolidated into the unified `translation-tools` suite
+- All package.json scripts now point to the new consolidated tools
+- Better error handling, comprehensive logging, and improved maintainability
+
+For detailed documentation, see: `scripts/translation-tools/README.md`
+ 

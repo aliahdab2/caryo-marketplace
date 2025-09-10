@@ -152,23 +152,23 @@ export default function DashboardLayout({
   // Enhanced sidebar items with tooltips and additional sections
   const sidebarItems = [
     // Main navigation
-    { 
-      name: t('dashboard.overview'), 
-      href: "/dashboard", 
+    {
+      name: t('overview'),
+      href: "/dashboard",
       icon: <MdDashboard className="text-xl" />,
-      tooltip: t('dashboard.overviewTooltip') || 'Dashboard overview'
+      tooltip: t('overviewTooltip') || 'Dashboard overview'
     },
-    { 
-      name: t('dashboard.myListings'), 
-      href: "/dashboard/listings", 
+    {
+      name: t('myListings'),
+      href: "/dashboard/listings",
       icon: <MdDirectionsCar className="text-xl" />,
-      tooltip: t('dashboard.myListingsTooltip') || 'Manage your vehicle listings'
+      tooltip: t('myListingsTooltip') || 'Manage your vehicle listings'
     },
-    { 
-      name: t('dashboard.favorites'), 
-      href: "/favorites", 
+    {
+      name: t('favorites'),
+      href: "/favorites",
       icon: <MdFavorite className="text-xl" />,
-      tooltip: t('dashboard.favoritesTooltip') || 'Your saved vehicles'
+      tooltip: t('favoritesTooltip') || 'Your saved vehicles'
     },
     { 
       name: t('headerSavedSearches', { ns: 'common' }), 
@@ -176,46 +176,46 @@ export default function DashboardLayout({
       icon: <MdNotifications className="text-xl" />,
       tooltip: t('headerSavedSearches', { ns: 'common' }) || 'Your saved search alerts'
     },
-    { 
-      name: t('dashboard.messages'), 
-      href: "/dashboard/messages", 
+    {
+      name: t('messages'),
+      href: "/dashboard/messages",
       icon: <MdEmail className="text-xl" />,
-      tooltip: t('dashboard.messagesTooltip') || 'Your messages'
+      tooltip: t('messagesTooltip') || 'Your messages'
     },
     // Admin navigation - only show to admin users
     ...(isAdmin() ? [{
-      name: t('dashboard.adminPanel', 'Admin Panel'),
+      name: t('adminPanel', 'Admin Panel'),
       href: "/dashboard/admin",
       icon: <MdAdminPanelSettings className="text-xl" />,
-      tooltip: t('dashboard.adminPanelTooltip', 'Manage listings and users')
+      tooltip: t('adminPanelTooltip', 'Manage listings and users')
     }] : []),
-    { 
-      name: t('dashboard.profile'), 
-      href: "/dashboard/profile", 
+    {
+      name: t('profile'),
+      href: "/dashboard/profile",
       icon: <MdPerson className="text-xl" />,
-      tooltip: t('dashboard.profileTooltip') || 'Manage your profile'
+      tooltip: t('profileTooltip') || 'Manage your profile'
     },
-    { 
-      name: t('dashboard.settings'), 
-      href: "/dashboard/settings", 
+    {
+      name: t('settings'),
+      href: "/dashboard/settings",
       icon: <MdSettings className="text-xl" />,
-      tooltip: t('dashboard.settingsTooltip') || 'Account settings'
+      tooltip: t('settingsTooltip') || 'Account settings'
     },
   ];
 
   // Quick action items
   const quickActionItems: NavItem[] = [
     {
-      name: t('dashboard.addListing'),
+      name: t('addListing'),
       href: "/dashboard/listings/new",
       icon: <MdAdd className="text-xl" />,
-      tooltip: t('dashboard.createListing') || 'Create a new listing'
+      tooltip: t('createListing') || 'Create a new listing'
     },
     {
-      name: t('dashboard.support'),
+      name: t('support'),
       href: "/dashboard/support",
       icon: <MdSupportAgent className="text-xl" />,
-      tooltip: t('dashboard.helpCenter') || 'Get support'
+      tooltip: t('helpCenter') || 'Get support'
     }
   ];
 
@@ -226,7 +226,7 @@ export default function DashboardLayout({
       <header className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow sticky top-0 z-40">
         <h1 className="text-lg font-semibold flex items-center">
           <MdDashboard className="mr-2 text-primary" /> 
-          {t('dashboard.dashboard')}
+          {t('dashboard')}
         </h1>
         <div className="flex items-center gap-2">
           {/* Notifications */}
@@ -265,7 +265,7 @@ export default function DashboardLayout({
         aria-hidden={!isMobileMenuOpen}
         role="dialog"
         aria-modal="true"
-        aria-label={t('dashboard.navigation')}
+        aria-label={t('navigation')}
       >
         {/* Mobile User Profile */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80">
@@ -290,7 +290,7 @@ export default function DashboardLayout({
             {/* Quick Actions Section */}
             <li className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
               <h2 className="px-3 mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                {t('dashboard.quickActions')}
+                {t('quickActions')}
               </h2>
               <ul className="space-y-1">
                 {quickActionItems.map(item => {
@@ -334,13 +334,13 @@ export default function DashboardLayout({
                      bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900/70">
           <h1 className="text-xl font-semibold flex items-center">
             <MdDashboard className="mr-2 text-primary" /> 
-            {t('dashboard.dashboard')}
+            {t('dashboard')}
           </h1>
         </div>
         
         {/* Navigation */}
         <nav className="p-4 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600" 
-            aria-label={t('dashboard.mainNavigation')}>
+            aria-label={t('mainNavigation')}>
           <ul className="space-y-1.5">
             {sidebarItems.map((item) => {
               const isActive = !!(pathname && (pathname === item.href || pathname.startsWith(item.href + '/')));
@@ -357,7 +357,7 @@ export default function DashboardLayout({
           {/* Quick Actions */}
           <div className="mt-8">
             <h2 className="px-3 mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              {t('dashboard.quickActions')}
+              {t('quickActions')}
             </h2>
             <ul className="space-y-1">
               {quickActionItems.map(item => {
@@ -412,8 +412,8 @@ export default function DashboardLayout({
               className="flex items-center justify-center h-9 w-9 text-gray-700 dark:text-gray-300 
                        focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full 
                        hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              aria-label={t('dashboard.help')}
-              title={t('dashboard.help')}
+              aria-label={t('help')}
+              title={t('help')}
             >
               <MdHelp size={20} />
             </button>

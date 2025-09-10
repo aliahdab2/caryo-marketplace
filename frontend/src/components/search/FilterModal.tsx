@@ -700,7 +700,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
             
             {/* Make and Model */}
             <CollapsibleSection
-              title={t('makeAndModel', 'Make and Model')}
+              title={t('search:makeAndModel', 'Make and Model')}
               sectionName="makeModel"
               icon={
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">

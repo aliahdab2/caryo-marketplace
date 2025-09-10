@@ -7,7 +7,7 @@
   "price": "السعر",
   "priceRange": "السعر",
   "from": "من",
-  "to": "إلى",
+  "toRange": "إلى",
   "upTo": "حتى",
   "year": "السنة",
   "yearRange": "نطاق السنة",
@@ -42,18 +42,10 @@
   "maximumPrice": "السعر الأقصى",
   "lowestPricePlaceholder": "أقل سعر",
   "highestPricePlaceholder": "أعلى سعر",
-  "@minPrice": {
-    "description": "تسمية لحقل إدخال السعر الأدنى في شريط تمرير الأسعار"
-  },
-  "@maxPrice": {
-    "description": "تسمية لحقل إدخال السعر الأقصى في شريط تمرير الأسعار"
-  },
-  "@minimumPrice": {
-    "description": "تسمية ARIA للمقبض الأدنى في شريط تمرير السعر لقارئات الشاشة"
-  },
-  "@maximumPrice": {
-    "description": "تسمية ARIA للمقبض الأقصى في شريط تمرير السعر لقارئات الشاشة"
-  },
+  "minPriceDescription": "تسمية لحقل إدخال السعر الأدنى في شريط تمرير الأسعار",
+  "maxPriceDescription": "تسمية لحقل إدخال السعر الأقصى في شريط تمرير الأسعار",
+  "minimumPriceLabel": "تسمية ARIA للمقبض الأدنى في شريط تمرير السعر لقارئات الشاشة",
+  "maximumPriceLabel": "تسمية ARIA للمقبض الأقصى في شريط تمرير السعر لقارئات الشاشة",
   "clearFilter": "إزالة الفلتر",
   "saveSearch": "حفظ البحث",
   "searchCars": "البحث عن السيارات",
@@ -182,5 +174,10 @@
   "transmissionsAutomatic": "أوتوماتيك",
   "transmissionsManual": "يدوي",
   "transmissionsCvt": "متغير مستمر",
-  "transmissionsSemiAutomatic": "شبه أوتوماتيك"
+  "transmissionsSemiAutomatic": "شبه أوتوماتيك",
+  "resultsAnnouncement": "تم العثور على {{totalCount}} سيارة لـ \"{{searchQuery}}\", عرض {{resultCount}}",
+  "resultsAnnouncementNoQuery": "تم العثور على {{totalCount}} سيارة, عرض {{resultCount}}",
+  "noResultsAnnouncement": "لم يتم العثور على سيارات لـ \"{{searchQuery}}\"",
+  "retrySuccess": "تم إعادة المحاولة بنجاح، تم إعادة تحميل النتائج",
+  "retryFailed": "فشلت إعادة المحاولة، يرجى المحاولة مرة أخرى"
 }

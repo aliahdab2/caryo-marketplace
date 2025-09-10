@@ -3,7 +3,7 @@
     "sample-auth": {
       "signup": {
         "original": null,
-        "context": "/Users/aliahdab/Documents/caryo-marketplace/frontend/scripts/translation-validator/test-data/mock-source-files/Component1.tsx",
+        "context": "/Users/aliahdab/Documents/caryo-marketplace/frontend/scripts/translation-tools/core/test-data/mock-source-files/Component1.tsx",
         "needs_translation": true,
         "issue": "MISSING_FROM_ALL_FILES",
         "has_fallback": false,
@@ -15,7 +15,7 @@
     "sample-common": {
       "nonExistentKey": {
         "original": null,
-        "context": "/Users/aliahdab/Documents/caryo-marketplace/frontend/scripts/translation-validator/test-data/mock-source-files/Component1.tsx",
+        "context": "/Users/aliahdab/Documents/caryo-marketplace/frontend/scripts/translation-tools/core/test-data/mock-source-files/Component1.tsx",
         "needs_translation": true,
         "issue": "MISSING_FROM_ALL_FILES",
         "has_fallback": false,
@@ -27,7 +27,7 @@
     "sample-duplicates": {
       "duplicateKey1": {
         "original": null,
-        "context": "/Users/aliahdab/Documents/caryo-marketplace/frontend/scripts/translation-validator/test-data/mock-source-files/Component2.js",
+        "context": "/Users/aliahdab/Documents/caryo-marketplace/frontend/scripts/translation-tools/core/test-data/mock-source-files/Component2.js",
         "needs_translation": true,
         "issue": "MISSING_FROM_ALL_FILES",
         "has_fallback": false,
@@ -37,26 +37,27 @@
       }
     }
   },
-  "sample-common": {},
-  "sample-auth": {},
-  "sample-duplicates": {
-    "anotherDuplicate": {
-      "original": "Second",
-      "context": "sample-duplicates.anotherDuplicate",
+  "sample-common": {
+    "anotherExtra": {
+      "original": "مفتاح آخر إضافي",
+      "context": "sample-common.anotherExtra",
       "needs_translation": true,
-      "source_language": "en"
+      "source_language": "ar"
     },
-    "duplicateKey": {
-      "original": "Second occurrence",
-      "context": "sample-duplicates.duplicateKey",
+    "extraKey": {
+      "original": "مفتاح إضافي في العربية",
+      "context": "sample-common.extraKey",
       "needs_translation": true,
-      "source_language": "en"
-    },
-    "normalKey": {
-      "original": "Normal value",
-      "context": "sample-duplicates.normalKey",
-      "needs_translation": true,
-      "source_language": "en"
+      "source_language": "ar"
     }
-  }
+  },
+  "sample-auth": {
+    "extraAuthKey": {
+      "original": "مفتاح مصادقة إضافي",
+      "context": "sample-auth.extraAuthKey",
+      "needs_translation": true,
+      "source_language": "ar"
+    }
+  },
+  "sample-duplicates": {}
 }

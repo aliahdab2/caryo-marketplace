@@ -1,33 +1,17 @@
 {
   "title": "My Favorites",
-  "noFavorites": "No Favorite Vehicles",
-  "startBrowsing": "Start browsing our listings to add vehicles to your favorites",
-  "browseCars": "Browse Vehicles",
-  "remove": "Remove from favorites",
-  "itemCount": "{{count}} saved vehicles",
-  "savedCount": "{{count}} vehicles saved",
-  "compare": "Compare Vehicles",
-  "discoverCars": "Discover Vehicles",
-  "howItWorks": "How It Works",
-  "refreshList": "Refresh List",
-  "emptyStateTitle": "No Favorites Yet",
-  "emptyStateMessage": "Start exploring our listings and add vehicles to your favorites to keep track of what interests you.",
-  "loadMore": "Load More",
+  "itemCount_zero": "No vehicles",
+  "itemCount_one": "1 vehicle",
+  "itemCount_two": "2 vehicles",
+  "itemCount_few": "{{count}} vehicles",
+  "itemCount_many": "{{count}} vehicles",
+  "itemCount_other": "{{count}} vehicles",
   "emptyTitle": "No favorites yet",
   "emptyMessage": "You haven't added any vehicles to your favorites yet",
   "emptyBrowseListings": "Browse Listings",
-  "sortBy": "Sort by",
-  "sortOptionsDate": "Date Added",
-  "sortOptionsPrice": "Price",
-  "sortOptionsYear": "Year",
   "loadingFavorites": "Loading your favorites...",
   "errorLoading": "Error loading favorites",
-  "errorRemoving": "Error removing vehicle from favorites",
-  "authRequired": "Authentication Required",
-  "quickTips": "Quick Tips",
-  "tip1": "Click the heart icon on any listing to add it to your favorites.",
-  "tip2": "Use the compare feature to see multiple vehicles side by side.",
-  "signInToView": "Please sign in to view and manage your favorites",
+  "errorRemoving": "Error removing favorites",
   "tabAll": "All",
   "tabAvailable": "Available",
   "tabRemoved": "Removed",
@@ -36,37 +20,5 @@
   "removeAll": "Remove All",
   "removingAll": "Removing All...",
   "removeAllTitle": "Remove All Favorites?",
-  "removeAllMessage": "Are you sure you want to remove all your favorite cars?",
-  "removeAllConfirm": "Are you sure you want to remove all saved vehicles from your favorites?",
-  "@title": {
-    "description": "Page title for the favorites section"
-  },
-  "@itemCount": {
-    "description": "Shows the number of saved vehicles",
-    "context": "{{count}} is the number of vehicles"
-  },
-  "@tabAll": {
-    "description": "Tab label for showing all favorites"
-  },
-  "@tabAvailable": {
-    "description": "Tab label for showing available (not sold/expired) favorites"
-  },
-  "@tabRemoved": {
-    "description": "Tab label for showing sold or expired favorites"
-  },
-  "@statusSold": {
-    "description": "Status badge for sold vehicles"
-  },
-  "@statusExpired": {
-    "description": "Status badge for expired vehicles"
-  },
-  "@removeAllTitle": {
-    "description": "Title for remove all favorites confirmation modal"
-  },
-  "@removeAllMessage": {
-    "description": "Message for remove all favorites confirmation modal"
-  },
-  "@removeAllConfirm": {
-    "description": "Confirmation dialog message for removing all favorites"
-  }
+  "removeAllMessage": "Are you sure you want to remove all your favorite cars?"
 }

@@ -21,7 +21,7 @@ const SignInPage: React.FC = () => {
   // Lazy load the auth and errors namespaces
   useLazyTranslation(AUTH_NAMESPACES);
 
-  const { t } = useTranslation(['auth', 'errors']);
+  const { t } = useTranslation(['auth', 'errors', 'validation']);
   const router = useRouter();
   const _searchParams = useSearchParams();
   const { getErrorMessage } = useApiErrorHandler();
@@ -158,14 +158,14 @@ const SignInPage: React.FC = () => {
     setCredentialsCorrect(false);
 
     if (!username || !password) {
-      setError(t('validation.fieldRequired'));
+      setError(t('validationFieldRequired'));
       setLoading(false);
       return;
     }
 
     // If username looks like an email, validate it
     if (looksLikeEmail(username) && !isValidEmail(username)) {
-      setUsernameError(t('validation.invalidEmailFormat'));
+      setUsernameError(t('validationInvalidEmailFormat'));
       setLoading(false);
       return;
     }
@@ -365,11 +365,11 @@ const SignInPage: React.FC = () => {
                       // Validate email format if it looks like an email
                       const usernameValue = e.target.value.trim();
                       if (usernameValue && looksLikeEmail(usernameValue) && !isValidEmail(usernameValue)) {
-                        setUsernameError(t('validation.invalidEmailFormat'));
+                        setUsernameError(t('validationInvalidEmailFormat'));
                       }
                     }}
                     required
-                    data-error={t('validation.fieldRequired')}
+                    data-error={t('validationFieldRequired')}
                     className={`block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${
                       usernameError 
                         ? 'border-red-300 dark:border-red-600 focus:ring-red-500' 
@@ -379,7 +379,7 @@ const SignInPage: React.FC = () => {
                     onInvalid={(e) => {
                       e.preventDefault();
                       const target = e.target as HTMLInputElement;
-                      const errorMsg = target.getAttribute('data-error') || t('validation.fieldRequired');
+                      const errorMsg = target.getAttribute('data-error') || t('fieldRequired');
                       target.setCustomValidity(errorMsg);
                     }}
                     onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
@@ -414,11 +414,11 @@ const SignInPage: React.FC = () => {
                   placeholder={t('passwordPlaceholder')}
                   required
                   disabled={loading || redirecting}
-                  data-error={t('validation.fieldRequired')}
+                  data-error={t('fieldRequired')}
                   onInvalid={(e) => {
                     e.preventDefault();
                     const target = e.target as HTMLInputElement;
-                    const errorMsg = target.getAttribute('data-error') || t('validation.fieldRequired');
+                    const errorMsg = target.getAttribute('data-error') || t('fieldRequired');
                     target.setCustomValidity(errorMsg);
                   }}
                   onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
@@ -473,7 +473,7 @@ const SignInPage: React.FC = () => {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
-                  {t('or')}
+                  {t('orConnector')}
                 </span>
               </div>
             </div>

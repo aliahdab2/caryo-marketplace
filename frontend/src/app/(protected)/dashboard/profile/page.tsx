@@ -48,7 +48,7 @@ const formatRole = (role: string) => {
 export default function ProfilePage() {
   // Use optimized auth hook instead of direct useSession
   const { user } = useOptimizedSession();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['profile', 'common']);
   const [isEditing, setIsEditing] = useState(false);
   const [userRoles, setUserRoles] = useState<string>('');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -247,9 +247,9 @@ export default function ProfilePage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Breadcrumbs */}
       <Breadcrumb items={createDashboardBreadcrumb({
-        label: t('dashboard.profile'),
-        translationKey: 'dashboard.profile',
-        translationNamespace: 'dashboard'
+        label: t('profile'),
+        translationKey: 'profile',
+        translationNamespace: 'profile'
       })} />
       {/* Enhanced Header Section */}
       <div className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-3xl p-8 lg:p-12 text-white shadow-2xl overflow-hidden">
@@ -261,10 +261,10 @@ export default function ProfilePage() {
         <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div className="flex-1">
             <h1 className="text-4xl lg:text-5xl font-bold mb-3 leading-tight">
-              {t('dashboard.profile')}
+              {t('profile')}
             </h1>
             <p className="text-blue-100 text-lg opacity-90 max-w-md leading-relaxed">
-              {t('dashboard.manageProfile')}
+              {t('manageProfile')}
             </p>
           </div>
           
@@ -277,7 +277,7 @@ export default function ProfilePage() {
                 <svg className="w-5 h-5 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                {t('dashboard.edit')}
+                {t('edit')}
               </button>
             </div>
           )}
@@ -294,8 +294,8 @@ export default function ProfilePage() {
                 </svg>
               </div>
               <div>
-                <h2 className="text-3xl font-bold text-gray-800 dark:text-white">{t('dashboard.editProfile')}</h2>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">{t('dashboard.updateInfo')}</p>
+                <h2 className="text-3xl font-bold text-gray-800 dark:text-white">{t('editProfile')}</h2>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">{t('updateInfo')}</p>
               </div>
             </div>
           </div>
@@ -353,7 +353,7 @@ export default function ProfilePage() {
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
                   <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">
-                    {t('dashboard.emailCannotBeChanged')}
+                    {t('emailCannotBeChanged')}
                   </p>
                 </div>
               </div>
@@ -372,7 +372,7 @@ export default function ProfilePage() {
                     value={formData.phone}
                     onChange={handleChange}
                     className="w-full px-4 py-4 pl-12 border-2 border-gray-200 dark:border-gray-600 rounded-2xl bg-white dark:bg-gray-800 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900 transition-all duration-300 text-lg font-medium"
-                    placeholder={t('contactInformation.enterPhone')}
+                    placeholder={t('enterPhone')}
                   />
                   <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -397,7 +397,7 @@ export default function ProfilePage() {
                     value={formData.location}
                     onChange={handleChange}
                     className="w-full px-4 py-4 pl-12 border-2 border-gray-200 dark:border-gray-600 rounded-2xl bg-white dark:bg-gray-800 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900 transition-all duration-300 text-lg font-medium"
-                    placeholder={t('contactInformation.enterLocation')}
+                    placeholder={t('enterLocation')}
                   />
                   <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -413,7 +413,7 @@ export default function ProfilePage() {
                   <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  {t('dashboard.bio')}
+                  {t('bio')}
                 </label>
                 <textarea
                   name="bio"
@@ -421,7 +421,7 @@ export default function ProfilePage() {
                   onChange={handleChange}
                   rows={4}
                   className="w-full px-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-2xl bg-white dark:bg-gray-800 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900 transition-all duration-300 text-lg font-medium resize-none"
-                  placeholder={t('dashboard.tellUsAboutYourself')}
+                  placeholder={t('tellUsAboutYourself')}
                 />
               </div>
             </div>
@@ -492,15 +492,15 @@ export default function ProfilePage() {
                   <svg className="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                   </svg>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.accountInfo')}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('accountInfo')}</h3>
                 </div>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center py-2">
-                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('auth.userId')}</span>
+                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('userId')}</span>
                     <span className="text-gray-900 dark:text-white font-semibold">{user?.id || t('notAvailable')}</span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-t border-gray-200 dark:border-gray-600">
-                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('contactInformation.memberSince')}</span>
+                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('memberSince')}</span>
                     <span className="text-gray-900 dark:text-white font-semibold">May 2023</span>
                   </div>
                 </div>
@@ -512,22 +512,22 @@ export default function ProfilePage() {
                   <svg className="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                   </svg>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.contactInfo')}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('contactInfo')}</h3>
                 </div>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center py-2">
-                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('contactInformation.phone')}</span>
+                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('phone')}</span>
                     <span className="text-gray-900 dark:text-white font-semibold">
                       {formData.phone || (
-                        <span className="text-gray-400 italic">{t('contactInformation.notProvided')}</span>
+                        <span className="text-gray-400 italic">{t('notProvided')}</span>
                       )}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-t border-gray-200 dark:border-gray-600">
-                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('contactInformation.location')}</span>
+                    <span className="text-gray-600 dark:text-gray-400 font-medium">{t('location')}</span>
                     <span className="text-gray-900 dark:text-white font-semibold">
                       {formData.location || (
-                        <span className="text-gray-400 italic">{t('contactInformation.notProvided')}</span>
+                        <span className="text-gray-400 italic">{t('notProvided')}</span>
                       )}
                     </span>
                   </div>
@@ -541,11 +541,11 @@ export default function ProfilePage() {
                 <svg className="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.bio')}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('bio')}</h3>
               </div>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 {formData.bio || (
-                  <span className="text-gray-400 italic">{t('dashboard.noBio')}</span>
+                  <span className="text-gray-400 italic">{t('noBio')}</span>
                 )}
               </p>
             </div>
@@ -560,9 +560,9 @@ export default function ProfilePage() {
             <svg className="w-6 h-6 text-red-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
             </svg>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{t('dashboard.accountSecurity')}</h2>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{t('accountSecurity')}</h2>
           </div>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">{t('dashboard.manageSecuritySettings')}</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">{t('manageSecuritySettings')}</p>
         </div>
         
         <div className="p-8 space-y-6">
@@ -579,10 +579,10 @@ export default function ProfilePage() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{t('auth.password')}</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {t('dashboard.lastUpdated')}: <span className="font-medium">3 months ago</span>
+                      {t('lastUpdated')}: <span className="font-medium">3 months ago</span>
                     </p>
                     <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                      {t('dashboard.recommendPasswordUpdate')}
+                      {t('recommendPasswordUpdate')}
                     </p>
                   </div>
                 </div>
@@ -607,12 +607,12 @@ export default function ProfilePage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{t('dashboard.googleAuth')}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{t('googleAuth')}</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {t('dashboard.googleAuthSignedIn')}
+                      {t('googleAuthSignedIn')}
                     </p>
                     <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                      {t('dashboard.googleAuthSecurity')}
+                      {t('googleAuthSecurity')}
                     </p>
                   </div>
                 </div>
@@ -620,7 +620,7 @@ export default function ProfilePage() {
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  {t('dashboard.active')}
+                  {t('active')}
                 </span>
               </div>
             </div>
@@ -638,17 +638,17 @@ export default function ProfilePage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{t('dashboard.twoFactorAuth')}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{t('twoFactorAuth')}</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {t('dashboard.improveAccountSecurity')}
+                      {t('improveAccountSecurity')}
                     </p>
                     <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                      {t('dashboard.twoFactorAuthRecommended')}
+                      {t('twoFactorAuthRecommended')}
                     </p>
                   </div>
                 </div>
                 <button className="px-6 py-3 border-2 border-amber-500 text-amber-700 dark:text-amber-400 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-all duration-200 font-medium whitespace-nowrap">
-                  {t('dashboard.setupTwoFactor')}
+                  {t('setupTwoFactor')}
                 </button>
               </div>
             </div>

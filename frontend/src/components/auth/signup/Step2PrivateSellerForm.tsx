@@ -138,7 +138,7 @@ export default function Step2PrivateSellerForm({
 
               const emailValue = e.target.value.trim();
               if (emailValue && !isValidEmail(emailValue)) {
-                setEmailError(t('validation.invalidEmailFormat'));
+                setEmailError(t('validationInvalidEmailFormat'));
               }
             }}
             required={false} // Disable HTML5 validation, use custom validation

@@ -155,7 +155,7 @@ export default function FavoritesPage() {
               {
                 label: 'Dashboard',
                 href: '/dashboard',
-                translationKey: 'dashboard.dashboard',
+                translationKey: 'dashboard',
                 translationNamespace: 'dashboard'
               },
               {
