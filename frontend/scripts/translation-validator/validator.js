@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Translation Validator Tool
+ * Translation Validator Tool (ANALYSIS ONLY)
  * Validates translation files for Caryo Marketplace
  *
  * Features:
@@ -10,12 +10,15 @@
  * - Scan React/TypeScript files for translation key usage
  * - Identify unused translation keys
  * - Generate comprehensive reports
- * - Auto-fix capabilities
+ * - Export missing translations for professional translation
  * - Consistency checking
+ *
+ * IMPORTANT: This tool is ANALYSIS-ONLY and does not modify translation files.
  */
 
 const fs = require('fs');
 const path = require('path');
+const AITranslator = require('./ai-translator');
 
 // Configuration
 const LOCALES_DIR = path.join(__dirname, '..', '..', 'public', 'locales');
@@ -56,19 +59,24 @@ function loadTranslationFile(language, namespace) {
  * Load all translation files
  */
 function loadAllTranslations() {
-  const translations = {};
-  const languages = process.env.NODE_ENV === 'test' ? TEST_LANGUAGES : LANGUAGES;
-  const namespaces = process.env.NODE_ENV === 'test' ? TEST_NAMESPACES : NAMESPACES;
+  return trackPerformance('Loading translations', () => {
+    return getCached('translations', () => {
+      console.log('Loading translation files...');
+      const translations = {};
+      const languages = process.env.NODE_ENV === 'test' ? TEST_LANGUAGES : LANGUAGES;
+      const namespaces = process.env.NODE_ENV === 'test' ? TEST_NAMESPACES : NAMESPACES;
 
-  languages.forEach(language => {
-    translations[language] = {};
+      languages.forEach(language => {
+        translations[language] = {};
 
-    namespaces.forEach(namespace => {
-      translations[language][namespace] = loadTranslationFile(language, namespace);
+        namespaces.forEach(namespace => {
+          translations[language][namespace] = loadTranslationFile(language, namespace);
+        });
+      });
+
+      return translations;
     });
   });
-
-  return translations;
 }
 
 /**
@@ -190,31 +198,196 @@ function findDuplicateKeys(translations) {
  * Scan React/TypeScript files for translation key usage
  */
 function scanSourceFiles() {
-  const usedKeys = new Set();
-  const srcDir = process.env.NODE_ENV === 'test' ? TEST_SRC_DIR : SRC_DIR;
+  return trackPerformance('Scanning source files', () => {
+    return getCached('source-scan', () => {
+      console.log('Scanning source files for translation usage...');
+      const usedKeys = new Map(); // Changed from Set to Map to store metadata
+      const srcDir = process.env.NODE_ENV === 'test' ? TEST_SRC_DIR : SRC_DIR;
 
-  function scanDirectory(dirPath) {
-    try {
-      const items = fs.readdirSync(dirPath);
+      function scanDirectory(dirPath) {
+        try {
+          const items = fs.readdirSync(dirPath);
 
-      items.forEach(item => {
-        const fullPath = path.join(dirPath, item);
-        const stat = fs.statSync(fullPath);
+          items.forEach(item => {
+            const fullPath = path.join(dirPath, item);
+            const stat = fs.statSync(fullPath);
 
-        if (stat.isDirectory() && !item.startsWith('.') && item !== 'node_modules') {
-          scanDirectory(fullPath);
-        } else if (stat.isFile() && /\.(ts|tsx|js|jsx)$/.test(item)) {
-          const keys = extractTranslationKeys(fullPath);
-          keys.forEach(key => usedKeys.add(key));
+            if (stat.isDirectory() && !item.startsWith('.') && item !== 'node_modules' && item !== '__tests__' && item !== 'tests' && !item.includes('.test') && !item.includes('.spec')) {
+              scanDirectory(fullPath);
+            } else if (stat.isFile() && /\.(ts|tsx|js|jsx)$/.test(item) && !/\.(test|spec)\./.test(item) && !item.includes('.test.') && !item.includes('.spec.')) {
+              const keys = extractTranslationKeys(fullPath);
+              keys.forEach(keyInfo => {
+                // Store the full metadata, using key as the map key for uniqueness
+                usedKeys.set(keyInfo.key, keyInfo);
+              });
+            }
+          });
+        } catch (error) {
+          console.warn(`Warning: Could not scan directory ${dirPath}: ${error.message}`);
         }
-      });
-    } catch (error) {
-      console.warn(`Warning: Could not scan directory ${dirPath}: ${error.message}`);
-    }
+      }
+
+      scanDirectory(srcDir);
+      return usedKeys; // Return Map instead of Set
+    });
+  });
+}
+
+/**
+ * Validate translation keys against naming conventions and best practices
+ */
+function validateTranslationKeys(translations) {
+  const violations = {
+    invalidPatterns: [],
+    inconsistentNaming: [],
+    nestedObjects: [],
+    specialChars: [],
+    caseIssues: [],
+    namespaceIssues: []
+  };
+
+  const languages = process.env.NODE_ENV === 'test' ? TEST_LANGUAGES : LANGUAGES;
+  const namespaces = process.env.NODE_ENV === 'test' ? TEST_NAMESPACES : NAMESPACES;
+
+  languages.forEach(language => {
+    namespaces.forEach(namespace => {
+      const namespaceTranslations = translations[language][namespace];
+
+      if (!namespaceTranslations) return;
+
+      // Check for nested objects (should be flattened)
+      function checkNested(obj, path = '') {
+        Object.keys(obj).forEach(key => {
+          const fullPath = path ? `${path}.${key}` : key;
+          const value = obj[key];
+
+          if (typeof value === 'object' && value !== null) {
+            violations.nestedObjects.push({
+              language,
+              namespace,
+              key: fullPath,
+              issue: 'NESTED_OBJECT',
+              message: 'Translation files should use flat keys, not nested objects',
+              suggestion: 'Flatten nested objects using dot notation'
+            });
+            checkNested(value, fullPath);
+          } else {
+            // Validate individual key patterns
+            validateKeyPattern(key, fullPath, language, namespace, violations);
+          }
+        });
+      }
+
+      checkNested(namespaceTranslations);
+    });
+  });
+
+  return violations;
+}
+
+/**
+ * Validate individual key naming patterns
+ */
+function validateKeyPattern(key, fullPath, language, namespace, violations) {
+  // Check for invalid characters
+  if (/[^a-zA-Z0-9._-]/.test(key)) {
+    violations.specialChars.push({
+      language,
+      namespace,
+      key: fullPath,
+      issue: 'INVALID_CHARS',
+      message: `Key contains invalid characters: ${key}`,
+      suggestion: 'Use only letters, numbers, dots, underscores, and hyphens'
+    });
   }
 
-  scanDirectory(srcDir);
-  return usedKeys;
+  // Check for inconsistent case patterns
+  if (key.includes('_') && key.includes('.')) {
+    violations.inconsistentNaming.push({
+      language,
+      namespace,
+      key: fullPath,
+      issue: 'MIXED_SEPARATORS',
+      message: 'Key uses both underscores and dots as separators',
+      suggestion: 'Use either dots (.) or underscores (_) consistently'
+    });
+  }
+
+  // Check for camelCase vs kebab-case consistency
+  const hasCamelCase = /[a-z][A-Z]/.test(key);
+  const hasKebabCase = /-[a-zA-Z]/.test(key);
+
+  if (hasCamelCase && hasKebabCase) {
+    violations.caseIssues.push({
+      language,
+      namespace,
+      key: fullPath,
+      issue: 'MIXED_CASE',
+      message: 'Key mixes camelCase and kebab-case patterns',
+      suggestion: 'Use consistent naming convention (camelCase or kebab-case)'
+    });
+  }
+
+  // Check for very long keys
+  if (key.length > 50) {
+    violations.invalidPatterns.push({
+      language,
+      namespace,
+      key: fullPath,
+      issue: 'KEY_TOO_LONG',
+      message: `Key is too long (${key.length} characters)`,
+      suggestion: 'Keep keys under 50 characters for maintainability'
+    });
+  }
+
+  // Check for very short keys
+  if (key.length < 3) {
+    violations.invalidPatterns.push({
+      language,
+      namespace,
+      key: fullPath,
+      issue: 'KEY_TOO_SHORT',
+      message: `Key is too short (${key.length} characters)`,
+      suggestion: 'Use descriptive key names (at least 3 characters)'
+    });
+  }
+
+  // Check for numeric-only keys
+  if (/^\d+$/.test(key)) {
+    violations.invalidPatterns.push({
+      language,
+      namespace,
+      key: fullPath,
+      issue: 'NUMERIC_KEY',
+      message: 'Key consists only of numbers',
+      suggestion: 'Use descriptive names instead of numeric keys'
+    });
+  }
+
+  // Check for reserved words
+  const reservedWords = ['null', 'undefined', 'true', 'false', 'class', 'function', 'var', 'let', 'const'];
+  if (reservedWords.includes(key.toLowerCase())) {
+    violations.invalidPatterns.push({
+      language,
+      namespace,
+      key: fullPath,
+      issue: 'RESERVED_WORD',
+      message: `Key uses reserved word: ${key}`,
+      suggestion: 'Avoid using programming language reserved words'
+    });
+  }
+
+  // Check namespace consistency (should match filename)
+  if (!fullPath.startsWith(`${namespace}.`) && fullPath !== key) {
+    violations.namespaceIssues.push({
+      language,
+      namespace,
+      key: fullPath,
+      issue: 'NAMESPACE_MISMATCH',
+      message: `Key doesn't follow namespace pattern: ${namespace}`,
+      suggestion: `Use namespace prefix: ${namespace}.${key}`
+    });
+  }
 }
 
 /**
@@ -223,25 +396,39 @@ function scanSourceFiles() {
 function extractTranslationKeys(filePath) {
   try {
     const content = fs.readFileSync(filePath, 'utf8');
-    const keys = new Set();
+    const keys = new Map(); // Use Map to store key metadata
 
-    // Pattern 1: t('key') or t('namespace:key')
-    const pattern1 = /t\(['"]([^'"]+)['"]/g;
+    // Pattern 1: t('key') or t('namespace:key') - NO fallback
+    const pattern1 = /t\(['"]([^'"]+)['"](?!\s*,)/g;
     let match;
     while ((match = pattern1.exec(content)) !== null) {
-      keys.add(match[1]);
+      const key = match[1];
+      if (!keys.has(key)) {
+        keys.set(key, {
+          key: key,
+          hasFallback: false,
+          fallbackText: null,
+          context: filePath,
+          priority: 'critical'
+        });
+      }
     }
 
-    // Pattern 2: t('key', 'fallback') or t('namespace:key', 'fallback')
-    const pattern2 = /t\(['"]([^'"]+)['"]\s*,\s*['"][^'"]*['"]/g;
+    // Pattern 2: t('key', 'fallback') or t('namespace:key', 'fallback') - HAS fallback
+    const pattern2 = /t\(['"]([^'"]+)['"]\s*,\s*['"]([^'"]*)['"]/g;
     while ((match = pattern2.exec(content)) !== null) {
-      keys.add(match[1]);
+      const key = match[1];
+      const fallback = match[2];
+      keys.set(key, {
+        key: key,
+        hasFallback: true,
+        fallbackText: fallback,
+        context: filePath,
+        priority: 'warning'
+      });
     }
 
-    // Pattern 3: t(variable) - these are dynamic and can't be statically analyzed
-    // We'll skip these for now as they require runtime analysis
-
-    return Array.from(keys);
+    return Array.from(keys.values());
   } catch (error) {
     console.warn(`Warning: Could not read file ${filePath}: ${error.message}`);
     return [];
@@ -298,10 +485,17 @@ function findMissingKeysInCode(translations, usedKeys) {
     });
   });
 
-  // Find keys that are used but not available
-  usedKeys.forEach(usedKey => {
-    if (!allAvailableKeys.has(usedKey)) {
-      missing.push(usedKey);
+  // Find keys that are used but not available, preserving metadata
+  usedKeys.forEach((keyInfo, key) => {
+    if (!allAvailableKeys.has(key)) {
+      // Include the full metadata (hasFallback, fallbackText, context)
+      missing.push({
+        key: key,
+        hasFallback: keyInfo.hasFallback,
+        fallbackText: keyInfo.fallbackText,
+        context: keyInfo.context,
+        priority: keyInfo.hasFallback ? 'warning' : 'critical'
+      });
     }
   });
 
@@ -374,50 +568,6 @@ function calculateCompleteness(translations) {
   return completeness;
 }
 
-/**
- * Clean up translations by removing unused or orphaned keys
- */
-function cleanupTranslations(translations, cleanupType = 'unused') {
-  let cleaned = 0;
-  
-  if (cleanupType === 'unused') {
-    console.log('Scanning source files for unused keys...');
-    const usedKeys = scanSourceFiles();
-    const unused = findUnusedKeys(translations, usedKeys);
-    
-    LANGUAGES.forEach(language => {
-      NAMESPACES.forEach(namespace => {
-        if (unused[language] && unused[language][namespace]) {
-          unused[language][namespace].forEach(key => {
-            if (translations[language][namespace] && translations[language][namespace][key]) {
-              delete translations[language][namespace][key];
-              cleaned++;
-              console.log(`Removed unused key: ${language}/${namespace}:${key}`);
-            }
-          });
-        }
-      });
-    });
-  } else if (cleanupType === 'orphaned') {
-    const orphaned = findOrphanedTranslations(translations);
-    
-    LANGUAGES.forEach(language => {
-      NAMESPACES.forEach(namespace => {
-        if (orphaned[language] && orphaned[language][namespace]) {
-          orphaned[language][namespace].forEach(key => {
-            if (translations[language][namespace] && translations[language][namespace][key]) {
-              delete translations[language][namespace][key];
-              cleaned++;
-              console.log(`Removed orphaned key: ${language}/${namespace}:${key}`);
-            }
-          });
-        }
-      });
-    });
-  }
-  
-  return cleaned;
-}
 
 /**
  * Generate summary report
@@ -686,83 +836,7 @@ function generateDetailedReport(translations, reportType = 'all', includeSourceS
   }
 }
 
-/**
- * Auto-fix missing translations by copying from source language
- */
-function autoFixMissingTranslations(translations, sourceLanguage = 'ar', targetLanguage = null) {
-  const missing = findMissingTranslations(translations);
-  let fixed = 0;
 
-  const targetLanguages = targetLanguage ? [targetLanguage] : LANGUAGES.filter(lang => lang !== sourceLanguage);
-
-  targetLanguages.forEach(language => {
-    if (missing[language]) {
-      Object.keys(missing[language]).forEach(namespace => {
-        if (missing[language][namespace] && Array.isArray(missing[language][namespace])) {
-          missing[language][namespace].forEach(key => {
-            if (translations[sourceLanguage] && translations[sourceLanguage][namespace] && translations[sourceLanguage][namespace][key]) {
-              const sourceValue = translations[sourceLanguage][namespace][key];
-              translations[language][namespace][key] = sourceValue;
-              fixed++;
-              console.log(`Added ${language}/${namespace}:${key} <- ${sourceLanguage} (value: "${sourceValue}")`);
-
-              // Debug: Check if the key was actually added
-              if (translations[language][namespace][key] === sourceValue) {
-                console.log(`✓ Verified: ${language}/${namespace}:${key} = "${sourceValue}"`);
-              } else {
-                console.log(`✗ Failed to set: ${language}/${namespace}:${key}`);
-              }
-            } else {
-              console.log(`✗ Source missing: ${sourceLanguage}/${namespace}:${key}`);
-            }
-          });
-        }
-      });
-    }
-  });
-
-  console.log(`\nAuto-fixed ${fixed} missing translations`);
-  return fixed;
-}
-
-/**
- * Save translations back to files
- */
-function saveTranslations(translations) {
-  console.log('=== SAVE_TRANSLATIONS FUNCTION CALLED ===');
-  const langs = process.env.NODE_ENV === 'test' ? TEST_LANGUAGES : LANGUAGES;
-  const namespaces = process.env.NODE_ENV === 'test' ? TEST_NAMESPACES : NAMESPACES;
-  const baseDir = process.env.NODE_ENV === 'test' ? TEST_LOCALES_DIR : LOCALES_DIR;
-
-  console.log(`Saving translations to base directory: ${baseDir}`);
-  console.log(`Languages: ${langs.join(', ')}`);
-  console.log(`Namespaces: ${namespaces.join(', ')}`);
-
-  langs.forEach(language => {
-    namespaces.forEach(namespace => {
-      const filePath = path.join(baseDir, language, `${namespace}.json`);
-      const content = JSON.stringify(translations[language][namespace], null, 2);
-
-      console.log(`Attempting to save: ${filePath}`);
-      console.log(`Keys in ${language}/${namespace}:`, Object.keys(translations[language][namespace]).length);
-
-      // Check if adaptiveCruise is in the content
-      if (content.includes('adaptiveCruise')) {
-        console.log(`✓ adaptiveCruise found in ${language}/${namespace} content`);
-      } else {
-        console.log(`✗ adaptiveCruise NOT found in ${language}/${namespace} content`);
-      }
-
-      try {
-        fs.writeFileSync(filePath, content + '\n', 'utf8');
-        console.log(`✓ Updated ${language}/${namespace}.json`);
-      } catch (error) {
-        console.error(`✗ Error saving ${language}/${namespace}.json:`, error.message);
-        console.error(`File path: ${filePath}`);
-      }
-    });
-  });
-}
 
 /**
  * Export report to JSON file
@@ -839,48 +913,166 @@ function main() {
       generateDetailedReport(translations, 'source-analysis');
       break;
 
-    case 'cleanup':
-      const cleanupType = args[1] || 'unused'; // 'unused' or 'orphaned'
-      console.log(`Cleaning up ${cleanupType} translations...`);
-      const cleaned = cleanupTranslations(translations, cleanupType);
-      if (cleaned > 0) {
-        if (args.includes('--yes')) {
-          saveTranslations(translations);
-          console.log(`Cleaned up ${cleaned} ${cleanupType} translations and saved changes!`);
-        } else {
-          console.log(`Found ${cleaned} ${cleanupType} translations to clean up. Use --yes to save changes.`);
-        }
-      } else {
-        console.log(`No ${cleanupType} translations found to clean up.`);
-      }
-      break;
+    case 'export-missing':
+      const exportLang = args[1] || 'en';
+      console.log(`🔍 Analyzing translation completeness for ${exportLang}...`);
 
-    case 'fix':
-      const sourceLang = args[1] || 'ar'; // Default to Arabic as source (more complete)
-      const targetLang = args[2] || 'en'; // Default to English as target (less complete)
-      console.log(`Auto-fixing missing translations using ${sourceLang} as source...`);
-      console.log(`Args received: [${args.join(', ')}]`);
-      console.log(`Has --yes flag: ${args.includes('--yes')}`);
-      const fixed = autoFixMissingTranslations(translations, sourceLang, targetLang);
-      console.log(`Fixed count: ${fixed}`);
-      if (fixed > 0) {
-        console.log('Checking --yes flag for saving...');
-        if (args.includes('--yes')) {
-          console.log('Calling saveTranslations...');
-          saveTranslations(translations);
-          console.log('Changes saved!');
-        } else {
-          console.log(`Auto-fixed ${fixed} missing translations. Use --yes to save changes.`);
-        }
-      } else {
-        console.log('No missing translations found to fix.');
+      // First, check for keys completely missing from ALL translation files
+      console.log('Scanning source code for translation usage...');
+      const usedKeys = scanSourceFiles();
+      const completelyMissingKeys = findMissingKeysInCode(translations, usedKeys);
+
+      // Get normally missing translations (exist in source, missing in target)
+      const missingKeys = findMissingTranslations(translations);
+
+      let hasCompletelyMissing = completelyMissingKeys.length > 0;
+      let hasNormalMissing = missingKeys[exportLang] && Object.values(missingKeys[exportLang]).some(arr => arr.length > 0);
+
+      if (!hasCompletelyMissing && !hasNormalMissing) {
+        console.log(`✅ No missing translations found for ${exportLang}`);
+        console.log('All translation keys are properly covered!');
+        break;
       }
+
+      const exportData = {};
+      let completelyMissingCount = 0;
+      let normalMissingCount = 0;
+
+      // Handle keys completely missing from ALL translation files
+      if (hasCompletelyMissing) {
+        console.log('⚠️  Found keys missing from ALL translation files:');
+        if (!exportData['_completely_missing']) {
+          exportData['_completely_missing'] = {};
+        }
+
+        completelyMissingKeys.forEach(keyInfo => {
+          const [namespace, keyName] = keyInfo.key.includes(':') ? keyInfo.key.split(':') : ['unknown', keyInfo.key];
+          if (!exportData['_completely_missing'][namespace]) {
+            exportData['_completely_missing'][namespace] = {};
+          }
+          exportData['_completely_missing'][namespace][keyName] = {
+            original: null,
+            context: keyInfo.context,
+            needs_translation: true,
+            issue: 'MISSING_FROM_ALL_FILES',
+            has_fallback: keyInfo.hasFallback,
+            fallback_text: keyInfo.fallbackText,
+            priority: keyInfo.priority,
+            solution: keyInfo.hasFallback
+              ? 'Add this key to translation files for proper internationalization'
+              : 'CRITICAL: Add this key to translation files - app may show raw key names'
+          };
+          completelyMissingCount++;
+          const priorityIcon = keyInfo.priority === 'critical' ? '🔴' : '🟡';
+          console.log(`   ${priorityIcon} ${keyInfo.key} (${keyInfo.hasFallback ? 'has fallback' : 'no fallback'})`);
+        });
+      }
+
+      // Handle normal missing translations (exist in source, missing in target)
+      if (hasNormalMissing) {
+        Object.keys(missingKeys[exportLang]).forEach(namespace => {
+          if (missingKeys[exportLang][namespace] && Array.isArray(missingKeys[exportLang][namespace])) {
+            if (!exportData[namespace]) {
+              exportData[namespace] = {};
+            }
+
+            missingKeys[exportLang][namespace].forEach(key => {
+              // Find the source translation
+              const sourceLang = exportLang === 'en' ? 'ar' : 'en';
+              if (translations[sourceLang] && translations[sourceLang][namespace] && translations[sourceLang][namespace][key]) {
+                exportData[namespace][key] = {
+                  original: translations[sourceLang][namespace][key],
+                  context: `${namespace}.${key}`,
+                  needs_translation: true,
+                  source_language: sourceLang
+                };
+                normalMissingCount++;
+              }
+            });
+          }
+        });
+      }
+
+      // Generate the export file
+      const exportFilename = `missing-translations-${exportLang}.json`;
+      fs.writeFileSync(exportFilename, JSON.stringify(exportData, null, 2));
+
+      console.log(`\n📊 EXPORT SUMMARY:`);
+      console.log(`• Completely missing keys: ${completelyMissingCount}`);
+      console.log(`• Normal missing translations: ${normalMissingCount}`);
+      console.log(`• Total: ${completelyMissingCount + normalMissingCount}`);
+      console.log(`• Exported to: ${exportFilename}`);
+
+      if (hasCompletelyMissing) {
+        const criticalCount = completelyMissingKeys.filter(k => k.priority === 'critical').length;
+        const warningCount = completelyMissingKeys.filter(k => k.priority === 'warning').length;
+
+        console.log(`\n🔴 CRITICAL ISSUES: ${criticalCount} keys without fallbacks`);
+        console.log(`🟡 WARNING ISSUES: ${warningCount} keys with fallbacks`);
+        console.log('\n💡 PRIORITY ORDER:');
+        console.log('1. 🔴 Critical keys (no fallback) - App may show raw key names');
+        console.log('2. 🟡 Warning keys (has fallback) - App works but not internationalized');
+        console.log('3. ✅ Normal missing - Source exists, just needs translation');
+      }
+
+      console.log('\nYou can now send this file to translators or use it with translation management tools.');
       break;
 
     case 'export':
       const filename = args[1] || 'translation-report.json';
       console.log(`Exporting report to ${filename}...`);
       exportReport(translations, filename);
+      break;
+
+    case 'validate':
+      console.log('🔍 Validating translation keys against naming conventions...');
+      const violations = validateTranslationKeys(translations);
+
+      // Count total violations
+      const totalViolations = Object.values(violations).reduce((sum, arr) => sum + arr.length, 0);
+
+      if (totalViolations === 0) {
+        console.log('✅ All translation keys follow the naming conventions!');
+        console.log('🎉 No violations found.');
+        break;
+      }
+
+      console.log(`\n⚠️  Found ${totalViolations} translation guide violations:`);
+      console.log('=' .repeat(60));
+
+      // Display violations by category
+      Object.entries(violations).forEach(([category, issues]) => {
+        if (issues.length > 0) {
+          console.log(`\n🔧 ${category.replace(/([A-Z])/g, ' $1').toUpperCase()} (${issues.length}):`);
+          console.log('-'.repeat(40));
+
+          issues.forEach(issue => {
+            console.log(`❌ ${issue.language}/${issue.namespace}: ${issue.key}`);
+            console.log(`   Issue: ${issue.message}`);
+            console.log(`   Suggestion: ${issue.suggestion}`);
+            console.log('');
+          });
+        }
+      });
+
+      console.log('💡 SUMMARY:');
+      console.log(`• Nested Objects: ${violations.nestedObjects.length}`);
+      console.log(`• Invalid Patterns: ${violations.invalidPatterns.length}`);
+      console.log(`• Inconsistent Naming: ${violations.inconsistentNaming.length}`);
+      console.log(`• Special Characters: ${violations.specialChars.length}`);
+      console.log(`• Case Issues: ${violations.caseIssues.length}`);
+      console.log(`• Namespace Issues: ${violations.namespaceIssues.length}`);
+      console.log(`\n📋 Total: ${totalViolations} violations`);
+
+      if (totalViolations > 0) {
+        console.log('\n🔧 FIXING VIOLATIONS:');
+        console.log('1. Use flat keys instead of nested objects');
+        console.log('2. Follow consistent naming (camelCase or kebab-case)');
+        console.log('3. Use only letters, numbers, dots, underscores, hyphens');
+        console.log('4. Keep keys descriptive and under 50 characters');
+        console.log('5. Avoid reserved words and numeric-only keys');
+        console.log('6. Use proper namespace prefixes');
+      }
       break;
 
     case 'help':
@@ -900,13 +1092,10 @@ Commands:
   orphaned             Show orphaned translations (exist but never used)
   scan                 Perform source code analysis for translation usage
   source-analysis      Complete source code analysis (alias for scan)
-  fix [source] [target] Auto-fix missing translations by copying from source
-  cleanup [type]       Remove unused or orphaned translations (type: unused|orphaned)
   export [filename]    Export detailed report to JSON file
+  export-missing [lang] Export missing translations + detect keys missing from ALL files
+  validate             Validate translation keys against naming conventions
   help                 Show this help
-
-Options:
-  --yes                Skip confirmation when fixing
 
 Examples:
   node translation-validator.js summary
@@ -914,9 +1103,9 @@ Examples:
   node translation-validator.js missing
   node translation-validator.js unused
   node translation-validator.js scan
-  node translation-validator.js cleanup unused --yes
-  node translation-validator.js fix en ar --yes
   node translation-validator.js export report.json
+  node translation-validator.js export-missing en  # Detects all missing scenarios
+  node translation-validator.js validate           # Check naming convention compliance
 
 Current Status:
   - Languages: ${LANGUAGES.join(', ')}
@@ -928,12 +1117,59 @@ Current Status:
   }
 }
 
+// Simple caching mechanism
+const cache = new Map();
+const CACHE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+
+function getCached(key, fn) {
+  // Make cache keys environment-specific to avoid test/prod conflicts
+  const envKey = `${process.env.NODE_ENV || 'production'}:${key}`;
+  const cached = cache.get(envKey);
+  if (cached && (Date.now() - cached.timestamp) < CACHE_TIMEOUT) {
+    return cached.data;
+  }
+
+  const result = fn();
+  cache.set(envKey, { data: result, timestamp: Date.now() });
+  return result;
+}
+
+function clearCache() {
+  cache.clear();
+}
+
+// Performance monitoring
+function trackPerformance(label, fn) {
+  const start = Date.now();
+  const result = fn();
+  const duration = Date.now() - start;
+
+  if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PERF) {
+    console.log(`⏱️  ${label}: ${duration}ms`);
+  }
+
+  return result;
+}
+
 // Run the tool
 if (require.main === module) {
-  main();
+  const startTime = Date.now();
+
+  try {
+    main();
+  } catch (error) {
+    console.error('❌ Fatal error:', error.message);
+    process.exit(1);
+  } finally {
+    const totalTime = Date.now() - startTime;
+    if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PERF) {
+      console.log(`\n🏁 Total execution time: ${totalTime}ms`);
+    }
+  }
 }
 
 module.exports = {
+  // Core analysis functions (ANALYSIS-ONLY - no modifications)
   loadAllTranslations,
   findMissingTranslations,
   findOrphanedTranslations,
@@ -943,11 +1179,14 @@ module.exports = {
   scanSourceFiles,
   findUnusedKeys,
   findMissingKeysInCode,
-  cleanupTranslations,
   generateSummaryReport,
   generateDetailedReport,
-  autoFixMissingTranslations,
   loadTranslationFile,
-  saveTranslations,
-  exportReport
+  exportReport,
+  extractTranslationKeys,
+  validateTranslationKeys,
+  validateKeyPattern,
+  trackPerformance,
+  getCached,
+  clearCache
 };

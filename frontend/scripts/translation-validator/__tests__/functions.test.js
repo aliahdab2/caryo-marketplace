@@ -3,6 +3,51 @@
  */
 
 const path = require('path');
+
+// Mock fs for testing
+jest.mock('fs', () => {
+  const originalFs = jest.requireActual('fs');
+
+  return {
+    ...originalFs,
+    readFileSync: jest.fn((filePath, options) => {
+      // Return mock data for test files
+      if (filePath.includes('test-data')) {
+        const mockData = {
+          'sample-common.json': JSON.stringify({
+            appName: 'Test App',
+            welcome: 'Welcome',
+            title: 'Sample Title',
+            description: 'Sample Description'
+          }),
+          'sample-auth.json': JSON.stringify({
+            login: 'Login',
+            register: 'Register',
+            password: 'Password',
+            username: 'Username'
+          }),
+          'sample-duplicates.json': JSON.stringify({
+            duplicate: 'First duplicate',
+            duplicate2: 'Second duplicate'
+          })
+        };
+
+        // Extract filename using string manipulation instead of path.basename
+        const fileName = filePath.split('/').pop() || filePath.split('\\').pop() || '';
+        if (mockData[fileName]) {
+          return mockData[fileName];
+        }
+      }
+
+      // For other files, call original method
+      return originalFs.readFileSync(filePath, options);
+    }),
+    writeFileSync: jest.fn(),
+    existsSync: jest.fn(() => true),
+    mkdirSync: jest.fn(),
+  };
+});
+
 const fs = require('fs');
 
 // Import functions from the translation validator
@@ -13,7 +58,6 @@ const {
   checkConsistency,
   calculateCompleteness,
   generateSummaryReport,
-  autoFixMissingTranslations
 } = require('../validator');
 
 // Test configuration
@@ -37,10 +81,7 @@ describe('Translation Validator Tool', () => {
   });
 
   afterAll(() => {
-    // Restore original methods
-    fs.readFileSync = global.originalReadFileSync;
-    fs.writeFileSync = global.originalWriteFileSync;
-    fs.existsSync = global.originalExistsSync;
+    // Cleanup is handled by Jest's mocking system
   });
 
   describe('loadAllTranslations', () => {
@@ -277,67 +318,7 @@ describe('Translation Validator Tool', () => {
     });
   });
 
-  describe('autoFixMissingTranslations', () => {
-    test('should copy missing translations from source language', () => {
-      const mockTranslations = {
-        en: {
-          'sample-common': {
-            key1: 'English value 1',
-            key2: 'English value 2',
-            key3: 'English value 3'
-          }
-        },
-        ar: {
-          'sample-common': {
-            key1: 'Arabic value 1',
-            key2: 'Arabic value 2'
-          }
-        }
-      };
-
-      const fixed = autoFixMissingTranslations(mockTranslations, 'en', 'ar');
-
-      expect(fixed).toBe(1); // Should fix 1 missing key
-      expect(mockTranslations.ar['sample-common'].key3).toBe('English value 3');
-      expect(mockTranslations.ar['sample-common'].key1).toBe('Arabic value 1'); // Should not overwrite existing
-    });
-
-    test('should return 0 when no fixes are needed', () => {
-      const mockTranslations = {
-        en: {
-          common: {
-            key1: 'English value'
-          }
-        },
-        ar: {
-          common: {
-            key1: 'Arabic value'
-          }
-        }
-      };
-
-      const fixed = autoFixMissingTranslations(mockTranslations, 'en', 'ar');
-
-      expect(fixed).toBe(0);
-    });
-
-    test('should handle missing source keys gracefully', () => {
-      const mockTranslations = {
-        en: {
-          common: {}
-        },
-        ar: {
-          common: {
-            missingKey: 'Arabic only'
-          }
-        }
-      };
-
-      const fixed = autoFixMissingTranslations(mockTranslations, 'en', 'ar');
-
-      expect(fixed).toBe(0); // Can't fix because source doesn't have the key
-    });
-  });
+  // Note: autoFixMissingTranslations tests removed - tool is now ANALYSIS-ONLY
 
   describe('generateSummaryReport', () => {
     test('should generate comprehensive summary report', () => {

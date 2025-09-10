@@ -43,6 +43,10 @@ describe('Translation Validator - Basic Functionality', () => {
     expect(typeof functions.findMissingTranslations).toBe('function');
     expect(typeof functions.calculateCompleteness).toBe('function');
     expect(typeof functions.generateSummaryReport).toBe('function');
-    expect(typeof functions.autoFixMissingTranslations).toBe('function');
+
+    // Analysis-only tool - no fixing functions should be exported
+    expect(functions.autoFixMissingTranslations).toBeUndefined();
+    expect(functions.cleanupTranslations).toBeUndefined();
+    expect(functions.saveTranslations).toBeUndefined();
   });
 });

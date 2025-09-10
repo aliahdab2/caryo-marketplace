@@ -1,0 +1,97 @@
+{
+  "name": "Caryo Marketplace Translation Validator",
+  "version": "2.0.0",
+  "description": "Advanced translation validation and management system",
+
+  "paths": {
+    "localesDir": "./public/locales",
+    "srcDir": "./src",
+    "configDir": "./scripts/translation-validator",
+    "reportsDir": "./reports"
+  },
+
+  "languages": {
+    "supported": ["en", "ar"],
+    "default": "ar",
+    "rtl": ["ar"],
+    "ltr": ["en"]
+  },
+
+  "namespaces": [
+    "auth",
+    "common",
+    "contact",
+    "dashboard",
+    "errors",
+    "favorites",
+    "home",
+    "listings",
+    "mediaGallery",
+    "messages",
+    "search",
+    "translation"
+  ],
+
+  "validation": {
+    "thresholds": {
+      "minCompleteness": {
+        "en": 50,
+        "ar": 95
+      },
+      "maxKeyLength": 50,
+      "minKeyLength": 3
+    },
+
+    "rules": {
+      "checkNestedObjects": true,
+      "checkInvalidChars": true,
+      "checkCaseConsistency": true,
+      "checkReservedWords": true,
+      "checkNamespacePatterns": true,
+      "checkDuplicateKeys": true,
+      "checkTypeConsistency": true,
+      "checkUnusedKeys": true,
+      "checkOrphanedKeys": true
+    },
+
+    "patterns": {
+      "validChars": "^[a-zA-Z0-9._-]+$",
+      "reservedWords": [
+        "null", "undefined", "true", "false",
+        "class", "function", "var", "let", "const",
+        "if", "else", "for", "while", "do", "switch",
+        "try", "catch", "finally", "throw"
+      ]
+    }
+  },
+
+  "ci": {
+    "failOnValidationErrors": true,
+    "generateReports": true,
+    "commentOnPR": true,
+    "uploadArtifacts": true,
+    "artifactRetentionDays": 30
+  },
+
+  "reporting": {
+    "formats": ["json", "markdown", "console"],
+    "includeCharts": false,
+    "includeTrends": false,
+    "maxItemsPerReport": 100
+  },
+
+  "ai": {
+    "enabled": false,
+    "provider": "openai",
+    "model": "gpt-3.5-turbo",
+    "maxTokens": 500,
+    "temperature": 0.3
+  },
+
+  "performance": {
+    "cacheEnabled": false,
+    "cacheTimeout": 3600000,
+    "parallelProcessing": true,
+    "maxConcurrency": 4
+  }
+}

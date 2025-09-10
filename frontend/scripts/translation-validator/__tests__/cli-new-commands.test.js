@@ -62,30 +62,7 @@ describe('CLI New Commands', () => {
     });
   });
 
-  describe('cleanup command', () => {
-    test('should show cleanup preview without --yes flag', () => {
-      const result = runCommand('cleanup unused');
-      
-      expect(result.code).toBe(0);
-      expect(result.stdout).toContain('Cleaning up unused translations');
-      // Should not actually save without --yes flag
-      expect(result.stdout).toMatch(/Use --yes to save changes|No unused translations found/);
-    });
-
-    test('should handle orphaned cleanup type', () => {
-      const result = runCommand('cleanup orphaned');
-      
-      expect(result.code).toBe(0);
-      expect(result.stdout).toContain('Cleaning up orphaned translations');
-    });
-
-    test('should default to unused cleanup type', () => {
-      const result = runCommand('cleanup');
-      
-      expect(result.code).toBe(0);
-      expect(result.stdout).toContain('Cleaning up unused translations');
-    });
-  });
+  // Note: cleanup command tests removed - command deleted (analysis-only)
 
   describe('help command', () => {
     test('should show updated help with new commands', () => {
@@ -96,22 +73,111 @@ describe('CLI New Commands', () => {
       expect(result.stdout).toContain('orphaned');
       expect(result.stdout).toContain('scan');
       expect(result.stdout).toContain('source-analysis');
-      expect(result.stdout).toContain('cleanup');
+      expect(result.stdout).toContain('export-missing');
       expect(result.stdout).toContain('Show unused translation keys');
       expect(result.stdout).toContain('Show orphaned translations');
       expect(result.stdout).toContain('Perform source code analysis');
-      expect(result.stdout).toContain('Remove unused or orphaned translations');
+      expect(result.stdout).toContain('Export missing translations + detect keys missing from ALL files');
+    });
+  });
+
+  describe('export-missing command (enhanced edge case detection)', () => {
+    test('should detect keys missing from all translation files', () => {
+      const result = runCommand('export-missing en');
+
+      expect(result.code).toBe(0);
+      expect(result.stdout).toContain('🔍 Analyzing translation completeness');
+      expect(result.stdout).toContain('Scanning source code for translation usage');
+      expect(result.stdout).toContain('📊 EXPORT SUMMARY:');
+      expect(result.stdout).toContain('Completely missing keys:');
+      expect(result.stdout).toContain('Normal missing translations:');
+    });
+
+    test('should warn about completely missing keys', () => {
+      const result = runCommand('export-missing en');
+
+      expect(result.code).toBe(0);
+      expect(result.stdout).toContain('⚠️  Found keys missing from ALL translation files:');
+      expect(result.stdout).toContain('You can now send this file to translators');
+    });
+
+    test('should create export file with proper structure', () => {
+      const result = runCommand('export-missing en');
+
+      expect(result.code).toBe(0);
+      expect(result.stdout).toContain('Exported to: missing-translations-en.json');
+
+      // Verify the file was created (this would be checked in integration tests)
+      // but we can at least verify the command completed successfully
+    });
+
+    test('should handle export-missing for different target languages', () => {
+      const result = runCommand('export-missing ar');
+
+      expect(result.code).toBe(0);
+      expect(result.stdout).toContain('🔍 Analyzing translation completeness for ar');
+      expect(result.stdout).toContain('📊 EXPORT SUMMARY:');
+    });
+
+    test('should provide guidance when no missing translations found', () => {
+      // This test would be for a scenario with no missing translations
+      // For now, we verify the current behavior handles the case properly
+      const result = runCommand('export-missing en');
+
+      expect(result.code).toBe(0);
+      expect(result.stdout).toContain('You can now send this file to translators');
+    });
+
+    test('should show priority classification in export output', () => {
+      const result = runCommand('export-missing en');
+
+      expect(result.code).toBe(0);
+      expect(result.stdout).toContain('🔴 CRITICAL ISSUES:');
+      expect(result.stdout).toContain('🟡 WARNING ISSUES:');
+      expect(result.stdout).toContain('has fallback');
+      expect(result.stdout).toContain('no fallback');
+    });
+
+    test('should include fallback text in export summary', () => {
+      const result = runCommand('export-missing en');
+
+      expect(result.code).toBe(0);
+      expect(result.stdout).toContain('PRIORITY ORDER:');
+      expect(result.stdout).toContain('Critical keys (no fallback)');
+      expect(result.stdout).toContain('Warning keys (has fallback)');
+    });
+
+    test('should handle export-missing for Arabic with proper fallbacks', () => {
+      const result = runCommand('export-missing ar');
+
+      expect(result.code).toBe(0);
+      expect(result.stdout).toContain('🔍 Analyzing translation completeness for ar');
+      expect(result.stdout).toContain('📊 EXPORT SUMMARY:');
+    });
+
+    test('should validate translation keys against naming conventions', () => {
+      const result = runCommand('validate');
+
+      expect(result.code).toBe(0);
+      expect(result.stdout).toContain('🔍 Validating translation keys against naming conventions');
+      // Test data may or may not have violations, so check for both cases
+      const hasViolations = result.stdout.includes('⚠️  Found');
+      const noViolations = result.stdout.includes('✅ All translation keys follow');
+
+      expect(hasViolations || noViolations).toBe(true);
+
+      if (hasViolations) {
+        expect(result.stdout).toContain('translation guide violations');
+        expect(result.stdout).toContain('💡 SUMMARY:');
+        expect(result.stdout).toContain('🔧 FIXING VIOLATIONS:');
+      } else {
+        expect(result.stdout).toContain('🎉 No violations found.');
+      }
     });
   });
 
   describe('error handling', () => {
-    test('should handle invalid cleanup type gracefully', () => {
-      const result = runCommand('cleanup invalid');
-      
-      expect(result.code).toBe(0);
-      expect(result.stdout).toContain('Cleaning up invalid translations');
-      // Should handle gracefully even with invalid type
-    });
+    // Note: cleanup error handling test removed - cleanup command deleted
 
     test('should handle missing source directory gracefully', () => {
       // This tests the error handling in scanSourceFiles when directories don't exist

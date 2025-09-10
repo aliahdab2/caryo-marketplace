@@ -25,6 +25,7 @@ const eslintConfig = [
       "*.config.ts",
       ".husky/**",
       "public/**",
+      "scripts/**", // Allow CommonJS in scripts directory
     ],
   },
   
