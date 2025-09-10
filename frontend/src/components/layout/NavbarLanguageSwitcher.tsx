@@ -5,7 +5,7 @@ import { SupportedLanguage, LANGUAGES } from "@/utils/i18nExports";
 import { MdLanguage } from "react-icons/md";
 
 export default function NavbarLanguageSwitcher() {
-  const { locale, changeLanguage, isRTL } = useLanguage();
+  const { locale, changeLanguage } = useLanguage();
 
   // Get the opposite language
   const oppositeLanguage: SupportedLanguage = locale === LANGUAGES.EN ? LANGUAGES.AR : LANGUAGES.EN;

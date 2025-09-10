@@ -158,7 +158,7 @@ describe('Form Validation Tests', () => {
       const errors = validateStep(2, formData, mockT, { mode: 'final' });
       
       expect(errors.mileage).toBeDefined();
-      expect(mockT).toHaveBeenCalledWith('listings:newListingValidationMileageRequired', 'Mileage is required');
+      expect(mockT).toHaveBeenNthCalledWith(1, 'validation.fieldRequired', 'mileage is required');
     });
 
     it('should allow empty mileage in navigation mode', () => {
@@ -215,10 +215,11 @@ describe('Form Validation Tests', () => {
       expect(errors.description).toBeDefined();
     });
 
-    it('should pass with title and description filled', () => {
+    it('should pass with title, description, and images filled', () => {
       const formData = createFormData({
         title: 'Amazing Car',
-        description: 'This car is in excellent condition'
+        description: 'This car is in excellent condition',
+        images: ['car-image1.jpg', 'car-image2.jpg']
       });
       
       const errors = validateStep(3, formData, mockT);

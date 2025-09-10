@@ -60,7 +60,7 @@ export default function Home() {
     e.preventDefault();
     
     if (!newsletterEmail.trim()) {
-      setNewsletterMessage(t('emailRequired', { ns: 'home', defaultValue: 'Email is required' }));
+      setNewsletterMessage(t('validation.emailRequired', { ns: 'common', defaultValue: 'Email is required' }));
       return;
     }
 

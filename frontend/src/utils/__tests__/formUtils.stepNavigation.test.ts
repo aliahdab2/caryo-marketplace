@@ -83,9 +83,10 @@ const createFormDataForStep = (completedSteps: number[]): ListingFormData => {
   }
 
   if (completedSteps.includes(3)) {
-    // Step 3 requires title and description
+    // Step 3 requires title, description, and images
     baseData.title = 'Great Car';
     baseData.description = 'Excellent condition';
+    baseData.images = ['car-image1.jpg', 'car-image2.jpg'];
   }
 
   if (completedSteps.includes(4)) {
@@ -277,9 +278,10 @@ describe('Step Navigation Tests', () => {
       expect(isStepAccessible(3, formData)).toBe(true); // Accessible because step 1 & 2 are valid
       expect(isStepAccessible(4, formData)).toBe(false); // Step 3 has validation errors (missing title/description)
 
-      // Complete step 3 requirements (title/description)
+      // Complete step 3 requirements (title/description/images)
       formData.title = 'Great Car';
       formData.description = 'Excellent condition';
+      formData.images = ['car-image1.jpg', 'car-image2.jpg'];
 
       // Now step 4 is accessible (step 3 is now valid)
       expect(isStepAccessible(1, formData)).toBe(true);
