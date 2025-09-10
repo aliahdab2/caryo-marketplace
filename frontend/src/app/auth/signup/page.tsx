@@ -1,159 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-// Removed unused imports: signIn, getSession
-import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { authService } from "@/services/auth";
-import SuccessAlert from "@/components/ui/SuccessAlert";
-import SimpleVerification from '@/components/auth/SimpleVerification';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
-import PasswordInput from '@/components/ui/PasswordInput';
-import Image from 'next/image';
+import SignupForm from '@/components/auth/SignupForm';
 import Link from 'next/link';
-import { usePasswordValidation, PasswordRequirementText } from '@/components/auth/PasswordValidation';
-import { isValidEmail } from '@/utils/emailValidation';
-import { useSellerTypesForSignup } from '@/hooks/useSellerTypes';
+import NextImage from 'next/image';
 
 export default function SignUpPage() {
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [sellerTypeId, setSellerTypeId] = useState<number | undefined>(undefined);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [isVerified, setIsVerified] = useState(false);
-  const [_callbackUrl, setCallbackUrl] = useState("/dashboard");
-  const [emailError, setEmailError] = useState("");
-  const router = useRouter();
   const { t } = useTranslation('auth');
-  const { isValid: isPasswordValid, firstError: passwordError } = usePasswordValidation(password);
-  
-  // Fetch seller types using React Query
-  const { sellerTypes, defaultSellerTypeId, isLoading: isLoadingSellerTypes } = useSellerTypesForSignup();
-
-  // Extract callback URL from search params if present
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const searchParams = new URLSearchParams(window.location.search);
-      const returnUrl = searchParams.get('returnUrl');
-      const callback = searchParams.get('callbackUrl');
-      
-      // Prefer returnUrl over callbackUrl for better compatibility
-      const redirectTarget = returnUrl || callback || '/dashboard';
-      
-      try {
-        if (redirectTarget.startsWith('/')) {
-          setCallbackUrl(redirectTarget);
-        } else {
-          const url = new URL(decodeURIComponent(redirectTarget));
-          if (url.origin === window.location.origin) {
-            // Include the full path and any query parameters
-            setCallbackUrl(url.pathname + url.search + url.hash);
-          }
-        }
-      } catch (e) {
-        if (process.env.NODE_ENV !== 'test') {
-          console.warn('Error parsing redirect URL:', e);
-          setCallbackUrl('/dashboard');
-        }
-      }
-    }
-  }, []);
-
-  // Set default seller type when data is loaded
-  useEffect(() => {
-    if (defaultSellerTypeId && !sellerTypeId) {
-      setSellerTypeId(defaultSellerTypeId);
-    }
-  }, [defaultSellerTypeId, sellerTypeId]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSuccessMessage("");
-    setEmailError("");
-    
-    if (!username || !email || !password || !confirmPassword) {
-      setError(t('fieldRequired'));
-      return;
-    }
-
-    if (!sellerTypeId) {
-      setError(t('userTypeRequired', 'Please select a user type'));
-      return;
-    }
-
-    // Validate email format
-    if (!isValidEmail(email)) {
-      setEmailError(t('invalidEmailFormat'));
-      return;
-    }
-
-    // Use centralized password validation
-    if (!isPasswordValid && passwordError) {
-      setError(passwordError);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError(t('passwordsDoNotMatch'));
-      setLoading(false);
-      return;
-    }
-    
-    if (!isVerified) {
-      setError(t('verificationRequired'));
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const result = await authService.signup({
-        username,
-        email,
-        password,
-        confirmPassword,
-        sellerTypeId,
-      });
-
-      // With email verification system, redirect to check-email page
-      const message = 'message' in result ? result.message : t('signupSuccess');
-      setSuccessMessage(message);
-      
-      // Store email and username for the check-email and sign-in pages
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('signup-email', email);
-        localStorage.setItem('signup-username', username);
-      }
-      
-      // Short delay to show success message, then redirect to check-email
-      setTimeout(() => {
-        router.push(`/auth/check-email?email=${encodeURIComponent(email)}`);
-      }, 2000);
-    } catch (err) {
-      let message = t('registrationFailed');
-      if (typeof err === "object" && err !== null) {
-        if (
-          "data" in err &&
-          typeof (err as Record<string, unknown>).data === "object" &&
-          (err as { data?: { message?: string } }).data?.message
-        ) {
-          message = String((err as { data?: { message?: string } }).data?.message);
-        } else if ("message" in err && typeof (err as { message?: string }).message === "string") {
-          message = (err as { message?: string }).message!;
-        }
-      }
-      setError(message);
-      setLoading(false);
-      if (process.env.NODE_ENV !== 'test') {
-        console.error("Registration error:", err);
-      }
-    }
-  };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -172,321 +26,107 @@ export default function SignUpPage() {
             <path d="M0,900 C150,800 350,850 500,900 C650,950 850,900 1000,950 L1000,1000 L0,1000 Z" fill="url(#signUpGradient)" opacity="0.5" />
           </svg>
         </div>
-        
+
         {/* Content */}
         <div className="z-10 p-6 md:p-8 lg:p-10 flex flex-col">
           <div className="flex items-center mb-6">
             <div className="h-10 w-10 relative flex-shrink-0">
-              <Image 
-                src="/images/logo.svg" 
-                alt={t('logo')} 
-                width={40} 
-                height={40} 
-                className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert" 
+              <NextImage
+                src="/images/logo.svg"
+                alt={t('logo')}
+                width={40}
+                height={40}
+                className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert"
               />
             </div>
             <h1 className="text-lg md:text-xl font-bold">{t('appName')}</h1>
           </div>
           <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('joinUs')}</h2>
           <p className="text-sm md:text-base opacity-80">{t('createAccountDescription')}</p>
-          
-          <div className="mt-6 bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5">
-            <div className="flex items-start mb-3">
-              <div className="mr-2.5 mt-0.5 text-blue-200 flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-              </div>
-              <p className="text-xs leading-relaxed">
-                {t('benefitSafety')}
-              </p>
-            </div>
+
+          {/* Feature highlights */}
+          <div className="mt-8 space-y-6">
             <div className="flex items-start">
-              <div className="mr-2.5 mt-0.5 text-blue-200 flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mt-1">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"></path>
                 </svg>
               </div>
-              <p className="text-xs leading-relaxed">
-                {t('benefitExperience')}
-              </p>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-white">{t('benefitExperience')}</h3>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mt-1">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-white">{t('benefitSafety')}</h3>
+              </div>
             </div>
           </div>
         </div>
-        
-        <div className="z-10 p-6 md:p-8 lg:p-10 text-sm">
-          <p className="mb-2 opacity-80">&copy; {new Date().getFullYear()} {t('appName')}</p>
-          <p className="opacity-60">{t('privacyPolicy')} • {t('termsOfService')}</p>
+
+        {/* Bottom content */}
+        <div className="z-10 p-6 md:p-8 lg:p-10">
+          <p className="text-xs leading-relaxed opacity-80">
+            {t('benefitExperience')}
+          </p>
         </div>
       </div>
-      
+
       {/* Right section - Sign up form */}
-      <div className="flex-1 flex justify-center items-center p-4 md:p-6 lg:p-8 xl:p-10 auth-container">
-        <div className="w-full max-w-md md:max-w-lg lg:max-w-xl mt-2 sm:mt-4 mb-auto">
+      <div className="flex-1 flex justify-center items-start pt-4 md:pt-6 lg:pt-8 xl:pt-10 pb-4 md:pb-6 lg:pb-8 xl:pb-10 px-4 md:px-6 lg:px-8 xl:px-10 auth-container">
+        <div className="w-full max-w-md md:max-w-lg lg:max-w-xl mt-0 mb-auto">
           {/* Mobile logo (shown only on mobile) */}
           <div className="flex md:hidden items-center justify-center mb-6 sm:mb-8">
             <div className="flex items-center responsive-fade-in">
-              <Image 
-                src="/images/logo.svg" 
-                alt={t('logo')} 
-                width={40} 
-                height={40} 
-                className="mr-2.5 sm:mr-3 w-8 h-8 sm:w-10 sm:h-10 object-contain" 
+              <NextImage
+                src="/images/logo.svg"
+                alt={t('logo')}
+                width={40}
+                height={40}
+                className="mr-2.5 sm:mr-3 w-8 h-8 sm:w-10 sm:h-10 object-contain"
               />
               <h1 className="text-lg sm:text-xl font-bold">{t('appName')}</h1>
             </div>
           </div>
-          
-          <div className="bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 md:p-8 lg:p-10 auth-form">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-1 auth-heading">{t('signUp')}</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">{t('createAccountDescription')}</p>
-            </div>
-            
-            <form onSubmit={handleSubmit} className={`responsive-fade-in ${loading ? 'opacity-70 transition-opacity' : ''}`} data-testid="signup-form">
-              
-              {/* Display animated success alert when registration is successful - placed at top of form but fixed positioned */}
-              <div style={{ height: 0, overflow: "visible", position: "relative" }}>
-                <SuccessAlert
-                  message={successMessage}
-                  visible={!!successMessage}
-                  onComplete={() => setSuccessMessage("")}
-                  autoHideDuration={3500}
-                />
-              </div>
-              {error && (
-                <div role="alert" className="mb-6 p-3 sm:p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md dark:bg-red-900/30 dark:text-red-200 dark:border-red-700 flex items-center text-xs sm:text-sm">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                  </svg>
-                  {error}
-                </div>
-              )}
-              
-              <div className="mb-5">
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  {t('username')}
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 ltr:left-0 rtl:right-0 flex items-center ltr:pl-3 rtl:pr-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                    <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                  </div>
-                  <input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                    disabled={loading}
-                    className="block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
-                    placeholder={t('signupUsernamePlaceholder')}
-                  />
-                </div>
-              </div>
-              
-              <div className="mb-5">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  {t('email')}
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 ltr:left-0 rtl:right-0 flex items-center ltr:pl-3 rtl:pr-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                    <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                      <polyline points="22,6 12,13 2,6"></polyline>
-                    </svg>
-                  </div>
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => {
-                      const newEmail = e.target.value;
-                      setEmail(newEmail);
-                      // Clear email error when user starts typing
-                      if (emailError) {
-                        setEmailError("");
-                      }
-                    }}
-                    onBlur={(e) => {
-                      // Validate email on blur (when user leaves the field)
-                      const emailValue = e.target.value.trim();
-                      if (emailValue && !isValidEmail(emailValue)) {
-                        setEmailError(t('invalidEmailFormat'));
-                      }
-                    }}
-                    required
-                    disabled={loading}
-                    className={`block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${
-                      emailError 
-                        ? 'border-red-300 dark:border-red-600 focus:ring-red-500' 
-                        : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
-                    }`}
-                    placeholder={t('emailPlaceholder')}
-                  />
-                </div>
-                {emailError && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
-                    <svg className="w-4 h-4 mr-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="8" x2="12" y2="12"></line>
-                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    </svg>
-                    {emailError}
-                  </p>
-                )}
-              </div>
-              
-              <div className="mb-5">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  {t('password')}
-                </label>
-                <PasswordInput
-                  id="password"
-                  data-testid="password-input"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  disabled={loading}
-                  autoComplete="new-password"
-                />
-                <PasswordRequirementText className="mt-1" />
-              </div>
-              
-              <div className="mb-5">
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  {t('confirmPassword')}
-                </label>
-                <PasswordInput
-                  id="confirmPassword"
-                  data-testid="confirm-password-input"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder={t('confirmPasswordPlaceholder')}
-                  required
-                  minLength={8}
-                  disabled={loading}
-                  autoComplete="new-password"
-                />
-              </div>
-              
-              {/* User Type Selection */}
-              <div className="mb-5">
-                <label htmlFor="sellerType" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  {t('userType', 'User Type')} <span className="text-red-500">*</span>
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 ltr:left-0 rtl:right-0 flex items-center ltr:pl-3 rtl:pr-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                    <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                  </div>
-                  <select
-                    id="sellerType"
-                    value={sellerTypeId || ''}
-                    onChange={(e) => setSellerTypeId(e.target.value ? Number(e.target.value) : undefined)}
-                    required
-                    disabled={loading || isLoadingSellerTypes}
-                    className="block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 appearance-none"
-                  >
-                    <option value="">
-                      {isLoadingSellerTypes 
-                        ? t('loadingUserTypes', 'Loading user types...') 
-                        : t('selectUserType', 'Select user type')
-                      }
-                    </option>
-                    {sellerTypes.map((type) => (
-                      <option key={type.id} value={type.id}>
-                        {t(`userType.${type.name}`, type.displayNameEn)}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 ltr:right-0 rtl:left-0 flex items-center ltr:pr-3 rtl:pl-3 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="6,9 12,15 18,9"></polyline>
-                    </svg>
-                  </div>
-                </div>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {t('userTypeDescription', 'Choose whether you are an individual seller or a business/dealer')}
-                </p>
-              </div>
-              
-              <div className="mb-5">
-                <SimpleVerification
-                  onVerified={(verified: boolean) => {
-                    if (verified !== isVerified) {
-                      setIsVerified(verified);
-                      if (verified) {
-                        if (error && error.includes("verification")) {
-                          setError("");
-                        }
-                      }
-                    }
-                  }}
-                  autoStart={true}
-                />
-              </div>
-              
-              <div className="mb-6">
-                <button
-                  type="submit"
-                  disabled={loading || !isVerified || isLoadingSellerTypes}
-                  className={`w-full flex justify-center py-2.5 sm:py-3 px-4 border border-transparent rounded-lg shadow-md text-sm sm:text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-all duration-200 ${
-                    loading || !isVerified || isLoadingSellerTypes ? 'opacity-70 cursor-not-allowed' : 'hover-lift'
-                  } transform active:translate-y-0`}
-                  title={!isVerified ? t('verificationRequired') : ""}
-                >
-                  <div className="flex items-center justify-center">
-                    {loading && (
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                    )}
-                    <span>{loading ? t('loading') : t('signUp')}</span>
-                  </div>
-                </button>
-              </div>
-            </form>
-            
-            <div className="relative my-6">
+
+          {/* Social Login Options First */}
+          <div className="space-y-4 mb-6">
+            <GoogleSignInButton callbackUrl="/dashboard" className="w-full py-2 sm:py-2.5 text-sm sm:text-base" />
+
+            <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
-                  {t('or')}
+                  {t('orSignupWithEmail')}
                 </span>
               </div>
             </div>
-
-            <div className="space-y-4">
-              <GoogleSignInButton callbackUrl="/dashboard" className="w-full py-2 sm:py-2.5 text-sm sm:text-base" />
-            </div>
-
-            <div className="text-center mt-6">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {t('alreadyHaveAccount')}{" "}
-                <Link
-                  href="/auth/signin"
-                  className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                >
-                  {t('signIn')}
-                </Link>
-              </p>
-            </div>
           </div>
+
+          {/* Traditional Signup Form */}
+          <SignupForm />
+
+          {/* Sign-in Link */}
+          <div className="text-center mt-6">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {t('alreadyHaveAccount')}{" "}
+              <Link
+                href="/auth/signin"
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+              >
+                {t('signIn')}
+              </Link>
+            </p>
+          </div>
+
         </div>
       </div>
     </div>

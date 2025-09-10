@@ -293,7 +293,7 @@ describe('Form Utils - Clean Modular Architecture', () => {
         contactPhone: '1234567890',
         governorateSlug: 'damascus',
         locationSlug: 'damascus-city',
-        images: [],
+        images: ['image1.jpg', 'image2.jpg'],
         currency: 'USD',
         mileage: '50000',
         engine: '',
@@ -352,9 +352,9 @@ describe('Form Utils - Clean Modular Architecture', () => {
       };
       
       const errors1 = validateStep(1, formData, mockT);
-      expect(errors1.make).toBe('Make is required');
-      expect(errors1.model).toBe('Model is required');
-      expect(errors1.year).toBe('Year is required');
+      expect(errors1.make).toBe('make is required');
+      expect(errors1.model).toBe('model is required');
+      expect(errors1.year).toBe('year is required');
     });
   });
 

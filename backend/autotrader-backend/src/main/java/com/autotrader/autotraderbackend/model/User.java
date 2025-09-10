@@ -49,6 +49,9 @@ public class User {
     @JoinColumn(name = "seller_type_id")
     private SellerType sellerType;
 
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Dealer dealer;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -120,6 +123,10 @@ public class User {
 
     public boolean isActive() {
         return accountStatus == AccountStatus.VERIFIED;
+    }
+
+    public boolean isDealer() {
+        return dealer != null || (sellerType != null && "dealer".equalsIgnoreCase(sellerType.getName()));
     }
 
     public void markEmailAsVerified() {

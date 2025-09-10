@@ -581,7 +581,7 @@ describe('VerifyEmailPage', () => {
     });
   });
 
-  describe('Success Message Display', () => {
+  describe('Email Display', () => {
     it('should display success message after JWT verification', async () => {
       mockGet.mockReturnValue('valid-token-123');
       (global.fetch as jest.Mock).mockResolvedValue({
@@ -608,7 +608,7 @@ describe('VerifyEmailPage', () => {
       render(<VerifyEmailPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('emailVerified')).toBeInTheDocument();
+        expect(screen.getByText('Email already verified')).toBeInTheDocument();
       });
     });
   });
