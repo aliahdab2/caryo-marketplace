@@ -150,8 +150,6 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         signupRequest.setUsername("carowner");
         signupRequest.setEmail("owner@example.com");
         signupRequest.setPassword("password123");
-        signupRequest.setConfirmPassword("password123");
-        signupRequest.setSellerTypeId(1); // 1 = PRIVATE seller
         Set<String> roles = new HashSet<>();
         roles.add("user");
         signupRequest.setRole(roles);

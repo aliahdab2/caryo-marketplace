@@ -31,8 +31,6 @@ class SignupRequestTest {
         signupRequest.setUsername("testuser");
         signupRequest.setEmail("test@example.com");
         signupRequest.setPassword("password123");
-        signupRequest.setConfirmPassword("password123");
-        signupRequest.setSellerTypeId(1); // 1 = private seller
 
         Set<ConstraintViolation<SignupRequest>> violations = validator.validate(signupRequest);
         assertTrue(violations.isEmpty(), "Should have no violations for valid request");
@@ -46,8 +44,6 @@ class SignupRequestTest {
         signupRequest.setUsername(username);
         signupRequest.setEmail("test@example.com");
         signupRequest.setPassword("password123");
-        signupRequest.setConfirmPassword("password123");
-        signupRequest.setSellerTypeId(1);
 
         Set<ConstraintViolation<SignupRequest>> violations = validator.validate(signupRequest);
         assertEquals(1, violations.size(), "Should have 1 violation for null username");
@@ -62,8 +58,6 @@ class SignupRequestTest {
         signupRequest.setUsername("   ");
         signupRequest.setEmail("test@example.com");
         signupRequest.setPassword("password123");
-        signupRequest.setConfirmPassword("password123");
-        signupRequest.setSellerTypeId(1);
 
         Set<ConstraintViolation<SignupRequest>> violations = validator.validate(signupRequest);
         assertEquals(1, violations.size(), "Should have 1 violation for whitespace username (NotBlank)");
@@ -78,8 +72,6 @@ class SignupRequestTest {
         signupRequest.setUsername(""); // Empty username
         signupRequest.setEmail("test@example.com");
         signupRequest.setPassword("password123");
-        signupRequest.setConfirmPassword("password123");
-        signupRequest.setSellerTypeId(1);
 
         Set<ConstraintViolation<SignupRequest>> violations = validator.validate(signupRequest);
         assertEquals(2, violations.size(), "Should have 2 violations for empty username (NotBlank, Size)");
@@ -106,8 +98,6 @@ class SignupRequestTest {
         signupRequest.setUsername("testuser");
         signupRequest.setEmail(email);
         signupRequest.setPassword("password123");
-        signupRequest.setConfirmPassword("password123");
-        signupRequest.setSellerTypeId(1);
 
         Set<ConstraintViolation<SignupRequest>> violations = validator.validate(signupRequest);
         assertEquals(1, violations.size(), "Should have 1 violation for null email");
@@ -123,8 +113,6 @@ class SignupRequestTest {
         signupRequest.setUsername("testuser");
         signupRequest.setEmail(email);
         signupRequest.setPassword("password123");
-        signupRequest.setConfirmPassword("password123");
-        signupRequest.setSellerTypeId(1);
 
         Set<ConstraintViolation<SignupRequest>> violations = validator.validate(signupRequest);
         if (email.trim().isEmpty() && email.length() == 0) {
@@ -162,8 +150,6 @@ class SignupRequestTest {
         signupRequest.setUsername("testuser");
         signupRequest.setEmail(email);
         signupRequest.setPassword("password123");
-        signupRequest.setConfirmPassword("password123");
-        signupRequest.setSellerTypeId(1);
 
         Set<ConstraintViolation<SignupRequest>> violations = validator.validate(signupRequest);
         assertEquals(1, violations.size(), "Should have 1 violation for invalid email format: " + email);
@@ -179,8 +165,6 @@ class SignupRequestTest {
         signupRequest.setUsername("testuser");
         signupRequest.setEmail("test@example.com");
         signupRequest.setPassword(null); // Null password
-        signupRequest.setConfirmPassword("password123");
-        signupRequest.setSellerTypeId(1);
 
         Set<ConstraintViolation<SignupRequest>> violations = validator.validate(signupRequest);
         assertEquals(1, violations.size(), "Should have 1 violation for null password");
@@ -196,8 +180,6 @@ class SignupRequestTest {
         signupRequest.setUsername("testuser");
         signupRequest.setEmail("test@example.com");
         signupRequest.setPassword(password);
-        signupRequest.setConfirmPassword("password123");
-        signupRequest.setSellerTypeId(1);
 
         Set<ConstraintViolation<SignupRequest>> violations = validator.validate(signupRequest);
         assertEquals(2, violations.size(), "Should have 2 violations for password: '" + password + "' (NotBlank, Size)");

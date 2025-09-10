@@ -12,24 +12,10 @@
 import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
 import { createLogger } from '@/utils/logger';
-
-/**
- * Form validation constants for multi-step forms
- *
- * These constants define which fields are required at each step of the listing form:
- * - REQUIRED_FIELDS_BY_STEP: Fields required for final submission
- * - BLOCKING_REQUIRED_FIELDS_BY_STEP: Fields required for navigation (subset of required fields)
- *
- * Field validation messages use the flat key structure: validation.${fieldName}Required
- * Example: validation.makeRequired, validation.modelRequired, validation.yearRequired
- * Fallback: validation.fieldRequired (generic message)
- *
- * This follows the project's translation guidelines to avoid hardcoded mappings
- * and ensure consistent i18n key structure across the application.
- */
-import {
-  REQUIRED_FIELDS_BY_STEP,
-  BLOCKING_REQUIRED_FIELDS_BY_STEP
+import { 
+  REQUIRED_FIELDS_BY_STEP, 
+  BLOCKING_REQUIRED_FIELDS_BY_STEP, 
+  REQUIRED_FIELD_I18N 
 } from '@/utils/constants/formValidation';
 
 // Import from modular structure
@@ -200,42 +186,20 @@ export function smartProcessField(fieldName: string, value: string): {
 }
 
 /**
- * Form field validation with contextual error messages
+ * Form field validation
  */
 export function validateFormField(
-  fieldName: string,
-  value: string,
-  required: boolean = false,
-  t?: (key: string, fallback: string) => string
+  fieldName: string, 
+  value: string, 
+  required: boolean = false
 ): { isValid: boolean; error?: string } {
-  // Check required fields with contextual messages
-  const stringValue = typeof value === 'string' ? value : String(value || '');
-  if (required && (!stringValue || stringValue.trim().length === 0)) {
-    // Use translation if available, otherwise provide contextual message
-    if (t) {
-      // Try to get field-specific required message
-      const fieldKey = `validation.${fieldName}Required`;
-      const genericKey = 'validation.fieldRequired';
-      return {
-        isValid: false,
-        error: t(fieldKey, t(genericKey, `${fieldName} is required`))
-      };
-    }
-
-    // Provide contextual error message based on field name
-    const fieldDisplayName = fieldName
-      .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-      .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
-      .replace(/([a-z])([A-Z])/g, '$1 $2'); // Add space between camelCase
-
-    return {
-      isValid: false,
-      error: `${fieldDisplayName} is required`
-    };
+  // Check required fields
+  if (required && (!value || value.trim().length === 0)) {
+    return { isValid: false, error: 'This field is required' };
   }
   
   // If not required and empty, it's valid
-  if (!stringValue || stringValue.trim().length === 0) {
+  if (!value || value.trim().length === 0) {
     return { isValid: true };
   }
   
@@ -263,26 +227,23 @@ export function validateFormField(
 }
 
 /**
- * Comprehensive form validation with translation support
+ * Comprehensive form validation
  */
-export function validateForm(
-  data: Partial<ListingFormData>,
-  t?: (key: string, fallback: string) => string
-): FormErrors {
+export function validateForm(data: Partial<ListingFormData>): FormErrors {
   const errors: FormErrors = {};
-
+  
   // Required fields validation
   const requiredFields = ['make', 'model', 'year', 'price', 'title', 'mileage'];
-
+  
   for (const field of requiredFields) {
     const value = data[field as keyof ListingFormData] as string;
-    const validation = validateFormField(field, value, true, t);
-
+    const validation = validateFormField(field, value, true);
+    
     if (!validation.isValid) {
       errors[field as keyof FormErrors] = validation.error || 'Invalid value';
     }
   }
-
+  
   return errors;
 }
 
@@ -362,7 +323,7 @@ export const validateStep = (
 ): FormErrors => {
   const errors: FormErrors = {};
   const mode: ValidationMode = options?.mode || 'final';
-
+  
   switch (step) {
     case 1: // Vehicle Identity (Make, Model, Year)
       {
@@ -371,9 +332,9 @@ export const validateStep = (
         const requiredFields = getRequiredFieldsForMode(step, mode);
         for (const field of requiredFields) {
           const value = formData[field];
-          const validation = validateFormField(field as string, value as string, true, t);
-          if (!validation.isValid) {
-            tmp[field] = validation.error || t('validation.fieldRequired', 'This field is required');
+          if (!value || (typeof value === 'string' && value.trim().length === 0)) {
+            const i18nMeta = REQUIRED_FIELD_I18N[field as string];
+            if (i18nMeta) tmp[field] = t(i18nMeta.key, i18nMeta.fallback);
           }
         }
         Object.assign(errors, tmp);
@@ -388,9 +349,9 @@ export const validateStep = (
         const requiredFields = getRequiredFieldsForMode(step, mode);
         for (const field of requiredFields) {
           const value = formData[field];
-          const validation = validateFormField(field as string, value as string, true, t);
-          if (!validation.isValid) {
-            errors[field] = validation.error || t('validation.fieldRequired', 'This field is required');
+          if (!value || (typeof value === 'string' && value.trim().length === 0)) {
+            const i18nMeta = REQUIRED_FIELD_I18N[field as string];
+            if (i18nMeta) errors[field] = t(i18nMeta.key, i18nMeta.fallback);
           }
         }
       }
@@ -405,9 +366,9 @@ export const validateStep = (
         const requiredFields = getRequiredFieldsForMode(step, mode);
         for (const field of requiredFields) {
           const value = formData[field];
-          const validation = validateFormField(field as string, value as string, true, t);
-          if (!validation.isValid) {
-            errors[field] = validation.error || t('validation.fieldRequired', 'This field is required');
+          if (!value || (typeof value === 'string' && value.trim().length === 0)) {
+            const i18nMeta = REQUIRED_FIELD_I18N[field as string];
+            if (i18nMeta) errors[field] = t(i18nMeta.key, i18nMeta.fallback);
           }
         }
       }
@@ -418,9 +379,9 @@ export const validateStep = (
         const requiredFields = getRequiredFieldsForMode(step, mode);
         for (const field of requiredFields) {
           const value = formData[field];
-          const validation = validateFormField(field as string, value as string, true, t);
-          if (!validation.isValid) {
-            errors[field] = validation.error || t('validation.fieldRequired', 'This field is required');
+          if (!value || (typeof value === 'string' && value.trim().length === 0)) {
+            const i18nMeta = REQUIRED_FIELD_I18N[field as string];
+            if (i18nMeta) errors[field] = t(i18nMeta.key, i18nMeta.fallback);
           }
         }
       }

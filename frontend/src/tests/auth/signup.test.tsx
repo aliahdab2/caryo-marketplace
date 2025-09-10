@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import SignUpPage from '@/app/auth/signup/page';
 // Import our i18n mock
@@ -55,6 +56,22 @@ jest.mock('@/services/sellerTypes', () => ({
   ])),
 }));
 
+// Test wrapper with QueryClient
+const TestWrapper = ({ children }: { children: React.ReactNode }) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+};
 
 describe('SignUpPage Component', () => {
   beforeEach(() => {
@@ -62,19 +79,19 @@ describe('SignUpPage Component', () => {
   });
 
   test('renders the sign-up form correctly', () => {
-    render(<SignUpPage />);
-
-    // The form starts with step 2 (private seller) by default
-    expect(screen.getByText('Join Us')).toBeInTheDocument();
-
-    // Check if SignupForm component is rendered
-    expect(screen.getByTestId('signup-form')).toBeInTheDocument();
-
-    // TODO: Fix form field rendering in test environment
-    // expect(screen.getByPlaceholderText('Enter your full name')).toBeInTheDocument();
-    // expect(screen.getByPlaceholderText(/email/i)).toBeInTheDocument();
-    // expect(screen.getByTestId('password-input')).toBeInTheDocument();
-    // expect(screen.getByTestId('confirm-password-input')).toBeInTheDocument();
+    render(
+      <TestWrapper>
+        <SignUpPage />
+      </TestWrapper>
+    );
+    expect(screen.getByRole('heading', { name: /sign up/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    // Use data-testid for password fields
+    expect(screen.getByTestId('password-input')).toBeInTheDocument();
+    expect(screen.getByTestId('confirm-password-input')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument();
+    expect(screen.getByTestId('verification-component')).toBeInTheDocument();
   });
 
   // Skip all problematic tests

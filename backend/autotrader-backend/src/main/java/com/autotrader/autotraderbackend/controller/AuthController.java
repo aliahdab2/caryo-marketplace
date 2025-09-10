@@ -1,7 +1,6 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.model.Role;
-import com.autotrader.autotraderbackend.model.SellerType;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
@@ -11,11 +10,9 @@ import com.autotrader.autotraderbackend.payload.request.ResetPasswordRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.payload.response.MessageResponse;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
-import com.autotrader.autotraderbackend.repository.SellerTypeRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
 import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
-import com.autotrader.autotraderbackend.service.DealerService;
 import com.autotrader.autotraderbackend.service.PasswordResetService;
 import com.autotrader.autotraderbackend.service.EmailVerificationService;
 import com.autotrader.autotraderbackend.service.SellerTypeService;
@@ -51,15 +48,9 @@ public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
-
+    
     @Autowired
     private RoleRepository roleRepository;
-
-    @Autowired
-    private SellerTypeRepository sellerTypeRepository;
-
-    @Autowired
-    private DealerService dealerService;
 
     @Autowired
     private PasswordEncoder encoder;
@@ -126,11 +117,10 @@ public class AuthController {
 
     @Operation(
         summary = "Register a new user",
-        description = "Creates a new user account with support for private sellers and dealers."
+        description = "Creates a new user account. Returns a success message on successful signup."
     )
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        // Basic validation
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
                     .badRequest()
@@ -140,45 +130,14 @@ public class AuthController {
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Error: Email is already in use!"));
-        }
-
-        // Validate passwords match
-        if (!signUpRequest.getPassword().equals(signUpRequest.getConfirmPassword())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Error: Passwords do not match!"));
-        }
-
-        // Get seller type
-        SellerType sellerType = sellerTypeRepository.findById(signUpRequest.getSellerTypeId().longValue())
-                .orElseThrow(() -> new RuntimeException("Error: Invalid seller type"));
-
-        // Validate dealer-specific data if it's a dealer signup
-        if (signUpRequest.isDealer()) {
-            if (signUpRequest.getBusinessName() == null || signUpRequest.getBusinessName().trim().isEmpty()) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(new MessageResponse("Error: Business name is required for dealers"));
-            }
-            try {
-                dealerService.validateDealerData(signUpRequest);
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(new MessageResponse("Error: " + e.getMessage()));
-            }
+                    .body(new MessageResponse("Error: Email is already in use!")); // Added "Error: " prefix
         }
 
         // Create new user's account
-        User user = new User(signUpRequest.getUsername(),
+        User user = new User(signUpRequest.getUsername(), 
                              signUpRequest.getEmail(),
                              encoder.encode(signUpRequest.getPassword()));
 
-        // Set seller type
-        user.setSellerType(sellerType);
-
-        // Handle roles
         Set<String> strRoles = signUpRequest.getRole();
         Set<Role> roles = new HashSet<>();
 
@@ -215,37 +174,30 @@ public class AuthController {
         }
 
         user.setRoles(roles);
-
-        // Save user first
-        User savedUser = userRepository.save(user);
-
-        // Create dealer profile if it's a dealer signup
-        if (signUpRequest.isDealer()) {
+        
+        // Set seller type if provided
+        if (signUpRequest.getSellerTypeId() != null) {
             try {
-                dealerService.createDealer(savedUser, signUpRequest);
+                user.setSellerType(sellerTypeService.getSellerTypeEntityById(signUpRequest.getSellerTypeId()));
             } catch (Exception e) {
-                // If dealer creation fails, delete the user to maintain consistency
-                userRepository.delete(savedUser);
                 return ResponseEntity
                         .badRequest()
-                        .body(new MessageResponse("Error: Failed to create dealer profile. " + e.getMessage()));
+                        .body(new MessageResponse("Error: Invalid seller type selected!"));
             }
         }
+        
+        userRepository.save(user);
 
-        // Send email verification
+        // Send email verification instead of welcome email
         try {
-            emailVerificationService.sendVerificationEmail(savedUser);
+            emailVerificationService.sendVerificationEmail(user);
         } catch (Exception e) {
             // Log the error but don't fail the registration
-            System.err.println("Failed to send verification email to " + savedUser.getEmail() + ": " + e.getMessage());
+            System.err.println("Failed to send verification email to " + user.getEmail() + ": " + e.getMessage());
         }
 
-        // Return success message
-        String successMessage = signUpRequest.isDealer()
-            ? "Dealer registration successful! Please check your email to verify your account before signing in."
-            : "Registration successful! Please check your email to verify your account before signing in.";
-
-        return ResponseEntity.ok(new MessageResponse(successMessage));
+        // Return success message with instruction to verify email
+        return ResponseEntity.ok(new MessageResponse("Registration successful! Please check your email to verify your account before signing in."));
     }
 
     @Operation(
