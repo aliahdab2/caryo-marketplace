@@ -22,15 +22,10 @@ module.exports = {
   verbose: true,
   // Mock console methods to reduce noise during testing
   setupFilesAfterEnv: [
-    '<rootDir>/__tests__/setup.js'
+    '<rootDir>/setup.js'
   ],
   // Disable Babel transformation for Node.js environment
   transform: {},
   // Ensure CommonJS modules work properly
   extensionsToTreatAsEsm: [],
-  globals: {
-    'ts-jest': {
-      useESM: false,
-    },
-  },
 };

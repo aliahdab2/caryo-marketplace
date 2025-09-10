@@ -3,6 +3,51 @@
  */
 
 const path = require('path');
+
+// Mock fs for testing
+jest.mock('fs', () => {
+  const originalFs = jest.requireActual('fs');
+
+  return {
+    ...originalFs,
+    readFileSync: jest.fn((filePath, options) => {
+      // Return mock data for test files
+      if (filePath.includes('test-data')) {
+        const mockData = {
+          'sample-common.json': JSON.stringify({
+            appName: 'Test App',
+            welcome: 'Welcome',
+            title: 'Sample Title',
+            description: 'Sample Description'
+          }),
+          'sample-auth.json': JSON.stringify({
+            login: 'Login',
+            register: 'Register',
+            password: 'Password',
+            username: 'Username'
+          }),
+          'sample-duplicates.json': JSON.stringify({
+            duplicate: 'First duplicate',
+            duplicate2: 'Second duplicate'
+          })
+        };
+
+        // Extract filename using string manipulation instead of path.basename
+        const fileName = filePath.split('/').pop() || filePath.split('\\').pop() || '';
+        if (mockData[fileName]) {
+          return mockData[fileName];
+        }
+      }
+
+      // For other files, call original method
+      return originalFs.readFileSync(filePath, options);
+    }),
+    writeFileSync: jest.fn(),
+    existsSync: jest.fn(() => true),
+    mkdirSync: jest.fn(),
+  };
+});
+
 const fs = require('fs');
 
 // Import functions from the translation validator
@@ -36,10 +81,7 @@ describe('Translation Validator Tool', () => {
   });
 
   afterAll(() => {
-    // Restore original methods
-    fs.readFileSync = global.originalReadFileSync;
-    fs.writeFileSync = global.originalWriteFileSync;
-    fs.existsSync = global.originalExistsSync;
+    // Cleanup is handled by Jest's mocking system
   });
 
   describe('loadAllTranslations', () => {

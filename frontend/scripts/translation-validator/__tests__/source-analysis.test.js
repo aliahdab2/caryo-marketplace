@@ -1,3 +1,75 @@
+// Mock google-translate-api to prevent configstore uid issues
+jest.mock('google-translate-api', () => ({
+  __esModule: true,
+  default: jest.fn(() => Promise.resolve({
+    text: 'Mocked translation',
+    from: { language: { iso: 'en' } },
+    to: { language: { iso: 'es' } }
+  }))
+}));
+
+// Mock fs for source file scanning
+jest.mock('fs', () => {
+  const originalFs = jest.requireActual('fs');
+
+  return {
+    ...originalFs,
+    readFileSync: jest.fn((filePath, options) => {
+      // Return mock data for test files
+      if (filePath.includes('test-data')) {
+        const mockData = {
+          'sample-common.json': JSON.stringify({
+            appName: 'Test App',
+            welcome: 'Welcome',
+            title: 'Sample Title',
+            description: 'Sample Description'
+          }),
+          'sample-auth.json': JSON.stringify({
+            login: 'Login',
+            register: 'Register',
+            password: 'Password',
+            username: 'Username'
+          })
+        };
+
+        // Extract filename using string manipulation instead of path.basename
+        const fileName = filePath.split('/').pop() || filePath.split('\\').pop() || '';
+        if (mockData[fileName]) {
+          return mockData[fileName];
+        }
+      }
+
+      // Mock source files for scanning tests
+      if (filePath.includes('.tsx') || filePath.includes('.ts') || filePath.includes('.js')) {
+        return `
+          import { t } from 'i18next';
+          const Component = () => {
+            const message = t('sample-common:title');
+            const desc = t('sample-common:description', 'Default description');
+            const login = t('sample-auth:login');
+            const pass = t('sample-auth:password');
+            const nonExist = t('sample-common:nonExistentKey');
+            return <div>{message} {desc} {login} {pass} {nonExist}</div>;
+          };
+        `;
+      }
+
+      // For other files, call original method
+      return originalFs.readFileSync(filePath, options);
+    }),
+    writeFileSync: jest.fn(),
+    existsSync: jest.fn(() => true),
+    readdirSync: jest.fn(() => ['test.tsx', 'component.ts', 'utils.js']),
+    statSync: jest.fn(() => ({
+      isDirectory: () => false,
+      isFile: () => true
+    })),
+  };
+});
+
+const path = require('path');
+const fs = require('fs');
+
 const {
   scanSourceFiles,
   findUnusedKeys,
@@ -8,10 +80,6 @@ const {
   validateTranslationKeys,
   validateKeyPattern
 } = require('../validator');
-
-// Mock fs for source file scanning
-const fs = require('fs');
-const path = require('path');
 
 // Set test environment
 process.env.NODE_ENV = 'test';
