@@ -1,6 +1,9 @@
 {
-  "appName": "Test App",
+  "title": "Test Title",
+  "description": "Test Description", 
   "welcome": "Welcome",
+  "error": "Error",
+  "appName": "Test App",
   "login": "Login",
   "logout": "Logout",
   "save": "Save",
@@ -12,7 +15,6 @@
   "filter": "Filter",
   "sort": "Sort",
   "loading": "Loading...",
-  "error": "Error",
   "success": "Success",
   "required": "Required"
 }

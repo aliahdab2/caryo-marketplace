@@ -15,12 +15,12 @@ describe('Translation Validator - Basic Functionality', () => {
     expect(translations).toBeDefined();
     expect(translations.en).toBeDefined();
     expect(translations.ar).toBeDefined();
-    expect(translations.en.common).toBeDefined();
-    expect(translations.ar.common).toBeDefined();
+    expect(translations.en['sample-common']).toBeDefined();
+    expect(translations.ar['sample-common']).toBeDefined();
 
     // Check that we have some keys loaded
-    expect(Object.keys(translations.en.common)).toBeInstanceOf(Array);
-    expect(Object.keys(translations.ar.common)).toBeInstanceOf(Array);
+    expect(Object.keys(translations.en['sample-common'])).toBeInstanceOf(Array);
+    expect(Object.keys(translations.ar['sample-common'])).toBeInstanceOf(Array);
   });
 
   test('should handle different environments', () => {
@@ -37,7 +37,7 @@ describe('Translation Validator - Basic Functionality', () => {
   });
 
   test('should export all required functions', () => {
-    const functions = require('../translation-validator');
+    const functions = require('../validator');
 
     expect(typeof functions.loadAllTranslations).toBe('function');
     expect(typeof functions.findMissingTranslations).toBe('function');
