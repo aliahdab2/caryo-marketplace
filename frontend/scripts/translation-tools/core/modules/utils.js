@@ -69,6 +69,13 @@ function validateKeyPattern(key) {
     return false; // Spaces in keys can cause issues
   }
 
+  // Note: Leading/trailing underscores are restricted to prevent:
+  // 1. Conflicts with private/system keys (common convention)
+  // 2. Keys that might be treated as internal/hidden
+  // 3. Inconsistent naming patterns across the translation system
+  //
+  // If you need to allow underscores for namespacing (e.g., 'auth_login'),
+  // consider using dots instead (e.g., 'auth.login') for consistency
   if (key.startsWith('_') || key.endsWith('_')) {
     return false; // Leading/trailing underscores
   }

@@ -1,6 +1,4 @@
 // Ensure proper UTF-8 encoding for Arabic text
-process.stdout.setEncoding('utf8');
-process.stderr.setEncoding('utf8');
 
 // Set terminal to handle Unicode properly
 if (process.platform === 'win32') {
