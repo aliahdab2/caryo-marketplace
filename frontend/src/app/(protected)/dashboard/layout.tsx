@@ -121,7 +121,7 @@ export default function DashboardLayout({
   // Handle authentication redirection with a consistent user experience
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push(`/auth/signin?message=${encodeURIComponent('Please log in to access dashboard')}`);
+      router.push(`/auth/signin?message=${encodeURIComponent(t('loginRequired', 'Please log in to access dashboard'))}`);
     }
   }, [status, router, t]);
 

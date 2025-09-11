@@ -45,10 +45,53 @@ function loadTranslationFile(language, namespace) {
   const filePath = path.join(baseDir, language, `${namespace}.json`);
   try {
     const content = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(content);
-  } catch (_error) {
-    if (process.env.NODE_ENV !== 'test') {
-      console.warn(`Warning: Could not load ${language}/${namespace}.json`);
+
+    // Check if file is empty
+    if (!content.trim()) {
+      console.warn(`⚠️  File ${language}/${namespace}.json is empty`);
+      return {};
+    }
+
+    // Try to parse JSON
+    const parsed = JSON.parse(content);
+
+    // Validate that it's an object
+    if (typeof parsed !== 'object' || parsed === null) {
+      console.error(`❌ Invalid JSON structure in ${language}/${namespace}.json - expected object, got ${typeof parsed}`);
+      return {};
+    }
+
+    // Check for duplicate keys in the raw file content before JSON parsing
+    const lines = content.split('\n');
+    const keyPattern = /^\s*"([^"]+)":/;
+    const seenKeys = new Map();
+    const duplicatesInFile = [];
+
+    lines.forEach((line, index) => {
+      const match = line.match(keyPattern);
+      if (match) {
+        const key = match[1];
+        if (seenKeys.has(key)) {
+          duplicatesInFile.push(key);
+          console.error(`🚨 DUPLICATE KEY FOUND in ${language}/${namespace}.json at line ${index + 1}: "${key}"`);
+          console.error(`   First occurrence: line ${seenKeys.get(key)}`);
+          console.error(`   Duplicate: line ${index + 1}`);
+        } else {
+          seenKeys.set(key, index + 1);
+        }
+      }
+    });
+
+    if (duplicatesInFile.length > 0) {
+      console.error(`❌ ${language}/${namespace}.json contains ${duplicatesInFile.length} duplicate keys: ${duplicatesInFile.join(', ')}`);
+      // Still return the parsed object for other validation purposes
+    }
+
+    return parsed;
+  } catch (error) {
+    console.error(`❌ Failed to load ${language}/${namespace}.json: ${error.message}`);
+    if (process.env.NODE_ENV !== 'test' || process.env.DEBUG_TRANSLATIONS) {
+      console.error(`   Error details:`, error);
     }
     return {};
   }
@@ -166,31 +209,190 @@ function findOrphanedTranslations(translations) {
  * Find duplicate keys within the same namespace
  */
 function findDuplicateKeys(translations) {
+  console.log('🔍 Starting duplicate detection...');
   const duplicates = {};
   const languages = process.env.NODE_ENV === 'test' ? TEST_LANGUAGES : LANGUAGES;
   const namespaces = process.env.NODE_ENV === 'test' ? TEST_NAMESPACES : NAMESPACES;
 
+  console.log(`📊 Checking ${languages.length} languages and ${namespaces.length} namespaces`);
+  let totalDuplicates = 0;
+
   languages.forEach(language => {
+    console.log(`🌍 Processing language: ${language}`);
     duplicates[language] = {};
 
     namespaces.forEach(namespace => {
+      console.log(`📁 Processing namespace: ${namespace}`);
       duplicates[language][namespace] = [];
-      const namespaceTranslations = translations[language][namespace];
-      if (namespaceTranslations) {
-        const keys = Object.keys(namespaceTranslations);
-        const seen = new Set();
 
-        keys.forEach(key => {
-          if (seen.has(key)) {
-            duplicates[language][namespace].push(key);
+      // First check for duplicates at the file level
+      const baseDir = process.env.NODE_ENV === 'test' ? TEST_LOCALES_DIR : LOCALES_DIR;
+      const filePath = path.join(baseDir, language, `${namespace}.json`);
+
+      try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        const lines = content.split('\n');
+        const keyPattern = /^\s*"([^"]+)":/;
+        const seenKeys = new Map();
+
+        lines.forEach((line, index) => {
+          const match = line.match(keyPattern);
+          if (match) {
+            const key = match[1];
+            if (seenKeys.has(key)) {
+              console.log(`🚨 DUPLICATE FOUND: "${key}" in ${language}/${namespace}.json`);
+              console.log(`   First occurrence: line ${seenKeys.get(key)}`);
+              console.log(`   Duplicate: line ${index + 1}`);
+              console.log(`   Values will be: last one wins in JSON parsing`);
+
+              duplicates[language][namespace].push(key);
+              totalDuplicates++;
+            } else {
+              seenKeys.set(key, index + 1);
+            }
           }
-          seen.add(key);
         });
+      } catch (error) {
+        console.log(`⚠️ Could not read file ${language}/${namespace}.json for duplicate detection`);
+      }
+
+      // Also check the parsed object for any remaining duplicates (though JSON parsing removes them)
+      const namespaceTranslations = translations[language][namespace];
+      if (namespaceTranslations && typeof namespaceTranslations === 'object') {
+        const keys = Object.keys(namespaceTranslations);
+        console.log(`🔑 Found ${keys.length} keys in ${language}/${namespace} after parsing`);
+
+        if (keys.length === 0) {
+          console.log(`⚠️  No keys found in ${language}/${namespace} - possibly empty or malformed file`);
+          return;
+        }
+      }
+
+      console.log(`📋 Keys processed in ${language}/${namespace}, Duplicates found: ${duplicates[language][namespace].length}`);
+    });
+  });
+
+  console.log(`✅ Duplicate detection completed. Total duplicates found: ${totalDuplicates}`);
+  return duplicates;
+}
+
+/**
+ * Safely remove duplicate keys from translation files
+ * Keeps the LAST occurrence of each duplicate key (JSON "last wins" behavior)
+ */
+function fixDuplicateKeys() {
+  console.log('🛠️  Starting safe duplicate key removal...');
+  console.log('⚠️  This will create backups and keep the LAST occurrence of each duplicate key\n');
+
+  const languages = process.env.NODE_ENV === 'test' ? TEST_LANGUAGES : LANGUAGES;
+  const namespaces = process.env.NODE_ENV === 'test' ? TEST_NAMESPACES : NAMESPACES;
+
+  let totalFilesProcessed = 0;
+  let totalDuplicatesRemoved = 0;
+  let totalFilesFixed = 0;
+
+  languages.forEach(language => {
+    namespaces.forEach(namespace => {
+      const baseDir = process.env.NODE_ENV === 'test' ? TEST_LOCALES_DIR : LOCALES_DIR;
+      const filePath = path.join(baseDir, language, `${namespace}.json`);
+
+      try {
+        // Read file content
+        const content = fs.readFileSync(filePath, 'utf8');
+        const lines = content.split('\n');
+
+        // Find duplicate keys
+        const keyPattern = /^\s*"([^"]+)":/;
+        const keyOccurrences = new Map(); // key -> array of line numbers
+        const duplicates = new Map(); // key -> array of line numbers (excluding last)
+
+        lines.forEach((line, index) => {
+          const match = line.match(keyPattern);
+          if (match) {
+            const key = match[1];
+            if (!keyOccurrences.has(key)) {
+              keyOccurrences.set(key, []);
+            }
+            keyOccurrences.get(key).push(index);
+          }
+        });
+
+        // Find keys with multiple occurrences
+        keyOccurrences.forEach((lineNumbers, key) => {
+          if (lineNumbers.length > 1) {
+            // Keep the last occurrence, mark others for removal
+            const toRemove = lineNumbers.slice(0, -1); // All except last
+            duplicates.set(key, toRemove);
+          }
+        });
+
+        if (duplicates.size === 0) {
+          console.log(`✅ ${language}/${namespace}.json: No duplicates found`);
+          return;
+        }
+
+        // Create backup
+        const backupPath = `${filePath}.backup.${Date.now()}`;
+        fs.writeFileSync(backupPath, content);
+        console.log(`💾 Created backup: ${path.basename(backupPath)}`);
+
+        // Remove duplicate lines
+        const linesToRemove = new Set();
+        duplicates.forEach((lineNumbers) => {
+          lineNumbers.forEach(lineNum => linesToRemove.add(lineNum));
+        });
+
+        // Create new content without duplicate lines
+        const newLines = [];
+        lines.forEach((line, index) => {
+          if (!linesToRemove.has(index)) {
+            newLines.push(line);
+          }
+        });
+
+        const newContent = newLines.join('\n');
+
+        // Validate new JSON
+        try {
+          JSON.parse(newContent);
+        } catch (jsonError) {
+          console.error(`❌ JSON validation failed after removing duplicates from ${language}/${namespace}.json`);
+          console.error(`   Error: ${jsonError.message}`);
+          console.log(`   Original file preserved, backup available at: ${backupPath}`);
+          return;
+        }
+
+        // Write cleaned content
+        fs.writeFileSync(filePath, newContent);
+
+        // Report results
+        console.log(`🧹 ${language}/${namespace}.json: Fixed ${duplicates.size} duplicate keys`);
+        duplicates.forEach((lineNumbers, key) => {
+          console.log(`   • "${key}": removed ${lineNumbers.length} duplicates, kept last occurrence`);
+        });
+
+        totalFilesProcessed++;
+        totalFilesFixed++;
+        totalDuplicatesRemoved += Array.from(duplicates.values()).reduce((sum, arr) => sum + arr.length, 0);
+
+      } catch (error) {
+        console.error(`❌ Error processing ${language}/${namespace}.json: ${error.message}`);
       }
     });
   });
 
-  return duplicates;
+  console.log(`\n📊 SUMMARY:`);
+  console.log(`   • Files processed: ${totalFilesProcessed}`);
+  console.log(`   • Files fixed: ${totalFilesFixed}`);
+  console.log(`   • Duplicate keys removed: ${totalDuplicatesRemoved}`);
+
+  if (totalFilesFixed > 0) {
+    console.log(`\n✅ Duplicate removal completed successfully!`);
+    console.log(`💡 TIP: Backups were created with .backup.{timestamp} extension`);
+    console.log(`🔄 Run 'npm run translation:duplicates' to verify all duplicates are gone`);
+  } else {
+    console.log(`\n✅ No duplicates found - all files are clean!`);
+  }
 }
 
 /**
@@ -760,7 +962,18 @@ function generateDetailedReport(translations, reportType = 'all', includeSourceS
     });
 
     if (!hasAnyDuplicates) {
-      console.log('None found');
+      console.log('✅ None found - all translation keys are unique!');
+    } else {
+      // Calculate total duplicates from the results
+      let totalDuplicatesCount = 0;
+      Object.values(duplicates).forEach(langData => {
+        Object.values(langData).forEach(namespaceData => {
+          totalDuplicatesCount += namespaceData.length;
+        });
+      });
+      console.log(`\n📊 SUMMARY: ${totalDuplicatesCount} duplicate keys found across all files`);
+      console.log('💡 TIP: Remove duplicate keys to prevent translation inconsistencies');
+      console.log('⚠️  WARNING: JSON parsing keeps only the last occurrence of duplicate keys');
     }
   }
 
@@ -873,6 +1086,15 @@ function main() {
   const args = process.argv.slice(2);
   const command = args[0] || 'summary';
 
+  // Check for cache clearing option
+  const shouldClearCache = args.includes('--clear-cache') || args.includes('--no-cache');
+
+  // Clear cache if requested
+  if (shouldClearCache) {
+    clearCache();
+    console.log('🧹 Cache cleared');
+  }
+
   // Load all translations
   console.log('Loading translation files...');
   const translations = loadAllTranslations();
@@ -892,7 +1114,17 @@ function main() {
       break;
 
     case 'duplicates':
-      generateDetailedReport(translations, 'duplicates');
+      // Clear cache for duplicates check to ensure fresh data
+      clearCache();
+      console.log('🔄 Re-loading translation files for accurate duplicates detection...');
+      const freshTranslations = loadAllTranslations();
+      generateDetailedReport(freshTranslations, 'duplicates');
+      break;
+
+    case 'fix-duplicates':
+      // Safely remove duplicate keys, keeping the last occurrence
+      clearCache();
+      fixDuplicateKeys();
       break;
 
     case 'inconsistencies':
@@ -1187,5 +1419,6 @@ module.exports = {
   validateKeyPattern,
   trackPerformance,
   getCached,
-  clearCache
+  clearCache,
+  fixDuplicateKeys
 };

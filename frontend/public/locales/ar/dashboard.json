@@ -103,5 +103,14 @@
   "noListingsFound": "لم يتم العثور على إعلانات",
   "tryAdjustingSearch": "جرب تعديل البحث أو المرشحات",
   "noListingsAvailable": "لا توجد إعلانات متاحة في الوقت الحالي",
-  "showingResults": "عرض {{count}} من {{total}} إعلان"
+  "showingResults": "عرض {{count}} من {{total}} إعلان",
+
+  "headerLogout": "تسجيل الخروج",
+  "help": "المساعدة",
+  "helpCenter": "مركز المساعدة",
+  "analytics": "التحليلات",
+  "performance": "الأداء",
+  "mainNavigation": "التنقل الرئيسي",
+  "navigation": "التنقل",
+  "loginRequired": "الرجاء تسجيل الدخول للوصول إلى لوحة التحكم"
 }

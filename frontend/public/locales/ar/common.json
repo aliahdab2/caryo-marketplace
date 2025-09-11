@@ -52,7 +52,6 @@
   "authPasswordChangeSuccess": "تم تغيير كلمة المرور بنجاح",
   "authPasswordChangeFailed": "فشل في تغيير كلمة المرور",
   "authNetworkError": "خطأ في الشبكة. يرجى المحاولة مرة أخرى.",
-  "cancel": "إلغاء",
   "delete": "حذف",
   "deleting": "جارٍ الحذف...",
   "processing": "جارٍ المعالجة...",
@@ -529,5 +528,10 @@
   "goToPage": "الانتقال إلى الصفحة {{page}}",
   "showing": "عرض",
   "ofConnector": "من أصل",
-  "backToHome": "العودة للرئيسية"
+  "backToHome": "العودة للرئيسية",
+  "cancel": "إلغاء",
+  "clearFilters": "مسح المرشحات",
+  "error": "خطأ",
+  "selectAll": "تحديد الكل",
+  "view": "عرض"
 }

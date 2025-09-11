@@ -52,7 +52,6 @@
   "authPasswordChangeSuccess": "Password changed successfully",
   "authPasswordChangeFailed": "Failed to change password",
   "authNetworkError": "Network error. Please try again.",
-  "cancel": "Cancel",
   "delete": "Delete",
   "deleting": "Deleting...",
   "processing": "Processing...",
@@ -147,12 +146,8 @@
   "title": "Title",
   "views": "Views",
   "actions": "Actions",
-  "clearFilters": "Clear filters",
-  "selectAll": "Select all",
   "status": "Status",
-  "view": "View",
   "learnMore": "Learn more",
-  "error": "Error",
   "gridView": "Grid view",
   "listView": "List view",
   "priceRange": "Price Range",
@@ -163,5 +158,10 @@
   "goToPage": "Go to page {{page}}",
   "showing": "Showing",
   "ofConnector": "of",
-  "backToHome": "Back to Home"
+  "backToHome": "Back to Home",
+  "cancel": "Cancel",
+  "clearFilters": "Clear Filters",
+  "error": "Error",
+  "selectAll": "Select All",
+  "view": "View"
 }

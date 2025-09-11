@@ -9,17 +9,29 @@ scripts/translation-tools/
 ├── cli/
 │   └── index.js              # Unified CLI interface
 ├── core/
-│   ├── validator.js          # Translation validation & analysis
-│   ├── translation-service.js # OpenAI translation service
-│   └── github-service.js     # GitHub integration
+│   ├── validator-refactored.js  # 🆕 MODULAR validator (active)
+│   ├── validator.js             # Legacy monolithic validator (archived)
+│   ├── modules/                 # 🆕 Modular components
+│   │   ├── duplicates.js        # Duplicate detection & fixing
+│   │   ├── loader.js           # File loading & parsing
+│   │   ├── missing.js          # Missing translations analysis
+│   │   ├── utils.js            # Common utilities
+│   │   ├── __tests__/          # 🆕 Module-specific tests
+│   │   └── README.md           # Module documentation
+│   ├── translation-service.js   # OpenAI translation service
+│   ├── github-service.js       # GitHub integration
+│   └── test-data/              # Test fixtures
 ├── analysis/
-│   └── sync-check.js         # EN/AR synchronization validation
+│   └── sync-check.js           # EN/AR synchronization validation
 ├── fixes/
-│   ├── guide-fixer.js        # Auto-fix translation guide violations
-│   └── cleaner.js            # Namespace-specific cleanup
+│   └── guide-fixer.js          # Auto-fix translation guide violations
 ├── workflow/
-│   └── maintenance.js        # Automated maintenance workflow
-└── README.md                 # This file
+│   └── maintenance.js          # Automated maintenance workflow
+├── archive/                     # 🆕 Archived old files
+│   ├── validator-monolithic-*.js # Preserved legacy validators
+│   └── cleanup-summary.txt     # Cleanup documentation
+├── cleanup.sh                   # 🆕 Cleanup utility
+└── README.md                    # This file
 ```
 
 ## 🚀 Usage
@@ -27,28 +39,43 @@ scripts/translation-tools/
 ### Unified CLI Interface
 
 ```bash
-# Use the unified interface
+# Use the unified interface (modular system)
 npm run translation <command> [options]
 
 # Or use specific shortcuts
 npm run translation:validate
 npm run translation:sync-check
 npm run translation:usage-analysis
+
+# 🆕 New modular commands
+npm run translation:fix-duplicates  # Safe duplicate removal
+npm run translation:test           # Run all module tests
+npm run translation:test:duplicates # Test duplicate functionality
+npm run translation:test:loader    # Test file loading
+npm run translation:test:utils     # Test utilities
 ```
 
 ### Available Commands
 
-#### Core Validation (Existing)
+#### Core Validation (🆕 MODULAR SYSTEM)
 ```bash
-npm run translation validate     # Guide compliance & naming
-npm run translation summary      # Summary reports
-npm run translation detailed     # Detailed analysis
-npm run translation missing      # Missing translations
-npm run translation duplicates   # Duplicate keys
-npm run translation unused       # Unused keys
-npm run translation orphaned     # Orphaned translations
-npm run translation scan         # Basic scanning
-npm run translation export       # Export reports
+npm run translation validate       # Guide compliance & naming
+npm run translation summary        # Summary reports
+npm run translation detailed       # Detailed analysis
+npm run translation missing        # Missing translations
+npm run translation duplicates     # Duplicate keys (enhanced)
+npm run translation fix-duplicates # 🆕 Safe duplicate removal
+npm run translation orphaned       # Orphaned translations
+npm run translation export         # Export reports
+npm run translation export-missing # Export missing translations
+```
+
+#### Testing Commands (🆕 NEW)
+```bash
+npm run translation:test           # Run all modular tests
+npm run translation:test:duplicates # Test duplicate detection
+npm run translation:test:loader    # Test file loading
+npm run translation:test:utils     # Test utilities
 ```
 
 #### Analysis Tools
@@ -68,23 +95,56 @@ npm run translation fix-guide         # Auto-fix guide violations
 npm run translation maintenance       # Complete maintenance workflow
 ```
 
-## 🔧 Tool Categories
+## 🏗️ Architecture
 
 ### 🎯 Core Tools
-- **Validator**: Comprehensive analysis of translation files (existing)
+- **Validator (Modular)**: Comprehensive analysis with modular components (🆕 NEW)
+- **Validator (Legacy)**: Original monolithic validator (archived)
 - **Translation Service**: OpenAI GPT-powered translation
 - **GitHub Service**: PR creation and management
 
+### 📦 Modular Components (🆕 NEW)
+- **Duplicates Module**: Advanced duplicate detection and safe removal
+- **Loader Module**: Robust file loading and parsing
+- **Missing Module**: Comprehensive missing translation analysis
+- **Utils Module**: Common utilities and helpers
+- **Test Suite**: Complete test coverage for all modules
+
 ### 📊 Analysis Tools
-- **Sync Check**: Validates EN/AR key synchronization (NEW)
-- **Integrity Check**: Complete validation + duplicate detection + language verification (NEW)
+- **Sync Check**: Validates EN/AR key synchronization
+- **Integrity Check**: Complete validation + duplicate detection + language verification
 - **Usage Analysis**: Component usage analysis (uses core validator)
 
 ### 🔧 Fix Tools
-- **Guide Fixer**: Automatically fixes translation guide violations (NEW)
+- **Guide Fixer**: Automatically fixes translation guide violations
+- **Cleanup Script**: Automated cleanup and organization (🆕 NEW)
 
 ### ⚡ Workflow Tools
-- **Maintenance**: Orchestrates complete translation maintenance workflow (NEW)
+- **Maintenance**: Orchestrates complete translation maintenance workflow
+
+## 🧹 Cleanup & Organization
+
+### Archive Structure
+Old files are preserved in the `archive/` directory:
+```
+archive/
+├── validator-monolithic-*.js    # Original 1400+ line validator
+├── cleanup-summary.txt          # Detailed cleanup documentation
+└── README.md                    # Archive documentation
+```
+
+### What Was Cleaned Up
+- ✅ **Backup Files**: Removed 3 backup files from duplicate operations
+- ✅ **Old Validator**: Archived monolithic validator (47KB → preserved)
+- ✅ **File Organization**: Created clean modular structure
+- ✅ **Documentation**: Updated all documentation
+
+### Benefits of Cleanup
+- **🔍 Cleaner Structure**: Clear separation between active and archived files
+- **📦 Modular Design**: Easy to maintain and extend
+- **🧪 Better Testing**: Comprehensive test coverage
+- **📚 Clear Documentation**: Updated guides and examples
+- **⚡ Improved Performance**: Modular loading and caching
 
 ## 🎯 Consolidation Notes
 
@@ -98,11 +158,14 @@ npm run translation maintenance       # Complete maintenance workflow
 
 ### Daily Maintenance
 ```bash
-# Quick validation
+# Quick validation (modular system)
 npm run translation:validate
 
 # Check synchronization
 npm run translation:sync-check
+
+# Check for duplicates (enhanced)
+npm run translation:duplicates
 ```
 
 ### Before Deployment
@@ -112,12 +175,29 @@ npm run translation:usage-analysis
 
 # Auto-fix issues
 npm run translation:fix-guide
+
+# 🆕 Safe duplicate removal if needed
+npm run translation:fix-duplicates
 ```
 
 ### Weekly Cleanup
 ```bash
 # Full maintenance workflow
 npm run translation:maintenance
+
+# 🆕 Run tests to ensure everything works
+npm run translation:test
+```
+
+### Development Workflow (🆕 NEW)
+```bash
+# Test specific modules
+npm run translation:test:duplicates
+npm run translation:test:loader
+npm run translation:test:utils
+
+# Clean up after testing
+npm run translation cleanup  # Uses cleanup.sh
 ```
 
 ### Namespace-Specific Work

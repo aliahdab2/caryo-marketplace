@@ -84,5 +84,8 @@
   "approvingListings": "Approving...",
   "rejectingListings": "Rejecting...",
   "approveSuccess": "Listing approved successfully",
-  "rejectSuccess": "Listing rejected successfully"
+  "rejectSuccess": "Listing rejected successfully",
+  "bulkActionError": "Bulk action failed",
+  "bulkApproveSuccess": "{{count}} listings approved successfully",
+  "bulkRejectSuccess": "{{count}} listings rejected successfully"
 }
