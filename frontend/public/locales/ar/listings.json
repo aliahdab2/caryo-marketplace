@@ -92,10 +92,8 @@
   "allStatuses": "جميع الحالات",
   "newest": "الأحدث أولاً",
   "createListing": "إنشاء إعلان",
-  "filters": {
-    "noSellerTypes": "لا توجد أنواع بائعين متاحة",
-    "sellerType": "نوع البائع"
-  },
+  "filters.sellerType": "نوع البائع",
+  "filters.noSellerTypes": "لا توجد أنواع بائعين متاحة",
   "showPhoneNumber": "عرض رقم الهاتف",
   "soldBy": "تم البيع بواسطة",
   "technologyFeatures": "ميزات التكنولوجيا",
@@ -106,6 +104,5 @@
   "vehiclePrice": "سعر المركبة",
   "verifiedDealer": "تاجر معتمد",
   "warrantyAvailable": "الضمان متوفر",
-  "years": "سنوات",
-  "removeFromFavorites": "إزالة من المفضلة"
+  "years": "سنوات"
 }

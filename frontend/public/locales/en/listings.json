@@ -29,7 +29,6 @@
   "leatherSeats": "Leather seats",
   "licensedDealer": "Licensed Dealer",
   "loading": "Loading...",
-  "listings": "listings",
   "loanTerm": "Loan Term",
   "location": "Location",
   "locationNotSpecified": "Location not specified",
@@ -104,10 +103,5 @@
   "selectGovernorate": "Select Governorate",
   "sortBy": "Sort by",
   "tryAgain": "Try again",
-  "used": "Used",
-  "filters": {
-    "sellerType": "Seller Type",
-    "noSellerTypes": "No seller types available"
-  },
-  "removeFromFavorites": "Remove from Favorites"
+  "used": "Used"
 }
