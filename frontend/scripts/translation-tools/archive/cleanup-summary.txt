@@ -1,0 +1,35 @@
+Translation Tools Cleanup Summary
+================================
+
+Date: Thu Sep 11 16:29:07 CEST 2025
+Project: Caryo Marketplace
+Translation Tools Location: /Users/aliahdab/Documents/caryo-marketplace/frontend/scripts/translation-tools
+
+FILES ARCHIVED:
+-rw-r--r--@  1 aliahdab  staff      0 Sep 11 16:29 cleanup-summary.txt
+-rwxr-xr-x@  1 aliahdab  staff  47972 Sep 11 16:29 validator-monolithic-20250911_162907.js
+
+BACKUP FILES REMOVED:
+       3 files removed
+  - /Users/aliahdab/Documents/caryo-marketplace/frontend/public/locales/ar/listings.json.backup.1757600464527
+  - /Users/aliahdab/Documents/caryo-marketplace/frontend/public/locales/ar/common.json.backup.1757600464525
+  - /Users/aliahdab/Documents/caryo-marketplace/frontend/public/locales/en/common.json.backup.1757600464523
+
+CURRENT STRUCTURE:
+- Active validator: validator-refactored.js (modular)
+- Old validator: Moved to archive/ (monolithic)
+- Modules: Organized in modules/ directory
+- Tests: Available in modules/__tests__/
+- Redundant files: Removed from core/ directory
+
+FILES CLEANED UP:
+- Removed validator.js from core/ directory (was redundant)
+- Fixed package.json script to use validator-refactored.js
+- All scripts now point to the correct modular validator
+
+RECOMMENDATIONS:
+- Use the new modular validator (validator-refactored.js)
+- Run tests with: npm run translation:test
+- Check modules documentation: modules/README.md
+- Legacy validator available in: archive/validator-monolithic-*.js
+

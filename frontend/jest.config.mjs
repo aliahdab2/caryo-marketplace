@@ -7,6 +7,8 @@ const config = {
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
     '!src/**/*.stories.{ts,tsx}',
+    'scripts/translation-tools/**/*.js',
+    '!scripts/translation-tools/core/validator.js', // Exclude old monolithic file
     '!**/node_modules/**',
   ],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],

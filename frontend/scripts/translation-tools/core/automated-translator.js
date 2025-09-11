@@ -1,5 +1,21 @@
 #!/usr/bin/env node
 
+// Ensure proper UTF-8 encoding for Arabic text
+
+// Set terminal to handle Unicode properly
+if (process.platform === 'win32') {
+  // Windows specific setup
+  try {
+    require('child_process').execSync('chcp 65001', { stdio: 'inherit' });
+  } catch (e) {
+    // Ignore if chcp fails
+  }
+} else {
+  // Unix/Linux/Mac setup
+  process.env.LANG = process.env.LANG || 'en_US.UTF-8';
+  process.env.LC_ALL = process.env.LC_ALL || 'en_US.UTF-8';
+}
+
 /**
  * Automated AI Translation Workflow
  * - Validates translations
@@ -16,6 +32,28 @@ const GitHubService = require('./github-service');
 const validatorPath = path.join(__dirname, 'validator.js');
 const validator = require(validatorPath);
 
+/**
+ * Key mapping between source code usage and translation file structure
+ * Source code uses: "namespace.key" (e.g., "listings.removeFromFavorites")
+ * Translation files use: "namespace": "value" or nested objects
+ */
+const KEY_MAPPING = {
+  // Common namespace mappings
+  'common.listings.removeFromFavorites': 'listings.removeFromFavorites',
+  'common.listings.addToFavorites': 'listings.addToFavorites',
+  'common.listings.expiresIn': 'listings.expiresIn',
+  'common.settings.savedSuccessfully': 'settings',
+  'common.settings.accountPreferences': 'settings',
+  'common.settings.language': 'settings',
+  'common.settings.notificationSettings': 'settings',
+  'common.settings.emailNotifications': 'settings',
+  'common.settings.emailNotificationsDesc': 'settings',
+
+  // Listings namespace mappings
+  'listings.filters.sellerType': 'filters',
+  'listings.filters.noSellerTypes': 'filters',
+};
+
 class AutomatedTranslator {
   constructor() {
     this.translationService = new TranslationService();
@@ -24,62 +62,69 @@ class AutomatedTranslator {
   }
 
   /**
+   * Resolve source code key to translation file key
+   * @param {string} sourceKey - Key from source code (e.g., "common.listings.removeFromFavorites")
+   * @returns {object} - { namespace, key, fullPath }
+   */
+  resolveKey(sourceKey) {
+    const mappedKey = KEY_MAPPING[sourceKey] || sourceKey;
+    const parts = mappedKey.split('.');
+
+    return {
+      namespace: parts[0],
+      key: parts.slice(1).join('.'),
+      fullPath: mappedKey,
+      sourceKey: sourceKey
+    };
+  }
+
+  /**
    * Main workflow execution
    * @param {Object} options - Configuration options
    */
   async run(options = {}) {
-    console.log('🚀 Starting Automated AI Translation Workflow');
-    console.log('=' .repeat(60));
+    console.log(`Translation: ${options.fromLang} → ${options.toLang}`);
 
     try {
-      // Step 1: Validate configuration
+      // Validate and prepare
       await this.validateConfiguration(options);
-
-      // Step 2: Load and validate current translations
-      console.log('\n📊 Step 1: Analyzing current translations...');
       const translations = this.validator.loadAllTranslations();
       const missingKeys = this.validator.findMissingTranslations(translations);
-
-      // Step 3: Prepare translations for AI processing
-      console.log('\n🤖 Step 2: Preparing translations for AI processing...');
       const translationTasks = this.prepareTranslationTasks(translations, missingKeys, options);
 
       if (translationTasks.length === 0) {
-        console.log('✅ No missing translations found!');
+        console.log('No missing translations found.');
         return;
       }
 
-      // Step 4: Estimate costs
+      // Cost estimation and confirmation
       const costEstimate = this.translationService.estimateCost(translationTasks);
-      console.log(`\n💰 Estimated cost: $${costEstimate.estimatedCostUSD} (${costEstimate.itemCount} translations)`);
+      console.log(`Found: ${translationTasks.length} missing translations`);
+      console.log(`Cost: $${costEstimate.estimatedCostUSD}`);
 
       if (!options.skipConfirmation) {
         const confirmed = await this.confirmExecution(costEstimate);
         if (!confirmed) {
-          console.log('❌ Translation cancelled by user');
+          console.log('Cancelled.');
           return;
         }
       }
 
-      // Step 5: Execute AI translations
-      console.log('\n🚀 Step 3: Executing AI translations...');
+      // Execute translations
+      console.log('Processing...');
       const translationResults = await this.translationService.translateBatch(
         translationTasks,
         options.fromLang,
         options.toLang
       );
 
-      // Step 6: Update translation files
-      console.log('\n📝 Step 4: Updating translation files...');
+      // Apply and save results
       const updatedTranslations = this.applyTranslationResults(translations, translationResults, options);
-
-      // Step 7: Save updated translations
-      console.log('\n💾 Step 5: Saving translation files...');
       this.saveUpdatedTranslations(updatedTranslations);
 
       // Step 8: Create GitHub PR
       if (options.createPR) {
-        console.log('\n🔗 Step 6: Creating GitHub PR...');
+        console.log('Creating GitHub PR...');
         await this.createGitHubPR(updatedTranslations, translationResults, costEstimate, options);
       }
 
@@ -87,7 +132,7 @@ class AutomatedTranslator {
       this.generateSummary(translationResults, costEstimate, options);
 
     } catch (error) {
-      console.error('❌ Automated translation failed:', error.message);
+      console.error('Translation process failed:', error.message);
       process.exit(1);
     }
   }
@@ -96,30 +141,19 @@ class AutomatedTranslator {
    * Validate configuration and API keys
    */
   async validateConfiguration(options) {
-    console.log('🔧 Validating configuration...');
-
     // Check OpenAI API key
     if (!this.translationService.isConfigured()) {
-      throw new Error(
-        'OpenAI API key not configured. Set OPENAI_API_KEY environment variable.\n' +
-        'Get your API key from: https://platform.openai.com/api-keys'
-      );
+      throw new Error('OpenAI API key not configured. Set OPENAI_API_KEY environment variable.');
     }
 
     // Check GitHub configuration if PR creation is enabled
     if (options.createPR) {
       if (!process.env.GITHUB_TOKEN) {
-        throw new Error(
-          'GitHub token not configured for PR creation. Set GITHUB_TOKEN environment variable.\n' +
-          'Create a token at: https://github.com/settings/tokens'
-        );
+        throw new Error('GitHub token not configured for PR creation.');
       }
 
       if (!options.githubOwner || !options.githubRepo) {
-        throw new Error(
-          'GitHub repository information required for PR creation.\n' +
-          'Provide --github-owner and --github-repo options.'
-        );
+        throw new Error('GitHub repository information required for PR creation.');
       }
 
       this.githubService.initialize(
@@ -192,14 +226,14 @@ class AutomatedTranslator {
    * Confirm execution with cost estimate
    */
   async confirmExecution(costEstimate) {
-    console.log('\n⚠️  COST ESTIMATE:');
-    console.log(`   Items: ${costEstimate.itemCount}`);
-    console.log(`   Estimated cost: $${costEstimate.estimatedCostUSD}`);
-    console.log(`   Cost per item: $${costEstimate.costPerItem}`);
+    console.log(`\nCost breakdown:`);
+    console.log(`  Items: ${costEstimate.itemCount}`);
+    console.log(`  Estimated cost: $${costEstimate.estimatedCostUSD}`);
+    console.log(`  Cost per item: $${costEstimate.costPerItem}`);
 
     // In a real implementation, you'd prompt the user
     // For now, we'll assume confirmation
-    console.log('✅ Proceeding with translation...');
+    console.log('Proceeding with translation...');
     return true;
   }
 
@@ -207,22 +241,44 @@ class AutomatedTranslator {
    * Apply translation results to translations object
    */
   applyTranslationResults(translations, results, options) {
-    const updated = { ...translations };
+    const updated = JSON.parse(JSON.stringify(translations)); // Deep clone
     const targetLang = options.toLang;
+    let appliedCount = 0;
+    let skippedCount = 0;
 
     results.forEach(result => {
       if (result.success && result.translated !== result.original) {
-        const [namespace, key] = result.key.split('.');
+        // Use key mapping to resolve the correct file structure
+        const resolved = this.resolveKey(result.key);
+        const { namespace, key } = resolved;
 
+        // Ensure namespace exists
         if (!updated[targetLang][namespace]) {
           updated[targetLang][namespace] = {};
         }
 
+        // Apply translation to resolved key
+        if (!key || key.trim() === '') {
+          console.log(`  ⚠️  Skipping ${result.key}: would create empty key`);
+          return;
+        }
+
+        // Check for nested structure creation (violates translation guide)
+        if (key.includes('.')) {
+          console.log(`  ⚠️  Skipping ${result.key}: would create nested structure (violates translation guide). Update KEY_MAPPING for flat keys.`);
+          skippedCount++;
+          return;
+        }
+
+        // Simple key only (maintains flat structure)
         updated[targetLang][namespace][key] = result.translated;
-        console.log(`✅ Applied: ${namespace}.${key} = "${result.translated}"`);
+
+        appliedCount++;
+        process.stdout.write('.');
       }
     });
 
+    console.log(`\nApplied ${appliedCount} translations, skipped ${skippedCount} (nested keys)`);
     return updated;
   }
 
@@ -230,17 +286,26 @@ class AutomatedTranslator {
    * Save updated translations to files
    */
   saveUpdatedTranslations(translations) {
-    const langs = process.env.NODE_ENV === 'test' ? this.validator.TEST_LANGUAGES : this.validator.LANGUAGES;
-    const baseDir = process.env.NODE_ENV === 'test' ? this.validator.TEST_LOCALES_DIR : this.validator.LOCALES_DIR;
+    const langs = ['en', 'ar']; // Hardcoded for now, can be made configurable later
+    const baseDir = path.join(__dirname, '..', '..', '..', 'public', 'locales');
 
     langs.forEach(lang => {
       if (translations[lang]) {
         Object.keys(translations[lang]).forEach(namespace => {
           const filePath = path.join(baseDir, lang, `${namespace}.json`);
-          const content = JSON.stringify(translations[lang][namespace], null, 2);
 
-          fs.writeFileSync(filePath, content, 'utf8');
-          console.log(`💾 Saved: ${lang}/${namespace}.json`);
+          try {
+            // Ensure directory exists
+            const dirPath = path.dirname(filePath);
+            if (!fs.existsSync(dirPath)) {
+              fs.mkdirSync(dirPath, { recursive: true });
+            }
+
+            const content = JSON.stringify(translations[lang][namespace], null, 2);
+            fs.writeFileSync(filePath, content, 'utf8');
+          } catch (error) {
+            console.error(`Failed to save ${lang}/${namespace}.json: ${error.message}`);
+          }
         });
       }
     });
@@ -315,27 +380,11 @@ class AutomatedTranslator {
     const successCount = results.filter(r => r.success).length;
     const errorCount = results.filter(r => !r.success).length;
 
-    console.log('\n' + '='.repeat(60));
-    console.log('🎉 AUTOMATED TRANSLATION COMPLETED!');
-    console.log('='.repeat(60));
-
-    console.log(`\n📊 RESULTS:`);
-    console.log(`   Language Pair: ${options.fromLang} → ${options.toLang}`);
-    console.log(`   Total Translations: ${results.length}`);
-    console.log(`   ✅ Successful: ${successCount}`);
-    console.log(`   ❌ Failed: ${errorCount}`);
-    console.log(`   💰 Cost: $${costEstimate.estimatedCostUSD}`);
-
-    console.log(`\n🔄 NEXT STEPS:`);
-    console.log(`   1. Review the GitHub PR for translation accuracy`);
-    console.log(`   2. Test the translations in your application`);
-    console.log(`   3. Merge the PR when satisfied with the results`);
-
+    console.log(`\nCompleted: ${successCount}/${results.length} translations`);
     if (errorCount > 0) {
-      console.log(`\n⚠️  ${errorCount} translations failed. Check the logs above for details.`);
+      console.log(`Errors: ${errorCount}`);
     }
-
-    console.log(`\n✨ Translation automation completed successfully!`);
+    console.log(`Total cost: $${costEstimate.estimatedCostUSD}`);
   }
 }
 
@@ -417,7 +466,7 @@ Examples:
 // Run if called directly
 if (require.main === module) {
   main().catch(error => {
-    console.error('❌ Fatal error:', error.message);
+    console.error('Fatal error:', error.message);
     process.exit(1);
   });
 }
