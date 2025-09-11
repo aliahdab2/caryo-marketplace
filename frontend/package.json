@@ -30,6 +30,8 @@
     "translation:orphaned": "node ./scripts/translation-tools/core/validator-refactored.js orphaned",
     "translation:orphaned-safe": "node ./scripts/translation-tools/core/validator-refactored.js orphaned-safe",
     "translation:remove-orphaned": "node ./scripts/translation-tools/core/validator-refactored.js remove-orphaned",
+    "translation:incomplete": "node ./check-incomplete-translations.js",
+    "translation:verify-needs": "node ./verify-translation-needs.js",
     "translation:export": "node ./scripts/translation-tools/core/validator-refactored.js export",
     "translation:export-missing": "node ./scripts/translation-tools/core/validator-refactored.js export-missing",
     "translation:sync-check": "node ./scripts/translation-tools/analysis/sync-check.js",

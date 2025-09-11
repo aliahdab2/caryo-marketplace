@@ -1,0 +1,516 @@
+{
+  "generatedAt": "2025-09-11T16:07:09.596Z",
+  "analysis": {
+    "filesScanned": 299,
+    "keysFound": 1455,
+    "analysisTime": 53601,
+    "totalIncomplete": 83,
+    "needed": 83,
+    "unneeded": 0,
+    "neededPercentage": "100.0"
+  },
+  "neededTranslations": {
+    "enMissing": [
+      {
+        "key": "common:listings.removeFromFavorites",
+        "namespace": "common",
+        "arValue": "إزالة من المفضلة",
+        "priority": "high"
+      },
+      {
+        "key": "common:listings.expiresIn",
+        "namespace": "common",
+        "arValue": "ينتهي خلال {{days}} أيام",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.savedSuccessfully",
+        "namespace": "common",
+        "arValue": "تم حفظ الإعدادات بنجاح",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.accountPreferences",
+        "namespace": "common",
+        "arValue": "تفضيلات الحساب",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.language",
+        "namespace": "common",
+        "arValue": "اللغة",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.notificationSettings",
+        "namespace": "common",
+        "arValue": "إعدادات الإشعارات",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.emailNotifications",
+        "namespace": "common",
+        "arValue": "الإشعارات عبر البريد الإلكتروني",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.emailNotificationsDesc",
+        "namespace": "common",
+        "arValue": "استلام الإشعارات عبر البريد الإلكتروني",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.pushNotifications",
+        "namespace": "common",
+        "arValue": "الإشعارات المنبثقة",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.pushNotificationsDesc",
+        "namespace": "common",
+        "arValue": "استلام الإشعارات المنبثقة على جهازك",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.notificationsFor",
+        "namespace": "common",
+        "arValue": "الحصول على إشعارات عن",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.newMessages",
+        "namespace": "common",
+        "arValue": "الرسائل الجديدة",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.listingExpiry",
+        "namespace": "common",
+        "arValue": "تذكير بانتهاء صلاحية الإعلانات",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.priceDrops",
+        "namespace": "common",
+        "arValue": "انخفاض الأسعار للمفضلة",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.newsletter",
+        "namespace": "common",
+        "arValue": "النشرة الإخبارية",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.marketing",
+        "namespace": "common",
+        "arValue": "رسائل تسويقية",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.privacySettings",
+        "namespace": "common",
+        "arValue": "إعدادات الخصوصية",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.showPhone",
+        "namespace": "common",
+        "arValue": "عرض رقم الهاتف",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.showPhoneDesc",
+        "namespace": "common",
+        "arValue": "عرض رقم هاتفك على إعلاناتك",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.showEmail",
+        "namespace": "common",
+        "arValue": "عرض البريد الإلكتروني",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.showEmailDesc",
+        "namespace": "common",
+        "arValue": "عرض بريدك الإلكتروني على إعلاناتك",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.dangerZone",
+        "namespace": "common",
+        "arValue": "منطقة الخطر",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.deleteAccount",
+        "namespace": "common",
+        "arValue": "حذف حسابي",
+        "priority": "high"
+      },
+      {
+        "key": "common:settings.deleteAccountDesc",
+        "namespace": "common",
+        "arValue": "بمجرد الحذف، لا يمكن استعادة حسابك",
+        "priority": "high"
+      },
+      {
+        "key": "common:newest",
+        "namespace": "common",
+        "arValue": "الأحدث",
+        "priority": "high"
+      },
+      {
+        "key": "common:allRightsReserved",
+        "namespace": "common",
+        "arValue": "جميع الحقوق محفوظة",
+        "priority": "high"
+      },
+      {
+        "key": "common:brand",
+        "namespace": "common",
+        "arValue": "الماركة",
+        "priority": "high"
+      },
+      {
+        "key": "common:modelYear",
+        "namespace": "common",
+        "arValue": "سنة الصنع",
+        "priority": "high"
+      },
+      {
+        "key": "common:color",
+        "namespace": "common",
+        "arValue": "اللون",
+        "priority": "high"
+      },
+      {
+        "key": "common:carType",
+        "namespace": "common",
+        "arValue": "نوع السيارة",
+        "priority": "high"
+      },
+      {
+        "key": "common:facts",
+        "namespace": "common",
+        "arValue": "الحقائق",
+        "priority": "high"
+      },
+      {
+        "key": "common:showMoreFacts",
+        "namespace": "common",
+        "arValue": "إظهار المزيد من الحقائق",
+        "priority": "high"
+      },
+      {
+        "key": "common:showLessFacts",
+        "namespace": "common",
+        "arValue": "إظهار حقائق أقل",
+        "priority": "high"
+      },
+      {
+        "key": "common:noFactsAvailable",
+        "namespace": "common",
+        "arValue": "لا توجد حقائق متاحة للسيارة",
+        "priority": "high"
+      },
+      {
+        "key": "common:soldBy",
+        "namespace": "common",
+        "arValue": "يُباع من قبل",
+        "priority": "high"
+      },
+      {
+        "key": "common:sendMessage",
+        "namespace": "common",
+        "arValue": "إرسال رسالة",
+        "priority": "high"
+      },
+      {
+        "key": "common:showPhoneNumber",
+        "namespace": "common",
+        "arValue": "إظهار رقم الهاتف",
+        "priority": "high"
+      },
+      {
+        "key": "common:carInsurance",
+        "namespace": "common",
+        "arValue": "تأمين السيارة",
+        "priority": "high"
+      },
+      {
+        "key": "common:quickQuote",
+        "namespace": "common",
+        "arValue": "عرض سعر سريع خلال دقائق",
+        "priority": "high"
+      },
+      {
+        "key": "common:competitivePrices",
+        "namespace": "common",
+        "arValue": "أسعار تنافسية",
+        "priority": "high"
+      },
+      {
+        "key": "common:seeYourPriceNow",
+        "namespace": "common",
+        "arValue": "شاهد سعرك الآن",
+        "priority": "high"
+      },
+      {
+        "key": "common:equipment",
+        "namespace": "common",
+        "arValue": "التجهيزات",
+        "priority": "high"
+      },
+      {
+        "key": "common:winterTires",
+        "namespace": "common",
+        "arValue": "إطارات شتوية",
+        "priority": "high"
+      },
+      {
+        "key": "common:motorHeater",
+        "namespace": "common",
+        "arValue": "سخان المحرك",
+        "priority": "high"
+      },
+      {
+        "key": "common:boseSound",
+        "namespace": "common",
+        "arValue": "نظام صوت BOSE",
+        "priority": "high"
+      },
+      {
+        "key": "common:leatherSeats",
+        "namespace": "common",
+        "arValue": "مقاعد جلدية",
+        "priority": "high"
+      },
+      {
+        "key": "common:equipmentComingSoon",
+        "namespace": "common",
+        "arValue": "قريباً: سيتم عرض التجهيزات والإكسسوارات الفعلية للمركبة هنا",
+        "priority": "high"
+      },
+      {
+        "key": "common:notifications",
+        "namespace": "common",
+        "arValue": "الإشعارات",
+        "priority": "high"
+      },
+      {
+        "key": "common:openMenu",
+        "namespace": "common",
+        "arValue": "فتح القائمة",
+        "priority": "high"
+      },
+      {
+        "key": "common:viewDetails",
+        "namespace": "common",
+        "arValue": "عرض التفاصيل",
+        "priority": "high"
+      },
+      {
+        "key": "listings:clearSelection",
+        "namespace": "listings",
+        "arValue": "مسح التحديد",
+        "priority": "high"
+      },
+      {
+        "key": "listings:deleteSelected",
+        "namespace": "listings",
+        "arValue": "حذف المحدد",
+        "priority": "high"
+      },
+      {
+        "key": "listings:itemsSelected",
+        "namespace": "listings",
+        "arValue": "{{count}} عنصر محدد",
+        "priority": "high"
+      },
+      {
+        "key": "listings:month",
+        "namespace": "listings",
+        "arValue": "شهر",
+        "priority": "high"
+      },
+      {
+        "key": "listings:motorHeater",
+        "namespace": "listings",
+        "arValue": "مدفئ المحرك",
+        "priority": "high"
+      },
+      {
+        "key": "listings:sortBy",
+        "namespace": "listings",
+        "arValue": "ترتيب حسب",
+        "priority": "high"
+      },
+      {
+        "key": "listings:selectAll",
+        "namespace": "listings",
+        "arValue": "تحديد الكل",
+        "priority": "high"
+      },
+      {
+        "key": "listings:tryAgain",
+        "namespace": "listings",
+        "arValue": "حاول مرة أخرى",
+        "priority": "high"
+      },
+      {
+        "key": "listings:saveChanges",
+        "namespace": "listings",
+        "arValue": "حفظ التغييرات",
+        "priority": "high"
+      },
+      {
+        "key": "listings:cancel",
+        "namespace": "listings",
+        "arValue": "إلغاء",
+        "priority": "high"
+      },
+      {
+        "key": "listings:selectGovernorate",
+        "namespace": "listings",
+        "arValue": "اختر المحافظة",
+        "priority": "high"
+      },
+      {
+        "key": "listings:new",
+        "namespace": "listings",
+        "arValue": "جديد",
+        "priority": "high"
+      },
+      {
+        "key": "listings:used",
+        "namespace": "listings",
+        "arValue": "مستعمل",
+        "priority": "high"
+      },
+      {
+        "key": "listings:navigation",
+        "namespace": "listings",
+        "arValue": "نظام الملاحة",
+        "priority": "high"
+      },
+      {
+        "key": "listings:make",
+        "namespace": "listings",
+        "arValue": "الماركة",
+        "priority": "high"
+      },
+      {
+        "key": "listings:images",
+        "namespace": "listings",
+        "arValue": "الصور",
+        "priority": "high"
+      },
+      {
+        "key": "listings:myListings",
+        "namespace": "listings",
+        "arValue": "إعلاناتي",
+        "priority": "high"
+      },
+      {
+        "key": "listings:optional",
+        "namespace": "listings",
+        "arValue": "اختياري",
+        "priority": "high"
+      }
+    ],
+    "arMissing": [
+      {
+        "key": "common:error",
+        "namespace": "common",
+        "enValue": "Error",
+        "priority": "high"
+      },
+      {
+        "key": "common:selectAll",
+        "namespace": "common",
+        "enValue": "Select All",
+        "priority": "high"
+      },
+      {
+        "key": "listings:showPhoneNumber",
+        "namespace": "listings",
+        "enValue": "Show phone number",
+        "priority": "high"
+      },
+      {
+        "key": "listings:soldBy",
+        "namespace": "listings",
+        "enValue": "Sold by",
+        "priority": "high"
+      },
+      {
+        "key": "listings:technologyFeatures",
+        "namespace": "listings",
+        "enValue": "Technology Features",
+        "priority": "high"
+      },
+      {
+        "key": "listings:totalCost",
+        "namespace": "listings",
+        "enValue": "Total Cost",
+        "priority": "high"
+      },
+      {
+        "key": "listings:totalInterest",
+        "namespace": "listings",
+        "enValue": "Total Interest",
+        "priority": "high"
+      },
+      {
+        "key": "listings:transmission",
+        "namespace": "listings",
+        "enValue": "Transmission",
+        "priority": "high"
+      },
+      {
+        "key": "listings:typicallyRespondsIn",
+        "namespace": "listings",
+        "enValue": "Typically responds in",
+        "priority": "high"
+      },
+      {
+        "key": "listings:vehiclePrice",
+        "namespace": "listings",
+        "enValue": "Vehicle price",
+        "priority": "high"
+      },
+      {
+        "key": "listings:verifiedDealer",
+        "namespace": "listings",
+        "enValue": "Verified Dealer",
+        "priority": "high"
+      },
+      {
+        "key": "listings:warrantyAvailable",
+        "namespace": "listings",
+        "enValue": "Warranty Available",
+        "priority": "high"
+      },
+      {
+        "key": "listings:years",
+        "namespace": "listings",
+        "enValue": "years",
+        "priority": "high"
+      },
+      {
+        "key": "listings:filters.sellerType",
+        "namespace": "listings",
+        "enValue": "Seller Type",
+        "priority": "high"
+      },
+      {
+        "key": "listings:filters.noSellerTypes",
+        "namespace": "listings",
+        "enValue": "No seller types available",
+        "priority": "high"
+      }
+    ]
+  }
+}

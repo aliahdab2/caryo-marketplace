@@ -271,6 +271,20 @@ function main() {
       console.log('💡 TIP: Run translation validation to verify the cleanup.');
       break;
 
+    case 'incomplete':
+      console.log('🔍 Checking for incomplete translations...');
+      console.log('This shows keys that exist in one language but are missing in another.');
+      console.log('Run: npm run translation:incomplete');
+      console.log('');
+      break;
+
+    case 'verify-needs':
+      console.log('🔍 Verifying translation needs...');
+      console.log('This cross-references incomplete translations with source code usage.');
+      console.log('Run: npm run translation:verify-needs');
+      console.log('');
+      break;
+
     case 'orphaned-safe':
       console.log('🛡️  SAFE ORPHANED ANALYSIS MODE');
       console.log('=====================================');
@@ -300,6 +314,8 @@ function main() {
       console.log('  orphaned        - Show orphaned translations');
       console.log('  orphaned-safe   - Show orphaned translations (safe mode)');
       console.log('  remove-orphaned - Remove orphaned translations from files (⚠️ DESTRUCTIVE)');
+      console.log('  incomplete       - Check for incomplete translations between languages');
+      console.log('  verify-needs     - Verify if incomplete translations are actually used');
       console.log('  export          - Export detailed JSON report');
       console.log('  export-missing  - Export missing translations for a language');
       process.exit(1);
