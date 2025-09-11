@@ -91,5 +91,17 @@
   "searchListings": "البحث في الإعلانات...",
   "allStatuses": "جميع الحالات",
   "newest": "الأحدث أولاً",
-  "createListing": "إنشاء إعلان"
+  "createListing": "إنشاء إعلان",
+  "filters": "نوع البائع",
+  "showPhoneNumber": "عرض رقم الهاتف",
+  "soldBy": "تم البيع بواسطة",
+  "technologyFeatures": "ميزات التكنولوجيا",
+  "totalCost": "التكلفة الإجمالية",
+  "totalInterest": "الفائدة الإجمالية",
+  "transmission": "نقل",
+  "typicallyRespondsIn": "عادةً يستجيب خلال",
+  "vehiclePrice": "سعر السيارة",
+  "verifiedDealer": "تاجر موثوق",
+  "warrantyAvailable": "الضمان متوفر",
+  "years": "سنوات"
 }

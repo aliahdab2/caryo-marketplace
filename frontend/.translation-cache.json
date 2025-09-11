@@ -1,0 +1,886 @@
+{
+  "timestamp": 1757608415207,
+  "neededIncomplete": {
+    "enMissing": [
+      [
+        "common:listings.removeFromFavorites",
+        {
+          "key": "listings.removeFromFavorites",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "إزالة من المفضلة",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:listings.expiresIn",
+        {
+          "key": "listings.expiresIn",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "ينتهي خلال {{days}} أيام",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.savedSuccessfully",
+        {
+          "key": "settings.savedSuccessfully",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "تم حفظ الإعدادات بنجاح",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.accountPreferences",
+        {
+          "key": "settings.accountPreferences",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "تفضيلات الحساب",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.language",
+        {
+          "key": "settings.language",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "اللغة",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.notificationSettings",
+        {
+          "key": "settings.notificationSettings",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "إعدادات الإشعارات",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.emailNotifications",
+        {
+          "key": "settings.emailNotifications",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "الإشعارات عبر البريد الإلكتروني",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.emailNotificationsDesc",
+        {
+          "key": "settings.emailNotificationsDesc",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "استلام الإشعارات عبر البريد الإلكتروني",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.pushNotifications",
+        {
+          "key": "settings.pushNotifications",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "الإشعارات المنبثقة",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.pushNotificationsDesc",
+        {
+          "key": "settings.pushNotificationsDesc",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "استلام الإشعارات المنبثقة على جهازك",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.notificationsFor",
+        {
+          "key": "settings.notificationsFor",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "الحصول على إشعارات عن",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.newMessages",
+        {
+          "key": "settings.newMessages",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "الرسائل الجديدة",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.listingExpiry",
+        {
+          "key": "settings.listingExpiry",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "تذكير بانتهاء صلاحية الإعلانات",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.priceDrops",
+        {
+          "key": "settings.priceDrops",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "انخفاض الأسعار للمفضلة",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.newsletter",
+        {
+          "key": "settings.newsletter",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "النشرة الإخبارية",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.marketing",
+        {
+          "key": "settings.marketing",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "رسائل تسويقية",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.privacySettings",
+        {
+          "key": "settings.privacySettings",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "إعدادات الخصوصية",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.showPhone",
+        {
+          "key": "settings.showPhone",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "عرض رقم الهاتف",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.showPhoneDesc",
+        {
+          "key": "settings.showPhoneDesc",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "عرض رقم هاتفك على إعلاناتك",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.showEmail",
+        {
+          "key": "settings.showEmail",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "عرض البريد الإلكتروني",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.showEmailDesc",
+        {
+          "key": "settings.showEmailDesc",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "عرض بريدك الإلكتروني على إعلاناتك",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.dangerZone",
+        {
+          "key": "settings.dangerZone",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "منطقة الخطر",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.deleteAccount",
+        {
+          "key": "settings.deleteAccount",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "حذف حسابي",
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings.deleteAccountDesc",
+        {
+          "key": "settings.deleteAccountDesc",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "بمجرد الحذف، لا يمكن استعادة حسابك",
+          "context": "common.json",
+          "used": true
+        }
+      ]
+    ],
+    "arMissing": [
+      [
+        "common:error",
+        {
+          "key": "error",
+          "namespace": "common",
+          "enValue": "Error",
+          "arValue": null,
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:selectAll",
+        {
+          "key": "selectAll",
+          "namespace": "common",
+          "enValue": "Select All",
+          "arValue": null,
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:listings",
+        {
+          "key": "listings",
+          "namespace": "common",
+          "enValue": "Remove from favorites",
+          "arValue": null,
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "common:settings",
+        {
+          "key": "settings",
+          "namespace": "common",
+          "enValue": "Display your phone number on your ads",
+          "arValue": null,
+          "context": "common.json",
+          "used": true
+        }
+      ],
+      [
+        "listings:showPhoneNumber",
+        {
+          "key": "showPhoneNumber",
+          "namespace": "listings",
+          "enValue": "Show phone number",
+          "arValue": null,
+          "context": "listings.json",
+          "used": true
+        }
+      ],
+      [
+        "listings:soldBy",
+        {
+          "key": "soldBy",
+          "namespace": "listings",
+          "enValue": "Sold by",
+          "arValue": null,
+          "context": "listings.json",
+          "used": true
+        }
+      ],
+      [
+        "listings:technologyFeatures",
+        {
+          "key": "technologyFeatures",
+          "namespace": "listings",
+          "enValue": "Technology Features",
+          "arValue": null,
+          "context": "listings.json",
+          "used": true
+        }
+      ],
+      [
+        "listings:totalCost",
+        {
+          "key": "totalCost",
+          "namespace": "listings",
+          "enValue": "Total Cost",
+          "arValue": null,
+          "context": "listings.json",
+          "used": true
+        }
+      ],
+      [
+        "listings:totalInterest",
+        {
+          "key": "totalInterest",
+          "namespace": "listings",
+          "enValue": "Total Interest",
+          "arValue": null,
+          "context": "listings.json",
+          "used": true
+        }
+      ],
+      [
+        "listings:transmission",
+        {
+          "key": "transmission",
+          "namespace": "listings",
+          "enValue": "Transmission",
+          "arValue": null,
+          "context": "listings.json",
+          "used": true
+        }
+      ],
+      [
+        "listings:typicallyRespondsIn",
+        {
+          "key": "typicallyRespondsIn",
+          "namespace": "listings",
+          "enValue": "Typically responds in",
+          "arValue": null,
+          "context": "listings.json",
+          "used": true
+        }
+      ],
+      [
+        "listings:vehiclePrice",
+        {
+          "key": "vehiclePrice",
+          "namespace": "listings",
+          "enValue": "Vehicle price",
+          "arValue": null,
+          "context": "listings.json",
+          "used": true
+        }
+      ],
+      [
+        "listings:verifiedDealer",
+        {
+          "key": "verifiedDealer",
+          "namespace": "listings",
+          "enValue": "Verified Dealer",
+          "arValue": null,
+          "context": "listings.json",
+          "used": true
+        }
+      ],
+      [
+        "listings:warrantyAvailable",
+        {
+          "key": "warrantyAvailable",
+          "namespace": "listings",
+          "enValue": "Warranty Available",
+          "arValue": null,
+          "context": "listings.json",
+          "used": true
+        }
+      ],
+      [
+        "listings:years",
+        {
+          "key": "years",
+          "namespace": "listings",
+          "enValue": "years",
+          "arValue": null,
+          "context": "listings.json",
+          "used": true
+        }
+      ],
+      [
+        "listings:filters.sellerType",
+        {
+          "key": "filters.sellerType",
+          "namespace": "listings",
+          "enValue": "Seller Type",
+          "arValue": null,
+          "context": "listings.json",
+          "used": true
+        }
+      ],
+      [
+        "listings:filters.noSellerTypes",
+        {
+          "key": "filters.noSellerTypes",
+          "namespace": "listings",
+          "enValue": "No seller types available",
+          "arValue": null,
+          "context": "listings.json",
+          "used": true
+        }
+      ]
+    ]
+  },
+  "incompleteTranslations": {
+    "enMissing": [
+      [
+        "common:listings.removeFromFavorites",
+        {
+          "key": "listings.removeFromFavorites",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "إزالة من المفضلة",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:listings.expiresIn",
+        {
+          "key": "listings.expiresIn",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "ينتهي خلال {{days}} أيام",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.savedSuccessfully",
+        {
+          "key": "settings.savedSuccessfully",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "تم حفظ الإعدادات بنجاح",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.accountPreferences",
+        {
+          "key": "settings.accountPreferences",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "تفضيلات الحساب",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.language",
+        {
+          "key": "settings.language",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "اللغة",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.notificationSettings",
+        {
+          "key": "settings.notificationSettings",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "إعدادات الإشعارات",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.emailNotifications",
+        {
+          "key": "settings.emailNotifications",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "الإشعارات عبر البريد الإلكتروني",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.emailNotificationsDesc",
+        {
+          "key": "settings.emailNotificationsDesc",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "استلام الإشعارات عبر البريد الإلكتروني",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.pushNotifications",
+        {
+          "key": "settings.pushNotifications",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "الإشعارات المنبثقة",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.pushNotificationsDesc",
+        {
+          "key": "settings.pushNotificationsDesc",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "استلام الإشعارات المنبثقة على جهازك",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.notificationsFor",
+        {
+          "key": "settings.notificationsFor",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "الحصول على إشعارات عن",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.newMessages",
+        {
+          "key": "settings.newMessages",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "الرسائل الجديدة",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.listingExpiry",
+        {
+          "key": "settings.listingExpiry",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "تذكير بانتهاء صلاحية الإعلانات",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.priceDrops",
+        {
+          "key": "settings.priceDrops",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "انخفاض الأسعار للمفضلة",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.newsletter",
+        {
+          "key": "settings.newsletter",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "النشرة الإخبارية",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.marketing",
+        {
+          "key": "settings.marketing",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "رسائل تسويقية",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.privacySettings",
+        {
+          "key": "settings.privacySettings",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "إعدادات الخصوصية",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.showPhone",
+        {
+          "key": "settings.showPhone",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "عرض رقم الهاتف",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.showPhoneDesc",
+        {
+          "key": "settings.showPhoneDesc",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "عرض رقم هاتفك على إعلاناتك",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.showEmail",
+        {
+          "key": "settings.showEmail",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "عرض البريد الإلكتروني",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.showEmailDesc",
+        {
+          "key": "settings.showEmailDesc",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "عرض بريدك الإلكتروني على إعلاناتك",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.dangerZone",
+        {
+          "key": "settings.dangerZone",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "منطقة الخطر",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.deleteAccount",
+        {
+          "key": "settings.deleteAccount",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "حذف حسابي",
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings.deleteAccountDesc",
+        {
+          "key": "settings.deleteAccountDesc",
+          "namespace": "common",
+          "enValue": null,
+          "arValue": "بمجرد الحذف، لا يمكن استعادة حسابك",
+          "context": "common.json"
+        }
+      ]
+    ],
+    "arMissing": [
+      [
+        "common:error",
+        {
+          "key": "error",
+          "namespace": "common",
+          "enValue": "Error",
+          "arValue": null,
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:selectAll",
+        {
+          "key": "selectAll",
+          "namespace": "common",
+          "enValue": "Select All",
+          "arValue": null,
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:listings",
+        {
+          "key": "listings",
+          "namespace": "common",
+          "enValue": "Remove from favorites",
+          "arValue": null,
+          "context": "common.json"
+        }
+      ],
+      [
+        "common:settings",
+        {
+          "key": "settings",
+          "namespace": "common",
+          "enValue": "Display your phone number on your ads",
+          "arValue": null,
+          "context": "common.json"
+        }
+      ],
+      [
+        "listings:showPhoneNumber",
+        {
+          "key": "showPhoneNumber",
+          "namespace": "listings",
+          "enValue": "Show phone number",
+          "arValue": null,
+          "context": "listings.json"
+        }
+      ],
+      [
+        "listings:soldBy",
+        {
+          "key": "soldBy",
+          "namespace": "listings",
+          "enValue": "Sold by",
+          "arValue": null,
+          "context": "listings.json"
+        }
+      ],
+      [
+        "listings:technologyFeatures",
+        {
+          "key": "technologyFeatures",
+          "namespace": "listings",
+          "enValue": "Technology Features",
+          "arValue": null,
+          "context": "listings.json"
+        }
+      ],
+      [
+        "listings:totalCost",
+        {
+          "key": "totalCost",
+          "namespace": "listings",
+          "enValue": "Total Cost",
+          "arValue": null,
+          "context": "listings.json"
+        }
+      ],
+      [
+        "listings:totalInterest",
+        {
+          "key": "totalInterest",
+          "namespace": "listings",
+          "enValue": "Total Interest",
+          "arValue": null,
+          "context": "listings.json"
+        }
+      ],
+      [
+        "listings:transmission",
+        {
+          "key": "transmission",
+          "namespace": "listings",
+          "enValue": "Transmission",
+          "arValue": null,
+          "context": "listings.json"
+        }
+      ],
+      [
+        "listings:typicallyRespondsIn",
+        {
+          "key": "typicallyRespondsIn",
+          "namespace": "listings",
+          "enValue": "Typically responds in",
+          "arValue": null,
+          "context": "listings.json"
+        }
+      ],
+      [
+        "listings:vehiclePrice",
+        {
+          "key": "vehiclePrice",
+          "namespace": "listings",
+          "enValue": "Vehicle price",
+          "arValue": null,
+          "context": "listings.json"
+        }
+      ],
+      [
+        "listings:verifiedDealer",
+        {
+          "key": "verifiedDealer",
+          "namespace": "listings",
+          "enValue": "Verified Dealer",
+          "arValue": null,
+          "context": "listings.json"
+        }
+      ],
+      [
+        "listings:warrantyAvailable",
+        {
+          "key": "warrantyAvailable",
+          "namespace": "listings",
+          "enValue": "Warranty Available",
+          "arValue": null,
+          "context": "listings.json"
+        }
+      ],
+      [
+        "listings:years",
+        {
+          "key": "years",
+          "namespace": "listings",
+          "enValue": "years",
+          "arValue": null,
+          "context": "listings.json"
+        }
+      ],
+      [
+        "listings:filters.sellerType",
+        {
+          "key": "filters.sellerType",
+          "namespace": "listings",
+          "enValue": "Seller Type",
+          "arValue": null,
+          "context": "listings.json"
+        }
+      ],
+      [
+        "listings:filters.noSellerTypes",
+        {
+          "key": "filters.noSellerTypes",
+          "namespace": "listings",
+          "enValue": "No seller types available",
+          "arValue": null,
+          "context": "listings.json"
+        }
+      ]
+    ],
+    "totalIncomplete": 41
+  },
+  "stats": {
+    "startTime": 1757608415178,
+    "filesScanned": 299,
+    "keysFound": 1455,
+    "enMissing": 24,
+    "arMissing": 17,
+    "needed": 41,
+    "unneeded": 0
+  }
+}

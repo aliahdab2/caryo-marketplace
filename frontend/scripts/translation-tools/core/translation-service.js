@@ -1,3 +1,7 @@
+// Ensure proper UTF-8 encoding for Arabic text
+process.stdout.setEncoding('utf8');
+process.stderr.setEncoding('utf8');
+
 const OpenAI = require('openai');
 const fs = require('fs');
 const path = require('path');
@@ -128,12 +132,8 @@ Text to translate: "${text}"`;
       // Handle GPT-5 fallback (as of Sept 2025, GPT-5 isn't officially released)
       // If GPT-5 is requested but not available, fallback to GPT-4-turbo
       if (model === 'gpt-5') {
-        console.log(`🤖 GPT-5 requested, but as of Sept 2025, OpenAI hasn't released a model officially called "GPT-5"`);
-        console.log(`🤖 Falling back to GPT-4-turbo (which may have GPT-5-like capabilities)`);
         model = 'gpt-4-turbo';
       }
-
-      console.log(`🤖 Using AI model: ${model}`);
 
       try {
         const response = await this.openai.chat.completions.create({
@@ -157,8 +157,6 @@ Text to translate: "${text}"`;
       } catch (error) {
         // If model is not available, try fallback to GPT-4-turbo
         if (error.message.includes('model') && error.message.includes('not found')) {
-          console.log(`⚠️  Model "${model}" not available, trying GPT-4-turbo fallback...`);
-
           const fallbackResponse = await this.openai.chat.completions.create({
             model: 'gpt-4-turbo',
             messages: [
@@ -171,7 +169,6 @@ Text to translate: "${text}"`;
 
           const fallbackText = fallbackResponse.choices[0]?.message?.content?.trim();
           if (fallbackText) {
-            console.log(`✅ Fallback successful with GPT-4-turbo`);
             return fallbackText;
           }
         }
@@ -196,9 +193,7 @@ Text to translate: "${text}"`;
    * @returns {Promise<Array<{key: string, original: string, translated: string, context: string}>>}
    */
   async translateBatch(translations, fromLang, toLang) {
-    console.log(`\n🚀 Starting AI translation batch: ${translations.length} items`);
-    console.log(`📍 From ${fromLang} to ${toLang}`);
-    console.log('=' .repeat(60));
+    console.log(`Translating ${translations.length} items from ${fromLang} to ${toLang}`);
 
     const results = [];
     let completed = 0;
@@ -230,14 +225,12 @@ Text to translate: "${text}"`;
       }
 
       completed++;
-      if (completed % 5 === 0 || completed === translations.length) {
-        console.log(`📊 Progress: ${completed}/${translations.length} (${successCount} ✅, ${errorCount} ❌)`);
+      if (completed % 10 === 0 || completed === translations.length) {
+        console.log(`Progress: ${completed}/${translations.length} completed`);
       }
     }
 
-    console.log('=' .repeat(60));
-    console.log(`✅ Batch translation completed!`);
-    console.log(`📈 Success: ${successCount}, Errors: ${errorCount}`);
+    console.log(`Translation completed: ${successCount} successful${errorCount > 0 ? `, ${errorCount} failed` : ''}`);
 
     return results;
   }

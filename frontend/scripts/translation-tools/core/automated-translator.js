@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+// Ensure proper UTF-8 encoding for Arabic text
+process.stdout.setEncoding('utf8');
+process.stderr.setEncoding('utf8');
+
 /**
  * Automated AI Translation Workflow
  * - Validates translations
@@ -28,41 +32,40 @@ class AutomatedTranslator {
    * @param {Object} options - Configuration options
    */
   async run(options = {}) {
-    console.log('🚀 Starting Automated AI Translation Workflow');
-    console.log('=' .repeat(60));
+    console.log('Starting AI translation process...');
 
     try {
       // Step 1: Validate configuration
       await this.validateConfiguration(options);
 
       // Step 2: Load and validate current translations
-      console.log('\n📊 Step 1: Analyzing current translations...');
+      console.log('Analyzing current translations...');
       const translations = this.validator.loadAllTranslations();
       const missingKeys = this.validator.findMissingTranslations(translations);
 
       // Step 3: Prepare translations for AI processing
-      console.log('\n🤖 Step 2: Preparing translations for AI processing...');
+      console.log('Preparing translations for processing...');
       const translationTasks = this.prepareTranslationTasks(translations, missingKeys, options);
 
       if (translationTasks.length === 0) {
-        console.log('✅ No missing translations found!');
+        console.log('No missing translations found.');
         return;
       }
 
       // Step 4: Estimate costs
       const costEstimate = this.translationService.estimateCost(translationTasks);
-      console.log(`\n💰 Estimated cost: $${costEstimate.estimatedCostUSD} (${costEstimate.itemCount} translations)`);
+      console.log(`Estimated cost: $${costEstimate.estimatedCostUSD} (${costEstimate.itemCount} translations)`);
 
       if (!options.skipConfirmation) {
         const confirmed = await this.confirmExecution(costEstimate);
         if (!confirmed) {
-          console.log('❌ Translation cancelled by user');
+          console.log('Translation cancelled by user.');
           return;
         }
       }
 
       // Step 5: Execute AI translations
-      console.log('\n🚀 Step 3: Executing AI translations...');
+      console.log('Executing translations...');
       const translationResults = await this.translationService.translateBatch(
         translationTasks,
         options.fromLang,
@@ -70,16 +73,16 @@ class AutomatedTranslator {
       );
 
       // Step 6: Update translation files
-      console.log('\n📝 Step 4: Updating translation files...');
+      console.log('Updating translation files...');
       const updatedTranslations = this.applyTranslationResults(translations, translationResults, options);
 
       // Step 7: Save updated translations
-      console.log('\n💾 Step 5: Saving translation files...');
+      console.log('Saving translation files...');
       this.saveUpdatedTranslations(updatedTranslations);
 
       // Step 8: Create GitHub PR
       if (options.createPR) {
-        console.log('\n🔗 Step 6: Creating GitHub PR...');
+        console.log('Creating GitHub PR...');
         await this.createGitHubPR(updatedTranslations, translationResults, costEstimate, options);
       }
 
@@ -87,7 +90,7 @@ class AutomatedTranslator {
       this.generateSummary(translationResults, costEstimate, options);
 
     } catch (error) {
-      console.error('❌ Automated translation failed:', error.message);
+      console.error('Translation process failed:', error.message);
       process.exit(1);
     }
   }
@@ -96,7 +99,7 @@ class AutomatedTranslator {
    * Validate configuration and API keys
    */
   async validateConfiguration(options) {
-    console.log('🔧 Validating configuration...');
+    console.log('Validating configuration...');
 
     // Check OpenAI API key
     if (!this.translationService.isConfigured()) {
@@ -192,14 +195,14 @@ class AutomatedTranslator {
    * Confirm execution with cost estimate
    */
   async confirmExecution(costEstimate) {
-    console.log('\n⚠️  COST ESTIMATE:');
-    console.log(`   Items: ${costEstimate.itemCount}`);
-    console.log(`   Estimated cost: $${costEstimate.estimatedCostUSD}`);
-    console.log(`   Cost per item: $${costEstimate.costPerItem}`);
+    console.log(`\nCost breakdown:`);
+    console.log(`  Items: ${costEstimate.itemCount}`);
+    console.log(`  Estimated cost: $${costEstimate.estimatedCostUSD}`);
+    console.log(`  Cost per item: $${costEstimate.costPerItem}`);
 
     // In a real implementation, you'd prompt the user
     // For now, we'll assume confirmation
-    console.log('✅ Proceeding with translation...');
+    console.log('Proceeding with translation...');
     return true;
   }
 
@@ -219,7 +222,16 @@ class AutomatedTranslator {
         }
 
         updated[targetLang][namespace][key] = result.translated;
-        console.log(`✅ Applied: ${namespace}.${key} = "${result.translated}"`);
+
+        // Display translation with clear text labels
+        const originalText = result.original || 'N/A';
+        const translatedText = result.translated || 'N/A';
+
+        console.log(`  ${namespace}.${key}:`);
+        console.log(`    FROM: ${originalText}`);
+        console.log(`    TO:   ${translatedText}`);
+        console.log(`    ----`);
+        console.log();
       }
     });
 
@@ -325,27 +337,15 @@ class AutomatedTranslator {
     const successCount = results.filter(r => r.success).length;
     const errorCount = results.filter(r => !r.success).length;
 
-    console.log('\n' + '='.repeat(60));
-    console.log('🎉 AUTOMATED TRANSLATION COMPLETED!');
-    console.log('='.repeat(60));
-
-    console.log(`\n📊 RESULTS:`);
-    console.log(`   Language Pair: ${options.fromLang} → ${options.toLang}`);
-    console.log(`   Total Translations: ${results.length}`);
-    console.log(`   ✅ Successful: ${successCount}`);
-    console.log(`   ❌ Failed: ${errorCount}`);
-    console.log(`   💰 Cost: $${costEstimate.estimatedCostUSD}`);
-
-    console.log(`\n🔄 NEXT STEPS:`);
-    console.log(`   1. Review the GitHub PR for translation accuracy`);
-    console.log(`   2. Test the translations in your application`);
-    console.log(`   3. Merge the PR when satisfied with the results`);
-
+    console.log('\n--- Translation Summary ---');
+    console.log(`Language: ${options.fromLang} → ${options.toLang}`);
+    console.log(`Total: ${results.length} translations`);
+    console.log(`Successful: ${successCount}`);
     if (errorCount > 0) {
-      console.log(`\n⚠️  ${errorCount} translations failed. Check the logs above for details.`);
+      console.log(`Failed: ${errorCount}`);
     }
-
-    console.log(`\n✨ Translation automation completed successfully!`);
+    console.log(`Cost: $${costEstimate.estimatedCostUSD}`);
+    console.log('Translation process completed.');
   }
 }
 
@@ -427,7 +427,7 @@ Examples:
 // Run if called directly
 if (require.main === module) {
   main().catch(error => {
-    console.error('❌ Fatal error:', error.message);
+    console.error('Fatal error:', error.message);
     process.exit(1);
   });
 }

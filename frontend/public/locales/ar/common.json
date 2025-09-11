@@ -123,5 +123,9 @@
   "maxPrice": "أعلى سعر",
   "listings.addToFavorites": "أضف إلى المفضلة",
   "showing": "عرض",
-  "backToHome": "العودة للرئيسية"
+  "backToHome": "العودة للرئيسية",
+  "error": "خطأ",
+  "listings": "إزالة من المفضلة",
+  "selectAll": "تحديد الكل",
+  "settings": "عرض رقم هاتفك على إعلاناتك"
 }
