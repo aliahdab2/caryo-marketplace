@@ -3,15 +3,12 @@
  * Orchestrates all translation validation tasks using modular components
  */
 
-const { loadAllTranslations } = require('./modules/loader');
+const { loadAllTranslations, LOCALES_DIR, LANGUAGES, NAMESPACES } = require('./modules/loader');
 const { findDuplicateKeys, fixDuplicateKeys } = require('./modules/duplicates');
 const { findMissingTranslations, findOrphanedTranslations, exportMissingTranslations } = require('./modules/missing');
 const { clearCache, trackPerformance, safeWriteFile } = require('./modules/utils');
 const fs = require('fs');
 const path = require('path');
-
-// Import configuration from loader
-const { LOCALES_DIR, LANGUAGES } = require('./modules/loader');
 
 /**
  * Generate summary report
@@ -228,6 +225,52 @@ function main() {
       generateDetailedReport(translations, 'orphaned');
       break;
 
+    case 'remove-orphaned':
+      console.log('🧹 REMOVING ORPHANED TRANSLATIONS');
+      console.log('====================================');
+      console.log('⚠️  WARNING: This will permanently remove orphaned keys from translation files!');
+      console.log('💾 Make sure you have backups before proceeding.');
+      console.log('');
+
+      const orphanedData = findOrphanedTranslations(translations);
+      let totalRemoved = 0;
+
+      // Remove orphaned keys from actual translation files
+      LANGUAGES.forEach(language => {
+        NAMESPACES.forEach(namespace => {
+          const filePath = path.join(LOCALES_DIR, language, `${namespace}.json`);
+          const orphanedKeys = orphanedData.orphanedByLanguage[language][namespace] || [];
+
+          if (orphanedKeys.length > 0) {
+            try {
+              const content = fs.readFileSync(filePath, 'utf8');
+              let translations = JSON.parse(content);
+
+              // Remove orphaned keys
+              orphanedKeys.forEach(key => {
+                if (translations[key] !== undefined) {
+                  delete translations[key];
+                  totalRemoved++;
+                }
+              });
+
+              // Write back the cleaned translations
+              fs.writeFileSync(filePath, JSON.stringify(translations, null, 2), 'utf8');
+              console.log(`✅ ${language}/${namespace}.json: Removed ${orphanedKeys.length} orphaned keys`);
+
+            } catch (error) {
+              console.error(`❌ Error processing ${language}/${namespace}.json: ${error.message}`);
+            }
+          }
+        });
+      });
+
+      console.log('');
+      console.log('🎉 CLEANUP COMPLETE!');
+      console.log(`📊 Total orphaned keys removed: ${totalRemoved}`);
+      console.log('💡 TIP: Run translation validation to verify the cleanup.');
+      break;
+
     case 'orphaned-safe':
       console.log('🛡️  SAFE ORPHANED ANALYSIS MODE');
       console.log('=====================================');
@@ -256,6 +299,7 @@ function main() {
       console.log('  fix-duplicates  - Safely remove duplicate keys');
       console.log('  orphaned        - Show orphaned translations');
       console.log('  orphaned-safe   - Show orphaned translations (safe mode)');
+      console.log('  remove-orphaned - Remove orphaned translations from files (⚠️ DESTRUCTIVE)');
       console.log('  export          - Export detailed JSON report');
       console.log('  export-missing  - Export missing translations for a language');
       process.exit(1);

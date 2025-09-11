@@ -1,5 +1,3 @@
 {
-  "viewGallery": "View gallery",
-  "viewImage": "View image",
   "mediaCount": "{{current}} of {{total}}"
 }

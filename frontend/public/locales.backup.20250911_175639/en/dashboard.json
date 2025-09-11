@@ -1,5 +1,7 @@
 {
   "accountInfo": "Account Information",
+  "noRoles": "No roles assigned",
+  "role": "Role",
   "delete": "Delete",
   "edit": "Edit",
   "createListingDesc": "List your vehicle for sale",
@@ -7,12 +9,18 @@
   "editProfileDesc": "Update your profile information and preferences",
   "logoutDesc": "Sign out of your account",
   "activeListings": "Active Listings",
+  "views": "Views",
   "overviewSubtitle": "Manage your listings, track performance, and more",
   "recentListings": "Recent Listings",
   "viewDetails": "View Details",
   "viewAll": "View All",
+  "image": "Image",
   "title": "Title",
   "price": "Price",
+  "date": "Date",
+  "status": "Status",
+  "actions": "Actions",
+
   "notifications": "Notifications",
   "openMenu": "Open menu",
   "closeMenu": "Close menu",
@@ -38,6 +46,8 @@
   "noListingsFound": "No listings found",
   "tryAdjustingSearch": "Try adjusting your search or filters",
   "noListingsAvailable": "No listings available at the moment",
+
+
   "dashboard": "Dashboard",
   "overview": "Overview",
   "overviewTooltip": "Dashboard overview",
@@ -55,6 +65,8 @@
   "settingsTooltip": "Account settings",
   "addListing": "Add Listing",
   "createListing": "Create a new listing",
+  "analytics": "Analytics",
+  "performance": "View your analytics",
   "support": "Support",
   "helpCenter": "Get support",
   "help": "Help",
@@ -62,15 +74,27 @@
   "mainNavigation": "Main navigation",
   "navigation": "Navigation",
   "quickActions": "Quick Actions",
+  "header.logout": "Logout",
   "saveChanges": "Save Changes",
   "listingsTips": "Tips for managing your listings",
   "tip1": "Keep your listings updated with fresh photos and accurate information",
   "tip2": "Respond quickly to inquiries to increase your chances of selling",
   "tip3": "Consider renewing expired listings to maintain visibility",
+  "expiredRenewalDesc": "Renew expired listings to keep them visible to potential buyers",
   "headerLogout": "Logout",
   "loading": "Loading...",
   "search": "Search",
+  "listings.active": "Active",
+  "noListings": "No listings found",
+  "addNewListing": "Add New Listing",
+  "manageYourListingsDesc": "Manage and track your vehicle listings",
+
+
+  "showingResults": "Showing {{count}} of {{total}} listings",
+
   "settings.accountPreferences": "Account Preferences",
+  "settings.analytics": "Analytics",
+  "settings.analyticsDesc": "View usage analytics",
   "settings.dangerZone": "Danger Zone",
   "settings.deleteAccount": "Delete Account",
   "settings.deleteAccountDesc": "Permanently delete your account and all data",
@@ -92,5 +116,7 @@
   "settings.showEmailDesc": "Display your email address publicly",
   "settings.showPhone": "Show Phone",
   "settings.showPhoneDesc": "Display your phone number publicly",
+  "settings.timezone": "Timezone",
+
   "loginRequired": "Please log in to access dashboard"
 }
