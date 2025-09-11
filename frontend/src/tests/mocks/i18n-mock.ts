@@ -111,7 +111,7 @@ const mockTranslations: Record<string, string> = {
   'twoFactorAuthRecommended': 'Recommended for enhanced security',
 
   // Validation related
-  'fieldRequired': 'This field is required',
+  'validation.fieldRequired': 'This field is required',
   'ageRestrictionTitle': 'Age Restriction',
   'ageRestrictionAccountCreationRestricted': 'Account Creation Restricted',
   'ageRestrictionYouAreYearsOld': 'You are currently {{age}} years old. Our platform requires users to be at least 18 years old to create an account.',
@@ -140,7 +140,7 @@ const mockTranslations: Record<string, string> = {
   'next': 'Next',
   'personalInformation': 'Personal Information',
   'businessInformation': 'Business Information',
-  'fieldRequired': 'Required fields are missing',
+  'validation.fieldsRequired': 'Required fields are missing',
   'usernameRequired': 'Full name is required',
   'phoneRequired': 'Phone number is required',
   'cityRequired': 'City is required',
@@ -176,7 +176,6 @@ const mockTranslations: Record<string, string> = {
   'dealerVerificationRequired': 'Dealer accounts require business document verification',
   'dobRequiredForSelling': 'Date of birth is required to list cars for sale',
   'active': 'Active',
-  'fieldRequired': 'This field is required',
   'validationFieldRequired': 'Required fields are missing',
   'createAccount': 'Create Account',
 };

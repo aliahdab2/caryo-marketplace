@@ -73,7 +73,7 @@ function analyzeFileForDuplicates(content, options = {}) {
  * @returns {Object} Duplicate analysis results
  */
 function findDuplicateKeys(translations, options = {}) {
-  const { verbose = true, includeValues = false } = options;
+  const { verbose = true, includeValues = false, returnSimple = false, localesDir = LOCALES_DIR, namespaces = NAMESPACES } = options;
 
   if (verbose) console.log('🔍 Starting duplicate detection...');
 
@@ -90,10 +90,10 @@ function findDuplicateKeys(translations, options = {}) {
   LANGUAGES.forEach(language => {
     if (verbose) console.log(`🌍 Processing language: ${language}`);
 
-    NAMESPACES.forEach(namespace => {
+    namespaces.forEach(namespace => {
       if (verbose) console.log(`📁 Processing namespace: ${namespace}`);
 
-      const filePath = path.join(LOCALES_DIR, language, `${namespace}.json`);
+      const filePath = path.join(localesDir, language, `${namespace}.json`);
       const fileKey = `${language}/${namespace}.json`;
 
       try {
@@ -136,24 +136,29 @@ function findDuplicateKeys(translations, options = {}) {
     console.log(`📊 Summary: ${results.totalDuplicates} duplicates in ${results.summary.filesWithDuplicates} files`);
   }
 
-  return results;
+  // Return simple number for backward compatibility
+  return returnSimple ? results.totalDuplicates : results;
 }
 
 /**
  * Safely remove duplicate keys from translation files
  * Keeps the LAST occurrence of each duplicate key (JSON "last wins" behavior)
  */
-function fixDuplicateKeys() {
-  console.log('🛠️  Starting safe duplicate key removal...');
-  console.log('⚠️  This will create backups and keep the LAST occurrence of each duplicate key\n');
+function fixDuplicateKeys(options = {}) {
+  const { verbose = true, localesDir = LOCALES_DIR, namespaces = NAMESPACES } = options;
+
+  if (verbose) {
+    console.log('🛠️  Starting safe duplicate key removal...');
+    console.log('⚠️  This will create backups and keep the LAST occurrence of each duplicate key\n');
+  }
 
   let totalFilesProcessed = 0;
   let totalDuplicatesRemoved = 0;
   let totalFilesFixed = 0;
 
   LANGUAGES.forEach(language => {
-    NAMESPACES.forEach(namespace => {
-      const filePath = path.join(LOCALES_DIR, language, `${namespace}.json`);
+    namespaces.forEach(namespace => {
+      const filePath = path.join(localesDir, language, `${namespace}.json`);
 
       try {
         // Read file content
