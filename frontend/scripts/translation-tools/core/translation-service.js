@@ -51,6 +51,11 @@ class TranslationService {
             }
           }
 
+          // Set default OpenAI model if not specified
+          if (!process.env.OPENAI_MODEL) {
+            process.env.OPENAI_MODEL = 'gpt-4'; // Default to GPT-4 if not specified
+          }
+
           console.log('✅ Environment variables loaded successfully');
           break; // Stop after loading first found file
         }
@@ -118,24 +123,64 @@ Guidelines:
 
 Text to translate: "${text}"`;
 
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: text }
-        ],
-        temperature: 0.3, // Lower temperature for more consistent translations
-        max_tokens: 500
-      });
+      let model = process.env.OPENAI_MODEL || 'gpt-4';
 
-      const translatedText = response.choices[0]?.message?.content?.trim();
-
-      if (!translatedText) {
-        throw new Error('No translation received from OpenAI');
+      // Handle GPT-5 fallback (as of Sept 2025, GPT-5 isn't officially released)
+      // If GPT-5 is requested but not available, fallback to GPT-4-turbo
+      if (model === 'gpt-5') {
+        console.log(`🤖 GPT-5 requested, but as of Sept 2025, OpenAI hasn't released a model officially called "GPT-5"`);
+        console.log(`🤖 Falling back to GPT-4-turbo (which may have GPT-5-like capabilities)`);
+        model = 'gpt-4-turbo';
       }
 
-      console.log(`✅ Translated: "${text}" → "${translatedText}"`);
+      console.log(`🤖 Using AI model: ${model}`);
 
+      try {
+        const response = await this.openai.chat.completions.create({
+          model: model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: text }
+          ],
+          temperature: 0.3, // Lower temperature for more consistent translations
+          max_tokens: 500
+        });
+
+        const translatedText = response.choices[0]?.message?.content?.trim();
+
+        if (!translatedText) {
+          throw new Error('No translation received from OpenAI');
+        }
+
+        return translatedText;
+
+      } catch (error) {
+        // If model is not available, try fallback to GPT-4-turbo
+        if (error.message.includes('model') && error.message.includes('not found')) {
+          console.log(`⚠️  Model "${model}" not available, trying GPT-4-turbo fallback...`);
+
+          const fallbackResponse = await this.openai.chat.completions.create({
+            model: 'gpt-4-turbo',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: text }
+            ],
+            temperature: 0.3,
+            max_tokens: 500
+          });
+
+          const fallbackText = fallbackResponse.choices[0]?.message?.content?.trim();
+          if (fallbackText) {
+            console.log(`✅ Fallback successful with GPT-4-turbo`);
+            return fallbackText;
+          }
+        }
+
+        // Re-throw the original error if fallback also fails
+        throw error;
+      }
+
+      console.log(`✅ Translation completed successfully`);
       return translatedText;
     } catch (error) {
       console.error(`❌ Translation failed for "${text}":`, error.message);
@@ -203,16 +248,45 @@ Text to translate: "${text}"`;
    * @returns {Object} Cost estimate
    */
   estimateCost(translations) {
-    // Rough estimate: GPT-3.5-turbo costs ~$0.002 per 1K tokens
-    // Average translation is ~100 tokens for prompt + response
-    const estimatedTokens = translations.length * 100;
-    const estimatedCost = (estimatedTokens / 1000) * 0.002;
+    let model = process.env.OPENAI_MODEL || 'gpt-4';
+
+    // Handle GPT-5 fallback for cost estimation
+    if (model === 'gpt-5') {
+      model = 'gpt-4-turbo'; // Use GPT-4-turbo pricing for GPT-5 estimates
+    }
+
+    // OpenAI pricing as of mid-2024 (input/output costs per 1K tokens)
+    const modelCosts = {
+      'gpt-3.5-turbo': { input: 0.0015, output: 0.002 },
+      'gpt-4': { input: 0.03, output: 0.06 }, // Non-turbo variant
+      'gpt-4-turbo': { input: 0.01, output: 0.03 },
+      'gpt-5': { input: 0.04, output: 0.08 } // Estimated for hypothetical GPT-5
+    };
+
+    const costs = modelCosts[model] || modelCosts['gpt-4']; // Default to GPT-4
+
+    // Estimate token usage (rough approximation)
+    const estimatedInputTokens = translations.length * 120; // Prompt tokens
+    const estimatedOutputTokens = translations.length * 30;  // Response tokens
+
+    const inputCost = (estimatedInputTokens / 1000) * costs.input;
+    const outputCost = (estimatedOutputTokens / 1000) * costs.output;
+    const totalCost = inputCost + outputCost;
 
     return {
       itemCount: translations.length,
-      estimatedTokens,
-      estimatedCostUSD: estimatedCost.toFixed(2),
-      costPerItem: (estimatedCost / translations.length).toFixed(4)
+      estimatedInputTokens,
+      estimatedOutputTokens,
+      estimatedTotalTokens: estimatedInputTokens + estimatedOutputTokens,
+      inputCostUSD: inputCost.toFixed(4),
+      outputCostUSD: outputCost.toFixed(4),
+      estimatedCostUSD: totalCost.toFixed(2),
+      costPerItem: (totalCost / translations.length).toFixed(4),
+      model: model.toUpperCase(),
+      pricing: {
+        inputPer1K: costs.input,
+        outputPer1K: costs.output
+      }
     };
   }
 }
