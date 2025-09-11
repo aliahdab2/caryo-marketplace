@@ -41,9 +41,9 @@ const validator = require(validatorPath);
  */
 const KEY_MAPPING = {
   // Common namespace mappings
-  'common.listings.removeFromFavorites': 'listings',
+  'common.listings.removeFromFavorites': 'listings.removeFromFavorites',
   'common.listings.addToFavorites': 'listings.addToFavorites',
-  'common.listings.expiresIn': 'listings',
+  'common.listings.expiresIn': 'listings.expiresIn',
   'common.settings.savedSuccessfully': 'settings',
   'common.settings.accountPreferences': 'settings',
   'common.settings.language': 'settings',
@@ -259,24 +259,22 @@ class AutomatedTranslator {
         }
 
         // Apply translation to resolved key
-        if (key.includes('.')) {
-          // Handle nested keys within the namespace
-          const keyParts = key.split('.');
-          let current = updated[targetLang][namespace];
-
-          // Navigate/create nested structure
-          for (let i = 0; i < keyParts.length - 1; i++) {
-            if (!current[keyParts[i]] || typeof current[keyParts[i]] !== 'object') {
-              current[keyParts[i]] = {};
-            }
-            current = current[keyParts[i]];
-          }
-
-          current[keyParts[keyParts.length - 1]] = result.translated;
-        } else {
-          // Simple key
-          updated[targetLang][namespace][key] = result.translated;
+        if (!key || key.trim() === '') {
+          console.log(`  ⚠️  Skipping ${result.key}: would create empty key`);
+          return;
         }
+
+        // Check for nested structure creation (violates translation guide)
+        if (key.includes('.')) {
+          console.log(`  ⚠️  WARNING: ${result.key} would create nested structure (violates translation guide)`);
+          console.log(`     Consider updating KEY_MAPPING to use flat keys`);
+          // For now, skip nested key creation to maintain flat structure
+          console.log(`     Skipping: ${result.key}`);
+          return;
+        }
+
+        // Simple key only (maintains flat structure)
+        updated[targetLang][namespace][key] = result.translated;
 
         appliedCount++;
         process.stdout.write('.');
