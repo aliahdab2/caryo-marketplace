@@ -103,5 +103,7 @@
   "vehiclePrice": "سعر المركبة",
   "verifiedDealer": "تاجر معتمد",
   "warrantyAvailable": "الضمان متوفر",
-  "years": "سنوات"
+  "years": "سنوات",
+  "expiresIn": "تنتهي في {{days}} أيام",
+  "removeFromFavorites": "إزالة من المفضلة"
 }
