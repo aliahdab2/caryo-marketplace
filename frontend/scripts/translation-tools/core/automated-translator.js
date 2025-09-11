@@ -230,17 +230,27 @@ class AutomatedTranslator {
    * Save updated translations to files
    */
   saveUpdatedTranslations(translations) {
-    const langs = process.env.NODE_ENV === 'test' ? this.validator.TEST_LANGUAGES : this.validator.LANGUAGES;
-    const baseDir = process.env.NODE_ENV === 'test' ? this.validator.TEST_LOCALES_DIR : this.validator.LOCALES_DIR;
+    const langs = ['en', 'ar']; // Hardcoded for now, can be made configurable later
+    const baseDir = path.join(__dirname, '..', '..', '..', 'public', 'locales');
 
     langs.forEach(lang => {
       if (translations[lang]) {
         Object.keys(translations[lang]).forEach(namespace => {
           const filePath = path.join(baseDir, lang, `${namespace}.json`);
-          const content = JSON.stringify(translations[lang][namespace], null, 2);
 
-          fs.writeFileSync(filePath, content, 'utf8');
-          console.log(`💾 Saved: ${lang}/${namespace}.json`);
+          try {
+            // Ensure directory exists
+            const dirPath = path.dirname(filePath);
+            if (!fs.existsSync(dirPath)) {
+              fs.mkdirSync(dirPath, { recursive: true });
+            }
+
+            const content = JSON.stringify(translations[lang][namespace], null, 2);
+            fs.writeFileSync(filePath, content, 'utf8');
+            console.log(`💾 Saved: ${lang}/${namespace}.json`);
+          } catch (error) {
+            console.error(`❌ Failed to save ${lang}/${namespace}.json: ${error.message}`);
+          }
         });
       }
     });

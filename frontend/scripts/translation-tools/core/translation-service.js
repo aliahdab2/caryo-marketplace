@@ -8,11 +8,56 @@ const path = require('path');
  */
 class TranslationService {
   constructor() {
+    // Automatically load .env.local if API key is not set
+    this.loadEnvFile();
+
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
     this.rateLimitDelay = 1000; // 1 second between requests
     this.lastRequestTime = 0;
+  }
+
+  /**
+   * Load environment variables from .env.local file
+   */
+  loadEnvFile() {
+    if (process.env.OPENAI_API_KEY) {
+      // Already set, no need to load
+      return;
+    }
+
+    const envPaths = [
+      path.join(process.cwd(), '.env.local'),
+      path.join(process.cwd(), '..', '.env.local'),
+      path.join(process.cwd(), '..', '..', '.env.local')
+    ];
+
+    for (const envPath of envPaths) {
+      try {
+        if (fs.existsSync(envPath)) {
+          console.log(`📄 Loading environment from: ${envPath}`);
+          const envContent = fs.readFileSync(envPath, 'utf8');
+          const lines = envContent.split('\n');
+
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (trimmedLine && !trimmedLine.startsWith('#')) {
+              const [key, ...valueParts] = trimmedLine.split('=');
+              if (key && valueParts.length > 0) {
+                const value = valueParts.join('=').replace(/^['"]|['"]$/g, ''); // Remove quotes
+                process.env[key.trim()] = value.trim();
+              }
+            }
+          }
+
+          console.log('✅ Environment variables loaded successfully');
+          break; // Stop after loading first found file
+        }
+      } catch (error) {
+        // Continue to next path
+      }
+    }
   }
 
   /**
