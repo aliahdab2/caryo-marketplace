@@ -246,6 +246,7 @@ class AutomatedTranslator {
     const updated = JSON.parse(JSON.stringify(translations)); // Deep clone
     const targetLang = options.toLang;
     let appliedCount = 0;
+    let skippedCount = 0;
 
     results.forEach(result => {
       if (result.success && result.translated !== result.original) {
@@ -266,10 +267,8 @@ class AutomatedTranslator {
 
         // Check for nested structure creation (violates translation guide)
         if (key.includes('.')) {
-          console.log(`  ⚠️  WARNING: ${result.key} would create nested structure (violates translation guide)`);
-          console.log(`     Consider updating KEY_MAPPING to use flat keys`);
-          // For now, skip nested key creation to maintain flat structure
-          console.log(`     Skipping: ${result.key}`);
+          console.log(`  ⚠️  Skipping ${result.key}: would create nested structure (violates translation guide). Update KEY_MAPPING for flat keys.`);
+          skippedCount++;
           return;
         }
 
@@ -281,7 +280,7 @@ class AutomatedTranslator {
       }
     });
 
-    console.log(`\nApplied ${appliedCount} translations`);
+    console.log(`\nApplied ${appliedCount} translations, skipped ${skippedCount} (nested keys)`);
     return updated;
   }
 
