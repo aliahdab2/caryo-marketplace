@@ -4,6 +4,20 @@
 process.stdout.setEncoding('utf8');
 process.stderr.setEncoding('utf8');
 
+// Set terminal to handle Unicode properly
+if (process.platform === 'win32') {
+  // Windows specific setup
+  try {
+    require('child_process').execSync('chcp 65001', { stdio: 'inherit' });
+  } catch (e) {
+    // Ignore if chcp fails
+  }
+} else {
+  // Unix/Linux/Mac setup
+  process.env.LANG = process.env.LANG || 'en_US.UTF-8';
+  process.env.LC_ALL = process.env.LC_ALL || 'en_US.UTF-8';
+}
+
 /**
  * Automated AI Translation Workflow
  * - Validates translations
@@ -20,6 +34,28 @@ const GitHubService = require('./github-service');
 const validatorPath = path.join(__dirname, 'validator.js');
 const validator = require(validatorPath);
 
+/**
+ * Key mapping between source code usage and translation file structure
+ * Source code uses: "namespace.key" (e.g., "listings.removeFromFavorites")
+ * Translation files use: "namespace": "value" or nested objects
+ */
+const KEY_MAPPING = {
+  // Common namespace mappings
+  'common.listings.removeFromFavorites': 'listings',
+  'common.listings.addToFavorites': 'listings.addToFavorites',
+  'common.listings.expiresIn': 'listings',
+  'common.settings.savedSuccessfully': 'settings',
+  'common.settings.accountPreferences': 'settings',
+  'common.settings.language': 'settings',
+  'common.settings.notificationSettings': 'settings',
+  'common.settings.emailNotifications': 'settings',
+  'common.settings.emailNotificationsDesc': 'settings',
+
+  // Listings namespace mappings
+  'listings.filters.sellerType': 'filters',
+  'listings.filters.noSellerTypes': 'filters',
+};
+
 class AutomatedTranslator {
   constructor() {
     this.translationService = new TranslationService();
@@ -28,23 +64,34 @@ class AutomatedTranslator {
   }
 
   /**
+   * Resolve source code key to translation file key
+   * @param {string} sourceKey - Key from source code (e.g., "common.listings.removeFromFavorites")
+   * @returns {object} - { namespace, key, fullPath }
+   */
+  resolveKey(sourceKey) {
+    const mappedKey = KEY_MAPPING[sourceKey] || sourceKey;
+    const parts = mappedKey.split('.');
+
+    return {
+      namespace: parts[0],
+      key: parts.slice(1).join('.'),
+      fullPath: mappedKey,
+      sourceKey: sourceKey
+    };
+  }
+
+  /**
    * Main workflow execution
    * @param {Object} options - Configuration options
    */
   async run(options = {}) {
-    console.log('Starting AI translation process...');
+    console.log(`Translation: ${options.fromLang} → ${options.toLang}`);
 
     try {
-      // Step 1: Validate configuration
+      // Validate and prepare
       await this.validateConfiguration(options);
-
-      // Step 2: Load and validate current translations
-      console.log('Analyzing current translations...');
       const translations = this.validator.loadAllTranslations();
       const missingKeys = this.validator.findMissingTranslations(translations);
-
-      // Step 3: Prepare translations for AI processing
-      console.log('Preparing translations for processing...');
       const translationTasks = this.prepareTranslationTasks(translations, missingKeys, options);
 
       if (translationTasks.length === 0) {
@@ -52,32 +99,29 @@ class AutomatedTranslator {
         return;
       }
 
-      // Step 4: Estimate costs
+      // Cost estimation and confirmation
       const costEstimate = this.translationService.estimateCost(translationTasks);
-      console.log(`Estimated cost: $${costEstimate.estimatedCostUSD} (${costEstimate.itemCount} translations)`);
+      console.log(`Found: ${translationTasks.length} missing translations`);
+      console.log(`Cost: $${costEstimate.estimatedCostUSD}`);
 
       if (!options.skipConfirmation) {
         const confirmed = await this.confirmExecution(costEstimate);
         if (!confirmed) {
-          console.log('Translation cancelled by user.');
+          console.log('Cancelled.');
           return;
         }
       }
 
-      // Step 5: Execute AI translations
-      console.log('Executing translations...');
+      // Execute translations
+      console.log('Processing...');
       const translationResults = await this.translationService.translateBatch(
         translationTasks,
         options.fromLang,
         options.toLang
       );
 
-      // Step 6: Update translation files
-      console.log('Updating translation files...');
+      // Apply and save results
       const updatedTranslations = this.applyTranslationResults(translations, translationResults, options);
-
-      // Step 7: Save updated translations
-      console.log('Saving translation files...');
       this.saveUpdatedTranslations(updatedTranslations);
 
       // Step 8: Create GitHub PR
@@ -99,30 +143,19 @@ class AutomatedTranslator {
    * Validate configuration and API keys
    */
   async validateConfiguration(options) {
-    console.log('Validating configuration...');
-
     // Check OpenAI API key
     if (!this.translationService.isConfigured()) {
-      throw new Error(
-        'OpenAI API key not configured. Set OPENAI_API_KEY environment variable.\n' +
-        'Get your API key from: https://platform.openai.com/api-keys'
-      );
+      throw new Error('OpenAI API key not configured. Set OPENAI_API_KEY environment variable.');
     }
 
     // Check GitHub configuration if PR creation is enabled
     if (options.createPR) {
       if (!process.env.GITHUB_TOKEN) {
-        throw new Error(
-          'GitHub token not configured for PR creation. Set GITHUB_TOKEN environment variable.\n' +
-          'Create a token at: https://github.com/settings/tokens'
-        );
+        throw new Error('GitHub token not configured for PR creation.');
       }
 
       if (!options.githubOwner || !options.githubRepo) {
-        throw new Error(
-          'GitHub repository information required for PR creation.\n' +
-          'Provide --github-owner and --github-repo options.'
-        );
+        throw new Error('GitHub repository information required for PR creation.');
       }
 
       this.githubService.initialize(
@@ -210,31 +243,47 @@ class AutomatedTranslator {
    * Apply translation results to translations object
    */
   applyTranslationResults(translations, results, options) {
-    const updated = { ...translations };
+    const updated = JSON.parse(JSON.stringify(translations)); // Deep clone
     const targetLang = options.toLang;
+    let appliedCount = 0;
 
     results.forEach(result => {
       if (result.success && result.translated !== result.original) {
-        const [namespace, key] = result.key.split('.');
+        // Use key mapping to resolve the correct file structure
+        const resolved = this.resolveKey(result.key);
+        const { namespace, key } = resolved;
 
+        // Ensure namespace exists
         if (!updated[targetLang][namespace]) {
           updated[targetLang][namespace] = {};
         }
 
-        updated[targetLang][namespace][key] = result.translated;
+        // Apply translation to resolved key
+        if (key.includes('.')) {
+          // Handle nested keys within the namespace
+          const keyParts = key.split('.');
+          let current = updated[targetLang][namespace];
 
-        // Display translation with clear text labels
-        const originalText = result.original || 'N/A';
-        const translatedText = result.translated || 'N/A';
+          // Navigate/create nested structure
+          for (let i = 0; i < keyParts.length - 1; i++) {
+            if (!current[keyParts[i]] || typeof current[keyParts[i]] !== 'object') {
+              current[keyParts[i]] = {};
+            }
+            current = current[keyParts[i]];
+          }
 
-        console.log(`  ${namespace}.${key}:`);
-        console.log(`    FROM: ${originalText}`);
-        console.log(`    TO:   ${translatedText}`);
-        console.log(`    ----`);
-        console.log();
+          current[keyParts[keyParts.length - 1]] = result.translated;
+        } else {
+          // Simple key
+          updated[targetLang][namespace][key] = result.translated;
+        }
+
+        appliedCount++;
+        process.stdout.write('.');
       }
     });
 
+    console.log(`\nApplied ${appliedCount} translations`);
     return updated;
   }
 
@@ -259,9 +308,8 @@ class AutomatedTranslator {
 
             const content = JSON.stringify(translations[lang][namespace], null, 2);
             fs.writeFileSync(filePath, content, 'utf8');
-            console.log(`💾 Saved: ${lang}/${namespace}.json`);
           } catch (error) {
-            console.error(`❌ Failed to save ${lang}/${namespace}.json: ${error.message}`);
+            console.error(`Failed to save ${lang}/${namespace}.json: ${error.message}`);
           }
         });
       }
@@ -337,15 +385,11 @@ class AutomatedTranslator {
     const successCount = results.filter(r => r.success).length;
     const errorCount = results.filter(r => !r.success).length;
 
-    console.log('\n--- Translation Summary ---');
-    console.log(`Language: ${options.fromLang} → ${options.toLang}`);
-    console.log(`Total: ${results.length} translations`);
-    console.log(`Successful: ${successCount}`);
+    console.log(`\nCompleted: ${successCount}/${results.length} translations`);
     if (errorCount > 0) {
-      console.log(`Failed: ${errorCount}`);
+      console.log(`Errors: ${errorCount}`);
     }
-    console.log(`Cost: $${costEstimate.estimatedCostUSD}`);
-    console.log('Translation process completed.');
+    console.log(`Total cost: $${costEstimate.estimatedCostUSD}`);
   }
 }
 

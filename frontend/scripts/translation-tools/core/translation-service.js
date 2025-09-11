@@ -2,6 +2,20 @@
 process.stdout.setEncoding('utf8');
 process.stderr.setEncoding('utf8');
 
+// Set terminal to handle Unicode properly
+if (process.platform === 'win32') {
+  // Windows specific setup
+  try {
+    require('child_process').execSync('chcp 65001', { stdio: 'inherit' });
+  } catch (e) {
+    // Ignore if chcp fails
+  }
+} else {
+  // Unix/Linux/Mac setup
+  process.env.LANG = process.env.LANG || 'en_US.UTF-8';
+  process.env.LC_ALL = process.env.LC_ALL || 'en_US.UTF-8';
+}
+
 const OpenAI = require('openai');
 const fs = require('fs');
 const path = require('path');

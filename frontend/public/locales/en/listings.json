@@ -105,5 +105,9 @@
   "sortBy": "Sort by",
   "tryAgain": "Try again",
   "used": "Used",
-  "filters": "Seller Type"
+  "filters": {
+    "sellerType": "Seller Type",
+    "noSellerTypes": "No seller types available"
+  },
+  "removeFromFavorites": "Remove from Favorites"
 }

@@ -140,6 +140,44 @@ function extractTranslationKeys(content) {
   return Array.from(keys);
 }
 
+/**
+ * Recursively get all keys from a nested object
+ * @param {object} obj - The object to traverse
+ * @param {string} prefix - Current key prefix
+ * @returns {Map} - Map of key -> value
+ */
+function getAllKeys(obj, prefix = '') {
+  const keys = new Map();
+
+  function traverse(current, currentPath) {
+    if (typeof current === 'object' && current !== null) {
+      Object.keys(current).forEach(key => {
+        const newPath = currentPath ? `${currentPath}.${key}` : key;
+        if (typeof current[key] === 'object' && current[key] !== null) {
+          traverse(current[key], newPath);
+        } else {
+          keys.set(newPath, current[key]);
+        }
+      });
+    }
+  }
+
+  traverse(obj, prefix);
+  return keys;
+}
+
+/**
+ * Get nested value from object using dot notation
+ * @param {object} obj - The object to search
+ * @param {string} path - Dot notation path (e.g., "listings.removeFromFavorites")
+ * @returns {*} - The value or undefined if not found
+ */
+function getNestedValue(obj, path) {
+  return path.split('.').reduce((current, key) => {
+    return current && current[key] !== undefined ? current[key] : undefined;
+  }, obj);
+}
+
 function analyzeIncompleteTranslations() {
   const incompleteTranslations = {
     enMissing: new Map(),
@@ -156,24 +194,29 @@ function analyzeIncompleteTranslations() {
         const enData = JSON.parse(fs.readFileSync(enFile, 'utf8'));
         const arData = JSON.parse(fs.readFileSync(arFile, 'utf8'));
 
-        // Get all unique keys
-        const allKeys = new Set([...Object.keys(enData), ...Object.keys(arData)]);
+        // Get all unique keys including nested keys
+        const enKeys = getAllKeys(enData, namespace);
+        const arKeys = getAllKeys(arData, namespace);
+        const allKeys = new Set([...enKeys.keys(), ...arKeys.keys()]);
 
-        allKeys.forEach(key => {
-          if (!enData[key]) {
-            incompleteTranslations.enMissing.set(`${namespace}:${key}`, {
-              key,
+        allKeys.forEach(fullKey => {
+          const enValue = getNestedValue(enData, fullKey);
+          const arValue = getNestedValue(arData, fullKey);
+
+          if (enValue === undefined) {
+            incompleteTranslations.enMissing.set(`${namespace}:${fullKey}`, {
+              key: fullKey,
               namespace,
               enValue: null,
-              arValue: arData[key],
+              arValue,
               context: `${namespace}.json`
             });
           }
-          if (!arData[key]) {
-            incompleteTranslations.arMissing.set(`${namespace}:${key}`, {
-              key,
+          if (arValue === undefined) {
+            incompleteTranslations.arMissing.set(`${namespace}:${fullKey}`, {
+              key: fullKey,
               namespace,
-              enValue: enData[key],
+              enValue,
               arValue: null,
               context: `${namespace}.json`
             });

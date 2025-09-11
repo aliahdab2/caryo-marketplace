@@ -92,16 +92,20 @@
   "allStatuses": "جميع الحالات",
   "newest": "الأحدث أولاً",
   "createListing": "إنشاء إعلان",
-  "filters": "نوع البائع",
+  "filters": {
+    "noSellerTypes": "لا توجد أنواع بائعين متاحة",
+    "sellerType": "نوع البائع"
+  },
   "showPhoneNumber": "عرض رقم الهاتف",
   "soldBy": "تم البيع بواسطة",
   "technologyFeatures": "ميزات التكنولوجيا",
   "totalCost": "التكلفة الإجمالية",
   "totalInterest": "الفائدة الإجمالية",
   "transmission": "نقل",
-  "typicallyRespondsIn": "عادةً يستجيب خلال",
-  "vehiclePrice": "سعر السيارة",
-  "verifiedDealer": "تاجر موثوق",
+  "typicallyRespondsIn": "يستجيب عادة خلال",
+  "vehiclePrice": "سعر المركبة",
+  "verifiedDealer": "تاجر معتمد",
   "warrantyAvailable": "الضمان متوفر",
-  "years": "سنوات"
+  "years": "سنوات",
+  "removeFromFavorites": "إزالة من المفضلة"
 }
