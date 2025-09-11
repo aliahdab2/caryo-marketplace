@@ -52,6 +52,7 @@
   "authPasswordChangeSuccess": "تم تغيير كلمة المرور بنجاح",
   "authPasswordChangeFailed": "فشل في تغيير كلمة المرور",
   "authNetworkError": "خطأ في الشبكة. يرجى المحاولة مرة أخرى.",
+  "cancel": "إلغاء",
   "delete": "حذف",
   "deleting": "جارٍ الحذف...",
   "processing": "جارٍ المعالجة...",
@@ -526,12 +527,10 @@
   "previousPage": "الصفحة السابقة",
   "nextPage": "الصفحة التالية",
   "goToPage": "الانتقال إلى الصفحة {{page}}",
+  "pagination": "ترقيم الصفحات",
+  "previousPage": "الصفحة السابقة",
+  "nextPage": "الصفحة التالية",
   "showing": "عرض",
   "ofConnector": "من أصل",
-  "backToHome": "العودة للرئيسية",
-  "cancel": "إلغاء",
-  "clearFilters": "مسح المرشحات",
-  "error": "خطأ",
-  "selectAll": "تحديد الكل",
-  "view": "عرض"
+  "backToHome": "العودة للرئيسية"
 }
