@@ -28,6 +28,7 @@
     "translation:duplicates": "node ./scripts/translation-tools/core/validator-refactored.js duplicates",
     "translation:fix-duplicates": "node ./scripts/translation-tools/core/validator-refactored.js fix-duplicates",
     "translation:orphaned": "node ./scripts/translation-tools/core/validator-refactored.js orphaned",
+    "translation:orphaned-safe": "node ./scripts/translation-tools/core/validator-refactored.js orphaned-safe",
     "translation:export": "node ./scripts/translation-tools/core/validator-refactored.js export",
     "translation:export-missing": "node ./scripts/translation-tools/core/validator-refactored.js export-missing",
     "translation:sync-check": "node ./scripts/translation-tools/analysis/sync-check.js",

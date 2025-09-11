@@ -228,6 +228,15 @@ function main() {
       generateDetailedReport(translations, 'orphaned');
       break;
 
+    case 'orphaned-safe':
+      console.log('🛡️  SAFE ORPHANED ANALYSIS MODE');
+      console.log('=====================================');
+      console.log('This mode shows orphaned keys but does NOT allow removal.');
+      console.log('Use this to verify the detection is working correctly before using --remove-orphaned');
+      console.log('');
+      generateDetailedReport(translations, 'orphaned');
+      break;
+
     case 'export':
       exportReport(translations);
       break;
@@ -246,6 +255,7 @@ function main() {
       console.log('  duplicates      - Show duplicate keys');
       console.log('  fix-duplicates  - Safely remove duplicate keys');
       console.log('  orphaned        - Show orphaned translations');
+      console.log('  orphaned-safe   - Show orphaned translations (safe mode)');
       console.log('  export          - Export detailed JSON report');
       console.log('  export-missing  - Export missing translations for a language');
       process.exit(1);

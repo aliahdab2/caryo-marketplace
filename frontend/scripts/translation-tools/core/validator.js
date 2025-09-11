@@ -1039,11 +1039,14 @@ function generateDetailedReport(translations, reportType = 'all', includeSourceS
     console.log('-'.repeat(40));
 
     if (missingInCode.length > 0) {
-      missingInCode.forEach(key => {
-        console.log(`  ${key}`);
+      missingInCode.forEach(keyInfo => {
+        const fallbackIndicator = keyInfo.hasFallback ? ' (with fallback)' : ' (no fallback)';
+        const context = keyInfo.context ? ` - ${keyInfo.context.split('/').pop()}` : '';
+        console.log(`  ${keyInfo.key}${fallbackIndicator}${context}`);
       });
+      console.log(`\n📊 Total missing keys: ${missingInCode.length}`);
     } else {
-      console.log('None found');
+      console.log('None found - all used keys are properly translated!');
     }
   }
 }

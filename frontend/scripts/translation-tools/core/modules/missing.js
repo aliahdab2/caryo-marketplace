@@ -86,7 +86,7 @@ function findOrphanedTranslations(translations) {
     return getCached('orphaned-translations', () => {
       console.log('🔍 Scanning source files for translation usage...');
 
-      const srcDir = path.resolve(__dirname, '..', '..', '..', 'src');
+      const srcDir = path.resolve(__dirname, '..', '..', '..', '..', 'src');
       const usedKeys = new Map();
       const orphanedByLanguage = {};
 
@@ -104,9 +104,16 @@ function findOrphanedTranslations(translations) {
             const itemPath = path.join(dirPath, item);
             const stats = fs.statSync(itemPath);
 
-            if (stats.isDirectory() && !item.startsWith('.') && item !== 'node_modules') {
+            if (stats.isDirectory() && !item.startsWith('.') &&
+                item !== 'node_modules' && item !== 'coverage' &&
+                item !== 'dist' && item !== 'build' && item !== '__tests__' &&
+                item !== '.next' && item !== '.git') {
               scanDirectory(itemPath);
-            } else if (stats.isFile() && (item.endsWith('.js') || item.endsWith('.jsx') || item.endsWith('.ts') || item.endsWith('.tsx'))) {
+            } else if (stats.isFile() &&
+                       (item.endsWith('.js') || item.endsWith('.jsx') ||
+                        item.endsWith('.ts') || item.endsWith('.tsx')) &&
+                       !item.includes('.test.') && !item.includes('.spec.') &&
+                       !item.includes('.d.ts') && !item.endsWith('.config.js')) {
               const content = fs.readFileSync(itemPath, 'utf8');
               const keysInFile = extractTranslationKeys(content);
 
@@ -161,8 +168,11 @@ function extractTranslationKeys(content) {
   const patterns = [
     /t\(['"]([^'"]+)['"]/g,  // t('key')
     /t\(['"]([^'"]+)['"],/g, // t('key', ...)
+    /t\(['"]([^'"]+)['"]\s*,/g, // t('key', fallback)
     /i18n\.t\(['"]([^'"]+)['"]/g, // i18n.t('key')
     /useTranslation\(['"]([^'"]+)['"]/g, // useTranslation('namespace')
+    /\bt\(['"]([^'"]+)['"]/g, // word boundary for t(
+    /\bt\(['"]([^'"]+)['"]\s*,/g, // word boundary for t( with fallback
   ];
 
   const keys = new Set();
