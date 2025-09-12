@@ -15,6 +15,8 @@ public interface CarBrandRepository extends JpaRepository<CarBrand, Long> {
     
     List<CarBrand> findByIsActiveTrue();
     
+    Optional<CarBrand> findByName(String name);
+
     @Query("SELECT b FROM CarBrand b WHERE " +
            "LOWER(b.displayNameEn) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(b.displayNameAr) LIKE LOWER(CONCAT('%', :query, '%'))")

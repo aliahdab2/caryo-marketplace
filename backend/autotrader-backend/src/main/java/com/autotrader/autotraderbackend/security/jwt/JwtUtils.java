@@ -24,10 +24,10 @@ import java.util.Objects;
 @Component
 public class JwtUtils {
 
-    @Value("${autotrader.app.jwtSecret}")
+    @Value("${app.jwtSecret}")
     private String jwtSecret;
 
-    @Value("${autotrader.app.jwtExpirationMs}")
+    @Value("${app.jwtExpirationInMs}")
     private int jwtExpirationMs;
 
     public String generateJwtToken(Authentication authentication) {

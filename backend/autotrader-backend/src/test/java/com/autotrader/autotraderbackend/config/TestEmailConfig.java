@@ -99,7 +99,7 @@ public class TestEmailConfig {
      */
     @Bean
     @Primary
-    public TemplateEngine templateEngine() {
+    public TemplateEngine testTemplateEngine() {
         SpringTemplateEngine templateEngine = new SpringTemplateEngine();
         
         StringTemplateResolver templateResolver = new StringTemplateResolver();
