@@ -80,8 +80,11 @@ public class OpenAITranslationService {
             headers.setBearerAuth(apiKey);
 
             String prompt = String.format(
-                "Translate this car name to Arabic. Use proper Arabic transliteration. " +
-                "Return ONLY the Arabic translation, no explanations or descriptions.\n\n\"%s\"",
+                "Translate this car model name to Arabic. Rules:\n" +
+                "- For alphanumeric models (like A1, 3, X5): transliterate to Arabic letters/numbers\n" +
+                "- For word models: translate meaning to Arabic\n" +
+                "- Use proper Arabic automotive terminology\n" +
+                "- Return ONLY the Arabic translation, no explanations.\n\n\"%s\"",
                 englishText.trim()
             );
 

@@ -415,37 +415,93 @@ public class CarQueryDataService implements CarDataProvider {
 
     /**
      * Create or update a brand from CarQuery API data
-     * Only creates brands that have available models
+     * Creates new brands OR imports new models for existing brands
      */
     private void createOrUpdateBrandFromCarQuery(CarQueryMakeResponse.CarQueryMake makeData) {
         try {
             String brandSlug = makeData.getMakeId().toLowerCase();
             String brandName = makeData.getMakeDisplay();
+            CarBrand existingBrand = null;
 
             // Check if brand already exists by slug or name
             try {
-                carBrandService.getBrandBySlug(brandSlug);
-                log.debug("Brand '{}' already exists (slug: {}), skipping", brandName, brandSlug);
-                return;
+                existingBrand = carBrandService.getBrandBySlug(brandSlug);
+                log.debug("Brand '{}' already exists (slug: {}), checking for new models", brandName, brandSlug);
             } catch (Exception e) {
                 // Check by name as well
                 try {
-                    carBrandService.getBrandByName(brandName);
-                    log.debug("Brand '{}' already exists (name: {}), skipping", brandName, brandName);
-                    return;
+                    existingBrand = carBrandService.getBrandByName(brandName);
+                    log.debug("Brand '{}' already exists (name: {}), checking for new models", brandName, brandName);
                 } catch (Exception ex) {
                     // Brand doesn't exist, validate it has models before creating
                     if (validateBrandHasModels(makeData.getMakeId())) {
                         createBrandDirectly(makeData);
+                        return; // Brand created, models will be imported in next phase
                     } else {
                         log.info("Skipping brand '{}' - no models available in CarQuery API", brandName);
+                        return;
                     }
                 }
             }
+
+            // If brand exists, import any new models
+            if (existingBrand != null) {
+                importModelsForExistingBrand(existingBrand, makeData.getMakeId());
+            }
+
         } catch (Exception e) {
             String errorContext = String.format("Brand creation/update failed - Name: %s, ID: %s, Operation: createOrUpdateBrandFromCarQuery", 
                 makeData.getMakeDisplay(), makeData.getMakeId());
             log.warn("{}, Error: {}", errorContext, e.getMessage());
+        }
+    }
+
+    /**
+     * Import new models for an existing brand
+     * @param existingBrand The existing brand entity
+     * @param makeId The CarQuery make ID
+     */
+    private void importModelsForExistingBrand(CarBrand existingBrand, String makeId) {
+        try {
+            log.info("Checking for new models for existing brand: {}", existingBrand.getName());
+            
+            CarQueryModelResponse modelsResponse = carQueryApiClient.getModelsByMake(makeId);
+            if (modelsResponse == null || modelsResponse.getModels() == null || modelsResponse.getModels().isEmpty()) {
+                log.debug("No models found for brand '{}' in CarQuery API", existingBrand.getName());
+                return;
+            }
+
+            int newModelsCount = 0;
+            for (CarQueryModelResponse.CarQueryModel modelData : modelsResponse.getModels()) {
+                try {
+                    // Check if model already exists for this brand
+                    String modelName = modelData.getModelName();
+                    String expectedSlug = (existingBrand.getName() + "-" + modelName).toLowerCase().replaceAll("[^a-z0-9-]", "-");
+                    
+                    // Try to find existing model by slug
+                    try {
+                        carModelService.getModelBySlug(expectedSlug);
+                        log.debug("Model '{}' already exists for brand '{}', skipping", modelName, existingBrand.getName());
+                        continue;
+                    } catch (Exception e) {
+                        // Model doesn't exist, create it
+                        createModelDirectly(existingBrand, modelData);
+                        newModelsCount++;
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to process model '{}' for brand '{}': {}", 
+                            modelData.getModelName(), existingBrand.getName(), e.getMessage());
+                }
+            }
+            
+            if (newModelsCount > 0) {
+                log.info("✅ Imported {} new models for existing brand '{}'", newModelsCount, existingBrand.getName());
+            } else {
+                log.debug("No new models found for existing brand '{}'", existingBrand.getName());
+            }
+            
+        } catch (Exception e) {
+            log.error("Failed to import models for existing brand '{}': {}", existingBrand.getName(), e.getMessage());
         }
     }
 
@@ -654,3 +710,4 @@ public class CarQueryDataService implements CarDataProvider {
 
 
 }
+

@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-// import org.springframework.cache.annotation.Cacheable; // Temporarily disabled
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -81,7 +81,7 @@ public class CarQueryApiClient {
     /**
      * Get all car makes from CarQuery API
      */
-    // @Cacheable(value = "carqueryMakes", unless = "#result == null") // Temporarily disabled
+    @Cacheable(value = "carqueryMakes", unless = "#result == null")
     @Retryable(
         retryFor = {RestClientException.class},
         maxAttemptsExpression = "#{@carQueryConfiguration.retry.maxAttempts}",
@@ -190,7 +190,7 @@ public class CarQueryApiClient {
     /**
      * Get models for a specific make
      */
-    // @Cacheable(value = "carqueryModels", key = "#makeId", unless = "#result == null") // Temporarily disabled
+    @Cacheable(value = "carqueryModels", key = "#makeId", unless = "#result == null")
     @Retryable(
         retryFor = {RestClientException.class},
         maxAttemptsExpression = "#{@carQueryConfiguration.retry.maxAttempts}",
