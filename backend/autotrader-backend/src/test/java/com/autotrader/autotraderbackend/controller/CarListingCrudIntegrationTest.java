@@ -103,7 +103,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
     private Long listingId;
     
     // Use the same JWT secret as in application.properties
-    @Value("${autotrader.app.jwtSecret}")
+    @Value("${app.jwtSecret}")
     private String jwtSecret;
     
     private static final long JWT_EXPIRATION = 3600000; // 1 hour
