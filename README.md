@@ -126,6 +126,13 @@ caryo-marketplace/
 │       ├── docker-compose.dev.yml  # Development Docker setup
 │       ├── Dockerfile        # Production Docker image
 │       └── Dockerfile.dev    # Development Docker image
+├── docs/
+│   ├── integration/          # 🚗 CarQuery/SyrianCars integration docs
+│   ├── architecture/         # System architecture documentation
+│   ├── setup/               # Setup and configuration guides
+│   └── testing/             # Testing documentation
+├── testing/
+│   └── integration/         # 🧪 Integration testing scripts
 │
 ├── frontend/                 # React/Next.js frontend
 │   ├── src/                  # Source code

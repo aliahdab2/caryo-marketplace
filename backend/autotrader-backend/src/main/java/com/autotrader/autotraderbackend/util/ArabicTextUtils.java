@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 /**
  * Centralized utility for handling Arabic text encoding across the application.
- * 
+ *
  * <p>This utility provides consistent Arabic text handling for:</p>
  * <ul>
  *   <li>Email subjects and content</li>
@@ -15,14 +15,16 @@ import java.util.regex.Pattern;
  *   <li>Text validation and normalization</li>
  *   <li>Character encoding for different contexts</li>
  * </ul>
- * 
+ *
  * <p>All Arabic text handling should use this utility to ensure consistency
  * and proper encoding throughout the application.</p>
- * 
+ *
  * @since 1.0
  */
 @Slf4j
 public final class ArabicTextUtils {
+
+
     
     private static final Pattern ARABIC_PATTERN = Pattern.compile("\\p{InArabic}");
     

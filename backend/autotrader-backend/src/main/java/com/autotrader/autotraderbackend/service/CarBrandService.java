@@ -43,6 +43,19 @@ public class CarBrandService {
     }
     
     /**
+     * Get a car brand by its name
+     * @param name Brand name
+     * @return Car brand
+     * @throws ResourceNotFoundException if brand not found
+     */
+    @Transactional(readOnly = true)
+    public CarBrand getBrandByName(String name) {
+        log.debug("Fetching car brand by name: {}", name);
+        return carBrandRepository.findByName(name)
+                .orElseThrow(() -> new ResourceNotFoundException("CarBrand", "name", name));
+    }
+
+    /**
      * Get a car brand by its ID
      * @param id Brand ID
      * @return Car brand

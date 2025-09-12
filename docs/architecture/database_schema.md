@@ -1,389 +1,550 @@
-# System Architecture & Database Schema
+# Database Schema Documentation
+## Caryo Marketplace
 
-## System Overview
+**Version:** 1.0.0 (Current Implementation)  
+**Last Updated:** September 12, 2025  
+**Database:** PostgreSQL 16+ (H2 for testing)
 
-The Car Marketplace is a full-stack application designed to allow users to buy and sell cars. It is built using a modern microservice-inspired architecture where different domains (user management, car listings, payments) are clearly separated.
+---
 
-### Core Services
-- **User Service**: Manages user registration, authentication, and authorization
-- **Car Listing Service**: Handles all car listing and search-related operations  
-- **Payment Service**: Integrates with external payment providers for purchasing listings
-- **Email Service**: Handles all email communications and notifications
-- **Media Service**: Manages car images and file uploads
+## 🎯 **CURRENT IMPLEMENTATION**
 
-### Technology Stack
-- **Backend**: Spring Boot with Java 21
-- **Database**: PostgreSQL for production, H2 for testing
-- **Frontend**: Next.js with React and TypeScript
-- **Authentication**: JWT with OAuth2 integration (Google)
-- **File Storage**: MinIO (S3-compatible) for development, AWS S3 for production
-- **Email**: SMTP with template-based email system
-- **Testing**: JUnit 5, Jest, Postman for API testing
+This documentation reflects the **actual working database schema** as implemented in the codebase to avoid any breaking changes.
 
-## Database Schema
+### **Naming Conventions (Current)**
+- **Car Data**: Uses `makes` and `models` tables (not `car_brands`/`car_models`)
+- **Foreign Keys**: `make_id` references the `makes` table
+- **Bilingual Fields**: All user-facing content has `_en` and `_ar` variants
+- **Timestamps**: Most tables use `created_at` and `updated_at`
 
-This section outlines the complete database schema for the AutoTrader Marketplace backend.
+### **Design Decisions**
+- **Strategic Denormalization**: Search-critical fields duplicated for performance
+- **Redundancy by Design**: `governorate_id` + `location_id` both stored for query optimization
+- **Cascade Rules**: Explicitly defined for all foreign key relationships
 
-## Core Tables
+---
 
-### Table: users
-- **id**: BIGINT PRIMARY KEY
-- **username**: VARCHAR(50) UNIQUE NOT NULL
-- **email**: VARCHAR(50) UNIQUE NOT NULL
-- **password**: VARCHAR(120) NOT NULL
-- **created_at**: TIMESTAMP NOT NULL
-- **updated_at**: TIMESTAMP NOT NULL
+## 📊 **ENTITY RELATIONSHIP DIAGRAM**
 
-### Table: roles
-- **id**: INTEGER PRIMARY KEY
-- **name**: VARCHAR(20) UNIQUE NOT NULL (e.g., ROLE_USER, ROLE_ADMIN)
-
-### Table: user_roles
-- **user_id**: BIGINT (Foreign Key to users.id)
-- **role_id**: INTEGER (Foreign Key to roles.id)
-- PRIMARY KEY (user_id, role_id)
-
-## Location Tables
-
-**Geographic Hierarchy: Country > Governorate > Location**
-
-The location system follows a three-tier hierarchy:
-1. **Countries** - Top level (e.g., Syria, Lebanon)
-2. **Governorates** - Administrative divisions within countries (e.g., Damascus, Aleppo)
-3. **Locations** - Specific cities/areas within governorates (e.g., Old Damascus, New Aleppo)
-
-### Table: countries
-- **id**: BIGINT PRIMARY KEY
-- **country_code**: VARCHAR(2) UNIQUE NOT NULL COMMENT 'ISO 3166-1 alpha-2 country code'
-- **display_name_en**: VARCHAR(100) NOT NULL
-- **display_name_ar**: VARCHAR(100) NOT NULL
-- **is_active**: BOOLEAN DEFAULT TRUE
-- **created_at**: TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-- **updated_at**: TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-
-### Table: governorates
-- **id**: BIGINT PRIMARY KEY 
-- **display_name_en**: VARCHAR(100) NOT NULL
-- **display_name_ar**: VARCHAR(100) NOT NULL
-- **slug**: VARCHAR(100) UNIQUE NOT NULL
-- **country_id**: BIGINT NOT NULL (Foreign Key to countries.id)
-- **region**: VARCHAR(100)
-- **latitude**: DOUBLE PRECISION
-- **longitude**: DOUBLE PRECISION
-- **is_active**: BOOLEAN DEFAULT TRUE
-- **created_at**: TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-- **updated_at**: TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-
-### Table: locations
-- **id**: BIGINT PRIMARY KEY 
-- **display_name_en**: VARCHAR(100) NOT NULL
-- **display_name_ar**: VARCHAR(100) NOT NULL
-- **slug**: VARCHAR(100) UNIQUE NOT NULL
-- **country_code**: VARCHAR(2) NOT NULL
-- **region**: VARCHAR(100)
-- **latitude**: DECIMAL(10, 8)
-- **longitude**: DECIMAL(11, 8)
-- **is_active**: BOOLEAN DEFAULT TRUE
-- **governorate_id**: BIGINT NOT NULL (Foreign Key to governorates.id)
-- **created_at**: TIMESTAMP NOT NULL
-- **updated_at**: TIMESTAMP NOT NULL
-
-## Listing Tables
-
-### Table: car_listings
-- **id**: BIGINT PRIMARY KEY
-- **title**: VARCHAR(100) NOT NULL
-- **description**: TEXT NOT NULL
-- **price**: DECIMAL(10, 2) NOT NULL
-- **mileage**: INTEGER NOT NULL
-- **model_year**: INTEGER NOT NULL
-- **model_id**: BIGINT NOT NULL (Foreign Key to car_models.id)
-- **vin**: VARCHAR(17)
-- **stock_number**: VARCHAR(50)
-- **exterior_color**: VARCHAR(50)
-- **doors**: INTEGER
-- **cylinders**: INTEGER
-- **seller_id**: BIGINT NOT NULL (Foreign Key to users.id)
-- **location_id**: BIGINT (Foreign Key to locations.id)
-- **governorate_id**: BIGINT (Foreign Key to governorates.id)
-- **governorate_name_en**: VARCHAR(100)
-- **governorate_name_ar**: VARCHAR(100)
-- **brand_name_en**: VARCHAR(100) 
-- **brand_name_ar**: VARCHAR(100)
-- **model_name_en**: VARCHAR(100)
-- **model_name_ar**: VARCHAR(100)
-- **condition_id**: BIGINT (Foreign Key to car_conditions.id)
-- **body_style_id**: BIGINT (Foreign Key to body_styles.id)
-- **transmission_id**: BIGINT (Foreign Key to transmissions.id)
-- **fuel_type_id**: BIGINT (Foreign Key to fuel_types.id)
-- **drive_type_id**: BIGINT (Foreign Key to drive_types.id)
-- **transmission**: VARCHAR(50)
-- **approved**: BOOLEAN DEFAULT FALSE
-- **sold**: BOOLEAN DEFAULT FALSE
-- **archived**: BOOLEAN DEFAULT FALSE
-- **expired**: BOOLEAN DEFAULT FALSE
-- **is_user_active**: BOOLEAN DEFAULT TRUE
-- **expiration_date**: TIMESTAMP
-- **created_at**: TIMESTAMP NOT NULL
-- **updated_at**: TIMESTAMP NOT NULL
-
-### Table: listing_media
-- **id**: BIGINT PRIMARY KEY
-- **listing_id**: BIGINT NOT NULL (Foreign Key to car_listings.id)
-- **file_key**: VARCHAR(255) NOT NULL
-- **file_name**: VARCHAR(255) NOT NULL
-- **content_type**: VARCHAR(100) NOT NULL
-- **size**: BIGINT NOT NULL
-- **sort_order**: INTEGER DEFAULT 0
-- **is_primary**: BOOLEAN DEFAULT FALSE
-- **media_type**: VARCHAR(20) NOT NULL CHECK (media_type IN ('image', 'video'))
-- **created_at**: TIMESTAMP NOT NULL
-
-## Car Attributes Reference Tables
-
-### Table: car_brands
-- **id**: BIGINT PRIMARY KEY
-- **name**: VARCHAR(50) NOT NULL
-- **slug**: VARCHAR(100) UNIQUE NOT NULL
-- **display_name_en**: VARCHAR(100) NOT NULL
-- **display_name_ar**: VARCHAR(100) NOT NULL
-- **is_active**: BOOLEAN DEFAULT TRUE
-
-### Table: car_models
-- **id**: BIGINT PRIMARY KEY
-- **brand_id**: BIGINT NOT NULL (Foreign Key to car_brands.id)
-- **name**: VARCHAR(50) NOT NULL
-- **slug**: VARCHAR(100) UNIQUE NOT NULL
-- **display_name_en**: VARCHAR(100) NOT NULL
-- **display_name_ar**: VARCHAR(100) NOT NULL
-- **is_active**: BOOLEAN DEFAULT TRUE
-
-### Table: car_trims
-- **id**: BIGINT PRIMARY KEY
-- **model_id**: BIGINT NOT NULL (Foreign Key to car_models.id)
-- **name**: VARCHAR(50) NOT NULL
-- **display_name_en**: VARCHAR(100) NOT NULL
-- **display_name_ar**: VARCHAR(100) NOT NULL
-- **is_active**: BOOLEAN DEFAULT TRUE
-
-### Table: car_conditions
-- **id**: BIGINT PRIMARY KEY
-- **name**: VARCHAR(20) NOT NULL
-- **display_name_en**: VARCHAR(50) NOT NULL
-- **display_name_ar**: VARCHAR(50) NOT NULL
-
-### Table: drive_types
-- **id**: BIGINT PRIMARY KEY
-- **name**: VARCHAR(20) NOT NULL
-- **display_name_en**: VARCHAR(50) NOT NULL
-- **display_name_ar**: VARCHAR(50) NOT NULL
-
-### Table: body_styles
-- **id**: BIGINT PRIMARY KEY
-- **name**: VARCHAR(20) NOT NULL
-- **display_name_en**: VARCHAR(50) NOT NULL
-- **display_name_ar**: VARCHAR(50) NOT NULL
-
-### Table: fuel_types
-- **id**: BIGINT PRIMARY KEY
-- **name**: VARCHAR(20) NOT NULL
-- **display_name_en**: VARCHAR(50) NOT NULL
-- **display_name_ar**: VARCHAR(50) NOT NULL
-
-### Table: transmissions
-- **id**: BIGINT PRIMARY KEY
-- **name**: VARCHAR(20) NOT NULL
-- **display_name_en**: VARCHAR(50) NOT NULL
-- **display_name_ar**: VARCHAR(50) NOT NULL
-
-### Table: seller_types
-- **id**: BIGINT PRIMARY KEY
-- **name**: VARCHAR(20) NOT NULL
-- **display_name_en**: VARCHAR(50) NOT NULL
-- **display_name_ar**: VARCHAR(50) NOT NULL
-
-## Pricing & Ad Services Tables
-
-### Table: ad_packages
-- **id**: BIGINT PRIMARY KEY
-- **name**: VARCHAR(50) NOT NULL
-- **description**: TEXT
-- **price**: DECIMAL(10, 2) NOT NULL
-- **duration_days**: INTEGER NOT NULL
-- **max_photos**: INTEGER NOT NULL
-- **is_featured**: BOOLEAN DEFAULT FALSE
-- **is_active**: BOOLEAN DEFAULT TRUE
-- **created_at**: TIMESTAMP NOT NULL
-- **updated_at**: TIMESTAMP NOT NULL
-
-### Table: ad_services
-- **id**: BIGINT PRIMARY KEY
-- **name**: VARCHAR(50) NOT NULL
-- **description**: TEXT
-- **price**: DECIMAL(10, 2) NOT NULL
-- **is_active**: BOOLEAN DEFAULT TRUE
-- **created_at**: TIMESTAMP NOT NULL
-- **updated_at**: TIMESTAMP NOT NULL
-
-### Table: listing_packages
-- **id**: BIGINT PRIMARY KEY
-- **listing_id**: BIGINT NOT NULL (Foreign Key to car_listings.id)
-- **package_id**: BIGINT NOT NULL (Foreign Key to ad_packages.id)
-- **purchase_date**: TIMESTAMP NOT NULL
-- **expiry_date**: TIMESTAMP NOT NULL
-- **price_paid**: DECIMAL(10, 2) NOT NULL
-- **created_at**: TIMESTAMP NOT NULL
-- **updated_at**: TIMESTAMP NOT NULL
-
-### Table: listing_services
-- **id**: BIGINT PRIMARY KEY
-- **listing_id**: BIGINT NOT NULL (Foreign Key to car_listings.id)
-- **service_id**: BIGINT NOT NULL (Foreign Key to ad_services.id)
-- **purchase_date**: TIMESTAMP NOT NULL
-- **price_paid**: DECIMAL(10, 2) NOT NULL
-- **created_at**: TIMESTAMP NOT NULL
-
-## Audit & System Tables
-
-### Table: user_activity_logs
-- **id**: BIGINT PRIMARY KEY
-- **user_id**: BIGINT (Foreign Key to users.id)
-- **action**: VARCHAR(50) NOT NULL
-- **entity_type**: VARCHAR(50) NOT NULL
-- **entity_id**: BIGINT
-- **details**: TEXT
-- **ip_address**: VARCHAR(45)
-- **user_agent**: VARCHAR(255)
-- **created_at**: TIMESTAMP NOT NULL
-
-## Relationships
-
-**Geographic Hierarchy:**
-- **countries** has many **governorates**
-- **governorates** belongs to **countries**
-- **governorates** has many **locations**
-- **locations** belongs to **governorates**
-
-**Other Relationships:**
-- **users** has many **car_listings**
-- **users** has many **roles** through **user_roles**
-- **car_listings** belongs to **users** (seller)
-- **car_listings** belongs to **car_models**
-- **car_listings** belongs to **locations**
-- **car_listings** belongs to **governorates**
-- **car_listings** belongs to **car_conditions**
-- **car_listings** belongs to **body_styles**
-- **car_listings** belongs to **transmissions**
-- **car_listings** belongs to **fuel_types**
-- **car_listings** belongs to **drive_types**
-- **car_listings** has many **listing_media**
-- **car_listings** has many **ad_packages** through **listing_packages**
-- **car_listings** has many **ad_services** through **listing_services**
-- **car_brands** has many **car_models**
-- **car_models** has many **car_trims**
-- **car_models** belongs to **car_brands**
-- **locations** belongs to **governorates**
-- **car_trims** belongs to **car_models**
-
-## Entity Relationship Diagram (ERD)
-
-```
-[users] 1——* [car_listings] *——1 [locations]
-   |                |                
-   |                |——————*——1 [governorates]
-   |                |——————*——1 [car_conditions]
-   |                |——————*——1 [body_styles]
-   |                |——————*——1 [transmissions]
-   |                |——————*——1 [fuel_types]
-   |                |——————*——1 [drive_types]
-   |                |——————*——1 [car_models]
-   |                |
-   |                *
-   |         [listing_media]
-   |                |
-   |                |
-[user_roles]        |
-   |                |
-   |                |
-[roles]      [listing_packages]
-                    |
-                    |
-              [ad_packages]
-                    
-[car_brands] 1——* [car_models] 1——* [car_trims]
+```mermaid
+erDiagram
+    %% Core User Management
+    users ||--o{ user_roles : has
+    roles ||--o{ user_roles : assigned_to
+    users ||--o{ car_listings : creates
+    
+    %% Geographic Hierarchy
+    countries ||--o{ governorates : contains
+    governorates ||--o{ locations : contains
+    
+    %% Car Data Hierarchy (Current Implementation)
+    makes ||--o{ models : has
+    
+    %% Car Listings Core
+    car_listings }o--|| models : references
+    car_listings }o--|| locations : located_in
+    car_listings }o--|| governorates : within
+    car_listings }o--|| car_conditions : has
+    car_listings }o--|| body_styles : has
+    car_listings }o--|| transmissions : has
+    car_listings }o--|| fuel_types : has
+    car_listings }o--|| drive_types : has
+    car_listings }o--|| seller_types : sold_by
+    
+    %% Media & Files
+    car_listings ||--o{ listing_media : contains
+    
+    %% User Interactions
+    users ||--o{ favorites : saves
+    car_listings ||--o{ favorites : favorited_by
+    users ||--o{ messages : sends
+    users ||--o{ messages : receives
+    car_listings ||--o{ messages : about
+    
+    %% Saved Searches
+    users ||--o{ saved_searches : creates
 ```
 
-## Notes
+---
 
-1. **Indexing Strategy**:
-   - Indexes on foreign keys (e.g., `seller_id`, `location_id`, `governorate_id` in `car_listings`)
-   - Indexes on commonly filtered fields (e.g., `brand`, `model`, `price` in `car_listings`)
-   - Indexes on denormalized search fields (e.g., `brand_name_en`, `brand_name_ar`, `model_name_en`, `model_name_ar`, `governorate_name_en`, `governorate_name_ar`)
-   - Full-text search indexes on description fields
+## 🏗️ **CORE TABLES**
 
-2. **Data Migrations**:
-   - Flyway will be used to manage database schema versioning
-   - Migration scripts will be stored in `src/main/resources/db/migration`
+### **users**
+```sql
+CREATE TABLE users (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(120) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-3. **Data Integrity**:
-   - Foreign key constraints ensure referential integrity
-   - Cascade delete for certain relationships (e.g., listing images when a listing is deleted)
+### **roles & user_roles**
+```sql
+CREATE TABLE roles (
+    id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    name VARCHAR(20) UNIQUE NOT NULL
+);
 
-## Database Triggers
+CREATE TABLE user_roles (
+    user_id BIGINT NOT NULL,
+    role_id INTEGER NOT NULL,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
+);
+```
 
-### Timestamp Auto-Update Triggers
+---
 
-The following tables have triggers to automatically update their `updated_at` timestamp whenever a row is updated:
+## 🌍 **GEOGRAPHIC TABLES**
 
-- **users** - `update_users_modtime`
-- **locations** - `update_locations_modtime`
-- **governorates** - `update_governorates_modtime`
-- **car_listings** - `update_car_listings_modtime`
-- **listing_packages** - `update_listing_packages_modtime`
-- **ad_packages** - `update_ad_packages_modtime`
-- **ad_services** - `update_ad_services_modtime`
+### **locations**
+```sql
+CREATE TABLE locations (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    display_name_en VARCHAR(100) NOT NULL,
+    display_name_ar VARCHAR(100) NOT NULL,
+    slug VARCHAR(100) NOT NULL UNIQUE,
+    country_code VARCHAR(2) NOT NULL,
+    region VARCHAR(100),
+    latitude DECIMAL(10, 8),
+    longitude DECIMAL(11, 8),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-All these triggers use the `update_modified_column()` function which sets `NEW.updated_at = now()`.
+**Design Note**: Both `governorate_id` and `location_id` are stored in `car_listings` for **query performance optimization**. This intentional redundancy allows:
+- Fast filtering by governorate without joins
+- Precise location filtering when needed
+- Backward compatibility with existing queries
 
-### Denormalized Field Maintenance Triggers
+---
 
-The following triggers maintain denormalized fields for optimized search:
+## 🚗 **CAR DATA TABLES (Current Implementation)**
 
-- **car_listing_before_insert_update** - Updates denormalized fields in car_listings (brand_name_en, brand_name_ar, model_name_en, model_name_ar, governorate_name_en, governorate_name_ar) before insert or update, pulling values from the referenced car_models and car_brands tables.
+### **makes** (Car Brands)
+```sql
+CREATE TABLE makes (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    display_name_en VARCHAR(255),
+    display_name_ar VARCHAR(255),
+    country_of_origin VARCHAR(255),
+    logo_url VARCHAR(255),
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-- **car_model_after_update** - Updates denormalized model name fields in car_listings when a car model's display names change.
+**Entity Mapping**: 
+- Java Entity: `CarBrand` 
+- Maps to: `@Table(name = "makes")`
 
-- **car_brand_after_update** - Updates denormalized brand name fields in car_listings when a car brand's display names change.
+### **models** (Car Models)
+```sql
+CREATE TABLE models (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    make_id BIGINT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    display_name_en VARCHAR(255),
+    display_name_ar VARCHAR(255),
+    year_start INT,
+    year_end INT,
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (make_id) REFERENCES makes(id) ON DELETE CASCADE
+);
+```
 
-- **governorate_after_update** - Updates denormalized governorate names in car_listings when a governorate's name changes.
+**Entity Mapping**: 
+- Java Entity: `CarModel`
+- Maps to: `@Table(name = "models")`
+- Foreign Key: `@JoinColumn(name = "make_id")`
 
-## Search Optimization Strategy
+---
 
-The database schema has been optimized for high-performance search operations through strategic denormalization and indexing:
+## 📝 **CAR LISTINGS**
 
-1. **Denormalized Fields with Referential Integrity**:
-   - The `car_listings` table includes both foreign keys to reference tables and denormalized fields for brand, model, and governorate names.
-   - Foreign keys (`model_id`, `governorate_id`) maintain data integrity and proper relationships.
-   - Denormalized fields (`brand_name_en`, `brand_name_ar`, `model_name_en`, `model_name_ar`) enable efficient searching without joins.
-   - This approach combines the benefits of normalized data structure with the performance of denormalization.
+### **car_listings**
+The core table for car advertisements with strategic denormalization.
 
-2. **Automatic Synchronization**:
-   - Database triggers ensure that denormalized fields stay in sync with their source tables.
-   - When updates occur in reference tables (car_brands, car_models, governorates), the changes propagate to all affected car_listings.
+```sql
+CREATE TABLE car_listings (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'USD',
+    mileage INT NOT NULL,
+    model_year INT NOT NULL,
+    
+    -- Foreign Key References
+    seller_id BIGINT NOT NULL,
+    model_id BIGINT NOT NULL,
+    location_id BIGINT,
+    governorate_id BIGINT,
+    condition_id BIGINT,
+    body_style_id BIGINT,
+    transmission_id BIGINT,
+    fuel_type_id BIGINT,
+    drive_type_id BIGINT,
+    seller_type_id BIGINT,
+    
+    -- Denormalized Fields for Search Performance
+    brand_name_en VARCHAR(100),
+    brand_name_ar VARCHAR(100),
+    model_name_en VARCHAR(100),
+    model_name_ar VARCHAR(100),
+    governorate_name_en VARCHAR(100),
+    governorate_name_ar VARCHAR(100),
+    
+    -- Car Specifications
+    vin VARCHAR(17),
+    stock_number VARCHAR(50),
+    exterior_color VARCHAR(50),
+    doors INTEGER,
+    cylinders INTEGER,
+    
+    -- Status Fields
+    approved BOOLEAN DEFAULT FALSE,
+    sold BOOLEAN DEFAULT FALSE,
+    archived BOOLEAN DEFAULT FALSE,
+    expired BOOLEAN DEFAULT FALSE,
+    is_user_active BOOLEAN DEFAULT TRUE,
+    
+    -- Timestamps
+    expiration_date TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Foreign Key Constraints
+    FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (model_id) REFERENCES models(id) ON DELETE RESTRICT,
+    FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE SET NULL,
+    FOREIGN KEY (governorate_id) REFERENCES governorates(id) ON DELETE SET NULL
+);
+```
 
-3. **Optimized Indexes**:
-   - Specialized indexes support various search patterns:
-     - `idx_car_listings_brand_name_en` and `idx_car_listings_brand_name_ar` for brand searches
-     - `idx_car_listings_model_name_en` and `idx_car_listings_model_name_ar` for model searches
-     - `idx_car_listings_governorate_name_en` and `idx_car_listings_governorate_name_ar` for location searches
-     - Composite indexes for common search combinations
+**Design Rationale:**
+- **Denormalized Search Fields**: Brand, model, and governorate names stored directly for fast searching
+- **Intentional Redundancy**: Both `location_id` and `governorate_id` for query flexibility
+- **Status Tracking**: Multiple boolean flags for different listing states
 
-4. **Bilingual Support**:
-   - All search-related fields have both English (`_en`) and Arabic (`_ar`) versions.
-   - Language-specific indexing ensures optimal performance regardless of the user's language preference.
+### **listing_media**
+```sql
+CREATE TABLE listing_media (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    listing_id BIGINT NOT NULL,
+    file_key VARCHAR(255) NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    content_type VARCHAR(100) NOT NULL,
+    file_size BIGINT NOT NULL,
+    sort_order INTEGER DEFAULT 0,
+    is_primary BOOLEAN DEFAULT FALSE,
+    media_type VARCHAR(20) NOT NULL CHECK (media_type IN ('image', 'video')),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (listing_id) REFERENCES car_listings(id) ON DELETE CASCADE
+);
+```
 
-5. **Hybrid Approach**:
-   - The schema maintains standard relational integrity through foreign keys while leveraging denormalization for performance.
-   - This hybrid approach provides the benefits of a NoSQL-like performance for searches while maintaining the data integrity of a relational database.
+---
 
-This optimization strategy is specifically designed for the most common search patterns in the car marketplace application: quick search by brand, model, and location (governorate).
+## 🔧 **REFERENCE TABLES**
+
+All reference tables follow the same pattern with bilingual support:
+
+### **car_conditions**
+```sql
+CREATE TABLE car_conditions (
+    id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    name VARCHAR(20) UNIQUE NOT NULL,
+    display_name_en VARCHAR(50) NOT NULL,
+    display_name_ar VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) NOT NULL
+);
+```
+
+### **body_styles**
+```sql
+CREATE TABLE body_styles (
+    id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    name VARCHAR(20) UNIQUE NOT NULL,
+    display_name_en VARCHAR(50) NOT NULL,
+    display_name_ar VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) NOT NULL
+);
+```
+
+### **fuel_types**
+```sql
+CREATE TABLE fuel_types (
+    id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    name VARCHAR(20) UNIQUE NOT NULL,
+    display_name_en VARCHAR(50) NOT NULL,
+    display_name_ar VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) NOT NULL
+);
+```
+
+### **transmissions**
+```sql
+CREATE TABLE transmissions (
+    id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    name VARCHAR(20) UNIQUE NOT NULL,
+    display_name_en VARCHAR(50) NOT NULL,
+    display_name_ar VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) NOT NULL
+);
+```
+
+### **drive_types**
+```sql
+CREATE TABLE drive_types (
+    id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    name VARCHAR(20) UNIQUE NOT NULL,
+    display_name_en VARCHAR(50) NOT NULL,
+    display_name_ar VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) NOT NULL
+);
+```
+
+### **seller_types**
+```sql
+CREATE TABLE seller_types (
+    id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    name VARCHAR(20) UNIQUE NOT NULL,
+    display_name_en VARCHAR(50) NOT NULL,
+    display_name_ar VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) NOT NULL
+);
+```
+
+**Design Notes:**
+- **No updated_at**: Reference tables rarely change, so no update triggers needed
+- **Consistent Structure**: All reference tables follow identical pattern
+- **Bilingual Support**: English and Arabic display names for all reference data
+
+---
+
+## 💬 **USER INTERACTION TABLES**
+
+### **favorites**
+```sql
+CREATE TABLE favorites (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    listing_id BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (listing_id) REFERENCES car_listings(id) ON DELETE CASCADE,
+    
+    UNIQUE(user_id, listing_id)
+);
+```
+
+### **messages**
+```sql
+CREATE TABLE messages (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    sender_id BIGINT NOT NULL,
+    receiver_id BIGINT NOT NULL,
+    listing_id BIGINT,
+    content TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (listing_id) REFERENCES car_listings(id) ON DELETE SET NULL
+);
+```
+
+### **saved_searches**
+```sql
+CREATE TABLE saved_searches (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    name VARCHAR(255),
+    search_parameters TEXT NOT NULL,
+    email_notifications_enabled BOOLEAN DEFAULT TRUE,
+    last_notified_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+```
+
+---
+
+## 🔧 **DATABASE TRIGGERS & FUNCTIONS**
+
+### **Automatic Timestamp Updates**
+
+```sql
+-- Function to update modified timestamp
+CREATE OR REPLACE FUNCTION update_modified_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+```
+
+### **Tables with Automatic Timestamp Updates**
+- ✅ `users` - User profile changes
+- ✅ `locations` - Location data updates
+- ✅ `makes` - Brand information changes
+- ✅ `models` - Model data updates
+- ✅ `car_listings` - Listing modifications
+- ✅ `messages` - Message updates
+- ✅ `saved_searches` - Search criteria changes
+
+### **Tables WITHOUT Automatic Updates (By Design)**
+- ❌ `roles` - Static system roles
+- ❌ `user_roles` - Role assignments are immutable
+- ❌ `car_conditions` - Static reference data
+- ❌ `body_styles` - Static reference data
+- ❌ `fuel_types` - Static reference data
+- ❌ `transmissions` - Static reference data
+- ❌ `drive_types` - Static reference data
+- ❌ `seller_types` - Static reference data
+- ❌ `listing_media` - File metadata is immutable
+- ❌ `favorites` - Simple timestamp on creation only
+
+### **Denormalization Sync Triggers**
+
+```sql
+-- Sync denormalized fields in car_listings when makes/models change
+CREATE TRIGGER car_listing_before_insert_update
+    BEFORE INSERT OR UPDATE ON car_listings
+    FOR EACH ROW EXECUTE FUNCTION sync_denormalized_fields();
+
+CREATE TRIGGER make_after_update
+    AFTER UPDATE ON makes
+    FOR EACH ROW EXECUTE FUNCTION sync_brand_names_in_listings();
+
+CREATE TRIGGER model_after_update
+    AFTER UPDATE ON models
+    FOR EACH ROW EXECUTE FUNCTION sync_model_names_in_listings();
+```
+
+---
+
+## 🚀 **PERFORMANCE OPTIMIZATION**
+
+### **Strategic Denormalization**
+
+**Why Denormalize?**
+The `car_listings` table includes denormalized fields for search performance:
+
+```sql
+-- Fast search without joins (denormalized)
+SELECT * FROM car_listings 
+WHERE brand_name_en ILIKE '%toyota%' 
+  AND approved = true;
+
+-- vs expensive join query
+SELECT cl.* FROM car_listings cl
+JOIN models m ON cl.model_id = m.id
+JOIN makes mk ON m.make_id = mk.id
+WHERE mk.display_name_en ILIKE '%toyota%';
+```
+
+**Redundancy by Design:**
+- `governorate_id` + `location_id`: Allows filtering by either level without joins
+- Brand/model names: Eliminates joins for search queries
+- Governorate names: Fast location-based filtering
+
+### **Index Strategy**
+
+```sql
+-- Performance Indexes
+CREATE INDEX idx_car_listings_seller ON car_listings(seller_id);
+CREATE INDEX idx_car_listings_model ON car_listings(model_id);
+CREATE INDEX idx_car_listings_location ON car_listings(location_id);
+CREATE INDEX idx_car_listings_governorate ON car_listings(governorate_id);
+CREATE INDEX idx_car_listings_price ON car_listings(price);
+
+-- Search Optimization Indexes
+CREATE INDEX idx_car_listings_brand_name_en ON car_listings(brand_name_en);
+CREATE INDEX idx_car_listings_brand_name_ar ON car_listings(brand_name_ar);
+CREATE INDEX idx_car_listings_model_name_en ON car_listings(model_name_en);
+CREATE INDEX idx_car_listings_model_name_ar ON car_listings(model_name_ar);
+
+-- Status Indexes
+CREATE INDEX idx_car_listings_approved ON car_listings(approved) WHERE approved = true;
+CREATE INDEX idx_car_listings_active ON car_listings(approved, sold, archived, expired) 
+    WHERE approved = true AND sold = false AND archived = false AND expired = false;
+```
+
+---
+
+## 📋 **MIGRATION STRATEGY**
+
+### **Current Migration Files**
+- `V1__Initial_Schema.sql` - Core tables and structure
+- `V2__reference_data.sql` - Reference data population
+- `V7__Refactor_Geographic_Hierarchy.sql` - Geographic improvements
+- `V15__create_messaging_tables.sql` - Messaging system
+- `V22__Seed_Syrian_Car_Brands_and_Models.sql` - Syrian market data
+- `V23__Seed_Comprehensive_Syrian_Car_Brands_and_Models.sql` - Extended data
+- `V24__Seed_Professional_Syrian_Car_Data.sql` - Production data
+
+### **Data Integrity Rules**
+
+```sql
+-- Cascade Rules Summary (Current Implementation):
+-- users -> car_listings: CASCADE (delete user removes their listings)
+-- users -> user_roles: CASCADE (delete user removes role assignments)
+-- car_listings -> listing_media: CASCADE (delete listing removes media)
+-- makes -> models: CASCADE (delete make removes models)
+-- models -> car_listings: RESTRICT (cannot delete model with listings)
+-- locations -> car_listings: SET NULL (listings survive location deletion)
+```
+
+---
+
+## 🎯 **SUMMARY**
+
+### **Current Implementation Highlights**
+
+1. **Working Schema**: Uses `makes`/`models` tables as currently implemented
+2. **Entity Compatibility**: Matches existing `CarBrand`/`CarModel` entity mappings
+3. **Performance Optimized**: Denormalized fields for fast searching
+4. **Bilingual Support**: English/Arabic variants for all user-facing content
+5. **Strategic Redundancy**: Performance over pure normalization where justified
+
+### **Key Relationships**
+
+- **Car Hierarchy**: `makes` (1) → `models` (many)
+- **Listings**: Reference `models` table via `model_id`
+- **Geographic**: Both `location_id` and `governorate_id` for flexibility
+- **Denormalized Search**: Brand/model names stored directly in listings
+
+**This schema documentation reflects the actual working implementation and will not break existing functionality.** 🚀
+
+---
+
+## 📝 **FUTURE IMPROVEMENTS (Non-Breaking)**
+
+When ready for enhancements, consider:
+- Adding `created_at`/`updated_at` to reference tables
+- Renaming `makes`/`models` to `car_brands`/`car_models` via migration
+- Adding transaction tables for payment system
+- Enhanced audit logging tables
+
+*These improvements can be implemented gradually without breaking existing functionality.*
