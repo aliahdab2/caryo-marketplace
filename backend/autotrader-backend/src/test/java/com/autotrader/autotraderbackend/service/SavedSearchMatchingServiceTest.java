@@ -160,6 +160,8 @@ class SavedSearchMatchingServiceTest {
         // Arrange
         Map<String, Object> filters = savedSearch.getFilters();
         filters.put("transmissionSlug", "automatic"); // Use transmissionSlug instead of transmissionId
+        // With AttributeConverter, we can directly set the Map without manual conversion
+        savedSearch.setFilters(filters);
 
         Transmission automatic = new Transmission();
         automatic.setId(1L);
@@ -175,6 +177,8 @@ class SavedSearchMatchingServiceTest {
 
         // Test with non-matching transmission
         filters.put("transmissionSlug", "manual"); // Different slug
+        // With AttributeConverter, we can directly set the Map without manual conversion
+        savedSearch.setFilters(filters);
         result = matchingService.matches(savedSearch, carListing);
         assertFalse(result);
     }
