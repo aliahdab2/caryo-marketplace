@@ -33,7 +33,11 @@ public class CacheConfig {
             "transmissionTypes",   // Transmission types (Manual, Automatic, etc.)
             "driveTypes",          // Drive types (FWD, AWD, etc.)
             "carConditions",       // Car conditions (New, Used, etc.)
-            
+
+            // CarQuery API caches (for external data)
+            "carqueryMakes",       // CarQuery API brands cache
+            "carqueryModels",      // CarQuery API models cache
+
             // System reference data
             "sellerTypes"
         );
