@@ -4,13 +4,12 @@ import com.autotrader.autotraderbackend.config.CarQueryConfiguration;
 import com.autotrader.autotraderbackend.dto.CarQueryMakeResponse;
 import com.autotrader.autotraderbackend.dto.CarQueryModelResponse;
 import com.autotrader.autotraderbackend.exception.CarQueryConnectionException;
-import com.autotrader.autotraderbackend.exception.CarQueryException;
 import com.autotrader.autotraderbackend.exception.CarQueryValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.annotation.Cacheable;
+// import org.springframework.cache.annotation.Cacheable; // Temporarily disabled
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -19,6 +18,10 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.RestClientException;
 
 import jakarta.annotation.PostConstruct;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * CarQuery API client for fetching comprehensive car data
@@ -78,7 +81,7 @@ public class CarQueryApiClient {
     /**
      * Get all car makes from CarQuery API
      */
-    @Cacheable(value = "carqueryMakes", unless = "#result == null")
+    // @Cacheable(value = "carqueryMakes", unless = "#result == null") // Temporarily disabled
     @Retryable(
         retryFor = {RestClientException.class},
         maxAttemptsExpression = "#{@carQueryConfiguration.retry.maxAttempts}",
@@ -88,14 +91,24 @@ public class CarQueryApiClient {
         log.info("Fetching all car makes from CarQuery API");
 
         try {
-            String url = buildUrl("?cmd=getMakes");
+            applyPacingDelay();
+            // CarQuery API requires a year parameter to return data
+            String url = buildUrl("?cmd=getMakes&year=2020");
             ResponseEntity<CarQueryMakeResponse> response = carQueryRestTemplate.getForEntity(url, CarQueryMakeResponse.class);
 
             if (response.getBody() != null && response.getBody().getMakes() != null) {
                 log.info("Successfully fetched {} makes from CarQuery API", response.getBody().getMakes().size());
 
+                // Filter out brands that were established before 1990
+                List<CarQueryMakeResponse.CarQueryMake> filteredMakes = filterModernBrands(response.getBody().getMakes());
+                log.info("After filtering for post-1990 brands: {} makes remaining", filteredMakes.size());
+
+                // Create a new response with filtered makes
+                CarQueryMakeResponse filteredResponse = new CarQueryMakeResponse();
+                filteredResponse.setMakes(filteredMakes);
+
                 // Validate response data
-                CarQueryDataValidationService.ValidationResult validation = validationService.validateMakeResponse(response.getBody());
+                CarQueryDataValidationService.ValidationResult validation = validationService.validateMakeResponse(filteredResponse);
                 if (!validation.isValid()) {
                     throw new CarQueryValidationException("getAllMakes",
                         validation.getIssues(), validation.getWarnings());
@@ -105,24 +118,79 @@ public class CarQueryApiClient {
                     log.warn("CarQuery API response validation warnings: {}", String.join(", ", validation.getWarnings()));
                 }
 
-                return response.getBody();
+                return filteredResponse;
             } else {
                 log.warn("CarQuery API returned empty or invalid response for makes");
                 return null;
             }
 
         } catch (RestClientException e) {
-            String errorContext = String.format("CarQuery API call failed - URL: %s, Timeout: %ds, Operation: getAllMakes", 
+            String errorContext = String.format("CarQuery API call failed - URL: %s, Timeout: %ds, Operation: getAllMakes",
                 config.getBaseUrl(), config.getTimeout());
             log.error("{}, Error: {}", errorContext, e.getMessage(), e);
             throw new CarQueryConnectionException("getAllMakes", config.getTimeout(), e);
         }
     }
 
+    private void applyPacingDelay() {
+        try {
+            int base = config.getRateLimit().getPerRequestDelayMs();
+            int jitter = config.getRateLimit().getJitterMs();
+            if (base > 0) {
+                long delay = base + (jitter > 0 ? (long)(Math.random() * jitter) : 0L);
+                Thread.sleep(delay);
+            }
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
+     * Filter out car brands that were established before 1990
+     * This keeps the marketplace focused on modern vehicles
+     * Note: Only filters brands that are NOT already in our database
+     */
+    private List<CarQueryMakeResponse.CarQueryMake> filterModernBrands(List<CarQueryMakeResponse.CarQueryMake> makes) {
+        if (makes == null || makes.isEmpty()) {
+            return makes;
+        }
+
+        // List of brands that were established before 1990 and should be filtered out
+        // These are typically luxury/niche brands that may not be relevant for mainstream marketplace
+        Set<String> pre1990Brands = Set.of(
+            "rolls-royce", // 1904 - Ultra luxury, very niche
+            "bentley",     // 1919 - Ultra luxury, very niche
+            "jaguar",      // 1922 - Luxury brand, but established pre-1990
+            "aston-martin", // 1913 - Luxury/sports, very niche
+            "lamborghini", // 1963 - Supercar brand, established pre-1990
+            "ferrari",     // 1947 - Supercar brand, established pre-1990
+            "maserati",    // 1914 - Luxury brand, established pre-1990
+            "lotus",       // 1948 - Sports car brand, established pre-1990
+            "mclaren",     // 1963 - Supercar brand, established pre-1990
+            "porsche"      // 1931 - Sports car brand, established pre-1990
+        );
+
+        List<CarQueryMakeResponse.CarQueryMake> filteredMakes = makes.stream()
+            .filter(make -> {
+                String makeId = make.getMakeId().toLowerCase();
+                boolean isModern = !pre1990Brands.contains(makeId);
+                if (!isModern) {
+                    log.debug("Filtering out pre-1990 brand: {} (niche/luxury brand)", make.getMakeDisplay());
+                }
+                return isModern;
+            })
+            .collect(Collectors.toList());
+
+        log.info("Applied 1990+ filtering: {} brands → {} modern brands (filtered {} niche/pre-1990 brands)",
+                makes.size(), filteredMakes.size(), makes.size() - filteredMakes.size());
+
+        return filteredMakes;
+    }
+
     /**
      * Get models for a specific make
      */
-    @Cacheable(value = "carqueryModels", key = "#makeId", unless = "#result == null")
+    // @Cacheable(value = "carqueryModels", key = "#makeId", unless = "#result == null") // Temporarily disabled
     @Retryable(
         retryFor = {RestClientException.class},
         maxAttemptsExpression = "#{@carQueryConfiguration.retry.maxAttempts}",
@@ -191,17 +259,38 @@ public class CarQueryApiClient {
     }
 
     /**
-     * Test API connectivity
+     * Test API connectivity with a lightweight request
      */
     public boolean testConnection() {
         try {
             log.info("Testing CarQuery API connection...");
-            CarQueryMakeResponse response = getAllMakes();
-            boolean success = response != null && response.getMakes() != null && !response.getMakes().isEmpty();
+
+            // Use a lightweight test - CarQuery API requires year parameter to return data
+            String testUrl = config.getBaseUrl() + "?cmd=getMakes&year=2020"; // Year parameter is required
+            log.debug("Testing connectivity with URL: {}", testUrl);
+
+            // Use CarQuery-specific RestTemplate with proper headers and SSL configuration
+            ResponseEntity<String> response = carQueryRestTemplate.getForEntity(testUrl, String.class);
+
+            log.debug("Response status: {}", response.getStatusCode());
+            log.debug("Response body length: {}", response.getBody() != null ? response.getBody().length() : 0);
+
+            boolean success = response.getStatusCode().is2xxSuccessful() &&
+                             response.getBody() != null &&
+                             response.getBody().contains("Makes") &&
+                             !response.getBody().contains("\"Makes\":[]"); // Check for non-empty data
+
             log.info("CarQuery API connection test: {}", success ? "SUCCESS" : "FAILED");
+            if (success) {
+                log.info("✅ CarQuery API is accessible and responding with data");
+            } else {
+                log.warn("⚠️ CarQuery API responded but returned empty data. Status: {}, Body: {}",
+                         response.getStatusCode(), response.getBody());
+            }
             return success;
         } catch (Exception e) {
-            log.error("CarQuery API connection test failed: {}", e.getMessage());
+            log.error("CarQuery API connection test failed: {} - Will use fallback data sources", e.getMessage());
+            log.debug("Full exception details:", e);
             return false;
         }
     }

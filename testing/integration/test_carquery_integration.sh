@@ -49,13 +49,13 @@ echo -e "\n${BLUE}Step 3: Check Current Database State${NC}"
 echo "---------------------------------------"
 
 # Check current makes count
-MAKES_COUNT=$(curl -s "${BASE_URL}/api/admin/brands" \
+MAKES_COUNT=$(curl -s "${BASE_URL}/api/admin/car-brands" \
   -H "$AUTH_HEADER" | grep -o '"totalElements":[0-9]*' | cut -d':' -f2)
 
 echo "Current makes in database: ${MAKES_COUNT:-0}"
 
 # Check current models count
-MODELS_COUNT=$(curl -s "${BASE_URL}/api/admin/models" \
+MODELS_COUNT=$(curl -s "${BASE_URL}/api/admin/car-models" \
   -H "$AUTH_HEADER" | grep -o '"totalElements":[0-9]*' | cut -d':' -f2)
 
 echo "Current models in database: ${MODELS_COUNT:-0}"
@@ -96,10 +96,10 @@ echo "-----------------------------------"
 sleep 2 # Give time for async operations to complete
 
 # Check updated counts
-NEW_MAKES_COUNT=$(curl -s "${BASE_URL}/api/admin/brands" \
+NEW_MAKES_COUNT=$(curl -s "${BASE_URL}/api/admin/car-brands" \
   -H "$AUTH_HEADER" | grep -o '"totalElements":[0-9]*' | cut -d':' -f2)
 
-NEW_MODELS_COUNT=$(curl -s "${BASE_URL}/api/admin/models" \
+NEW_MODELS_COUNT=$(curl -s "${BASE_URL}/api/admin/car-models" \
   -H "$AUTH_HEADER" | grep -o '"totalElements":[0-9]*' | cut -d':' -f2)
 
 echo "Makes after import: ${NEW_MAKES_COUNT:-0} (was: ${MAKES_COUNT:-0})"
@@ -117,7 +117,7 @@ echo "-------------------------------------"
 
 # Test getting brands with pagination
 echo "Testing brand listing..."
-BRANDS_RESPONSE=$(curl -s "${BASE_URL}/api/admin/brands?page=0&size=5" \
+BRANDS_RESPONSE=$(curl -s "${BASE_URL}/api/admin/car-brands?page=0&size=5" \
   -H "$AUTH_HEADER")
 
 if echo "$BRANDS_RESPONSE" | grep -q '"content":'; then
@@ -131,7 +131,7 @@ fi
 
 # Test getting models with pagination
 echo "Testing model listing..."
-MODELS_RESPONSE=$(curl -s "${BASE_URL}/api/admin/models?page=0&size=5" \
+MODELS_RESPONSE=$(curl -s "${BASE_URL}/api/admin/car-models?page=0&size=5" \
   -H "$AUTH_HEADER")
 
 if echo "$MODELS_RESPONSE" | grep -q '"content":'; then
@@ -148,7 +148,7 @@ echo "-----------------------------------"
 
 # Test searching brands
 echo "Testing brand search..."
-SEARCH_RESPONSE=$(curl -s "${BASE_URL}/api/admin/brands/search?query=toyota" \
+SEARCH_RESPONSE=$(curl -s "${BASE_URL}/api/admin/car-brands/search?query=toyota" \
   -H "$AUTH_HEADER")
 
 if echo "$SEARCH_RESPONSE" | grep -q '"content":'; then

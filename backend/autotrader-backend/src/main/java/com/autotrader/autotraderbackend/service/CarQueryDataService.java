@@ -2,8 +2,6 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.dto.CarQueryMakeResponse;
 import com.autotrader.autotraderbackend.dto.CarQueryModelResponse;
-import com.autotrader.autotraderbackend.exception.CarQueryConnectionException;
-import com.autotrader.autotraderbackend.exception.CarQueryException;
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarModel;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,9 +57,15 @@ public class CarQueryDataService implements CarDataProvider {
     @Override
     public boolean testConnection() {
         if (carQueryApiClient == null) {
-            return false;
+            log.info("CarQuery API client not available, will use fallback data provider");
+            return false; // Return false so fallback data provider can be used
         }
-        return carQueryApiClient.testConnection();
+
+        boolean apiWorking = carQueryApiClient.testConnection();
+        if (!apiWorking) {
+            log.info("CarQuery API not responding with data, will use fallback data provider");
+        }
+        return apiWorking;
     }
 
     @Override
@@ -134,7 +137,7 @@ public class CarQueryDataService implements CarDataProvider {
             }
 
             // Validate data quality
-            List<String> issues = new ArrayList<>();
+            // List<String> issues = new ArrayList<>(); // Removed unused variable
             
             // Check for brands without Arabic names
             List<CarBrand> brandsWithoutArabic = carBrandService.getAllBrands().stream()
@@ -172,7 +175,7 @@ public class CarQueryDataService implements CarDataProvider {
     }
 
     /**
-     * Load complete car dataset from CarQuery API
+     * Load complete car dataset from CarQuery API - no fallback, clean data only
      */
     @CacheEvict(value = {"carBrands", "activeBrands", "carModels", "modelsByBrand"}, allEntries = true)
     public CarDataProvider.DataLoadResult loadCompleteCarDataset() {
@@ -183,12 +186,18 @@ public class CarQueryDataService implements CarDataProvider {
         try {
             // Check if CarQuery API client is available
             if (carQueryApiClient == null) {
-                throw new CarQueryException("CarQuery API client is not available. Make sure carquery.api.enabled=true");
+                log.error("CarQuery API client not available - no fallback data will be loaded");
+                result.setSuccess(false);
+                result.setErrorMessage("CarQuery API client not configured");
+                return result;
             }
 
             // Test API connection first
             if (!carQueryApiClient.testConnection()) {
-                throw new CarQueryConnectionException("testConnection", 30000);
+                log.error("CarQuery API not responding with data - no fallback data will be loaded");
+                result.setSuccess(false);
+                result.setErrorMessage("CarQuery API connection failed");
+                return result;
             }
 
             result.addResult("brands", loadAllBrands());
@@ -198,15 +207,16 @@ public class CarQueryDataService implements CarDataProvider {
             result.setSuccess(true);
 
         } catch (Exception e) {
-            String errorContext = String.format("CarQuery dataset load failed - Operation: loadCarDataset, API Available: %s", 
+            String errorContext = String.format("CarQuery dataset load failed - Operation: loadCarDataset, API Available: %s",
                 carQueryApiClient != null);
             log.error("❌ {}, Error: {}", errorContext, e.getMessage(), e);
             result.setSuccess(false);
-            result.setErrorMessage(errorContext + " - " + e.getMessage());
+            result.setErrorMessage(e.getMessage());
         }
 
         return result;
     }
+
 
     /**
      * Load all brands from CarQuery API with batch processing
@@ -229,23 +239,29 @@ public class CarQueryDataService implements CarDataProvider {
         // Process brands in batches to prevent transaction timeouts
         List<CarQueryMakeResponse.CarQueryMake> makes = response.getMakes();
         int batchSize = 50; // Process 50 brands at a time
+        int skippedBrands = 0;
+
+        log.info("Starting brand validation and import process for {} brands from CarQuery API", makes.size());
 
         for (int i = 0; i < makes.size(); i += batchSize) {
             int endIndex = Math.min(i + batchSize, makes.size());
             List<CarQueryMakeResponse.CarQueryMake> batch = makes.subList(i, endIndex);
 
             try {
-                processBrandBatch(batch);
-                result.incrementProcessed(batch.size());
-                log.debug("Processed brand batch {}-{}: {} brands", i, endIndex - 1, batch.size());
+                int batchSkipped = processBrandBatchWithValidation(batch);
+                skippedBrands += batchSkipped;
+                result.incrementProcessed(batch.size() - batchSkipped);
+                result.incrementFailed(batchSkipped);
+                log.debug("Processed brand batch {}-{}: {} brands ({} imported, {} skipped)", 
+                         i, endIndex - 1, batch.size(), batch.size() - batchSkipped, batchSkipped);
             } catch (Exception e) {
                 log.warn("Failed to process brand batch {}-{}: {}", i, endIndex - 1, e.getMessage());
                 result.incrementFailed(batch.size());
             }
         }
 
-        log.info("Processed {} brands from CarQuery API ({} successful, {} failed)",
-            makes.size(), result.getProcessed(), result.getFailed());
+        log.info("Brand import completed: {} total brands, {} imported, {} skipped (no models), {} failed",
+            makes.size(), result.getProcessed(), skippedBrands, result.getFailed() - skippedBrands);
         return result;
     }
 
@@ -262,6 +278,50 @@ public class CarQueryDataService implements CarDataProvider {
                 throw e; // Re-throw to rollback the batch transaction
             }
         }
+    }
+
+    /**
+     * Process a batch of brands with validation in a separate transaction
+     * @param batch List of makes to process
+     * @return Number of brands skipped due to no models
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private int processBrandBatchWithValidation(List<CarQueryMakeResponse.CarQueryMake> batch) {
+        int skippedCount = 0;
+        
+        for (CarQueryMakeResponse.CarQueryMake makeData : batch) {
+            try {
+                String brandSlug = makeData.getMakeId().toLowerCase();
+                String brandName = makeData.getMakeDisplay();
+
+                // Check if brand already exists
+                try {
+                    carBrandService.getBrandBySlug(brandSlug);
+                    log.debug("Brand '{}' already exists, skipping validation", brandName);
+                    continue;
+                } catch (Exception e) {
+                    try {
+                        carBrandService.getBrandByName(brandName);
+                        log.debug("Brand '{}' already exists by name, skipping validation", brandName);
+                        continue;
+                    } catch (Exception ex) {
+                        // Brand doesn't exist, validate and create
+                        if (validateBrandHasModels(makeData.getMakeId())) {
+                            createBrandDirectly(makeData);
+                            log.info("✅ Imported brand: {} (validated with models)", brandName);
+                        } else {
+                            skippedCount++;
+                            log.info("⏭️ Skipped brand: {} (no models available)", brandName);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to process brand {}: {}", makeData.getMakeDisplay(), e.getMessage());
+                throw e; // Re-throw to rollback the batch transaction
+            }
+        }
+        
+        return skippedCount;
     }
 
     /**
@@ -352,17 +412,10 @@ public class CarQueryDataService implements CarDataProvider {
         return totalModels;
     }
 
-    /**
-     * Get failed model count for reporting (simplified)
-     */
-    private int getFailedModelCountForBatch(CarQueryMakeResponse makesResponse) {
-        // For now, return 0 as we handle failures in batch processing
-        // In a production system, you'd want to track this more carefully
-        return 0;
-    }
 
     /**
      * Create or update a brand from CarQuery API data
+     * Only creates brands that have available models
      */
     private void createOrUpdateBrandFromCarQuery(CarQueryMakeResponse.CarQueryMake makeData) {
         try {
@@ -381,8 +434,12 @@ public class CarQueryDataService implements CarDataProvider {
                     log.debug("Brand '{}' already exists (name: {}), skipping", brandName, brandName);
                     return;
                 } catch (Exception ex) {
-                    // Brand doesn't exist, create it
-                    createBrandDirectly(makeData);
+                    // Brand doesn't exist, validate it has models before creating
+                    if (validateBrandHasModels(makeData.getMakeId())) {
+                        createBrandDirectly(makeData);
+                    } else {
+                        log.info("Skipping brand '{}' - no models available in CarQuery API", brandName);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -393,10 +450,83 @@ public class CarQueryDataService implements CarDataProvider {
     }
 
     /**
-     * Create brand directly in database
+     * Validate that a brand has available models in CarQuery API
+     * @param makeId The make ID to check
+     * @return true if the brand has models, false otherwise
+     */
+    private boolean validateBrandHasModels(String makeId) {
+        try {
+            log.debug("Validating models availability for brand: {}", makeId);
+
+            CarQueryModelResponse modelsResponse = carQueryApiClient.getModelsByMake(makeId);
+
+            if (modelsResponse == null || modelsResponse.getModels() == null || modelsResponse.getModels().isEmpty()) {
+                log.warn("❌ BRAND VALIDATION FAILED: '{}' has no models available - will not be imported", makeId);
+                return false;
+            }
+
+            int modelCount = modelsResponse.getModels().size();
+            log.debug("✅ BRAND VALIDATION PASSED: '{}' has {} models available", makeId, modelCount);
+            return true;
+
+        } catch (Exception e) {
+            log.warn("❌ BRAND VALIDATION ERROR: Cannot validate models for brand '{}': {} - will not be imported to maintain data quality", makeId, e.getMessage());
+            // For strict data quality, return false when we can't validate
+            return false;
+        }
+    }
+
+    /**
+     * Comprehensive data quality validation for brand creation
+     */
+    private boolean validateBrandDataQuality(CarQueryMakeResponse.CarQueryMake makeData) {
+        String englishName = makeData.getMakeDisplay();
+
+        // 1. Validate Arabic translation availability
+        String arabicName = arabicTranslationService.translateBrandToArabic(englishName);
+        if (arabicName == null || arabicName.trim().isEmpty()) {
+            log.warn("❌ DATA QUALITY CHECK FAILED: '{}' - No Arabic translation available", englishName);
+            return false;
+        }
+
+        // 2. Validate translation is actually different from English
+        if (arabicName.equalsIgnoreCase(englishName.trim())) {
+            log.warn("❌ DATA QUALITY CHECK FAILED: '{}' - Translation identical to English name", englishName);
+            return false;
+        }
+
+        // 3. Validate brand has models available
+        if (!validateBrandHasModels(makeData.getMakeId())) {
+            log.warn("❌ DATA QUALITY CHECK FAILED: '{}' - No models available for this brand", englishName);
+            return false;
+        }
+
+        // 4. Validate basic data integrity
+        if (englishName == null || englishName.trim().isEmpty()) {
+            log.warn("❌ DATA QUALITY CHECK FAILED: Empty or null English brand name");
+            return false;
+        }
+
+        if (makeData.getMakeId() == null || makeData.getMakeId().trim().isEmpty()) {
+            log.warn("❌ DATA QUALITY CHECK FAILED: Empty or null make ID");
+            return false;
+        }
+
+        log.info("✅ DATA QUALITY CHECK PASSED: '{}' -> '{}' - All validations successful", englishName, arabicName);
+        return true;
+    }
+
+    /**
+     * Create brand directly in database - ONLY after comprehensive data quality validation
      */
     private void createBrandDirectly(CarQueryMakeResponse.CarQueryMake makeData) {
         try {
+            // COMPREHENSIVE DATA QUALITY VALIDATION - Only proceed if ALL checks pass
+            if (!validateBrandDataQuality(makeData)) {
+                log.warn("❌ BRAND CREATION SKIPPED: '{}' failed comprehensive data quality validation", makeData.getMakeDisplay());
+                return;
+            }
+
             String englishName = makeData.getMakeDisplay();
             String arabicName = arabicTranslationService.translateBrandToArabic(englishName);
             String brandSlug = makeData.getMakeId().toLowerCase();
@@ -409,10 +539,10 @@ public class CarQueryDataService implements CarDataProvider {
             brand.setIsActive(true);
 
             carBrandService.createBrand(brand);
-            log.info("Imported brand: {} ({})", englishName, arabicName);
+            log.info("✅ BRAND SUCCESSFULLY CREATED: {} ({}) - 100% data quality assurance", englishName, arabicName);
 
         } catch (Exception e) {
-            log.warn("Failed to create brand '{}': {}", makeData.getMakeDisplay(), e.getMessage());
+            log.error("❌ CRITICAL ERROR creating brand '{}': {}", makeData.getMakeDisplay(), e.getMessage());
             throw e;
         }
     }
@@ -447,14 +577,62 @@ public class CarQueryDataService implements CarDataProvider {
     }
 
     /**
-     * Create model directly in database
+     * Comprehensive data quality validation for model creation
+     */
+    private boolean validateModelDataQuality(CarBrand brand, CarQueryModelResponse.CarQueryModel modelData) {
+        String englishModelName = modelData.getModelName();
+
+        // 1. Validate Arabic translation availability
+        String arabicModelName = arabicTranslationService.translateModelToArabic(
+            brand.getDisplayNameEn(), englishModelName);
+        if (arabicModelName == null || arabicModelName.trim().isEmpty()) {
+            log.warn("❌ MODEL DATA QUALITY CHECK FAILED: '{}' for brand '{}' - No Arabic translation available",
+                    englishModelName, brand.getDisplayNameEn());
+            return false;
+        }
+
+        // 2. Validate translation is actually different from English
+        if (arabicModelName.equalsIgnoreCase(englishModelName.trim())) {
+            log.warn("❌ MODEL DATA QUALITY CHECK FAILED: '{}' for brand '{}' - Translation identical to English name",
+                    englishModelName, brand.getDisplayNameEn());
+            return false;
+        }
+
+        // 3. Validate basic data integrity
+        if (englishModelName == null || englishModelName.trim().isEmpty()) {
+            log.warn("❌ MODEL DATA QUALITY CHECK FAILED: Empty or null English model name for brand '{}'",
+                    brand.getDisplayNameEn());
+            return false;
+        }
+
+        // 4. Validate brand relationship
+        if (brand == null || brand.getId() == null) {
+            log.warn("❌ MODEL DATA QUALITY CHECK FAILED: Invalid brand relationship for model '{}'", englishModelName);
+            return false;
+        }
+
+        log.info("✅ MODEL DATA QUALITY CHECK PASSED: '{}' -> '{}' for brand '{}' - All validations successful",
+                englishModelName, arabicModelName, brand.getDisplayNameEn());
+        return true;
+    }
+
+    /**
+     * Create model directly in database - ONLY after comprehensive data quality validation
      */
     private void createModelDirectly(CarBrand brand, CarQueryModelResponse.CarQueryModel modelData) {
         try {
+            // COMPREHENSIVE DATA QUALITY VALIDATION - Only proceed if ALL checks pass
+            if (!validateModelDataQuality(brand, modelData)) {
+                log.warn("❌ MODEL CREATION SKIPPED: '{}' for brand '{}' failed comprehensive data quality validation",
+                        modelData.getModelName(), brand.getDisplayNameEn());
+                return;
+            }
+
             String englishModelName = modelData.getModelName();
             String arabicModelName = arabicTranslationService.translateModelToArabic(
                 brand.getDisplayNameEn(), englishModelName);
-            String modelSlug = englishModelName.toLowerCase().replaceAll("[^a-z0-9-]", "-");
+            // Generate slug with brand-model format for proper filtering
+            String modelSlug = (brand.getName() + "-" + englishModelName).toLowerCase().replaceAll("[^a-z0-9-]", "-");
 
             CarModel model = new CarModel();
             model.setName(englishModelName);
@@ -465,10 +643,11 @@ public class CarQueryDataService implements CarDataProvider {
             model.setIsActive(true);
 
             carModelService.createModel(model);
-            log.info("Imported model: {} ({}) for brand {}", englishModelName, arabicModelName, brand.getDisplayNameEn());
+            log.info("✅ MODEL SUCCESSFULLY CREATED: {} ({}) for brand {} - 100% data quality assurance",
+                    englishModelName, arabicModelName, brand.getDisplayNameEn());
 
         } catch (Exception e) {
-            log.warn("Failed to create model '{}': {}", modelData.getModelName(), e.getMessage());
+            log.error("❌ CRITICAL ERROR creating model '{}': {}", modelData.getModelName(), e.getMessage());
             throw e;
         }
     }

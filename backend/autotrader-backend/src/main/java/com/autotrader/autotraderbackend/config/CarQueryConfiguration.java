@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.config;
 
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -29,7 +30,15 @@ public class CarQueryConfiguration {
     /**
      * Timeout for API calls in milliseconds
      */
-    private int timeout = 30000;
+    private int timeout = 60000; // Increased to 60 seconds for better reliability
+
+    @PostConstruct
+    public void initialize() {
+        // Ensure timeout is set to a reasonable value for development
+        if (timeout < 30000) {
+            timeout = 60000;
+        }
+    }
 
     /**
      * Retry configuration
@@ -54,5 +63,23 @@ public class CarQueryConfiguration {
     public static class CacheConfig {
         private boolean enabled = true;
         private int ttlMinutes = 60;
+    }
+
+    /**
+     * Client-side pacing and provider-protection settings
+     */
+    private RateLimitConfig rateLimit = new RateLimitConfig();
+
+    @Getter
+    @Setter
+    public static class RateLimitConfig {
+        /** Delay between sequential API calls in milliseconds */
+        private int perRequestDelayMs = 300;
+        /** Random jitter added to per-request delay in milliseconds */
+        private int jitterMs = 200;
+        /** Cooldown duration after an access-denied incident (milliseconds) */
+        private int cooldownOnAccessDeniedMs = 300_000; // 5 minutes
+        /** Enable cooldown behavior on access denied */
+        private boolean enableAccessDeniedCooldown = true;
     }
 }
