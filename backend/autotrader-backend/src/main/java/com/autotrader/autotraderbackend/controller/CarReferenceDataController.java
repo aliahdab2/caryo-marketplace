@@ -112,12 +112,13 @@ public class CarReferenceDataController {
         log.debug("Request received to get all car models");
         List<CarModel> models = carModelService.getAllModels();
         
-        // Convert entities to DTOs to prevent lazy initialization issues
+        // Convert entities to DTOs and filter out models without valid brand relationships
         List<CarModelResponse> modelResponses = models.stream()
+            .filter(model -> model.getBrand() != null) // Only include models with valid brands
             .map(CarModelResponse::fromEntity)
             .collect(Collectors.toList());
             
-        log.debug("Returning {} car models", modelResponses.size());
+        log.debug("Returning {} car models (filtered from {} total)", modelResponses.size(), models.size());
         return ResponseEntity.ok(modelResponses);
     }
 

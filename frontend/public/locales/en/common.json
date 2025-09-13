@@ -110,5 +110,7 @@
   "saving": "Saving...",
   "blocking": "Blocking...",
   "reporting": "Reporting...",
-  "deleting": "Deleting..."
+  "deleting": "Deleting...",
+  "syncing": "Syncing...",
+  "refresh": "Refresh"
 }

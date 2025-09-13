@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 
 /**
  * DTO for CarModel API responses
- * Prevents lazy initialization issues by not including related entities
+ * Includes brand information for admin data management
  */
 @Getter
 @Setter
@@ -20,7 +20,8 @@ public class CarModelResponse {
     private String displayNameEn;
     private String displayNameAr;
     private Boolean isActive;
-    private Long brandId; // Include brand ID for reference without full object
+    private Long brandId; // Include brand ID for reference
+    private CarBrandResponse brand; // Include full brand information for admin interface
     
     // Static factory method to create from entity
     public static CarModelResponse fromEntity(com.autotrader.autotraderbackend.model.CarModel model) {
@@ -35,7 +36,8 @@ public class CarModelResponse {
             model.getDisplayNameEn(),
             model.getDisplayNameAr(),
             model.getIsActive(),
-            model.getBrand() != null ? model.getBrand().getId() : null
+            model.getBrand() != null ? model.getBrand().getId() : null,
+            model.getBrand() != null ? CarBrandResponse.fromEntity(model.getBrand()) : null
         );
     }
 } 
