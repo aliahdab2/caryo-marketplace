@@ -66,6 +66,8 @@
   "noResultsAnnouncement": "No cars found for \"{{searchQuery}}\"",
   "gridViewSelected": "Grid view selected",
   "listViewSelected": "List view selected",
+  "gridView": "Grid View",
+  "listView": "List View",
   "retrySuccess": "Retry successful, results reloaded",
   "retryFailed": "Retry failed, please try again"
 }

@@ -48,6 +48,12 @@ dependencies {
 
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
 
+    // Web scraping for SyrianCars.net data
+    implementation 'org.jsoup:jsoup:1.17.1'
+
+    // OpenAI integration for translations
+    implementation 'com.openai:openai-java:3.5.1'
+
     // Database
     runtimeOnly 'org.postgresql:postgresql'
     implementation 'com.h2database:h2:2.2.224'
@@ -65,13 +71,18 @@ dependencies {
     implementation 'software.amazon.awssdk:s3'
     implementation 'software.amazon.awssdk:url-connection-client'
 
+    // Apache POI for Excel processing
+    implementation 'org.apache.poi:poi:5.2.5'
+    implementation 'org.apache.poi:poi-ooxml:5.2.5'
+
     // Dev Tools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'org.testcontainers:junit-jupiter:1.21.0'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
+    testImplementation 'org.testcontainers:postgresql:1.19.7'
     testImplementation 'org.testcontainers:minio:1.19.7'
     testImplementation 'org.apache.httpcomponents.client5:httpclient5:5.3.1'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -137,7 +148,12 @@ jacocoTestReport {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs += ["-Xlint:deprecation", "-Xlint:unchecked"]
+    options.compilerArgs += [
+        "-Xlint:deprecation",
+        "-Xlint:unchecked",
+        "-Ajc.disable.cache=true"
+    ]
+    options.annotationProcessorPath = configurations.annotationProcessor
 }
 
 jacocoTestReport {

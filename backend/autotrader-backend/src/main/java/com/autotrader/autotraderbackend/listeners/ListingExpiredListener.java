@@ -65,8 +65,36 @@ public class ListingExpiredListener {
                     }
                 }
             });
-            
-            // TODO: Update search index to exclude this listing
+
+            // Update search index to exclude expired listing
+            updateSearchIndexForExpiredListing(listing);
         });
+    }
+
+    /**
+     * Update search index to exclude expired listing.
+     * This ensures expired listings don't appear in search results.
+     *
+     * @param listing The expired car listing
+     */
+    private void updateSearchIndexForExpiredListing(CarListing listing) {
+        try {
+            // Mark listing as not searchable in search index
+            listing.setSearchable(false);
+
+            // Clear any search prominence boosts since listing is expired
+            listing.setSearchScoreBoost(0.0);
+            listing.setRecentlyRenewed(false);
+            listing.setRecentlyRenewedUntil(null);
+
+            // Update search index timestamp to trigger re-indexing
+            listing.setSearchIndexUpdatedAt(java.time.LocalDateTime.now());
+
+            log.info("Updated search index for expired listing ID: {} - marked as not searchable", listing.getId());
+
+        } catch (Exception e) {
+            log.error("Failed to update search index for expired listing ID: {}", listing.getId(), e);
+            // Don't fail the expiration process if search index update fails
+        }
     }
 }

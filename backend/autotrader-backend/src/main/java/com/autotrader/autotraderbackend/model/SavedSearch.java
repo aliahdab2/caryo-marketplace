@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.model;
 
+import com.autotrader.autotraderbackend.converter.JsonMapConverter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -8,8 +9,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -45,7 +44,7 @@ public class SavedSearch {
     private String nameAr;
 
     /**
-     * Search filters stored as JSON string for H2/PostgreSQL compatibility
+     * Search filters stored as JSON using AttributeConverter for H2/PostgreSQL compatibility
      * Expected structure:
      * {
      *   "brandSlugs": ["toyota", "honda"],
@@ -67,19 +66,19 @@ public class SavedSearch {
      *   "maxMileage": 100000
      * }
      */
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Convert(converter = JsonMapConverter.class)
     @Column(name = "filters", nullable = false, columnDefinition = "TEXT")
     private Map<String, Object> filters;
 
     /**
-     * Notification preferences stored as JSON string for H2/PostgreSQL compatibility
+     * Notification preferences stored as JSON using AttributeConverter for H2/PostgreSQL compatibility
      * Expected structure:
      * {
      *   "email": true,
      *   "frequency": "immediate" | "daily" | "weekly"
      * }
      */
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Convert(converter = JsonMapConverter.class)
     @Column(name = "notification_preferences", nullable = false, columnDefinition = "TEXT")
     private Map<String, Object> notificationPreferences;
 
@@ -130,7 +129,7 @@ public class SavedSearch {
         this.nameEn = nameEn;
         this.nameAr = nameAr;
         this.filters = filters;
-        this.notificationPreferences = notificationPreferences;
+        this.notificationPreferences = notificationPreferences != null ? notificationPreferences : Map.of("email", true, "frequency", "immediate");
         this.isActive = true;
     }
 
@@ -138,8 +137,10 @@ public class SavedSearch {
      * Helper method to check if email notifications are enabled
      */
     public boolean isEmailNotificationEnabled() {
-        return notificationPreferences != null 
-            && Boolean.TRUE.equals(notificationPreferences.get("email"));
+        if (notificationPreferences == null) {
+            return true; // Default to enabled
+        }
+        return Boolean.TRUE.equals(notificationPreferences.get("email"));
     }
 
     /**
@@ -147,7 +148,7 @@ public class SavedSearch {
      */
     public String getNotificationFrequency() {
         if (notificationPreferences == null) {
-            return "immediate";
+            return "immediate"; // Default frequency
         }
         Object frequency = notificationPreferences.get("frequency");
         return frequency instanceof String ? (String) frequency : "immediate";

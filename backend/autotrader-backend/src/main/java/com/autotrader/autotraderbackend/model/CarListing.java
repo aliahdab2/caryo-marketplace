@@ -176,6 +176,26 @@ public class CarListing {
     @Column(name = "expiration_date")
     private LocalDateTime expirationDate;
 
+    // Search prominence fields for better UX
+    @Column(name = "last_renewed_at")
+    private LocalDateTime lastRenewedAt;
+
+    @Column(name = "search_score_boost", columnDefinition = "DECIMAL(3,2) DEFAULT 0.00")
+    private Double searchScoreBoost = 0.0;
+
+    @Column(name = "recently_renewed", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean recentlyRenewed = false;
+
+    @Column(name = "recently_renewed_until")
+    private LocalDateTime recentlyRenewedUntil;
+
+    // Search index fields for better performance
+    @Column(name = "searchable", nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean searchable = true;
+
+    @Column(name = "search_index_updated_at")
+    private LocalDateTime searchIndexUpdatedAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;

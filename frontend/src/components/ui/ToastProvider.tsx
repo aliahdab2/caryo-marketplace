@@ -67,7 +67,7 @@ export function ToastProvider({ children, maxToasts = 5 }: ToastProviderProps) {
       {children}
       
       {/* Render toasts */}
-      <div className="fixed top-5 right-5 z-50 space-y-2 pointer-events-none">
+      <div className="fixed top-5 ltr:right-5 rtl:left-5 z-50 space-y-2 pointer-events-none">
         {toasts.map((toast, index) => (
           <div 
             key={toast.id} 

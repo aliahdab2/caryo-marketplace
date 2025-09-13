@@ -105,5 +105,15 @@
   "warrantyAvailable": "الضمان متوفر",
   "years": "سنوات",
   "expiresIn": "تنتهي في {{days}} أيام",
-  "removeFromFavorites": "إزالة من المفضلة"
+  "removeFromFavorites": "إزالة من المفضلة",
+  "confirmDelete": "حذف العنصر؟",
+  "confirmDeleteMessage": "لا يمكن التراجع عن هذا الإجراء.",
+  "confirmBulkDelete": "حذف العناصر؟",
+  "confirmBulkDeleteMessage": "لا يمكن التراجع عن هذا الإجراء.",
+  "listing": "عنصر",
+  "listings": "عناصر",
+  "noListings": "لا توجد إعلانات",
+  "deleteSuccess": "تم حذف الإعلان بنجاح",
+  "bulkDeleteSuccess": "تم حذف الإعلانات بنجاح",
+  "deleteError": "فشل في حذف الإعلان. يرجى المحاولة مرة أخرى."
 }

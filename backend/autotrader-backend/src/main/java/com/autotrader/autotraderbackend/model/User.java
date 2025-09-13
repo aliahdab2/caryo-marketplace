@@ -85,6 +85,10 @@ public class User {
     @Column(name = "verification_method", nullable = false)
     private VerificationMethod verificationMethod = VerificationMethod.MANUAL;
 
+    // User preferences
+    @Column(name = "preferred_language", length = 10)
+    private String preferredLanguage;
+
     // Account status
     @Enumerated(EnumType.STRING)
     @Column(name = "account_status", nullable = false)

@@ -79,7 +79,9 @@ class CarListingResponseTest {
     }
 
     private CarModelResponse createTestModel() {
-        return new CarModelResponse(MODEL_ID, "Camry", "camry", "Camry", "كامري", true, BRAND_ID);
+        // Create a test brand response for the model
+        CarBrandResponse testBrand = new CarBrandResponse(BRAND_ID, "Toyota", "toyota", "Toyota", "تويوتا", true);
+        return new CarModelResponse(MODEL_ID, "Camry", "camry", "Camry", "كامري", true, BRAND_ID, testBrand);
     }
 
     private TransmissionResponse createTestTransmission() {

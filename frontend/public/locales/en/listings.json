@@ -109,5 +109,15 @@
     "noSellerTypes": "No seller types available"
   },
   "removeFromFavorites": "Remove from Favorites",
-  "expiresIn": "Expires in {{days}} days"
+  "expiresIn": "Expires in {{days}} days",
+  "confirmDelete": "Delete Item?",
+  "confirmDeleteMessage": "This action cannot be undone.",
+  "confirmBulkDelete": "Delete Items?",
+  "confirmBulkDeleteMessage": "This action cannot be undone.",
+  "listing": "item",
+  "listings": "items",
+  "noListings": "No listings",
+  "deleteSuccess": "Listing deleted successfully",
+  "bulkDeleteSuccess": "Listings deleted successfully",
+  "deleteError": "Failed to delete listing. Please try again."
 }

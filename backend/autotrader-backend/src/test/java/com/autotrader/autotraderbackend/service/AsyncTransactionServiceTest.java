@@ -80,7 +80,8 @@ public class AsyncTransactionServiceTest {
     void executeInTransaction_withSupplier_transactionExceptionThrown() {
         // Arrange
         Supplier<String> operation = () -> "success";
-        when(transactionTemplate.execute(any())).thenThrow(new TransactionException("Test transaction exception") {});
+        TransactionException transactionException = new TransactionException("Test transaction exception") {};
+        when(transactionTemplate.execute(any())).thenThrow(transactionException);
 
         // Act
         String result = asyncTransactionService.executeInTransaction(operation);
@@ -133,7 +134,8 @@ public class AsyncTransactionServiceTest {
     void executeInTransaction_withRunnable_transactionExceptionThrown() {
         // Arrange
         Runnable operation = mock(Runnable.class);
-        when(transactionTemplate.execute(any())).thenThrow(new TransactionException("Test transaction exception") {});
+        TransactionException transactionException = new TransactionException("Test transaction exception") {};
+        when(transactionTemplate.execute(any())).thenThrow(transactionException);
 
         // Act
         asyncTransactionService.executeInTransaction(operation);

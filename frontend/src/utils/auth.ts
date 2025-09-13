@@ -119,7 +119,8 @@ export async function isAuthenticated() {
 export async function getAuthHeaders(): Promise<Record<string, string>> {
   const session = await getSession();
   if (!session?.accessToken) {
-    throw new Error('No access token available');
+    console.error("Authentication Error: No access token available. Please ensure the user is logged in.");
+    return {}; // Return an empty object if no token is available
   }
   return { Authorization: `Bearer ${session.accessToken}` };
 }

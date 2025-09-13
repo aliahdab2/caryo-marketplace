@@ -63,6 +63,8 @@
   "alerts": "التنبيهات",
   "gridViewSelected": "تم اختيار عرض الشبكة",
   "listViewSelected": "تم اختيار عرض القائمة",
+  "gridView": "عرض الشبكة",
+  "listView": "عرض القائمة",
   "resultsAnnouncement": "تم العثور على {{totalCount}} سيارة لـ \"{{searchQuery}}\", عرض {{resultCount}}",
   "resultsAnnouncementNoQuery": "تم العثور على {{totalCount}} سيارة, عرض {{resultCount}}",
   "noResultsAnnouncement": "لم يتم العثور على سيارات لـ \"{{searchQuery}}\"",
