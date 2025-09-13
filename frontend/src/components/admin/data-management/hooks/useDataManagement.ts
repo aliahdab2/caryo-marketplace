@@ -189,17 +189,6 @@ export const useDataManagement = () => {
   // Sync SyrianCars data
   const syncSyrianCarsData = useCallback(async () => {
     try {
-      // Immediately set status to IN_PROGRESS for UI feedback
-      setSyncStatus(prevStatus => ({
-        ...prevStatus,
-        syriancars: {
-          providerName: 'SyrianCars',
-          status: 'IN_PROGRESS',
-          lastSyncMessage: 'Starting SyrianCars sync...',
-          ...prevStatus?.syriancars
-        }
-      }));
-
       const response = await makeAuthenticatedRequest('/api/admin/data/load-syriacars', 'POST');
 
       if (response.ok) {
@@ -210,46 +199,16 @@ export const useDataManagement = () => {
           return true;
         } else {
           showError(result.message || t('datamanagement:syncSyrianCarsError'));
-          // Reset status on error
-          setSyncStatus(prevStatus => ({
-            ...prevStatus,
-            syriancars: {
-              providerName: 'SyrianCars',
-              status: 'FAILED',
-              lastSyncMessage: result.message || 'Sync failed',
-              ...prevStatus?.syriancars
-            }
-          }));
           return false;
         }
       } else {
         const errorData = await response.json();
         showError(errorData.message || t('datamanagement:syncSyrianCarsError'));
-        // Reset status on error
-        setSyncStatus(prevStatus => ({
-          ...prevStatus,
-          syriancars: {
-            providerName: 'SyrianCars',
-            status: 'FAILED',
-            lastSyncMessage: errorData.message || 'Sync failed',
-            ...prevStatus?.syriancars
-          }
-        }));
         return false;
       }
     } catch (error) {
       console.error('Error syncing SyrianCars data:', error);
       showError(t('datamanagement:syncSyrianCarsError'));
-      // Reset status on error
-      setSyncStatus(prevStatus => ({
-        ...prevStatus,
-        syriancars: {
-          providerName: 'SyrianCars',
-          status: 'FAILED',
-          lastSyncMessage: 'Network error occurred',
-          ...prevStatus?.syriancars
-        }
-      }));
       return false;
     }
   }, [makeAuthenticatedRequest, showSuccess, showError, t, fetchAndSetSyncStatus]);
@@ -257,17 +216,6 @@ export const useDataManagement = () => {
   // Sync CarQuery API data
   const syncCarQueryData = useCallback(async () => {
     try {
-      // Immediately set status to IN_PROGRESS for UI feedback
-      setSyncStatus(prevStatus => ({
-        ...prevStatus,
-        carquery: {
-          providerName: 'CarQueryAPI',
-          status: 'IN_PROGRESS',
-          lastSyncMessage: 'Starting CarQuery API sync...',
-          ...prevStatus?.carquery
-        }
-      }));
-
       const response = await makeAuthenticatedRequest('/api/admin/data/load-carquery', 'POST');
 
       if (response.ok) {
@@ -278,46 +226,16 @@ export const useDataManagement = () => {
           return true;
         } else {
           showError(result.message || t('datamanagement:syncCarQueryError'));
-          // Reset status on error
-          setSyncStatus(prevStatus => ({
-            ...prevStatus,
-            carquery: {
-              providerName: 'CarQueryAPI',
-              status: 'FAILED',
-              lastSyncMessage: result.message || 'Sync failed',
-              ...prevStatus?.carquery
-            }
-          }));
           return false;
         }
       } else {
         const errorData = await response.json();
         showError(errorData.message || t('datamanagement:syncCarQueryError'));
-        // Reset status on error
-        setSyncStatus(prevStatus => ({
-          ...prevStatus,
-          carquery: {
-            providerName: 'CarQueryAPI',
-            status: 'FAILED',
-            lastSyncMessage: errorData.message || 'Sync failed',
-            ...prevStatus?.carquery
-          }
-        }));
         return false;
       }
     } catch (error) {
       console.error('Error syncing CarQuery API data:', error);
       showError(t('datamanagement:syncCarQueryError'));
-      // Reset status on error
-      setSyncStatus(prevStatus => ({
-        ...prevStatus,
-        carquery: {
-          providerName: 'CarQueryAPI',
-          status: 'FAILED',
-          lastSyncMessage: 'Network error occurred',
-          ...prevStatus?.carquery
-        }
-      }));
       return false;
     }
   }, [makeAuthenticatedRequest, showSuccess, showError, t, fetchAndSetSyncStatus]);

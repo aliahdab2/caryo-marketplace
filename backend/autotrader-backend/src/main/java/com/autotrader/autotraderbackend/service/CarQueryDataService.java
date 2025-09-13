@@ -27,13 +27,14 @@ public class CarQueryDataService implements CarDataProvider {
     private final CarBrandService carBrandService;
     private final CarModelService carModelService;
     private final ArabicTranslationService arabicTranslationService;
+    private final SyncStatusService syncStatusService;
 
     @Autowired(required = false)
     private CarQueryApiClient carQueryApiClient;
 
     @Override
     public String getProviderName() {
-        return "CarQuery";
+        return "CarQueryAPI";
     }
 
     @Override
@@ -76,6 +77,7 @@ public class CarQueryDataService implements CarDataProvider {
     @Override
     public DataLoadResult loadCompleteDataset() {
         log.info("Loading complete dataset from CarQuery API");
+        syncStatusService.startSync(getProviderName());
         DataLoadResult result = new DataLoadResult();
 
         try {
@@ -84,6 +86,7 @@ public class CarQueryDataService implements CarDataProvider {
 
             result.setSuccess(true);
             log.info("Successfully loaded complete dataset from CarQuery API");
+            syncStatusService.completeSync(getProviderName(), "Sync completed successfully", result.getTotalProcessed(), result.getTotalFailed());
 
         } catch (Exception e) {
             String errorContext = String.format("CarQuery complete dataset load failed - Provider: %s, API Client Available: %s", 
@@ -91,6 +94,7 @@ public class CarQueryDataService implements CarDataProvider {
             log.error("{}, Error: {}", errorContext, e.getMessage(), e);
             result.setSuccess(false);
             result.setErrorMessage(errorContext + " - " + e.getMessage());
+            syncStatusService.failSync(getProviderName(), e.getMessage());
         }
 
         return result;
@@ -180,6 +184,7 @@ public class CarQueryDataService implements CarDataProvider {
     @CacheEvict(value = {"carBrands", "activeBrands", "carModels", "modelsByBrand"}, allEntries = true)
     public CarDataProvider.DataLoadResult loadCompleteCarDataset() {
         log.info("Loading complete car dataset from CarQuery API...");
+        syncStatusService.startSync(getProviderName());
 
         CarDataProvider.DataLoadResult result = new CarDataProvider.DataLoadResult();
 
@@ -205,6 +210,7 @@ public class CarQueryDataService implements CarDataProvider {
 
             log.info("✅ Complete car dataset loaded successfully from CarQuery API");
             result.setSuccess(true);
+            syncStatusService.completeSync(getProviderName(), "Sync completed successfully", result.getTotalProcessed(), result.getTotalFailed());
 
         } catch (Exception e) {
             String errorContext = String.format("CarQuery dataset load failed - Operation: loadCarDataset, API Available: %s",
@@ -212,6 +218,7 @@ public class CarQueryDataService implements CarDataProvider {
             log.error("❌ {}, Error: {}", errorContext, e.getMessage(), e);
             result.setSuccess(false);
             result.setErrorMessage(e.getMessage());
+            syncStatusService.failSync(getProviderName(), e.getMessage());
         }
 
         return result;

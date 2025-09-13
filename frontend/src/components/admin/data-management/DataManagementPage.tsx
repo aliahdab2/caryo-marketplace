@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useLanguageDirection } from '@/utils/languageDirection';
 import { isAdmin } from '@/utils/auth';
 import { useDataManagement } from './hooks/useDataManagement';
-import { SyncOperations } from './components/SyncOperations';
-
+import { useSync } from './hooks/useSync';
 import {
   FiDatabase,
   FiDownload,
@@ -17,7 +16,9 @@ import {
   FiEdit3,
   FiSave,
   FiX,
+  FiExternalLink,
   FiBarChart,
+  FiRefreshCcw,
   FiSearch,
   FiChevronLeft,
   FiChevronRight,
@@ -122,27 +123,27 @@ export const DataManagementPage: React.FC = () => {
   // State for bulk operations loading
   const [bulkUpdatingBrands, setBulkUpdatingBrands] = useState(false);
   const [bulkUpdatingModels, setBulkUpdatingModels] = useState(false);
-  
-  // State for sync operations loading
-  const [syncingCarQuery, setSyncingCarQuery] = useState(false);
-  const [syncingSyrianCars, setSyncingSyrianCars] = useState(false);
 
   const {
     loading,
     statistics,
     brands,
     models,
-    syncStatus,
     loadData,
     exportExcel,
     importExcel,
     updateBrand,
     updateModel,
     createBrandWithModel,
-    createModel,
-    syncSyrianCarsData,
-    syncCarQueryData
+    createModel
   } = useDataManagement();
+
+  const {
+    syncingCarQuery,
+    syncingSyrianCars,
+    syncCarQuery,
+    syncSyrianCars
+  } = useSync(loadData);
 
   // Check admin access
   useEffect(() => {
@@ -151,30 +152,6 @@ export const DataManagementPage: React.FC = () => {
       return;
     }
   }, [router]);
-
-  const handleSync = async (source: 'carquery' | 'syriancars') => {
-    console.log(`🔄 [Sync] Starting ${source} sync...`);
-    try {
-      if (source === 'carquery') {
-        console.log('🔄 [Sync] Setting CarQuery syncing to true');
-        setSyncingCarQuery(true);
-        await syncCarQueryData();
-      } else {
-        console.log('🔄 [Sync] Setting SyrianCars syncing to true');
-        setSyncingSyrianCars(true);
-        await syncSyrianCarsData();
-      }
-      await loadData(); // Refresh data after sync action
-    } finally {
-      // Reset loading states
-      console.log(`🔄 [Sync] Resetting ${source} sync state`);
-      if (source === 'carquery') {
-        setSyncingCarQuery(false);
-      } else {
-        setSyncingSyrianCars(false);
-      }
-    }
-  };
 
   // Bulk selection functions
   const toggleBrandSelection = (brandId: number) => {
@@ -449,15 +426,13 @@ export const DataManagementPage: React.FC = () => {
         </div>
 
         {/* Sync Operations */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
-          <SyncOperations
-            syncStatus={syncStatus}
-            loading={loading}
-            onSync={handleSync}
-            syncingCarQuery={syncingCarQuery}
-            syncingSyrianCars={syncingSyrianCars}
-          />
-        </div>
+        <SyncOperationsCard
+          t={t}
+          syncingCarQuery={syncingCarQuery}
+          syncingSyrianCars={syncingSyrianCars}
+          handleSyncCarQuery={syncCarQuery}
+          handleSyncSyrianCars={syncSyrianCars}
+        />
 
         {/* Brands Management */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mb-8">
@@ -694,6 +669,59 @@ const StatCard: React.FC<{
     </div>
   );
 };
+
+const SyncOperationsCard: React.FC<{
+  t: (key: string) => string;
+  syncingCarQuery: boolean;
+  syncingSyrianCars: boolean;
+  handleSyncCarQuery: () => void;
+  handleSyncSyrianCars: () => void;
+}> = ({
+  t,
+  syncingCarQuery,
+  syncingSyrianCars,
+  handleSyncCarQuery,
+  handleSyncSyrianCars
+}) => (
+  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mb-8">
+    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+      <FiRefreshCcw className="w-6 h-6" />
+      {t('datamanagement:syncOperations')}
+    </h2>
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-6">
+        <h3 className="font-medium text-gray-900 dark:text-white mb-2">CarQuery API</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          {t('datamanagement:carQueryDesc')}
+        </p>
+        <button
+          onClick={handleSyncCarQuery}
+          disabled={syncingCarQuery}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <FiExternalLink className={`w-4 h-4 ${syncingCarQuery ? 'animate-spin' : ''}`} />
+          {syncingCarQuery ? t('common:syncing') : t('datamanagement:syncCarQuery')}
+        </button>
+      </div>
+      
+      <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-6">
+        <h3 className="font-medium text-gray-900 dark:text-white mb-2">SyrianCars</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          {t('datamanagement:syrianCarsDesc')}
+        </p>
+        <button
+          onClick={handleSyncSyrianCars}
+          disabled={syncingSyrianCars}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <FiExternalLink className={`w-4 h-4 ${syncingSyrianCars ? 'animate-spin' : ''}`} />
+          {syncingSyrianCars ? t('common:syncing') : t('datamanagement:syncSyrianCars')}
+        </button>
+      </div>
+    </div>
+  </div>
+);
 
 const AddBrandForm: React.FC<AddBrandFormProps & { t: (key: string) => string }> = ({ newBrand, setNewBrand, onSave, onCancel, t }) => (
   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-6">

@@ -76,6 +76,14 @@ public interface CarDataProvider {
         public String getErrorMessage() { return errorMessage; }
         public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
         public java.util.Map<String, LoadResult> getResults() { return results; }
+
+        public long getTotalProcessed() {
+            return results.values().stream().mapToLong(LoadResult::getProcessed).sum();
+        }
+
+        public long getTotalFailed() {
+            return results.values().stream().mapToLong(LoadResult::getFailed).sum();
+        }
     }
 
     /**

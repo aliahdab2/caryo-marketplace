@@ -5,37 +5,22 @@ import { useTranslation } from 'react-i18next';
 import { useLanguageDirection } from '@/utils/languageDirection';
 import { MdRefresh, MdBarChart, MdDirectionsCar, MdCheckCircle, MdInfo } from 'react-icons/md';
 import { SyncStatus } from '../../types';
+import { useSync } from '../../hooks/useSync';
 
 interface SyncOperationsProps {
   syncStatus: SyncStatus | null;
   loading: boolean;
-  onSync: (source: 'carquery' | 'syriancars') => void;
-  syncingCarQuery?: boolean;
-  syncingSyrianCars?: boolean;
+  onSyncComplete: () => void;
 }
 
 export const SyncOperations: React.FC<SyncOperationsProps> = ({
   syncStatus,
   loading,
-  onSync,
-  syncingCarQuery = false,
-  syncingSyrianCars = false
+  onSyncComplete
 }) => {
   const { t } = useTranslation(['datamanagement']);
   const { isRTL, flexClass } = useLanguageDirection();
-  
-  const isCarQuerySyncing = syncStatus?.carquery?.status === 'IN_PROGRESS' || syncingCarQuery;
-  const isSyrianCarsSyncing = syncStatus?.syriancars?.status === 'IN_PROGRESS' || syncingSyrianCars;
-
-  // Debug logging
-  console.log('🔍 [SyncOperations] Render state:', {
-    syncingCarQuery,
-    syncingSyrianCars,
-    isCarQuerySyncing,
-    isSyrianCarsSyncing,
-    carQueryStatus: syncStatus?.carquery?.status,
-    syrianCarsStatus: syncStatus?.syriancars?.status
-  });
+  const { syncingCarQuery, syncingSyrianCars, syncCarQuery, syncSyrianCars } = useSync(onSyncComplete);
 
   return (
     <div className="p-6">
@@ -51,35 +36,35 @@ export const SyncOperations: React.FC<SyncOperationsProps> = ({
         
         <div className={`flex flex-wrap items-center ${isRTL ? 'gap-x-reverse' : ''} gap-3`}>
           <button
-            onClick={() => onSync('carquery')}
-            disabled={isCarQuerySyncing || loading}
+            onClick={syncCarQuery}
+            disabled={syncingCarQuery || loading || (syncStatus?.carquery?.status === 'IN_PROGRESS')}
             className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors ${
-              isCarQuerySyncing
+              syncStatus?.carquery?.status === 'IN_PROGRESS'
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-purple-600 hover:bg-purple-700'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
-            title={isCarQuerySyncing
-              ? `Syncing: ${syncStatus?.carquery?.lastSyncMessage || 'In progress...'}` 
+            title={syncStatus?.carquery?.status === 'IN_PROGRESS'
+              ? `Syncing: ${syncStatus.carquery.lastSyncMessage || 'In progress...'}` 
               : 'Import data from CarQuery API'}
           >
-            <MdRefresh className={`w-4 h-4 ${isCarQuerySyncing ? 'animate-spin' : ''}`} />
-            {isCarQuerySyncing ? t('datamanagement:syncing') : t('datamanagement:syncCarQuery')}
+            <MdRefresh className={`w-4 h-4 ${syncingCarQuery ? 'animate-spin' : ''}`} />
+            {syncingCarQuery ? t('datamanagement:syncing') : t('datamanagement:syncCarQuery')}
           </button>
           
           <button
-            onClick={() => onSync('syriancars')}
-            disabled={isSyrianCarsSyncing || loading}
+            onClick={syncSyrianCars}
+            disabled={syncingSyrianCars || loading || (syncStatus?.syriancars?.status === 'IN_PROGRESS')}
             className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors ${
-              isSyrianCarsSyncing
+              syncStatus?.syriancars?.status === 'IN_PROGRESS'
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-orange-600 hover:bg-orange-700'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
-            title={isSyrianCarsSyncing
-              ? `Syncing: ${syncStatus?.syriancars?.lastSyncMessage || 'In progress...'}` 
+            title={syncStatus?.syriancars?.status === 'IN_PROGRESS'
+              ? `Syncing: ${syncStatus.syriancars.lastSyncMessage || 'In progress...'}` 
               : 'Import data from SyrianCars'}
           >
-            <MdRefresh className={`w-4 h-4 ${isSyrianCarsSyncing ? 'animate-spin' : ''}`} />
-            {isSyrianCarsSyncing ? t('datamanagement:syncing') : t('datamanagement:syncSyrianCars')}
+            <MdRefresh className={`w-4 h-4 ${syncingSyrianCars ? 'animate-spin' : ''}`} />
+            {syncingSyrianCars ? t('datamanagement:syncing') : t('datamanagement:syncSyrianCars')}
           </button>
         </div>
       </div>
