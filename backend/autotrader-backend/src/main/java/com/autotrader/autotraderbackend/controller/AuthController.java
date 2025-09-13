@@ -19,6 +19,7 @@ import com.autotrader.autotraderbackend.service.DealerService;
 import com.autotrader.autotraderbackend.service.PasswordResetService;
 import com.autotrader.autotraderbackend.service.EmailVerificationService;
 import com.autotrader.autotraderbackend.service.SellerTypeService;
+import com.autotrader.autotraderbackend.service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +76,9 @@ public class AuthController {
 
     @Autowired
     private SellerTypeService sellerTypeService;
+
+    @Autowired
+    private EmailService emailService;
 
     @Operation(
         summary = "Login",
@@ -356,7 +360,16 @@ public class AuthController {
             );
 
             // Save the new user once
-            userRepository.save(user);
+            User savedUser = userRepository.save(user);
+            
+            // Send welcome email to new Google users
+            try {
+                emailService.sendWelcomeEmail(savedUser);
+                log.info("Welcome email sent to new Google user: {}", savedUser.getEmail());
+            } catch (Exception e) {
+                // Log the error but don't fail the registration
+                log.error("Failed to send welcome email to new Google user {}: {}", savedUser.getEmail(), e.getMessage());
+            }
         }
 
         // Generate token

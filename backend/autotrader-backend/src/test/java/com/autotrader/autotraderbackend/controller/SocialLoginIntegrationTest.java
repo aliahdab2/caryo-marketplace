@@ -7,7 +7,9 @@ import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.service.EmailService;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 
 /**
  * Integration tests for social login functionality.
@@ -51,6 +56,9 @@ public class SocialLoginIntegrationTest extends IntegrationTestWithS3 {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @SpyBean
+    private EmailService emailService;
 
     private String baseUrl;
 
@@ -113,6 +121,9 @@ public class SocialLoginIntegrationTest extends IntegrationTestWithS3 {
         // Verify user was created in the database
         Optional<User> savedUser = userRepository.findByEmail(email);
         assertTrue(savedUser.isPresent(), "User should be saved in the database");
+        
+        // Verify welcome email was sent to the new user
+        verify(emailService).sendWelcomeEmail(any(User.class));
     }
 
     @Test
@@ -162,6 +173,9 @@ public class SocialLoginIntegrationTest extends IntegrationTestWithS3 {
         
         // Verify email matches
         assertEquals(email, jwtResponse.getEmail(), "Email should match the existing user");
+        
+        // Verify NO welcome email was sent to existing user
+        verify(emailService, never()).sendWelcomeEmail(any(User.class));
     }
 
     @Test

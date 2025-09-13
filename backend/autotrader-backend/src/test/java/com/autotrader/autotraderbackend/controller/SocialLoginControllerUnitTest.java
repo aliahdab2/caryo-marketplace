@@ -7,6 +7,8 @@ import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
+import com.autotrader.autotraderbackend.service.EmailService;
+import com.autotrader.autotraderbackend.service.SellerTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +42,12 @@ public class SocialLoginControllerUnitTest {
 
     @Mock
     private JwtUtils jwtUtils;
+
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private SellerTypeService sellerTypeService;
 
     @InjectMocks
     private AuthController authController;
@@ -96,6 +104,9 @@ public class SocialLoginControllerUnitTest {
         verify(userRepository).existsByEmail("test.user@gmail.com");
         verify(userRepository).findByEmail("test.user@gmail.com");
         verify(userRepository, never()).save(any(User.class));
+        
+        // Verify NO welcome email was sent to existing user
+        verify(emailService, never()).sendWelcomeEmail(any(User.class));
     }
 
     @Test
@@ -148,6 +159,9 @@ public class SocialLoginControllerUnitTest {
         verify(encoder).encode(any());
         verify(roleRepository).findByName("ROLE_USER");
         verify(userRepository).save(any(User.class));
+        
+        // Verify welcome email was sent to new user
+        verify(emailService).sendWelcomeEmail(any(User.class));
     }
 
     @Test
@@ -195,5 +209,93 @@ public class SocialLoginControllerUnitTest {
         // Verify both username checks were performed
         verify(userRepository).existsByUsername("test.user");
         verify(userRepository).existsByUsername("test.user1");
+    }
+
+    @Test
+    void socialLogin_WithNewUser_WhenEmailServiceFails_ShouldStillSucceed() {
+        // Arrange
+        when(userRepository.existsByEmail("test.user@gmail.com")).thenReturn(false);
+        when(userRepository.existsByUsername("test.user")).thenReturn(false);
+        
+        // Role setup
+        Role userRole = new Role("ROLE_USER");
+        when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+        
+        // Password encoding
+        when(encoder.encode(any())).thenReturn("encodedRandomPassword");
+        
+        // Mock saving the new user
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setUsername("test.user");
+        savedUser.setEmail("test.user@gmail.com");
+        savedUser.setPassword("encodedRandomPassword");
+        
+        Set<Role> roles = new HashSet<>();
+        roles.add(userRole);
+        savedUser.setRoles(roles);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("test-jwt-token");
+        
+        // Mock email service to throw exception
+        doThrow(new RuntimeException("Email service unavailable")).when(emailService).sendWelcomeEmail(any(User.class));
+
+        // Act
+        ResponseEntity<?> response = authController.socialLogin(socialLoginRequest);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Registration should succeed even if email fails");
+        assertTrue(response.getBody() instanceof JwtResponse);
+        
+        JwtResponse jwtResponse = (JwtResponse) response.getBody();
+        assertNotNull(jwtResponse);
+        assertEquals("test-jwt-token", jwtResponse.getToken());
+        assertEquals("test.user@gmail.com", jwtResponse.getEmail());
+        
+        // Verify user was still created and email was attempted
+        verify(userRepository).save(any(User.class));
+        verify(emailService).sendWelcomeEmail(any(User.class));
+    }
+
+    @Test
+    void socialLogin_WithNewUser_ShouldSendWelcomeEmailWithCorrectUser() {
+        // Arrange
+        when(userRepository.existsByEmail("test.user@gmail.com")).thenReturn(false);
+        when(userRepository.existsByUsername("test.user")).thenReturn(false);
+        
+        // Role setup
+        Role userRole = new Role("ROLE_USER");
+        when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+        
+        // Password encoding
+        when(encoder.encode(any())).thenReturn("encodedRandomPassword");
+        
+        // Mock saving the new user
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setUsername("test.user");
+        savedUser.setEmail("test.user@gmail.com");
+        savedUser.setPassword("encodedRandomPassword");
+        
+        Set<Role> roles = new HashSet<>();
+        roles.add(userRole);
+        savedUser.setRoles(roles);
+        
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("test-jwt-token");
+
+        // Act
+        ResponseEntity<?> response = authController.socialLogin(socialLoginRequest);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        
+        // Verify welcome email was sent with the saved user (not just any user)
+        verify(emailService).sendWelcomeEmail(argThat(user -> 
+            user.getEmail().equals("test.user@gmail.com") && 
+            user.getUsername().equals("test.user") &&
+            user.getId() != null
+        ));
     }
 }
