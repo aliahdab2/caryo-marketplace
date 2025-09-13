@@ -27,6 +27,7 @@ public class CacheConfig {
             "carBrands",           // All brands
             "activeBrands",        // Active brands only
             "carModels",           // All models
+            "carModelsPage",       // Paginated models with filters
             "modelsByBrand",       // Models filtered by brand
             "bodyStyles",          // Body styles (Sedan, SUV, etc.)
             "fuelTypes",           // Fuel types (Gasoline, Diesel, Electric, etc.)

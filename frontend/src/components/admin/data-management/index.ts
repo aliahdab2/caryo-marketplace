@@ -7,7 +7,6 @@ export * from './types';
 // Hooks
 export { useDataManagement } from './hooks/useDataManagement';
 export { useValidation } from './hooks/useValidation';
-export { useSync } from './hooks/useSync';
 
 // Components
 export { TabNavigation } from './components/TabNavigation';

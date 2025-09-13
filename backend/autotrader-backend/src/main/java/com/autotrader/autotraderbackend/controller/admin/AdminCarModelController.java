@@ -172,26 +172,7 @@ public class AdminCarModelController {
             Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-            Page<CarModel> modelPage;
-            if (brandId != null) {
-                List<CarModel> brandModels = carModelService.getModelsByBrandId(brandId);
-                int start = (int) pageable.getOffset();
-                int end = Math.min(start + pageable.getPageSize(), brandModels.size());
-                List<CarModel> pageContent = brandModels.subList(start, end);
-                modelPage = new org.springframework.data.domain.PageImpl<>(pageContent, pageable, brandModels.size());
-            } else if (search != null && !search.trim().isEmpty()) {
-                List<CarModel> searchResults = carModelService.searchModels(search);
-                int start = (int) pageable.getOffset();
-                int end = Math.min(start + pageable.getPageSize(), searchResults.size());
-                List<CarModel> pageContent = searchResults.subList(start, end);
-                modelPage = new org.springframework.data.domain.PageImpl<>(pageContent, pageable, searchResults.size());
-            } else {
-                List<CarModel> allModels = carModelService.getAllModels();
-                int start = (int) pageable.getOffset();
-                int end = Math.min(start + pageable.getPageSize(), allModels.size());
-                List<CarModel> pageContent = allModels.subList(start, end);
-                modelPage = new org.springframework.data.domain.PageImpl<>(pageContent, pageable, allModels.size());
-            }
+            Page<CarModel> modelPage = carModelService.getModels(pageable, search, brandId);
 
             List<CarModelResponse> modelResponses = modelPage.getContent().stream()
                 .map(CarModelResponse::fromEntity)

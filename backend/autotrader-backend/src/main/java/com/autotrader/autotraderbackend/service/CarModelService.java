@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +37,20 @@ public class CarModelService {
     public List<CarModel> getAllModels() {
         log.debug("Fetching all car models from database");
         return carModelRepository.findAll();
+    }
+
+    /**
+     * Get paginated and filtered car models
+     * @param pageable Pageable object for pagination and sorting
+     * @param search Search term for filtering by name
+     * @param brandId Brand ID for filtering
+     * @return Page of car models
+     */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "carModelsPage", key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #search + '-' + #brandId")
+    public Page<CarModel> getModels(Pageable pageable, String search, Long brandId) {
+        log.debug("Fetching car models with pageable: {}, search: {}, brandId: {}", pageable, search, brandId);
+        return carModelRepository.findAllWithFilters(search, brandId, pageable);
     }
     
     /**
