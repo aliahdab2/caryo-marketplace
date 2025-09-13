@@ -1,7 +1,7 @@
 package com.autotrader.autotraderbackend.controller.admin;
 
 import com.autotrader.autotraderbackend.service.CarQueryDataService;
-// import com.autotrader.autotraderbackend.service.SyrianCarsDataService; // Disabled - using only CarQuery API
+import com.autotrader.autotraderbackend.service.SyrianCarsDataService;
 import com.autotrader.autotraderbackend.service.CaryoDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminDataManagementController {
 
     private final CarQueryDataService carQueryDataService;
-    // private final SyrianCarsDataService syrianCarsDataService; // Disabled - using only CarQuery API
+    private final SyrianCarsDataService syrianCarsDataService;
     private final CaryoDataService caryoDataService;
 
     /**
@@ -58,6 +58,36 @@ public class AdminDataManagementController {
         }
     }
 
+    /**
+     * Import data from SyrianCars.net directly to database
+     */
+    @PostMapping("/load-syriacars")
+    @Operation(
+        summary = "Load SyrianCars Data",
+        description = "Import car brands and models from SyrianCars.net directly to database"
+    )
+    public ResponseEntity<ApiResponse<String>> loadSyrianCarsData() {
+        log.info("Admin triggered SyrianCars data import");
+
+        try {
+            var result = syrianCarsDataService.loadCompleteDataset();
+
+            if (result.isSuccess()) {
+                log.info("SyrianCars data import completed successfully");
+                return ResponseEntity.ok(ApiResponse.success(
+                    "SyrianCars data imported successfully", "Import completed"));
+            } else {
+                log.warn("SyrianCars data import failed: {}", result.getErrorMessage());
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Failed to import SyrianCars data: " + result.getErrorMessage()));
+            }
+
+        } catch (Exception e) {
+            log.error("Error during SyrianCars data import", e);
+            return ResponseEntity.internalServerError()
+                .body(ApiResponse.error("Internal server error: " + e.getMessage()));
+        }
+    }
 
     /**
      * API Response wrapper
