@@ -266,13 +266,26 @@ public class CarModelService {
         model.setName(updateRequest.getName());
         model.setDisplayNameEn(updateRequest.getDisplayNameEn());
         model.setDisplayNameAr(updateRequest.getDisplayNameAr());
+        
+        boolean wasActive = model.getIsActive(); // Store previous active status
         model.setIsActive(updateRequest.getIsActive());
+        
         // Don't update slug as it should be immutable for URL stability
         
         // If brand has changed, validate the new brand
-        if (!model.getBrand().getId().equals(updateRequest.getBrandId())) {
+        CarBrand currentBrand = model.getBrand(); // Store current brand
+        if (!currentBrand.getId().equals(updateRequest.getBrandId())) {
             CarBrand newBrand = carBrandService.getBrandById(updateRequest.getBrandId());
             model.setBrand(newBrand);
+            currentBrand = newBrand; // Update currentBrand to the new brand
+        }
+        
+        // Smart activation: If model is becoming active and its brand is inactive, activate the brand
+        if (model.getIsActive() && !wasActive && !currentBrand.getIsActive()) {
+            log.info("Auto-activating parent brand '{}' because model '{}' is being activated", 
+                    currentBrand.getDisplayNameEn(), model.getDisplayNameEn());
+            currentBrand.setIsActive(true);
+            carBrandService.updateBrand(currentBrand.getId(), currentBrand);
         }
         
         log.info("Updated car model with id: {} using request DTO", id);
@@ -289,7 +302,17 @@ public class CarModelService {
     @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
     public CarModel updateModelActivation(Long id, boolean isActive) {
         CarModel model = getModelById(id);
+        boolean wasActive = model.getIsActive();
         model.setIsActive(isActive);
+        
+        // Smart activation: If model is becoming active and its brand is inactive, activate the brand
+        if (isActive && !wasActive && !model.getBrand().getIsActive()) {
+            CarBrand brand = model.getBrand();
+            log.info("Auto-activating parent brand '{}' because model '{}' is being activated", 
+                    brand.getDisplayNameEn(), model.getDisplayNameEn());
+            brand.setIsActive(true);
+            carBrandService.updateBrand(brand.getId(), brand);
+        }
         
         log.info("Updated activation status of model with id: {} to: {}", id, isActive);
         return carModelRepository.save(model);

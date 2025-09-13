@@ -20,17 +20,42 @@ export const useDataManagement = () => {
   // Utility function for API URL
   const getApiUrl = useCallback(() => process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080', []);
 
+  // Helper for authenticated API requests
+  const makeAuthenticatedRequest = useCallback(async <T>( 
+    endpoint: string, 
+    method: string = 'GET', 
+    body?: object | FormData, 
+    customHeaders?: Record<string, string>
+  ): Promise<Response> => {
+    const headers = await getAuthHeaders();
+    
+    const options: RequestInit = {
+      method,
+      headers: {
+        ...headers,
+        ...customHeaders,
+        // Content-Type will be set by browser for FormData, otherwise JSON
+        ...(body instanceof FormData ? {} : { 'Content-Type': 'application/json' })
+      },
+      body: body instanceof FormData ? body : (body ? JSON.stringify(body) : undefined),
+      credentials: 'include' // Important for NextAuth.js cookies
+    };
+    
+    const url = `${getApiUrl()}${endpoint}`;
+    console.log(`Sending ${method} request to ${url} with headers:`, options.headers);
+    return fetch(url, options);
+  }, [getApiUrl]);
+
   // Load all data
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const headers = await getAuthHeaders();
       
       const [brandsRes, modelsRes, statsRes, syncStatusRes] = await Promise.all([
-        fetch(`${getApiUrl()}/api/admin/car-brands?size=1000`, { headers }), // Admin endpoint for all brands
-        fetch(`${getApiUrl()}/api/admin/car-models?size=1000&sortBy=name`, { headers }),  // Admin endpoint for all models with valid sort field
-        fetch(`${getApiUrl()}/api/admin/data/statistics`, { headers }),
-        fetch(`${getApiUrl()}/api/admin/data/sync-status`, { headers })
+        makeAuthenticatedRequest('/api/admin/car-brands?size=1000'), 
+        makeAuthenticatedRequest('/api/admin/car-models?size=1000&sortBy=name'),  
+        makeAuthenticatedRequest('/api/admin/data/statistics'),
+        makeAuthenticatedRequest('/api/admin/data/sync-status')
       ]);
 
       let brandsData: CarBrand[] = [];
@@ -101,19 +126,13 @@ export const useDataManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [getApiUrl, showError, t]);
+  }, [getApiUrl, showError, t, makeAuthenticatedRequest]);
 
   // Export functionality
   const exportExcel = useCallback(async () => {
     try {
-      const headers = await getAuthHeaders();
-      
-      const response = await fetch(`${getApiUrl()}/api/admin/data/export`, {
-        method: 'GET',
-        headers: {
-          ...headers,
-          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        }
+      const response = await makeAuthenticatedRequest('/api/admin/data/export', 'GET', undefined, {
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
 
       if (!response.ok) {
@@ -138,23 +157,15 @@ export const useDataManagement = () => {
       showError(t('datamanagement:exportError'));
       return false;
     }
-  }, [getApiUrl, showSuccess, showError, t]);
+  }, [showSuccess, showError, t, makeAuthenticatedRequest]);
 
   // Import functionality
   const importExcel = useCallback(async (file: File) => {
     try {
-      const headers = await getAuthHeaders();
-      
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch(`${getApiUrl()}/api/admin/data/import`, {
-        method: 'POST',
-        headers: {
-          ...headers
-        },
-        body: formData
-      });
+      const response = await makeAuthenticatedRequest('/api/admin/data/import', 'POST', formData);
 
       const result: ImportResult = await response.json();
       
@@ -171,21 +182,16 @@ export const useDataManagement = () => {
       showError(t('datamanagement:importError'));
       return false;
     }
-  }, [getApiUrl, showSuccess, showError, t, loadData]);
+  }, [showSuccess, showError, t, loadData, makeAuthenticatedRequest]);
 
   // Update brand
   const updateBrand = useCallback(async (brandId: number, data: UpdateBrandData) => {
     try {
-      const headers = await getAuthHeaders();
-      
-      const response = await fetch(`${getApiUrl()}/api/reference-data/brands/${brandId}`, {
-        method: 'PUT',
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await makeAuthenticatedRequest(
+        `/api/reference-data/brands/${brandId}`,
+        'PUT',
+        data
+      );
 
       if (response.ok) {
         showSuccess(t('datamanagement:updateSuccess'));
@@ -201,21 +207,16 @@ export const useDataManagement = () => {
       showError(t('datamanagement:updateError'));
       return false;
     }
-  }, [getApiUrl, showSuccess, showError, t, loadData]);
+  }, [showSuccess, showError, t, loadData, makeAuthenticatedRequest]);
 
   // Update model
   const updateModel = useCallback(async (modelId: number, data: UpdateModelData) => {
     try {
-      const headers = await getAuthHeaders();
-      
-      const response = await fetch(`${getApiUrl()}/api/reference-data/models/${modelId}`, {
-        method: 'PUT',
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await makeAuthenticatedRequest(
+        `/api/reference-data/models/${modelId}`,
+        'PUT',
+        data
+      );
 
       if (response.ok) {
         showSuccess(t('datamanagement:updateSuccess'));
@@ -231,26 +232,17 @@ export const useDataManagement = () => {
       showError(t('datamanagement:updateError'));
       return false;
     }
-  }, [getApiUrl, showSuccess, showError, t, loadData]);
+  }, [showSuccess, showError, t, loadData, makeAuthenticatedRequest]);
 
   // Create brand with model
   const createBrandWithModel = useCallback(async (brandData: CreateBrandData, modelData: CreateModelData) => {
     try {
-      const headers = await getAuthHeaders();
-      
       const requestData = {
         brand: brandData,
         model: modelData
       };
 
-      const response = await fetch(`${getApiUrl()}/api/reference-data/brands-with-model`, {
-        method: 'POST',
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestData)
-      });
+      const response = await makeAuthenticatedRequest('/api/reference-data/brands-with-model', 'POST', requestData);
 
       if (response.ok) {
         showSuccess(t('datamanagement:createSuccess'));
@@ -267,21 +259,12 @@ export const useDataManagement = () => {
       showError(t('datamanagement:createError'));
       return false;
     }
-  }, [getApiUrl, showSuccess, showError, t, loadData]);
+  }, [showSuccess, showError, t, loadData, makeAuthenticatedRequest]);
 
   // Create model
   const createModel = useCallback(async (data: CreateModelData) => {
     try {
-      const headers = await getAuthHeaders();
-      
-      const response = await fetch(`${getApiUrl()}/api/reference-data/models`, {
-        method: 'POST',
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await makeAuthenticatedRequest('/api/reference-data/models', 'POST', data);
 
       if (response.ok) {
         showSuccess(t('datamanagement:createSuccess'));
@@ -298,7 +281,7 @@ export const useDataManagement = () => {
       showError(t('datamanagement:createError'));
       return false;
     }
-  }, [getApiUrl, showSuccess, showError, t, loadData]);
+  }, [showSuccess, showError, t, loadData, makeAuthenticatedRequest]);
 
   // Load data on mount
   useEffect(() => {
