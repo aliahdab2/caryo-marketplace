@@ -67,6 +67,8 @@ interface BrandsTableProps {
   toggleBrandSelection: (id: number) => void;
   toggleAllBrands: () => void;
   isRTL: boolean;
+  bulkUpdateBrands: (isActive: boolean) => void;
+  bulkUpdatingBrands: boolean;
 }
 
 interface ModelsTableProps {
@@ -79,6 +81,8 @@ interface ModelsTableProps {
   toggleModelSelection: (id: number) => void;
   toggleAllModels: () => void;
   isRTL: boolean;
+  bulkUpdateModels: (isActive: boolean) => void;
+  bulkUpdatingModels: boolean;
 }
 
 interface AddBrandFormProps {
@@ -344,20 +348,20 @@ export const DataManagementPage: React.FC = () => {
 
   return (
     <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 ${isRTL ? 'rtl' : 'ltr'}`}>
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-4">
         
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                <FiDatabase className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+        <div className="bg-white dark:bg-gray-800 rounded shadow-sm border border-gray-200 dark:border-gray-700 p-3 mb-3">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-blue-100 dark:bg-blue-900 rounded">
+                <FiDatabase className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                   {t('datamanagement:title')}
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   {t('datamanagement:subtitle')}
                 </p>
               </div>
@@ -400,7 +404,7 @@ export const DataManagementPage: React.FC = () => {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
           <StatCard
             title={t('datamanagement:totalBrands')}
             value={statistics?.totalBrands || 0}
@@ -438,44 +442,44 @@ export const DataManagementPage: React.FC = () => {
         />
 
         {/* Brands Management */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
           {/* Header Row - Fixed Height */}
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 mb-3">
             <div className="lg:flex-1">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {t('datamanagement:brands')} ({filteredBrands.length})
               </h2>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
+            <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
               {/* Search */}
               <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
                 <input
                   type="text"
                   placeholder={t('datamanagement:searchBrands')}
                   value={brandsSearch}
                   onChange={(e) => setBrandsSearch(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-full sm:w-64"
+                  className="pl-8 pr-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-full sm:w-48 text-sm"
                 />
               </div>
-              
+
               {/* Status Filter */}
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               >
                 <option value="all">{t('datamanagement:allStatuses')}</option>
                 <option value="active">{t('datamanagement:active')}</option>
                 <option value="inactive">{t('datamanagement:inactive')}</option>
               </select>
-              
+
               <button
                 onClick={() => setShowAddBrand(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors whitespace-nowrap text-sm"
               >
-                <FiPlus className="w-4 h-4" />
+                <FiPlus className="w-3 h-3" />
                 {t('datamanagement:addBrand')}
               </button>
             </div>
@@ -504,6 +508,8 @@ export const DataManagementPage: React.FC = () => {
             selectedBrands={selectedBrands}
             toggleBrandSelection={toggleBrandSelection}
             toggleAllBrands={toggleAllBrands}
+            bulkUpdateBrands={bulkUpdateBrands}
+            bulkUpdatingBrands={bulkUpdatingBrands}
           />
 
           {/* Pagination */}
@@ -519,33 +525,33 @@ export const DataManagementPage: React.FC = () => {
         </div>
 
         {/* Models Management */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           {/* Header Row - Fixed Height */}
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 mb-3">
             <div className="lg:flex-1">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {t('datamanagement:models')} ({filteredModels.length})
               </h2>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
+            <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
               {/* Search */}
               <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
                 <input
                   type="text"
                   placeholder={t('datamanagement:searchModels')}
                   value={modelsSearch}
                   onChange={(e) => setModelsSearch(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-full sm:w-64"
+                  className="pl-8 pr-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-full sm:w-48 text-sm"
                 />
               </div>
-              
+
               {/* Brand Filter */}
               <select
                 value={selectedBrandFilter}
                 onChange={(e) => setSelectedBrandFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               >
                 <option value="">{t('datamanagement:allBrands')}</option>
                 {brands.map((brand) => (
@@ -559,18 +565,18 @@ export const DataManagementPage: React.FC = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               >
                 <option value="all">{t('datamanagement:allStatuses')}</option>
                 <option value="active">{t('datamanagement:active')}</option>
                 <option value="inactive">{t('datamanagement:inactive')}</option>
               </select>
-              
+
               <button
                 onClick={() => setShowAddModel(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors whitespace-nowrap text-sm"
               >
-                <FiPlus className="w-4 h-4" />
+                <FiPlus className="w-3 h-3" />
                 {t('datamanagement:addModel')}
               </button>
             </div>
@@ -601,6 +607,8 @@ export const DataManagementPage: React.FC = () => {
             selectedModels={selectedModels}
             toggleModelSelection={toggleModelSelection}
             toggleAllModels={toggleAllModels}
+            bulkUpdateModels={bulkUpdateModels}
+            bulkUpdatingModels={bulkUpdatingModels}
           />
 
           {/* Pagination */}
@@ -616,69 +624,6 @@ export const DataManagementPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Professional Floating Action Bar */}
-      {(selectedBrands.size > 0 || selectedModels.size > 0) && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-bottom duration-300">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center gap-4 min-w-[400px]">
-            {/* Selection Info */}
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                  {selectedBrands.size + selectedModels.size}
-                </span>
-              </div>
-              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                {selectedBrands.size > 0 && selectedModels.size > 0
-                  ? `${selectedBrands.size} brands, ${selectedModels.size} models selected`
-                  : selectedBrands.size > 0
-                  ? `${selectedBrands.size} ${selectedBrands.size === 1 ? 'brand' : 'brands'} selected`
-                  : `${selectedModels.size} ${selectedModels.size === 1 ? 'model' : 'models'} selected`
-                }
-              </span>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 ml-auto">
-              {/* Clear Selection */}
-              <button
-                onClick={() => {
-                  setSelectedBrands(new Set());
-                  setSelectedModels(new Set());
-                }}
-                className="px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm font-medium"
-              >
-                Clear
-              </button>
-
-              {/* Activate Button */}
-              <button
-                onClick={() => {
-                  if (selectedBrands.size > 0) bulkUpdateBrands(true);
-                  if (selectedModels.size > 0) bulkUpdateModels(true);
-                }}
-                disabled={bulkUpdatingBrands || bulkUpdatingModels}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FiRefreshCw className={`w-4 h-4 ${(bulkUpdatingBrands || bulkUpdatingModels) ? 'animate-spin' : ''}`} />
-                Activate
-              </button>
-
-              {/* Deactivate Button */}
-              <button
-                onClick={() => {
-                  if (selectedBrands.size > 0) bulkUpdateBrands(false);
-                  if (selectedModels.size > 0) bulkUpdateModels(false);
-                }}
-                disabled={bulkUpdatingBrands || bulkUpdatingModels}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FiX className="w-4 h-4" />
-                Deactivate
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -698,13 +643,13 @@ const StatCard: React.FC<{
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+    <div className="bg-white dark:bg-gray-800 rounded p-3 border border-gray-200 dark:border-gray-700">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{value.toLocaleString()}</p>
+          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">{title}</p>
+          <p className="text-lg font-bold text-gray-900 dark:text-white">{value.toLocaleString()}</p>
         </div>
-        <Icon className={`w-8 h-8 ${colorClasses[color]}`} />
+        <Icon className={`w-5 h-5 ${colorClasses[color]}`} />
       </div>
     </div>
   );
@@ -874,13 +819,17 @@ const BrandsTable: React.FC<BrandsTableProps & { t: (key: string) => string }> =
   toggleBrandSelection,
   toggleAllBrands,
   isRTL,
-  t
+  t,
+  bulkUpdateBrands,
+  bulkUpdatingBrands
 }) => (
   <div className="overflow-x-auto">
-    <table className="w-full">
+    <table className="w-full text-sm">
       <thead>
-        <tr className="border-b border-gray-200 dark:border-gray-600">
-          <th className="py-3 px-4">
+        <tr className={`border-b border-gray-200 dark:border-gray-600 transition-colors duration-200 ${
+          selectedBrands.size > 0 ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+        }`}>
+          <th className="py-2 px-3 h-[40px] w-12">
             <input
               type="checkbox"
               checked={selectedBrands.size === brands.length && brands.length > 0}
@@ -888,21 +837,67 @@ const BrandsTable: React.FC<BrandsTableProps & { t: (key: string) => string }> =
               className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
           </th>
-          <th className={`${isRTL ? 'text-right' : 'text-left'} py-3 px-4 font-medium text-gray-900 dark:text-white`}>
-            {t('datamanagement:name')}
-          </th>
-          <th className={`${isRTL ? 'text-right' : 'text-left'} py-3 px-4 font-medium text-gray-900 dark:text-white`}>
-            {t('datamanagement:displayNameEn')}
-          </th>
-          <th className={`${isRTL ? 'text-right' : 'text-left'} py-3 px-4 font-medium text-gray-900 dark:text-white`}>
-            {t('datamanagement:displayNameAr')}
-          </th>
-          <th className={`${isRTL ? 'text-right' : 'text-left'} py-3 px-4 font-medium text-gray-900 dark:text-white`}>
-            {t('datamanagement:status')}
-          </th>
-          <th className={`${isRTL ? 'text-right' : 'text-left'} py-3 px-4 font-medium text-gray-900 dark:text-white`}>
-            {t('datamanagement:actions')}
-          </th>
+          {selectedBrands.size > 0 ? (
+            <th colSpan={5} className="py-2 px-4 h-[40px]">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                      <span className="text-[10px] font-bold text-white">{selectedBrands.size}</span>
+                    </div>
+                    <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                      {selectedBrands.size === 1 ? 'brand' : 'brands'} selected
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      toggleAllBrands();
+                    }}
+                    className="px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  >
+                    Clear selection
+                  </button>
+                  <div className="h-6 border-l border-gray-300 dark:border-gray-600"></div>
+                  <button
+                    onClick={() => bulkUpdateBrands(true)}
+                    disabled={bulkUpdatingBrands}
+                    className="flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiRefreshCw className={`w-3 h-3 ${bulkUpdatingBrands ? 'animate-spin' : ''}`} />
+                    Activate
+                  </button>
+                  <button
+                    onClick={() => bulkUpdateBrands(false)}
+                    disabled={bulkUpdatingBrands}
+                    className="flex items-center gap-1 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiX className="w-3 h-3" />
+                    Deactivate
+                  </button>
+                </div>
+              </div>
+            </th>
+          ) : (
+            <>
+              <th className={`${isRTL ? 'text-right' : 'text-left'} py-2 px-3 font-medium text-gray-900 dark:text-white h-[40px]`}>
+                {t('datamanagement:name')}
+              </th>
+              <th className={`${isRTL ? 'text-right' : 'text-left'} py-2 px-3 font-medium text-gray-900 dark:text-white h-[40px]`}>
+                {t('datamanagement:displayNameEn')}
+              </th>
+              <th className={`${isRTL ? 'text-right' : 'text-left'} py-2 px-3 font-medium text-gray-900 dark:text-white h-[40px]`}>
+                {t('datamanagement:displayNameAr')}
+              </th>
+              <th className={`${isRTL ? 'text-right' : 'text-left'} py-2 px-3 font-medium text-gray-900 dark:text-white h-[40px]`}>
+                {t('datamanagement:status')}
+              </th>
+              <th className={`${isRTL ? 'text-right' : 'text-left'} py-2 px-3 font-medium text-gray-900 dark:text-white h-[40px]`}>
+                {t('datamanagement:actions')}
+              </th>
+            </>
+          )}
         </tr>
       </thead>
       <tbody>
@@ -934,13 +929,17 @@ const ModelsTable: React.FC<ModelsTableProps & { t: (key: string) => string }> =
   toggleModelSelection,
   toggleAllModels,
   isRTL,
-  t
+  t,
+  bulkUpdateModels,
+  bulkUpdatingModels
 }) => (
   <div className="overflow-x-auto">
-    <table className="w-full">
+    <table className="w-full text-sm">
       <thead>
-        <tr className="border-b border-gray-200 dark:border-gray-600">
-          <th className="py-3 px-4">
+        <tr className={`border-b border-gray-200 dark:border-gray-600 transition-colors duration-200 ${
+          selectedModels.size > 0 ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+        }`}>
+          <th className="py-2 px-3 h-[40px] w-12">
             <input
               type="checkbox"
               checked={selectedModels.size === models.length && models.length > 0}
@@ -948,24 +947,70 @@ const ModelsTable: React.FC<ModelsTableProps & { t: (key: string) => string }> =
               className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
           </th>
-          <th className={`${isRTL ? 'text-right' : 'text-left'} py-3 px-4 font-medium text-gray-900 dark:text-white`}>
-            {t('datamanagement:brand')}
-          </th>
-          <th className={`${isRTL ? 'text-right' : 'text-left'} py-3 px-4 font-medium text-gray-900 dark:text-white`}>
-            {t('datamanagement:name')}
-          </th>
-          <th className={`${isRTL ? 'text-right' : 'text-left'} py-3 px-4 font-medium text-gray-900 dark:text-white`}>
-            {t('datamanagement:displayNameEn')}
-          </th>
-          <th className={`${isRTL ? 'text-right' : 'text-left'} py-3 px-4 font-medium text-gray-900 dark:text-white`}>
-            {t('datamanagement:displayNameAr')}
-          </th>
-          <th className={`${isRTL ? 'text-right' : 'text-left'} py-3 px-4 font-medium text-gray-900 dark:text-white`}>
-            {t('datamanagement:status')}
-          </th>
-          <th className={`${isRTL ? 'text-right' : 'text-left'} py-3 px-4 font-medium text-gray-900 dark:text-white`}>
-            {t('datamanagement:actions')}
-          </th>
+          {selectedModels.size > 0 ? (
+            <th colSpan={6} className="py-2 px-4 h-[40px]">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                      <span className="text-[10px] font-bold text-white">{selectedModels.size}</span>
+                    </div>
+                    <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                      {selectedModels.size === 1 ? 'model' : 'models'} selected
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      toggleAllModels();
+                    }}
+                    className="px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  >
+                    Clear selection
+                  </button>
+                  <div className="h-6 border-l border-gray-300 dark:border-gray-600"></div>
+                  <button
+                    onClick={() => bulkUpdateModels(true)}
+                    disabled={bulkUpdatingModels}
+                    className="flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiRefreshCw className={`w-3 h-3 ${bulkUpdatingModels ? 'animate-spin' : ''}`} />
+                    Activate
+                  </button>
+                  <button
+                    onClick={() => bulkUpdateModels(false)}
+                    disabled={bulkUpdatingModels}
+                    className="flex items-center gap-1 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiX className="w-3 h-3" />
+                    Deactivate
+                  </button>
+                </div>
+              </div>
+            </th>
+          ) : (
+            <>
+              <th className={`${isRTL ? 'text-right' : 'text-left'} py-2 px-3 font-medium text-gray-900 dark:text-white h-[40px]`}>
+                {t('datamanagement:brand')}
+              </th>
+              <th className={`${isRTL ? 'text-right' : 'text-left'} py-2 px-3 font-medium text-gray-900 dark:text-white h-[40px]`}>
+                {t('datamanagement:name')}
+              </th>
+              <th className={`${isRTL ? 'text-right' : 'text-left'} py-2 px-3 font-medium text-gray-900 dark:text-white h-[40px]`}>
+                {t('datamanagement:displayNameEn')}
+              </th>
+              <th className={`${isRTL ? 'text-right' : 'text-left'} py-2 px-3 font-medium text-gray-900 dark:text-white h-[40px]`}>
+                {t('datamanagement:displayNameAr')}
+              </th>
+              <th className={`${isRTL ? 'text-right' : 'text-left'} py-2 px-3 font-medium text-gray-900 dark:text-white h-[40px]`}>
+                {t('datamanagement:status')}
+              </th>
+              <th className={`${isRTL ? 'text-right' : 'text-left'} py-2 px-3 font-medium text-gray-900 dark:text-white h-[40px]`}>
+                {t('datamanagement:actions')}
+              </th>
+            </>
+          )}
         </tr>
       </thead>
       <tbody>
@@ -1095,7 +1140,7 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
   if (isEditing) {
     return (
       <tr className="border-b border-gray-100 dark:border-gray-700">
-        <td className="py-3 px-4">
+        <td className="py-2 px-3">
           <input
             type="checkbox"
             checked={isSelected}
@@ -1103,7 +1148,7 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
             className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
           />
         </td>
-        <td className="py-3 px-4">
+        <td className="py-2 px-3">
           <input
             type="text"
             value={editData.name}
@@ -1111,7 +1156,7 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
             className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
           />
         </td>
-        <td className="py-3 px-4">
+        <td className="py-2 px-3">
           <input
             type="text"
             value={editData.displayNameEn}
@@ -1119,7 +1164,7 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
             className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
           />
         </td>
-        <td className="py-3 px-4">
+        <td className="py-2 px-3">
           <input
             type="text"
             value={editData.displayNameAr}
@@ -1127,7 +1172,7 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
             className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
           />
         </td>
-        <td className="py-3 px-4">
+        <td className="py-2 px-3">
           <select
             value={editData.isActive ? 'true' : 'false'}
             onChange={(e) => setEditData({...editData, isActive: e.target.value === 'true'})}
@@ -1137,7 +1182,7 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
             <option value="false">{t('datamanagement:inactive')}</option>
           </select>
         </td>
-        <td className="py-3 px-4">
+        <td className="py-2 px-3">
           <div className="flex gap-2">
             <button
               onClick={handleSave}
@@ -1159,7 +1204,7 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
 
   return (
     <tr className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-      <td className="py-3 px-4">
+      <td className="py-2 px-3">
         <input
           type="checkbox"
           checked={isSelected}
@@ -1167,10 +1212,10 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
           className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
         />
       </td>
-      <td className="py-3 px-4 text-gray-900 dark:text-white text-sm">{brand.name}</td>
-      <td className="py-3 px-4 text-gray-900 dark:text-white text-sm">{brand.displayNameEn}</td>
-      <td className="py-3 px-4 text-gray-900 dark:text-white text-sm">{brand.displayNameAr}</td>
-      <td className="py-3 px-4">
+      <td className="py-2 px-3 text-gray-900 dark:text-white text-sm">{brand.name}</td>
+      <td className="py-2 px-3 text-gray-900 dark:text-white text-sm">{brand.displayNameEn}</td>
+      <td className="py-2 px-3 text-gray-900 dark:text-white text-sm">{brand.displayNameAr}</td>
+      <td className="py-2 px-3">
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
           brand.isActive 
             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -1179,7 +1224,7 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
           {brand.isActive ? t('datamanagement:active') : t('datamanagement:inactive')}
         </span>
       </td>
-      <td className="py-3 px-4">
+      <td className="py-2 px-3">
         <button
           onClick={onEdit}
           className="p-1 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900 rounded"
@@ -1218,7 +1263,7 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
   if (isEditing) {
     return (
       <tr className="border-b border-gray-100 dark:border-gray-700">
-        <td className="py-3 px-4">
+        <td className="py-2 px-3">
           <input
             type="checkbox"
             checked={isSelected}
@@ -1226,7 +1271,7 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
             className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
           />
         </td>
-        <td className="py-3 px-4">
+        <td className="py-2 px-3">
           <select
             value={editData.brandId}
             onChange={(e) => setEditData({...editData, brandId: parseInt(e.target.value)})}
@@ -1239,7 +1284,7 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
             ))}
           </select>
         </td>
-        <td className="py-3 px-4">
+        <td className="py-2 px-3">
           <input
             type="text"
             value={editData.name}
@@ -1247,7 +1292,7 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
             className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
           />
         </td>
-        <td className="py-3 px-4">
+        <td className="py-2 px-3">
           <input
             type="text"
             value={editData.displayNameEn}
@@ -1255,7 +1300,7 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
             className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
           />
         </td>
-        <td className="py-3 px-4">
+        <td className="py-2 px-3">
           <input
             type="text"
             value={editData.displayNameAr}
@@ -1263,7 +1308,7 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
             className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
           />
         </td>
-        <td className="py-3 px-4">
+        <td className="py-2 px-3">
           <select
             value={editData.isActive ? 'true' : 'false'}
             onChange={(e) => setEditData({...editData, isActive: e.target.value === 'true'})}
@@ -1273,7 +1318,7 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
             <option value="false">{t('datamanagement:inactive')}</option>
           </select>
         </td>
-        <td className="py-3 px-4">
+        <td className="py-2 px-3">
           <div className="flex gap-2">
             <button
               onClick={handleSave}
@@ -1295,7 +1340,7 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
 
   return (
     <tr className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-      <td className="py-3 px-4">
+      <td className="py-2 px-3">
         <input
           type="checkbox"
           checked={isSelected}
@@ -1303,13 +1348,13 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
           className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
         />
       </td>
-      <td className="py-3 px-4 text-gray-900 dark:text-white text-sm">
+      <td className="py-2 px-3 text-gray-900 dark:text-white text-sm">
         {model.brand?.displayNameEn || 'Unknown Brand'}
       </td>
-      <td className="py-3 px-4 text-gray-900 dark:text-white text-sm">{model.name}</td>
-      <td className="py-3 px-4 text-gray-900 dark:text-white text-sm">{model.displayNameEn}</td>
-      <td className="py-3 px-4 text-gray-900 dark:text-white text-sm">{model.displayNameAr}</td>
-      <td className="py-3 px-4">
+      <td className="py-2 px-3 text-gray-900 dark:text-white text-sm">{model.name}</td>
+      <td className="py-2 px-3 text-gray-900 dark:text-white text-sm">{model.displayNameEn}</td>
+      <td className="py-2 px-3 text-gray-900 dark:text-white text-sm">{model.displayNameAr}</td>
+      <td className="py-2 px-3">
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
           model.isActive 
             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -1318,7 +1363,7 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
           {model.isActive ? t('datamanagement:active') : t('datamanagement:inactive')}
         </span>
       </td>
-      <td className="py-3 px-4">
+      <td className="py-2 px-3">
         <button
           onClick={onEdit}
           className="p-1 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900 rounded"
