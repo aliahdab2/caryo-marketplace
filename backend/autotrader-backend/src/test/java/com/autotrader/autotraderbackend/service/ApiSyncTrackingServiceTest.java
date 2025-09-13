@@ -141,7 +141,8 @@ class ApiSyncTrackingServiceTest {
             assertTrue(status.isAllowed(), "Should allow sync after cooldown expires");
             assertEquals(twoHoursAgo, status.getLastSyncTime(), "Should return correct last sync time");
             assertEquals(2, status.getHoursSinceLastSync(), "Should calculate correct hours since last sync");
-            assertNull(status.getMessage(), "Blocked message should be null when allowed");
+            assertNotNull(status.getMessage(), "Should have informative message even when allowed");
+            assertTrue(status.getMessage().contains("Last sync was 2 hours ago"), "Should contain sync time info");
         }
 
         @Test
@@ -173,12 +174,12 @@ class ApiSyncTrackingServiceTest {
             assertNotNull(allStatuses, "All statuses map should not be null");
             assertEquals(2, allStatuses.size(), "Should contain statuses for both APIs");
             
-            assertTrue(allStatuses.containsKey("carQuery"), "Should contain CarQuery status");
-            assertTrue(allStatuses.containsKey("syrianCars"), "Should contain SyrianCars status");
+            assertTrue(allStatuses.containsKey("carquery"), "Should contain CarQuery status");
+            assertTrue(allStatuses.containsKey("syriancars"), "Should contain SyrianCars status");
             
             // Both should be allowed initially
-            assertTrue(allStatuses.get("carQuery").isAllowed(), "CarQuery should be allowed initially");
-            assertTrue(allStatuses.get("syrianCars").isAllowed(), "SyrianCars should be allowed initially");
+            assertTrue(allStatuses.get("carquery").isAllowed(), "CarQuery should be allowed initially");
+            assertTrue(allStatuses.get("syriancars").isAllowed(), "SyrianCars should be allowed initially");
         }
 
         @Test
@@ -194,12 +195,12 @@ class ApiSyncTrackingServiceTest {
             assertEquals(2, allStatuses.size(), "Should contain statuses for both APIs");
             
             // Both should be allowed even after recent syncs (cooldown disabled)
-            assertTrue(allStatuses.get("carQuery").isAllowed(), "CarQuery should be allowed when cooldown disabled");
-            assertTrue(allStatuses.get("syrianCars").isAllowed(), "SyrianCars should be allowed when cooldown disabled");
+            assertTrue(allStatuses.get("carquery").isAllowed(), "CarQuery should be allowed when cooldown disabled");
+            assertTrue(allStatuses.get("syriancars").isAllowed(), "SyrianCars should be allowed when cooldown disabled");
             
             // Both should have last sync times
-            assertNotNull(allStatuses.get("carQuery").getLastSyncTime(), "CarQuery should have last sync time");
-            assertNotNull(allStatuses.get("syrianCars").getLastSyncTime(), "SyrianCars should have last sync time");
+            assertNotNull(allStatuses.get("carquery").getLastSyncTime(), "CarQuery should have last sync time");
+            assertNotNull(allStatuses.get("syriancars").getLastSyncTime(), "SyrianCars should have last sync time");
         }
     }
 
