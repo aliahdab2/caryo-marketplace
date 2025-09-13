@@ -105,5 +105,6 @@
   "displayNameAr": "Arabic Name", 
   "actions": "Actions",
   "addNewBrand": "Add New Brand",
-  "brandName": "Brand Name"
+  "brandName": "Brand Name",
+  "updateSuccess": "Updated successfully"
 }

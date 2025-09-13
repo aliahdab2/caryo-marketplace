@@ -210,14 +210,26 @@ public class CarModelService {
         model.setName(modelDetails.getName());
         model.setDisplayNameEn(modelDetails.getDisplayNameEn());
         model.setDisplayNameAr(modelDetails.getDisplayNameAr());
+        
+        // If brand has changed, validate and set the new brand first
+        CarBrand targetBrand = model.getBrand(); // Default to current brand
+        if (!model.getBrand().getId().equals(modelDetails.getBrand().getId())) {
+            targetBrand = carBrandService.getBrandById(modelDetails.getBrand().getId());
+            model.setBrand(targetBrand);
+        }
+        
+        // Smart activation: If model is being activated, ensure parent brand is also active
+        if (modelDetails.getIsActive() && !model.getIsActive()) {
+            if (!targetBrand.getIsActive()) {
+                log.info("Auto-activating parent brand '{}' because model '{}' is being activated", 
+                        targetBrand.getDisplayNameEn(), model.getDisplayNameEn());
+                targetBrand.setIsActive(true);
+                carBrandService.updateBrand(targetBrand.getId(), targetBrand);
+            }
+        }
+        
         model.setIsActive(modelDetails.getIsActive());
         // Don't update slug as it should be immutable for URL stability
-        
-        // If brand has changed, validate the new brand
-        if (!model.getBrand().getId().equals(modelDetails.getBrand().getId())) {
-            CarBrand newBrand = carBrandService.getBrandById(modelDetails.getBrand().getId());
-            model.setBrand(newBrand);
-        }
         
         log.info("Updated car model with id: {}", id);
         return carModelRepository.save(model);

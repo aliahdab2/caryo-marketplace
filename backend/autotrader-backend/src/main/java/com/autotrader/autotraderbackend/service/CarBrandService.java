@@ -155,6 +155,13 @@ public class CarBrandService {
     public CarBrand updateBrand(Long id, CarBrand brandDetails) {
         CarBrand brand = getBrandById(id);
         
+        // Validation: Warn if trying to deactivate a brand that has active models
+        if (!brandDetails.getIsActive() && brand.getIsActive()) {
+            // Check if brand has active models (we'll need to inject CarModelService for this)
+            log.warn("Attempting to deactivate brand '{}' - this may hide active models from users", 
+                    brand.getDisplayNameEn());
+        }
+        
         brand.setName(brandDetails.getName());
         brand.setDisplayNameEn(brandDetails.getDisplayNameEn());
         brand.setDisplayNameAr(brandDetails.getDisplayNameAr());
